@@ -46,12 +46,13 @@ def main():
     #for i in range (885, 887):
     #    checkTx(i)
     #    confirmWithMS(i)
-
+    checkTx(946)
+    confirmWithMS(946)
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
 
-    vestingAddress = "0x9768eF9F59b030E98f12B2B4C859E5eCbC016633"
-    fourYearVesting = Contract.from_abi("FourYearVestingLogic", address=vestingAddress, abi=FourYearVestingLogic.abi, owner=conf.acct)
+    #vestingAddress = "0x9768eF9F59b030E98f12B2B4C859E5eCbC016633"
+    #fourYearVesting = Contract.from_abi("FourYearVestingLogic", address=vestingAddress, abi=FourYearVestingLogic.abi, owner=conf.acct)
 
     '''
     stakingAddress = conf.contracts['Staking']
