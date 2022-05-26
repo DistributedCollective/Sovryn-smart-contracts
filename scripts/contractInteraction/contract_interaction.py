@@ -56,6 +56,7 @@ def main():
 
     # # loan token
     # transferBeaconOwnershipToGovernance()
+    # transferLoanTokenAdminRoleToGovernance()
     # transferLoanTokenOwnershipToGovernance()
 
     # # oracles
