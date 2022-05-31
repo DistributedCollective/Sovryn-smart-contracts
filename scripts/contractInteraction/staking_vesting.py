@@ -332,6 +332,32 @@ def governanceWithdrawVesting( vesting,  receiver):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
+def transferStakingOwnershipToGovernance():
+    print("Add staking admin for address: ", conf.contracts['TimelockAdmin'])
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = staking.addAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+def transferStakingRewardsOwnershipToGovernance():
+    print("Transferring StakingRewards ownership to: ", conf.contracts['TimelockAdmin'])
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+    data = stakingRewards.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], stakingRewards.address, data, conf.acct)
+
+def transferVestingRegistryOwnershipToGovernance():
+    # add governor admin as admin
+    print("Add Vesting Registry admin for address: ", conf.contracts['TimelockAdmin'])
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    data = vestingRegistry.addAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+    '''
+    # add Exchequer admin as admin
+    print("Add Vesting Registry admin for multisig: ", conf.contracts['multisig'])
+    data = vestingRegistry.addAdmin.encode_input(conf.contracts['multisig'])
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+    '''
+
 def getStakedBalance(account):
     stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
     bal = stakingProxy.balanceOf(account)

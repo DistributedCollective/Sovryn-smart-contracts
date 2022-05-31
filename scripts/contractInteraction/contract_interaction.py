@@ -53,7 +53,39 @@ def main():
 
     #transferRBTCFromFastBTCOffRampToOnRamp(15e18)
 
+    #missed = getMissedBalance()
+    #transferSOVtoLM(missed)
+
     #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 100000e18)
     #sendTokensFromMultisig(conf.contracts['USDT'], conf.contracts['Watcher'], 100000e18)
+
+
+    # # ---------- Transfer ownership to gov ----------
+    # # core protocol
+    # transferProtocolOwnershipToGovernance()
+
+    # # loan token
+    # transferBeaconOwnershipToGovernance()
+    # transferLoanTokenAdminRoleToGovernance()
+    # transferLoanTokenOwnershipToGovernance()
+
+    # # oracles
+    # transferOracleOwnershipToGovernance()
+
+    # # LM
+    # transferLiquidityMiningOwnershipToGovernance()
+
+    # # Governance
+    # # lockedSOV
+    # transferLockedSOVOwnershipToGovernance()
+
+    # # Staking
+    # transferStakingOwnershipToGovernance()
+
+    # # StakingRewards
+    # transferStakingRewardsOwnershipToGovernance()
+
+    # # VestingRegistry
+    # transferVestingRegistryOwnershipToGovernance()
 
    
