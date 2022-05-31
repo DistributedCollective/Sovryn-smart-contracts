@@ -31,4 +31,9 @@ interface ILockedSOV {
      * @param _userAddress The address of user tokens will be withdrawn.
      */
     function withdrawAndStakeTokensFrom(address _userAddress) external;
+
+    /**
+     * @notice Returns the SOV address this contract is interacting with
+     */
+    function SOV() external view returns (address);
 }
