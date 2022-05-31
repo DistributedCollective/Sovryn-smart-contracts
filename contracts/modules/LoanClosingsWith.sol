@@ -149,13 +149,13 @@ contract LoanClosingsWith is LoanClosingsShared {
             ? loanLocal.principal
             : depositAmount;
 
-        //close whole loan if tiny position will remain
+        //revert if tiny position remains
         uint256 remainingAmount = loanLocal.principal - loanCloseAmount;
         if (remainingAmount > 0) {
-            remainingAmount = _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
-            if (remainingAmount <= TINY_AMOUNT) {
-                revert("Tiny position will remain");
-            }
+            require(
+                _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount) > TINY_AMOUNT,
+                "Tiny amount when closing with deposit"
+            );
         }
 
         uint256 loanCloseAmountLessInterest =

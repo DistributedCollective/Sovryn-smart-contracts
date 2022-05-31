@@ -138,7 +138,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
                     sovryn.closeWithDeposit(loan_id, receiver, deposit_amount, {
                         from: borrower,
                     }),
-                    "Tiny position will remain"
+                    "Tiny amount when closing with deposit"
                 );
                 return;
             }
