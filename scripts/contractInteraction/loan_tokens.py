@@ -95,7 +95,7 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
         conf.acct,  # trader,
         0, # slippage
         b'',  # loanDataBytes (only required with ether)
-        {'value': sendValue, 'allow_revert': True}
+        {'value': sendValue}#, 'allow_revert': True
     )
     tx.info()
     loanId = tx.events['Trade']['loanId']

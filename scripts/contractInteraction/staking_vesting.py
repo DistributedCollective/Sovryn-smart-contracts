@@ -357,3 +357,9 @@ def transferVestingRegistryOwnershipToGovernance():
     data = vestingRegistry.addAdmin.encode_input(conf.contracts['multisig'])
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
     '''
+
+def getStakedBalance(account):
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    bal = stakingProxy.balanceOf(account)
+    print(bal)
+    return bal
