@@ -1284,7 +1284,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     ) internal returns (uint256 msgValue) {
         address _wrbtcToken = wrbtcTokenAddress;
         address _loanTokenAddress = loanTokenAddress;
-        address receiver = sentAddresses.receiver;
         uint256 newPrincipal = sentAmounts.newPrincipal;
         uint256 loanTokenSent = sentAmounts.loanTokenSent;
         uint256 collateralTokenSent = sentAmounts.collateralTokenSent;
@@ -1295,7 +1294,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
         if (withdrawalAmount != 0) {
             /// withdrawOnOpen == true
-            _safeTransfer(_loanTokenAddress, receiver, withdrawalAmount, "");
+            _safeTransfer(_loanTokenAddress, sentAddresses.receiver, withdrawalAmount, "");
             if (newPrincipal > withdrawalAmount) {
                 _safeTransfer(
                     _loanTokenAddress,
