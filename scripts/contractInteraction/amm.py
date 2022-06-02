@@ -321,3 +321,8 @@ def printConverterRegistryData():
     print("converters qty:", len(converters))
     for i in range (0, len(converters)):
         printV1ConverterData(converters[i])
+
+def delistConverterFromConverterRegistry(converterAddress):
+    abiFile =  open('./scripts/contractInteraction/ABIs/ConverterRegistry.json')
+    abi = json.load(abiFile)
+    converterRegistry = Contract.from_abi("ConverterRegistry", address=conf.contracts["ConverterRegistry"], abi=abi, owner=conf.acct)
