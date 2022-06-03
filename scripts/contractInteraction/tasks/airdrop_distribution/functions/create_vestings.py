@@ -91,10 +91,10 @@ def createVestings(path, dryRun, multiplier):
 
     print("=======================================")
     print("SOV amount:")
-    print(totalAmount / 1e18)
+    print(totalAmount / 10**18)
 
     print("deployment cost:")
-    print((balanceBefore - conf.acct.balance()) / 1e18)
+    print((balanceBefore - conf.acct.balance()) / 10**18)
 
 
 def parseFile(fileName, multiplier):

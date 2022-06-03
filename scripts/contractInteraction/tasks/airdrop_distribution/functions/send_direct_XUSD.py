@@ -25,10 +25,10 @@ def sendDirectXUSD(path, dryRun, multiplier):
     # 282.05, 564.10, 641.03
     print("=======================================")
     print("XUSD amount:")
-    print(totalAmount / 1e18)
+    print(totalAmount / 10**18)
 
     print("deployment cost:")
-    print((balanceBefore - conf.acct.balance()) / 1e18)
+    print((balanceBefore - conf.acct.balance()) / 10**18)
 
 
 def parseFile(fileName, multiplier):
