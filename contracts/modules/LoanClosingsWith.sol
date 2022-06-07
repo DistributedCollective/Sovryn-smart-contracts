@@ -28,6 +28,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         address prevModuleContractAddress = logicTargets[this.closeWithDeposit.selector];
         _setTarget(this.closeWithDeposit.selector, target);
         _setTarget(this.closeWithSwap.selector, target);
+        _setTarget(this.checkCloseWithDepositIsTinyPosition.selector, target);
         emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsWith");
     }
 
@@ -190,5 +191,34 @@ contract LoanClosingsWith is LoanClosingsShared {
             0, /// collateralToLoanSwapRate
             CloseTypes.Deposit
         );
+    }
+
+    /**
+     * @notice Function to check whether the given loanId & deposit amount when closing with deposit will cause the tiny position
+     *
+     * @param loanId The id of the loan.
+     * @param depositAmount Defines how much the deposit amount to close the position.
+     *
+     * @return isTinyPosition true is indicating tiny position, false otherwise.
+     * @return tinyPositionAmount will return 0 for non tiny position, and will return the amount of tiny position if true
+     */
+    function checkCloseWithDepositIsTinyPosition(bytes32 loanId, uint256 depositAmount)
+        external
+        view
+        returns (bool isTinyPosition, uint256 tinyPositionAmount)
+    {
+        (Loan memory loanLocal, LoanParams memory loanParamsLocal) = _checkLoan(loanId);
+
+        if (depositAmount < loanLocal.principal) {
+            uint256 remainingAmount = loanLocal.principal - depositAmount;
+            uint256 remainingRBTCAmount =
+                _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
+            if (remainingRBTCAmount < TINY_AMOUNT) {
+                isTinyPosition = true;
+                tinyPositionAmount = remainingRBTCAmount;
+            }
+        }
+
+        return (isTinyPosition, tinyPositionAmount);
     }
 }
