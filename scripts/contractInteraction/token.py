@@ -54,6 +54,9 @@ def sendMYNTFromMultisigToFeeSharingProxy(amount):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     token = Contract.from_abi("MYNT", address=conf.contracts['MYNT'], abi=ERC20.abi, owner=conf.acct)
     if(token.allowance(multisig.address, feeSharingProxy.address) < amount):
+        myntBalance = getBalanceOf(conf.contracts['MYNT'], conf.contracts['multisig'])
+        if(myntBalance < amount):
+            print('⚠️ ALERT! Multisig does not have enough MYNT balance to transfer to FeeSharingProxy: need ', amount - myntBalance)
         print('Approving MYNT for FeeSharingProxy: ', amount)
         tokenApproveFromMS(conf.contracts["MYNT"], feeSharingProxy, amount)
     data = feeSharingProxy.transferTokens.encode_input(conf.contracts['MYNT'], amount)
