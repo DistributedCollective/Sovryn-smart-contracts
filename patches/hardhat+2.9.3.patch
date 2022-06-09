@@ -1,39 +1,42 @@
 diff --git a/node_modules/hardhat/internal/hardhat-network/jsonrpc/client.js b/node_modules/hardhat/internal/hardhat-network/jsonrpc/client.js
-index ab51b5a..9328216 100644
+index ab51b5a..3d0e9bb 100644
 --- a/node_modules/hardhat/internal/hardhat-network/jsonrpc/client.js
 +++ b/node_modules/hardhat/internal/hardhat-network/jsonrpc/client.js
-@@ -141,6 +141,49 @@ class JsonRpcClient {
+@@ -141,6 +141,60 @@ class JsonRpcClient {
              reward: (0, io_ts_1.optional)(t.array(t.array(base_types_1.rpcQuantity))),
          }), (res) => res.oldestBlock.addn(res.baseFeePerGas.length));
      }
-+    addMissingTxParams(method, rawResult) {
-+        /*
-+         * Calling a forked node (hardhat node --fork MY_RSK_NODE_RPC_URL) fails with:
-+         * eth_call
-+         * Invalid JSON-RPC response's result.
-+         * Errors: Invalid value null supplied to : RpcBlockWithTransactions | null/transactions:
-+         * RpcTransaction Array/0: RpcTransaction/v: QUANTITY, Invalid value null supplied to :
-+         * RpcBlockWithTransactions | null/transactions: RpcTransaction Array/0: RpcTransaction/r:
-+         * QUANTITY, Invalid value null supplied to : RpcBlockWithTransactions | null/transactions:
-+         * RpcTransaction Array/0: RpcTransaction/s: QUANTITY
-+         *
-+         * This patch is based on:
-+         * https://gist.github.com/0x0scion/0422f9135bc37642ba36d55b59e8b424
-+         *
-+         * More reading:
-+         * https://github.com/NomicFoundation/hardhat/issues/2395
-+         * https://github.com/NomicFoundation/hardhat/pull/2313/files
-+         * https://github.com/NomicFoundation/hardhat/issues/2106
++    _patchRawResult(method, rawResult) {
++        /**
++         * Patch the raw results returned by _send or _sendBatch to fix RSK/Hardhat compatibility issues.
 +         */
 +        if (
 +            method.startsWith('eth_getBlock') &&
 +            rawResult &&
-+            rawResult.transactions && rawResult.transactions.length
++            rawResult.transactions?.length
 +        ) {
++            /*
++             * Calling a forked node (hardhat node --fork MY_RSK_NODE_RPC_URL) fails with:
++             * eth_call
++             * Invalid JSON-RPC response's result.
++             * Errors: Invalid value null supplied to : RpcBlockWithTransactions | null/transactions:
++             * RpcTransaction Array/0: RpcTransaction/v: QUANTITY, Invalid value null supplied to :
++             * RpcBlockWithTransactions | null/transactions: RpcTransaction Array/0: RpcTransaction/r:
++             * QUANTITY, Invalid value null supplied to : RpcBlockWithTransactions | null/transactions:
++             * RpcTransaction Array/0: RpcTransaction/s: QUANTITY
++             *
++             * This patch is based on:
++             * https://gist.github.com/0x0scion/0422f9135bc37642ba36d55b59e8b424
++             *
++             * More reading:
++             * https://github.com/NomicFoundation/hardhat/issues/2395
++             * https://github.com/NomicFoundation/hardhat/pull/2313/files
++             * https://github.com/NomicFoundation/hardhat/issues/2106
++             */
 +            rawResult.transactions.forEach((t) => {
 +                // Accesslist is sometimes missing, for other networks and maybe for RSK too
 +                if (!t.accessList) t.accessList = [];
-+                // Some RSK txs (Maybe the REMASC txs?) have null vrs
++                // Some RSK txs have null vrs
 +                //       from: '0x0000000000000000000000000000000000000000',
 +                //       to: '0x0000000000000000000000000000000001000008',
 +                //       gas: '0x0',
@@ -47,26 +50,36 @@ index ab51b5a..9328216 100644
 +                if (!t.r) t.r = '0x0';
 +                if (!t.s) t.s = '0x0';
 +            });
++        } else if (method === 'eth_getStorageAt') {
++            /*
++             * This fixes the error in eth_getStorageAt that says 0x0 is an invalid value for DATA
++             */
++            if (rawResult === '0x0') {
++                rawResult = '0x0000000000000000000000000000000000000000000000000000000000000000';
++            }
 +        }
++        return rawResult;
 +    }
      async _perform(method, params, tType, getMaxAffectedBlockNumber) {
          const cacheKey = this._getCacheKey(method, params);
          const cachedResult = this._getFromCache(cacheKey);
-@@ -155,6 +198,7 @@ class JsonRpcClient {
+@@ -154,7 +208,8 @@ class JsonRpcClient {
+                 return diskCachedResult;
              }
          }
-         const rawResult = await this._send(method, params);
-+        this.addMissingTxParams(method, rawResult);
+-        const rawResult = await this._send(method, params);
++        let rawResult = await this._send(method, params);
++        rawResult = this._patchRawResult(method, rawResult);
          const decodedResult = (0, decodeJsonRpcResponse_1.decodeJsonRpcResponse)(rawResult, tType);
          const blockNumber = getMaxAffectedBlockNumber(decodedResult);
          if (this._canBeCached(blockNumber)) {
-@@ -183,7 +227,13 @@ class JsonRpcClient {
+@@ -183,7 +238,13 @@ class JsonRpcClient {
              }
          }
          const rawResults = await this._sendBatch(batch);
 -        const decodedResults = rawResults.map((result, i) => (0, decodeJsonRpcResponse_1.decodeJsonRpcResponse)(result, batch[i].tType));
 +        const decodedResults = rawResults.map((result, i) => {
-+            this.addMissingTxParams(batch[i].method, result);
++            result = this._patchRawResult(batch[i].method, result);
 +            return (0, decodeJsonRpcResponse_1.decodeJsonRpcResponse)(
 +                result,
 +                batch[i].tType
