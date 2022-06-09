@@ -1,0 +1,17 @@
+{
+    "30": [
+        "../contractInteraction/mainnet_contracts.json",
+        "https://mainnet.sovryn.app/rpc",
+        "./m_deployed_compiled.json"
+    ],
+    "31": [
+        "../contractInteraction/testnet_contracts.json",
+        "https://testnet.sovryn.app/rpc",
+        "./t_deployed_compiled.json"
+    ],
+    "97": [
+        "../contractInteraction/bsc_testnet_contracts.json",
+        "https://bsc.sovryn.app/testnet",
+        "./bscT_deployed_compiled.json"
+    ]
+}
