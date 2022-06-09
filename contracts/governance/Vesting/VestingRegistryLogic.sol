@@ -116,6 +116,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 cliff = 4 weeks;
         uint256 duration = 156 weeks;
         for (uint256 i = 0; i < _tokenOwners.length; i++) {
+            require(!isVesting[_vestingAddresses[i]], "vesting exists");
             require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
             require(_vestingAddresses[i] != address(0), "vesting cannot be 0 address");
             uint256 uid =
