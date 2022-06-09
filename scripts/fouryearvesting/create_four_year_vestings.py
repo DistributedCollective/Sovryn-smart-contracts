@@ -85,7 +85,7 @@ def main():
             print(stakes)
 
     #  == Transfer ownership to multisig =============================================================================================
-    fourYearVestingFactory.transferOwnership(multisig)
+    #fourYearVestingFactory.transferOwnership(multisig)
 
     print("SOV Balance After:")
     print(SOVtoken.balanceOf(acct) / 10**18)

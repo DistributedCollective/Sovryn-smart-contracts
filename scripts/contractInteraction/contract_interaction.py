@@ -37,8 +37,8 @@ def main():
     #withdrawRBTCFromWatcher(40e18, conf.contracts['FastBTC'])
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
     #withdrawTokensFromWatcher(conf.contracts['DoC'], 170000e18, conf.contracts['multisig'])
-
-    #sendTokensFromMultisig(conf.contracts['SOV'], '0xEd09C97b91e8fC6d34FDe6503f64A01a6b8684c6', 77065e18)
+    #print(conf.acct)
+    #sendTokensFromMultisig(conf.contracts['SOV'], conf.acct, 2336448e18)
     #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
 
     #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
@@ -58,11 +58,11 @@ def main():
 
     #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 100000e18)
     #sendTokensFromMultisig(conf.contracts['USDT'], conf.contracts['Watcher'], 100000e18)
-
+    '''
     vestingAddress = "0x9768eF9F59b030E98f12B2B4C859E5eCbC016633"
     fourYearVesting = Contract.from_abi("FourYearVestingLogic", address=vestingAddress, abi=FourYearVestingLogic.abi, owner=conf.acct)
 
-    '''
+    
     stakingAddress = conf.contracts['Staking']
     staking = Contract.from_abi("Staking", address=stakingAddress, abi=Staking.abi, owner=conf.acct)
     stakes = staking.getStakes(vestingAddress)
@@ -108,8 +108,9 @@ def main():
 
     #upgradeVesting()
 
+    #addVestingAdmin(conf.acct)
     #isVestingAdmin(conf.acct)
 
-    #readAllVestingContractsForAddress(conf.acct)
+    readAllVestingContractsForAddress('0x945F5A36998abfC3450d9108f8C1D34Aa18fa48E')
 
    
