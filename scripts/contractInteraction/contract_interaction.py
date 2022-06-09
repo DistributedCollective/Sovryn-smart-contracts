@@ -65,3 +65,33 @@ def main():
     #removeLiquidityV2toMultisig(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal, 1)
 
     #getReturnForV2PoolToken(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal)
+
+    # # ---------- Transfer ownership to gov ----------
+    # # core protocol
+    # transferProtocolOwnershipToGovernance()
+
+    # # loan token
+    # transferBeaconOwnershipToGovernance()
+    # transferLoanTokenAdminRoleToGovernance()
+    # transferLoanTokenOwnershipToGovernance()
+
+    # # oracles
+    # transferOracleOwnershipToGovernance()
+
+    # # LM
+    # transferLiquidityMiningOwnershipToGovernance()
+
+    # # Governance
+    # # lockedSOV
+    # transferLockedSOVOwnershipToGovernance()
+
+    # # Staking
+    # transferStakingOwnershipToGovernance()
+
+    # # StakingRewards
+    # transferStakingRewardsOwnershipToGovernance()
+
+    # # VestingRegistry
+    # transferVestingRegistryOwnershipToGovernance()
+
+   
