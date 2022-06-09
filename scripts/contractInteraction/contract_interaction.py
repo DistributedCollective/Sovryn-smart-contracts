@@ -34,26 +34,34 @@ def main():
 
     #used often:
 
-    #withdrawRBTCFromWatcher(40e18, conf.contracts['FastBTC'])
+    #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
+    #withdrawRBTCFromFastBTCBiDi(19e18, conf.contracts['multisig'])
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
     #withdrawTokensFromWatcher(conf.contracts['DoC'], 170000e18, conf.contracts['multisig'])
 
-    #sendTokensFromMultisig(conf.contracts['SOV'], '0xEd09C97b91e8fC6d34FDe6503f64A01a6b8684c6', 77065e18)
+    #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 200000e18)
     #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
 
     #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
     
     '''
-    for i in range (922, 928):
-        #confirmWithMS(i)
+    for i in range (961, 963):
+        confirmWithMS(i)
         checkTx(i)
     '''
+    #confirmWithMS(956)
+    #confirmWithMS(958)
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
 
-    #transferRBTCFromFastBTCOffRampToOnRamp(15e18)
+    #transferRBTCFromFastBTCOffRampToOnRamp(9.6e18)
 
-    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 100000e18)
-    #sendTokensFromMultisig(conf.contracts['USDT'], conf.contracts['Watcher'], 100000e18)
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DoC'], 30000e18)
+    #sendTokensFromMultisig(conf.contracts['DoC'], conf.contracts['Watcher'], 30000e18)
 
-   
+    #readMocOracleAddress()
+
+    #bal = getBalance(conf.contracts['(WR)BTC/USDT2'], conf.contracts['multisig'])
+    #removeLiquidityV2toMultisig(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal, 1)
+
+    #getReturnForV2PoolToken(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal)
