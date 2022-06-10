@@ -24,7 +24,16 @@ def readLendingFee():
 def readLoan(loanId):
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    loan = sovryn.getLoan(loanId).dict()
+    print('--------------------------------')
+    print('loan ID:', loan['loanId'])
+    print('principal:', loan['principal'] /1e18)
+    print('collateral:', loan['collateral']/1e18)
+    print('currentMargin', loan['currentMargin']/1e18)
+    print('complete object:')
     print(sovryn.getLoan(loanId).dict())
+    print('--------------------------------')
+    
 
 
 def liquidate(protocolAddress, loanId):
@@ -686,3 +695,12 @@ def readDefaultPathConversion(sourceTokenAddress, destTokenAddress):
     defaultPathConversion = sovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress)
     print(defaultPathConversion)
     return defaultPathConversion
+
+# Transferring Ownership to GOV
+def transferProtocolOwnershipToGovernance():
+    print("Transferring sovryn protocol ownserhip to: ", conf.contracts['TimelockOwner'])
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+

@@ -486,6 +486,7 @@ contract ISovryn is
 
     function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent) external;
 
+
     function getDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)
         external
         view
@@ -499,4 +500,9 @@ contract ISovryn is
 
     function removeDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)
         external;
+
+    function checkCloseWithDepositIsTinyPosition(bytes32 loanId, uint256 depositAmount)
+        external
+        view
+        returns (bool isTinyPosition, uint256 tinyPositionAmount);
 }
