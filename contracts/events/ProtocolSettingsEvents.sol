@@ -171,6 +171,7 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
     event RemoveDefaultPathConversion(
         address indexed sender,
         address indexed sourceTokenAddress,
-        address indexed destTokenAddress
+        address indexed destTokenAddress,
+        IERC20[] defaultPath
     );
 }

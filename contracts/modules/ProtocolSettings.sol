@@ -933,8 +933,10 @@ contract ProtocolSettings is
             defaultPathConversion[sourceTokenAddress][destTokenAddress].length > 0,
             "DEFAULT_PATH_EMPTY"
         );
+
+        IERC20[] memory defaultPathValue = defaultPathConversion[sourceTokenAddress][destTokenAddress];
         delete defaultPathConversion[sourceTokenAddress][destTokenAddress];
 
-        emit RemoveDefaultPathConversion(msg.sender, sourceTokenAddress, destTokenAddress);
+        emit RemoveDefaultPathConversion(msg.sender, sourceTokenAddress, destTokenAddress, defaultPathValue);
     }
 }

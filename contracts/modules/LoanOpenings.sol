@@ -70,11 +70,12 @@ contract LoanOpenings is
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
      * @param sentValues The values to send:
-     *     newRate: New loan interest rate.
+     *     interestRate: New loan interest rate.
      *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).
+     *     interestInitialAmount: New amount of interest to escrow for Torque loan (determines initial loan length).
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenReceived: Total collateralToken deposit.
+     *     collateralTokenSent: Total collateralToken deposit.
+     *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
      * @param loanDataBytes The payload for the call. These loan DataBytes are
      *   additional loan data (not in use for token swaps).
      *
@@ -317,11 +318,12 @@ contract LoanOpenings is
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
      * @param sentValues The values to send:
-     *     newRate: New loan interest rate.
+     *     interestRate: New loan interest rate.
      *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).
+     *     interestInitialAmount: New amount of interest to escrow for Torque loan (determines initial loan length).
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenReceived: Total collateralToken deposit.
+     *     collateralTokenSent: Total collateralToken deposit.
+     *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
      * @param loanDataBytes The payload for the call. These loan DataBytes are
      *   additional loan data (not in use for token swaps).
      *
@@ -386,7 +388,7 @@ contract LoanOpenings is
                 );
 
                 sentValues.collateralTokenSent = sentValues
-                    .collateralTokenSent /// collateralTokenReceived
+                    .collateralTokenSent /// collateralTokenSent
                     .sub(borrowingFee);
             }
         } else {
@@ -405,7 +407,7 @@ contract LoanOpenings is
                 loanDataBytes
             );
             sentValues.collateralTokenSent = sentValues
-                .collateralTokenSent /// collateralTokenReceived
+                .collateralTokenSent /// collateralTokenSent
                 .add(receivedAmount);
 
             /// Check the minEntryPrice with the rate
@@ -430,10 +432,10 @@ contract LoanOpenings is
         loanLocal.collateral = loanLocal.collateral.add(sentValues.collateralTokenSent);
 
         if (isTorqueLoan) {
-            /// reclaiming varaible -> interestDuration
+            /// reclaiming variable -> interestDuration
             sentValues.interestInitialAmount = loanLocal.endTimestamp.sub(block.timestamp);
         } else {
-            /// reclaiming varaible -> entryLeverage = 100 / initialMargin
+            /// reclaiming variable -> entryLeverage = 100 / initialMargin
             sentValues.interestInitialAmount = SafeMath.div(10**38, initialMargin);
         }
 
@@ -456,11 +458,12 @@ contract LoanOpenings is
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
      * @param sentValues The values to send:
-     *     newRate: New loan interest rate.
+     *     interestRate: New loan interest rate.
      *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).
+     *     interestInitialAmount: New amount of interest to escrow for Torque loan (determines initial loan length).
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenReceived: Total collateralToken deposit.
+     *     collateralTokenSent: Total collateralToken deposit.
+     *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
      * @param isTorqueLoan Whether the loan is a Torque loan.
      * */
     function _finalizeOpen(
@@ -520,11 +523,12 @@ contract LoanOpenings is
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
      * @param sentValues The values to send:
-     *     newRate: New loan interest rate.
+     *     interestRate: New loan interest rate.
      *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).
+     *     interestInitialAmount: New amount of interest to escrow for Torque loan (determines initial loan length).
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenReceived: Total collateralToken deposit.
+     *     collateralTokenSent: Total collateralToken deposit.
+     *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
      * @param collateralToLoanRate The exchange rate from collateral to loan
      *   tokens.
      * @param margin The amount of margin of the trade.
@@ -648,11 +652,12 @@ contract LoanOpenings is
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
      * @param sentValues The values to send:
-     *     newRate: New loan interest rate.
+     *     interestRate: New loan interest rate.
      *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).
+     *     interestInitialAmount: New amount of interest to escrow for Torque loan (determines initial loan length).
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenReceived: Total collateralToken deposit.
+     *     collateralTokenSent: Total collateralToken deposit.
+     *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
      * @return The loanId.
      * */
     function _initializeLoan(
