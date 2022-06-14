@@ -8,7 +8,6 @@ require("@nomiclabs/hardhat-waffle");
 require("hardhat-contract-sizer"); //yarn run hardhat size-contracts
 require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
-require("hardhat-docgen");
 require("hardhat-abi-exporter");
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -100,9 +99,5 @@ module.exports = {
 	mocha: {
 		timeout: 800000,
 		grep: "^(?!.*; using Ganache).*",
-	},
-	docgen: {
-		path: "./docs",
-		clear: true,
 	},
 };
