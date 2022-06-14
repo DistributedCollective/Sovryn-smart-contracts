@@ -486,7 +486,6 @@ contract ISovryn is
 
     function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent) external;
 
-
     function getDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)
         external
         view
