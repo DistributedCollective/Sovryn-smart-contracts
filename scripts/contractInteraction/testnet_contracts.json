@@ -99,6 +99,8 @@
     "VestingRegistry2": "0x068fbb3Bef062C3daBA7a4B12f53Cd614FBcBF1d",
     "VestingRegistry3": "0x52E4419b9D33C6e0ceb2e7c01D3aA1a04b21668C",
     "VestingLogic": "0xc1cECAC06c7a5d5480F158043A150acf06e206cD",
+    "FourYearVestingLogic": "0x75B8faC8907f196Bd791dB57D8492a779cdE09b5",
+    "FourYearVestingFactory": "0x2AC0b13c174f03B4bE8C174Daf9d86C05b21496e",
     "OriginInvestorsClaim": "0x9FBe4Bf89521088F790a4dD2F3e495B4f0dA7F42",
     "TokenSender": "0x4D1903BaAd894Fc6Ff70483d8518Db78F163F9ff",
     "RBTCWrapperProxy": "0x6b1a4735b1E25ccE9406B2d5D7417cE53d1cf90e",
@@ -122,7 +124,7 @@
     "WatcherContract": "0x3583155D5e87491dACDc15f7D0032C12D5D0ece0",
     "StakingRewardsProxy": "0x18eF0ff12f1b4D30104B4680D485D026C26D164D",
     "StakingRewards": "0x9762e0aA49248A58e14a5C09B4edE5c185b0d178",
-    "VestingRegistryProxy": "0x8eE1254c1b95FFaD975Ac6f348Bc1cd25CB0c22F",
-    "VestingRegistryLogic": "0x8Ea3bF5C621FFb93f874047a0c1eE6DffB00053E",
+    "VestingRegistryProxy": "0x09e8659B6d204C6b1bED2BFF8E3F43F834A5Bbc4",
+    "VestingRegistryLogic": "0x38B729f1c42095EEd5A7c22A56d186987F75CED5",
     "SovrynSwapFormula": "0x7FF1C363b5600834bce7c514B01109eF1c103507"
 }
