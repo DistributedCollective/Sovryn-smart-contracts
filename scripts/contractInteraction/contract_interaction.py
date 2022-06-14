@@ -34,18 +34,64 @@ def main():
 
     #used often:
 
-    #withdrawRBTCFromWatcher(30e18, conf.contracts['FastBTC'])
+    #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
+    #withdrawRBTCFromFastBTCBiDi(19e18, conf.contracts['multisig'])
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
-    #withdrawTokensFromWatcher(conf.contracts['SOV'], bal, conf.contracts['multisig'])
+    #withdrawTokensFromWatcher(conf.contracts['DoC'], 170000e18, conf.contracts['multisig'])
 
-    #sendTokensFromMultisig(conf.contracts['SOV'], '0xd1c42e0ace7a80efc191835dac102043bcfbbbe6', 4500e18)
-    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 25e18)
+    #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 200000e18)
+    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
 
     #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
-
-    #for i in range (885, 887):
-    #    checkTx(i)
-    #    confirmWithMS(i)
-
+    
+    '''
+    for i in range (961, 963):
+        confirmWithMS(i)
+        checkTx(i)
+    '''
+    #confirmWithMS(956)
+    #confirmWithMS(958)
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
+
+    #transferRBTCFromFastBTCOffRampToOnRamp(9.6e18)
+
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DoC'], 30000e18)
+    #sendTokensFromMultisig(conf.contracts['DoC'], conf.contracts['Watcher'], 30000e18)
+
+    #readMocOracleAddress()
+
+    #bal = getBalance(conf.contracts['(WR)BTC/USDT2'], conf.contracts['multisig'])
+    #removeLiquidityV2toMultisig(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal, 1)
+
+    #getReturnForV2PoolToken(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal)
+
+    # # ---------- Transfer ownership to gov ----------
+    # # core protocol
+    # transferProtocolOwnershipToGovernance()
+
+    # # loan token
+    # transferBeaconOwnershipToGovernance()
+    # transferLoanTokenAdminRoleToGovernance()
+    # transferLoanTokenOwnershipToGovernance()
+
+    # # oracles
+    # transferOracleOwnershipToGovernance()
+
+    # # LM
+    # transferLiquidityMiningOwnershipToGovernance()
+
+    # # Governance
+    # # lockedSOV
+    # transferLockedSOVOwnershipToGovernance()
+
+    # # Staking
+    # transferStakingOwnershipToGovernance()
+
+    # # StakingRewards
+    # transferStakingRewardsOwnershipToGovernance()
+
+    # # VestingRegistry
+    # transferVestingRegistryOwnershipToGovernance()
+
+   
