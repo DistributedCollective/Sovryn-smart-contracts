@@ -1,4 +1,4 @@
-from scripts.contractInteraction.contract_interaction import *
+from scripts.contractInteraction.contract_interaction_imports  import *
 
 def main():
     '''

@@ -95,7 +95,7 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
         conf.acct,  # trader,
         0, # slippage
         b'',  # loanDataBytes (only required with ether)
-        {'value': sendValue, 'allow_revert': True}
+        {'value': sendValue}#, 'allow_revert': True
     )
     tx.info()
     loanId = tx.events['Trade']['loanId']
@@ -880,3 +880,79 @@ def replaceLoanTokenSettingsLowerAdmin():
     print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
     data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
     sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
+
+def transferBeaconOwnershipToGovernance():
+    # transfer beacon LM
+    print("Transferring beacon LM ownserhip to: ", conf.contracts['TimelockOwner'])
+    loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconLM.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+    # transfer beacon wrbtc
+    print("Transferring beacon WRBTC ownserhip to: ", conf.contracts['TimelockOwner'])
+    loanTokenLogicBeaconWrbtc = Contract.from_abi("loanTokenLogicBeaconWrbtc", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    data = loanTokenLogicBeaconWrbtc.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
+
+def transferLoanTokenAdminRoleToGovernance():
+    # iDOC
+    print("Transferring iDOC admin to: ", conf.contracts['TimelockAdmin'])
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDOC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # iRBTC
+    print("Transferring iRBTC admin to: ", conf.contracts['TimelockAdmin'])
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # iXUSD
+    print("Transferring iXUSD admin to: ", conf.contracts['TimelockAdmin'])
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iXUSD'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # iUSDT
+    print("Transferring iUSDT admin to: ", conf.contracts['TimelockAdmin'])
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iUSDT'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # iBPro
+    print("Transferring iBPro admin to: ", conf.contracts['TimelockAdmin'])
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iBPro'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+def transferLoanTokenOwnershipToGovernance():
+    # iDOC
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDOC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print("Transferring iDOC ownserhip to: ", conf.contracts['TimelockOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # iRBTC
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print("Transferring iRBTC ownserhip to: ", conf.contracts['TimelockOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # iXUSD
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iXUSD'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print("Transferring iXUSD ownserhip to: ", conf.contracts['TimelockOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # iUSDT
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iUSDT'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print("Transferring iUSDT ownserhip to: ", conf.contracts['TimelockOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # iBPro
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iBPro'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print("Transferring iBPro ownserhip to: ", conf.contracts['TimelockOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+

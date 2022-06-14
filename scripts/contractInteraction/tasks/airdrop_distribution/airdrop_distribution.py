@@ -1,5 +1,5 @@
 import csv
-from scripts.contractInteraction.contract_interaction import *
+from scripts.contractInteraction.contract_interaction_imports  import *
 from scripts.contractInteraction.tasks.airdrop_distribution.functions.send_direct_XUSD import *
 from scripts.contractInteraction.tasks.airdrop_distribution.functions.send_direct_SOV import *
 from scripts.contractInteraction.tasks.airdrop_distribution.functions.create_vestings import *

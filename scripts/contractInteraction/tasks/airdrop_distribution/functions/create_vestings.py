@@ -2,7 +2,7 @@
 Implements SOV distribution via vesting contracts
 '''
 from operator import concat
-from scripts.contractInteraction.contract_interaction import *
+from scripts.contractInteraction.contract_interaction_imports  import *
 import csv
 
 def createVestings(path, dryRun, multiplier):
