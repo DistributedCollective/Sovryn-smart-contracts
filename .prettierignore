@@ -19,5 +19,6 @@ cache
 brownie-config.yaml
 .vscode
 abi
-types/
 .pytest_cache
+*.md
+types/

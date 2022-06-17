@@ -481,4 +481,9 @@ contract ISovrynBrownie is
     function getDedicatedSOVRebate() external view returns (uint256);
 
     function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent) external;
+
+    function checkCloseWithDepositIsTinyPosition(bytes32 loanId, uint256 depositAmount)
+        external
+        view
+        returns (bool isTinyPosition, uint256 tinyPositionAmount);
 }

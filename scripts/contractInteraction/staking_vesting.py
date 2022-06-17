@@ -14,15 +14,35 @@ def sendSOVFromVestingRegistry():
 
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
-def addAdmin(admin, vestingRegistryAddress):
+def vestingRegistryAddAdmin(admin, vestingRegistryAddress):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     vestingRegistry = Contract.from_abi("VestingRegistry", address=vestingRegistryAddress, abi=VestingRegistry.abi, owner=conf.acct)
     data = vestingRegistry.addAdmin.encode_input(admin)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
-def isVestingAdmin(admin, vestingRegistryAddress):
+def vestingRegistryProxyAddAdmin(admin):
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    vestingRegistryAddAdmin(admin, vestingRegistry.address)    
+
+def vestingRegistryRemoveAdmin(admin, vestingRegistryAddress):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=vestingRegistryAddress, abi=VestingRegistry.abi, owner=conf.acct)
+    data = vestingRegistry.removeAdmin.encode_input(admin)
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+def vestingRegistryProxyRemoveAdmin(admin):
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    vestingRegistryRemoveAdmin(admin, vestingRegistry.address)    
+
+def isVestingRegistryAdmin(admin, vestingRegistryAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=vestingRegistryAddress, abi=VestingRegistry.abi, owner=conf.acct)
     print(vestingRegistry.admins(admin))
+
+def isVestingRegistryProxyAdmin(admin):
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    isAdmin = vestingRegistry.admins(admin)
+    print(admin, 'is already' if isAdmin else 'is not yet admin - setting as', 'Vesting Registry Admin')
+    return isAdmin
 
 def readVestingContractForAddress(userAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=conf.acct)
@@ -47,6 +67,22 @@ def readAllVestingContractsForAddress(userAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
     addresses = vestingRegistry.getVestingsOf(userAddress)
     print(addresses)
+
+def addVestingAdmin(admin):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    data = vestingRegistry.addAdmin.encode_input(admin)
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+def removeVestingAdmin(admin):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    data = vestingRegistry.removeAdmin.encode_input(admin)
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+def isVestingAdmin(admin):
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    print(vestingRegistry.admins(admin))
 
 def readStakingKickOff():
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
@@ -192,11 +228,11 @@ def upgradeVesting():
     print("New vesting registry logic address:", vestingRegistryLogic.address)
     
     # Get the proxy contract instance
-    vestingRegistryProxy = Contract.from_abi("VestingRegistryProxy", address=conf.contracts['VestingRegistryLogic'], abi=VestingRegistryProxy.abi, owner=conf.acct)
+    vestingRegistryProxy = Contract.from_abi("VestingRegistryProxy", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryProxy.abi, owner=conf.acct)
 
     # Register logic in Proxy
     data = vestingRegistryProxy.setImplementation.encode_input(vestingRegistryLogic.address)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['VestingRegistryLogic'], data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['VestingRegistryProxy'], data, conf.acct)
 
 # Set Vesting Registry Address for Staking
 
@@ -278,10 +314,10 @@ def pauseOrUnpauseStaking(flag):
     data = staking.pauseUnpause.encode_input(flag)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
-def isStakingPausedOrUnpaused():
+def isStakingPaused():
     # Get the proxy contract instance
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
-    print("isStakingPausedOrUnpaused", staking.paused())
+    print("isStakingPaused:", staking.paused())
 
 def freezeOrUnfreezeStakingWithdawal(flag):
     # Get the proxy contract instance
@@ -331,3 +367,35 @@ def governanceWithdrawVesting( vesting,  receiver):
     data = stakingProxy.governanceWithdrawVesting.encode_input( vesting,  receiver)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
+
+def transferStakingOwnershipToGovernance():
+    print("Add staking admin for address: ", conf.contracts['TimelockAdmin'])
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = staking.addAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+def transferStakingRewardsOwnershipToGovernance():
+    print("Transferring StakingRewards ownership to: ", conf.contracts['TimelockAdmin'])
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+    data = stakingRewards.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], stakingRewards.address, data, conf.acct)
+
+def transferVestingRegistryOwnershipToGovernance():
+    # add governor admin as admin
+    print("Add Vesting Registry admin for address: ", conf.contracts['TimelockAdmin'])
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    data = vestingRegistry.addAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+    '''
+    # add Exchequer admin as admin
+    print("Add Vesting Registry admin for multisig: ", conf.contracts['multisig'])
+    data = vestingRegistry.addAdmin.encode_input(conf.contracts['multisig'])
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+    '''
+
+def getStakedBalance(account):
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    bal = stakingProxy.balanceOf(account)
+    print(bal)
+    return bal

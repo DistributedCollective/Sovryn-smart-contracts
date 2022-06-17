@@ -3,6 +3,7 @@ from brownie.network.contract import InterfaceContainer
 import json
 import time;
 import copy
+#import scripts.contractInteraction.config as conf
 
 def main():
     
@@ -16,8 +17,12 @@ def loadConfig():
     this_network = network.show_active()
     if this_network == "rsk-mainnet":
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    if this_network == "rsk-mainnet-websocket":
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif this_network == "rsk-testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    else:
+        raise Exception("Network not supported.")
     contracts = json.load(configFile)
     acct = accounts.load("rskdeployer")
 

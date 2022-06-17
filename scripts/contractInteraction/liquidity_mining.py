@@ -104,7 +104,12 @@ def addAmmPoolTokenToLM(ptName):
     data = lm.add.encode_input(conf.contracts[ptName],1,False)
     sendWithMultisig(conf.contracts['multisig'], lm.address, data, conf.acct)
 
-def getUserInfo(poolToken, user):
+def getPoolIdByName(ptName):
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+    print(lm.getPoolId(conf.contracts[ptName]))
+    #0xB12FA09a50c56e9a0C826b98e76DA7645017AB4D
+
+def getPoolTokenUserInfo(poolToken, user):
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
 
     res = lm.getUserInfo(poolToken, user)
@@ -118,3 +123,9 @@ def getMissedBalance():
     res = lm.getMissedBalance()
     print(res/1e18)
     return res
+
+def transferLiquidityMiningOwnershipToGovernance():
+    print("Transferring LiquidityMining ownership to: ", conf.contracts['TimelockOwner'])
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+    data = lm.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], lm.address, data, conf.acct)

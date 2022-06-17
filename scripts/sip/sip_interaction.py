@@ -20,7 +20,7 @@ def main():
 
     # Call the function you want here
 
-    # createProposalSIP0044()
+    # createProposalSIP0048()
 
     balanceAfter = acct.balance()
 
@@ -39,6 +39,9 @@ def loadConfig():
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-pub":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
@@ -46,6 +49,12 @@ def loadConfig():
         acct = accounts.load("rskdeployerdev")
         configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-ws":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-websocket":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     else:
@@ -313,6 +322,18 @@ def createProposalSIP0039():
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
 
+def createProposalSIP0031():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0031: Splitting AMM fees with stakers: https://github.com/DistributedCollective/SIPS/blob/344e4f1/SIP-31.md, sha256: 9a9058f6420842fffb25112c54634f950a16e119247e17550b25197e3fccc7fb"
+
+    # Create Proposal
+    # createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+
 def createProposalSIP0041():
     # Action
     target = [contracts['SOV']]
@@ -379,3 +400,14 @@ def createProposalSIP0044():
     print(datas)
     print(description)
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0048():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0048: Sovryn Strategic Investment Proposal : https://github.com/DistributedCollective/SIPS/blob/5a9b213/SIP-0048.md, sha256: 0d159814e12132caf36391ab3faa24e90174bbeeaf84449909a8b716e964267f"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
