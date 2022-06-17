@@ -52,9 +52,9 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(
         const xusd = await hre.ethers.getContractAt("ERC20", "0xb5999795BE0EbB5bAb23144AA5FD6A02D080299F");
 		const totalSupply = await xusd.totalSupply();
 		if (totalSupply.toString() === "12346114443582774719512874")
-			console.log("Hardhat mainnet forking is working properly!")
+			console.log("Hardhat mainnet forking works properly!")
 		else
-			console.log("Hardhat mainnet forking is NOT working!")
+			console.log("Hardhat mainnet forking does NOT work properly!")
 	});
 
 
