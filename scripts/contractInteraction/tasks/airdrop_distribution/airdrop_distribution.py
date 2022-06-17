@@ -30,7 +30,7 @@ def main():
     # 
     # - Distribute SOV -
     # 
-    SOVAmount = 9205394 * 10**16 # 92053.94
+    # SOVAmount = 9205394 * 10**16 # 92053.94
     # 0. 
     # print(getBalance(conf.contracts['SOV'], conf.contracts['multisig'])/10**18) # check multisig is funded with SOV
     # 1.
@@ -51,16 +51,16 @@ def main():
     #
     # - Distribute XUSD -
     # 
-    XUSDAmount = 4396600 * 10**16 # 43,966.00
+    # XUSDAmount = 4396600 * 10**16 # 43,966.00
     # 0.
     # print(getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])/10**18) # check multisig is funded with XUSD
     # 1.
-    """ 
+    '''
     print("GenericTokenSender Owner is: ")
     readOwner(conf.contracts['GenericTokenSender']) # check the token sender owner address
     print("Script executor address is: ",conf.acct) # check the token sender owner address
     transferXUSDtoTokenSender(XUSDAmount) # direct liquid XUSD distribution 
-    """
+    '''
     # 2.
     # print("XUSD balance of Generic Token: ", getBalance(conf.contracts['XUSD'], conf.contracts['GenericTokenSender'])/10**18) # check multisig is funded with SOV
     '''
@@ -75,14 +75,15 @@ def main():
     # -----------------------
     # print(getBalance(conf.contracts['SOV'], conf.contracts['multisig'])/10**18) # check multisig is funded with SOV
     # print(getBalance(conf.contracts['SOV'], conf.acct)/10**18) # check that the script running address is funded
-    '''
-    vestedSOVAmount = 4161078 * 10**16 #41,610.78
-    transferSOVtoAccount(conf.acct, vestedSOVAmount) # vesting SOV distribution
-    '''
+    
+    #vestedSOVAmount = 100000 * 10**16 #1,000.00
+    #transferSOVtoAccount(conf.acct, vestedSOVAmount) # vesting SOV distribution
+    
     
     # ------------------------
     # check, add and remove in the end the script execution address to admins
     receiver = conf.acct
+    
     '''
     if(not isVestingRegistryProxyAdmin(receiver)):
           print('Adding Vesting Registry Admin')
@@ -97,14 +98,15 @@ def main():
     # 5. run full distribution 
     # 
     '''
+    brownie run scripts/contractInteraction/tasks/airdrop_distribution/airdrop_distribution.py --network testnet
     brownie run scripts/contractInteraction/tasks/airdrop_distribution/airdrop_distribution.py --network rsk-mainnet
     '''
-
-    # vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-22-06.csv'
-    # dryRun = False # False to execute, True to verify the file structure
-    # multiplier = 10**16 # multiplier == 10**16 <- amounts must with 2 decimals
-    # createVestings(vestingDistributionPath, dryRun, multiplier)
-
+    '''
+    vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-22-06-testnet.csv'
+    dryRun = False # False to execute, True to verify the file structure
+    multiplier = 10**16 # multiplier == 10**16 <- amounts must with 2 decimals
+    createVestings(vestingDistributionPath, dryRun, multiplier)
+    '''
     #
     # vestingRegistryProxyRemoveAdmin(receiver) # remove the script exexution from admins
     # 
