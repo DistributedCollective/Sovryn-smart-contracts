@@ -26,6 +26,8 @@ def main():
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
     #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
     
+    #checkTx(960)
+    #confirmWithMS(960)
     #confirmMultipleTxsWithMS(960, 963)
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
