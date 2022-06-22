@@ -886,20 +886,16 @@ contract ProtocolSettings is
     /**
      * @dev Set default path conversion for pairs.
      *
-     * @param sourceTokenAddress source token address.
-     * @param destTokenAddress destination token address.
      * @param defaultPath array of addresses for the default path.
      *
      */
-    function setDefaultPathConversion(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        IERC20[] calldata defaultPath
-    ) external onlyOwner whenNotPaused {
-        require(
-            Address.isContract(sourceTokenAddress) && Address.isContract(destTokenAddress),
-            "ERR_NON_CONTRACT_ADDR"
-        );
+    function setDefaultPathConversion(IERC20[] calldata defaultPath)
+        external
+        onlyOwner
+        whenNotPaused
+    {
+        address sourceTokenAddress = address(defaultPath[0]);
+        address destTokenAddress = address(defaultPath[defaultPath.length - 1]);
 
         uint256 defaultPathLength = defaultPath.length;
         require(defaultPathLength >= 3, "ERR_PATH_LENGTH");

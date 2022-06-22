@@ -488,11 +488,7 @@ contract ISovrynBrownie is
         view
         returns (IERC20[] memory);
 
-    function setDefaultPathConversion(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        IERC20[] calldata defaultPath
-    ) external;
+    function setDefaultPathConversion(IERC20[] calldata defaultPath) external;
 
     function removeDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)
         external;

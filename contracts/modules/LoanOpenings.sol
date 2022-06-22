@@ -387,15 +387,12 @@ contract LoanOpenings is
                     borrowingFee
                 );
 
-                sentValues.collateralTokenSent = sentValues
-                    .collateralTokenSent /// collateralTokenSent
-                    .sub(borrowingFee);
+                sentValues.collateralTokenSent = sentValues.collateralTokenSent.sub(borrowingFee);
             }
         } else {
             /// Update collateral after trade.
-            /// sentValues.loanTokenSent is repurposed to hold loanToCollateralSwapRate to avoid stack too deep error.
             uint256 receivedAmount;
-            (receivedAmount, , sentValues.loanTokenSent) = _loanSwap(
+            (receivedAmount, , sentValues.loanToCollateralSwapRate) = _loanSwap(
                 loanId,
                 loanParamsLocal.loanToken,
                 loanParamsLocal.collateralToken,
@@ -406,13 +403,11 @@ contract LoanOpenings is
                 false, /// bypassFee
                 loanDataBytes
             );
-            sentValues.collateralTokenSent = sentValues
-                .collateralTokenSent /// collateralTokenSent
-                .add(receivedAmount);
+            sentValues.collateralTokenSent = sentValues.collateralTokenSent.add(receivedAmount);
 
             /// Check the minEntryPrice with the rate
             require(
-                sentValues.loanTokenSent >= sentValues.minEntryPrice,
+                sentValues.loanToCollateralSwapRate >= sentValues.minEntryPrice,
                 "entry price above the minimum"
             );
         }
@@ -433,10 +428,10 @@ contract LoanOpenings is
 
         if (isTorqueLoan) {
             /// reclaiming variable -> interestDuration
-            sentValues.interestInitialAmount = loanLocal.endTimestamp.sub(block.timestamp);
+            sentValues.interestDuration = loanLocal.endTimestamp.sub(block.timestamp);
         } else {
             /// reclaiming variable -> entryLeverage = 100 / initialMargin
-            sentValues.interestInitialAmount = SafeMath.div(10**38, initialMargin);
+            sentValues.entryLeverage = SafeMath.div(10**38, initialMargin);
         }
 
         _finalizeOpen(loanParamsLocal, loanLocal, sentAddresses, sentValues, isTorqueLoan);
@@ -497,7 +492,7 @@ contract LoanOpenings is
             uint256 totalSwapRate = loanToCollateralPrecision.mul(collateralToLoanPrecision);
             loanLocal.startRate = isTorqueLoan
                 ? collateralToLoanRate
-                : totalSwapRate.div(sentValues.loanTokenSent);
+                : totalSwapRate.div(sentValues.loanToCollateralSwapRate);
         }
 
         _emitOpeningEvents(
@@ -553,7 +548,7 @@ contract LoanOpenings is
                 sentValues.newPrincipal, /// newPrincipal
                 sentValues.collateralTokenSent, /// newCollateral
                 sentValues.interestRate, /// interestRate
-                sentValues.interestInitialAmount, /// interestDuration
+                sentValues.interestDuration, /// interestDuration
                 collateralToLoanRate, /// collateralToLoanRate,
                 margin /// currentMargin
             );
@@ -571,8 +566,8 @@ contract LoanOpenings is
                 sentValues.newPrincipal, /// borrowedAmount
                 sentValues.interestRate, /// interestRate,
                 loanLocal.endTimestamp, /// settlementDate
-                sentValues.loanTokenSent, /// entryPrice (loanToCollateralSwapRate)
-                sentValues.interestInitialAmount, /// entryLeverage
+                sentValues.loanToCollateralSwapRate, /// entryPrice (loanToCollateralSwapRate)
+                sentValues.entryLeverage, /// entryLeverage
                 margin /// currentLeverage
             );
         }

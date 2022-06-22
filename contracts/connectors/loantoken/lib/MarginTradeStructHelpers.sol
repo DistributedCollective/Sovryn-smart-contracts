@@ -15,5 +15,8 @@ library MarginTradeStructHelpers {
         uint256 loanTokenSent;
         uint256 collateralTokenSent;
         uint256 minEntryPrice;
+        uint256 loanToCollateralSwapRate;
+        uint256 interestDuration;
+        uint256 entryLeverage;
     }
 }

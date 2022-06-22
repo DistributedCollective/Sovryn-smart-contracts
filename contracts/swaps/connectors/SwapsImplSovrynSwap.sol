@@ -85,17 +85,8 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         ISovrynSwapNetwork sovrynSwapNetwork =
             getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
 
-        IERC20[] memory _defaultPathConversion =
-            defaultPathConversion[sourceTokenAddress][destTokenAddress];
-
-        /// will use the defaultPath if it's set, otherwise query from the SovrynSwapNetwork.
         IERC20[] memory path =
-            _defaultPathConversion.length >= 3
-                ? _defaultPathConversion
-                : sovrynSwapNetwork.conversionPath(
-                    IERC20(sourceTokenAddress),
-                    IERC20(destTokenAddress)
-                );
+            getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
 
         uint256 minReturn = 1;
         sourceTokenAmountUsed = minSourceTokenAmount;
@@ -232,8 +223,10 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
     ) public view returns (uint256) {
         ISovrynSwapNetwork sovrynSwapNetwork =
             getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+
         IERC20[] memory path =
-            sovrynSwapNetwork.conversionPath(IERC20(sourceTokenAddress), IERC20(destTokenAddress));
+            getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
+
         /// Is returning the total amount of destination tokens.
         uint256 expectedReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);
 
@@ -253,13 +246,38 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         address sourceTokenAddress,
         address destTokenAddress,
         uint256 sourceTokenAmount,
-        address sovrynSwapContractRegistryAddress
+        address sovrynSwapContractRegistryAddress,
+        IERC20[] memory defaultPath
     ) public view returns (uint256 expectedReturn) {
         ISovrynSwapNetwork sovrynSwapNetwork =
             getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+
         IERC20[] memory path =
-            sovrynSwapNetwork.conversionPath(IERC20(sourceTokenAddress), IERC20(destTokenAddress));
+            defaultPath.length >= 3
+                ? defaultPath
+                : sovrynSwapNetwork.conversionPath(
+                    IERC20(sourceTokenAddress),
+                    IERC20(destTokenAddress)
+                );
+
         /// Is returning the total amount of destination tokens.
         expectedReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);
+    }
+
+    function getConversionPath(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        ISovrynSwapNetwork sovrynSwapNetwork
+    ) private view returns (IERC20[] memory path) {
+        IERC20[] memory _defaultPathConversion =
+            defaultPathConversion[sourceTokenAddress][destTokenAddress];
+
+        /// will use the defaultPath if it's set, otherwise query from the SovrynSwapNetwork.
+        path = _defaultPathConversion.length >= 3
+            ? _defaultPathConversion
+            : sovrynSwapNetwork.conversionPath(
+                IERC20(sourceTokenAddress),
+                IERC20(destTokenAddress)
+            );
     }
 }

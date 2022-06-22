@@ -259,7 +259,8 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
             sourceToken,
             destToken,
             sourceTokenAmount,
-            sovrynSwapContractRegistryAddress
+            sovrynSwapContractRegistryAddress,
+            defaultPathConversion[sourceToken][destToken]
         );
     }
 

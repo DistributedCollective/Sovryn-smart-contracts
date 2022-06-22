@@ -826,11 +826,7 @@ contract("LoanTokenTrading", (accounts) => {
             );
 
             const defaultPathConversion = [SUSD.address, RBTC.address, RBTC.address];
-            await sovryn.setDefaultPathConversion(
-                SUSD.address,
-                RBTC.address,
-                defaultPathConversion
-            );
+            await sovryn.setDefaultPathConversion(defaultPathConversion);
             expect(
                 await sovryn.getDefaultPathConversion(SUSD.address, RBTC.address)
             ).to.deep.equal(defaultPathConversion);
@@ -854,11 +850,7 @@ contract("LoanTokenTrading", (accounts) => {
             await lend_to_pool(loanToken, SUSD, accounts[0]);
 
             const defaultPathConversion = [SUSD.address, RBTC.address, RBTC.address];
-            await sovryn.setDefaultPathConversion(
-                SUSD.address,
-                RBTC.address,
-                defaultPathConversion
-            );
+            await sovryn.setDefaultPathConversion(defaultPathConversion);
             expect(
                 await sovryn.getDefaultPathConversion(SUSD.address, RBTC.address)
             ).to.deep.equal(defaultPathConversion);
@@ -925,11 +917,7 @@ contract("LoanTokenTrading", (accounts) => {
             await lend_to_pool(loanToken, SUSD, accounts[0]);
 
             const defaultPathConversion = [SUSD.address, RBTC.address, RBTC.address];
-            await sovryn.setDefaultPathConversion(
-                SUSD.address,
-                RBTC.address,
-                defaultPathConversion
-            );
+            await sovryn.setDefaultPathConversion(defaultPathConversion);
             expect(
                 await sovryn.getDefaultPathConversion(SUSD.address, RBTC.address)
             ).to.deep.equal(defaultPathConversion);

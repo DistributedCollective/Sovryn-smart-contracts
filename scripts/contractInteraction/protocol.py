@@ -678,7 +678,7 @@ def depositCollateral(loanId,depositAmount, tokenAddress):
 def setDefaultPathConversion(sourceTokenAddress, destTokenAddress, defaultPath):
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    data = sovryn.setDefaultPathConversion.encode_input(sourceTokenAddress, destTokenAddress, defaultPath)
+    data = sovryn.setDefaultPathConversion.encode_input(defaultPath)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
 
