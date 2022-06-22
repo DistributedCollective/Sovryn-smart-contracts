@@ -399,3 +399,9 @@ def getStakedBalance(account):
     bal = stakingProxy.balanceOf(account)
     print(bal)
     return bal
+
+def stopStakingRewards():
+    print("Stop Staking Rewards Program from the stop() func call tx block")
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+    data = stakingRewards.stop.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], stakingRewards.address, data, conf.acct)
