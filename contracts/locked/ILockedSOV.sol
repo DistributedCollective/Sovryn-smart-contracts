@@ -31,4 +31,8 @@ interface ILockedSOV {
      * @param _userAddress The address of user tokens will be withdrawn.
      */
     function withdrawAndStakeTokensFrom(address _userAddress) external;
+
+    function cliff() external view returns (uint256);
+
+    function duration() external view returns (uint256);
 }

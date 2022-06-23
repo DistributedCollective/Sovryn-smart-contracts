@@ -46,4 +46,32 @@ interface IStaking {
     function timestampToLockDate(uint256 timestamp) external view returns (uint256 lockDate);
 
     function isVestingContract(address stakerAddress) external view returns (bool);
+
+    function allUnlocked() external view returns (bool);
+
+    function newStakingContract() external view returns (address);
+
+    function getPriorUserStakeByDate(
+        address account,
+        uint256 date,
+        uint256 blockNumber
+    ) external view returns (uint96);
+
+    function governanceWithdraw(
+        uint96 amount,
+        uint256 until,
+        address receiver
+    ) external;
+
+    function withdraw(
+        uint96 amount,
+        uint256 until,
+        address receiver
+    ) external;
+
+    function migrateToNewStakingContract() external;
+
+    function delegate(address delegatee, uint256 lockDate) external;
+
+    function MAX_DURATION() external view returns (uint256);
 }
