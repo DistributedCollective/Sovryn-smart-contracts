@@ -83,7 +83,8 @@
 		"postinstall": "npm run generate-types && patch-package",
 		"fees-withdraw": "brownie run rewards_cron",
 		"set-block": "brownie run setBlock_cron",
-		"fork:rsk-mainnet": "hardhat node --fork https://mainnet.sovryn.app/rpc"
+		"fork:rsk-mainnet": "hardhat node --fork https://mainnet.sovryn.app/rpc",
+		"fork:rsk-testnet": "hardhat node --fork https://testnet.sovryn.app/rpc"
 	},
 	"husky": {
 		"hooks": {
