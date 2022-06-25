@@ -21,7 +21,7 @@ contract VestingRegistryStorage is Initializable, AdminRole {
     IVestingFactory public vestingFactory;
 
     ///@notice the Locked SOV contract
-    LockedSOV public lockedSOV;
+    ILockedSOV public lockedSOV;
 
     ///@notice the list of vesting registries
     IVestingRegistry[] public vestingRegistries;
