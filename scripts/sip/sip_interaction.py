@@ -39,6 +39,9 @@ def loadConfig():
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-pub":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
@@ -46,6 +49,12 @@ def loadConfig():
         acct = accounts.load("rskdeployerdev")
         configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-ws":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-websocket":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     else:
@@ -312,6 +321,18 @@ def createProposalSIP0039():
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0031():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0031: Splitting AMM fees with stakers: https://github.com/DistributedCollective/SIPS/blob/344e4f1/SIP-31.md, sha256: 9a9058f6420842fffb25112c54634f950a16e119247e17550b25197e3fccc7fb"
+
+    # Create Proposal
+    # createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
 
 def createProposalSIP0041():
     # Action

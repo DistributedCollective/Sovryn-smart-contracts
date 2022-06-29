@@ -142,6 +142,10 @@ def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, 
         tx = sovryn.closeWithSwap(loanId, conf.acct, collateral, True, b'')
         tx.info()
 
+def withdrawRBTCFromIWRBTC(toAddress, amount):
+    loanTokenAddress = conf.contracts['iRBTC']
+    withdrawRBTCFromLoanTokenTo(loanTokenAddress, toAddress, amount)
+
 def goSOVLongWithMS(sovSent):
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     sovToken = Contract.from_abi("TestToken", address = conf.contracts['SOV'], abi = TestToken.abi, owner = conf.acct)
@@ -312,6 +316,9 @@ def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
     data = loanToken.setupLoanParams.encode_input(params, False)
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
+'''
+sets a collateral token address as collateral for margin trading
+'''
 def setupMarginLoanParamsMinInitialMargin(collateralTokenAddress, loanTokenAddress, minInitialMargin):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     #loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, #abi=LoanTokenLogicStandard.abi, owner=conf.acct)
@@ -367,7 +374,7 @@ def setTransactionLimits(loanTokenAddress, addresses, limits):
     data = localLoanToken.setTransactionLimits.encode_input(addresses,limits)
     sendWithMultisig(conf.contracts['multisig'], localLoanToken.address, data, conf.acct)
 
-def readTransactionLimits(loanTokenAddress, SUSD, RBTC, USDT, BPro):
+def readTransactionLimits(loanTokenAddress, SUSD, RBTC, USDT, BPro, XUSD):
     localLoanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanToken.abi, owner=conf.acct)
     limit = localLoanToken.transactionLimit(RBTC)
     print("RBTC limit, ",limit)
@@ -377,6 +384,8 @@ def readTransactionLimits(loanTokenAddress, SUSD, RBTC, USDT, BPro):
     print("USDT limit, ",limit)
     limit = localLoanToken.transactionLimit(BPro)
     print("BPro limit, ",limit)
+    limit = localLoanToken.transactionLimit(XUSD)
+    print("XUSD limit, ",limit)
 
 def readLendingBalanceForUser(loanTokenAddress, userAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=userAddress)
@@ -841,6 +850,21 @@ def pauseAllLoanTokens():
 def unpauseAllLoanTokens():
     unpauseLoanTokenLogicBeaconLM()
     unpauseLoanTokenLogicBeaconWRBTC()
+
+def get_estimated_margin_details(collateralToken, loanSize, collateralTokenSent, leverageAmount):
+            
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=acct)
+    result = loanToken.getEstimatedMarginDetails.call(leverageAmount, 0, collateralTokenSent, collateralToken.address)
+    
+    assert(result[0] == loanSize * collateralTokenSent * leverageAmount / 1e36)
+    assert(result[2] == 0)
+
+    print("principal", result[0])
+    print("collateral", result[1])
+    print("interestRate", result[2])
+    print("loanSize",loanSize)
+    print("collateralTokenSent",collateralTokenSent)
+    print("leverageAmount", leverageAmount)
 
 def replaceLoanTokenSettingsLowerAdmin():
     print("Deploy Loan Token Settings Lower Admin Module")

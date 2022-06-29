@@ -637,6 +637,12 @@ The protocol can withdraw SOV tokens using `sovryn.withdrawProtocolToken()` from
 
 ![UML Diagram](UML.svg)
 
+## Hardhat mainnet forking
+
+Out of the box, Hardhat's [mainnet forking mode](https://hardhat.org/hardhat-network/guides/mainnet-forking) does
+not work with RSK. This package uses `patch-package` to patch the installed version of Hardhat to enable support for
+forking from RSK. For more details, see [HARDHAT_FORKING.md](HARDHAT_FORKING.md).
+
 ## Contributing
 
 <a href="https://github.com/DistributedCollective/Sovryn-smart-contracts/graphs/contributors">
