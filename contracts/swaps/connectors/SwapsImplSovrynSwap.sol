@@ -238,19 +238,25 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
      * @notice Get the expected return amount when exchanging the given
      *   amount of source tokens.
      *
+     * @notice Right now, this function is being called directly by _swapsExpectedReturn from the protocol
+     * So, this function is not using getConversionPath function since it will try to read the defaultPath storage which is stored in the protocol's slot, and it will cause an issue for direct call.
+     * Instead, this function is accepting additional parameters called defaultPath which value can be declared by the caller (protocol in this case).
+     *
      * @param sourceTokenAddress The address of the source token contract.
      * @param destTokenAddress The address of the destination token contract.
      * @param sourceTokenAmount The amount of source tokens to get the return for.
+     * @param sovrynSwapContractRegistry The sovryn swap contract reigstry address.
+     * @param defaultPath The default path for specific pairs.
      * */
     function internalExpectedReturn(
         address sourceTokenAddress,
         address destTokenAddress,
         uint256 sourceTokenAmount,
-        address sovrynSwapContractRegistryAddress,
+        address sovrynSwapContractRegistry,
         IERC20[] memory defaultPath
     ) public view returns (uint256 expectedReturn) {
         ISovrynSwapNetwork sovrynSwapNetwork =
-            getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+            getSovrynSwapNetworkContract(sovrynSwapContractRegistry);
 
         IERC20[] memory path =
             defaultPath.length >= 3

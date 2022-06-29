@@ -355,7 +355,13 @@ contract LoanOpenings is
         /// Initialize loan.
         Loan storage loanLocal =
             loans[
-                _initializeLoan(loanParamsLocal, loanId, initialMargin, sentAddresses, sentValues)
+                _initializeLoan(
+                    loanParamsLocal,
+                    loanId,
+                    initialMargin,
+                    sentAddresses,
+                    sentValues.newPrincipal
+                )
             ];
 
         // Get required interest.
@@ -646,13 +652,7 @@ contract LoanOpenings is
      *     borrower: must match loan if loanId provided.
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
-     * @param sentValues The values to send:
-     *     interestRate: New loan interest rate.
-     *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     interestInitialAmount: New amount of interest to escrow for Torque loan (determines initial loan length).
-     *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenSent: Total collateralToken deposit.
-     *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
+     * @param newPrincipal New loan size (borrowAmount + any borrowed interest).
      * @return The loanId.
      * */
     function _initializeLoan(
@@ -660,14 +660,13 @@ contract LoanOpenings is
         bytes32 loanId,
         uint256 initialMargin,
         MarginTradeStructHelpers.SentAddresses memory sentAddresses,
-        MarginTradeStructHelpers.SentAmounts memory sentValues
+        uint256 newPrincipal
     ) internal returns (bytes32) {
         require(loanParamsLocal.active, "loanParams disabled");
 
         address lender = sentAddresses.lender;
         address borrower = sentAddresses.borrower;
         address manager = sentAddresses.manager;
-        uint256 newPrincipal = sentValues.newPrincipal;
 
         Loan memory loanLocal;
 
