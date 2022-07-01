@@ -61,8 +61,8 @@ def main():
 
     #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1000000e18)
     #sendTokensFromMultisig(conf.contracts['USDT'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 1000000e18)
-    bal = getBalance(conf.contracts['(WR)BTC/ETH'], conf.contracts['multisig'])
-    removeLiquidityV1toMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterBNBs'], bal, [conf.contracts['WRBTC'], conf.contracts['BNBs']], [1,1])
+    #bal = getBalance(conf.contracts['(WR)BTC/ETH'], conf.contracts['multisig'])
+    #removeLiquidityV1toMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterBNBs'], bal, [conf.contracts['WRBTC'], conf.contracts['BNBs']], [1,1])
 
     #readMocOracleAddress()
 
