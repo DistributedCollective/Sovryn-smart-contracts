@@ -44,6 +44,7 @@ const {
 } = require("../Utils/initializer.js");
 
 const StakingLogic = artifacts.require("StakingMock");
+const StakingLogicMockup = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
@@ -266,6 +267,7 @@ contract("StakingRewards", (accounts) => {
         });
 
         it("should continue getting rewards for the staking period even after the program stops", async () => {
+            await staking.stake(wei("1000", "ether"), inTwoYears, a3, a3, { from: a3 }); // Test - 15/07/2021
             await increaseTimeAndBlocks(1209600); // Second Payment - 13 days approx
             await stakingRewards.stop();
             await increaseTimeAndBlocks(3600); // Increase a few blocks
@@ -277,6 +279,42 @@ contract("StakingRewards", (accounts) => {
             expect(rewards).to.be.bignumber.equal(fields.amount);
             totalRewards = new BN(totalRewards).add(new BN(rewards));
             expect(afterBalance).to.be.bignumber.greaterThan(beforeBalance);
+        });
+
+        it("should getting correct rewards after stopblock", async () => {
+            const stakingLogicMockup = await StakingLogicMockup.new(SOV.address);
+            staking = await StakingProxy.at(staking.address);
+
+            await staking.setImplementation(stakingLogicMockup.address);
+            staking = await StakingLogicMockup.at(staking.address); // Test - 01/07/2021
+
+            let block = await web3.eth.getBlock("latest");
+            let timestamp = block.timestamp;
+
+            const BASE_RATE = await stakingRewards.BASE_RATE();
+            const DIVISOR = await stakingRewards.DIVISOR();
+            const multiplier = new BN(2);
+            const MOCK_WEIGHTED_STAKE = multiplier.mul(DIVISOR).div(BASE_RATE);
+            const stopBlock = await stakingRewards.stopBlock();
+            const startTime = await stakingRewards.startTime();
+            const endTime = await staking.timestampToLockDate(timestamp);
+            const wsIteration = endTime.sub(startTime).div(new BN(1209600 /** two weeks */));
+
+            await staking.MOCK_priorWeightedStakeAtBlock(
+                MOCK_WEIGHTED_STAKE,
+                stopBlock.toString()
+            );
+            const fields = await stakingRewards.getStakerCurrentReward(false, 0, { from: a3 });
+            expect(fields[1].toString()).to.equal(
+                multiplier.mul(wsIteration).sub(new BN(1)).toString()
+            );
+            await staking.MOCK_priorWeightedStakeAtBlock(0, stopBlock.toString());
+
+            // Revert back staking logic
+            const stakingLogic = await StakingLogic.new(SOV.address);
+            staking = await StakingProxy.at(staking.address);
+            await staking.setImplementation(stakingLogic.address);
+            staking = await StakingLogic.at(staking.address);
         });
 
         it("should compute and send rewards to the staker a3 as applicable", async () => {
