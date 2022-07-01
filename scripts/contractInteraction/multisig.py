@@ -48,6 +48,10 @@ def confirmWithMS(txId):
     multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     multisig.confirmTransaction(txId)
 
+def confirmWithBFMS(txId):
+    multisig = Contract.from_abi("MultiSig", address = conf.contracts['BFmultisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    multisig.confirmTransaction(txId)
+
 def revokeConfirmationMS(txId):
     multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     multisig.revokeConfirmation(txId)
@@ -58,6 +62,11 @@ def confirmMultipleTxsWithMS(txIdFrom, txIdTo):
 
 def checkTx(txId):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    print("TX ID: ",txId,"confirmations: ", multisig.getConfirmationCount(txId), " Executed:", multisig.transactions(txId)[3], " Confirmed by: ", multisig.getConfirmations(txId))
+    print(multisig.transactions(txId))
+
+def checkTxOnBF(txId):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['BFmultisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     print("TX ID: ",txId,"confirmations: ", multisig.getConfirmationCount(txId), " Executed:", multisig.transactions(txId)[3], " Confirmed by: ", multisig.getConfirmations(txId))
     print(multisig.transactions(txId))
 

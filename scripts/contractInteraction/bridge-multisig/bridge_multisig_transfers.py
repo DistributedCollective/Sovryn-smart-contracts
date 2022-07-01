@@ -17,10 +17,12 @@ def main():
     #sendTokensFromBridgeRSKMultisig(contracts['RSK-USDTes'], 10**16)
 
     #sendTokensFromBridgeETHMultisig(contracts['ETH-USDT'], 10**16)
-
-    #sendAggregatedTokensFromExchequer(contracts['RSK-ETHes'], contracts['Aggregator-ETH-RSK'], '0xdd0e3546eebf3f1cc4454a16b4dc5b677923bdc1', 599e18)
-    sendTokensFromMultisig(contracts['SOV'], '0xdd0e3546eebf3f1cc4454a16b4dc5b677923bdc1', 50000e18)
-    #sendAggregatedTokensFromWallet(contracts['RSK-ETHes'], contracts['Aggregator-ETH-RSK'], '0xf5972e2bcc10404367cbdca2a3319470fbea3ff7', 2e17)
+    print(acct)
+    #sendAggregatedTokensFromExchequer(contracts['BNBbs'], contracts['Aggregator-BNB-RSK'], acct, 0.5e18)
+    sendAggregatedTokensFromExchequer(contracts['ETHbs'], contracts['Aggregator-ETH-RSK'], acct, 39.5e18)
+    #sendTokensToETHFromMultisig(contracts['SOV'], '0xdd0e3546eebf3f1cc4454a16b4dc5b677923bdc1', 50000e18)
+    #sendTokensToETHFromMultisig(contracts['SOV'], '0xbddf82bdb823d666b5bff940038ecb66f1ce41b5', 27530e18)
+    #sendAggregatedTokensFromWallet(contracts['ETHes'], contracts['Aggregator-ETH-RSK'], '0xf5972e2bcc10404367cbdca2a3319470fbea3ff7', 2e17)
     #sendTokensFromWallet(contracts['SOV'], '0xdd0e3546eebf3f1cc4454a16b4dc5b677923bdc1', 50e18)
 
 
@@ -43,8 +45,8 @@ def loadConfig():
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
 
-def sendTokensFromMultisig(token, receiver, amount):
-    abiFile =  open('./scripts/deployment/bridge-multisig/Bridge.json')
+def sendTokensToETHFromMultisig(token, receiver, amount):
+    abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
     abi = json.load(abiFile)
     tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=acct)
 
@@ -64,7 +66,7 @@ def sendTokensFromMultisig(token, receiver, amount):
     print(txId)
 
 def sendTokensFromWallet(token, receiver, amount):
-    abiFile =  open('./scripts/deployment/bridge-multisig/Bridge.json')
+    abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
     abi = json.load(abiFile)
     tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=acct)
 
@@ -73,7 +75,7 @@ def sendTokensFromWallet(token, receiver, amount):
     BridgeRSK.receiveTokensAt(token, amount, receiver, b'')
 
 def sendTokensFromBridgeETHMultisig(token, amount):
-    abiFile =  open('./scripts/deployment/bridge-multisig/Bridge.json')
+    abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
     abi = json.load(abiFile)
     bridgeETH = Contract.from_abi("BridgeETH", address=contracts['BridgeETH'], abi=abi, owner=acct)
     bridgeETHMultisig = Contract.from_abi("MultiSig", address=contracts['BridgeETHMultisig'], abi=MultiSigWallet.abi, owner=acct)
@@ -88,7 +90,7 @@ def sendTokensFromBridgeETHMultisig(token, amount):
     print(txId)
 
 def sendAggregatedTokensFromExchequer(basset, masset, receiver, amount):
-    abiFile =  open('./scripts/deployment/bridge-multisig/Masset.json')
+    abiFile =  open('./scripts/contractInteraction/bridge-multisig/Masset.json')
     abi = json.load(abiFile)
     masset = Contract.from_abi("Masset", address=masset, abi=abi, owner=acct)
 
@@ -101,7 +103,7 @@ def sendAggregatedTokensFromExchequer(basset, masset, receiver, amount):
     print(txId)
 
 def sendAggregatedTokensFromWallet(basset, masset, receiver, amount):
-    abiFile =  open('./scripts/deployment/bridge-multisig/Masset.json')
+    abiFile =  open('./scripts/contractInteraction/bridge-multisig/Masset.json')
     abi = json.load(abiFile)
     masset = Contract.from_abi("Masset", address=masset, abi=abi, owner=acct)
 

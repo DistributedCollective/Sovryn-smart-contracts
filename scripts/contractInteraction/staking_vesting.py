@@ -43,6 +43,9 @@ def readLMVestingContractForAddress(userAddress):
     address = vestingRegistry.getVesting(userAddress)
     print(address)
 
+# returns [(vesting type, vesting creation type, address)]
+# vesting type 0 -> team vesting
+# vesting type 1 -> owner vesting
 def readAllVestingContractsForAddress(userAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
     addresses = vestingRegistry.getVestingsOf(userAddress)
