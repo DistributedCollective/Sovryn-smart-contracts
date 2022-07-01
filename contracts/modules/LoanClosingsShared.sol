@@ -698,7 +698,7 @@ contract LoanClosingsShared is
      * @param amount the amount to be transferred
      * @return amount in RBTC
      * */
-    function _getAmountInRbtc(address asset, uint256 amount) internal returns (uint256) {
+    function _getAmountInRbtc(address asset, uint256 amount) internal view returns (uint256) {
         (uint256 rbtcRate, uint256 rbtcPrecision) =
             IPriceFeeds(priceFeeds).queryRate(asset, address(wrbtcToken));
         return amount.mul(rbtcRate).div(rbtcPrecision);

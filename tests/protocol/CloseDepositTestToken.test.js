@@ -121,12 +121,8 @@ contract("ProtocolCloseDeposit", (accounts) => {
             await lockedSOV.getLockedBalance(borrower)
         );
 
-        const tx = await sovryn.closeWithDeposit(loan_id, receiver, deposit_amount, {
-            from: borrower,
-        });
-        const receipt = tx.receipt;
-
         let loan_close_amount = deposit_amount.gt(principal) ? principal : deposit_amount;
+        let checkTinyPosition;
 
         // Check that tiny position won't be created
         // Comparison must be in wrbtc format because TINY_AMOUNT is assumed as WRBTC
@@ -139,9 +135,36 @@ contract("ProtocolCloseDeposit", (accounts) => {
             remainingAmountInWRBTC = remainingAmount.mul(rate).div(precision);
 
             if (remainingAmountInWRBTC.cmp(TINY_AMOUNT) <= 0) {
-                loan_close_amount = principal;
+                checkTinyPosition = await sovryn.checkCloseWithDepositIsTinyPosition(
+                    loan_id,
+                    deposit_amount
+                );
+                expect(checkTinyPosition.isTinyPosition).to.equal(true);
+                expect(checkTinyPosition.tinyPositionAmount.toString()).to.equal(
+                    remainingAmountInWRBTC.toString()
+                );
+
+                await expectRevert(
+                    sovryn.closeWithDeposit(loan_id, receiver, deposit_amount, {
+                        from: borrower,
+                    }),
+                    "Tiny amount when closing with deposit"
+                );
+                return;
             }
         }
+
+        checkTinyPosition = await sovryn.checkCloseWithDepositIsTinyPosition(
+            loan_id,
+            deposit_amount
+        );
+        expect(checkTinyPosition.isTinyPosition).to.equal(false);
+        expect(checkTinyPosition.tinyPositionAmount.toString()).to.equal("0");
+
+        const tx = await sovryn.closeWithDeposit(loan_id, receiver, deposit_amount, {
+            from: borrower,
+        });
+        const receipt = tx.receipt;
 
         const withdraw_amount = loan_close_amount.eq(principal)
             ? collateral
