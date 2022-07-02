@@ -267,7 +267,6 @@ contract("StakingRewards", (accounts) => {
         });
 
         it("should continue getting rewards for the staking period even after the program stops", async () => {
-            await staking.stake(wei("1000", "ether"), inTwoYears, a3, a3, { from: a3 }); // Test - 15/07/2021
             await increaseTimeAndBlocks(1209600); // Second Payment - 13 days approx
             await stakingRewards.stop();
             await increaseTimeAndBlocks(3600); // Increase a few blocks
