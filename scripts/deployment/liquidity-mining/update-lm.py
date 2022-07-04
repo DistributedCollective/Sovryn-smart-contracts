@@ -122,10 +122,11 @@ def updateLMConfig():
 
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
 
-    print(lm.getPoolInfo(contracts['LiquidityMiningConfigToken']))
+    print('LiquidityMiningConfigToken:', lm.getPoolInfo(contracts['LiquidityMiningConfigToken']))
+    print('iXUSD:',lm.getPoolInfo(contracts['iXUSD']))
 
     #update this before executing
-    data = lm.update.encode_input(
+    data = lm.updateTokens.encode_input(
         [contracts['iXUSD'], contracts['LiquidityMiningConfigToken']],
         [ALLOCATION_POINT_I_XUSD, ALLOCATION_POINT_CONFIG_TOKEN],
         True
