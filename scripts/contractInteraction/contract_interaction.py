@@ -18,6 +18,7 @@ def main():
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
     #withdrawRBTCFromFastBTCBiDi(19e18, conf.contracts['multisig'])
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
+    #bal = getBalance(conf.contracts['FastBTCBiDi'], conf.contracts['Watcher'])
     #withdrawTokensFromWatcher(conf.contracts['DoC'], 170000e18, conf.contracts['multisig'])
 
     #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 300000e18)
@@ -34,13 +35,14 @@ def main():
         #confirmWithMS(i)
         #checkTx(i)
     
-    #checkTx(960)
+    #checkTx(979)
     #confirmWithMS(960)
     #confirmMultipleTxsWithMS(960, 963)
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
 
-    #transferRBTCFromFastBTCOffRampToOnRamp(7e18)
+    #transferRBTCFromFastBTCOffRampToOnRamp(16e18)
+    #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
     #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1000000e18)
     #sendTokensFromMultisig(conf.contracts['USDT'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 1000000e18)
