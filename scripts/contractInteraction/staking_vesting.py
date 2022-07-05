@@ -409,3 +409,10 @@ def stopStakingRewards():
     stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
     data = stakingRewards.stop.encode_input()
     sendWithMultisig(conf.contracts['multisig'], stakingRewards.address, data, conf.acct)
+
+def addVestingCodeHash(vestingLogic):
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = staking.addContractCodeHash.encode_input(vestingLogic)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+
