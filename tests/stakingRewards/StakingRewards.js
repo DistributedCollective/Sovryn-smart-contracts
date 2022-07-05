@@ -318,7 +318,7 @@ contract("StakingRewards", (accounts) => {
             expect(afterBalance).to.be.bignumber.equal(beforeBalance);
         });
 
-        it("should getting correct rewards after stopblock", async () => {
+        it("should be getting correct rewards after stopblock", async () => {
             const stakingLogicMockup = await StakingLogicMockup.new(SOV.address);
             staking = await StakingProxy.at(staking.address);
 
