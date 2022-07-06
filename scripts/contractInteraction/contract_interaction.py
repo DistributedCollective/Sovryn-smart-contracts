@@ -31,13 +31,11 @@ def main():
     #confirmWithBFMS(8)
     #checkTxOnBF(8)
     
-    #for i in range (1007, 1008):
-        #confirmWithMS(i)
-        #checkTx(i)
+    #confirmMultipleTxsWithMS(960, 963)
     
     #checkTx(979)
     #confirmWithMS(960)
-    #confirmMultipleTxsWithMS(960, 963)
+    
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
 
