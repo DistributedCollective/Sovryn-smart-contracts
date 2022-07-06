@@ -68,10 +68,10 @@ def main():
         print('timeLockDate:', timeLockDate)
         extendDurationFor = fourYearVestingLogic.extendDurationFor()
         print('extendDurationFor:', extendDurationFor)
-        maxIterations = extendDurationFor / FOUR_WEEKS 
-        print('maxIterations:', maxIterations)
         DAY = 24 * 60 * 60
         FOUR_WEEKS = 4 * 7 * DAY
+        maxIterations = extendDurationFor / FOUR_WEEKS 
+        print('maxIterations:', maxIterations)
         result = ((timeLockDate - startDate) % FOUR_WEEKS) # the cron should run every four weeks from start date
         newResult = ((timeLockDate - startDate) / FOUR_WEEKS) # the cron should run for maxIterations only
         timediff = datenow - timeLockDate # To avoid execution on consecutive weeks
