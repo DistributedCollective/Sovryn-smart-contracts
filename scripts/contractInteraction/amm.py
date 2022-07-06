@@ -328,8 +328,9 @@ def removeLiquidityV2toMultisig(converter, poolToken, amount, minReturn):
     converter = Contract.from_abi("LiquidityPoolV2Converter", address=converter, abi=abi, owner=conf.acct)
     print("is active? ", converter.isActive())
     print("price oracle", converter.priceOracle())
-    data = converter.addLiquidity.encode_input(poolToken, amount, minReturn)
+    data = converter.removeLiquidity.encode_input(poolToken, amount, minReturn)
     print(data)
+    sendWithMultisig(conf.contracts['multisig'], converter.address, data, conf.acct)
 
 def getReturnForV2PoolToken(converter, poolToken, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')

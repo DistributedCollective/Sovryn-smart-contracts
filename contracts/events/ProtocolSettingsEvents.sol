@@ -6,6 +6,7 @@
 pragma solidity 0.5.17;
 
 import "./ModulesCommonEvents.sol";
+import "../interfaces/IERC20.sol";
 
 /**
  * @title The Protocol Settings Events contract.
@@ -158,5 +159,19 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
         address indexed sender,
         uint256 oldRolloverFlexFeePercent,
         uint256 newRolloverFlexFeePercent
+    );
+
+    event SetDefaultPathConversion(
+        address indexed sender,
+        address indexed sourceTokenAddress,
+        address indexed destTokenAddress,
+        IERC20[] defaultPath
+    );
+
+    event RemoveDefaultPathConversion(
+        address indexed sender,
+        address indexed sourceTokenAddress,
+        address indexed destTokenAddress,
+        IERC20[] defaultPath
     );
 }

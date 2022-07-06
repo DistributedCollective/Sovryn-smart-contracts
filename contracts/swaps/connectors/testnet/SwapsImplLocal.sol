@@ -99,6 +99,7 @@ contract SwapsImplLocal is State, ISwapsImpl {
      * @param destTokenAddress The address of the destiny tokens.
      * @param sourceTokenAmount The amount of source tokens.
      * @param unused Fourth parameter ignored.
+     * @param defaultPath defaultPath for swap.
      *
      * @return precision The expected return.
      * */
@@ -106,7 +107,8 @@ contract SwapsImplLocal is State, ISwapsImpl {
         address sourceTokenAddress,
         address destTokenAddress,
         uint256 sourceTokenAmount,
-        address unused
+        address unused,
+        IERC20[] memory defaultPath
     ) public view returns (uint256) {
         (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
             IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);

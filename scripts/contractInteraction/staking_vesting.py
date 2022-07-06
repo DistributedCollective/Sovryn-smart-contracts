@@ -63,6 +63,9 @@ def readLMVestingContractForAddress(userAddress):
     address = vestingRegistry.getVesting(userAddress)
     print(address)
 
+# returns [(vesting type, vesting creation type, address)]
+# vesting type 0 -> team vesting
+# vesting type 1 -> owner vesting
 def readAllVestingContractsForAddress(userAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
     addresses = vestingRegistry.getVestingsOf(userAddress)
@@ -362,6 +365,7 @@ def updateLockedSOV():
     print(data)
     # sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
 
+#receiver is usually the multisig
 def governanceWithdrawVesting( vesting,  receiver):
     stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
     data = stakingProxy.governanceWithdrawVesting.encode_input( vesting,  receiver)
@@ -405,3 +409,10 @@ def stopStakingRewards():
     stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
     data = stakingRewards.stop.encode_input()
     sendWithMultisig(conf.contracts['multisig'], stakingRewards.address, data, conf.acct)
+
+def addVestingCodeHash(vestingLogic):
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = staking.addContractCodeHash.encode_input(vestingLogic)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+
