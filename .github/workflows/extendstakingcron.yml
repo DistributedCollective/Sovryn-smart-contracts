@@ -5,6 +5,7 @@ on:
     # The cron job should run every four weeks from the creation of four year vesting contract
     # and only for 52 weeks
     - cron: "30 10 * * FRI"
+  workflow_dispatch:
 
 jobs:
   build:
