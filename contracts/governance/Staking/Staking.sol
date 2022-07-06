@@ -2,11 +2,11 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
-import "./IStaking.sol";
+import "./interfaces/IStaking.sol";
 import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
 import "../Vesting/IVesting.sol";
-// import "../ApprovalReceiver.sol"; //uncomment when refactoring
+import "../ApprovalReceiver.sol"; //uncomment when refactoring
 import "../../openzeppelin/SafeMath.sol";
 
 /**

@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
-import "../Staking/IStaking.sol";
+import "../Staking/interfaces/IStaking.sol";
 import "../IFeeSharingProxy.sol";
 import "./IVesting.sol";
 import "../ApprovalReceiver.sol";

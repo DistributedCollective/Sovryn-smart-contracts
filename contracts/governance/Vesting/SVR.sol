@@ -5,7 +5,7 @@ import "../../openzeppelin/IERC20_.sol";
 import "../../openzeppelin/ERC20.sol";
 import "../../openzeppelin/Ownable.sol";
 import "../Staking/SafeMath96.sol";
-import "../Staking/IStaking.sol";
+import "../interfaces/Staking/IStaking.sol";
 import "../../token/IApproveAndCall.sol";
 import "../ApprovalReceiver.sol";
 
