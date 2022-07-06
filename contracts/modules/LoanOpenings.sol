@@ -12,6 +12,7 @@ import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
+import "../connectors/loantoken/lib/MarginTradeStructHelpers.sol";
 
 /**
  * @title Loan Openings contract.
@@ -69,11 +70,12 @@ contract LoanOpenings is
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
      * @param sentValues The values to send:
-     *     newRate: New loan interest rate.
+     *     interestRate: New loan interest rate.
      *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).
+     *     interestInitialAmount: New amount of interest to escrow for Torque loan (determines initial loan length).
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenReceived: Total collateralToken deposit.
+     *     collateralTokenSent: Total collateralToken deposit.
+     *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
      * @param loanDataBytes The payload for the call. These loan DataBytes are
      *   additional loan data (not in use for token swaps).
      *
@@ -85,8 +87,8 @@ contract LoanOpenings is
         bytes32 loanId,
         bool isTorqueLoan,
         uint256 initialMargin,
-        address[4] calldata sentAddresses,
-        uint256[5] calldata sentValues,
+        MarginTradeStructHelpers.SentAddresses calldata sentAddresses,
+        MarginTradeStructHelpers.SentAmounts calldata sentValues,
         bytes calldata loanDataBytes
     )
         external
@@ -108,7 +110,7 @@ contract LoanOpenings is
             _getRequiredCollateral(
                 loanParamsLocal.loanToken,
                 loanParamsLocal.collateralToken,
-                sentValues[1],
+                sentValues.newPrincipal,
                 initialMargin,
                 isTorqueLoan
             );
@@ -316,11 +318,12 @@ contract LoanOpenings is
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
      * @param sentValues The values to send:
-     *     newRate: New loan interest rate.
+     *     interestRate: New loan interest rate.
      *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).
+     *     interestInitialAmount: New amount of interest to escrow for Torque loan (determines initial loan length).
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenReceived: Total collateralToken deposit.
+     *     collateralTokenSent: Total collateralToken deposit.
+     *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
      * @param loanDataBytes The payload for the call. These loan DataBytes are
      *   additional loan data (not in use for token swaps).
      *
@@ -333,8 +336,8 @@ contract LoanOpenings is
         bool isTorqueLoan,
         uint256 collateralAmountRequired,
         uint256 initialMargin,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentValues,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentValues,
         bytes memory loanDataBytes
     ) internal returns (uint256, uint256) {
         require(
@@ -345,14 +348,20 @@ contract LoanOpenings is
 
         /// maxLoanTerm == 0 indicates a Torque loan and requires that torqueInterest != 0
         require(
-            loanParamsLocal.maxLoanTerm != 0 || sentValues[2] != 0, /// torqueInterest
+            loanParamsLocal.maxLoanTerm != 0 || sentValues.interestInitialAmount != 0, /// torqueInterest
             "invalid interest"
         );
 
         /// Initialize loan.
         Loan storage loanLocal =
             loans[
-                _initializeLoan(loanParamsLocal, loanId, initialMargin, sentAddresses, sentValues)
+                _initializeLoan(
+                    loanParamsLocal,
+                    loanId,
+                    initialMargin,
+                    sentAddresses,
+                    sentValues.newPrincipal
+                )
             ];
 
         // Get required interest.
@@ -360,50 +369,53 @@ contract LoanOpenings is
             _initializeInterest(
                 loanParamsLocal,
                 loanLocal,
-                sentValues[0], /// newRate
-                sentValues[1], /// newPrincipal,
-                sentValues[2] /// torqueInterest
+                sentValues.interestRate, /// newRate
+                sentValues.newPrincipal, /// newPrincipal,
+                sentValues.interestInitialAmount /// torqueInterest
             );
 
         /// substract out interest from usable loanToken sent.
-        sentValues[3] = sentValues[3].sub(amount);
+        sentValues.loanTokenSent = sentValues.loanTokenSent.sub(amount);
 
         if (isTorqueLoan) {
-            require(sentValues[3] == 0, "surplus loan token");
+            require(sentValues.loanTokenSent == 0, "surplus loan token");
 
-            uint256 borrowingFee = _getBorrowingFee(sentValues[4]);
+            uint256 borrowingFee = _getBorrowingFee(sentValues.collateralTokenSent);
             // need to temp into local state to avoid
             address _collateralToken = loanParamsLocal.collateralToken;
             address _loanToken = loanParamsLocal.loanToken;
             if (borrowingFee != 0) {
                 _payBorrowingFee(
-                    sentAddresses[1], /// borrower
+                    sentAddresses.borrower, /// borrower
                     loanLocal.id,
                     _collateralToken, /// fee token
                     _loanToken, /// pairToken (used to check if there is any special rebates or not) -- to pay fee reward
                     borrowingFee
                 );
 
-                sentValues[4] = sentValues[4] /// collateralTokenReceived
-                    .sub(borrowingFee);
+                sentValues.collateralTokenSent = sentValues.collateralTokenSent.sub(borrowingFee);
             }
         } else {
             /// Update collateral after trade.
-            /// sentValues[3] is repurposed to hold loanToCollateralSwapRate to avoid stack too deep error.
             uint256 receivedAmount;
-            (receivedAmount, , sentValues[3]) = _loanSwap(
+            (receivedAmount, , sentValues.loanToCollateralSwapRate) = _loanSwap(
                 loanId,
                 loanParamsLocal.loanToken,
                 loanParamsLocal.collateralToken,
-                sentAddresses[1], /// borrower
-                sentValues[3], /// loanTokenUsable (minSourceTokenAmount)
+                sentAddresses.borrower, /// borrower
+                sentValues.loanTokenSent, /// loanTokenUsable (minSourceTokenAmount)
                 0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
                 0, /// requiredDestTokenAmount (enforces that all of loanTokenUsable is swapped)
                 false, /// bypassFee
                 loanDataBytes
             );
-            sentValues[4] = sentValues[4] /// collateralTokenReceived
-                .add(receivedAmount);
+            sentValues.collateralTokenSent = sentValues.collateralTokenSent.add(receivedAmount);
+
+            /// Check the minEntryPrice with the rate
+            require(
+                sentValues.loanToCollateralSwapRate >= sentValues.minEntryPrice,
+                "entry price above the minimum"
+            );
         }
 
         /// Settle collateral.
@@ -412,25 +424,25 @@ contract LoanOpenings is
                 loanParamsLocal,
                 loanLocal,
                 initialMargin,
-                sentValues[4],
+                sentValues.collateralTokenSent,
                 collateralAmountRequired
             ),
             "collateral insufficient"
         );
 
-        loanLocal.collateral = loanLocal.collateral.add(sentValues[4]);
+        loanLocal.collateral = loanLocal.collateral.add(sentValues.collateralTokenSent);
 
         if (isTorqueLoan) {
-            /// reclaiming varaible -> interestDuration
-            sentValues[2] = loanLocal.endTimestamp.sub(block.timestamp);
+            /// reclaiming variable -> interestDuration
+            sentValues.interestDuration = loanLocal.endTimestamp.sub(block.timestamp);
         } else {
-            /// reclaiming varaible -> entryLeverage = 100 / initialMargin
-            sentValues[2] = SafeMath.div(10**38, initialMargin);
+            /// reclaiming variable -> entryLeverage = 100 / initialMargin
+            sentValues.entryLeverage = SafeMath.div(10**38, initialMargin);
         }
 
         _finalizeOpen(loanParamsLocal, loanLocal, sentAddresses, sentValues, isTorqueLoan);
 
-        return (sentValues[1], sentValues[4]); /// newPrincipal, newCollateral
+        return (sentValues.newPrincipal, sentValues.collateralTokenSent); /// newPrincipal, newCollateral
     }
 
     /**
@@ -447,18 +459,19 @@ contract LoanOpenings is
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
      * @param sentValues The values to send:
-     *     newRate: New loan interest rate.
+     *     interestRate: New loan interest rate.
      *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).
+     *     interestInitialAmount: New amount of interest to escrow for Torque loan (determines initial loan length).
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenReceived: Total collateralToken deposit.
+     *     collateralTokenSent: Total collateralToken deposit.
+     *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
      * @param isTorqueLoan Whether the loan is a Torque loan.
      * */
     function _finalizeOpen(
         LoanParams memory loanParamsLocal,
         Loan storage loanLocal,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentValues,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentValues,
         bool isTorqueLoan
     ) internal {
         /// @dev TODO: here the actual used rate and margin should go.
@@ -485,7 +498,7 @@ contract LoanOpenings is
             uint256 totalSwapRate = loanToCollateralPrecision.mul(collateralToLoanPrecision);
             loanLocal.startRate = isTorqueLoan
                 ? collateralToLoanRate
-                : totalSwapRate.div(sentValues[3]);
+                : totalSwapRate.div(sentValues.loanToCollateralSwapRate);
         }
 
         _emitOpeningEvents(
@@ -511,11 +524,12 @@ contract LoanOpenings is
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
      * @param sentValues The values to send:
-     *     newRate: New loan interest rate.
+     *     interestRate: New loan interest rate.
      *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).
+     *     interestInitialAmount: New amount of interest to escrow for Torque loan (determines initial loan length).
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenReceived: Total collateralToken deposit.
+     *     collateralTokenSent: Total collateralToken deposit.
+     *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
      * @param collateralToLoanRate The exchange rate from collateral to loan
      *   tokens.
      * @param margin The amount of margin of the trade.
@@ -524,23 +538,23 @@ contract LoanOpenings is
     function _emitOpeningEvents(
         LoanParams memory loanParamsLocal,
         Loan memory loanLocal,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentValues,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentValues,
         uint256 collateralToLoanRate,
         uint256 margin,
         bool isTorqueLoan
     ) internal {
         if (isTorqueLoan) {
             emit Borrow(
-                sentAddresses[1], /// user (borrower)
-                sentAddresses[0], /// lender
+                sentAddresses.borrower, /// user (borrower)
+                sentAddresses.lender, /// lender
                 loanLocal.id, /// loanId
                 loanParamsLocal.loanToken, /// loanToken
                 loanParamsLocal.collateralToken, /// collateralToken
-                sentValues[1], /// newPrincipal
-                sentValues[4], /// newCollateral
-                sentValues[0], /// interestRate
-                sentValues[2], /// interestDuration
+                sentValues.newPrincipal, /// newPrincipal
+                sentValues.collateralTokenSent, /// newCollateral
+                sentValues.interestRate, /// interestRate
+                sentValues.interestDuration, /// interestDuration
                 collateralToLoanRate, /// collateralToLoanRate,
                 margin /// currentMargin
             );
@@ -549,17 +563,17 @@ contract LoanOpenings is
             margin = SafeMath.div(10**38, margin);
 
             emit Trade(
-                sentAddresses[1], /// user (trader)
-                sentAddresses[0], /// lender
+                sentAddresses.borrower, /// user (trader)
+                sentAddresses.lender, /// lender
                 loanLocal.id, /// loanId
                 loanParamsLocal.collateralToken, /// collateralToken
                 loanParamsLocal.loanToken, /// loanToken
-                sentValues[4], /// positionSize
-                sentValues[1], /// borrowedAmount
-                sentValues[0], /// interestRate,
+                sentValues.collateralTokenSent, /// positionSize
+                sentValues.newPrincipal, /// borrowedAmount
+                sentValues.interestRate, /// interestRate,
                 loanLocal.endTimestamp, /// settlementDate
-                sentValues[3], /// entryPrice (loanToCollateralSwapRate)
-                sentValues[2], /// entryLeverage
+                sentValues.loanToCollateralSwapRate, /// entryPrice (loanToCollateralSwapRate)
+                sentValues.entryLeverage, /// entryLeverage
                 margin /// currentLeverage
             );
         }
@@ -638,27 +652,21 @@ contract LoanOpenings is
      *     borrower: must match loan if loanId provided.
      *     receiver: receiver of funds (address(0) assumes borrower address).
      *     manager: delegated manager of loan unless address(0).
-     * @param sentValues The values to send:
-     *     newRate: New loan interest rate.
-     *     newPrincipal: New loan size (borrowAmount + any borrowed interest).
-     *     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).
-     *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
-     *     collateralTokenReceived: Total collateralToken deposit.
+     * @param newPrincipal New loan size (borrowAmount + any borrowed interest).
      * @return The loanId.
      * */
     function _initializeLoan(
         LoanParams memory loanParamsLocal,
         bytes32 loanId,
         uint256 initialMargin,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentValues
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        uint256 newPrincipal
     ) internal returns (bytes32) {
         require(loanParamsLocal.active, "loanParams disabled");
 
-        address lender = sentAddresses[0];
-        address borrower = sentAddresses[1];
-        address manager = sentAddresses[3];
-        uint256 newPrincipal = sentValues[1];
+        address lender = sentAddresses.lender;
+        address borrower = sentAddresses.borrower;
+        address manager = sentAddresses.manager;
 
         Loan memory loanLocal;
 
