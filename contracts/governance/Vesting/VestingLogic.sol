@@ -217,7 +217,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * register stakeTokensWithApproval selector on this contract.
      * @return The array of registered selectors on this contract.
      * */
-    function _getSelectors() internal view returns (bytes4[] memory) {
+    function _getSelectors() internal pure returns (bytes4[] memory) {
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = this.stakeTokensWithApproval.selector;
         return selectors;

@@ -137,7 +137,7 @@ contract SVR is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
      * register mintWithApproval selector on this contract.
      * @return The array of registered selectors on this contract.
      * */
-    function _getSelectors() internal view returns (bytes4[] memory) {
+    function _getSelectors() internal pure returns (bytes4[] memory) {
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = this.mintWithApproval.selector;
         return selectors;
