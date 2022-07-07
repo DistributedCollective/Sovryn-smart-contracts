@@ -5,7 +5,7 @@ import "../mixins/EnumerableBytes4Set.sol";
 import "../openzeppelin/Address.sol";
 import "../utils/Utils.sol";
 import "../utils/ProxyOwnable.sol";
-import "./modules/interfaces/IFunctionList.sol";
+import "./modules/interfaces/IFunctionsList.sol";
 import "./ModulesProxyRegistry.sol";
 
 /**
@@ -62,12 +62,12 @@ contract ModulesProxy is ModulesProxyRegistry {
             let ptr := mload(0x40)
             returndatacopy(ptr, 0, size)
             switch result
-            case 0 {
-                revert(ptr, size)
-            }
-            default {
-                return(ptr, size)
-            }
+                case 0 {
+                    revert(ptr, size)
+                }
+                default {
+                    return(ptr, size)
+                }
         }
     }
 }

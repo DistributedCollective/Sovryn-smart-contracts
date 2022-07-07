@@ -4,13 +4,12 @@ pragma solidity 0.5.17;
 import "../mixins/EnumerableBytes4Set.sol";
 import "../utils/Utils.sol";
 import "../utils/ProxyOwnable.sol";
-import "./modules/interfaces/IFunctionList.sol";
+import "./modules/interfaces/IFunctionsList.sol";
 import "../openzeppelin/Address.sol";
 
 /**
  * ModulesRegistry provides modules registration/removing/replacing functionality to ModulesProxy
  * Designed to be inherited, should not be deployed
- * This module should never be
  */
 
 contract ModulesProxyRegistry is ProxyOwnable {
@@ -20,7 +19,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
     bytes32 internal constant KEY_IMPLEMENTATION = keccak256("key.implementation");
 
     event SetModuleFuncImplementation(
-        bytes4 _funcSig,
+        bytes4 indexed _funcSig,
         address indexed _oldImplementation,
         address indexed _newImplementation
     );
@@ -53,7 +52,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
     /// @param _impl module implementation address to verify
     function canAddModule(address _impl) external view returns (bool) {
         require(_impl.isContract(), "MR06"); //Proxy::canAddModule: address is not a contract
-        bytes4[] memory functions = IFunctionList(_impl).getFunctionList();
+        bytes4[] memory functions = IFunctionsList(_impl).getFunctionList();
         for (uint256 i = 1; i < functions.length; i++)
             if (_getFuncImplementation(functions[i]) != address(0)) return (false);
         return true;
@@ -69,9 +68,9 @@ contract ModulesProxyRegistry is ProxyOwnable {
 
     function _addNewModule(address _impl) internal {
         require(_impl.isContract(), "MR01"); //ModulesRegistry::_addNewModule: address is not a contract
-        bytes4[] memory functions = IFunctionList(_impl).getFunctionList();
+        bytes4[] memory functions = IFunctionsList(_impl).getFunctionList();
         for (uint256 i = 1; i < functions.length; i++) {
-            require(_getFuncImplementation(functions[i]) == address(0), "MR02"); //ModulesRegistry::_addNewModule: function already registered with another module - use ReplaceModule instead
+            require(_getFuncImplementation(functions[i]) == address(0), "MR02"); //function already registered in another module - use ReplaceModule if you need to replace the whole module
             _setModuleFuncImplementation(functions[i], _impl);
         }
     }
@@ -88,7 +87,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
 
     function _removeModule(address _impl) internal onlyProxyOwner {
         require(_impl.isContract(), "MR07"); //ModulesRegistry::_removeModuleImplementation: address is not a contract
-        bytes4[] memory functions = IFunctionList(_impl).getFunctionList();
+        bytes4[] memory functions = IFunctionsList(_impl).getFunctionList();
         for (uint256 i = 1; i < functions.length; i++)
             _setModuleFuncImplementation(functions[i], address(0));
     }
