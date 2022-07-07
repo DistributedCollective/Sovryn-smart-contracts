@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../IFeeSharingProxy.sol";
-import "../Vesting/VestingRegistryLogic.sol";
+import "../Vesting/IVestingRegistry.sol";
 
 /**
  * @title Staking Storage contact.
@@ -139,7 +139,7 @@ contract StakingStorage is Ownable {
     mapping(uint256 => uint32) public numVestingCheckpoints;
 
     ///@notice vesting registry contract
-    VestingRegistryLogic public vestingRegistryLogic;
+    IVestingRegistry public vestingRegistryLogic;
 
     /// @dev user => flag whether user has pauser role.
     mapping(address => bool) public pausers;
