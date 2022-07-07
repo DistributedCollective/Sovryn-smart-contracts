@@ -11,7 +11,7 @@ interface IVestingRegistry {
 
     function setVestingRegistry(address _vestingRegistryProxy) external;
 
-    function isVestingAdress(address _vestingAddress) external view; //name typo. to be deprecated.
+    function isVestingAdress(address _vestingAddress) external view returns (bool); //name typo. to be deprecated.
 
     function isVestingAddress(address _vestingAddress) external view returns (bool);
 }
