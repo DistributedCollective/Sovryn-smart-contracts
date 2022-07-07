@@ -57,7 +57,7 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
      * @dev Should be overridden in child contracts, otherwise error will be thrown.
      * @return By default, 0x. When overriden, the token address making the call.
      */
-    function _getToken() internal pure returns (address) {
+    function _getToken() internal view returns (address) {
         return address(0);
     }
 
