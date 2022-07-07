@@ -1,0 +1,101 @@
+pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
+
+import "../CheckpointsShared.sol";
+import "../../../openzeppelin/Address.sol";
+import "../StakingShared.sol";
+import "../../../proxy/modules/interfaces/IFunctionsList.sol";
+
+/**
+ * @title Weighted Staking contract.
+ * @notice Computation of power and votes used by FeeSharingProxy and
+ * GovernorAlpha and Staking contracts w/ mainly 3 public functions:
+ *   + getPriorTotalVotingPower => Total voting power.
+ *   + getPriorVotes  => Delegatee voting power.
+ *   + getPriorWeightedStake  => User Weighted Stake.
+ * Staking contract inherits WeightedStaking.
+ * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
+ * */
+contract WeightedStakingModule is StakingShared, IFunctionsList, CheckpointsShared {
+    using Address for address payable;
+
+    /*************************** User Weighted Stake computation for fee sharing *******************************/
+
+    /**
+     * @notice Determine the prior weighted stake for an account as of a block number.
+     * Iterate through checkpoints adding up voting power.
+     * @dev Block number must be a finalized block or else this function will
+     * revert to prevent misinformation.
+     *      Used for fee sharing, not voting.
+     *
+     * @param account The address of the account to check.
+     * @param blockNumber The block number to get the vote balance at.
+     * @param date The date/timestamp of the unstaking time.
+     * @return The weighted stake the account had as of the given block.
+     * */
+    function getPriorWeightedStake(
+        address account,
+        uint256 blockNumber,
+        uint256 date
+    ) public view returns (uint96 priorWeightedStake) {
+        /// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
+        uint256 start = _timestampToLockDate(date);
+        uint256 end = start + MAX_DURATION;
+
+        /// @dev Max 78 iterations.
+        for (uint256 i = start; i <= end; i += TWO_WEEKS) {
+            uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
+            if (weightedStake > 0) {
+                priorWeightedStake = add96(priorWeightedStake, weightedStake, "WS12"); // overflow on total weight
+            }
+        }
+    }
+
+    /**
+     * @notice Compute the voting power for a specific date.
+     * Power = stake * weight
+     * TODO: WeightedStaking::weightedStakeByDate should probably better
+     * be internal instead of a public function.
+     * @param account The user address.
+     * @param date The staking date to compute the power for.
+     * @param startDate The date for which we need to know the power of the stake.
+     * @param blockNumber The block number, needed for checkpointing.
+     * @return The stacking power.
+     * */
+    function weightedStakeByDate(
+        address account,
+        uint256 date,
+        uint256 startDate,
+        uint256 blockNumber
+    ) public view returns (uint96 power) {
+        uint96 staked = _getPriorUserStakeByDate(account, date, blockNumber);
+        if (staked > 0) {
+            uint96 weight = _computeWeightByDate(date, startDate);
+            power = mul96(staked, weight, "WS13") / WEIGHT_FACTOR; // overflow
+        } else {
+            power = 0;
+        }
+    }
+
+    /**
+     * @notice Compute the weight for a specific date.
+     * @param date The unlocking date.
+     * @param startDate We compute the weight for the tokens staked until 'date' on 'startDate'.
+     * @return The weighted stake the account had as of the given block.
+     * */
+    function computeWeightByDate(uint256 date, uint256 startDate)
+        public
+        pure
+        returns (uint96 weight)
+    {
+        return _computeWeightByDate(date, startDate);
+    }
+
+    function _getFunctionList() internal pure returns (bytes4[] memory) {
+        bytes4[] memory functionList = new bytes4[](2);
+        functionList[0] = this.getPriorWeightedStake.selector;
+        functionList[1] = this.weightedStakeByDate.selector;
+        functionList[2] = this.computeWeightByDate.selector;
+        return functionList;
+    }
+}
