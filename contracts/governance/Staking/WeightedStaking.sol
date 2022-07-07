@@ -76,7 +76,7 @@ contract WeightedStaking is Checkpoints {
      * various other functionalities without the necessity of linking it with Vesting Registry
      */
     function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner whenNotFrozen {
-        vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
+        vestingRegistryLogic = IVestingRegistry(_vestingRegistryProxy);
     }
 
     /**
