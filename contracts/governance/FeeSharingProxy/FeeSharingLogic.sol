@@ -289,7 +289,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         } else {
             // Previously it directly send the loanToken to the user
             require(
-                IERC20(_loanPoolToken).transfer(user, amount),
+                IERC20(_loanPoolToken).transfer(_receiver, amount),
                 "FeeSharingProxy::withdraw: withdrawal failed"
             );
         }

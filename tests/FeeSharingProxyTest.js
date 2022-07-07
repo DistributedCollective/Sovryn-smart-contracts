@@ -1214,6 +1214,70 @@ contract("FeeSharingProxy:", (accounts) => {
             });
         });
 
+        it("Should be able to withdraw (sov pool) to another account", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            //stake - getPriorTotalVotingPower
+            let rootStake = 700;
+            await stake(rootStake, root);
+
+            let userStake = 300;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            //mock data
+            let lendingFeeTokensHeld = new BN(wei("1", "gwei"));
+            let tradingFeeTokensHeld = new BN(wei("2", "gwei"));
+            let borrowingFeeTokensHeld = new BN(wei("3", "gwei"));
+            let totalFeeTokensHeld = lendingFeeTokensHeld
+                .add(tradingFeeTokensHeld)
+                .add(borrowingFeeTokensHeld);
+            let feeAmount = await setFeeTokensHeld(
+                lendingFeeTokensHeld,
+                tradingFeeTokensHeld,
+                borrowingFeeTokensHeld,
+                false,
+                true
+            );
+
+            await feeSharingProxy.withdrawFees([SOVToken.address]);
+
+            let fees = await feeSharingProxy.getAccumulatedFees(account1, SOVToken.address);
+            expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
+
+            const receiverBalanceBefore = await SOVToken.balanceOf(account2);
+            let tx = await feeSharingProxy.withdraw(SOVToken.address, 10, account2, {
+                from: account1,
+            });
+
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(
+                account1,
+                SOVToken.address
+            );
+            expect(processedCheckpoints.toNumber()).to.be.equal(1);
+
+            //check balances
+            let feeSharingProxyBalance = await SOVToken.balanceOf.call(feeSharingProxy.address);
+            expect(feeSharingProxyBalance.toNumber()).to.be.equal((feeAmount * 7) / 10);
+            const receiverBalanceAfter = await SOVToken.balanceOf(account2);
+            const amountWithdrawn = new BN(feeAmount).mul(new BN(3)).div(new BN(10));
+            expect(receiverBalanceAfter.sub(receiverBalanceBefore).toString()).to.be.equal(
+                amountWithdrawn.toString()
+            );
+
+            expectEvent(tx, "UserFeeWithdrawn", {
+                sender: account1,
+                receiver: account2,
+                token: SOVToken.address,
+                amount: amountWithdrawn,
+            });
+        });
+
         it("Should be able to withdraw using 3 checkpoints", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
