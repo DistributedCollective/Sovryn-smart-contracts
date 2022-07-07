@@ -734,7 +734,7 @@ contract WeightedStaking is Checkpoints {
         bool isVesting;
         bytes32 codeHash = _getCodeHash(stakerAddress);
         if (address(vestingRegistryLogic) != address(0)) {
-            isVesting = vestingRegistryLogic.isVestingAddress(stakerAddress);
+            isVesting = vestingRegistryLogic.isVestingAdress(stakerAddress);
         }
 
         if (isVesting) return true;
