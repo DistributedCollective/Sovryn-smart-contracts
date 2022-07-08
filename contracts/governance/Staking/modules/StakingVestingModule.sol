@@ -1,7 +1,6 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../../../openzeppelin/Address.sol";
 import "../StakingShared.sol";
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
 
@@ -16,8 +15,6 @@ import "../../../proxy/modules/interfaces/IFunctionsList.sol";
  * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
  * */
 contract StakingVestingModule is StakingShared, IFunctionsList {
-    using Address for address payable;
-
     event ContractCodeHashAdded(bytes32 hash);
     event ContractCodeHashRemoved(bytes32 hash);
     event VestingStakeSet(uint256 lockedTS, uint96 value);
@@ -162,7 +159,7 @@ contract StakingVestingModule is StakingShared, IFunctionsList {
      * @return The weighted stake the account had as of the given block.
      * */
     function getPriorVestingWeightedStake(uint256 blockNumber, uint256 date)
-        public
+        external
         view
         returns (uint96 votes)
     {
@@ -316,14 +313,15 @@ contract StakingVestingModule is StakingShared, IFunctionsList {
     }
 
     function _getFunctionList() internal pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](6);
+        bytes4[] memory functionList = new bytes4[](8);
         functionList[0] = this.setVestingRegistry.selector;
         functionList[1] = this.setVestingStakes.selector;
         functionList[2] = this.getPriorUserStakeByDate.selector;
         functionList[3] = this.getPriorVestingWeightedStake.selector;
-        functionList[4] = this.addContractCodeHash.selector;
-        functionList[5] = this.removeContractCodeHash.selector;
-        functionList[6] = this.isVestingContract.selector;
+        functionList[4] = this.getPriorVestingStakeByDate.selector;
+        functionList[5] = this.addContractCodeHash.selector;
+        functionList[6] = this.removeContractCodeHash.selector;
+        functionList[7] = this.isVestingContract.selector;
         return functionList;
     }
 }

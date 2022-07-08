@@ -1,10 +1,11 @@
 ## TODOs
+[X] Update IStakingModules interface
 [ ] Create a deployment boilerplate for modules - use deploy plugin for deployment and for testing
-[ ] Update IStakingModules interface
 [ ] Verify ApprovalReceiver - functionality & tests
 [ ] Docs: 
     - when extending Storage, DO NOT create public storage variables but add getters to StakingStorageModule 
     - now access to ALL storage variables
+    - a showcase explanation - how to reuse
 [ ]
 
 

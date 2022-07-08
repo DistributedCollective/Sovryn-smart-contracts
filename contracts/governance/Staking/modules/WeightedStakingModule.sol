@@ -17,7 +17,7 @@ import "../../../proxy/modules/interfaces/IFunctionsList.sol";
  * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
  * */
 contract WeightedStakingModule is StakingShared, IFunctionsList, CheckpointsShared {
-    using Address for address payable;
+    //using Address for address payable;
 
     /*************************** User Weighted Stake computation for fee sharing *******************************/
 
@@ -37,7 +37,7 @@ contract WeightedStakingModule is StakingShared, IFunctionsList, CheckpointsShar
         address account,
         uint256 blockNumber,
         uint256 date
-    ) public view returns (uint96 priorWeightedStake) {
+    ) external view returns (uint96 priorWeightedStake) {
         /// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
         uint256 start = _timestampToLockDate(date);
         uint256 end = start + MAX_DURATION;

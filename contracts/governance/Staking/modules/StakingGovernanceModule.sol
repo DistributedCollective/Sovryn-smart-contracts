@@ -134,8 +134,6 @@ contract StakingGovernanceModule is IFunctionsList, CheckpointsShared, StakingSh
      * @notice Determine the prior number of stake for an account as of a block number.
      * @dev Block number must be a finalized block or else this function will
      * revert to prevent misinformation.
-     * TODO: WeightedStaking::getPriorStakeByDateForDelegatee should probably better
-     * be internal instead of a public function.
      * @param account The address of the account to check.
      * @param date The staking date to compute the power for.
      * @param blockNumber The block number to get the vote balance at.
@@ -381,14 +379,14 @@ contract StakingGovernanceModule is IFunctionsList, CheckpointsShared, StakingSh
          * the chainId in case it changes, and the address that the
          * contract is deployed at.
          * */
-        bytes32 domainSeparator = keccak256(
-            abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), _getChainId(), address(this))
-        );
+        bytes32 domainSeparator =
+            keccak256(
+                abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), _getChainId(), address(this))
+            );
 
         /// @dev GovernorAlpha uses BALLOT_TYPEHASH, while Staking uses DELEGATION_TYPEHASH
-        bytes32 structHash = keccak256(
-            abi.encode(DELEGATION_TYPEHASH, delegatee, lockDate, nonce, expiry)
-        );
+        bytes32 structHash =
+            keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, lockDate, nonce, expiry));
 
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);

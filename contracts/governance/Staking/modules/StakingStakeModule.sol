@@ -46,7 +46,7 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
         uint256 until,
         address stakeFor,
         address delegatee
-    ) public onlyThisContract whenNotPaused {
+    ) external onlyThisContract whenNotPaused {
         _stake(sender, amount, until, stakeFor, delegatee, false);
     }
 
@@ -327,13 +327,15 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
     }
 
     function _getFunctionList() internal pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](6);
+        bytes4[] memory functionList = new bytes4[](8);
         functionList[0] = this.stake.selector;
         functionList[1] = this.stakeWithApproval.selector;
-        functionList[2] = this.timestampToLockDate.selector;
-        functionList[3] = this.getStakes.selector;
+        functionList[2] = this.extendStakingDuration.selector;
+        functionList[3] = this.stakesBySchedule.selector;
         functionList[4] = this.balanceOf.selector;
-        functionList[5] = this.stakesBySchedule.selector;
+        functionList[5] = this.getCurrentStakedUntil.selector;
+        functionList[6] = this.getStakes.selector;
+        functionList[7] = this.timestampToLockDate.selector;
         return functionList;
     }
 }
