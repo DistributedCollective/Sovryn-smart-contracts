@@ -39,7 +39,7 @@ contract StakingAdminModule is
     event StakingFrozen(bool indexed setFrozen);
 
     /**
-     * @notice Add account to ACL.
+     * @notice Add account to Admins ACL.
      * @param _admin The addresses of the account to grant permissions.
      * */
     function addAdmin(address _admin) external onlyOwner whenNotFrozen {
@@ -48,7 +48,7 @@ contract StakingAdminModule is
     }
 
     /**
-     * @notice Remove account from ACL.
+     * @notice Remove account from Admins ACL.
      * @param _admin The addresses of the account to revoke permissions.
      * */
     function removeAdmin(address _admin) external onlyOwner whenNotFrozen {
@@ -66,7 +66,7 @@ contract StakingAdminModule is
     }
 
     /**
-     * @notice Add account to pausers ACL.
+     * @notice Remove account from pausers ACL.
      * @param _pauser The address to grant pauser permissions.
      * */
     function removePauser(address _pauser) external onlyOwner whenNotFrozen {
@@ -75,7 +75,7 @@ contract StakingAdminModule is
     }
 
     /**
-     * @notice Pause contract
+     * @notice Pause/unpause contract
      * @param _pause true when pausing, false when unpausing
      * */
     function pauseUnpause(bool _pause) public onlyPauserOrOwner whenNotFrozen {
@@ -148,7 +148,7 @@ contract StakingAdminModule is
     }
 
     function _getFunctionList() internal pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](8);
+        bytes4[] memory functionList = new bytes4[](9);
         functionList[0] = this.addAdmin.selector;
         functionList[1] = this.removeAdmin.selector;
         functionList[2] = this.addPauser.selector;

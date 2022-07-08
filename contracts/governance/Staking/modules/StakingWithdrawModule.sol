@@ -201,7 +201,7 @@ contract StakingWithdrawModule is IFunctionsList, CheckpointsShared, StakingShar
     }
 
     function _getFunctionList() internal pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](4);
+        bytes4[] memory functionList = new bytes4[](5);
         functionList[0] = this.withdraw.selector;
         functionList[1] = this.governanceWithdraw.selector;
         functionList[2] = this.governanceWithdrawVesting.selector;

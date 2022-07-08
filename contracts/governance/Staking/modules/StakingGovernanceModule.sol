@@ -381,14 +381,14 @@ contract StakingGovernanceModule is IFunctionsList, CheckpointsShared, StakingSh
          * the chainId in case it changes, and the address that the
          * contract is deployed at.
          * */
-        bytes32 domainSeparator =
-            keccak256(
-                abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), _getChainId(), address(this))
-            );
+        bytes32 domainSeparator = keccak256(
+            abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), _getChainId(), address(this))
+        );
 
         /// @dev GovernorAlpha uses BALLOT_TYPEHASH, while Staking uses DELEGATION_TYPEHASH
-        bytes32 structHash =
-            keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, lockDate, nonce, expiry));
+        bytes32 structHash = keccak256(
+            abi.encode(DELEGATION_TYPEHASH, delegatee, lockDate, nonce, expiry)
+        );
 
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
@@ -404,7 +404,7 @@ contract StakingGovernanceModule is IFunctionsList, CheckpointsShared, StakingSh
     }
 
     function _getFunctionList() internal pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](6);
+        bytes4[] memory functionList = new bytes4[](7);
         functionList[0] = this.getPriorTotalVotingPower.selector;
         functionList[1] = this.getCurrentVotes.selector;
         functionList[2] = this.getPriorVotes.selector;

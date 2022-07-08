@@ -55,7 +55,7 @@ contract StakingSorageModule is StakingStorageShared {
     }
 
     function _getFunctionList() internal pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](30);
+        bytes4[] memory functionList = new bytes4[](31);
         functionList[0] = this.getStorageMaxDurationToStakeTokens.selector;
         functionList[1] = this.getStorageMaxVotingWeight.selector;
         functionList[2] = this.getStorageWeightFactor.selector;

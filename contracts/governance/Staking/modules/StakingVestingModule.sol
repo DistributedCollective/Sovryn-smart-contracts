@@ -1,7 +1,6 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../CheckpointsShared.sol";
 import "../../../openzeppelin/Address.sol";
 import "../StakingShared.sol";
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
@@ -16,10 +15,7 @@ import "../../../proxy/modules/interfaces/IFunctionsList.sol";
  * Staking contract inherits WeightedStaking.
  * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
  * */
-contract StakingVestingModule is
-    StakingShared,
-    IFunctionsList /*, Checkpoints */
-{
+contract StakingVestingModule is StakingShared, IFunctionsList {
     using Address for address payable;
 
     event ContractCodeHashAdded(bytes32 hash);
