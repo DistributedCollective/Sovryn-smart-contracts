@@ -6,4 +6,8 @@ contract VestingRegistryLogicMockup is VestingRegistryLogic {
     function isVestingAdress(address _vestingAddress) external view returns (bool isVestingAddr) {
         return true;
     }
+
+    function isVestingAddress(address _vestingAddress) external view returns (bool isVestingAddr) {
+        return true;
+    }
 }
