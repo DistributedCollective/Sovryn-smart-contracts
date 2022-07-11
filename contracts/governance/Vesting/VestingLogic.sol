@@ -146,6 +146,9 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         /// @dev Usually we just need to iterate over the possible dates until now.
         uint256 end;
 
+        /// @dev flag for withdrawal iterations
+        uint256 counter;
+
         /// @dev In the unlikely case that all tokens have been unlocked early,
         ///   allow to withdraw all of them.
         if (staking.allUnlocked() || isGovernance) {
@@ -158,6 +161,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
         ///		workaround found, but it doesn't work with TWO_WEEKS
         for (uint256 i = startDate + cliff; i <= end; i += FOUR_WEEKS) {
+            if (counter >= maxVestingWithdrawIterations) break;
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
 
@@ -168,6 +172,8 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
                 } else {
                     staking.withdraw(stake, i, receiver);
                 }
+
+                counter++;
             }
         }
 
