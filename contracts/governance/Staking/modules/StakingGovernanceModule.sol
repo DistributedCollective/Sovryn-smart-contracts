@@ -401,7 +401,7 @@ contract StakingGovernanceModule is IFunctionsList, CheckpointsShared, StakingSh
         _delegateNext(signatory, delegatee, lockDate);
     }
 
-    function _getFunctionList() internal pure returns (bytes4[] memory) {
+    function getFunctionsList() external pure returns (bytes4[] memory) {
         bytes4[] memory functionList = new bytes4[](7);
         functionList[0] = this.getPriorTotalVotingPower.selector;
         functionList[1] = this.getCurrentVotes.selector;

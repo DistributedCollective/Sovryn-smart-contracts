@@ -200,7 +200,7 @@ contract StakingWithdrawModule is IFunctionsList, CheckpointsShared, StakingShar
         emit TokensUnlocked(SOVToken.balanceOf(address(this)));
     }
 
-    function _getFunctionList() internal pure returns (bytes4[] memory) {
+    function getFunctionsList() external pure returns (bytes4[] memory) {
         bytes4[] memory functionList = new bytes4[](5);
         functionList[0] = this.withdraw.selector;
         functionList[1] = this.governanceWithdraw.selector;

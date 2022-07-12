@@ -52,7 +52,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
     /// @param _impl module implementation address to verify
     function canAddModule(address _impl) external view returns (bool) {
         require(_impl.isContract(), "MR06"); //Proxy::canAddModule: address is not a contract
-        bytes4[] memory functions = IFunctionsList(_impl).getFunctionList();
+        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 1; i < functions.length; i++)
             if (_getFuncImplementation(functions[i]) != address(0)) return (false);
         return true;
@@ -68,7 +68,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
 
     function _addNewModule(address _impl) internal {
         require(_impl.isContract(), "MR01"); //ModulesRegistry::_addNewModule: address is not a contract
-        bytes4[] memory functions = IFunctionsList(_impl).getFunctionList();
+        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 1; i < functions.length; i++) {
             require(_getFuncImplementation(functions[i]) == address(0), "MR02"); //function already registered in another module - use ReplaceModule if you need to replace the whole module
             _setModuleFuncImplementation(functions[i], _impl);
@@ -87,7 +87,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
 
     function _removeModule(address _impl) internal onlyProxyOwner {
         require(_impl.isContract(), "MR07"); //ModulesRegistry::_removeModuleImplementation: address is not a contract
-        bytes4[] memory functions = IFunctionsList(_impl).getFunctionList();
+        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 1; i < functions.length; i++)
             _setModuleFuncImplementation(functions[i], address(0));
     }
@@ -103,13 +103,13 @@ contract ModulesProxyRegistry is ProxyOwnable {
     }
 
     function _checkClashing(bytes4 _sig) internal pure {
-        bytes4[] memory functionList = _getFunctionList();
+        bytes4[] memory functionList = _getFunctionsList();
         for (uint256 i = 0; i < functionList.length; i++) {
             require(_sig != functionList[i], "MR09"); //ModulesRegistry has function with the same id
         }
     }
 
-    function _getFunctionList() internal pure returns (bytes4[] memory) {
+    function _getFunctionsList() internal pure returns (bytes4[] memory) {
         bytes4[] memory functionList = new bytes4[](7);
         functionList[0] = this.getFuncImplementation.selector;
         functionList[1] = this.addNewModule.selector;

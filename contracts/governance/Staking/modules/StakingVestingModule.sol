@@ -312,7 +312,7 @@ contract StakingVestingModule is StakingShared, IFunctionsList {
         return codeHash;
     }
 
-    function _getFunctionList() internal pure returns (bytes4[] memory) {
+    function getFunctionsList() external pure returns (bytes4[] memory) {
         bytes4[] memory functionList = new bytes4[](8);
         functionList[0] = this.setVestingRegistry.selector;
         functionList[1] = this.setVestingStakes.selector;

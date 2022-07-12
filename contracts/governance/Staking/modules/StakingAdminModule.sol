@@ -147,7 +147,7 @@ contract StakingAdminModule is
         /// @dev If stake > 0, stake it at the new contract until the lock date with the current delegate.
     }
 
-    function _getFunctionList() internal pure returns (bytes4[] memory) {
+    function getFunctionsList() external pure returns (bytes4[] memory) {
         bytes4[] memory functionList = new bytes4[](9);
         functionList[0] = this.addAdmin.selector;
         functionList[1] = this.removeAdmin.selector;

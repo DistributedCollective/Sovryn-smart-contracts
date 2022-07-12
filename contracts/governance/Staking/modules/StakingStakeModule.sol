@@ -326,7 +326,7 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
         return _timestampToLockDate(timestamp);
     }
 
-    function _getFunctionList() internal pure returns (bytes4[] memory) {
+    function getFunctionsList() external pure returns (bytes4[] memory) {
         bytes4[] memory functionList = new bytes4[](8);
         functionList[0] = this.stake.selector;
         functionList[1] = this.stakeWithApproval.selector;

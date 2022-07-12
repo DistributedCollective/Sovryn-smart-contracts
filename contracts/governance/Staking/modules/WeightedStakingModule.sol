@@ -91,7 +91,7 @@ contract WeightedStakingModule is StakingShared, IFunctionsList, CheckpointsShar
         return _computeWeightByDate(date, startDate);
     }
 
-    function _getFunctionList() internal pure returns (bytes4[] memory) {
+    function getFunctionsList() external pure returns (bytes4[] memory) {
         bytes4[] memory functionList = new bytes4[](3);
         functionList[0] = this.getPriorWeightedStake.selector;
         functionList[1] = this.weightedStakeByDate.selector;
