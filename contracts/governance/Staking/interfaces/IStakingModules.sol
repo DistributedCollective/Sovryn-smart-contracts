@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
  * @title Interface for Staking modules
  */
 
-interface IStaking {
+interface IStakingModules {
     /*************************** StakingAdminModule ***************************/
 
     /**
