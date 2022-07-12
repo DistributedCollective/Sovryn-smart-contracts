@@ -199,22 +199,28 @@ def setHistoricalBlockForStakingRewards(blockTime):
 # [ ] add upgradeStakingModule(moduleContractName)
 # [ ] add deployStakingModulesProxy()
 # [ ] add upgradeStakingModules() - deploy & register all modules 
-# [ ] replace upgradeStaking() with upgradeStakingModulesProxy(bool deploy, address modulesProxyAddress) - deploy
+# [X] replace upgradeStaking() with upgradeStakingModulesProxy(bool deploy, address modulesProxyAddress) - deploy
 # [ ] replace all Staking deployments with relevant scripts
 
-def upgradeStaking():
+def upgradeStakingModulesProxy():
+    '''
+    modular system call: StakingProxy ->delegatecall ModulesProxy -> delegatecall relevant staking module 
+    this method replaces implementation address of the StakingModulesProxy contract
+    to keep Staking functionality operational it should have modules registered
+    in the StakingModulesProxy prior to this method call
+    '''
     print('Deploying account:', conf.acct.address)
-    print("Upgrading staking")
+    print("Upgrading Staking Modules Proxy")
 
     # Deploy the staking logic contracts
-    stakingLogic = conf.acct.deploy(Staking)
-    print("New staking logic address:", stakingLogic.address)
+    stakingModulesProxy = conf.acct.deploy(ModulesProxy)
+    print("New StakingModuleProxy address:", stakingModulesProxy.address)
     
     # Get the proxy contract instance
     stakingProxy = Contract.from_abi("StakingProxy", address=conf.contracts['Staking'], abi=StakingProxy.abi, owner=conf.acct)
 
     # Register logic in Proxy
-    data = stakingProxy.setImplementation.encode_input(stakingLogic.address)
+    data = stakingProxy.setImplementation.encode_input(stakingModulesProxy.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
 # deployStakingLogic
