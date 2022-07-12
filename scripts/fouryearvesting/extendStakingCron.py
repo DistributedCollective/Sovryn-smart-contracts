@@ -35,7 +35,7 @@ def main():
 
     # Read last staking timestamp
     def readLockDate(timestamp):
-        staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+        staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStakingModules.abi, owner=acct)
         return staking.timestampToLockDate(timestamp)
 
     # open the file in universal line ending mode 

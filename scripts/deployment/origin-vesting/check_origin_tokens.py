@@ -26,7 +26,7 @@ def main():
     contracts = json.load(configFile)
 
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStakingModules.abi, owner=acct)
     vestingRegistry = Contract.from_abi("VestingRegistry2", address=contracts['VestingRegistry2'], abi=VestingRegistry2.abi, owner=acct)
 
     totalBalance = 0

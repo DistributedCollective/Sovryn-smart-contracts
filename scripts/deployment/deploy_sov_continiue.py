@@ -43,7 +43,7 @@ def main():
 
     # TODO read from config
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
-    staking = Contract.from_abi("Staking", address=contracts['StakingProxy'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['StakingProxy'], abi=interface.IStakingModules.abi, owner=acct)
     stakingProxy = Contract.from_abi("UpgradableProxy", address=contracts['StakingProxy'], abi=UpgradableProxy.abi, owner=acct)
     vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
 

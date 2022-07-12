@@ -33,7 +33,7 @@ def main():
         stakingLogic = acct.deploy(Staking)
         staking = acct.deploy(StakingProxy, SOVtoken.address)
         staking.setImplementation(stakingLogic.address)
-        staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
+        staking = Contract.from_abi("Staking", address=staking.address, abi=interface.IStakingModules.abi, owner=acct)
 
         feeSharing = acct.deploy(FeeSharingProxy, protocolAddress, staking.address)
         staking.setFeeSharing(feeSharing.address)

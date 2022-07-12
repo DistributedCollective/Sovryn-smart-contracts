@@ -25,7 +25,7 @@ def main():
     contracts = json.load(configFile)
 
     vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStakingModules.abi, owner=acct)
 
     data = parseFile('./scripts/deployment/distribution/vestings-test.csv', 10**16)
 

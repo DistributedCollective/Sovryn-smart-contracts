@@ -39,7 +39,7 @@ def main():
         feeSharingProxy = contracts["FeeSharingProxy"]
     else:
         staking = Contract.from_abi(
-            "Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+            "Staking", address=contracts['Staking'], abi=interface.IStakingModules.abi, owner=acct)
         feeSharingProxy = staking.feeSharing()
 
     PRICE_SATS = 2500

@@ -60,7 +60,7 @@ def main():
     stakingLogic = acct.deploy(Staking)
     staking = acct.deploy(StakingProxy, contracts['SOV'])
     staking.setImplementation(stakingLogic.address)
-    staking = Contract.from_abi("Staking", address=staking.address, abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=staking.address, abi=interface.IStakingModules.abi, owner=acct)
 
      #deploy fee sharing contract
     feeSharing = acct.deploy(FeeSharingProxy, contracts["sovrynProtocol"], staking.address)
@@ -68,7 +68,7 @@ def main():
     # set fee sharing
     staking.setFeeSharing(feeSharing.address)
 
-    #staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    #staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStakingModules.abi, owner=acct)
     feeSharingAddress = staking.feeSharing()
 
     #this is one-time vesting registry for origin sales investors claim exclusively

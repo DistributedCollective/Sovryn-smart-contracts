@@ -28,7 +28,7 @@ def loadConfig():
 
 def totalVotingPower():
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStakingModules.abi, owner=acct)
     #len(chain) returns latest block + 1
     lastBlock = len(chain) - 2
     votingPower = staking.getPriorTotalVotingPower(lastBlock, time.time())
