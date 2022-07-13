@@ -6,6 +6,7 @@
     - when extending Storage, DO NOT create public storage variables but add getters to StakingStorageModule 
     - now access to ALL storage variables
     - a showcase explanation - how to reuse
+    - modules: add contract, `function getFunctionList() external pure returns (bytes4[] memory)`- list all functions, add functions signatures to IStakingModules.sol to be accessible from the scripts 
 [ ]
 
 

@@ -3,7 +3,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 /**
- * @title Interface for Staking modules
+ * @title Staking modules interface
  */
 
 interface IStakingModules {
