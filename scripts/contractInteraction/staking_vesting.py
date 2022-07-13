@@ -196,11 +196,18 @@ def setHistoricalBlockForStakingRewards(blockTime):
 # Upgrade Staking
 
 # TODO:
-# [ ] add upgradeStakingModule(moduleContractName)
-# [ ] add deployStakingModulesProxy()
-# [ ] add upgradeStakingModules() - deploy & register all modules 
+# [X] add add, replace, remove StakingModule functions
+# [X] add deployStakingModulesProxy()
+# [ ] add initUpgradeStakingModules() - deploy & register all modules 
 # [X] replace upgradeStaking() with upgradeStakingModulesProxy(bool deploy, address modulesProxyAddress) - deploy
-# [ ] replace all Staking deployments with relevant scripts
+# [X] replace all Staking deployments with relevant scripts
+# [ ] initial deployment sequence:
+# [ ]    - pause Staking contract
+# [ ]    - deploy ModulesProxy
+# [ ]    - replace StakingLogic for ModulesProxy
+# [ ]    - deploy & register modules using StakingProxy address (TODO: fix in scripts!)
+# [ ]    - SIP to replace Staking contract for modules
+# [ ]    - deploy on the testnet using SIP-like deployment
 
 def upgradeStakingModulesProxy():
     '''
@@ -223,15 +230,95 @@ def upgradeStakingModulesProxy():
     data = stakingProxy.setImplementation.encode_input(stakingModulesProxy.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
-# deployStakingLogic
+# deployStakingModulesProxy
 
-def deployStakingLogic():
+def deployStakingModulesProxy():
     print('Deploying account:', conf.acct.address)
     print('Deploying Staking Logic')
 
     # Deploy the staking logic contracts
-    stakingLogic = conf.acct.deploy(Staking)
-    print("New staking logic address:", stakingLogic.address)
+    stakingModulesProxy = conf.acct.deploy(ModulesProxy)
+    print("New staking logic address:", stakingModulesProxy.address)
+
+def addStakingModule(moduleContract, moduleContractName, moduleAddress = ZERO_ADDRESS):
+    '''
+    Add a module to the Staking Proxy
+    If moduleAddress is ZERO_ADDRESS then it will be deployed
+    It will fail if the module being added has methods overlapping with registered modules
+    Param newModuleAddress is used if the module already deployed
+    '''
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    print('Deploying account:', conf.acct.address)
+    print('Upgrading Staking Module:', moduleContractName)
+    stakingModule = deployOrGetStakingModule(moduleContract, moduleContractName, moduleAddress)
+    canAdd = canAddStakingModule(stakingModule.address)
+    if canAdd:
+        # Register Module in Proxy
+        print("Adding Staking Module:", moduleContractName, "@", stakingModule.address)
+        data = stakingModulesProxy.addModule.encode_input(stakingModule.address)
+        sendWithMultisig(conf.contracts['multisig'], stakingModulesProxy.address, data, conf.acct)
+    
+def replaceStakingModule(newModuleContract, newModuleContractName, stakingModuleAddressToReplace, newModuleAddress = ZERO_ADDRESS):
+    '''
+    Replace a module of the Staking Proxy
+    If moduleAddress is ZERO_ADDRESS then the new module will be deployed
+    It will fail if the module being added has methods overlapping with registered modules other than that being replaced
+    Param newModuleAddress is used if the new module already deployed
+    '''
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    newStakingModule = deployOrGetStakingModule(newModuleContract, newModuleContractName, newModuleAddress)
+    if canReplaceStakingModule(newStakingModule.address, stakingModuleAddressToReplace):
+        # Register Module in Proxy
+        print("Adding Staking Module:", newModuleContractName, "@", newStakingModule.address)
+        data = stakingModulesProxy.replaceModule.encode_input(newStakingModule.address)
+        sendWithMultisig(conf.contracts['multisig'], stakingModulesProxy.address, data, conf.acct)
+
+def removeStakingModule(module, moduleName, moduleAddress):
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    print("Removing Staking Module:", moduleName, "@", moduleAddress)
+    data = stakingModulesProxy.removeModule.encode_input(moduleAddress)
+    sendWithMultisig(conf.contracts['multisig'], stakingModulesProxy.address, data, conf.acct)
+
+def deployOrGetStakingModule(moduleContract, moduleContractName, moduleAddress = ZERO_ADDRESS):
+    if moduleAddress == ZERO_ADDRESS:
+        # Deploy the staking module contract
+        stakingModule = conf.acct.deploy(moduleContract)
+        print("New Staking module", moduleContract,"address:", stakingModule.address)
+    else:
+         stakingModule = Contract.from_abi(moduleContract, address=moduleAddress, abi=moduleContract.abi, owner=conf.acct)
+    return stakingModule
+
+def canReplaceStakingModule(stakingModuleAddress, stakingModuleAddressToReplace):
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    canAdd = stakingModulesProxy.canAddModule(stakingModuleAddress)
+    hasClashing = False
+    if canAdd:
+        return True
+    else:
+        clashingList = stakingModulesProxy.checkClashingModulesFuncsSigs(stakingModuleAddress)
+        for i in range(0, len(clashingList[0])):
+            if clashingList[0][i] != stakingModuleAddressToReplace:
+                if not hasClashing: 
+                    hasClashing = True
+                    print('Cannot add module - some functions are registered with other than the module to replace')
+                    print("Registered Module Address -> Clashing Func Sig")
+                print(clashingList[0][i], "->", clashingList[1][i])
+        return False
+
+def canAddStakingModule(stakingModuleAddress):
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    canAdd = stakingModulesProxy.canAddModule(stakingModuleAddress)
+    if canAdd:
+        return True
+    else:
+        print('Cannot add module - some functions are already registered with another module(s)')
+        clashingList = stakingModulesProxy.checkClashingModulesFuncsSigs(stakingModuleAddress)
+        print("Registered Module Address -> Clashing Func Sig")
+        for i in range(0, len(clashingList[0])):
+            print(clashingList[0][i], "->", clashingList[1][i])
+        return False
+
+   
 
 # Upgrade Vesting Registry
 
