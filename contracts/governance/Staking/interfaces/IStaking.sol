@@ -237,6 +237,18 @@ interface IStaking {
     function extendStakingDuration(uint256 previousLock, uint256 until) external;
 
     /**
+     * @dev TO BE DEPRECATED. Use stakeBySchedule function.
+     * */
+    function stakesBySchedule(
+        uint256 amount,
+        uint256 cliff,
+        uint256 duration,
+        uint256 intervalLength,
+        address stakeFor,
+        address delegatee
+    ) external;
+
+    /**
      * @notice Stake tokens according to the vesting schedule.
      * @param amount The amount of tokens to stake.
      * @param cliff The time interval to the first withdraw.

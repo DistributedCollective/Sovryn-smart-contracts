@@ -191,6 +191,20 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
     }
 
     /**
+     * @dev TO BE DEPRECATED. Use stakeBySchedule function.
+     * */
+    function stakesBySchedule(
+        uint256 amount,
+        uint256 cliff,
+        uint256 duration,
+        uint256 intervalLength,
+        address stakeFor,
+        address delegatee
+    ) external whenNotPaused {
+        _stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
+    }
+
+    /**
      * @notice Stake tokens according to the vesting schedule.
      * @param amount The amount of tokens to stake.
      * @param cliff The time interval to the first withdraw.
@@ -207,6 +221,26 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
         address stakeFor,
         address delegatee
     ) external whenNotPaused {
+        _stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
+    }
+
+    /**
+     * @notice Stake tokens according to the vesting schedule.
+     * @param amount The amount of tokens to stake.
+     * @param cliff The time interval to the first withdraw.
+     * @param duration The staking duration.
+     * @param intervalLength The length of each staking interval when cliff passed.
+     * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.
+     * @param delegatee The address of the delegatee or 0x0 if there is none.
+     * */
+    function _stakeBySchedule(
+        uint256 amount,
+        uint256 cliff,
+        uint256 duration,
+        uint256 intervalLength,
+        address stakeFor,
+        address delegatee
+    ) internal {
         /**
          * @dev Stake them until lock dates according to the vesting schedule.
          * Note: because staking is only possible in periods of 2 weeks,
@@ -327,15 +361,16 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](8);
+        bytes4[] memory functionList = new bytes4[](9);
         functionList[0] = this.stake.selector;
         functionList[1] = this.stakeWithApproval.selector;
         functionList[2] = this.extendStakingDuration.selector;
-        functionList[3] = this.stakeBySchedule.selector;
-        functionList[4] = this.balanceOf.selector;
-        functionList[5] = this.getCurrentStakedUntil.selector;
-        functionList[6] = this.getStakes.selector;
-        functionList[7] = this.timestampToLockDate.selector;
+        functionList[3] = this.stakesBySchedule.selector;
+        functionList[4] = this.stakeBySchedule.selector;
+        functionList[5] = this.balanceOf.selector;
+        functionList[6] = this.getCurrentStakedUntil.selector;
+        functionList[7] = this.getStakes.selector;
+        functionList[8] = this.timestampToLockDate.selector;
         return functionList;
     }
 }
