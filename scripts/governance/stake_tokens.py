@@ -24,7 +24,7 @@ def loadConfig():
 
 def stakeTokens(sovAmount, stakeTime, acctAddress, delegateeAddress):
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acctAddress)
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStakingModules.abi, owner=acctAddress)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acctAddress)
 
     until = int(time.time()) + int(stakeTime)
     amount = int(sovAmount) * (10 ** 18)

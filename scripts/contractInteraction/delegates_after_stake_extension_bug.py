@@ -12,19 +12,19 @@ from scripts.utils import *
 import scripts.contractInteraction.config as conf
 
 def readStakingDelegates(userAddress, timeLockDate):
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     return staking.delegates(userAddress, timeLockDate)
 
 def readLockDate(timestamp):
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     return staking.timestampToLockDate(timestamp)
 
 def readBalanceOf(userAddress):
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     return staking.balanceOf(userAddress)
 
 def readStakesOf(userAddress):
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     return staking.getStakes(userAddress)
 
 def main():

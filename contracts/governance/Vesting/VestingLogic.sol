@@ -87,7 +87,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         /// @dev Allow the staking contract to access them.
         SOV.approve(address(staking), _amount);
 
-        staking.stakesBySchedule(_amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
+        staking.stakeBySchedule(_amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
 
         emit TokensStaked(_sender, _amount);
     }

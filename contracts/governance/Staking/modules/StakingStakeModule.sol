@@ -199,7 +199,7 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
      * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.
      * @param delegatee The address of the delegatee or 0x0 if there is none.
      * */
-    function stakesBySchedule(
+    function stakeBySchedule(
         uint256 amount,
         uint256 cliff,
         uint256 duration,
@@ -331,7 +331,7 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
         functionList[0] = this.stake.selector;
         functionList[1] = this.stakeWithApproval.selector;
         functionList[2] = this.extendStakingDuration.selector;
-        functionList[3] = this.stakesBySchedule.selector;
+        functionList[3] = this.stakeBySchedule.selector;
         functionList[4] = this.balanceOf.selector;
         functionList[5] = this.getCurrentStakedUntil.selector;
         functionList[6] = this.getStakes.selector;

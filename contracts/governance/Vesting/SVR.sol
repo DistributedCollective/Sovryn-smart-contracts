@@ -118,7 +118,7 @@ contract SVR is ERC20, ERC20Detailed, Ownable, SafeMath96, ApprovalReceiver {
         /// @notice Stakes SOV tokens in the user's behalf.
         SOV.approve(address(staking), _amount);
 
-        staking.stakesBySchedule(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
+        staking.stakeBySchedule(_amount, FOUR_WEEKS, YEAR, FOUR_WEEKS, msg.sender, msg.sender);
 
         emit Burn(msg.sender, _amount);
     }

@@ -88,7 +88,7 @@ def isVestingAdmin(admin):
     print(vestingRegistry.admins(admin))
 
 def readStakingKickOff():
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     print(staking.kickoffTS())
 
 def stake80KTokens():
@@ -149,7 +149,7 @@ def getBlockOfStakingInterval(timestamp):
 # Read last staking timestamp
 
 def readLockDate(timestamp):
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     return staking.timestampToLockDate(timestamp)
 
 # Upgrade StakingRewards
@@ -342,7 +342,7 @@ def upgradeVesting():
 def updateVestingRegAddr():
 
     # Get the proxy contract instance
-    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
 
     # Get the proxy contract instance
     vestingRegistryProxy = Contract.from_abi("VestingRegistryProxy", address=conf.contracts['VestingRegistryLogic'], abi=VestingRegistryProxy.abi, owner=conf.acct)
@@ -356,7 +356,7 @@ def updateVestingRegAddr():
 def updateAddresses():
 
     # Get the proxy contract instance
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     print(staking)
 
     # Get the proxy contract instance
@@ -388,7 +388,7 @@ def updateAddresses():
 
 def getStakes(address):
     # Get the proxy contract instance
-    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     print(stakingProxy.getStakes(address))
 
 def getStakingLogicAddess():
@@ -398,7 +398,7 @@ def getStakingLogicAddess():
 
 def stakeTokens(sovAmount, stakeTime, acctAddress, delegateeAddress):
     SOVtoken = Contract.from_abi("SOV", address=conf.contracts['SOV'], abi=SOV.abi, owner=acctAddress)
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=acctAddress)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=acctAddress)
 
     until = int(time.time()) + int(stakeTime)
     amount = int(sovAmount) * (10 ** 18)
@@ -408,35 +408,35 @@ def stakeTokens(sovAmount, stakeTime, acctAddress, delegateeAddress):
 
 def withdrawStakes(amount, until, receiver):
     # Get the proxy contract instance
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     staking.withdraw(amount, until, receiver)
 
 def pauseOrUnpauseStaking(flag):
     # Get the proxy contract instance
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.pauseUnpause.encode_input(flag)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
 def isStakingPaused():
     # Get the proxy contract instance
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     print("isStakingPaused:", staking.paused())
 
 def freezeOrUnfreezeStakingWithdawal(flag):
     # Get the proxy contract instance
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.freezeUnfreeze.encode_input(flag)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
 def addPauser(address):
     # Get the proxy contract instance
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.addPauser.encode_input(address)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
 def removePauser(address):
     # Get the proxy contract instance
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.removePauser.encode_input(address)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
     
@@ -467,14 +467,14 @@ def updateLockedSOV():
 
 #receiver is usually the multisig
 def governanceWithdrawVesting( vesting,  receiver):
-    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = stakingProxy.governanceWithdrawVesting.encode_input( vesting,  receiver)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
 def transferStakingOwnershipToGovernance():
     print("Add staking admin for address: ", conf.contracts['TimelockAdmin'])
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.addAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
@@ -499,7 +499,7 @@ def transferVestingRegistryOwnershipToGovernance():
     '''
 
 def getStakedBalance(account):
-    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     bal = stakingProxy.balanceOf(account)
     print(bal)
     return bal
@@ -511,7 +511,7 @@ def stopStakingRewards():
     sendWithMultisig(conf.contracts['multisig'], stakingRewards.address, data, conf.acct)
 
 def addVestingCodeHash(vestingLogic):
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStakingModules.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.addContractCodeHash.encode_input(vestingLogic)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 

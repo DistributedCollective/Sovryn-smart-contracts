@@ -68,7 +68,7 @@ def main():
     #deploy VestingRegistry
     PRICE_SATS = 2500
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStakingModules.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
     #Contract.from_abi("OriginInvestorsClaim", address=contracts['OriginInvestorsClaim'], abi=OriginInvestorsClaim.abi, owner=acct)
     vestingRegistry=acct.deploy(VestingRegistry, vestingFactory.address, SOVtoken.address, [cSOV1, cSOV2], PRICE_SATS, contracts['Staking'], staking.feeSharing(), teamVestingOwner)
     print("Vesting registry: ", vestingRegistry.address)
