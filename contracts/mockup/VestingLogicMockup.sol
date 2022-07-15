@@ -5,6 +5,15 @@ import "../governance/Vesting/VestingLogic.sol";
 
 contract VestingLogicMockup is VestingLogic {
     /**
+     * @notice Max iteration for vesting withdrawal to prevent out of gas issue.
+     *
+     * @return max iteration value.
+     */
+    function getMaxVestingWithdrawIterations() public pure returns (uint256) {
+        return 10;
+    }
+
+    /**
      * @dev we had a bug in a loop: "i < endDate" instead of "i <= endDate"
      */
     function delegate(address _delegatee) public onlyTokenOwner {

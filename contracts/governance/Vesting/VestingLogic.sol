@@ -27,6 +27,12 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         uint32 maxCheckpoints
     );
     event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
+    event IncompleteWithdrawTokens(
+        address indexed caller,
+        address receiver,
+        uint256 lastProcessedDate,
+        bool isGovernance
+    );
 
     /* Modifiers */
 
@@ -110,36 +116,74 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
     }
 
     /**
+     * @notice New governance withdraw token with custom start loop.
+     * This is for the governance withdrawal optimization if the iterations reached more than the limit.
+     *
+     * @param _receiver The receiving address.
+     * @param _startFrom The start value for the iterations.
+     */
+    function governanceWithdrawTokensWithStartTime(address _receiver, uint256 _startFrom) public {
+        _governanceWithdrawTokens(_receiver, _startFrom);
+    }
+
+    /**
      * @notice Withdraws all tokens from the staking contract and
-     * forwards them to an address specified by the token owner.
-     * @param receiver The receiving address.
+     * forwards them to an address specified by the token owner. Will use 0 as the start value for iteration.
+     * @param _receiver The receiving address.
      * @dev Can be called only by owner.
      * */
-    function governanceWithdrawTokens(address receiver) public {
+    function governanceWithdrawTokens(address _receiver) public {
+        _governanceWithdrawTokens(_receiver, 0);
+    }
+
+    /**
+     * @notice Withdraws all tokens from the staking contract and
+     * forwards them to an address specified by the token owner.
+     * @param _receiver The receiving address.
+     * @param _startFrom The start value for the iterations.
+     * @dev Can be called only by owner.
+     * */
+    function _governanceWithdrawTokens(address _receiver, uint256 _startFrom) internal {
         require(msg.sender == address(staking), "unauthorized");
 
-        _withdrawTokens(receiver, true);
+        _withdrawTokens(_receiver, true, _startFrom);
     }
 
     /**
      * @notice Withdraws unlocked tokens from the staking contract and
      * forwards them to an address specified by the token owner.
-     * @param receiver The receiving address.
+     * @param _receiver The receiving address.
      * */
-    function withdrawTokens(address receiver) public onlyOwners {
-        _withdrawTokens(receiver, false);
+    function withdrawTokens(address _receiver) public onlyOwners {
+        _withdrawTokens(_receiver, false, 0);
+    }
+
+    /**
+     * @notice Withdraws unlocked tokens from the staking contract from the given start time (for optimization) and
+     * forwards them to an address specified by the token owner.
+     *
+     * @param _receiver The receiving address.
+     * @param  _startFrom The start value for the iterations.
+     * */
+    function withdrawTokensWithStartTime(address _receiver, uint256 _startFrom) public onlyOwners {
+        _withdrawTokens(_receiver, false, _startFrom);
     }
 
     /**
      * @notice Withdraws tokens from the staking contract and forwards them
      * to an address specified by the token owner. Low level function.
      * @dev Once here the caller permission is taken for granted.
-     * @param receiver The receiving address.
-     * @param isGovernance Whether all tokens (true)
+     * @param _receiver The receiving address.
+     * @param _isGovernance Whether all tokens (true)
+     * @param _startFrom The start value for the iterations.
      * or just unlocked tokens (false).
      * */
-    function _withdrawTokens(address receiver, bool isGovernance) internal {
-        require(receiver != address(0), "receiver address invalid");
+    function _withdrawTokens(
+        address _receiver,
+        bool _isGovernance,
+        uint256 _startFrom
+    ) internal {
+        require(_receiver != address(0), "receiver address invalid");
 
         uint96 stake;
 
@@ -149,9 +193,13 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         /// @dev flag for withdrawal iterations
         uint256 counter;
 
+        uint256 defaultStart = startDate + cliff;
+
+        _startFrom = _startFrom >= defaultStart ? _startFrom : defaultStart;
+
         /// @dev In the unlikely case that all tokens have been unlocked early,
         ///   allow to withdraw all of them.
-        if (staking.allUnlocked() || isGovernance) {
+        if (staking.allUnlocked() || _isGovernance) {
             end = endDate;
         } else {
             end = block.timestamp;
@@ -160,24 +208,32 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
         ///		workaround found, but it doesn't work with TWO_WEEKS
-        for (uint256 i = startDate + cliff; i <= end; i += FOUR_WEEKS) {
-            if (counter >= maxVestingWithdrawIterations) break;
+        for (uint256 i = _startFrom; i <= end; i += FOUR_WEEKS) {
+            if (counter >= getMaxVestingWithdrawIterations()) {
+                emit IncompleteWithdrawTokens(
+                    msg.sender,
+                    _receiver,
+                    i - FOUR_WEEKS,
+                    _isGovernance
+                );
+                break;
+            }
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
-                if (isGovernance) {
-                    staking.governanceWithdraw(stake, i, receiver);
+                if (_isGovernance) {
+                    staking.governanceWithdraw(stake, i, _receiver);
                 } else {
-                    staking.withdraw(stake, i, receiver);
+                    staking.withdraw(stake, i, _receiver);
                 }
 
                 counter++;
             }
         }
 
-        emit TokensWithdrawn(msg.sender, receiver);
+        emit TokensWithdrawn(msg.sender, _receiver);
     }
 
     /**
@@ -227,5 +283,14 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = this.stakeTokensWithApproval.selector;
         return selectors;
+    }
+
+    /**
+     * @notice Max iteration for vesting withdrawal to prevent out of gas issue.
+     *
+     * @return max iteration value.
+     */
+    function getMaxVestingWithdrawIterations() public pure returns (uint256) {
+        return 50;
     }
 }

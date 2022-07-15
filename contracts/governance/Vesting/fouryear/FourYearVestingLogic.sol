@@ -26,6 +26,12 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
     );
     event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
     event TokenOwnerChanged(address indexed newOwner, address indexed oldOwner);
+    event IncompleteWithdrawTokens(
+        address indexed caller,
+        address receiver,
+        uint256 lastProcessedDate,
+        bool isGovernance
+    );
 
     /* Modifiers */
     /**
@@ -112,9 +118,22 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * @notice Withdraws unlocked tokens from the staking contract and
      * forwards them to an address specified by the token owner.
      * @param receiver The receiving address.
+     * @param startFrom The start value for the iterations.
+     * */
+    function withdrawTokensWithStartFrom(address receiver, uint256 startFrom)
+        external
+        onlyTokenOwner
+    {
+        _withdrawTokens(receiver, false, startFrom);
+    }
+
+    /**
+     * @notice Withdraws unlocked tokens from the staking contract and
+     * forwards them to an address specified by the token owner.
+     * @param receiver The receiving address.
      * */
     function withdrawTokens(address receiver) external onlyTokenOwner {
-        _withdrawTokens(receiver, false);
+        _withdrawTokens(receiver, false, 0);
     }
 
     /**
@@ -300,13 +319,24 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * @param isGovernance Whether all tokens (true)
      * or just unlocked tokens (false).
      * */
-    function _withdrawTokens(address receiver, bool isGovernance) internal {
+    function _withdrawTokens(
+        address receiver,
+        bool isGovernance,
+        uint256 startFrom
+    ) internal {
         require(receiver != address(0), "receiver address invalid");
 
         uint96 stake;
 
         /// @dev Usually we just need to iterate over the possible dates until now.
         uint256 end;
+
+        /// @dev flag for withdrawal iterations
+        uint256 counter;
+
+        uint256 defaultStart = startDate.add(extendDurationFor);
+
+        startFrom = startFrom >= defaultStart ? startFrom : defaultStart;
 
         /// @dev In the unlikely case that all tokens have been unlocked early,
         ///   allow to withdraw all of them.
@@ -322,7 +352,12 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         /// @dev For four year vesting, withdrawal of stakes for the first year is not allowed. These
         /// stakes are extended for three years. In some cases the withdrawal may be allowed at a different
         /// time and hence we use extendDurationFor.
-        for (uint256 i = startDate.add(extendDurationFor); i <= end; i += FOUR_WEEKS) {
+        for (uint256 i = startFrom; i <= end; i += FOUR_WEEKS) {
+            if (counter >= getMaxVestingWithdrawIterations()) {
+                emit IncompleteWithdrawTokens(msg.sender, receiver, i - FOUR_WEEKS, isGovernance);
+                break;
+            }
+
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number.sub(1));
 
@@ -333,6 +368,8 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
                 } else {
                     staking.withdraw(stake, i, receiver);
                 }
+
+                counter++;
             }
         }
 
@@ -357,5 +394,14 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = this.stakeTokensWithApproval.selector;
         return selectors;
+    }
+
+    /**
+     * @notice Max iteration for vesting withdrawal to prevent out of gas issue.
+     *
+     * @return max iteration value.
+     */
+    function getMaxVestingWithdrawIterations() public pure returns (uint256) {
+        return 50;
     }
 }

@@ -3,6 +3,7 @@ const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const {
+    decodeLogs,
     getSUSD,
     getRBTC,
     getWRBTC,
@@ -38,6 +39,7 @@ const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
 const DAY = 86400;
 const TWO_WEEKS = 1209600;
+const FOUR_WEEKS = 2419200;
 
 const DELAY = DAY * 14;
 
@@ -383,13 +385,13 @@ contract("Staking", (accounts) => {
 
             await staking.freezeUnfreeze(true); // Freeze
             await expectRevert(
-                staking.governanceWithdrawVesting(vesting.address, root, { from: account1 }),
+                staking.governanceWithdrawVesting(vesting.address, root, 0, { from: account1 }),
                 "WS04"
             ); // WS04 : frozen
 
             await staking.freezeUnfreeze(false); // Unfreeze
             // governance withdraw until duration must withdraw all staked tokens without fees
-            let tx = await staking.governanceWithdrawVesting(vesting.address, root, {
+            let tx = await staking.governanceWithdrawVesting(vesting.address, root, 0, {
                 from: account1,
             });
 
@@ -397,6 +399,36 @@ contract("Staking", (accounts) => {
                 vesting: vesting.address,
                 receiver: root,
             });
+
+            const getStartDate = vesting.startDate();
+            const getCliff = vesting.cliff();
+            const getMaxIterations = vesting.getMaxVestingWithdrawIterations();
+
+            const [startDate, cliff, maxIterations] = await Promise.all([
+                getStartDate,
+                getCliff,
+                getMaxIterations,
+            ]);
+            const startIteration = startDate.add(cliff);
+
+            const decodedIncompleteEvent = decodeLogs(
+                tx.receipt.rawLogs,
+                VestingLogic,
+                "IncompleteWithdrawTokens"
+            )[0].args;
+            // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
+            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+                startIteration
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .toString()
+            );
+
+            // Withdraw another iteration
+            await staking.governanceWithdrawVesting(
+                vesting.address,
+                root,
+                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(FOUR_WEEKS))
+            );
 
             // verify amount
             let amount = await token.balanceOf(root);

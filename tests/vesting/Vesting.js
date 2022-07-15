@@ -27,6 +27,8 @@ const {
     lastBlock,
 } = require("../Utils/Ethereum");
 
+const { decodeLogs } = require("../Utils/initializer.js");
+
 const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("SOV");
@@ -41,8 +43,9 @@ const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 const WEEK = new BN(7 * 24 * 60 * 60);
 
-const TOTAL_SUPPLY = "10000000000000000000000000";
+const TOTAL_SUPPLY = "20000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
+const FOUR_WEEKS = 2419200;
 
 contract("Vesting", (accounts) => {
     const name = "Test token";
@@ -672,6 +675,7 @@ contract("Vesting", (accounts) => {
         it("should withdraw unlocked tokens", async () => {
             // Save current amount
             let previousAmount = await token.balanceOf(root);
+            console.log("a: ", previousAmount.toString());
             let toStake = ONE_MILLON;
 
             // Stake
@@ -690,12 +694,42 @@ contract("Vesting", (accounts) => {
             await vesting.stakeTokens(toStake);
 
             let amountAfterStake = await token.balanceOf(root);
+            console.log("x: ", amountAfterStake.toString());
 
             // time travel
             await increaseTime(104 * WEEK);
 
             // withdraw
             let tx = await vesting.withdrawTokens(root);
+
+            const getStartDate = vesting.startDate();
+            const getCliff = vesting.cliff();
+            const getMaxIterations = vesting.getMaxVestingWithdrawIterations();
+
+            const [startDate, cliff, maxIterations] = await Promise.all([
+                getStartDate,
+                getCliff,
+                getMaxIterations,
+            ]);
+            const startIteration = startDate.add(cliff);
+
+            const decodedIncompleteEvent = decodeLogs(
+                tx.receipt.rawLogs,
+                VestingLogic,
+                "IncompleteWithdrawTokens"
+            )[0].args;
+            // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
+            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+                startIteration
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .toString()
+            );
+
+            // Withdraw another iteration
+            await vesting.withdrawTokensWithStartTime(
+                root,
+                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(FOUR_WEEKS))
+            );
 
             // check event
             expectEvent(tx, "TokensWithdrawn", {
@@ -896,6 +930,223 @@ contract("Vesting", (accounts) => {
             await vesting.withdrawTokens(root, { from: a1 });
         });
 
+        it("governanceWithdrawVesting should emit incompletion event if greater the max iterations (with 0 starting iteration)", async () => {
+            let toStake = ONE_MILLON;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                26 * WEEK,
+                142 * WEEK,
+                feeSharingProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            const getStartDate = vesting.startDate();
+            const getCliff = vesting.cliff();
+            const getMaxIterations = vesting.getMaxVestingWithdrawIterations();
+
+            const [startDate, cliff, maxIterations] = await Promise.all([
+                getStartDate,
+                getCliff,
+                getMaxIterations,
+            ]);
+            const startIteration = startDate.add(cliff);
+
+            const { receipt } = await staking.governanceWithdrawVesting(vesting.address, root, 0);
+
+            const decodedIncompleteEvent = decodeLogs(
+                receipt.rawLogs,
+                VestingLogic,
+                "IncompleteWithdrawTokens"
+            )[0].args;
+            expect(decodedIncompleteEvent["caller"]).to.equal(staking.address);
+            expect(decodedIncompleteEvent["receiver"]).to.equal(root);
+            // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
+            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+                startIteration
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .toString()
+            );
+            expect(decodedIncompleteEvent["isGovernance"]).to.equal(true);
+        });
+
+        it("governanceWithdrawVesting utilizing lastProcessedDate from incompletion event", async () => {
+            let toStake = ONE_MILLON;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                26 * WEEK,
+                142 * WEEK,
+                feeSharingProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            const getStartDate = vesting.startDate();
+            const getCliff = vesting.cliff();
+            const getMaxIterations = vesting.getMaxVestingWithdrawIterations();
+
+            const [startDate, cliff, maxIterations] = await Promise.all([
+                getStartDate,
+                getCliff,
+                getMaxIterations,
+            ]);
+            const startIteration = startDate.add(cliff);
+
+            const tx = await staking.governanceWithdrawVesting(vesting.address, root, 0);
+
+            let decodedIncompleteEvent = decodeLogs(
+                tx.receipt.rawLogs,
+                VestingLogic,
+                "IncompleteWithdrawTokens"
+            )[0].args;
+            expect(decodedIncompleteEvent["caller"]).to.equal(staking.address);
+            expect(decodedIncompleteEvent["receiver"]).to.equal(root);
+            // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
+            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+                startIteration
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .toString()
+            );
+            expect(decodedIncompleteEvent["isGovernance"]).to.equal(true);
+
+            // Withdrawn another one
+            const nextStartIteration = decodedIncompleteEvent["lastProcessedDate"];
+            const tx2 = await staking.governanceWithdrawVesting(
+                vesting.address,
+                root,
+                nextStartIteration
+            );
+            decodedIncompleteEvent = decodeLogs(
+                tx2.receipt.rawLogs,
+                VestingLogic,
+                "IncompleteWithdrawTokens"
+            )[0].args;
+            expect(decodedIncompleteEvent["caller"]).to.equal(staking.address);
+            expect(decodedIncompleteEvent["receiver"]).to.equal(root);
+            // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
+            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+                new BN(nextStartIteration)
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .toString()
+            );
+            expect(decodedIncompleteEvent["isGovernance"]).to.equal(true);
+        });
+
+        it("governanceWithdrawVesting utilizing lastProcessedDate from incompletion event (should be able to retrieve reward for the accidental skip date)", async () => {
+            let toStake = ONE_MILLON;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                26 * WEEK,
+                142 * WEEK,
+                feeSharingProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            const getStartDate = vesting.startDate();
+            const getCliff = vesting.cliff();
+            const getMaxIterations = vesting.getMaxVestingWithdrawIterations();
+
+            const [startDate, cliff, maxIterations] = await Promise.all([
+                getStartDate,
+                getCliff,
+                getMaxIterations,
+            ]);
+            const startIteration = startDate.add(cliff);
+
+            const tx = await staking.governanceWithdrawVesting(vesting.address, root, 0);
+
+            let decodedIncompleteEvent = decodeLogs(
+                tx.receipt.rawLogs,
+                VestingLogic,
+                "IncompleteWithdrawTokens"
+            )[0].args;
+            expect(decodedIncompleteEvent["caller"]).to.equal(staking.address);
+            expect(decodedIncompleteEvent["receiver"]).to.equal(root);
+            // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
+            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+                startIteration
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .toString()
+            );
+            expect(decodedIncompleteEvent["isGovernance"]).to.equal(true);
+
+            // Withdrawn another one but skip 10 iterations
+            const nextStartIteration = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
+                new BN(15).mul(new BN(FOUR_WEEKS))
+            );
+            await staking.governanceWithdrawVesting(vesting.address, root, nextStartIteration);
+
+            // Withdrawn skipped iterations
+            const skippedIterations = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
+                new BN(2419200)
+            );
+            let currentBlockNumber = await web3.eth.getBlockNumber();
+            const previousStake = await staking.getPriorUserStakeByDate(
+                vesting.address,
+                skippedIterations,
+                currentBlockNumber - 1
+            );
+            expect(previousStake).to.be.bignumber.to.greaterThan(new BN(1));
+
+            const tx2 = await staking.governanceWithdrawVesting(
+                vesting.address,
+                root,
+                skippedIterations
+            );
+            await mineBlock();
+
+            decodedIncompleteEvent = decodeLogs(
+                tx2.receipt.rawLogs,
+                VestingLogic,
+                "IncompleteWithdrawTokens"
+            )[0].args;
+            expect(decodedIncompleteEvent["caller"]).to.equal(staking.address);
+            expect(decodedIncompleteEvent["receiver"]).to.equal(root);
+            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+                skippedIterations
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .toString()
+            );
+            expect(decodedIncompleteEvent["isGovernance"]).to.equal(true);
+
+            currentBlockNumber = await web3.eth.getBlockNumber();
+
+            for (
+                let i = skippedIterations.toNumber();
+                i < skippedIterations.add(maxIterations.mul(new BN(FOUR_WEEKS))).toNumber();
+                i += FOUR_WEEKS
+            ) {
+                const latestStake = await staking.getPriorUserStakeByDate(
+                    vesting.address,
+                    i,
+                    currentBlockNumber - 1
+                );
+                expect(latestStake.toString()).to.equal("1");
+            }
+        });
+
         it("Shouldn't be possible to use governanceWithdrawVesting by not owner", async () => {
             let toStake = ONE_MILLON;
 
@@ -915,7 +1166,7 @@ contract("Vesting", (accounts) => {
             await vesting.stakeTokens(toStake);
 
             await expectRevert(
-                staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }),
+                staking.governanceWithdrawVesting(vesting.address, root, 0, { from: a1 }),
                 "WS01"
             );
         });
@@ -992,12 +1243,44 @@ contract("Vesting", (accounts) => {
 
             await staking.addAdmin(a1);
             // governance withdraw until duration must withdraw all staked tokens without fees
-            let tx = await staking.governanceWithdrawVesting(vesting.address, root, { from: a1 });
+            let tx = await staking.governanceWithdrawVesting(vesting.address, root, 0, {
+                from: a1,
+            });
 
             expectEvent(tx, "VestingTokensWithdrawn", {
                 vesting: vesting.address,
                 receiver: root,
             });
+
+            const getStartDate = vesting.startDate();
+            const getCliff = vesting.cliff();
+            const getMaxIterations = vesting.getMaxVestingWithdrawIterations();
+
+            const [startDate, cliff, maxIterations] = await Promise.all([
+                getStartDate,
+                getCliff,
+                getMaxIterations,
+            ]);
+            const startIteration = startDate.add(cliff);
+
+            const decodedIncompleteEvent = decodeLogs(
+                tx.receipt.rawLogs,
+                VestingLogic,
+                "IncompleteWithdrawTokens"
+            )[0].args;
+            // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
+            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+                startIteration
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .toString()
+            );
+
+            // Withdraw another iteration
+            await staking.governanceWithdrawVesting(
+                vesting.address,
+                root,
+                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(FOUR_WEEKS))
+            );
 
             // verify amount
             let amount = await token.balanceOf(root);

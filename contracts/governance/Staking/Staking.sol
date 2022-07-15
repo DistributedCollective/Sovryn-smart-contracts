@@ -303,13 +303,13 @@ contract Staking is
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
      * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
      * */
-    function governanceWithdrawVesting(address vesting, address receiver)
-        public
-        onlyAuthorized
-        whenNotFrozen
-    {
+    function governanceWithdrawVesting(
+        address vesting,
+        address receiver,
+        uint256 startFrom
+    ) public onlyAuthorized whenNotFrozen {
         vestingWhitelist[vesting] = true;
-        ITeamVesting(vesting).governanceWithdrawTokens(receiver);
+        ITeamVesting(vesting).governanceWithdrawTokensWithStartTime(receiver, startFrom);
         vestingWhitelist[vesting] = false;
 
         emit VestingTokensWithdrawn(vesting, receiver);

@@ -800,7 +800,7 @@ contract("FourYearVesting", (accounts) => {
             }
 
             await expectRevert(
-                staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }),
+                staking.governanceWithdrawVesting(vesting.address, root, 0, { from: a1 }),
                 "WS01"
             );
         });
