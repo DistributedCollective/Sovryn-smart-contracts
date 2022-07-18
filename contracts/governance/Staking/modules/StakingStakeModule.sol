@@ -9,7 +9,7 @@ import "../StakingShared.sol";
 /**
  * @title Staking contract staking functionality module
  **/
-contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, CheckpointsShared {
+contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared, ApprovalReceiver {
     using SafeMath for uint256;
 
     /**
@@ -67,6 +67,36 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
         address delegatee,
         bool timeAdjusted
     ) internal {
+        _stakeOptionalTokenTransfer(
+            sender,
+            amount,
+            until,
+            stakeFor,
+            delegatee,
+            timeAdjusted,
+            true
+        );
+    }
+
+    /**
+     * @notice Send sender's tokens to this contract and update its staked balance.
+     * @param sender The sender of the tokens.
+     * @param amount The number of tokens to send.
+     * @param until The date until which the tokens will be staked.
+     * @param stakeFor The beneficiary whose stake will be increased.
+     * @param delegatee The address of the delegatee or stakeFor if default 0x0.
+     * @param timeAdjusted Whether fixing date to stacking periods or not.
+     * @param transfer Should transfer SOV - false for multiple iterations like in stakeBySchedule
+     * */
+    function _stakeOptionalTokenTransfer(
+        address sender,
+        uint96 amount,
+        uint256 until,
+        address stakeFor,
+        address delegatee,
+        bool timeAdjusted,
+        bool transferToken
+    ) internal {
         require(amount > 0, "S01"); // amount needs to be bigger than 0
 
         if (!timeAdjusted) {
@@ -93,7 +123,7 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
         uint96 previousBalance = _currentBalance(stakeFor, until);
 
         /// @dev Increase stake.
-        _increaseStake(sender, amount, stakeFor, until);
+        _increaseStake(sender, amount, stakeFor, until, transferToken);
 
         // @dev Previous version wasn't working properly for the following case:
         //		delegate checkpoint wasn't updating for the second and next stakes for the same date
@@ -166,20 +196,21 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
      * @param amount The number of tokens to send.
      * @param stakeFor The beneficiary whose stake will be increased.
      * @param until The date until which the tokens will be staked.
+     * @param transferToken if false - token transfer should be handled separately
      * */
     function _increaseStake(
         address sender,
         uint96 amount,
         address stakeFor,
-        uint256 until
+        uint256 until,
+        bool transferToken
     ) internal {
         /// @dev Retrieve the SOV tokens.
-        bool success = SOVToken.transferFrom(sender, address(this), amount);
-        require(success);
+        if (transferToken) require(SOVToken.transferFrom(sender, address(this), amount), "IS10"); // Should transfer tokens successfully
 
         /// @dev Increase staked balance.
         uint96 balance = _currentBalance(stakeFor, until);
-        balance = add96(balance, amount, "S06"); // increaseStake: overflow
+        balance = add96(balance, amount, "IS20"); // increaseStake: overflow
 
         /// @dev Update checkpoints.
         _increaseDailyStake(until, amount);
@@ -254,22 +285,34 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
         uint256 end = _timestampToLockDate(block.timestamp + duration);
         uint256 numIntervals = (end - start) / intervalLength + 1;
         uint256 stakedPerInterval = amount / numIntervals;
+
+        /// @dev transferring total SOV amount before staking
+        require(SOVToken.transfer(address(this), amount), "SS10"); // Should transfer tokens successfully
         /// @dev stakedPerInterval might lose some dust on rounding. Add it to the first staking date.
         if (numIntervals >= 1) {
-            _stake(
+            _stakeOptionalTokenTransfer(
                 msg.sender,
                 uint96(amount - stakedPerInterval * (numIntervals - 1)),
                 start,
                 stakeFor,
                 delegatee,
-                true
+                true,
+                false
             );
         }
         /// @dev Stake the rest in 4 week intervals.
         for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
             /// @dev Stakes for itself, delegates to the owner.
             _notSameBlockAsStakingCheckpoint(i); // must wait a block before staking again for that same deadline
-            _stake(msg.sender, uint96(stakedPerInterval), i, stakeFor, delegatee, true);
+            _stakeOptionalTokenTransfer(
+                msg.sender,
+                uint96(stakedPerInterval),
+                i,
+                stakeFor,
+                delegatee,
+                true,
+                false
+            );
         }
     }
 
@@ -361,16 +404,16 @@ contract StakingStakeModule is IFunctionsList, ApprovalReceiver, StakingShared, 
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](9);
-        functionList[0] = this.stake.selector;
-        functionList[1] = this.stakeWithApproval.selector;
-        functionList[2] = this.extendStakingDuration.selector;
-        functionList[3] = this.stakesBySchedule.selector;
-        functionList[4] = this.stakeBySchedule.selector;
-        functionList[5] = this.balanceOf.selector;
-        functionList[6] = this.getCurrentStakedUntil.selector;
-        functionList[7] = this.getStakes.selector;
-        functionList[8] = this.timestampToLockDate.selector;
-        return functionList;
+        bytes4[] memory functionsList = new bytes4[](9);
+        functionsList[0] = this.stake.selector;
+        functionsList[1] = this.stakeWithApproval.selector;
+        functionsList[2] = this.extendStakingDuration.selector;
+        functionsList[3] = this.stakesBySchedule.selector;
+        functionsList[4] = this.stakeBySchedule.selector;
+        functionsList[5] = this.balanceOf.selector;
+        functionsList[6] = this.getCurrentStakedUntil.selector;
+        functionsList[7] = this.getStakes.selector;
+        functionsList[8] = this.timestampToLockDate.selector;
+        return functionsList;
     }
 }
