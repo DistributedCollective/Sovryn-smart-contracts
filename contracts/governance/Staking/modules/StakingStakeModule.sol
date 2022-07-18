@@ -86,7 +86,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * @param stakeFor The beneficiary whose stake will be increased.
      * @param delegatee The address of the delegatee or stakeFor if default 0x0.
      * @param timeAdjusted Whether fixing date to stacking periods or not.
-     * @param transfer Should transfer SOV - false for multiple iterations like in stakeBySchedule
+     * @param transferToken Should transfer SOV - false for multiple iterations like in stakeBySchedule
      * */
     function _stakeOptionalTokenTransfer(
         address sender,
