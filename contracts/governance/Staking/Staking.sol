@@ -301,18 +301,19 @@ contract Staking is
      * @notice Withdraw tokens for vesting contract.
      * @param vesting The address of Vesting contract.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @param startFrom The start value for the iterations.
      * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
      * */
     function governanceWithdrawVesting(
         address vesting,
         address receiver,
         uint256 startFrom
-    ) public onlyAuthorized whenNotFrozen {
+    ) external onlyAuthorized whenNotFrozen {
         vestingWhitelist[vesting] = true;
-        ITeamVesting(vesting).governanceWithdrawTokensWithStartTime(receiver, startFrom);
+        ITeamVesting(vesting).governanceWithdrawTokensStartingFrom(receiver, startFrom);
         vestingWhitelist[vesting] = false;
 
-        emit VestingTokensWithdrawn(vesting, receiver);
+        emit VestingTokensWithdrawn(vesting, receiver, startFrom);
     }
 
     /**

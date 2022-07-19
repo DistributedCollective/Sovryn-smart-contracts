@@ -331,9 +331,6 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         /// @dev Usually we just need to iterate over the possible dates until now.
         uint256 end;
 
-        /// @dev flag for withdrawal iterations
-        uint256 counter;
-
         uint256 defaultStart = startDate.add(extendDurationFor);
 
         startFrom = startFrom >= defaultStart ? startFrom : defaultStart;
@@ -346,6 +343,10 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
             end = block.timestamp;
         }
 
+        uint256 totalIterationValue =
+            (startFrom + (FOUR_WEEKS * getMaxVestingWithdrawIterations()));
+        uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
+
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
         ///		workaround found, but it doesn't work with TWO_WEEKS
@@ -353,11 +354,6 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         /// stakes are extended for three years. In some cases the withdrawal may be allowed at a different
         /// time and hence we use extendDurationFor.
         for (uint256 i = startFrom; i <= end; i += FOUR_WEEKS) {
-            if (counter >= getMaxVestingWithdrawIterations()) {
-                emit IncompleteWithdrawTokens(msg.sender, receiver, i - FOUR_WEEKS, isGovernance);
-                break;
-            }
-
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number.sub(1));
 
@@ -368,12 +364,19 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
                 } else {
                     staking.withdraw(stake, i, receiver);
                 }
-
-                counter++;
             }
         }
 
-        emit TokensWithdrawn(msg.sender, receiver);
+        if (adjustedEnd < end) {
+            emit IncompleteWithdrawTokens(
+                msg.sender,
+                receiver,
+                adjustedEnd - FOUR_WEEKS,
+                isGovernance
+            );
+        } else {
+            emit TokensWithdrawn(msg.sender, receiver);
+        }
     }
 
     /**

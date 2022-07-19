@@ -726,16 +726,10 @@ contract("Vesting", (accounts) => {
             );
 
             // Withdraw another iteration
-            await vesting.withdrawTokensWithStartTime(
+            await vesting.withdrawTokensStartingFrom(
                 root,
                 new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(FOUR_WEEKS))
             );
-
-            // check event
-            expectEvent(tx, "TokensWithdrawn", {
-                caller: root,
-                receiver: root,
-            });
 
             // verify amount
             let amount = await token.balanceOf(root);
@@ -1227,7 +1221,7 @@ contract("Vesting", (accounts) => {
                 staking.address,
                 root,
                 16 * WEEK,
-                36 * WEEK,
+                38 * WEEK,
                 feeSharingProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);

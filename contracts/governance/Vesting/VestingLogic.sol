@@ -122,7 +122,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @param _receiver The receiving address.
      * @param _startFrom The start value for the iterations.
      */
-    function governanceWithdrawTokensWithStartTime(address _receiver, uint256 _startFrom) public {
+    function governanceWithdrawTokensStartingFrom(address _receiver, uint256 _startFrom) public {
         _governanceWithdrawTokens(_receiver, _startFrom);
     }
 
@@ -165,7 +165,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @param _receiver The receiving address.
      * @param  _startFrom The start value for the iterations.
      * */
-    function withdrawTokensWithStartTime(address _receiver, uint256 _startFrom) public onlyOwners {
+    function withdrawTokensStartingFrom(address _receiver, uint256 _startFrom) public onlyOwners {
         _withdrawTokens(_receiver, false, _startFrom);
     }
 
@@ -190,9 +190,6 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         /// @dev Usually we just need to iterate over the possible dates until now.
         uint256 end;
 
-        /// @dev flag for withdrawal iterations
-        uint256 counter;
-
         uint256 defaultStart = startDate + cliff;
 
         _startFrom = _startFrom >= defaultStart ? _startFrom : defaultStart;
@@ -205,19 +202,14 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
             end = block.timestamp;
         }
 
+        uint256 totalIterationValue =
+            (_startFrom + (FOUR_WEEKS * getMaxVestingWithdrawIterations()));
+        uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
+
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
         ///		workaround found, but it doesn't work with TWO_WEEKS
-        for (uint256 i = _startFrom; i <= end; i += FOUR_WEEKS) {
-            if (counter >= getMaxVestingWithdrawIterations()) {
-                emit IncompleteWithdrawTokens(
-                    msg.sender,
-                    _receiver,
-                    i - FOUR_WEEKS,
-                    _isGovernance
-                );
-                break;
-            }
+        for (uint256 i = _startFrom; i < adjustedEnd; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
 
@@ -228,12 +220,19 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
                 } else {
                     staking.withdraw(stake, i, _receiver);
                 }
-
-                counter++;
             }
         }
 
-        emit TokensWithdrawn(msg.sender, _receiver);
+        if (adjustedEnd < end) {
+            emit IncompleteWithdrawTokens(
+                msg.sender,
+                _receiver,
+                adjustedEnd - FOUR_WEEKS,
+                _isGovernance
+            );
+        } else {
+            emit TokensWithdrawn(msg.sender, _receiver);
+        }
     }
 
     /**

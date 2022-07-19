@@ -367,7 +367,7 @@ contract("Staking", (accounts) => {
                 staking.address,
                 root,
                 16 * WEEK,
-                36 * WEEK,
+                38 * WEEK,
                 feeSharingProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
