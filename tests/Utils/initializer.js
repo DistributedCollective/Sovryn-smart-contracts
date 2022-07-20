@@ -1,6 +1,7 @@
 const { BN } = require("@openzeppelin/test-helpers");
 const constants = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
+const { artifacts } = require("hardhat");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -34,6 +35,52 @@ const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const Affiliates = artifacts.require("Affiliates");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
+
+// >------------------- STAKING -------------------<//
+
+const StakingAdminModule = artifacts.require("StakingAdminModule");
+const StakingGovernanceModule = artifacts.require("StakingGovernanceModule");
+const StakingStakeModule = artifacts.require("StakingStakeModule");
+const StakingStorageModule = artifacts.require("StakingStorageModule");
+const StakingVestingModule = artifacts.require("StakingVestingModule");
+const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
+const WeightedStakingModule = artifacts.require("WeightedStakingModule");
+
+const IStaking = artifacts.require("IStaking");
+const StakingProxy = artifacts.require("ModulesProxy");
+
+const deployAndGetStakingProxy = async () => {
+    const modules = [
+        await StakingAdminModule.new(),
+        await StakingGovernanceModule.new(),
+        await StakingStakeModule.new(),
+        await StakingStorageModule.new(),
+        await StakingVestingModule.new(),
+        await StakingWithdrawModule.new(),
+        await WeightedStakingModule.new(),
+    ];
+    const stakingProxy = await StakingProxy.new();
+    for (module of modules) {
+        await stakingProxy.addModule(module.address);
+    }
+    return stakingProxy;
+};
+
+const deployAndGetIStaking = async () => {
+    return await getIStaking((await deployAndGetStakingProxy()).address);
+};
+
+const getIStaking = async (stakingProxyAddress) => {
+    return await IStaking.at(stakingProxyAddress);
+};
+
+/// @dev intended for mocking modules
+const replaceStakingModule = async (stakingProxyAddress, moduleFromAddress, moduleToAddress) => {
+    const stakingProxy = await StakingModule.at(stakingProxyAddress);
+    await stakingProxy.replaceModule(moduleFromAddress, moduleToAddress);
+};
+
+// <------------------- STAKING -------------------> //
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -517,6 +564,13 @@ module.exports = {
     getLoanTokenLogicWrbtc,
     getLoanToken,
     getLoanTokenWRBTC,
+
+    // staking
+    deployAndGetStakingProxy,
+    deployAndGetIStaking,
+    getIStaking,
+    replaceStakingModule,
+
     loan_pool_setup,
     lend_to_pool,
     set_demand_curve,
