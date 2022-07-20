@@ -30,15 +30,28 @@ contract StakingMockup is Staking {
         priorWeightedStake = _priorWeightedStake;
     }
 
+    mapping(uint256 => uint96) priorWeightedStakeAtBlock;
+
+    function MOCK_priorWeightedStakeAtBlock(uint96 _priorWeightedStake, uint256 _block) public {
+        priorWeightedStakeAtBlock[_block] = _priorWeightedStake;
+    }
+
     function getPriorWeightedStake(
         address account,
         uint256 blockNumber,
         uint256 date
     ) public view returns (uint96) {
-        return
-            priorWeightedStake != 0
+        uint96 _priorWeightedStake;
+
+        if (priorWeightedStakeAtBlock[blockNumber] != 0) {
+            _priorWeightedStake = priorWeightedStakeAtBlock[blockNumber];
+        } else {
+            _priorWeightedStake = priorWeightedStake != 0
                 ? priorWeightedStake
                 : super.getPriorWeightedStake(account, blockNumber, date);
+        }
+
+        return _priorWeightedStake;
     }
 
     function calculatePriorWeightedStake(

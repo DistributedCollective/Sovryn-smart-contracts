@@ -675,6 +675,27 @@ def depositCollateral(loanId,depositAmount, tokenAddress):
         token.approve(sovryn.address, depositAmount)
     sovryn.depositCollateral(loanId,depositAmount)
 
+def setDefaultPathConversion(sourceTokenAddress, destTokenAddress, defaultPath):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setDefaultPathConversion.encode_input(defaultPath)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+def removeDefaultPathConversion(sourceTokenAddress, destTokenAddress):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.removeDefaultPathConversion.encode_input(sourceTokenAddress, destTokenAddress)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+def readDefaultPathConversion(sourceTokenAddress, destTokenAddress):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    defaultPathConversion = sovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress)
+    print(defaultPathConversion)
+    return defaultPathConversion
+
 # Transferring Ownership to GOV
 def transferProtocolOwnershipToGovernance():
     print("Transferring sovryn protocol ownserhip to: ", conf.contracts['TimelockOwner'])
@@ -682,3 +703,4 @@ def transferProtocolOwnershipToGovernance():
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     data = sovryn.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+

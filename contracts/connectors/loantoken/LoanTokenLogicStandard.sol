@@ -243,25 +243,29 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
         _settleInterest();
 
-        address[4] memory sentAddresses;
-        uint256[5] memory sentAmounts;
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses;
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts;
 
-        sentAddresses[0] = address(this); /// The lender.
-        sentAddresses[1] = borrower;
-        sentAddresses[2] = receiver;
-        /// sentAddresses[3] = address(0); /// The manager.
+        sentAddresses.lender = address(this); /// The lender.
+        sentAddresses.borrower = borrower;
+        sentAddresses.receiver = receiver;
+        /// sentAddresses.manager = address(0); /// The manager.
 
-        sentAmounts[1] = withdrawAmount;
+        sentAmounts.newPrincipal = withdrawAmount;
 
         /// interestRate, interestInitialAmount, borrowAmount (newBorrowAmount).
-        (sentAmounts[0], sentAmounts[2], sentAmounts[1]) = _getInterestRateAndBorrowAmount(
-            sentAmounts[1],
+        (
+            sentAmounts.interestRate,
+            sentAmounts.interestInitialAmount,
+            sentAmounts.newPrincipal
+        ) = _getInterestRateAndBorrowAmount(
+            sentAmounts.newPrincipal,
             _totalAssetSupply(0), /// Interest is settled above.
             initialLoanDuration
         );
 
-        /// sentAmounts[3] = 0; /// loanTokenSent
-        sentAmounts[4] = collateralTokenSent;
+        /// sentAmounts.loanTokenSent = 0; /// loanTokenSent
+        sentAmounts.collateralTokenSent = collateralTokenSent;
 
         return
             _borrowOrTrade(
@@ -358,39 +362,35 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
             _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
         require(totalDeposit != 0, "12");
 
-        address[4] memory sentAddresses;
-        uint256[5] memory sentAmounts;
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses;
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts;
 
-        sentAddresses[0] = address(this); /// The lender.
-        sentAddresses[1] = trader;
-        sentAddresses[2] = trader;
-        /// sentAddresses[3] = address(0); /// The manager.
+        sentAddresses.lender = address(this);
+        sentAddresses.borrower = trader;
+        sentAddresses.receiver = trader;
+        /// sentAddresses.manager = address(0); /// The manager.
 
-        /// sentAmounts[0] = 0; /// interestRate (found later).
-        sentAmounts[1] = totalDeposit; /// Total amount of deposit.
-        /// sentAmounts[2] = 0; /// interestInitialAmount (interest is calculated based on fixed-term loan).
-        sentAmounts[3] = loanTokenSent;
-        sentAmounts[4] = collateralTokenSent;
+        /// sentAmounts.interestRate = 0; /// interestRate (found later).
+        sentAmounts.newPrincipal = totalDeposit;
+        /// sentAmounts.interestInitialAmount = 0; /// interestInitialAmount (interest is calculated based on fixed-term loan).
+        sentAmounts.loanTokenSent = loanTokenSent;
+        sentAmounts.collateralTokenSent = collateralTokenSent;
 
         _settleInterest();
 
-        (sentAmounts[1], sentAmounts[0]) = _getMarginBorrowAmountAndRate( /// borrowAmount, interestRate
+        (sentAmounts.newPrincipal, sentAmounts.interestRate) = _getMarginBorrowAmountAndRate( /// borrowAmount, interestRate
             leverageAmount,
-            sentAmounts[1] /// depositAmount
+            sentAmounts.newPrincipal /// depositAmount
         );
 
-        checkPriceDivergence(
-            loanTokenSent.add(sentAmounts[1]),
-            collateralTokenAddress,
-            minEntryPrice
-        );
         require(
-            _getAmountInRbtc(loanTokenAddress, sentAmounts[1]) > TINY_AMOUNT,
+            _getAmountInRbtc(loanTokenAddress, sentAmounts.newPrincipal) > TINY_AMOUNT,
             "principal too small"
         );
 
         /// @dev Converting to initialMargin
         leverageAmount = SafeMath.div(10**38, leverageAmount);
+        sentAmounts.minEntryPrice = minEntryPrice;
         return
             _borrowOrTrade(
                 loanId,
@@ -1199,19 +1199,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         uint256 withdrawAmount,
         uint256 initialMargin,
         address collateralTokenAddress,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentAmounts,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
         bytes memory loanDataBytes
     ) internal returns (uint256, uint256) {
         _checkPause();
         require(
-            sentAmounts[1] <= _underlyingBalance() && /// newPrincipal (borrowed amount + fees)
-                sentAddresses[1] != address(0), /// The borrower.
+            sentAmounts.newPrincipal <= _underlyingBalance() && /// newPrincipal (borrowed amount + fees)
+                sentAddresses.borrower != address(0), /// The borrower.
             "24"
         );
 
-        if (sentAddresses[2] == address(0)) {
-            sentAddresses[2] = sentAddresses[1]; /// The receiver = the borrower.
+        if (sentAddresses.receiver == address(0)) {
+            sentAddresses.receiver = sentAddresses.borrower; /// The receiver = the borrower.
         }
 
         /// @dev Handle transfers prior to adding newPrincipal to loanTokenSent
@@ -1222,11 +1222,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
          * @dev Adding the loan token portion from the lender to loanTokenSent
          * (add the loan to the loan tokens sent from the user).
          * */
-        sentAmounts[3] = sentAmounts[3].add(sentAmounts[1]); /// newPrincipal
+        sentAmounts.loanTokenSent = sentAmounts.loanTokenSent.add(sentAmounts.newPrincipal); /// newPrincipal
 
         if (withdrawAmount != 0) {
             /// @dev withdrawAmount already sent to the borrower, so we aren't sending it to the protocol.
-            sentAmounts[3] = sentAmounts[3].sub(withdrawAmount);
+            sentAmounts.loanTokenSent = sentAmounts.loanTokenSent.sub(withdrawAmount);
         }
 
         bool withdrawAmountExist = false; /// Default is false, but added just as to make sure.
@@ -1240,9 +1240,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
                 uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))
             ];
 
-        (sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress)
+        (sentAmounts.newPrincipal, sentAmounts.collateralTokenSent) = ProtocolLike(
+            sovrynContractAddress
+        )
             .borrowOrTradeFromPool
-            .value(msgValue)( /// newPrincipal, newCollateral
+            .value(msgValue)(
             loanParamsId,
             loanId,
             withdrawAmountExist,
@@ -1250,27 +1252,18 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
             sentAddresses,
             sentAmounts,
             loanDataBytes
-        );
-        require(sentAmounts[1] != 0, "25");
+        ); /// newPrincipal, newCollateral
+        require(sentAmounts.newPrincipal != 0, "25");
 
         /// @dev Setting not-first-trade flag to prevent binding to an affiliate existing users post factum.
         /// @dev REFACTOR: move to a general interface: ProtocolSettingsLike?
         ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(
-            sentAddresses[1]
+            sentAddresses.borrower
         );
 
-        return (sentAmounts[1], sentAmounts[4]); // newPrincipal, newCollateral
+        return (sentAmounts.newPrincipal, sentAmounts.collateralTokenSent); // newPrincipal, newCollateral
     }
 
-    /// sentAddresses[0]: lender
-    /// sentAddresses[1]: borrower
-    /// sentAddresses[2]: receiver
-    /// sentAddresses[3]: manager
-    /// sentAmounts[0]: interestRate
-    /// sentAmounts[1]: newPrincipal
-    /// sentAmounts[2]: interestInitialAmount
-    /// sentAmounts[3]: loanTokenSent
-    /// sentAmounts[4]: collateralTokenSent
     /**
      * @notice .
      *
@@ -1285,16 +1278,15 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
      * */
     function _verifyTransfers(
         address collateralTokenAddress,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentAmounts,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
         uint256 withdrawalAmount
     ) internal returns (uint256 msgValue) {
         address _wrbtcToken = wrbtcTokenAddress;
         address _loanTokenAddress = loanTokenAddress;
-        address receiver = sentAddresses[2];
-        uint256 newPrincipal = sentAmounts[1];
-        uint256 loanTokenSent = sentAmounts[3];
-        uint256 collateralTokenSent = sentAmounts[4];
+        uint256 newPrincipal = sentAmounts.newPrincipal;
+        uint256 loanTokenSent = sentAmounts.loanTokenSent;
+        uint256 collateralTokenSent = sentAmounts.collateralTokenSent;
 
         require(_loanTokenAddress != collateralTokenAddress, "26");
 
@@ -1302,7 +1294,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
         if (withdrawalAmount != 0) {
             /// withdrawOnOpen == true
-            _safeTransfer(_loanTokenAddress, receiver, withdrawalAmount, "");
+            _safeTransfer(_loanTokenAddress, sentAddresses.receiver, withdrawalAmount, "");
             if (newPrincipal > withdrawalAmount) {
                 _safeTransfer(
                     _loanTokenAddress,
