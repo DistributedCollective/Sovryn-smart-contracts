@@ -45,6 +45,7 @@ def main():
     now = calendar.timegm(time.gmtime())
     # print(now)
 
+    print("===============================================")
     adoptionLastReleaseTime = adoptionFund.lastReleaseTime()
     print("adoptionLastReleaseTime:", adoptionLastReleaseTime)
     adoptionReleaseDuration = adoptionFund.getReleaseDuration()[::-1]
@@ -59,7 +60,9 @@ def main():
             print(str(adoptionLastReleaseTime) + " - " + str(releaseValue / DECIMALS))
     print("adoptionFund:", adoptionAmount / DECIMALS)
 
+    print("===============================================")
     developmentLastReleaseTime = developmentFund.lastReleaseTime()
+    print("developmentLastReleaseTime:", developmentLastReleaseTime)
     developmentReleaseDuration = developmentFund.getReleaseDuration()[::-1]
     developmentReleaseTokenAmount = developmentFund.getReleaseTokenAmount()[::-1]
     developmentAmount = 0
@@ -71,3 +74,4 @@ def main():
             developmentAmount += releaseValue
             print(str(developmentLastReleaseTime) + " - " + str(releaseValue / DECIMALS))
     print("developmentFund:", developmentAmount / DECIMALS)
+    print("===============================================")
