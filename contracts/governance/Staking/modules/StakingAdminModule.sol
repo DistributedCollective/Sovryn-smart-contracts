@@ -144,7 +144,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](12);
+        bytes4[] memory functionsList = new bytes4[](13);
         functionsList[0] = this.addAdmin.selector;
         functionsList[1] = this.removeAdmin.selector;
         functionsList[2] = this.addPauser.selector;
@@ -157,6 +157,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
         functionsList[9] = this.owner.selector;
         functionsList[10] = this.isOwner.selector;
         functionsList[11] = this.transferOwnership.selector;
+        functionsList[12] = this.migrateToNewStakingContract.selector;
         return functionsList;
     }
 }

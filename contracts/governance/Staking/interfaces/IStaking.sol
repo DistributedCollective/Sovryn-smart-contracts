@@ -405,7 +405,7 @@ interface IStaking {
     function numUserStakingCheckpoints(address user, uint256 date)
         external
         view
-        returns (bytes32 checkpointsQty);
+        returns (uint32 checkpointsQty);
 
     /// @notice A record of states for signing / validating signatures
     /// @dev nonces[user] is a number.
@@ -651,4 +651,20 @@ interface IStaking {
      * @return uint96 MAX_DURATION for staking
      **/
     function MAX_DURATION() external view returns (uint256);
+
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() external view returns (address);
+
+    /**
+     * @dev Returns true if the caller is the current owner.
+     */
+    function isOwner() external view returns (bool);
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) external;
 }

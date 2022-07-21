@@ -287,7 +287,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 stakedPerInterval = amount / numIntervals;
 
         /// @dev transferring total SOV amount before staking
-        require(SOVToken.transfer(address(this), amount), "SS10"); // Should transfer tokens successfully
+        require(SOVToken.transferFrom(msg.sender, address(this), amount), "SS10"); // Should transfer tokens successfully
         /// @dev stakedPerInterval might lose some dust on rounding. Add it to the first staking date.
         if (numIntervals >= 1) {
             _stakeOptionalTokenTransfer(
