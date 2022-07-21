@@ -26,9 +26,14 @@ const {
     increaseTime,
     lastBlock,
 } = require("../Utils/Ethereum");
-
-const StakingLogic = artifacts.require("Staking");
+const {
+    deployAndGetIStaking,
+    initializeStakingModulesAt,
+    decodeLogs,
+} = require("../Utils/initializer");
+const StakingLogic = artifacts.require("IStaking");
 const StakingProxy = artifacts.require("StakingProxy");
+const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const SOV = artifacts.require("SOV");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
@@ -49,7 +54,7 @@ contract("Vesting", (accounts) => {
     const symbol = "TST";
 
     let root, a1, a2, a3;
-    let token, staking, stakingLogic, feeSharingProxy;
+    let token, staking, stakingProxy, feeSharingProxy;
     let vestingLogic;
     let kickoffTS;
 
@@ -68,10 +73,10 @@ contract("Vesting", (accounts) => {
             constants.ZERO_ADDRESS
         );
 
-        stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Creating the Staking Instance (Staking Modules Interface).
+        stakingProxy = await StakingProxy.new(token.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
+
         //Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
         vestingReg = await VestingRegistryProxy.new();
@@ -604,7 +609,7 @@ contract("Vesting", (accounts) => {
                     0
                 );
 
-                assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
+                assert.equal(parseInt(userStakingCheckpoints.fromBlock), block.number);
                 if (i === start) {
                     assert.equal(userStakingCheckpoints.stake.toString(), stakeForFirstInterval);
                 } else {
@@ -916,7 +921,7 @@ contract("Vesting", (accounts) => {
 
             await expectRevert(
                 staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }),
-                "WS01"
+                "SS01"
             );
         });
 
@@ -992,12 +997,23 @@ contract("Vesting", (accounts) => {
 
             await staking.addAdmin(a1);
             // governance withdraw until duration must withdraw all staked tokens without fees
-            let tx = await staking.governanceWithdrawVesting(vesting.address, root, { from: a1 });
+            const { receipt } = await staking.governanceWithdrawVesting(vesting.address, root, {
+                from: a1,
+            });
 
-            expectEvent(tx, "VestingTokensWithdrawn", {
+            /*expectEvent(receipt, "VestingTokensWithdrawn", {
                 vesting: vesting.address,
                 receiver: root,
-            });
+            });*/
+
+            const decodeArgs = decodeLogs(
+                receipt.rawLogs,
+                StakingWithdrawModule,
+                "VestingTokensWithdrawn"
+            )[0].args;
+
+            expect(decodeArgs["vesting"]).to.equal(vesting.address);
+            expect(decodeArgs["receiver"]).to.equal(root);
 
             // verify amount
             let amount = await token.balanceOf(root);
@@ -1080,8 +1096,8 @@ contract("Vesting", (accounts) => {
             // 1. set new staking contract address on staking contract
 
             let newStaking = await StakingProxy.new(token.address);
-            await newStaking.setImplementation(stakingLogic.address);
-            newStaking = await StakingLogic.at(newStaking.address);
+            await newStaking.setImplementation(await stakingProxy.getImplementation()); //setting StakingModulesProxy address
+            await initializeStakingModulesAt(newStaking.address); // deployes and initializes modules in the newStaking storage using previous StakingModulesProxy contact
 
             await staking.setNewStakingContract(newStaking.address);
 
@@ -1097,9 +1113,8 @@ contract("Vesting", (accounts) => {
 
         it("should fail if there is no new staking contract set", async () => {
             let newStaking = await StakingProxy.new(token.address);
-            await newStaking.setImplementation(stakingLogic.address);
-            newStaking = await StakingLogic.at(newStaking.address);
-
+            await newStaking.setImplementation(await stakingProxy.getImplementation()); //setting StakingModulesProxy address
+            await initializeStakingModulesAt(newStaking.address); // deployes and initializes modules in the newStaking storage using previous StakingModulesProxy contact
             vesting = await Vesting.new(
                 vestingLogic.address,
                 token.address,
@@ -1115,7 +1130,8 @@ contract("Vesting", (accounts) => {
 
         it("should fail if the caller is neither owner nor token owner", async () => {
             let newStaking = await StakingProxy.new(token.address);
-            await newStaking.setImplementation(stakingLogic.address);
+            await newStaking.setImplementation(await stakingProxy.getImplementation()); //setting StakingModulesProxy address
+            await initializeStakingModulesAt(newStaking.address); // deployes and initializes modules in the newStaking storage using previous StakingModulesProxy contact
             newStaking = await StakingLogic.at(newStaking.address);
 
             vesting = await Vesting.new(
@@ -1129,7 +1145,7 @@ contract("Vesting", (accounts) => {
             );
             vesting = await VestingLogic.at(vesting.address);
 
-            await newStaking.setNewStakingContract(newStaking.address);
+            await newStaking.setNewStakingContract(staking.address); // can be any address, asing the staking.address for simplicity
 
             await expectRevert(vesting.migrateToNewStakingContract({ from: a2 }), "unauthorized");
             await expectRevert(vesting.migrateToNewStakingContract({ from: a3 }), "unauthorized");
