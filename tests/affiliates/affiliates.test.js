@@ -26,15 +26,14 @@
 const { BN, constants, send, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect, waffle } = require("hardhat");
 const { loadFixture } = waffle;
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
 // const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard"); // replaced by MockLoanTokenLogic
 const LoanToken = artifacts.require("LoanToken");
-const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); // added functionality for isolated unit testing
 const ILoanTokenModulesMock = artifacts.require("ILoanTokenModulesMock");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 const LockedSOV = artifacts.require("LockedSOV");
-const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -118,11 +117,9 @@ contract("Affiliates", (accounts) => {
             await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
         }
 
-        // Creating the Staking Instance.
-        stakingLogic = await StakingLogic.new(SUSD.address);
-        staking = await StakingProxy.new(SUSD.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(SUSD.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Creating the FeeSharing Instance.
         feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);

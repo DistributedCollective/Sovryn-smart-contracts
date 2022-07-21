@@ -18,11 +18,11 @@
  */
 
 const { deployAndGetIStaking } = require("../Utils/initializer");
+const StakingLogic = artifacts.require("IStaking");
 
 const EscrowReward = artifacts.require("EscrowReward");
 const LockedSOV = artifacts.require("LockedSOV"); // Ideally should be using actual LockedSOV for testing.
-//const StakingLogic = artifacts.require("Staking");
-const StakingLogic = artifacts.require("IStaking");
+
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("TestToken");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
@@ -95,10 +95,8 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
         sov = await SOV.new("Sovryn", "SOV", 18, zero);
 
         // Creating the Staking Instance (Staking Modules Interface).
-        stakingLogic = await deployAndGetIStaking();
-        staking = await StakingProxy.new(sov.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        const stakingProxy = await StakingProxy.new(sov.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Creating the FeeSharing Instance.
         feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);

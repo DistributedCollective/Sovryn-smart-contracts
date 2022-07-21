@@ -45,11 +45,12 @@ const StakingStorageModule = artifacts.require("StakingStorageModule");
 const StakingVestingModule = artifacts.require("StakingVestingModule");
 const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const WeightedStakingModule = artifacts.require("WeightedStakingModule");
+const StakingProxy = artifacts.require("StakingProxy");
 
 const IStaking = artifacts.require("IStaking");
-const StakingProxy = artifacts.require("ModulesProxy");
+const StakingModulesProxy = artifacts.require("ModulesProxy");
 
-const deployAndGetStakingProxy = async () => {
+const deployAndGetStakingModulesProxy = async (stakingProxyAddress) => {
     const modules = [
         await StakingAdminModule.new(),
         await StakingGovernanceModule.new(),
@@ -59,19 +60,31 @@ const deployAndGetStakingProxy = async () => {
         await StakingWithdrawModule.new(),
         await WeightedStakingModule.new(),
     ];
-    const stakingProxy = await StakingProxy.new();
+    const stakingProxy = await StakingProxy.at(stakingProxyAddress);
+    let stakingModulesProxy = await StakingModulesProxy.new();
+    await stakingProxy.setImplementation(stakingModulesProxy.address);
+    stakingModulesProxy = await StakingModulesProxy.at(stakingProxyAddress);
+    //let i = 0;
     for (module of modules) {
-        await stakingProxy.addModule(module.address);
+        //console.log(++i);
+        await stakingModulesProxy.addModule(module.address);
+        //console.log(`module ${i}:`);
+        //console.log(await module.getFunctionsList());
     }
-    return stakingProxy;
+    return stakingModulesProxy;
 };
 
-const deployAndGetIStaking = async () => {
-    return await getIStaking((await deployAndGetStakingProxy()).address);
+const deployAndGetIStaking = async (stakingProxyAddress) => {
+    const stakingModulesProxy = await deployAndGetStakingModulesProxy(stakingProxyAddress);
+    return await getIStaking(stakingModulesProxy.address);
 };
 
 const getIStaking = async (stakingProxyAddress) => {
     return await IStaking.at(stakingProxyAddress);
+};
+
+const getStakingModulesProxyAt = async (address) => {
+    return await StakingModulesProxy.at(address);
 };
 
 /// @dev intended for mocking modules
@@ -566,10 +579,11 @@ module.exports = {
     getLoanTokenWRBTC,
 
     // staking
-    deployAndGetStakingProxy,
+    deployAndGetStakingModulesProxy,
     deployAndGetIStaking,
     getIStaking,
     replaceStakingModule,
+    getStakingModulesProxyAt,
 
     loan_pool_setup,
     lend_to_pool,

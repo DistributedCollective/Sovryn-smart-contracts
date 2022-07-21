@@ -16,13 +16,13 @@
 
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const EscrowReward = artifacts.require("EscrowReward");
 const LockedSOV = artifacts.require("LockedSOV"); // Ideally should be using actual LockedSOV for testing.
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
-const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const SOV = artifacts.require("TestToken");
@@ -376,11 +376,9 @@ contract("Escrow Rewards (State)", (accounts) => {
         // Creating the instance of SOV Token.
         sov = await SOV.new("Sovryn", "SOV", 18, zero);
 
-        // Creating the Staking Instance.
-        stakingLogic = await StakingLogic.new(sov.address);
-        staking = await StakingProxy.new(sov.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(sov.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Creating the FeeSharing Instance.
         feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);
