@@ -474,7 +474,7 @@ def governanceWithdrawVesting( vesting,  receiver):
 
 def transferStakingOwnershipToGovernance():
     print("Add staking admin for address: ", conf.contracts['TimelockAdmin'])
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=abi=interface.IStaking.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.addAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
