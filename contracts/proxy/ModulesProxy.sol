@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.5.17;
 
-import "../mixins/EnumerableBytes4Set.sol";
 import "../openzeppelin/Address.sol";
 import "../utils/Utils.sol";
 import "../utils/ProxyOwnable.sol";
@@ -32,7 +31,6 @@ import "./ModulesProxyRegistry.sol";
  */
 
 contract ModulesProxy is ModulesProxyRegistry {
-    using EnumerableBytes4Set for EnumerableBytes4Set.Bytes4Set;
     using Address for address;
 
     bytes private constant BEFORE_FALLBACK_SIG = abi.encodeWithSignature("beforeFallback()");

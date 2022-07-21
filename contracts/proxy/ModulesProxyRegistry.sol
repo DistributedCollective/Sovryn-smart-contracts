@@ -51,7 +51,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
     function canAddModule(address _impl) external view returns (bool) {
         require(_impl.isContract(), "MR06"); //Proxy::canAddModule: address is not a contract
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
-        for (uint256 i = 1; i < functions.length; i++)
+        for (uint256 i = 0; i < functions.length; i++)
             if (_getFuncImplementation(functions[i]) != address(0)) return (false);
         return true;
     }
@@ -66,7 +66,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
         require(_newModule.isContract(), "MR06"); //Proxy::canAddModule: address is not a contract
         bytes4[] memory functions = IFunctionsList(_newModule).getFunctionsList();
         uint256 clashingArrayIndex;
-        for (uint256 i = 1; i < functions.length; i++) {
+        for (uint256 i = 0; i < functions.length; i++) {
             address funcImpl = _getFuncImplementation(functions[i]);
             if (funcImpl != address(0)) {
                 clashingModules[clashingArrayIndex] = funcImpl;
@@ -87,7 +87,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
     function _addModule(address _impl) internal {
         require(_impl.isContract(), "MR01"); //ModulesRegistry::_addModule: address is not a contract
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
-        for (uint256 i = 1; i < functions.length; i++) {
+        for (uint256 i = 0; i < functions.length; i++) {
             require(_getFuncImplementation(functions[i]) == address(0), "MR02"); //function already registered in another module - use ReplaceModule if you need to replace the whole module
             _checkClashingWithProxyFunctions(functions[i]);
             _setModuleFuncImplementation(functions[i], _impl);
@@ -107,7 +107,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
     function _removeModule(address _impl) internal onlyProxyOwner {
         require(_impl.isContract(), "MR07"); //ModulesRegistry::_removeModuleImplementation: address is not a contract
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
-        for (uint256 i = 1; i < functions.length; i++)
+        for (uint256 i = 0; i < functions.length; i++)
             _setModuleFuncImplementation(functions[i], address(0));
     }
 

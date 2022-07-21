@@ -18,7 +18,7 @@ import "../../Vesting/IVesting.sol";
  * Staking contract inherits WeightedStaking.
  * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
  * */
-contract StakingGovernanceModule is IFunctionsList, CheckpointsShared, StakingShared {
+contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsShared {
     using Address for address payable;
 
     /************* TOTAL VOTING POWER COMPUTATION ************************/
@@ -402,14 +402,14 @@ contract StakingGovernanceModule is IFunctionsList, CheckpointsShared, StakingSh
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](7);
-        functionList[0] = this.getPriorTotalVotingPower.selector;
-        functionList[1] = this.getCurrentVotes.selector;
-        functionList[2] = this.getPriorVotes.selector;
-        functionList[3] = this.getPriorStakeByDateForDelegatee.selector;
-        functionList[4] = this.getPriorTotalStakesForDate.selector;
-        functionList[5] = this.delegate.selector;
-        functionList[6] = this.delegateBySig.selector;
-        return functionList;
+        bytes4[] memory functionsList = new bytes4[](7);
+        functionsList[0] = this.getPriorTotalVotingPower.selector;
+        functionsList[1] = this.getCurrentVotes.selector;
+        functionsList[2] = this.getPriorVotes.selector;
+        functionsList[3] = this.getPriorStakeByDateForDelegatee.selector;
+        functionsList[4] = this.getPriorTotalStakesForDate.selector;
+        functionsList[5] = this.delegate.selector;
+        functionsList[6] = this.delegateBySig.selector;
+        return functionsList;
     }
 }

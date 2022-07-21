@@ -15,7 +15,7 @@ pragma solidity 0.5.17;
  * the owner.
  */
 contract ProxyOwnable {
-    bytes32 private constant KEY_OWNER = keccak256("key.ownable.owner");
+    bytes32 private constant KEY_OWNER = keccak256("key.proxy.owner");
 
     event ProxyOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 

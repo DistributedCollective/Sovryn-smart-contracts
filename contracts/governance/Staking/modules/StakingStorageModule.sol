@@ -1,12 +1,13 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
+import "../../../proxy/modules/interfaces/IFunctionsList.sol";
 import "../StakingStorageShared.sol";
 
 /**
  * @title Staking Storage Module - access to public storage variables
  **/
-contract StakingSorageModule is StakingStorageShared {
+contract StakingStorageModule is IFunctionsList, StakingStorageShared {
     function getStorageDefaultWeightScaling() external pure returns (uint256) {
         return uint256(DEFAULT_WEIGHT_SCALING);
     }
@@ -55,39 +56,39 @@ contract StakingSorageModule is StakingStorageShared {
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](31);
-        functionList[0] = this.getStorageMaxDurationToStakeTokens.selector;
-        functionList[1] = this.getStorageMaxVotingWeight.selector;
-        functionList[2] = this.getStorageWeightFactor.selector;
-        functionList[3] = this.getStorageDefaulWeightScaling.selector;
-        functionList[4] = this.getStorageRangeForWeighScaling.selector;
-        functionList[5] = this.getStorageDomainTypehash.selector;
-        functionList[6] = this.getStorageDelegationTypehash.selector;
-        functionList[7] = this.getStorageName.selector;
-        functionList[8] = this.kickoffTS.selector;
-        functionList[9] = this.SOVToken.selector;
-        functionList[10] = this.delegates.selector;
-        functionList[11] = this.allUnlocked.selector;
-        functionList[12] = this.newStakingContract.selector;
-        functionList[13] = this.totalStakingCheckpoints.selector;
-        functionList[14] = this.numTotalStakingCheckpoints.selector;
-        functionList[15] = this.delegateStakingCheckpoints.selector;
-        functionList[16] = this.numDelegateStakingCheckpoints.selector;
-        functionList[17] = this.userStakingCheckpoints.selector;
-        functionList[18] = this.numUserStakingCheckpoints.selector;
-        functionList[19] = this.nonces.selector;
-        functionList[20] = this.feeSharing.selector;
-        functionList[21] = this.weightScaling.selector;
-        functionList[22] = this.vestingWhitelist.selector;
-        functionList[23] = this.admins.selector;
-        functionList[24] = this.vestingCodeHashes.selector;
-        functionList[25] = this.vestingCheckpoints.selector;
-        functionList[26] = this.numVestingCheckpoints.selector;
-        functionList[27] = this.vestingRegistryLogic.selector;
-        functionList[28] = this.pausers.selector;
-        functionList[29] = this.paused.selector;
-        functionList[30] = this.frozen.selector;
+        bytes4[] memory functionsList = new bytes4[](31);
+        functionsList[0] = this.getStorageMaxDurationToStakeTokens.selector;
+        functionsList[1] = this.getStorageMaxVotingWeight.selector;
+        functionsList[2] = this.getStorageWeightFactor.selector;
+        functionsList[3] = this.getStorageDefaulWeightScaling.selector;
+        functionsList[4] = this.getStorageRangeForWeighScaling.selector;
+        functionsList[5] = this.getStorageDomainTypehash.selector;
+        functionsList[6] = this.getStorageDelegationTypehash.selector;
+        functionsList[7] = this.getStorageName.selector;
+        functionsList[8] = this.kickoffTS.selector;
+        functionsList[9] = this.SOVToken.selector;
+        functionsList[10] = this.delegates.selector;
+        functionsList[11] = this.allUnlocked.selector;
+        functionsList[12] = this.newStakingContract.selector;
+        functionsList[13] = this.totalStakingCheckpoints.selector;
+        functionsList[14] = this.numTotalStakingCheckpoints.selector;
+        functionsList[15] = this.delegateStakingCheckpoints.selector;
+        functionsList[16] = this.numDelegateStakingCheckpoints.selector;
+        functionsList[17] = this.userStakingCheckpoints.selector;
+        functionsList[18] = this.numUserStakingCheckpoints.selector;
+        functionsList[19] = this.nonces.selector;
+        functionsList[20] = this.feeSharing.selector;
+        functionsList[21] = this.weightScaling.selector;
+        functionsList[22] = this.vestingWhitelist.selector;
+        functionsList[23] = this.admins.selector;
+        functionsList[24] = this.vestingCodeHashes.selector;
+        functionsList[25] = this.vestingCheckpoints.selector;
+        functionsList[26] = this.numVestingCheckpoints.selector;
+        functionsList[27] = this.vestingRegistryLogic.selector;
+        functionsList[28] = this.pausers.selector;
+        functionsList[29] = this.paused.selector;
+        functionsList[30] = this.frozen.selector;
 
-        return functionList;
+        return functionsList;
     }
 }

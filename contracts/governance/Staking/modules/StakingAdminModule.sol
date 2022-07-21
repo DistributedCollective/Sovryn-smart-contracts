@@ -1,7 +1,6 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../CheckpointsShared.sol";
 import "../../../openzeppelin/Address.sol";
 import "../StakingShared.sol";
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
@@ -16,10 +15,7 @@ import "../../../proxy/modules/interfaces/IFunctionsList.sol";
  * Staking contract inherits WeightedStaking.
  * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
  * */
-contract StakingAdminModule is
-    StakingShared,
-    IFunctionsList /*, Checkpoints */
-{
+contract StakingAdminModule is IFunctionsList, StakingShared {
     using Address for address payable;
 
     event AdminAdded(address admin);
@@ -148,16 +144,19 @@ contract StakingAdminModule is
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](9);
-        functionList[0] = this.addAdmin.selector;
-        functionList[1] = this.removeAdmin.selector;
-        functionList[2] = this.addPauser.selector;
-        functionList[3] = this.removePauser.selector;
-        functionList[4] = this.pauseUnpause.selector;
-        functionList[5] = this.freezeUnfreeze.selector;
-        functionList[6] = this.setFeeSharing.selector;
-        functionList[7] = this.setWeightScaling.selector;
-        functionList[8] = this.setNewStakingContract.selector;
-        return functionList;
+        bytes4[] memory functionsList = new bytes4[](12);
+        functionsList[0] = this.addAdmin.selector;
+        functionsList[1] = this.removeAdmin.selector;
+        functionsList[2] = this.addPauser.selector;
+        functionsList[3] = this.removePauser.selector;
+        functionsList[4] = this.pauseUnpause.selector;
+        functionsList[5] = this.freezeUnfreeze.selector;
+        functionsList[6] = this.setFeeSharing.selector;
+        functionsList[7] = this.setWeightScaling.selector;
+        functionsList[8] = this.setNewStakingContract.selector;
+        functionsList[9] = this.owner.selector;
+        functionsList[10] = this.isOwner.selector;
+        functionsList[11] = this.transferOwnership.selector;
+        return functionsList;
     }
 }

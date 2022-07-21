@@ -12,7 +12,7 @@ import "../StakingShared.sol";
 /**
  * @title Staking withdraw functionality module
  **/
-contract StakingWithdrawModule is IFunctionsList, CheckpointsShared, StakingShared {
+contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShared {
     using SafeMath for uint256;
 
     /**
@@ -201,12 +201,12 @@ contract StakingWithdrawModule is IFunctionsList, CheckpointsShared, StakingShar
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](5);
-        functionList[0] = this.withdraw.selector;
-        functionList[1] = this.governanceWithdraw.selector;
-        functionList[2] = this.governanceWithdrawVesting.selector;
-        functionList[3] = this.getWithdrawAmounts.selector;
-        functionList[4] = this.unlockAllTokens.selector;
-        return functionList;
+        bytes4[] memory functionsList = new bytes4[](5);
+        functionsList[0] = this.withdraw.selector;
+        functionsList[1] = this.governanceWithdraw.selector;
+        functionsList[2] = this.governanceWithdrawVesting.selector;
+        functionsList[3] = this.getWithdrawAmounts.selector;
+        functionsList[4] = this.unlockAllTokens.selector;
+        return functionsList;
     }
 }

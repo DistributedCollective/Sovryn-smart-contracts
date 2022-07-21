@@ -16,7 +16,7 @@ import "../../../proxy/modules/interfaces/IFunctionsList.sol";
  * Staking contract inherits WeightedStaking.
  * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
  * */
-contract WeightedStakingModule is StakingShared, IFunctionsList, CheckpointsShared {
+contract WeightedStakingModule is IFunctionsList, StakingShared, CheckpointsShared {
     //using Address for address payable;
 
     /*************************** User Weighted Stake computation for fee sharing *******************************/
@@ -92,10 +92,10 @@ contract WeightedStakingModule is StakingShared, IFunctionsList, CheckpointsShar
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](3);
-        functionList[0] = this.getPriorWeightedStake.selector;
-        functionList[1] = this.weightedStakeByDate.selector;
-        functionList[2] = this.computeWeightByDate.selector;
-        return functionList;
+        bytes4[] memory functionsList = new bytes4[](3);
+        functionsList[0] = this.getPriorWeightedStake.selector;
+        functionsList[1] = this.weightedStakeByDate.selector;
+        functionsList[2] = this.computeWeightByDate.selector;
+        return functionsList;
     }
 }

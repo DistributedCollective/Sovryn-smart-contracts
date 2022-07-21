@@ -14,7 +14,7 @@ import "../../../proxy/modules/interfaces/IFunctionsList.sol";
  * Staking contract inherits WeightedStaking.
  * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
  * */
-contract StakingVestingModule is StakingShared, IFunctionsList {
+contract StakingVestingModule is IFunctionsList, StakingShared {
     event ContractCodeHashAdded(bytes32 hash);
     event ContractCodeHashRemoved(bytes32 hash);
     event VestingStakeSet(uint256 lockedTS, uint96 value);
@@ -313,15 +313,15 @@ contract StakingVestingModule is StakingShared, IFunctionsList {
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](8);
-        functionList[0] = this.setVestingRegistry.selector;
-        functionList[1] = this.setVestingStakes.selector;
-        functionList[2] = this.getPriorUserStakeByDate.selector;
-        functionList[3] = this.getPriorVestingWeightedStake.selector;
-        functionList[4] = this.getPriorVestingStakeByDate.selector;
-        functionList[5] = this.addContractCodeHash.selector;
-        functionList[6] = this.removeContractCodeHash.selector;
-        functionList[7] = this.isVestingContract.selector;
-        return functionList;
+        bytes4[] memory functionsList = new bytes4[](8);
+        functionsList[0] = this.setVestingRegistry.selector;
+        functionsList[1] = this.setVestingStakes.selector;
+        functionsList[2] = this.getPriorUserStakeByDate.selector;
+        functionsList[3] = this.getPriorVestingWeightedStake.selector;
+        functionsList[4] = this.getPriorVestingStakeByDate.selector;
+        functionsList[5] = this.addContractCodeHash.selector;
+        functionsList[6] = this.removeContractCodeHash.selector;
+        functionsList[7] = this.isVestingContract.selector;
+        return functionsList;
     }
 }
