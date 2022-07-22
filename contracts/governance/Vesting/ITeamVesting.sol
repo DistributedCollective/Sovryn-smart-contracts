@@ -10,4 +10,10 @@ interface ITeamVesting {
     function governanceWithdrawTokens(address receiver) external;
 
     function governanceWithdrawTokensStartingFrom(address receiver, uint256 startFrom) external;
+
+    function startDate() external view returns (uint256);
+
+    function cliff() external view returns (uint256);
+
+    function endDate() external view returns (uint256);
 }

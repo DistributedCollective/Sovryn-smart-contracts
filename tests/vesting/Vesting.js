@@ -675,7 +675,6 @@ contract("Vesting", (accounts) => {
         it("should withdraw unlocked tokens", async () => {
             // Save current amount
             let previousAmount = await token.balanceOf(root);
-            console.log("a: ", previousAmount.toString());
             let toStake = ONE_MILLON;
 
             // Stake
@@ -694,7 +693,6 @@ contract("Vesting", (accounts) => {
             await vesting.stakeTokens(toStake);
 
             let amountAfterStake = await token.balanceOf(root);
-            console.log("x: ", amountAfterStake.toString());
 
             // time travel
             await increaseTime(104 * WEEK);

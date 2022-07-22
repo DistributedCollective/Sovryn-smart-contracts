@@ -79,6 +79,14 @@ contract Checkpoints is StakingStorage, SafeMath96 {
 
     event VestingStakeSet(uint256 lockedTS, uint96 value);
 
+    event TokensWithdrawn(address indexed caller, address receiver);
+
+    event IncompleteGovernanceWithdrawTokens(
+        address indexed caller,
+        address receiver,
+        uint256 lastProcessedDate
+    );
+
     /**
      * @notice Increases the user's vesting stake for a giving lock date and writes a checkpoint.
      * @param lockedTS The lock date.

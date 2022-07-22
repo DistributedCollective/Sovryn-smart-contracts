@@ -149,4 +149,11 @@ contract StakingStorage is Ownable {
 
     /// @dev Staking contract is frozen
     bool public frozen;
+
+    /// @dev Struct for direct withdraw function -- to avoid stack too deep issue
+    struct VestingConfig {
+        uint256 startDate;
+        uint256 cliff;
+        uint256 endDate;
+    }
 }

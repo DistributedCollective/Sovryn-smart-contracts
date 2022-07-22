@@ -298,6 +298,28 @@ contract Staking is
     }
 
     /**
+     * @notice Withdraw the given amount of tokens.
+     * @param amount The number of tokens to withdraw.
+     * @param until The date until which the tokens were staked.
+     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @param vesting The vesting contract address.
+     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * */
+    function _governanceWithdrawDirect(
+        uint96 amount,
+        uint256 until,
+        address receiver,
+        address vesting
+    ) internal {
+        _notSameBlockAsStakingCheckpoint(until);
+
+        _withdrawDirect(amount, until, receiver, vesting);
+        // @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
+        //		we don't need to check block.timestamp here
+        _withdrawNext(until, receiver, true);
+    }
+
+    /**
      * @notice Withdraw tokens for vesting contract.
      * @param vesting The address of Vesting contract.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
@@ -314,6 +336,87 @@ contract Staking is
         vestingWhitelist[vesting] = false;
 
         emit VestingTokensWithdrawn(vesting, receiver, startFrom);
+    }
+
+    /**
+     * @notice New governance withdraw vesting directly through staking contract.
+     * This direct withdraw vesting, can solve the out of gas issue from the old withdraw vesting function.
+     *
+     * @param vesting The vesting address.
+     * @param receiver The receiving address.
+     * @param startFrom The start value for the iterations.
+     */
+    function governanceDirectWithdrawVesting(
+        address vesting,
+        address receiver,
+        uint256 startFrom
+    ) external onlyAuthorized whenNotFrozen {
+        require(isVestingContract(vesting), "Only vesting contract allowed");
+        _governanceDirectWithdrawVesting(vesting, receiver, startFrom);
+
+        emit VestingTokensWithdrawn(vesting, receiver, startFrom);
+    }
+
+    /**
+     * @notice Withdraws tokens from the staking contract and forwards them
+     * to an address specified by the token owner. Low level function.
+     * @dev Once here the caller permission is taken for granted.
+     * @param _vesting The vesting address.
+     * @param _receiver The receiving address.
+     * @param _startFrom The start value for the iterations.
+     * or just unlocked tokens (false).
+     * */
+    function _governanceDirectWithdrawVesting(
+        address _vesting,
+        address _receiver,
+        uint256 _startFrom
+    ) private {
+        require(_receiver != address(0), "receiver address invalid");
+
+        ITeamVesting teamVesting = ITeamVesting(_vesting);
+
+        VestingConfig memory vestingConfig =
+            VestingConfig(teamVesting.startDate(), teamVesting.cliff(), teamVesting.endDate());
+
+        uint96 tempStake;
+
+        /// @dev Usually we just need to iterate over the possible dates until now.
+        uint256 end;
+
+        uint256 defaultStart = vestingConfig.startDate + vestingConfig.cliff;
+
+        _startFrom = _startFrom >= defaultStart ? _startFrom : defaultStart;
+
+        /// @dev In the unlikely case that all tokens have been unlocked early,
+        ///   allow to withdraw all of them.
+        end = vestingConfig.endDate;
+
+        uint256 totalIterationValue =
+            (_startFrom + (FOUR_WEEKS * getMaxVestingWithdrawIterations()));
+        uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
+
+        /// @dev Withdraw for each unlocked position.
+        /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
+        ///		workaround found, but it doesn't work with TWO_WEEKS
+        for (uint256 i = _startFrom; i < adjustedEnd; i += FOUR_WEEKS) {
+            /// @dev Read amount to withdraw.
+            tempStake = getPriorUserStakeByDate(_vesting, i, block.number - 1);
+
+            /// @dev Withdraw if > 0
+            if (tempStake > 0) {
+                _governanceWithdrawDirect(tempStake, i, _receiver, _vesting);
+            }
+        }
+
+        if (adjustedEnd < end) {
+            emit IncompleteGovernanceWithdrawTokens(
+                msg.sender,
+                _receiver,
+                adjustedEnd - FOUR_WEEKS
+            );
+        } else {
+            emit TokensWithdrawn(msg.sender, _receiver);
+        }
     }
 
     /**
@@ -341,7 +444,7 @@ contract Staking is
             return;
         }
         until = _adjustDateForOrigin(until);
-        _validateWithdrawParams(amount, until);
+        _validateWithdrawParams(msg.sender, amount, until);
 
         /// @dev Determine the receiver.
         if (receiver == address(0)) receiver = msg.sender;
@@ -374,6 +477,46 @@ contract Staking is
         emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
     }
 
+    /**
+     * @notice Send user' staked tokens to a receiver.
+     * This function is dedicated only for governance vesting withdrawal.
+     *
+     * @param amount The number of tokens to withdraw.
+     * @param until The date until which the tokens were staked.
+     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @param vesting The vesting address which act as the caller here.
+     * or just unlocked tokens (false).
+     * */
+    function _withdrawDirect(
+        uint96 amount,
+        uint256 until,
+        address receiver,
+        address vesting
+    ) internal {
+        // @dev it's very unlikely some one will have 1/10**18 SOV staked in Vesting contract
+        if (amount == 1) {
+            return;
+        }
+
+        until = _adjustDateForOrigin(until);
+        _validateWithdrawParams(vesting, amount, until);
+
+        /// @dev Determine the receiver.
+        if (receiver == address(0)) receiver = vesting;
+
+        /// @dev Update the checkpoints.
+        _decreaseDailyStake(until, amount);
+        _decreaseUserStake(vesting, until, amount);
+        if (isVestingContract(vesting)) _decreaseVestingStake(until, amount);
+        _decreaseDelegateStake(delegates[vesting][until], until, amount);
+
+        /// @dev transferFrom
+        bool success = SOVToken.transfer(receiver, amount);
+        require(success, "S09"); // Token transfer failed
+
+        emit StakingWithdrawn(vesting, amount, until, receiver, true);
+    }
+
     // @dev withdraws tokens for lock date 2 weeks later than given lock date
     function _withdrawNext(
         uint256 until,
@@ -391,6 +534,22 @@ contract Staking is
         }
     }
 
+    // @dev withdraws tokens for lock date 2 weeks later than given lock date
+    // Dedicated only for governance vesting withdrawal
+    function _withdrawNextDirect(
+        uint256 until,
+        address receiver,
+        address vesting
+    ) internal {
+        uint256 nextLock = until.add(TWO_WEEKS);
+        if (block.timestamp >= nextLock) {
+            uint96 stakes = _getPriorUserStakeByDate(vesting, nextLock, block.number - 1);
+            if (stakes > 0) {
+                _withdrawDirect(stakes, nextLock, receiver, vesting);
+            }
+        }
+    }
+
     /**
      * @notice Get available and punished amount for withdrawing.
      * @param amount The number of tokens to withdraw.
@@ -401,7 +560,7 @@ contract Staking is
         view
         returns (uint96, uint96)
     {
-        _validateWithdrawParams(amount, until);
+        _validateWithdrawParams(msg.sender, amount, until);
         uint96 punishedAmount = _getPunishedAmount(amount, until);
         return (amount - punishedAmount, punishedAmount);
     }
@@ -420,12 +579,17 @@ contract Staking is
 
     /**
      * @notice Validate withdraw parameters.
+     * @param account Address to be validated.
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
      * */
-    function _validateWithdrawParams(uint96 amount, uint256 until) internal view {
+    function _validateWithdrawParams(
+        address account,
+        uint96 amount,
+        uint256 until
+    ) internal view {
         require(amount > 0, "S10"); // Amount of tokens to withdraw must be > 0
-        uint96 balance = _getPriorUserStakeByDate(msg.sender, until, block.number - 1);
+        uint96 balance = _getPriorUserStakeByDate(account, until, block.number - 1);
         require(amount <= balance, "S11"); // Staking::withdraw: not enough balance
     }
 
@@ -774,5 +938,14 @@ contract Staking is
             userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock !=
                 block.number;
         require(notSameBlock, "S20"); //S20 : "cannot be mined in the same block as last stake"
+    }
+
+    /**
+     * @notice Max iteration for vesting withdrawal to prevent out of gas issue.
+     *
+     * @return max iteration value.
+     */
+    function getMaxVestingWithdrawIterations() public pure returns (uint256) {
+        return 50;
     }
 }
