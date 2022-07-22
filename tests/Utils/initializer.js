@@ -50,8 +50,8 @@ const StakingProxy = artifacts.require("StakingProxy");
 const IStaking = artifacts.require("IStaking");
 const StakingModulesProxy = artifacts.require("ModulesProxy");
 
-const deployAndGetStakingModulesProxy = async (stakingProxyAddress) => {
-    const modules = [
+const getStakingModules = async () => {
+    return [
         await StakingAdminModule.new(),
         await StakingGovernanceModule.new(),
         await StakingStakeModule.new(),
@@ -60,6 +60,10 @@ const deployAndGetStakingModulesProxy = async (stakingProxyAddress) => {
         await StakingWithdrawModule.new(),
         await WeightedStakingModule.new(),
     ];
+};
+
+const deployAndGetStakingModulesProxyAtStakingProxy = async (stakingProxyAddress) => {
+    const modules = await getStakingModules();
     const stakingProxy = await StakingProxy.at(stakingProxyAddress);
     let stakingModulesProxy = await StakingModulesProxy.new();
     await stakingProxy.setImplementation(stakingModulesProxy.address);
@@ -74,9 +78,19 @@ const deployAndGetStakingModulesProxy = async (stakingProxyAddress) => {
     return stakingModulesProxy;
 };
 
+const initializeStakingModulesAt = async (address) => {
+    const modules = await getStakingModules();
+    const stakingModulesProxy = await StakingModulesProxy.at(address);
+    for (module of modules) {
+        await stakingModulesProxy.addModule(module.address);
+    }
+};
+
 const deployAndGetIStaking = async (stakingProxyAddress) => {
-    const stakingModulesProxy = await deployAndGetStakingModulesProxy(stakingProxyAddress);
-    return await getIStaking(stakingModulesProxy.address);
+    const stakingModulesProxy = await deployAndGetStakingModulesProxyAtStakingProxy(
+        stakingProxyAddress
+    );
+    return await getIStaking(stakingProxyAddress);
 };
 
 const getIStaking = async (stakingProxyAddress) => {
@@ -579,11 +593,12 @@ module.exports = {
     getLoanTokenWRBTC,
 
     // staking
-    deployAndGetStakingModulesProxy,
+    deployAndGetStakingModulesProxyAtStakingProxy,
     deployAndGetIStaking,
     getIStaking,
     replaceStakingModule,
     getStakingModulesProxyAt,
+    initializeStakingModulesAt,
 
     loan_pool_setup,
     lend_to_pool,

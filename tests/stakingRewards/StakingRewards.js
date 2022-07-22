@@ -23,6 +23,8 @@
  *   Updated to use the SOV test token from initializer.js.
  */
 
+//TODO: #REFACTOR this contract needs refactoring - remove mock contracts and use it with Staking modules.
+// interaction - via IStaking.sol interface
 const { expect } = require("chai");
 const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum");

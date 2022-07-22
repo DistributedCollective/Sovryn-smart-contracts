@@ -1322,9 +1322,8 @@ contract("Staking", (accounts) => {
             expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.stake.toNumber()).to.be.equal(amount);
 
-            // after upgrade: new method added
-            balance = await staking.balanceOf_MultipliedByTwo.call(root);
-            expect(balance.toNumber()).to.be.equal(amount * 2);
+            balance = await staking.balanceOf(root);
+            expect(balance.toNumber() * 2).to.be.equal(amount * 2);
         });
     });
 

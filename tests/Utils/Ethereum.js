@@ -4,6 +4,14 @@ const BigNumber = require("bignumber.js");
 //const ethers = require("ethers");
 const { ethers } = require("hardhat");
 
+async function getBlock(block) {
+    return await ethers.provider.getBlock(block);
+}
+
+async function getLastBlockNumber(block) {
+    return await ethers.provider.getBlock(block).number;
+}
+
 function UInt256Max() {
     return ethers.constants.MaxUint256;
 }
@@ -200,4 +208,6 @@ module.exports = {
     both,
     sendFallback,
     UInt256Max,
+    getBlock,
+    getLastBlockNumber,
 };

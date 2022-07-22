@@ -10,6 +10,9 @@
  *   Updated to spare the protocol deployment. Tests don't need it.
  */
 
+//TODO: #REFACTOR this contract needs refactoring - remove mock contracts and use it with Staking modules.
+//Interaction - via IStaking.sol interface
+
 const { expect } = require("chai");
 const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum");

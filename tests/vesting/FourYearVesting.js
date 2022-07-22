@@ -386,7 +386,7 @@ contract("FourYearVesting", (accounts) => {
                 0
             );
 
-            assert.equal(userStakingCheckpoints.fromBlock.toNumber(), 0);
+            assert.equal(parseInt(userStakingCheckpoints.fromBlock), 0);
             assert.equal(userStakingCheckpoints.stake.toString(), 0);
 
             let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(

@@ -361,7 +361,7 @@ contract("Vesting", (accounts) => {
                     0
                 );
 
-                assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
+                assert.equal(parseInt(userStakingCheckpoints.fromBlock), block.number);
                 assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
 
                 let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(
@@ -507,7 +507,7 @@ contract("Vesting", (accounts) => {
                     0
                 );
 
-                assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
+                assert.equal(parseInt(userStakingCheckpoints.fromBlock), block.number);
                 if (i === start) {
                     assert.equal(userStakingCheckpoints.stake.toString(), stakeForFirstInterval);
                 } else {
