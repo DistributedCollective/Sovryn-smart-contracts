@@ -14,7 +14,8 @@ const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
-const StakingLogic = artifacts.require("StakingMockup");
+const { deployAndGetIStaking } = require("../Utils/initializer");
+
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
@@ -53,10 +54,10 @@ contract("VestingCreator", (accounts) => {
         cSOV1 = await TestToken.new("cSOV1", "cSOV1", 18, TOTAL_SUPPLY);
         cSOV2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
 
-        stakingLogic = await StakingLogic.new();
-        staking = await StakingProxy.new(SOV.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(SOV.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
 

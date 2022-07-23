@@ -15,10 +15,10 @@ const {
     mineBlock,
     increaseTime,
 } = require("../../Utils/Ethereum");
+const { deployAndGetIStaking } = require("../../Utils/initializer");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 //Upgradable Vesting Registry
@@ -57,10 +57,10 @@ contract("GovernorAlpha#queue/1", (accounts) => {
         const timelock = await Timelock.new(root, DELAY);
         token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
 
-        let stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(token.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
 

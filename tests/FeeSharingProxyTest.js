@@ -31,9 +31,15 @@ const { ZERO_ADDRESS } = constants;
 
 const { etherMantissa, mineBlock, increaseTime } = require("./Utils/Ethereum");
 
+const {
+    deployAndGetIStaking,
+    replaceStakingModule,
+    getStakingModulesObject,
+    getStakingModulesAddressList,
+} = require("./Utils/initializer");
+
 const TestToken = artifacts.require("TestToken");
 
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
@@ -69,6 +75,9 @@ const LiquidityPoolV1Converter = artifacts.require("LiquidityPoolV1ConverterMock
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsExternal = artifacts.require("SwapsExternal");
+
+const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
+const IWeightedStakingModuleMockup = artifacts.require("IWeightedStakingModuleMockup");
 
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
@@ -119,6 +128,7 @@ contract("FeeSharingProxy:", (accounts) => {
     let tradingFeePercent;
     let mockPrice;
     let liquidityPoolV1Converter;
+    let iWeightedStakingModuleMockup;
 
     before(async () => {
         [root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -129,10 +139,32 @@ contract("FeeSharingProxy:", (accounts) => {
         SOVToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
         // Staking
-        let stakingLogic = await StakingLogic.new(SOVToken.address);
+        /*let stakingLogic = await StakingLogic.new(SOVToken.address);
         staking = await StakingProxy.new(SOVToken.address);
         await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        staking = await StakingLogic.at(staking.address);*/
+
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(SOVToken.address);
+        const modulesObject = await getStakingModulesObject();
+
+        staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+
+        const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
+        const modulesAddressList = getStakingModulesAddressList(modulesObject);
+        //console.log(modulesAddressList);
+        await replaceStakingModule(
+            stakingProxy.address,
+            modulesAddressList["WeightedStakingModule"],
+            weightedStakingModuleMockup.address
+        );
+
+        iWeightedStakingModuleMockup = await IWeightedStakingModuleMockup.at(staking.address);
+        //weightedStakingModuleMockup = await WeightedStakingModuleMockup.at(staking.address);
+        /*for (let moduleName in modulesObject) {
+            console.log(`module ${moduleName}:`);
+            console.log(await modulesObject[moduleName].getFunctionsList());
+        }*/
 
         SUSD = await getSUSD();
         RBTC = await getRBTC();
@@ -1546,7 +1578,7 @@ contract("FeeSharingProxy:", (accounts) => {
             let result = await staking.stake("100", stakingDate, root, root);
             await mineBlock();
 
-            let tx = await staking.calculatePriorWeightedStake(
+            let tx = await iWeightedStakingModuleMockup.calculatePriorWeightedStake(
                 root,
                 result.receipt.blockNumber,
                 stakingDate

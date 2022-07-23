@@ -7,6 +7,7 @@
  * Notes: Applied fixture to use snapshot beforeEach test.
  */
 
+//TODO: remove this legacy test and SVR contract
 const { expect } = require("chai");
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;

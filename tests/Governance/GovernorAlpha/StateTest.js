@@ -23,13 +23,13 @@ const {
     increaseTime,
     setNextBlockTimestamp,
 } = require("../../Utils/Ethereum");
+const { deployAndGetIStaking } = require("../../Utils/initializer");
 
 const path = require("path");
 const solparse = require("solparse");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 
@@ -332,10 +332,10 @@ contract("GovernorAlpha#state/1", (accounts) => {
     });
 
     async function deployGovernor() {
-        let stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(token.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         delay = etherUnsigned(2 * 24 * 60 * 60).multipliedBy(2);
         timelock = await Timelock.new(root, delay);

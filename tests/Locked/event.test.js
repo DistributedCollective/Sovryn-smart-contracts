@@ -13,7 +13,6 @@
 const SOV = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const LockedSOV = artifacts.require("LockedSOV");
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -25,6 +24,7 @@ const {
     expectEvent,
     constants, // Assertions for transactions that should fail.
 } = require("@openzeppelin/test-helpers");
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const { assert } = require("chai");
 
@@ -70,11 +70,10 @@ contract("Locked SOV (Events)", (accounts) => {
         sov = await SOV.new("Sovryn", "SOV", 18, zero);
         wrbtc = await TestWrbtc.new();
 
-        // Creating the Staking Instance.
-        stakingLogic = await StakingLogic.new(sov.address);
-        staking = await StakingProxy.new(sov.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(sov.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Creating the FeeSharing Instance.
         feeSharingProxy = await FeeSharingProxy.new(zeroAddress, staking.address);

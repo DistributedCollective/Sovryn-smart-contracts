@@ -14,18 +14,20 @@ const { loadFixture } = waffle;
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 
 const { address, mineBlock } = require("../Utils/Ethereum");
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const EIP712 = require("../Utils/EIP712");
 // const EIP712Ethers = require("../Utils/EIP712Ethers");
 const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
 
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 const VestingLogic = artifacts.require("VestingLogic");
 //Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
+const StakingAdminModule = artifacts.require("StakingAdminModule");
+const StakingVestingModule = artifacts.require("StakingVestingModule");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
@@ -50,10 +52,11 @@ contract("Staking", (accounts) => {
         await web3.eth.net.getId();
         token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
-        let stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(token.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
+
         //Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
         vesting = await VestingRegistryProxy.new();
@@ -62,7 +65,7 @@ contract("Staking", (accounts) => {
 
         await staking.setVestingRegistry(vesting.address);
 
-        MAX_VOTING_WEIGHT = await staking.MAX_VOTING_WEIGHT.call();
+        MAX_VOTING_WEIGHT = await staking.getStorageMaxVotingWeight.call();
 
         kickoffTS = await staking.kickoffTS.call();
         inThreeYears = kickoffTS.add(new BN(DELAY * 26 * 3));
@@ -207,7 +210,7 @@ contract("Staking", (accounts) => {
 
     describe("setVestingStakes", () => {
         it("should fail if unauthorized", async () => {
-            await expectRevert(staking.setVestingStakes([], [], { from: a1 }), "WS01"); // WS01 : unauthorized
+            await expectRevert(staking.setVestingStakes([], [], { from: a1 }), "SS01"); // WS01 : unauthorized
         });
 
         it("should fail if arrays have different length", async () => {
@@ -558,9 +561,14 @@ contract("Staking", (accounts) => {
         it("adds admin", async () => {
             let tx = await staking.addAdmin(a1);
 
-            expectEvent(tx, "AdminAdded", {
-                admin: a1,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "AdminAdded",
+                {
+                    admin: a1,
+                }
+            );
 
             let isAdmin = await staking.admins(a1);
             expect(isAdmin).equal(true);
@@ -576,9 +584,14 @@ contract("Staking", (accounts) => {
             await staking.addAdmin(a1);
             let tx = await staking.removeAdmin(a1);
 
-            expectEvent(tx, "AdminRemoved", {
-                admin: a1,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "AdminRemoved",
+                {
+                    admin: a1,
+                }
+            );
 
             let isAdmin = await staking.admins(a1);
             expect(isAdmin).equal(false);
@@ -607,10 +620,15 @@ contract("Staking", (accounts) => {
                 expect(value.stake).to.be.bignumber.equal(values[i]);
                 expect(value.fromBlock).to.be.bignumber.equal(new BN(0));
 
-                expectEvent(tx, "VestingStakeSet", {
-                    lockedTS: lockedDates[i],
-                    value: values[i],
-                });
+                await expectEvent.inTransaction(
+                    tx.receipt.rawLogs[0].transactionHash,
+                    StakingVestingModule,
+                    "VestingStakeSet",
+                    {
+                        lockedTS: lockedDates[i],
+                        value: values[i],
+                    }
+                );
             }
         });
     });

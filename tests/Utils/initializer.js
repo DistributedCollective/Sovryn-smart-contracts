@@ -47,8 +47,13 @@ const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const WeightedStakingModule = artifacts.require("WeightedStakingModule");
 const StakingProxy = artifacts.require("StakingProxy");
 
+const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
+const IWeightedStakingModuleMockup = artifacts.require("IWeightedStakingModuleMockup");
+
 const IStaking = artifacts.require("IStaking");
 const StakingModulesProxy = artifacts.require("ModulesProxy");
+
+let modulesAddress;
 
 const getStakingModules = async () => {
     return [
@@ -62,18 +67,56 @@ const getStakingModules = async () => {
     ];
 };
 
-const deployAndGetStakingModulesProxyAtStakingProxy = async (stakingProxyAddress) => {
-    const modules = await getStakingModules();
+const getStakingModulesObject = async () => {
+    return {
+        StakingAdminModule: await StakingAdminModule.new(),
+        StakingGovernanceModule: await StakingGovernanceModule.new(),
+        StakingStakeModule: await StakingStakeModule.new(),
+        StakingStorageModule: await StakingStorageModule.new(),
+        StakingVestingModule: await StakingVestingModule.new(),
+        StakingWithdrawModule: await StakingWithdrawModule.new(),
+        WeightedStakingModule: await WeightedStakingModule.new(),
+    };
+};
+
+const initStakingModulesMockup = async (tokenAddress) => {
+    const stakingProxy = await StakingProxy.new(tokenAddress);
+    const modulesObject = await getStakingModulesObject();
+    const staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+    const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
+    const modulesAddressList = getStakingModulesAddressList(modulesObject);
+    await replaceStakingModule(
+        stakingProxy.address,
+        modulesAddressList["WeightedStakingModule"],
+        weightedStakingModuleMockup.address
+    );
+    const iWeightedStakingModuleMockup = await IWeightedStakingModuleMockup.at(staking.address);
+    return { staking: staking, iWeightedStakingModuleMockup: iWeightedStakingModuleMockup };
+};
+
+const getStakingModulesAddressList = (modulesObject) => {
+    let newObject = {};
+    Object.keys(modulesObject).map((key, index) => {
+        newObject[key] = modulesObject[key].address;
+    });
+    return newObject;
+};
+
+const deployAndGetStakingModulesProxyAtStakingProxy = async (
+    stakingProxyAddress,
+    modulesObject = undefined
+) => {
+    const modules = modulesObject ? modulesObject : await getStakingModulesObject();
     const stakingProxy = await StakingProxy.at(stakingProxyAddress);
     let stakingModulesProxy = await StakingModulesProxy.new();
     await stakingProxy.setImplementation(stakingModulesProxy.address);
     stakingModulesProxy = await StakingModulesProxy.at(stakingProxyAddress);
     //let i = 0;
-    for (module of modules) {
+    for (let moduleName in modules) {
         //console.log(++i);
-        await stakingModulesProxy.addModule(module.address);
-        //console.log(`module ${i}:`);
-        //console.log(await module.getFunctionsList());
+        await stakingModulesProxy.addModule(modules[moduleName].address);
+        // console.log(`module ${moduleName}:`);
+        // console.log(await modules[moduleName].getFunctionsList());
     }
     return stakingModulesProxy;
 };
@@ -86,9 +129,10 @@ const initializeStakingModulesAt = async (address) => {
     }
 };
 
-const deployAndGetIStaking = async (stakingProxyAddress) => {
+const deployAndGetIStaking = async (stakingProxyAddress, modulesObject = undefined) => {
     const stakingModulesProxy = await deployAndGetStakingModulesProxyAtStakingProxy(
-        stakingProxyAddress
+        stakingProxyAddress,
+        modulesObject
     );
     return await getIStaking(stakingProxyAddress);
 };
@@ -103,7 +147,7 @@ const getStakingModulesProxyAt = async (address) => {
 
 /// @dev intended for mocking modules
 const replaceStakingModule = async (stakingProxyAddress, moduleFromAddress, moduleToAddress) => {
-    const stakingProxy = await StakingModule.at(stakingProxyAddress);
+    const stakingProxy = await StakingModulesProxy.at(stakingProxyAddress);
     await stakingProxy.replaceModule(moduleFromAddress, moduleToAddress);
 };
 
@@ -599,6 +643,9 @@ module.exports = {
     replaceStakingModule,
     getStakingModulesProxyAt,
     initializeStakingModulesAt,
+    getStakingModulesObject,
+    getStakingModulesAddressList,
+    initStakingModulesMockup,
 
     loan_pool_setup,
     lend_to_pool,
