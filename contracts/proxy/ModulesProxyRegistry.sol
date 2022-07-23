@@ -89,6 +89,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 0; i < functions.length; i++) {
             require(_getFuncImplementation(functions[i]) == address(0), "MR02"); //function already registered in another module - use ReplaceModule if you need to replace the whole module
+            require(functions[i] != bytes4(0), "MR03"); // does not allow empty function id
             _checkClashingWithProxyFunctions(functions[i]);
             _setModuleFuncImplementation(functions[i], _impl);
         }

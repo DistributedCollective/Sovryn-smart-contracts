@@ -44,11 +44,16 @@ contract ModulesProxy is ModulesProxyRegistry {
      * To activate register a module with beforeFallback() function
      */
     function() external payable {
+        /*
+        // Commented to safe gas by default
+        // Uncomment using beforeFallback() hook 
+        // Implement and register beforeFallback() function in a module
         address beforeFallback = _getFuncImplementation(BEFORE_FALLBACK_SIG_BYTES4);
         if (beforeFallback != address(0)) {
             (bool success, ) = beforeFallback.delegatecall(BEFORE_FALLBACK_SIG);
             require(success, "MP02"); //ModulesProxy::fallback: beforeFallback() fail
         }
+        */
 
         address target = _getFuncImplementation(msg.sig);
         require(target != address(0), "MP03"); // ModulesProxy:target module not registered

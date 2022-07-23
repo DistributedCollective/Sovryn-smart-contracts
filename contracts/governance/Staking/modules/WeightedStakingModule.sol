@@ -38,6 +38,14 @@ contract WeightedStakingModule is IFunctionsList, StakingShared, CheckpointsShar
         uint256 blockNumber,
         uint256 date
     ) external view returns (uint96 priorWeightedStake) {
+        return _getPriorWeightedStake(account, blockNumber, date);
+    }
+
+    function _getPriorWeightedStake(
+        address account,
+        uint256 blockNumber,
+        uint256 date
+    ) internal view returns (uint96 priorWeightedStake) {
         /// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
         uint256 start = _timestampToLockDate(date);
         uint256 end = start + MAX_DURATION;
