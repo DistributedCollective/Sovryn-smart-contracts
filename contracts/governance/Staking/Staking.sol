@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./WeightedStaking.sol";
-import "./interfaces/IStaking.sol";
+// import "./interfaces/IStaking.sol";
 import "../../rsk/RSKAddrValidator.sol";
 import "../Vesting/ITeamVesting.sol";
 import "../Vesting/IVesting.sol";
@@ -20,8 +20,9 @@ import "../../openzeppelin/SafeMath.sol";
  * plus revenues from stakers who have a portion of their SOV slashed for
  * early unstaking.
  * */
+
+//IStaking,
 contract Staking is
-    IStaking,
     WeightedStaking /*, ApprovalReceiver //TODO: uncomment after refactoring*/
 {
     using SafeMath for uint256;
@@ -208,13 +209,7 @@ contract Staking is
     }
 
     /**
-     * @notice Stake tokens according to the vesting schedule.
-     * @param amount The amount of tokens to stake.
-     * @param cliff The time interval to the first withdraw.
-     * @param duration The staking duration.
-     * @param intervalLength The length of each staking interval when cliff passed.
-     * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.
-     * @param delegatee The address of the delegatee or 0x0 if there is none.
+     * @dev TO BE DEPRECATED. Use stakeBySchedule function.
      * */
     function stakesBySchedule(
         uint256 amount,
@@ -223,7 +218,47 @@ contract Staking is
         uint256 intervalLength,
         address stakeFor,
         address delegatee
-    ) public whenNotPaused {
+    ) external whenNotPaused {
+        _stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
+    }
+
+    /**
+     * @notice Stake tokens according to the vesting schedule.
+     * @param amount The amount of tokens to stake.
+     * @param cliff The time interval to the first withdraw.
+     * @param duration The staking duration.
+     * @param intervalLength The length of each staking interval when cliff passed.
+     * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.
+     * @param delegatee The address of the delegatee or 0x0 if there is none.
+     * */
+    function stakeBySchedule(
+        uint256 amount,
+        uint256 cliff,
+        uint256 duration,
+        uint256 intervalLength,
+        address stakeFor,
+        address delegatee
+    ) external whenNotPaused {
+        _stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
+    }
+
+    /**
+     * @notice Stake tokens according to the vesting schedule.
+     * @param amount The amount of tokens to stake.
+     * @param cliff The time interval to the first withdraw.
+     * @param duration The staking duration.
+     * @param intervalLength The length of each staking interval when cliff passed.
+     * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.
+     * @param delegatee The address of the delegatee or 0x0 if there is none.
+     * */
+    function _stakeBySchedule(
+        uint256 amount,
+        uint256 cliff,
+        uint256 duration,
+        uint256 intervalLength,
+        address stakeFor,
+        address delegatee
+    ) internal {
         /**
          * @dev Stake them until lock dates according to the vesting schedule.
          * Note: because staking is only possible in periods of 2 weeks,

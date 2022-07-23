@@ -122,7 +122,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
         ) {
             vestingCheckpoints[lockedTS][nCheckpoints - 1].stake = newVest;
         } else {
-            vestingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, newVest);
+            vestingCheckpoints[lockedTS][nCheckpoints] = IStaking.Checkpoint(blockNumber, newVest);
             numVestingCheckpoints[lockedTS] = nCheckpoints + 1;
         }
     }
@@ -182,7 +182,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
         ) {
             userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake = newStake;
         } else {
-            userStakingCheckpoints[account][lockedTS][nCheckpoints] = Checkpoint(
+            userStakingCheckpoints[account][lockedTS][nCheckpoints] = IStaking.Checkpoint(
                 blockNumber,
                 newStake
             );
@@ -256,7 +256,7 @@ contract Checkpoints is StakingStorage, SafeMath96 {
         ) {
             delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake = newStake;
         } else {
-            delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints] = Checkpoint(
+            delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints] = IStaking.Checkpoint(
                 blockNumber,
                 newStake
             );
@@ -308,7 +308,10 @@ contract Checkpoints is StakingStorage, SafeMath96 {
         ) {
             totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake = newStake;
         } else {
-            totalStakingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, newStake);
+            totalStakingCheckpoints[lockedTS][nCheckpoints] = IStaking.Checkpoint(
+                blockNumber,
+                newStake
+            );
             numTotalStakingCheckpoints[lockedTS] = nCheckpoints + 1;
         }
     }
