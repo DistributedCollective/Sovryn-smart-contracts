@@ -1,26 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.5.17;
 
-import "../utils/Utils.sol";
-import "../utils/ProxyOwnable.sol";
-import "./modules/interfaces/IFunctionsList.sol";
-import "../openzeppelin/Address.sol";
+import "../../utils/Utils.sol";
+import "../../utils/ProxyOwnable.sol";
+import "../modules/interfaces/IFunctionsList.sol";
+import "../modules/interfaces/IModulesProxyRegistry.sol";
+import "../../openzeppelin/Address.sol";
 
 /**
  * ModulesRegistry provides modules registration/removing/replacing functionality to ModulesProxy
- * Designed to be inherited, should not be deployed
+ * Designed to be inherited
  */
 
-contract ModulesProxyRegistry is ProxyOwnable {
+contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     using Address for address;
 
     bytes32 internal constant KEY_IMPLEMENTATION = keccak256("key.implementation");
 
-    event SetModuleFuncImplementation(
-        bytes4 indexed _funcSig,
-        address indexed _oldImplementation,
-        address indexed _newImplementation
-    );
+    ///@notice constructor is internal to make contract abstract
+    constructor() internal {}
 
     /// @notice Add module functions.
     /// Overriding functions is not allowed. To replace modules use ReplaceModule function.
@@ -40,14 +38,19 @@ contract ModulesProxyRegistry is ProxyOwnable {
         require(_oldModuleImpl.isContract(), "MR04"); //ModulesRegistry::replaceModule - _oldModuleImpl is not a contract
         _removeModule(_oldModuleImpl);
         _addModule(_newModuleImpl);
+
+        emit ReplaceModule(_oldModuleImpl, _newModuleImpl);
     }
 
+    /// @param _sig function signature to get impmementation address for
+    /// @return function's contract implelementation address
     function getFuncImplementation(bytes4 _sig) external view returns (address) {
         return _getFuncImplementation(_sig);
     }
 
     /// @notice verifies if no functions from the module deployed already registered
     /// @param _impl module implementation address to verify
+    /// @return true if module can be added
     function canAddModule(address _impl) external view returns (bool) {
         require(_impl.isContract(), "MR06"); //Proxy::canAddModule: address is not a contract
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
@@ -56,8 +59,9 @@ contract ModulesProxyRegistry is ProxyOwnable {
         return true;
     }
 
-    /// @notice returns clashingModules[] and clashingFuncSigs[] of the _newModule if any
+    /// @notice used externally to verify module being added for clashing
     /// @param _newModule module implementation which functions to verify
+    /// @return clashing functions signatures and corresponding modules (contracts) addresses
     function checkClashingModulesFuncsSigs(address _newModule)
         external
         view
@@ -93,6 +97,7 @@ contract ModulesProxyRegistry is ProxyOwnable {
             _checkClashingWithProxyFunctions(functions[i]);
             _setModuleFuncImplementation(functions[i], _impl);
         }
+        emit AddModule(_impl);
     }
 
     function _getFuncImplementation(bytes4 _sig) internal view returns (address) {
@@ -110,6 +115,8 @@ contract ModulesProxyRegistry is ProxyOwnable {
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 0; i < functions.length; i++)
             _setModuleFuncImplementation(functions[i], address(0));
+
+        emit RemovedModule(_impl);
     }
 
     function _setModuleFuncImplementation(bytes4 _sig, address _impl) internal {

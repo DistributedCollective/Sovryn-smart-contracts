@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.5.17;
 
-import "../openzeppelin/Address.sol";
-import "../utils/Utils.sol";
-import "../utils/ProxyOwnable.sol";
-import "./modules/interfaces/IFunctionsList.sol";
 import "./ModulesProxyRegistry.sol";
 
 /**
@@ -31,8 +27,6 @@ import "./ModulesProxyRegistry.sol";
  */
 
 contract ModulesProxy is ModulesProxyRegistry {
-    using Address for address;
-
     bytes private constant BEFORE_FALLBACK_SIG = abi.encodeWithSignature("beforeFallback()");
     bytes4 private constant BEFORE_FALLBACK_SIG_BYTES4 =
         bytes4(keccak256(abi.encodePacked("beforeFallback()")));
@@ -65,12 +59,12 @@ contract ModulesProxy is ModulesProxyRegistry {
             let ptr := mload(0x40)
             returndatacopy(ptr, 0, size)
             switch result
-                case 0 {
-                    revert(ptr, size)
-                }
-                default {
-                    return(ptr, size)
-                }
+            case 0 {
+                revert(ptr, size)
+            }
+            default {
+                return(ptr, size)
+            }
         }
     }
 }
