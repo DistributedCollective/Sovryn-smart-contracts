@@ -116,7 +116,7 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         for (uint256 i = 0; i < functions.length; i++)
             _setModuleFuncImplementation(functions[i], address(0));
 
-        emit RemovedModule(_impl);
+        emit RemoveModule(_impl);
     }
 
     function _setModuleFuncImplementation(bytes4 _sig, address _impl) internal {

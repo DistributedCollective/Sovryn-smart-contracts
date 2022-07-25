@@ -8,7 +8,7 @@ pragma solidity 0.5.17;
 contract IModulesProxyRegistry {
     event AddModule(address moduleAddress);
     event ReplaceModule(address oldAddress, address newAddress);
-    event RemovedModule(address moduleAddress);
+    event RemoveModule(address moduleAddress);
     event SetModuleFuncImplementation(
         bytes4 indexed _funcSig,
         address indexed _oldImplementation,
