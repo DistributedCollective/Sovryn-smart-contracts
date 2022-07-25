@@ -30,7 +30,6 @@ const {
     FakeContract,
     smock,
 } = require("@defi-wonderland/smock");
-const { SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS } = require("constants");
 
 const ZERO_ADDRESS = ethers.constants.ZERO_ADDRESS;
 
@@ -40,32 +39,32 @@ describe("Modules Proxy", () => {
     let acct1, acct2, deployer;
     let accountOwner;
     let moduleNames, modulesProxy;
+    let adminModuleDeploymentNew;
 
     let proxy;
     let modulesObject = {};
 
     async function deployNoRegister(_wallets, _provider) {
         await deployments.fixture(["StakingModulesProxy", "StakingModules"]); //using hh deployments script to deploy proxy
-        modulesProxy = await ethers.getContract("StakingModulesProxy");
+        await deployments.deploy("StakingAdminModuleNew", {
+            contract: "StakingAdminModule",
+            from: deployer.address,
+        });
     }
 
     before(async () => {
         moduleNames = getStakingModulesNames();
         [deployer, acct1] = await ethers.getSigners(); //getNamedAccounts();
+        await deployNoRegister();
     });
 
     beforeEach(async () => {
         await loadFixture(deployNoRegister);
+        modulesProxy = await ethers.getContract("StakingModulesProxy");
     });
-    describe("Modules Proxy deployment", async () => {
-        it.only("Should deploy ModulesProxy and register modules", async () => {
-            const {
-                getNamedAccounts,
-                deployments: { deploy, log, get },
-                ethers,
-                getChainId,
-            } = hre;
 
+    describe("Modules Proxy deployment", async () => {
+        it("Should deploy ModulesProxy and register modules", async () => {
             for (let moduleName in moduleNames) {
                 const fakeModule = await smock.fake(moduleName);
                 await modulesProxy.addModule(fakeModule.address);
@@ -73,12 +72,24 @@ describe("Modules Proxy", () => {
             }
         });
 
-        it.only("Registers Staking modules correctly", async () => {
+        it("Does not allow to override registered functions (replaceModule should be used instead)", async () => {
             const {
-                getNamedAccounts,
-                deployments: { deploy, log, get },
+                deployments: { get },
                 ethers,
-                getChainId,
+            } = hre;
+            const adminModuleDeployment = await get("StakingAdminModule");
+            const adminModuleDeploymentNew = await get("StakingAdminModuleNew");
+            await modulesProxy.addModule(adminModuleDeployment.address);
+            await expect(
+                modulesProxy.addModule(adminModuleDeploymentNew.address)
+            ).to.be.revertedWith("MR02"); //func already registered
+        });
+
+        //TODO: using smock.fake causes failures when deploying/using the same contract in the upfollowing tests
+        it("Registers Staking modules correctly", async () => {
+            const {
+                deployments: { get },
+                ethers,
             } = hre;
 
             const adminModuleDeployment = await get("StakingAdminModule");
@@ -98,12 +109,10 @@ describe("Modules Proxy", () => {
             expect(fakeModule.addAdmin).to.have.been.calledWith(acct1.address);
         });
 
-        it.only("Removes module correctly", async () => {
+        it("Removes module correctly", async () => {
             const {
-                getNamedAccounts,
-                deployments: { deploy, log, get },
+                deployments: { get },
                 ethers,
-                getChainId,
             } = hre;
 
             const adminModuleDeployment = await get("StakingAdminModule");
@@ -120,24 +129,49 @@ describe("Modules Proxy", () => {
                 "StakingAdminModule",
                 modulesProxy.address
             );
+            await expect(adminModuleAtProxy.addAdmin(acct1.address)).to.be.revertedWith("MP03"); // module was removed - func is not registered
+        });
+
+        it("Replaces module correctly", async () => {
+            const {
+                deployments: { deploy, get },
+                ethers,
+            } = hre;
+
+            const adminModuleDeployment = await get("StakingAdminModule");
+            const adminModuleDeploymentNew = await get("StakingAdminModuleNew");
+
+            await expect(
+                modulesProxy.replaceModule(
+                    adminModuleDeployment.address,
+                    adminModuleDeploymentNew.address
+                )
+            )
+                .to.emit(modulesProxy, "ReplaceModule")
+                .withArgs(adminModuleDeployment.address, adminModuleDeploymentNew.address);
+
+            const adminModuleAtProxy = await ethers.getContractAt(
+                "StakingAdminModule",
+                modulesProxy.address
+            );
             const fakeModule = await smock.fake(moduleNames.StakingAdminModule, {
-                address: adminModuleDeployment.address,
+                address: adminModuleDeploymentNew.address,
             });
-            await expect(adminModuleAtProxy.addAdmin(acct1.address)).to.be.revertedWith("MP03");
-            //expect(fakeModule.addAdmin).to.have.been.calledWith(acct1.address);
+            await adminModuleAtProxy.addAdmin(acct1.address);
+            expect(fakeModule.addAdmin).to.have.been.calledWith(acct1.address);
+        });
+    });
+});
 
-            //TODO: add tests
-            //[X] remove module
-            //[ ] replace modules
+//TODO: add tests
+//[X] remove module
+//[ ] replace modules
 
-            /* expectEvent(receipt, "AddModule");
+/* expectEvent(receipt, "AddModule");
 
             const abi = ["event AddModule(address moduleAddress)"];
             const iface = new ethers.utils.Interface(abi);
             const parsedLogs = iface.parseLog(receipt.logs[receipt.logs.length - 1]);
-            expect(parsedLogs.args["moduleAddress"], `${abi[0]} in not emitted properly`).to.eql(
+            expect(parsedLogs.args["moduleAddress"], `${abi[0]} is not emitted properly`).to.eql(
                 adminModuleDeployment.address
             );*/
-        });
-    });
-});
