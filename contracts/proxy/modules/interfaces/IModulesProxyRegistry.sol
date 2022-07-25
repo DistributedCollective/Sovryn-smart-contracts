@@ -37,10 +37,14 @@ contract IModulesProxyRegistry {
     /// @notice used externally to verify module being added for clashing
     /// @param _newModule module implementation which functions to verify
     /// @return clashing functions signatures and corresponding modules (contracts) addresses
-    function checkClashingModulesFuncsSigs(address _newModule)
+    function checkClashingFuncSelectors(address _newModule)
         external
         view
-        returns (address[] memory clashingModules, bytes4[] memory clashingFuncSigs);
+        returns (
+            address[] memory clashingModules,
+            bytes4[] memory clashingFuncSelectors,
+            bytes4[] memory registryClashingSelectors
+        );
 
     /// @notice to disable module - set all its functions implementation to address(0)
     /// @param _impl implementation address

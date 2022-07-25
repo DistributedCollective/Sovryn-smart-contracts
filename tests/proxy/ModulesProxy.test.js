@@ -46,10 +46,6 @@ describe("Modules Proxy", () => {
 
     async function deployNoRegister(_wallets, _provider) {
         await deployments.fixture(["StakingModulesProxy", "StakingModules"]); //using hh deployments script to deploy proxy
-        await deployments.deploy("StakingAdminModuleNew", {
-            contract: "StakingAdminModule",
-            from: deployer.address,
-        });
     }
 
     before(async () => {
@@ -78,14 +74,43 @@ describe("Modules Proxy", () => {
                 ethers,
             } = hre;
             const adminModuleDeployment = await get("StakingAdminModule");
-            const adminModuleDeploymentNew = await get("StakingAdminModuleNew");
+
+            const adminModuleNew = await (
+                await ethers.getContractFactory("StakingAdminModule")
+            ).deploy();
             await modulesProxy.addModule(adminModuleDeployment.address);
+            await expect(modulesProxy.addModule(adminModuleNew.address)).to.be.revertedWith(
+                "MR02"
+            ); //func already registered
+        });
+
+        it("Only owner allowed to add, remove, replace modules", async () => {
+            const {
+                deployments: { get },
+                ethers,
+            } = hre;
+            const adminModuleDeployment = await get("StakingAdminModule");
+
+            await modulesProxy.addModule(adminModuleDeployment.address);
+
+            const adminModuleNew = await (
+                await ethers.getContractFactory("StakingAdminModule")
+            ).deploy();
             await expect(
-                modulesProxy.addModule(adminModuleDeploymentNew.address)
-            ).to.be.revertedWith("MR02"); //func already registered
+                modulesProxy.connect(acct1).addModule(adminModuleNew.address)
+            ).to.be.revertedWith("Ownable:: access denied");
+            await expect(
+                modulesProxy
+                    .connect(acct1)
+                    .replaceModule(adminModuleDeployment.address, adminModuleNew.address)
+            ).to.be.revertedWith("Ownable:: access denied");
+            await expect(
+                modulesProxy.connect(acct1).removeModule(adminModuleNew.address)
+            ).to.be.revertedWith("Ownable:: access denied");
         });
 
         //TODO: using smock.fake causes failures when deploying/using the same contract in the upfollowing tests
+        // that use the generic (being wrapped into fake) contract
         it("Registers Staking modules correctly", async () => {
             const {
                 deployments: { get },
@@ -139,7 +164,10 @@ describe("Modules Proxy", () => {
             } = hre;
 
             const adminModuleDeployment = await get("StakingAdminModule");
-            const adminModuleDeploymentNew = await get("StakingAdminModuleNew");
+
+            const adminModuleDeploymentNew = await (
+                await ethers.getContractFactory("StakingAdminModule")
+            ).deploy();
 
             await expect(
                 modulesProxy.replaceModule(
@@ -160,18 +188,35 @@ describe("Modules Proxy", () => {
             await adminModuleAtProxy.addAdmin(acct1.address);
             expect(fakeModule.addAdmin).to.have.been.calledWith(acct1.address);
         });
+
+        it("Check clashing modules functions sigs", async () => {
+            const {
+                deployments: { get },
+                ethers,
+            } = hre;
+
+            const adminModuleNew = await (
+                await ethers.getContractFactory("StakingAdminModule")
+            ).deploy();
+
+            const adminModule = await ethers.getContract("StakingAdminModule");
+            await modulesProxy.addModule(adminModule.address);
+            const res = await modulesProxy.checkClashingFuncSelectors(adminModuleNew.address);
+            adminModuleFuncSelectors = await adminModule.getFunctionsList();
+            expect(res.clashingFuncSelectors).to.eql(adminModuleFuncSelectors); //func already registered
+
+            const fakeModule = await smock.fake(moduleNames.StakingAdminModule, {
+                address: adminModuleNew.address,
+            });
+
+            const abi = ["function addModule(address _impl)"];
+            const iface = new ethers.utils.Interface(abi);
+            fakeModule.getFunctionsList.returns([iface.getSighash("addModule(address)")]);
+
+            // ModulesRegistry has function with the same signature
+            await expect(modulesProxy.addModule(adminModuleNew.address)).to.be.revertedWith(
+                "MR09"
+            );
+        });
     });
 });
-
-//TODO: add tests
-//[X] remove module
-//[ ] replace modules
-
-/* expectEvent(receipt, "AddModule");
-
-            const abi = ["event AddModule(address moduleAddress)"];
-            const iface = new ethers.utils.Interface(abi);
-            const parsedLogs = iface.parseLog(receipt.logs[receipt.logs.length - 1]);
-            expect(parsedLogs.args["moduleAddress"], `${abi[0]} is not emitted properly`).to.eql(
-                adminModuleDeployment.address
-            );*/

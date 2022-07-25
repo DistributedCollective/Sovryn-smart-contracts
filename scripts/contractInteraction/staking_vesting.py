@@ -295,7 +295,7 @@ def canReplaceStakingModule(stakingModuleAddress, stakingModuleAddressToReplace)
     if canAdd:
         return True
     else:
-        clashingList = stakingModulesProxy.checkClashingModulesFuncsSigs(stakingModuleAddress)
+        clashingList = stakingModulesProxy.checkClashingFuncSelectors(stakingModuleAddress)
         for i in range(0, len(clashingList[0])):
             if clashingList[0][i] != stakingModuleAddressToReplace:
                 if not hasClashing: 
@@ -312,7 +312,7 @@ def canAddStakingModule(stakingModuleAddress):
         return True
     else:
         print('Cannot add module - some functions are already registered with another module(s)')
-        clashingList = stakingModulesProxy.checkClashingModulesFuncsSigs(stakingModuleAddress)
+        clashingList = stakingModulesProxy.checkClashingFuncSelectors(stakingModuleAddress)
         print("Registered Module Address -> Clashing Func Sig")
         for i in range(0, len(clashingList[0])):
             print(clashingList[0][i], "->", clashingList[1][i])
