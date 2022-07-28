@@ -9,14 +9,8 @@ import "../../../rsk/RSKAddrValidator.sol";
 import "../../Vesting/IVesting.sol";
 
 /**
- * @title Weighted Staking contract.
- * @notice Computation of power and votes used by FeeSharingProxy and
- * GovernorAlpha and Staking contracts w/ mainly 3 public functions:
- *   + getPriorTotalVotingPower => Total voting power.
- *   + getPriorVotes  => Delegatee voting power.
- *   + getPriorWeightedStake  => User Weighted Stake.
- * Staking contract inherits WeightedStaking.
- * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
+ * @title Staking Governance Module contract
+ * @notice Implements voting power and delegation functionality
  * */
 contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsShared {
     using Address for address payable;

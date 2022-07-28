@@ -5,14 +5,8 @@ import "../StakingShared.sol";
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
 
 /**
- * @title Weighted Staking contract.
- * @notice Computation of power and votes used by FeeSharingProxy and
- * GovernorAlpha and Staking contracts w/ mainly 3 public functions:
- *   + getPriorTotalVotingPower => Total voting power.
- *   + getPriorVotes  => Delegatee voting power.
- *   + getPriorWeightedStake  => User Weighted Stake.
- * Staking contract inherits WeightedStaking.
- * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
+ * @title Staking Vesting Module contract
+ * @notice Implements interaction with Vesting functionality: vesting registry, vesting staking
  * */
 contract StakingVestingModule is IFunctionsList, StakingShared {
     event ContractCodeHashAdded(bytes32 hash);

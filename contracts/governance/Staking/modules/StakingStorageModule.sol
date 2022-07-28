@@ -5,7 +5,8 @@ import "../../../proxy/modules/interfaces/IFunctionsList.sol";
 import "../StakingStorageShared.sol";
 
 /**
- * @title Staking Storage Module - access to public storage variables
+ * @title Staking Storage Module
+ * @notice Provides getters for public storage variables
  **/
 contract StakingStorageModule is IFunctionsList, StakingStorageShared {
     function getStorageDefaultWeightScaling() external pure returns (uint256) {

@@ -8,6 +8,7 @@ import "../StakingShared.sol";
 
 /**
  * @title Staking contract staking functionality module
+ * @notice Implements staking functionality
  **/
 contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared, ApprovalReceiver {
     using SafeMath for uint256;

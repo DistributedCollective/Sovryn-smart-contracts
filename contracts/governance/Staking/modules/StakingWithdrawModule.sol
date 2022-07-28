@@ -10,7 +10,7 @@ import "../../Vesting/IVesting.sol";
 import "../StakingShared.sol";
 
 /**
- * @title Staking withdraw functionality module
+ * @title Staking withdrawal functionality module
  **/
 contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShared {
     using SafeMath for uint256;

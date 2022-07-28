@@ -2,23 +2,14 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../CheckpointsShared.sol";
-import "../../../openzeppelin/Address.sol";
 import "../StakingShared.sol";
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
 
 /**
- * @title Weighted Staking contract.
- * @notice Computation of power and votes used by FeeSharingProxy and
- * GovernorAlpha and Staking contracts w/ mainly 3 public functions:
- *   + getPriorTotalVotingPower => Total voting power.
- *   + getPriorVotes  => Delegatee voting power.
- *   + getPriorWeightedStake  => User Weighted Stake.
- * Staking contract inherits WeightedStaking.
- * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
+ * @title Weighted Staking module contract.
+ * @notice Implements getters for weighted staking functionality
  * */
 contract WeightedStakingModule is IFunctionsList, StakingShared, CheckpointsShared {
-    //using Address for address payable;
-
     /*************************** User Weighted Stake computation for fee sharing *******************************/
 
     /**
