@@ -33,7 +33,7 @@ contract LiquidityMiningStorage is AdminRole {
         uint256 accumulatedRewardPerShare; // Accumulated amount of reward tokens per share, times 1e12. See below.
     }
 
-    // SVR tokens created per block.
+    // Rewards tokens created per block.
     uint256 public rewardTokensPerBlock;
     // The block number when reward token mining starts.
     uint256 public startBlock;
