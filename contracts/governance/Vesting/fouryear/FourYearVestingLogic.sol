@@ -317,10 +317,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * @param receiver The receiving address.
      * or just unlocked tokens (false).
      * */
-    function _withdrawTokens(
-        address receiver,
-        uint256 startFrom
-    ) internal {
+    function _withdrawTokens(address receiver, uint256 startFrom) internal {
         require(receiver != address(0), "receiver address invalid");
 
         uint96 stake;
@@ -361,11 +358,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         }
 
         if (adjustedEnd < end) {
-            emit IncompleteWithdrawTokens(
-                msg.sender,
-                receiver,
-                adjustedEnd - FOUR_WEEKS
-            );
+            emit IncompleteWithdrawTokens(msg.sender, receiver, adjustedEnd - FOUR_WEEKS);
         } else {
             emit TokensWithdrawn(msg.sender, receiver);
         }
