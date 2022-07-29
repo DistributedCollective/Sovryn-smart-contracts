@@ -57,7 +57,7 @@ const priceSats = "2500";
 contract("OriginInvestorsClaim", (accounts) => {
     let root, initializer, account1, investor1, investor2, investor3, investor4;
     let SOV, kickoffTS;
-    let staking, stakingLogic, feeSharingProxy;
+    let staking, feeSharingProxy;
     let vestingFactory, vestingLogic, vestingRegistry;
     let investors;
     let amounts, amount1, amount2, amount3, amount4;

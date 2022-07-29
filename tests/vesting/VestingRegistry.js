@@ -47,7 +47,7 @@ const pricsSats = "2500";
 contract("VestingRegistry", (accounts) => {
     let root, account1, account2, account3;
     let SOV, cSOV1, cSOV2;
-    let staking, stakingLogic, feeSharingProxy;
+    let staking, feeSharingProxy;
     let vestingFactory, vestingLogic, vestingRegistry;
 
     async function deploymentAndInitFixture(_wallets, _provider) {

@@ -1,24 +1,7 @@
-// For this test, multisig wallet will be done by normal wallets.
-
-/** Speed optimized on branch hardhatTestRefactor, 2021-09-17
- * Greatest bottlenecks found at:
- * 	- Two last tests, performing several escrow operations.
- * Total time elapsed: 5s
- * After optimization: 4.4s
- *
- * Other minor optimizations:
- * - reformatted code comments
- *
- * Notes: Minting and test values calculation have been moved to the before hook.
- *   Some tests have been reordered to avoid redeployments
- *   Tried to integrate tests into just 1 flow,
- *   but it is not lineal because status and release time
- *   are creating bifurcations that can only be traveled
- *   through different rounds.
+/**
+ * Escrow rewards users functions tests
  */
-
 const { deployAndGetIStaking } = require("../Utils/initializer");
-const StakingLogic = artifacts.require("IStaking");
 
 const EscrowReward = artifacts.require("EscrowReward");
 const LockedSOV = artifacts.require("LockedSOV"); // Ideally should be using actual LockedSOV for testing.

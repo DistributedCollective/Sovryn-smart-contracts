@@ -915,7 +915,7 @@ contract("FourYearVesting", (accounts) => {
         it("should fail if the caller is neither owner nor token owner", async () => {
             let newStaking = await StakingProxy.new(token.address);
             await newStaking.setImplementation(await stakingProxy.getImplementation()); //setting StakingModulesProxy address
-            await initializeStakingModulesAt(newStaking.address); // deployes and initializes modules in the newStaking storage using previous StakingModulesProxy contact
+            await initializeStakingModulesAt(newStaking.address); // deploys and initializes modules in the newStaking storage using previous StakingModulesProxy contact
             newStaking = await StakingLogic.at(newStaking.address);
 
             vesting = await Vesting.new(

@@ -146,7 +146,6 @@ contract("Locked SOV (State)", (accounts) => {
     let sov,
         lockedSOV,
         newLockedSOV,
-        stakingLogic,
         staking,
         feeSharingProxy,
         vestingLogic,

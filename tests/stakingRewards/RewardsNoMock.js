@@ -15,7 +15,6 @@ const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
 const { mine, mineUpTo } = require("@nomicfoundation/hardhat-network-helpers");
 
 const SOV_ABI = artifacts.require("SOV");
-const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 // const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewards = artifacts.require("StakingRewards");
@@ -55,8 +54,6 @@ describe("StakingRewards - First Period", () => {
         [root, a1, a2, a3, a4, a5, ...accounts] = accounts;
 
         SOV = await (await ethers.getContractFactory("SOV")).deploy(TOTAL_SUPPLY);
-
-        // let stakingLogic = await (await smock.mock("Staking")).deploy();
 
         let stakingLogic = await (await ethers.getContractFactory("Staking")).deploy();
         const stakingProxy = await (
