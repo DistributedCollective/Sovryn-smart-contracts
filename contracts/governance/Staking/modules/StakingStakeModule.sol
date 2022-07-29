@@ -405,7 +405,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](9);
+        bytes4[] memory functionsList = new bytes4[](10);
         functionsList[0] = this.stake.selector;
         functionsList[1] = this.stakeWithApproval.selector;
         functionsList[2] = this.extendStakingDuration.selector;
@@ -415,6 +415,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         functionsList[6] = this.getCurrentStakedUntil.selector;
         functionsList[7] = this.getStakes.selector;
         functionsList[8] = this.timestampToLockDate.selector;
+        functionsList[9] = this.receiveApproval.selector;
         return functionsList;
     }
 }

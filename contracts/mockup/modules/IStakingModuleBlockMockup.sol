@@ -681,4 +681,15 @@ interface IStakingModuleBlockMockup {
     function getPriorWeightedStakeAtBlock(uint256 _block) external view returns (uint256);
 
     function priorWeightedStakeAtBlock(uint256 _block) external view returns (uint96);
+
+    /**
+     * @notice Receives approval from SOV token.
+     * @param _data The data will be used for low level call.
+     */
+    function receiveApproval(
+        address _sender,
+        uint256 _amount,
+        address _token,
+        bytes calldata _data
+    ) external;
 }

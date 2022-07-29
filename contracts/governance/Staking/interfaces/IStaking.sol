@@ -230,6 +230,17 @@ interface IStaking {
     ) external;
 
     /**
+     * @notice Receives approval from SOV token.
+     * @param _data The data will be used for low level call.
+     */
+    function receiveApproval(
+        address _sender,
+        uint256 _amount,
+        address _token,
+        bytes calldata _data
+    ) external;
+
+    /**
      * @notice Extend the staking duration until the specified date.
      * @param previousLock The old unlocking timestamp.
      * @param until The new unlocking timestamp in seconds.
