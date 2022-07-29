@@ -29,8 +29,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
     event IncompleteWithdrawTokens(
         address indexed caller,
         address receiver,
-        uint256 lastProcessedDate,
-        bool isGovernance
+        uint256 lastProcessedDate
     );
 
     /* Modifiers */
@@ -124,7 +123,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         external
         onlyTokenOwner
     {
-        _withdrawTokens(receiver, false, startFrom);
+        _withdrawTokens(receiver, startFrom);
     }
 
     /**
@@ -133,7 +132,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * @param receiver The receiving address.
      * */
     function withdrawTokens(address receiver) external onlyTokenOwner {
-        _withdrawTokens(receiver, false, 0);
+        _withdrawTokens(receiver, 0);
     }
 
     /**
@@ -316,12 +315,10 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * to an address specified by the token owner. Low level function.
      * @dev Once here the caller permission is taken for granted.
      * @param receiver The receiving address.
-     * @param isGovernance Whether all tokens (true)
      * or just unlocked tokens (false).
      * */
     function _withdrawTokens(
         address receiver,
-        bool isGovernance,
         uint256 startFrom
     ) internal {
         require(receiver != address(0), "receiver address invalid");
@@ -337,7 +334,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 
         /// @dev In the unlikely case that all tokens have been unlocked early,
         ///   allow to withdraw all of them.
-        if (staking.allUnlocked() || isGovernance) {
+        if (staking.allUnlocked()) {
             end = endDate;
         } else {
             end = block.timestamp;
@@ -359,11 +356,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
-                if (isGovernance) {
-                    staking.governanceWithdraw(stake, i, receiver);
-                } else {
-                    staking.withdraw(stake, i, receiver);
-                }
+                staking.withdraw(stake, i, receiver);
             }
         }
 
@@ -371,8 +364,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
             emit IncompleteWithdrawTokens(
                 msg.sender,
                 receiver,
-                adjustedEnd - FOUR_WEEKS,
-                isGovernance
+                adjustedEnd - FOUR_WEEKS
             );
         } else {
             emit TokensWithdrawn(msg.sender, receiver);

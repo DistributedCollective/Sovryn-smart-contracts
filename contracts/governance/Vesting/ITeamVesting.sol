@@ -7,10 +7,6 @@ pragma solidity ^0.5.17;
  * function having the vesting contract instance address.
  */
 interface ITeamVesting {
-    function governanceWithdrawTokens(address receiver) external;
-
-    function governanceWithdrawTokensStartingFrom(address receiver, uint256 startFrom) external;
-
     function startDate() external view returns (uint256);
 
     function cliff() external view returns (uint256);
