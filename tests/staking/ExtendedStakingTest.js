@@ -37,7 +37,7 @@ const {
 } = require("../Utils/initializer.js");
 const {
     deployAndGetIStaking,
-    initStakingModulesMockup,
+    initWeightedStakingModulesMockup,
     getStakingModulesObject,
     replaceStakingModule,
     getStakingModulesAddressList,
@@ -127,7 +127,7 @@ contract("Staking", (accounts) => {
         );
         modulesAddressList["WeightedStakingModule"] = weightedStakingModuleMockup.address;
 
-        const contracts = await initStakingModulesMockup(token.address);
+        const contracts = await initWeightedStakingModulesMockup(token.address);
         staking = contracts.staking;
         iWeightedStakingModuleMockup = contracts.iWeightedStakingModuleMockup;
 

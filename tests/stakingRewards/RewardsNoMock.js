@@ -1,9 +1,9 @@
 /**
  * This test suite is an adapted copy of the tests based on mocked Staking and StakingRewards contracts
- * The mocks are removed but it is tricky to align it with the "mocked" logic
+ * The mocks are removed but it is tricky to align it with the previous "mocked" logic
  * All the tests are adjusted artificially to fit into "mocked" logic (see Rewards.js)
  * Requires further research and refactoring to use it with Staking modules.
- * Interaction - via IStaking.sol interface
+ * Interaction - via generic IStaking.sol interface
  */
 
 // TODO: #REFACTOR
