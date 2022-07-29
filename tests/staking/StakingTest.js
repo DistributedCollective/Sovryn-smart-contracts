@@ -615,6 +615,16 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("maxWithdrawIterations", async () => {
+        it("should set maxWithdrawIterations", async () => {
+            const newMaxWithdrawIterations = 20;
+            await staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations);
+            expect((await staking.getMaxVestingWithdrawIterations()).toString()).to.equal(
+                newMaxWithdrawIterations.toString()
+            );
+        });
+    });
+
     function getAmountWithWeight(amount) {
         return new BN(MAX_VOTING_WEIGHT.toNumber() + 1).mul(new BN(amount));
     }

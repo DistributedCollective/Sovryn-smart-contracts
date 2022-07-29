@@ -366,9 +366,9 @@ def updateLockedSOV():
     # sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
 
 #receiver is usually the multisig
-def governanceWithdrawVesting( vesting,  receiver):
+def governanceDirectWithdrawVesting( vesting,  receiver, startFrom):
     stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
-    data = stakingProxy.governanceWithdrawVesting.encode_input( vesting,  receiver)
+    data = stakingProxy.governanceDirectWithdrawVesting.encode_input( vesting,  receiver, startFrom)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 

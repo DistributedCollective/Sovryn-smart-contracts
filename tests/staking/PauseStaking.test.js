@@ -28,7 +28,7 @@ const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 
 // Upgradable Vesting Registry
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogicMockup");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const Vesting = artifacts.require("TeamVesting");
@@ -44,6 +44,8 @@ const FOUR_WEEKS = 2419200;
 const DELAY = DAY * 14;
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+const maxWithdrawIterations = 10;
 
 contract("Staking", (accounts) => {
     let root, account1;
@@ -80,8 +82,10 @@ contract("Staking", (accounts) => {
         vesting = await VestingRegistryProxy.new();
         await vesting.setImplementation(vestingRegistryLogic.address);
         vesting = await VestingRegistryLogic.at(vesting.address);
+        console.log("vesting: ", vesting.address);
 
         await staking.setVestingRegistry(vesting.address);
+        await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
         // Loan token
         loanTokenSettings = await LoanTokenSettings.new();
@@ -353,7 +357,7 @@ contract("Staking", (accounts) => {
             });
         });
 
-        it("should not allow governanceWithdrawTokens when frozen", async () => {
+        it("should not allow other than team vesting to withdraw from governanceDirectWithdrawVesting", async () => {
             const WEEK = new BN(7 * 24 * 60 * 60);
             let vestingLogic = await VestingLogic.new();
             const ONE_MILLON = "1000000000000000000000000";
@@ -383,64 +387,13 @@ contract("Staking", (accounts) => {
 
             await staking.addAdmin(account1);
 
-            await staking.freezeUnfreeze(true); // Freeze
-            await expectRevert(
-                staking.governanceWithdrawVesting(vesting.address, root, 0, { from: account1 }),
-                "WS04"
-            ); // WS04 : frozen
-
-            await staking.freezeUnfreeze(false); // Unfreeze
             // governance withdraw until duration must withdraw all staked tokens without fees
-            let tx = await staking.governanceWithdrawVesting(vesting.address, root, 0, {
-                from: account1,
-            });
-
-            expectEvent(tx, "VestingTokensWithdrawn", {
-                vesting: vesting.address,
-                receiver: root,
-            });
-
-            const getStartDate = vesting.startDate();
-            const getCliff = vesting.cliff();
-            const getMaxIterations = vesting.getMaxVestingWithdrawIterations();
-
-            const [startDate, cliff, maxIterations] = await Promise.all([
-                getStartDate,
-                getCliff,
-                getMaxIterations,
-            ]);
-            const startIteration = startDate.add(cliff);
-
-            const decodedIncompleteEvent = decodeLogs(
-                tx.receipt.rawLogs,
-                VestingLogic,
-                "IncompleteWithdrawTokens"
-            )[0].args;
-            // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
-                startIteration
-                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
-                    .toString()
+            await expectRevert(
+                staking.governanceDirectWithdrawVesting(vesting.address, root, 0, {
+                    from: account1,
+                }),
+                "Only team vesting allowed"
             );
-
-            // Withdraw another iteration
-            await staking.governanceWithdrawVesting(
-                vesting.address,
-                root,
-                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(FOUR_WEEKS))
-            );
-
-            // verify amount
-            let amount = await token.balanceOf(root);
-
-            assert.equal(
-                previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(),
-                amountAfterStake.toString()
-            );
-            assert.equal(previousAmount.toString(), amount.toString());
-
-            let vestingBalance = await staking.balanceOf(vesting.address);
-            expect(vestingBalance).to.be.bignumber.equal(new BN(0));
         });
 
         it("should not allow governanceDirectWithdrawTokens when frozen", async () => {
@@ -449,6 +402,14 @@ contract("Staking", (accounts) => {
             const ONE_MILLON = "1000000000000000000000000";
             let previousAmount = await token.balanceOf(root);
             let toStake = ONE_MILLON;
+
+            // Upgradable Vesting Registry
+            vestingRegistryLogic = await VestingRegistryLogic.new();
+            vestingRegistry = await VestingRegistryProxy.new();
+            await vestingRegistry.setImplementation(vestingRegistryLogic.address);
+            vestingRegistry = await VestingRegistryLogic.at(vestingRegistry.address);
+
+            await staking.setVestingRegistry(vestingRegistry.address);
 
             // Stake
             vesting = await Vesting.new(
@@ -460,6 +421,9 @@ contract("Staking", (accounts) => {
                 38 * WEEK,
                 feeSharingProxy.address
             );
+
+            await vestingRegistry.setTeamVesting(vesting.address, root, 16 * WEEK, 38 * WEEK, 0);
+
             vesting = await VestingLogic.at(vesting.address);
             await staking.addContractCodeHash(vesting.address);
 

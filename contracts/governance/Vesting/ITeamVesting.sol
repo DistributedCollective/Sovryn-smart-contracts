@@ -16,4 +16,8 @@ interface ITeamVesting {
     function cliff() external view returns (uint256);
 
     function endDate() external view returns (uint256);
+
+    function duration() external view returns (uint256);
+
+    function tokenOwner() external view returns (address);
 }

@@ -21,6 +21,8 @@ const TOTAL_SUPPLY = "10000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
 const ONE_ETHER = "1000000000000000000";
 
+const maxWithdrawIterations = 10;
+
 contract("FourYearVesting", (accounts) => {
     let root, a1, a2, a3;
     let token, staking, stakingLogic, feeSharingProxy;
@@ -54,6 +56,7 @@ contract("FourYearVesting", (accounts) => {
         await vestingReg.setImplementation(vestingRegistryLogic.address);
         vestingReg = await VestingRegistryLogic.at(vestingReg.address);
         await staking.setVestingRegistry(vestingReg.address);
+        await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
         await token.transfer(a2, "1000");
         await token.approve(staking.address, "1000", { from: a2 });
@@ -776,7 +779,7 @@ contract("FourYearVesting", (accounts) => {
             await expectRevert(vesting.withdrawTokens(root, { from: a2 }), "unauthorized");
         });
 
-        it("shouldn't be possible to use governanceWithdrawVesting by anyone but owner", async () => {
+        it("shouldn't be possible to use governanceDierctWithdrawVesting by anyone but owner", async () => {
             let toStake = ONE_MILLON;
 
             // Stake
@@ -800,7 +803,7 @@ contract("FourYearVesting", (accounts) => {
             }
 
             await expectRevert(
-                staking.governanceWithdrawVesting(vesting.address, root, 0, { from: a1 }),
+                staking.governanceDirectWithdrawVesting(vesting.address, root, 0, { from: a1 }),
                 "WS01"
             );
         });

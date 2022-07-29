@@ -87,6 +87,8 @@ contract Checkpoints is StakingStorage, SafeMath96 {
         uint256 lastProcessedDate
     );
 
+    event MaxVestingWithdrawIterationsUpdated(uint256 oldMaxIterations, uint256 newMaxIterations);
+
     /**
      * @notice Increases the user's vesting stake for a giving lock date and writes a checkpoint.
      * @param lockedTS The lock date.

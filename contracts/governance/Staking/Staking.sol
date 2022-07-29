@@ -302,45 +302,27 @@ contract Staking is
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @param vesting The vesting contract address.
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * @param vestingConfig The vesting config.
+     * @dev Only used to governance direct withdrawal.
      * */
     function _governanceWithdrawDirect(
         uint96 amount,
         uint256 until,
         address receiver,
-        address vesting
+        VestingConfig memory vestingConfig
     ) internal {
         _notSameBlockAsStakingCheckpoint(until);
 
-        _withdrawDirect(amount, until, receiver, vesting);
+        _withdrawDirect(amount, until, receiver, vestingConfig);
         // @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
         //		we don't need to check block.timestamp here
-        _withdrawNext(until, receiver, true);
-    }
-
-    /**
-     * @notice Withdraw tokens for vesting contract.
-     * @param vesting The address of Vesting contract.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @param startFrom The start value for the iterations.
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
-     * */
-    function governanceWithdrawVesting(
-        address vesting,
-        address receiver,
-        uint256 startFrom
-    ) external onlyAuthorized whenNotFrozen {
-        vestingWhitelist[vesting] = true;
-        ITeamVesting(vesting).governanceWithdrawTokensStartingFrom(receiver, startFrom);
-        vestingWhitelist[vesting] = false;
-
-        emit VestingTokensWithdrawn(vesting, receiver, startFrom);
+        _withdrawNextDirect(until, receiver, vestingConfig);
     }
 
     /**
      * @notice New governance withdraw vesting directly through staking contract.
      * This direct withdraw vesting, can solve the out of gas issue from the old withdraw vesting function.
+     * This function only allowing the call from vesting contract which type is TeamVesting.
      *
      * @param vesting The vesting address.
      * @param receiver The receiving address.
@@ -351,7 +333,6 @@ contract Staking is
         address receiver,
         uint256 startFrom
     ) external onlyAuthorized whenNotFrozen {
-        require(isVestingContract(vesting), "Only vesting contract allowed");
         _governanceDirectWithdrawVesting(vesting, receiver, startFrom);
 
         emit VestingTokensWithdrawn(vesting, receiver, startFrom);
@@ -376,7 +357,14 @@ contract Staking is
         ITeamVesting teamVesting = ITeamVesting(_vesting);
 
         VestingConfig memory vestingConfig =
-            VestingConfig(teamVesting.startDate(), teamVesting.cliff(), teamVesting.endDate());
+            VestingConfig(
+                _vesting,
+                teamVesting.startDate(),
+                teamVesting.endDate(),
+                teamVesting.cliff(),
+                teamVesting.duration(),
+                teamVesting.tokenOwner()
+            );
 
         uint96 tempStake;
 
@@ -404,7 +392,7 @@ contract Staking is
 
             /// @dev Withdraw if > 0
             if (tempStake > 0) {
-                _governanceWithdrawDirect(tempStake, i, _receiver, _vesting);
+                _governanceWithdrawDirect(tempStake, i, _receiver, vestingConfig);
             }
         }
 
@@ -479,20 +467,32 @@ contract Staking is
 
     /**
      * @notice Send user' staked tokens to a receiver.
-     * This function is dedicated only for governance vesting withdrawal.
+     * This function is dedicated only for direct withdrawal from staking contract.
+     * Currently only being used by governanceDirectWithdrawVesting()
      *
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @param vesting The vesting address which act as the caller here.
-     * or just unlocked tokens (false).
+     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender.
+     * @param vestingConfig The vesting config.
      * */
     function _withdrawDirect(
         uint96 amount,
         uint256 until,
         address receiver,
-        address vesting
+        VestingConfig memory vestingConfig
     ) internal {
+        address vesting = vestingConfig.vestingAddress;
+        /// require the caller only for team vesting contract.
+        require(
+            vestingRegistryLogic.getTeamVesting(
+                vestingConfig.tokenOwner,
+                vestingConfig.cliff,
+                vestingConfig.duration,
+                _getVestingCreationType(vestingConfig.duration)
+            ) == vesting,
+            "Only team vesting allowed"
+        );
+
         // @dev it's very unlikely some one will have 1/10**18 SOV staked in Vesting contract
         if (amount == 1) {
             return;
@@ -502,12 +502,13 @@ contract Staking is
         _validateWithdrawParams(vesting, amount, until);
 
         /// @dev Determine the receiver.
-        if (receiver == address(0)) receiver = vesting;
+        if (receiver == address(0)) receiver = msg.sender;
 
         /// @dev Update the checkpoints.
         _decreaseDailyStake(until, amount);
         _decreaseUserStake(vesting, until, amount);
-        if (isVestingContract(vesting)) _decreaseVestingStake(until, amount);
+
+        _decreaseVestingStake(until, amount);
         _decreaseDelegateStake(delegates[vesting][until], until, amount);
 
         /// @dev transferFrom
@@ -534,18 +535,21 @@ contract Staking is
         }
     }
 
-    // @dev withdraws tokens for lock date 2 weeks later than given lock date
-    // Dedicated only for governance vesting withdrawal
+    /**
+     * @dev withdraws tokens for lock date 2 weeks later than given lock date
+     * Dedicated only for direct withdrawal from staking contract.
+     */
     function _withdrawNextDirect(
         uint256 until,
         address receiver,
-        address vesting
+        VestingConfig memory vestingConfig
     ) internal {
         uint256 nextLock = until.add(TWO_WEEKS);
         if (block.timestamp >= nextLock) {
-            uint96 stakes = _getPriorUserStakeByDate(vesting, nextLock, block.number - 1);
+            uint96 stakes =
+                _getPriorUserStakeByDate(vestingConfig.vestingAddress, nextLock, block.number - 1);
             if (stakes > 0) {
-                _withdrawDirect(stakes, nextLock, receiver, vesting);
+                _withdrawDirect(stakes, nextLock, receiver, vestingConfig);
             }
         }
     }
@@ -941,11 +945,46 @@ contract Staking is
     }
 
     /**
-     * @notice Max iteration for vesting withdrawal to prevent out of gas issue.
+     * @notice Max iteration for direct withdrawal from staking to prevent out of gas issue.
      *
      * @return max iteration value.
      */
-    function getMaxVestingWithdrawIterations() public pure returns (uint256) {
-        return 50;
+    function getMaxVestingWithdrawIterations() public view returns (uint256) {
+        return maxVestingWithdrawIterations;
+    }
+
+    /**
+     * @dev set max withdraw iterations.
+     *
+     * @param maxIterations new max iterations value.
+     */
+    function setMaxVestingWithdrawIterations(uint256 maxIterations) external onlyAuthorized {
+        require(maxIterations > 0, "S21");
+        uint256 oldIterations = maxVestingWithdrawIterations;
+        maxVestingWithdrawIterations = maxIterations;
+
+        emit MaxVestingWithdrawIterationsUpdated(oldIterations, maxVestingWithdrawIterations);
+    }
+
+    /**
+     * @dev get vesting creation type.
+     *
+     * @param duration duration of the vesting
+     *
+     * @return vesting creation type.
+     * If months not 10 | 26 | 48, it will return 0 as the type
+     */
+    function _getVestingCreationType(uint256 duration) internal pure returns (uint256) {
+        uint256 creationType;
+        uint256 months = duration.div(4 weeks);
+        if (months == 10) {
+            creationType = 3;
+        } else if (months == 26) {
+            creationType = 1;
+        } else if (months == 48) {
+            creationType = 4;
+        }
+
+        return creationType;
     }
 }

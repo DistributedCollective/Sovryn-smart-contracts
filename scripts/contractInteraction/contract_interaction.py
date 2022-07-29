@@ -56,7 +56,7 @@ def main():
 
     #readAllVestingContractsForAddress('0xA6575f1D5Bd6545fBd34BE05259D9d6ae60641f2')
     #getStakes('0x750C49DD9928061Df2224AA81E08Bc4a3c334874')
-    #governanceWithdrawVesting('0x750C49DD9928061Df2224AA81E08Bc4a3c334874', conf.contracts['multisig'])
+    #governanceDirectWithdrawVesting('0x750C49DD9928061Df2224AA81E08Bc4a3c334874', conf.contracts['multisig'], 0) // last params is for startFrom arguments
 
     # # ---------- Transfer ownership to gov ----------
     # # core protocol

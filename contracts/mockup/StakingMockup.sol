@@ -116,13 +116,4 @@ contract StakingMockup is Staking {
         bytes32 codeHash = _getCodeHash(stakerAddress);
         return vestingCodeHashes[codeHash];
     }
-
-    /**
-     * @notice Max iteration for vesting withdrawal to prevent out of gas issue.
-     *
-     * @return max iteration value.
-     */
-    function getMaxVestingWithdrawIterations() public pure returns (uint256) {
-        return 10;
-    }
 }

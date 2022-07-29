@@ -381,11 +381,6 @@ contract("VestingRegistry", (accounts) => {
             let vesting = await VestingLogic.at(vestingAddress);
             await checkVesting(vesting, account2, cliff, duration, amount);
 
-            await expectRevert(
-                vesting.governanceWithdrawTokens(account2),
-                "operation not supported"
-            );
-
             let proxy = await UpgradableProxy.at(vestingAddress);
             await expectRevert(proxy.setImplementation(account2), "revert");
         });
@@ -453,8 +448,6 @@ contract("VestingRegistry", (accounts) => {
 
             let vesting = await VestingLogic.at(vestingAddress);
             await checkVesting(vesting, account2, cliff, duration, amount);
-
-            await expectRevert(vesting.governanceWithdrawTokens(account2), "unauthorized");
 
             let proxy = await UpgradableProxy.at(vestingAddress);
             await expectRevert(proxy.setImplementation(account2), "revert");

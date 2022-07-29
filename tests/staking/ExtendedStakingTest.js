@@ -77,6 +77,8 @@ const DELAY = 86400 * 14;
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
+const maxWithdrawIterations = 10;
+
 contract("Staking", (accounts) => {
     let root, account1, account2;
     let token, SUSD, WRBTC, staking;
@@ -106,6 +108,8 @@ contract("Staking", (accounts) => {
         staking = await StakingProxy.new(token.address);
         await staking.setImplementation(stakingLogic.address);
         staking = await StakingMockup.at(staking.address);
+
+        await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
         // Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
@@ -1358,6 +1362,7 @@ async function createVestingContractWithSingleDate(cliff, amount, token, staking
     vestingInstance = await VestingLogic.at(vestingInstance.address);
     //important, so it's recognized as vesting contract
     await staking.addContractCodeHash(vestingInstance.address);
+    await vestingInstance.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
     await token.approve(vestingInstance.address, amount);
     let result = await vestingInstance.stakeTokens(amount);
