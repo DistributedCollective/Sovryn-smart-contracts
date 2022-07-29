@@ -342,6 +342,7 @@ contract("StakingRewards", (accounts) => {
                 multiplier.mul(wsIteration).sub(new BN(1)).toString()
             );
             await staking.MOCK_priorWeightedStakeAtBlock(0, stopBlock.toString());
+            await staking.MOCK_priorWeightedStake(0);
         });
 
         it("should process for max duration at a time", async () => {
