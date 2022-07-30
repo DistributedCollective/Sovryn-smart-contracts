@@ -105,6 +105,11 @@ module.exports = {
 			allowUnlimitedContractSizes: true,
 			accounts: { mnemonic: "test test test test test test test test test test test junk" },
 		},
+		localhost: {
+			allowUnlimitedContractSizes: true,
+			url: "http://localhost:8545",
+			saveDeployments: false
+		},
 		rskPublicTestnet: {
 			url: "https://public-node.testnet.rsk.co/",
 			accounts: { mnemonic: "brownie", count: 10 },
