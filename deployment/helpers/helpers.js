@@ -1,10 +1,4 @@
-hre = require("hardhat");
-
-const {
-    deployments: { deploy, get, log },
-    getNamedAccounts,
-    ethers,
-} = hre;
+const hre = require("hardhat");
 
 const getStakingModulesNames = () => {
     return {
@@ -23,9 +17,10 @@ const stakingRegisterModuleWithMultisig = () => {
 };
 
 const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, value = 0) => {
+    const { ethers } = hre;
     console.log("Multisig tx data:", data);
     const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress);
-    const signer = await hre.ethers.getSigner(sender);
+    const signer = await ethers.getSigner(sender);
     receipt = await (
         await multisig.connect(signer).submitTransaction(contractAddress, value, data)
     ).wait();
@@ -37,6 +32,10 @@ const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, 
 };
 
 const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_ZERO) => {
+    const {
+        deployments: { get },
+        ethers,
+    } = hre;
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
         multisigAddress == ethers.constants.ADDRESS_ZERO
