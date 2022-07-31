@@ -22,12 +22,6 @@ const stakingRegisterModuleWithMultisig = () => {
     return process.env.STAKING_REG_WITH_MULTISIG == "true";
 };
 
-/* sendWithMultisig(multisigAddress, contractAddress, data, sender, value = 0):
-    multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=multisigAddress)
-    tx = multisig.submitTransaction(contractAddress,value,data, {'from': sender})
-    txId = tx.events["Submission"]["transactionId"]
-    print("tx id: ", txId) */
-
 const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, value = 0) => {
     console.log("Multisig tx data:", data);
     const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress);
@@ -40,20 +34,6 @@ const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, 
     let iface = new ethers.utils.Interface(abi);
     const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "Submission");
     console.log("Multisig tx id:", parsedEvent.transactionId.value.toNumber());
-
-    //iface.
-    //let data = msInterface.encodeFunctionData("setImplementation", [contractAddress]);
-
-    /*let StakingProxyABI = [
-        //   // add "payable" to the Solidity signature
-        "function setImplementation(address _implementation)",
-    ];
-
-    let iStakingRewardsProxy = new ethers.utils.Interface(StakingProxyABI);
-    const data = iStakingRewardsProxy.encodeFunctionData("setImplementation", [
-        stakinRewardsLogic.address,
-    ]);
-    */
 };
 
 const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_ZERO) => {
@@ -61,7 +41,7 @@ const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_
         "MultiSigWallet",
         multisigAddress == ethers.constants.ADDRESS_ZERO
             ? (
-                  await get("MultiSigWallet")
+                  await get("multisig")
               ).address
             : multisigAddress
     );
