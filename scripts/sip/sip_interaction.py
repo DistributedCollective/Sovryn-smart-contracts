@@ -20,7 +20,7 @@ def main():
 
     # Call the function you want here
 
-    # createProposalSIP0048()
+    createProposalSIP0049()
 
     balanceAfter = acct.balance()
 
@@ -415,14 +415,29 @@ def createProposalSIP0048():
 def createProposalSIP0049():
 
     staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=contracts['StakingModulesProxy'], abi=StakingModulesProxy.abi, owner=acct)
+
+    #TODO: set modules addresses in the addresses .json
+    moduleAddresses = [ 
+        contracts['StakingAdminModule'],
+        contracts['StakingGovernanceModule'],
+        contracts['StakingStakeModule'],
+        contracts['StakingStorageModule'],
+        contracts['StakingVestingModule'],
+        contracts['StakingWithdrawModule'],
+        contracts['WeightedStakingModule']
+    ]
+    print(moduleAddresses)
 
     # Action
-    targets = [contracts['Staking']]
-    values = [0]
-    signatures = ["setImplementation(address)"]
-    data = staking.setImplementation.encode_input(contracts['StakingModulesProxy'])
-    datas = ["0x" + data[10:]]
-    description = "SIP-0049 : Staking contract refactoring due to EIP-170 size limits and optimizations, Details: <TODO: commit link>, sha256: <TODO: SIP file sha256>"
+    targets = [contracts['Staking'], contracts['Staking']]
+    values = [0, 0]
+    signatures = ["setImplementation(address)", "addModules(address[])"]
+    data1 = staking.setImplementation.encode_input(contracts['StakingModulesProxy'])
+    data2 = stakingModulesProxy.addModules.encode_input(moduleAddresses)
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
+
+    description = "SIP-0049: Staking contract refactoring to resolve EIP-170 size limit, Details: <TODO: commit link>, sha256: <TODO: SIP file sha256>"
 
     # Create Proposal
     print(signatures)
