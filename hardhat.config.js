@@ -166,7 +166,6 @@ module.exports = {
     },
     mocha: {
         timeout: 800000,
-        grep: "^(?!.*; using Ganache).*",
     },
     namedAccounts: {
         deployer: 0,

@@ -35,7 +35,6 @@ const func = async function () {
     //TODO: 2 options:
     //  [x]    - register directly (e.g. for the testnet) create tx for multisig
     //  [ ]    - create tx for multisig or SIP
-    log("hre.network.live", hre.network.live);
     if (stakingRegisterModuleWithMultisig() && hre.network.live) {
         const iStakingModulesProxy = new ethers.utils.Interface(proxyDeployment.abi);
         const data = iStakingModulesProxy.encodeFunctionData("addModules", [moduleAddressList]);
