@@ -40,7 +40,7 @@ contract ModulesProxy is ModulesProxyRegistry {
     function() external payable {
         /*
         // Commented to safe gas by default
-        // Uncomment using beforeFallback() hook 
+        // Uncomment for using beforeFallback() hook 
         // Implement and register beforeFallback() function in a module
         address beforeFallback = _getFuncImplementation(BEFORE_FALLBACK_SIG_BYTES4);
         if (beforeFallback != address(0)) {

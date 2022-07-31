@@ -1,13 +1,13 @@
 ## TODOs
-[X] Update IStakingModules interface
-[ ] Create a deployment boilerplate for modules - use deploy plugin for deployment and for testing
-[ ] Verify ApprovalReceiver - functionality & tests
+[x] Update IStakingModules interface
+[x] Create a deployment boilerplate for modules - use deploy plugin for deployment and for testing
+[x] Verify ApprovalReceiver - functionality & tests
+[x] Add modules batch processing
 [ ] Docs: 
     - when extending Storage, DO NOT create public storage variables but add getters to StakingStorageModule 
     - now access to ALL storage variables
     - a showcase explanation - how to reuse
     - modules: add contract, `function getFunctionList() external pure returns (bytes4[] memory)`- list all functions, add functions signatures to IStakingModules.sol to be accessible from the scripts 
-[ ]
 
 
 ## Pre- and Deployment flow  
