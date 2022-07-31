@@ -109,6 +109,7 @@ module.exports = {
         hardhat: {
             allowUnlimitedContractSizes: true,
             accounts: { mnemonic: "test test test test test test test test test test test junk" },
+            initialBaseFeePerGas: 0,
         },
         localhost: {
             allowUnlimitedContractSizes: true,
