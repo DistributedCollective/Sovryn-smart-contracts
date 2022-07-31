@@ -411,3 +411,21 @@ def createProposalSIP0048():
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0049():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setImplementation(address)"]
+    data = staking.setImplementation.encode_input(contracts['StakingModulesProxy'])
+    datas = ["0x" + data[10:]]
+    description = "SIP-0049 : Staking contract refactoring due to EIP-170 size limits and optimizations, Details: <TODO: commit link>, sha256: <TODO: SIP file sha256>"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
