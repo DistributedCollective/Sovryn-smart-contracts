@@ -43,3 +43,4 @@ abi
 types/
 typechain/
 !.github/
+*/deployments/localhost
