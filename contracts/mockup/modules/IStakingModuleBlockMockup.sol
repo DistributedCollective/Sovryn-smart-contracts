@@ -302,7 +302,7 @@ interface IStakingModuleBlockMockup {
     /*************************** StakingStorageModule ***************************/
 
     /// @notice The maximum duration to stake tokens
-    /// @return uint256(MAX_DURATION);
+    /// @return MAX_DURATION to stake tokens
     function getStorageMaxDurationToStakeTokens() external pure returns (uint256);
 
     /// @notice The maximum possible voting weight before adding +1 (actually 10, but need 9 for computation).
