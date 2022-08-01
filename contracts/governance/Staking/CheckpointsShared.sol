@@ -79,6 +79,10 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
 
     event VestingStakeSet(uint256 lockedTS, uint96 value);
 
+    constructor() internal {
+        // abstract
+    }
+
     /**
      * @notice Increases the user's vesting stake for a giving lock date and writes a checkpoint.
      * @param lockedTS The lock date.

@@ -18,7 +18,9 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     bytes32 internal constant KEY_IMPLEMENTATION = keccak256("key.implementation");
 
     ///@notice constructor is internal to make contract abstract
-    constructor() internal {}
+    constructor() internal {
+        // abstract
+    }
 
     /// @notice Add module functions.
     /// Overriding functions is not allowed. To replace modules use ReplaceModule function.

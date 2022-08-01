@@ -65,6 +65,10 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
         _;
     }
 
+    constructor() internal {
+        // abstract
+    }
+
     function _notSameBlockAsStakingCheckpoint(uint256 lockDate) internal view {
         uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
         bool notSameBlock =

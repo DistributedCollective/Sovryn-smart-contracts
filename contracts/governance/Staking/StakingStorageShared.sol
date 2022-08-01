@@ -149,4 +149,8 @@ contract StakingStorageShared is Ownable {
 
     /// @dev Staking contract is frozen
     bool public frozen;
+
+    constructor() internal {
+        //abstract
+    }
 }
