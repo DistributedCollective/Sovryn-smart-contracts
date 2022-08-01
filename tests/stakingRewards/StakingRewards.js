@@ -297,7 +297,7 @@ contract("StakingRewards", (accounts) => {
             expect(afterBalance).to.be.bignumber.equal(beforeBalance);
         });
 
-        it("should be getting correct rewards after stop block", async () => {
+        it("should be getting correct rewards after stopBlock", async () => {
             let block = await web3.eth.getBlock("latest");
             let timestamp = block.timestamp;
 
@@ -311,6 +311,7 @@ contract("StakingRewards", (accounts) => {
             const endTime = await staking.timestampToLockDate(timestamp);
             const wsIteration = endTime.sub(startTime).div(new BN(1209600 /** two weeks */));
 
+            // Since the stake has been withdrawn, mock the current weighted stake.
             await staking.MOCK_priorWeightedStake(MOCK_WEIGHTED_STAKE.mul(new BN(multiplier)));
 
             await staking.MOCK_priorWeightedStakeAtBlock(

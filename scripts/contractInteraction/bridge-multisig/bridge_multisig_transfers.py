@@ -18,8 +18,8 @@ def main():
 
     #sendTokensFromBridgeETHMultisig(contracts['ETH-USDT'], 10**16)
     print(acct)
-    #sendAggregatedTokensFromExchequer(contracts['BNBbs'], contracts['Aggregator-BNB-RSK'], acct, 0.5e18)
-    sendAggregatedTokensFromExchequer(contracts['ETHbs'], contracts['Aggregator-ETH-RSK'], acct, 39.5e18)
+    sendAggregatedTokensFromExchequer(contracts['BNBbs'], contracts['Aggregator-BNB-RSK'], '0xD3582f616059044c6289155433940b564bCB6476', 14e18)
+    #sendAggregatedTokensFromExchequer(contracts['ETHbs'], contracts['Aggregator-ETH-RSK'], acct, 39.5e18)
     #sendTokensToETHFromMultisig(contracts['SOV'], '0xdd0e3546eebf3f1cc4454a16b4dc5b677923bdc1', 50000e18)
     #sendTokensToETHFromMultisig(contracts['SOV'], '0xbddf82bdb823d666b5bff940038ecb66f1ce41b5', 27530e18)
     #sendAggregatedTokensFromWallet(contracts['ETHes'], contracts['Aggregator-ETH-RSK'], '0xf5972e2bcc10404367cbdca2a3319470fbea3ff7', 2e17)
@@ -48,11 +48,7 @@ def loadConfig():
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
 
-<<<<<<< HEAD
 def sendTokensToETHFromMultisig(token, receiver, amount):
-=======
-def sendTokensFromMultisig(token, receiver, amount):
->>>>>>> 30a12c97b9c5e13189bfb1904425de866d3f986c
     abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
     abi = json.load(abiFile)
     tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=acct)

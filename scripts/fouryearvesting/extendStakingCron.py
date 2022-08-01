@@ -5,6 +5,7 @@ import json
 import csv
 import time
 import math
+from os import environ
 
 def main():
     global contracts, acct
@@ -21,8 +22,7 @@ def main():
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet" and environ.get('REWARDS_CRON') == "1":
-        acct = accounts.add(
-            environ.get('FEE_CLAIMER'))
+        acct = accounts.add(environ.get('FEE_CLAIMER'))
         configFile = open('./scripts/contractInteraction/mainnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
@@ -68,10 +68,10 @@ def main():
         print('timeLockDate:', timeLockDate)
         extendDurationFor = fourYearVestingLogic.extendDurationFor()
         print('extendDurationFor:', extendDurationFor)
-        maxIterations = extendDurationFor / FOUR_WEEKS 
-        print('maxIterations:', maxIterations)
         DAY = 24 * 60 * 60
         FOUR_WEEKS = 4 * 7 * DAY
+        maxIterations = extendDurationFor / FOUR_WEEKS 
+        print('maxIterations:', maxIterations)
         result = ((timeLockDate - startDate) % FOUR_WEEKS) # the cron should run every four weeks from start date
         newResult = ((timeLockDate - startDate) / FOUR_WEEKS) # the cron should run for maxIterations only
         timediff = datenow - timeLockDate # To avoid execution on consecutive weeks
