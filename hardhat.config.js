@@ -107,12 +107,12 @@ module.exports = {
     },
     networks: {
         hardhat: {
-            allowUnlimitedContractSizes: true,
+            allowUnlimitedContractSize: true,
             accounts: { mnemonic: "test test test test test test test test test test test junk" },
             initialBaseFeePerGas: 0,
         },
         localhost: {
-            allowUnlimitedContractSizes: true,
+            allowUnlimitedContractSize: true,
             url: "http://localhost:8545",
             saveDeployments: true,
             live: true,
