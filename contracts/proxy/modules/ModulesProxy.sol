@@ -27,9 +27,11 @@ import "./ModulesProxyRegistry.sol";
  */
 
 contract ModulesProxy is ModulesProxyRegistry {
+    // Uncomment for using beforeFallback() hook
+    /*
     bytes private constant BEFORE_FALLBACK_SIG = abi.encodeWithSignature("beforeFallback()");
-    bytes4 private constant BEFORE_FALLBACK_SIG_BYTES4 =
-        bytes4(keccak256(abi.encodePacked("beforeFallback()")));
+    bytes4 private constant BEFORE_FALLBACK_SIG_BYTES4 = bytes4(keccak256(abi.encodePacked("beforeFallback()")));
+    */
 
     /**
      * @notice Fallback function delegates calls to modules.
@@ -44,7 +46,7 @@ contract ModulesProxy is ModulesProxyRegistry {
         // Implement and register beforeFallback() function in a module
         address beforeFallback = _getFuncImplementation(BEFORE_FALLBACK_SIG_BYTES4);
         if (beforeFallback != address(0)) {
-            (bool success, ) = beforeFallback.delegatecall(BEFORE_FALLBACK_SIG);
+            (bool success, ) = beforeFallback.delegatecall(bytes(0x39b0111a)); // abi.encodeWithSignature("beforeFallback()")
             require(success, "MP02"); //ModulesProxy::fallback: beforeFallback() fail
         }
         */
