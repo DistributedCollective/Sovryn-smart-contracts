@@ -3,6 +3,7 @@
 This script serves the purpose of interacting with governance (SIP) on the testnet or mainnet.
 '''
 
+from curses import keyname
 from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
@@ -414,26 +415,33 @@ def createProposalSIP0048():
 
 def createProposalSIP0049():
 
-    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
     stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=contracts['StakingModulesProxy'], abi=StakingModulesProxy.abi, owner=acct)
+    stakingProxyRegistry = Contract.from_abi("StakingModulesProxy", address=contracts['Staking'], abi=StakingModulesProxy.abi, owner=acct)
 
     #TODO: set modules addresses in the addresses .json
-    moduleAddresses = [ 
-        contracts['StakingAdminModule'],
-        contracts['StakingGovernanceModule'],
-        contracts['StakingStakeModule'],
-        contracts['StakingStorageModule'],
-        contracts['StakingVestingModule'],
-        contracts['StakingWithdrawModule'],
-        contracts['WeightedStakingModule']
-    ]
-    print(moduleAddresses)
+    moduleAddresses = { 
+        'StakingAdminModule': contracts['StakingAdminModule'],
+        'StakingGovernanceModule': contracts['StakingGovernanceModule'],
+        'StakingStakeModule': contracts['StakingStakeModule'],
+        'StakingStorageModule': contracts['StakingStorageModule'],
+        'StakingVestingModule': contracts['StakingVestingModule'],
+        'StakingWithdrawModule': contracts['StakingWithdrawModule'],
+        'WeightedStakingModule': contracts['WeightedStakingModule']
+    }
+    invalidModules = {}
+    for module in moduleAddresses:
+        if not stakingProxyRegistry.canAddModule(moduleAddresses[module]):
+            invalidModules.append({module: moduleAddresses[module]})
+    
+    if invalidModules != {}:
+         raise Exception('Invalid modules:: ' + invalidModules)
 
     # Action
     targets = [contracts['Staking'], contracts['Staking']]
     values = [0, 0]
     signatures = ["setImplementation(address)", "addModules(address[])"]
-    data1 = staking.setImplementation.encode_input(contracts['StakingModulesProxy'])
+    data1 = stakingProxy.setImplementation.encode_input(contracts['StakingModulesProxy'])
     data2 = stakingModulesProxy.addModules.encode_input(moduleAddresses)
     datas = ["0x" + data1[10:], "0x" + data2[10:]]
 
