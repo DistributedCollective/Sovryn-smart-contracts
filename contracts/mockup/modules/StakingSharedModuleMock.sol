@@ -1,6 +1,6 @@
 pragma solidity ^0.5.17;
 
-import "../../governance/Staking/StakingShared.sol";
+import "../../governance/Staking/modules/shared/StakingShared.sol";
 import "../BlockMockUp.sol";
 import "../../proxy/modules/interfaces/IFunctionsList.sol";
 

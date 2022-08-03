@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
-import "../StakingStorageShared.sol";
+import "./shared/StakingStorageShared.sol";
 
 /**
  * @title Staking Storage Module

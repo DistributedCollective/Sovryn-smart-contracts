@@ -3,11 +3,11 @@ pragma experimental ABIEncoderV2;
 
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
 
-import "../CheckpointsShared.sol";
+import "./shared/CheckpointsShared.sol";
 import "../../../rsk/RSKAddrValidator.sol";
 import "../../Vesting/ITeamVesting.sol";
 import "../../Vesting/IVesting.sol";
-import "../StakingShared.sol";
+import "./shared/StakingShared.sol";
 
 /**
  * @title Staking withdrawal functionality module

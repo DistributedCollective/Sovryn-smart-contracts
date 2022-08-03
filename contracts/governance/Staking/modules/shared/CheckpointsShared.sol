@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./StakingStorageShared.sol";
-import "./SafeMath96.sol";
+import "../../SafeMath96.sol";
 
 /**
  * @title Checkpoints contract.

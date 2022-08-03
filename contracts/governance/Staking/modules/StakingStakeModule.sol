@@ -2,9 +2,9 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
-import "../CheckpointsShared.sol";
+import "./shared/CheckpointsShared.sol";
 import "../../ApprovalReceiver.sol";
-import "../StakingShared.sol";
+import "./shared/StakingShared.sol";
 
 /**
  * @title Staking contract staking functionality module

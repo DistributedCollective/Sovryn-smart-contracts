@@ -1,10 +1,10 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../../openzeppelin/Ownable.sol";
-import "../../interfaces/IERC20.sol";
-import "../IFeeSharingProxy.sol";
-import "../Vesting/IVestingRegistry.sol";
+import "../../../../openzeppelin/Ownable.sol";
+import "../../../../interfaces/IERC20.sol";
+import "../../../IFeeSharingProxy.sol";
+import "../../../Vesting/IVestingRegistry.sol";
 
 /**
  * @title StakingStorageShared contract is inherited by Staking modules.

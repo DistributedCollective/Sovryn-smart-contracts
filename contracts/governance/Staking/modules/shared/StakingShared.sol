@@ -2,9 +2,9 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./StakingStorageShared.sol";
-import "./../../openzeppelin/SafeMath.sol";
-import "./SafeMath96.sol";
-import "../../openzeppelin/Ownable.sol";
+import "../../SafeMath96.sol";
+import "../../../../openzeppelin/SafeMath.sol";
+import "../../../../openzeppelin/Ownable.sol";
 
 /**
  * @title Staking modules shared functionality
