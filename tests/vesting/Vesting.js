@@ -648,7 +648,7 @@ contract("Vesting", (accounts) => {
             );
             vesting = await VestingLogic.at(vesting.address);
 
-            await vesting.setMaxVestingWithdrawIterations(maxWithdrawIterations);
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -694,7 +694,7 @@ contract("Vesting", (accounts) => {
             );
             vesting = await VestingLogic.at(vesting.address);
 
-            await vesting.setMaxVestingWithdrawIterations(maxWithdrawIterations);
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -726,7 +726,7 @@ contract("Vesting", (accounts) => {
             // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
                 startIteration
-                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(FOUR_WEEKS)))
                     .toString()
             );
 
@@ -763,7 +763,7 @@ contract("Vesting", (accounts) => {
             );
             vesting = await VestingLogic.at(vesting.address);
 
-            await vesting.setMaxVestingWithdrawIterations(maxWithdrawIterations);
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -813,7 +813,7 @@ contract("Vesting", (accounts) => {
             );
             vesting = await VestingLogic.at(vesting.address);
 
-            await vesting.setMaxVestingWithdrawIterations(maxWithdrawIterations);
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -863,7 +863,7 @@ contract("Vesting", (accounts) => {
             );
             vesting = await VestingLogic.at(vesting.address);
 
-            await vesting.setMaxVestingWithdrawIterations(maxWithdrawIterations);
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -907,7 +907,7 @@ contract("Vesting", (accounts) => {
             );
             vesting = await VestingLogic.at(vesting.address);
 
-            await vesting.setMaxVestingWithdrawIterations(maxWithdrawIterations);
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
             let previousAmount = await token.balanceOf(root);
 
@@ -1431,7 +1431,7 @@ contract("Vesting", (accounts) => {
             vesting = await VestingLogic.at(vesting.address);
 
             const newMaxWithdrawIterations = 20;
-            await vesting.setMaxVestingWithdrawIterations(newMaxWithdrawIterations);
+            await staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations);
             expect((await vesting.getMaxVestingWithdrawIterations()).toString()).to.equal(
                 newMaxWithdrawIterations.toString()
             );

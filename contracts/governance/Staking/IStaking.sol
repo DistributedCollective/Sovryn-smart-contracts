@@ -74,4 +74,6 @@ interface IStaking {
     function delegate(address delegatee, uint256 lockDate) external;
 
     function MAX_DURATION() external view returns (uint256);
+
+    function getMaxVestingWithdrawIterations() external view returns (uint256);
 }

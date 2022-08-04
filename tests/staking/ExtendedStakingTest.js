@@ -1362,7 +1362,7 @@ async function createVestingContractWithSingleDate(cliff, amount, token, staking
     vestingInstance = await VestingLogic.at(vestingInstance.address);
     //important, so it's recognized as vesting contract
     await staking.addContractCodeHash(vestingInstance.address);
-    await vestingInstance.setMaxVestingWithdrawIterations(maxWithdrawIterations);
+    await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
     await token.approve(vestingInstance.address, amount);
     let result = await vestingInstance.stakeTokens(amount);

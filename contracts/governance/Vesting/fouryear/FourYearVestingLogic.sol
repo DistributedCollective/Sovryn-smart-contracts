@@ -389,7 +389,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      *
      * @return max iteration value.
      */
-    function getMaxVestingWithdrawIterations() public pure returns (uint256) {
-        return 50;
+    function getMaxVestingWithdrawIterations() public view returns (uint256) {
+        return staking.getMaxVestingWithdrawIterations();
     }
 }

@@ -82,7 +82,6 @@ contract("Staking", (accounts) => {
         vesting = await VestingRegistryProxy.new();
         await vesting.setImplementation(vestingRegistryLogic.address);
         vesting = await VestingRegistryLogic.at(vesting.address);
-        console.log("vesting: ", vesting.address);
 
         await staking.setVestingRegistry(vesting.address);
         await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
@@ -476,7 +475,7 @@ contract("Staking", (accounts) => {
             // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
                 startIteration
-                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(FOUR_WEEKS)))
                     .toString()
             );
 

@@ -3,6 +3,7 @@ from brownie.network.contract import InterfaceContainer
 import json
 import time
 import copy
+import math
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 
@@ -366,11 +367,32 @@ def updateLockedSOV():
     # sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
 
 #receiver is usually the multisig
-def governanceDirectWithdrawVesting( vesting,  receiver, startFrom):
+def governanceDirectWithdrawVesting( vesting,  receiver):
     stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
-    data = stakingProxy.governanceDirectWithdrawVesting.encode_input( vesting,  receiver, startFrom)
-    print(data)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
+    vesting = Contract.from_abi("VestingLogic", address=vesting, abi=VestingLogic.abi, owner=conf.acct)
+
+    DAY = 24 * 60 * 60
+    FOUR_WEEKS = 4 * 7 * DAY
+
+    vestingStartDate = vesting.startDate()
+    vestingEnd = vesting.endDate()
+    vestingCliff = vesting.cliff()
+    defaultStart = vestingStartDate + vestingCliff
+
+    maxIterations = stakingProxy.getMaxVestingWithdrawIterations()
+    maxIterationsEnd = defaultStart + (FOUR_WEEKS * maxIterations)
+
+    counter = 1;
+
+    if vestingEnd > maxIterationsEnd:
+        counter = math.ceil(maxIterationsEnd / vestingEnd)
+
+    for x in range(counter)
+        startFrom = defaultStart
+        data = stakingProxy.governanceDirectWithdrawVesting.encode_input( vesting,  receiver, startFrom)
+        print(data)
+        sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
+        startFrom = startFrom + (maxIterations * FOUR_WEEKS)
 
 def transferStakingOwnershipToGovernance():
     print("Add staking admin for address: ", conf.contracts['TimelockAdmin'])

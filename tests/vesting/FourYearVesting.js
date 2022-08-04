@@ -21,7 +21,7 @@ const TOTAL_SUPPLY = "10000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
 const ONE_ETHER = "1000000000000000000";
 
-const maxWithdrawIterations = 10;
+const maxWithdrawIterations = 50;
 
 contract("FourYearVesting", (accounts) => {
     let root, a1, a2, a3;
@@ -612,6 +612,7 @@ contract("FourYearVesting", (accounts) => {
                 52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
             await token.approve(vesting.address, toStake);
             let remainingStakeAmount = ONE_MILLON;
@@ -1053,6 +1054,8 @@ contract("FourYearVesting", (accounts) => {
         it("should withdraw unlocked tokens for four year vesting after first year", async () => {
             // time travel
             await increaseTime(104 * WEEK);
+
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
             // withdraw
             tx = await vesting.withdrawTokens(root);

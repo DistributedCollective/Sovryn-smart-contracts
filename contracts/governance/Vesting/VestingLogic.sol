@@ -246,14 +246,6 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @return max iteration value.
      */
     function getMaxVestingWithdrawIterations() public view returns (uint256) {
-        return maxVestingWithdrawIterations;
-    }
-
-    function setMaxVestingWithdrawIterations(uint256 maxIterations) external onlyOwners {
-        require(maxIterations > 0, "S21");
-        uint256 oldIterations = maxVestingWithdrawIterations;
-        maxVestingWithdrawIterations = maxIterations;
-
-        emit MaxVestingWithdrawIterationsUpdated(oldIterations, maxVestingWithdrawIterations);
+        return staking.getMaxVestingWithdrawIterations();
     }
 }

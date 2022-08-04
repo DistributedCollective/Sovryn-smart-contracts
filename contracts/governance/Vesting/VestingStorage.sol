@@ -40,7 +40,4 @@ contract VestingStorage is Ownable {
 
     /// @notice Constant used for computing the vesting dates.
     uint256 constant FOUR_WEEKS = 4 weeks;
-
-    /// @dev max iterations that can be supported in 1 tx for the withdrawal
-    uint256 internal maxVestingWithdrawIterations;
 }
