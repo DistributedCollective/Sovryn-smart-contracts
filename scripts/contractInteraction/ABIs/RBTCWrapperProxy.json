@@ -1,642 +1,642 @@
 [
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_wrbtcTokenAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "_sovrynSwapNetworkAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "contract IContractRegistry",
-          "name": "_registry",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "liquidityMiningAddress",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "constructor"
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_wrbtcTokenAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_sovrynSwapNetworkAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "contract IContractRegistry",
+                "name": "_registry",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "liquidityMiningAddress",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "constructor"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "_provider",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "_reserveAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "_poolTokenAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "LiquidityAdded",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "_provider",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_reserveAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_poolTokenAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "LiquidityAdded",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "_provider",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "contract IERC20Token[]",
-          "name": "_reserveTokens",
-          "type": "address[]"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256[]",
-          "name": "_reserveAmounts",
-          "type": "uint256[]"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "_poolTokenAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "LiquidityAddedToV1",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "_provider",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "contract IERC20Token[]",
+                "name": "_reserveTokens",
+                "type": "address[]"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256[]",
+                "name": "_reserveAmounts",
+                "type": "uint256[]"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_poolTokenAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "LiquidityAddedToV1",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "_provider",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "_reserveAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "_poolTokenAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "LiquidityRemoved",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "_provider",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_reserveAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_poolTokenAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "LiquidityRemoved",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "_provider",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "contract IERC20Token[]",
-          "name": "_reserveTokens",
-          "type": "address[]"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256[]",
-          "name": "_reserveAmounts",
-          "type": "uint256[]"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "_poolTokenAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "LiquidityRemovedFromV1",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "_provider",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "contract IERC20Token[]",
+                "name": "_reserveTokens",
+                "type": "address[]"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256[]",
+                "name": "_reserveAmounts",
+                "type": "uint256[]"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_poolTokenAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "LiquidityRemovedFromV1",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "user",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "poolTokenAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "assetAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "LoanTokensBurnt",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "poolTokenAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "assetAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "LoanTokensBurnt",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "user",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "poolTokenAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "assetAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "LoanTokensMinted",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "poolTokenAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "assetAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "LoanTokensMinted",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "_prevOwner",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "_newOwner",
-          "type": "address"
-        }
-      ],
-      "name": "OwnerUpdate",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "_prevOwner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "_newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnerUpdate",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "_beneficiary",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "_sourceTokenAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "_targetTokenAmount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "contract IERC20Token[]",
-          "name": "_path",
-          "type": "address[]"
-        }
-      ],
-      "name": "TokenConverted",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "_beneficiary",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "_sourceTokenAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "_targetTokenAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "contract IERC20Token[]",
+                "name": "_path",
+                "type": "address[]"
+            }
+        ],
+        "name": "TokenConverted",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "token",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "totalWithdrawn",
-          "type": "uint256"
-        }
-      ],
-      "name": "Withdraw",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "recipient",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "totalWithdrawn",
+                "type": "uint256"
+            }
+        ],
+        "name": "Withdraw",
+        "type": "event"
     },
     {
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "fallback"
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "fallback"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "acceptOwnership",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "acceptOwnership",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "liquidityMiningContract",
-      "outputs": [
-        {
-          "internalType": "contract LiquidityMining",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "liquidityMiningContract",
+        "outputs": [
+            {
+                "internalType": "contract LiquidityMining",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "newOwner",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "newOwner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "onlyOwnerCanUpdateRegistry",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "onlyOwnerCanUpdateRegistry",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "owner",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "prevRegistry",
-      "outputs": [
-        {
-          "internalType": "contract IContractRegistry",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "prevRegistry",
+        "outputs": [
+            {
+                "internalType": "contract IContractRegistry",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "registry",
-      "outputs": [
-        {
-          "internalType": "contract IContractRegistry",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "registry",
+        "outputs": [
+            {
+                "internalType": "contract IContractRegistry",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "restoreRegistry",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "restoreRegistry",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bool",
-          "name": "_onlyOwnerCanUpdateRegistry",
-          "type": "bool"
-        }
-      ],
-      "name": "restrictRegistryUpdate",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bool",
+                "name": "_onlyOwnerCanUpdateRegistry",
+                "type": "bool"
+            }
+        ],
+        "name": "restrictRegistryUpdate",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "sovrynSwapNetworkAddress",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "sovrynSwapNetworkAddress",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_newOwner",
-          "type": "address"
-        }
-      ],
-      "name": "transferOwnership",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "updateRegistry",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "updateRegistry",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "wrbtcTokenAddress",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "wrbtcTokenAddress",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_liquidityPoolConverterAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "_reserveAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_minReturn",
-          "type": "uint256"
-        }
-      ],
-      "name": "addLiquidityToV2",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_liquidityPoolConverterAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_reserveAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_minReturn",
+                "type": "uint256"
+            }
+        ],
+        "name": "addLiquidityToV2",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_liquidityPoolConverterAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "contract IERC20Token[]",
-          "name": "_reserveTokens",
-          "type": "address[]"
-        },
-        {
-          "internalType": "uint256[]",
-          "name": "_reserveAmounts",
-          "type": "uint256[]"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_minReturn",
-          "type": "uint256"
-        }
-      ],
-      "name": "addLiquidityToV1",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_liquidityPoolConverterAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "contract IERC20Token[]",
+                "name": "_reserveTokens",
+                "type": "address[]"
+            },
+            {
+                "internalType": "uint256[]",
+                "name": "_reserveAmounts",
+                "type": "uint256[]"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_minReturn",
+                "type": "uint256"
+            }
+        ],
+        "name": "addLiquidityToV1",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_liquidityPoolConverterAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "_reserveAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_minReturn",
-          "type": "uint256"
-        }
-      ],
-      "name": "removeLiquidityFromV2",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_liquidityPoolConverterAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_reserveAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_minReturn",
+                "type": "uint256"
+            }
+        ],
+        "name": "removeLiquidityFromV2",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_liquidityPoolConverterAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "contract IERC20Token[]",
-          "name": "_reserveTokens",
-          "type": "address[]"
-        },
-        {
-          "internalType": "uint256[]",
-          "name": "_reserveMinReturnAmounts",
-          "type": "uint256[]"
-        }
-      ],
-      "name": "removeLiquidityFromV1",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_liquidityPoolConverterAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "contract IERC20Token[]",
+                "name": "_reserveTokens",
+                "type": "address[]"
+            },
+            {
+                "internalType": "uint256[]",
+                "name": "_reserveMinReturnAmounts",
+                "type": "uint256[]"
+            }
+        ],
+        "name": "removeLiquidityFromV1",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "contract IERC20Token[]",
-          "name": "_path",
-          "type": "address[]"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_minReturn",
-          "type": "uint256"
-        }
-      ],
-      "name": "convertByPath",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "contract IERC20Token[]",
+                "name": "_path",
+                "type": "address[]"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_minReturn",
+                "type": "uint256"
+            }
+        ],
+        "name": "convertByPath",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "token",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "withdraw",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "withdraw",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     }
-  ]
+]
