@@ -1122,7 +1122,8 @@ contract("Vesting", (accounts) => {
             const previousStake = await staking.getPriorUserStakeByDate(
                 vesting.address,
                 skippedIterations,
-                currentBlockNumber - 1
+                currentBlockNumber - 1,
+                false
             );
             expect(previousStake).to.be.bignumber.to.greaterThan(new BN(1));
 
@@ -1156,7 +1157,8 @@ contract("Vesting", (accounts) => {
                 const latestStake = await staking.getPriorUserStakeByDate(
                     vesting.address,
                     i,
-                    currentBlockNumber - 1
+                    currentBlockNumber - 1,
+                    false
                 );
                 expect(latestStake.toString()).to.equal("1");
             }

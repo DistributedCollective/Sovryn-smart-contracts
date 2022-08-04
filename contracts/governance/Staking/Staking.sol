@@ -388,7 +388,7 @@ contract Staking is
         ///		workaround found, but it doesn't work with TWO_WEEKS
         for (uint256 i = _startFrom; i < adjustedEnd; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
-            tempStake = getPriorUserStakeByDate(_vesting, i, block.number - 1);
+            tempStake = getPriorUserStakeByDate(_vesting, i, block.number - 1, true);
 
             /// @dev Withdraw if > 0
             if (tempStake > 0) {

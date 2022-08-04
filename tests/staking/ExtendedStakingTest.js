@@ -522,7 +522,8 @@ contract("Staking", (accounts) => {
             let priorStake = await staking.getPriorUserStakeByDate.call(
                 root,
                 lockedTS,
-                new BN(block.number)
+                new BN(block.number),
+                false
             );
             expect(priorStake).to.be.bignumber.equal(amount.mul(new BN(2)));
 
@@ -530,7 +531,8 @@ contract("Staking", (accounts) => {
             priorStake = await staking.getPriorUserStakeByDate.call(
                 root,
                 lockedTS,
-                new BN(block.number).sub(new BN(1))
+                new BN(block.number).sub(new BN(1)),
+                false
             );
             expect(priorStake).to.be.bignumber.equal(amount);
 
@@ -538,7 +540,34 @@ contract("Staking", (accounts) => {
             priorStake = await staking.getPriorUserStakeByDate.call(
                 root,
                 lockedTS,
-                new BN(block.number).sub(new BN(2))
+                new BN(block.number).sub(new BN(2)),
+                false
+            );
+            expect(priorStake).to.be.bignumber.equal(new BN(0));
+        });
+
+        it("getPriorUserStakeByDate direct withdraw vesting should return 1 for empty prior stake", async () => {
+            let duration = new BN(TWO_WEEKS).mul(new BN(2));
+            let lockedTS = await getTimeFromKickoff(duration);
+            let block = await web3.eth.getBlock("latest");
+            let priorStake = await staking.getPriorUserStakeByDate.call(
+                root,
+                lockedTS,
+                new BN(block.number - 1),
+                true
+            );
+            expect(priorStake).to.be.bignumber.equal(new BN(1));
+        });
+
+        it("getPriorUserStakeByDate non direct withdraw vesting should return 0 for empty prior stake", async () => {
+            let duration = new BN(TWO_WEEKS).mul(new BN(2));
+            let lockedTS = await getTimeFromKickoff(duration);
+            let block = await web3.eth.getBlock("latest");
+            let priorStake = await staking.getPriorUserStakeByDate.call(
+                root,
+                lockedTS,
+                new BN(block.number - 1),
+                false
             );
             expect(priorStake).to.be.bignumber.equal(new BN(0));
         });

@@ -176,7 +176,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         ///		workaround found, but it doesn't work with TWO_WEEKS
         for (uint256 i = _startFrom; i < adjustedEnd; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
-            stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
+            stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1, false);
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
