@@ -122,9 +122,6 @@ contract("GovernorAlpha#queue/1", (accounts) => {
             );
 
             await gov.queue(proposalId1);
-            //await increaseTime(60);
-            //blockTimestamp = new BigNumber((await ethers.provider.getBlock("latest")).timestamp);
-            //setNextBlockTimestamp(blockTimestamp.plus(60).toNumber());
             await ethers.provider.send("evm_increaseTime", [60]);
             await mine();
 
