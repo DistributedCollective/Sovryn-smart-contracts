@@ -92,9 +92,9 @@ contract("GovernorAlpha#queue/1", (accounts) => {
             );
         });
 
-        it("reverts on queueing overlapping actions in different proposals, works if waiting; using Ganache", async () => {
+        it("reverts on queueing overlapping actions in different proposals, works if waiting", async () => {
             await enfranchise(token, staking, a2, QUORUM_VOTES);
-            await mineBlock();
+            await ethers.provider.send("evm_mine");
 
             const targets = [staking.address];
             const values = ["0"];
@@ -118,7 +118,8 @@ contract("GovernorAlpha#queue/1", (accounts) => {
             );
 
             await gov.queue(proposalId1);
-            await increaseTime(60);
+            await ethers.provider.send("evm_increaseTime", [60]);
+            await ethers.provider.send("evm_mine");
             await gov.queue(proposalId2);
         });
     });

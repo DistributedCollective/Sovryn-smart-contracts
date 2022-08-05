@@ -310,7 +310,7 @@ contract("Vesting", (accounts) => {
         });
     });
 
-    describe("stakeTokens; using Ganache", () => {
+    describe("stakeTokens", () => {
         let vesting;
         it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
             vesting = await Vesting.new(
@@ -375,7 +375,7 @@ contract("Vesting", (accounts) => {
             // negative cases
 
             // start-10 to avoid coming to active checkpoint
-            let periodFromKickoff = Math.floor((start - 10 - kickoffTS.toNumber()) / (2 * WEEK));
+            let periodFromKickoff = Math.floor((start - 100 - kickoffTS.toNumber()) / (2 * WEEK));
             let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
             let userStakingCheckpoints = await staking.userStakingCheckpoints(
                 vesting.address,
