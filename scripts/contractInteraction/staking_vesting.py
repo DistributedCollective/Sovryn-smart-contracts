@@ -387,7 +387,7 @@ def governanceDirectWithdrawVesting( vesting,  receiver):
     if vestingEnd > maxIterationsEnd:
         counter = math.ceil(maxIterationsEnd / vestingEnd)
 
-    for x in range(counter)
+    for x in range(counter):
         startFrom = defaultStart
         data = stakingProxy.governanceDirectWithdrawVesting.encode_input( vesting,  receiver, startFrom)
         print(data)
