@@ -59,7 +59,7 @@ def main():
     #governanceWithdrawVesting('0x750C49DD9928061Df2224AA81E08Bc4a3c334874', conf.contracts['multisig'])
 
     #addOwnerToMultisig('0x832E1bd30d037d0327F2A0447eD44FB952A9a043')
-    removeOwnerFromMultisig('0x832E1bd30d037d0327F2A0447eD44FB952A9a043')
+    #removeOwnerFromMultisig('0x832E1bd30d037d0327F2A0447eD44FB952A9a043')
 
     # # ---------- Transfer ownership to gov ----------
     # # core protocol
