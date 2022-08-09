@@ -13,10 +13,12 @@ require("hardhat-deploy");
 
 require("dotenv").config();
 
+require("./hardhat/tasks/tasks.js");
+
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 /// this is for use with ethers.js
-task("accounts", "Prints the list of accounts", async () => {
+/*task("accounts", "Prints the list of accounts", async () => {
     const accounts = await ethers.getSigners();
 
     for (const account of accounts.address) {
@@ -27,7 +29,7 @@ task("accounts", "Prints the list of accounts", async () => {
 
         console.log(account);
     }
-});
+});*/
 
 /*
  * Test hardhat forking with patched hardhat
@@ -119,7 +121,10 @@ module.exports = {
         },
         rskPublicTestnet: {
             url: "https://public-node.testnet.rsk.co/",
-            accounts: { mnemonic: "brownie", count: 10 },
+            accounts: {
+                mnemonic: "test test test test test test test test test test test brownie",
+                count: 10,
+            },
             network_id: 31,
             confirmations: 4,
             gasMultiplier: 1.25,
@@ -133,7 +138,10 @@ module.exports = {
         },
         rskSovrynTestnet: {
             url: "https://testnet.sovryn.app/rpc",
-            accounts: { mnemonic: "brownie", count: 10 },
+            accounts: {
+                mnemonic: "test test test test test test test test test test test brownie",
+                count: 10,
+            },
             network_id: 31,
             confirmations: 4,
             gasMultiplier: 1.25,
