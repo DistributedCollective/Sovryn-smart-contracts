@@ -1,0 +1,36 @@
+{
+    "address": "0xed80ccde8baeff2dbfc70d3028a27e501fa0d7d5",
+    "abi": [
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "latestAnswer",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "latestTimestamp",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ],
+    "numDeployments": 1
+}

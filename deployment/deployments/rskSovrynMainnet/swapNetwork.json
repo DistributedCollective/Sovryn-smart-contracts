@@ -1,0 +1,104 @@
+{
+    "address": "0x98aCE08D2b759a265ae326F010496bcD63C15afc",
+    "abi": [
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "contract IERC20",
+                    "name": "_sourceToken",
+                    "type": "address"
+                },
+                {
+                    "internalType": "contract IERC20",
+                    "name": "_targetToken",
+                    "type": "address"
+                }
+            ],
+            "name": "conversionPath",
+            "outputs": [
+                {
+                    "internalType": "contract IERC20[]",
+                    "name": "",
+                    "type": "address[]"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "contract IERC20[]",
+                    "name": "_path",
+                    "type": "address[]"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_amount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_minReturn",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_beneficiary",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_affiliateAccount",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_affiliateFee",
+                    "type": "uint256"
+                }
+            ],
+            "name": "convertByPath",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": true,
+            "stateMutability": "payable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "contract IERC20[]",
+                    "name": "_path",
+                    "type": "address[]"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "rateByPath",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ],
+    "numDeployments": 1
+}

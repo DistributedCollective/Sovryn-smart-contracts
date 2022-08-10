@@ -1,0 +1,140 @@
+{
+    "address": "0xD5564a16f356dD45e445beC725F54496700b5C5A",
+    "abi": [
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "tokenOwner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "vestingAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "FourYearVestingCreated",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "previousOwner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnershipTransferred",
+            "type": "event"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_SOV",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_staking",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_tokenOwner",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_feeSharing",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_vestingOwnerMultisig",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_fourYearVestingLogic",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_extendDurationFor",
+                    "type": "uint256"
+                }
+            ],
+            "name": "deployFourYearVesting",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "isOwner",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "transferOwnership",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ],
+    "numDeployments": 1
+}
