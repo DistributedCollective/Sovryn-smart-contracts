@@ -69,7 +69,7 @@ def main():
     liquidityMiningConfigToken = acct.deploy(LiquidityMiningConfigToken)
 
     # TODO prepare pool tokens list
-    poolTokens = [contracts['(WR)BTC/SOV'], liquidityMiningConfigToken.address]
+    poolTokens = [contracts['wRBTC_SOV'], liquidityMiningConfigToken.address]
     # we need to multiply by 1000 to have 100 M
     MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
     # we don't need 10**18 here, it's just a proportion between tokens

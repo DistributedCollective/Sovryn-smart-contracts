@@ -4,10 +4,7 @@ This script serves the purpose of interacting with existing smart contracts on t
 '''
 
 from brownie import *
-from brownie.network.contract import InterfaceContainer
 import json
-import time;
-import copy
 
 def main():
     
@@ -50,7 +47,7 @@ def loadConfig():
 def addTestETHPoolToken():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
-    data = lm.add.encode_input(contracts['(WR)BTC/ETH'],1,False)
+    data = lm.add.encode_input(contracts['wRBTC_ETH'],1,False)
 
     tx = multisig.submitTransaction(lm.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
@@ -61,14 +58,14 @@ def addETHPoolToken():
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
 
     MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
-    ALLOCATION_POINT_BTC_SOV = 40000 # (WR)BTC/SOV
-    ALLOCATION_POINT_BTC_ETH = 1 # or 30000 (WR)BTC/ETH
-    ALLOCATION_POINT_DEFAULT = 1 # (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2
+    ALLOCATION_POINT_BTC_SOV = 40000 # wRBTC_SOV
+    ALLOCATION_POINT_BTC_ETH = 1 # or 30000 wRBTC_ETH
+    ALLOCATION_POINT_DEFAULT = 1 # wRBTC_USDT1 | wRBTC_USDT2 | wRBTC_DOC1 | wRBTC_DOC2 | wRBTC_BPRO1 | wRBTC_BPRO2
     ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_ETH - ALLOCATION_POINT_DEFAULT * 6
 
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
 
-    data = lm.add.encode_input(contracts['(WR)BTC/ETH'],ALLOCATION_POINT_BTC_ETH,False)
+    data = lm.add.encode_input(contracts['wRBTC_ETH'],ALLOCATION_POINT_BTC_ETH,False)
     tx = multisig.submitTransaction(lm.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId)
@@ -82,7 +79,7 @@ def addFISHtoken():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
 
-    data = lm.add.encode_input(contracts['(WR)BTC/FISH'],1,False)
+    data = lm.add.encode_input(contracts['wRBTC_FISH'],1,False)
     tx = multisig.submitTransaction(lm.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId)
@@ -91,7 +88,7 @@ def addBRZtoken():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
 
-    data = lm.add.encode_input(contracts['XUSD/BRZ'],1,False)
+    data = lm.add.encode_input(contracts['XUSD_BRZ'],1,False)
     tx = multisig.submitTransaction(lm.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId)
@@ -104,19 +101,19 @@ def updateLMConfig():
 
     MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
     # SOV/rBTC - 30k SOV
-    ALLOCATION_POINT_BTC_SOV = 30000 # (WR)BTC/SOV
+    ALLOCATION_POINT_BTC_SOV = 30000 # wRBTC_SOV
     # ETH/rBTC - 15k SOV
-    ALLOCATION_POINT_BTC_ETH = 5000 # (WR)BTC/ETH
+    ALLOCATION_POINT_BTC_ETH = 5000 # wRBTC_ETH
     # xUSD/rBTC - 15k SOV
-    ALLOCATION_POINT_BTC_XUSD = 25000 # (WR)BTC/XUSD
+    ALLOCATION_POINT_BTC_XUSD = 25000 # wRBTC_XUSD
     # BNB/rBTC - 15k SOV
-    ALLOCATION_POINT_BTC_BNB = 1 # (WR)BTC/BNB
+    ALLOCATION_POINT_BTC_BNB = 1 # wRBTC_BNB
 
     ALLOCATION_POINT_I_XUSD = 2500 # iXUSD
 
-    ALLOCATION_POINT_BTC_MYNT = 5000 # (WR)BTC/MYNT
+    ALLOCATION_POINT_BTC_MYNT = 5000 # wRBTC_MYNT
 
-    ALLOCATION_POINT_DEFAULT = 1 # (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF
+    ALLOCATION_POINT_DEFAULT = 1 # wRBTC_USDT1 | wRBTC_USDT2 | wRBTC_DOC1 | wRBTC_DOC2 | wRBTC_BPRO1 | wRBTC_BPRO2 | wRBTC_MOC | wRBTC_FISH | wRBTC_RIF
     ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_ETH - ALLOCATION_POINT_BTC_XUSD \
                                     - ALLOCATION_POINT_BTC_BNB - ALLOCATION_POINT_I_XUSD -ALLOCATION_POINT_BTC_MYNT - ALLOCATION_POINT_DEFAULT * 9
 

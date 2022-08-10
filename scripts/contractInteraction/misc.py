@@ -1,8 +1,5 @@
 from brownie import *
-from brownie.network.contract import InterfaceContainer
 import json
-import time;
-import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 
@@ -81,7 +78,7 @@ def determineFundsAtRisk():
 def lookupCurrentPoolReserveBalances(userAddress):
     wrbtc = Contract.from_abi("TestToken", address = conf.contracts['WRBTC'], abi = TestToken.abi, owner = conf.acct)
     sov = Contract.from_abi("TestToken", address = conf.contracts['SOV'], abi = TestToken.abi, owner = conf.acct)
-    poolToken = Contract.from_abi("TestToken", address = conf.contracts['(WR)BTC/SOV'], abi = TestToken.abi, owner = conf.acct)
+    poolToken = Contract.from_abi("TestToken", address = conf.contracts['wRBTC_SOV'], abi = TestToken.abi, owner = conf.acct)
     liquidityMining = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
 
     wrbtcBal = wrbtc.balanceOf(conf.contracts['WRBTCtoSOVConverter']) / 1e18

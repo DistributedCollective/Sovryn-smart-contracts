@@ -44,15 +44,15 @@ def main():
 
     #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1000000e18)
     #sendTokensFromMultisig(conf.contracts['USDT'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 1000000e18)
-    #bal = getBalance(conf.contracts['(WR)BTC/ETH'], conf.contracts['multisig'])
+    #bal = getBalance(conf.contracts['wRBTC_ETH'], conf.contracts['multisig'])
     #removeLiquidityV1toMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterBNBs'], 1e18, [conf.contracts['WRBTC'], conf.contracts['BNBs']], [1,1])
 
     #readMocOracleAddress()
 
-    #bal = getBalance(conf.contracts['(WR)BTC/USDT2'], conf.contracts['multisig'])
-    #removeLiquidityV2toMultisig(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal, 1)
+    #bal = getBalance(conf.contracts['wRBTC_USDT2'], conf.contracts['multisig'])
+    #removeLiquidityV2toMultisig(conf.contracts['ConverterUSDT'], conf.contracts['wRBTC_USDT2'], bal, 1)
 
-    #getReturnForV2PoolToken(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal)
+    #getReturnForV2PoolToken(conf.contracts['ConverterUSDT'], conf.contracts['wRBTC_USDT2'], bal)
 
     #readAllVestingContractsForAddress('0xA6575f1D5Bd6545fBd34BE05259D9d6ae60641f2')
     #getStakes('0x750C49DD9928061Df2224AA81E08Bc4a3c334874')

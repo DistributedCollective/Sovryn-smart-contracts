@@ -1,8 +1,4 @@
 from brownie import *
-from brownie.network.contract import InterfaceContainer
-import json
-import time;
-import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 
@@ -61,7 +57,7 @@ def setLockedSOV(newLockedSOV):
 def addPoolsToLM():
     liquidityMining = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
     # TODO prepare pool tokens list
-    poolTokens = [conf.contracts['(WR)BTC/USDT1'], conf.contracts['(WR)BTC/USDT2'], conf.contracts['(WR)BTC/DOC1'], conf.contracts['(WR)BTC/DOC2'], conf.contracts['(WR)BTC/BPRO1'], conf.contracts['(WR)BTC/BPRO2']]
+    poolTokens = [conf.contracts['wRBTC_USDT1'], conf.contracts['wRBTC_USDT2'], conf.contracts['wRBTC_DOC1'], conf.contracts['wRBTC_DOC2'], conf.contracts['wRBTC_BPRO1'], conf.contracts['wRBTC_BPRO2']]
     allocationPoints = [1, 1, 1, 1, 1, 1]
     # token weight = allocationPoint / SUM of allocationPoints for all pool tokens
     withUpdate = False # can be False if we adding pool tokens before mining started
@@ -77,12 +73,12 @@ def addPoolsToLM():
 def addMOCPoolToken():
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
     MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
-    ALLOCATION_POINT_BTC_SOV = 30000 # (WR)BTC/SOV
-    ALLOCATION_POINT_BTC_ETH = 35000 # or 30000 (WR)BTC/ETH
-    ALLOCATION_POINT_DEFAULT = 1 # (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC
+    ALLOCATION_POINT_BTC_SOV = 30000 # wRBTC_SOV
+    ALLOCATION_POINT_BTC_ETH = 35000 # or 30000 wRBTC_ETH
+    ALLOCATION_POINT_DEFAULT = 1 # wRBTC_USDT1 | wRBTC_USDT2 | wRBTC_DOC1 | wRBTC_DOC2 | wRBTC_BPRO1 | wRBTC_BPRO2 | wRBTC_MOC
     ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_ETH - ALLOCATION_POINT_DEFAULT * 7
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
-    data = lm.add.encode_input(conf.contracts['(WR)BTC/MOC'],1,False)
+    data = lm.add.encode_input(conf.contracts['wRBTC_MOC'],1,False)
     sendWithMultisig(conf.contracts['multisig'], lm.address, data, conf.acct)
     data = lm.update.encode_input(conf.contracts['LiquidityMiningConfigToken'],ALLOCATION_POINT_CONFIG_TOKEN,True)
     sendWithMultisig(conf.contracts['multisig'], lm.address, data, conf.acct)
@@ -97,8 +93,8 @@ def transferSOVtoLM(amount):
  
 def addAmmPoolTokenToLM(ptName):
     # ptName - pool token name from testnet_contracts.json e.g.:
-    # "XUSD/BRZ"
-    # "(WR)BTC/MYNT"
+    # "XUSD_BRZ"
+    # "wRBTC_MYNT"
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
 
     data = lm.add.encode_input(conf.contracts[ptName],1,False)
