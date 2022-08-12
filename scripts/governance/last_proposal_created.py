@@ -9,7 +9,7 @@ def main():
     #load the contracts and acct depending on the network
     loadConfig()
 
-    checkLastProposalCreated(values['account'])
+    checkLastProposalCreated('0x27D55f5668ef4438635bdce0ADCA083507E77752')
 
 def loadConfig():
     global contracts, acct, values
@@ -24,7 +24,7 @@ def loadConfig():
 
 def checkLastProposalCreated(acctAddress):
 
-    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acctAddress)
+    governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorAdmin'], abi=GovernorAlpha.abi, owner=acctAddress)
 
     latestProposalID = governor.latestProposalIds(acctAddress)
     proposal = governor.getActions(latestProposalID)

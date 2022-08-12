@@ -1,68 +1,74 @@
-const { assert } = require("chai");
-const { expectRevert, expectEvent, constants, BN, balance, time, ether } = require("@openzeppelin/test-helpers");
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-23
+ * Bottlenecks found at beforeEach hook, redeploying token,
+ *  protocol, price feeds and loan on every test.
+ *
+ * Total time elapsed: 5.5s
+ * After optimization: 4.6s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Actually no need to apply fixture, instead move init code
+ *   from beforeEach hook into the before hook, because tests are ok
+ *   by using the previous state.
+ *
+ *   Updated to use the initializer.js functions for protocol deployment.
+ *   Updated to use SUSD as underlying token, instead of custom underlyingToken.
+ *   Updated to use WRBTC as collateral token, instead of custom testWrbtc.
+ */
 
-const TestToken = artifacts.require("TestToken");
-const TestWrbtc = artifacts.require("TestWrbtc");
-
-const sovrynProtocol = artifacts.require("sovrynProtocol");
-const ProtocolSettings = artifacts.require("ProtocolSettings");
-const ISovryn = artifacts.require("ISovryn");
+const { expectRevert, constants, ether } = require("@openzeppelin/test-helpers");
 
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
-const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard");
-const LoanSettings = artifacts.require("LoanSettings");
-const LoanMaintenance = artifacts.require("LoanMaintenance");
-const LoanOpenings = artifacts.require("LoanOpenings");
-const LoanClosingsBase = artifacts.require("LoanClosingsBase");
-const LoanClosingsWith = artifacts.require("LoanClosingsWith");
-const SwapsExternal = artifacts.require("SwapsExternal");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplLocal = artifacts.require("SwapsImplLocal");
 
-const TOTAL_SUPPLY = ether("1000");
+const {
+	getSUSD,
+	getRBTC,
+	getWRBTC,
+	getBZRX,
+	getLoanTokenLogic,
+	getLoanToken,
+	getLoanTokenLogicWrbtc,
+	getLoanTokenWRBTC,
+	loan_pool_setup,
+	set_demand_curve,
+	getPriceFeeds,
+	getSovryn,
+	decodeLogs,
+	getSOV,
+} = require("../Utils/initializer.js");
 
 contract("LoanSettingsNegative", (accounts) => {
-	const name = "Test token";
-	const symbol = "TST";
-
-	let lender, account1, account2, account3, account4;
-	let underlyingToken, testWrbtc;
+	let lender, account1;
+	let SUSD, WRBTC;
 	let sovryn, loanToken;
 	let loanParams, loanParamsId, tx;
 
 	before(async () => {
-		[lender, account1, account2, account3, account4, ...accounts] = accounts;
-	});
+		[lender, account1, ...accounts] = accounts;
 
-	beforeEach(async () => {
-		//Token
-		underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
-		testWrbtc = await TestWrbtc.new();
+		// Deploying sovrynProtocol w/ generic function from initializer.js
+		SUSD = await getSUSD();
+		RBTC = await getRBTC();
+		WRBTC = await getWRBTC();
+		BZRX = await getBZRX();
+		priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+		sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+		await sovryn.setSovrynProtocolAddress(sovryn.address);
 
-		const sovrynproxy = await sovrynProtocol.new();
-		sovryn = await ISovryn.at(sovrynproxy.address);
-
-		await sovryn.replaceContract((await LoanClosingsBase.new()).address);
-		await sovryn.replaceContract((await LoanClosingsWith.new()).address);
-		await sovryn.replaceContract((await ProtocolSettings.new()).address);
-		await sovryn.replaceContract((await LoanSettings.new()).address);
-		await sovryn.replaceContract((await LoanMaintenance.new()).address);
-		await sovryn.replaceContract((await SwapsExternal.new()).address);
-		await sovryn.replaceContract((await LoanOpenings.new()).address);
-
-		await sovryn.setWrbtcToken(testWrbtc.address);
-
-		feeds = await PriceFeedsLocal.new(testWrbtc.address, sovryn.address);
-		await feeds.setRates(underlyingToken.address, testWrbtc.address, ether("0.01"));
+		feeds = await PriceFeedsLocal.new(WRBTC.address, sovryn.address);
+		await feeds.setRates(SUSD.address, WRBTC.address, ether("0.01"));
 		const swaps = await SwapsImplLocal.new();
 		const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
 		await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
-		await sovryn.setSupportedTokens([underlyingToken.address, testWrbtc.address], [true, true]);
+		await sovryn.setSupportedTokens([SUSD.address, WRBTC.address], [true, true]);
 		await sovryn.setPriceFeedContract(
-			feeds.address //priceFeeds
+			feeds.address // priceFeeds
 		);
 		await sovryn.setSwapsImplContract(
 			swaps.address // swapsImpl
@@ -70,21 +76,21 @@ contract("LoanSettingsNegative", (accounts) => {
 		await sovryn.setFeesController(lender);
 
 		loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
-		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, testWrbtc.address);
-		await loanToken.initialize(testWrbtc.address, "iWRBTC", "iWRBTC"); //iToken
+		loanToken = await LoanToken.new(lender, loanTokenLogicWrbtc.address, sovryn.address, WRBTC.address);
+		await loanToken.initialize(WRBTC.address, "iWRBTC", "iWRBTC"); // iToken
 		loanToken = await LoanTokenLogicWrbtc.at(loanToken.address);
 
 		const loanTokenAddress = await loanToken.loanTokenAddress();
 		if (lender == (await sovryn.owner())) await sovryn.setLoanPool([loanToken.address], [loanTokenAddress]);
 
-		await testWrbtc.mint(sovryn.address, ether("500"));
+		await WRBTC.mint(sovryn.address, ether("500"));
 
 		loanParams = {
 			id: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			active: false,
 			owner: constants.ZERO_ADDRESS,
-			loanToken: underlyingToken.address,
-			collateralToken: testWrbtc.address,
+			loanToken: SUSD.address,
+			collateralToken: WRBTC.address,
 			minInitialMargin: ether("50"),
 			maintenanceMargin: ether("15"),
 			maxLoanTerm: "2419200",

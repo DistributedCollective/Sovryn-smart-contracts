@@ -439,7 +439,7 @@ contract WeightedStaking is Checkpoints {
 		uint96 staked = _getPriorVestingStakeByDate(date, blockNumber);
 		if (staked > 0) {
 			uint96 weight = computeWeightByDate(date, startDate);
-			power = mul96(staked, weight, "WeightedStaking::weightedVestingStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
+			power = mul96(staked, weight, "weightedVestingStakeByDate: multiplication overflow") / WEIGHT_FACTOR;
 		} else {
 			power = 0;
 		}
@@ -469,7 +469,7 @@ contract WeightedStaking is Checkpoints {
 	 * @return The number of votes the account had as of the given block.
 	 * */
 	function _getPriorVestingStakeByDate(uint256 date, uint256 blockNumber) internal view returns (uint96) {
-		require(blockNumber < _getCurrentBlockNumber(), "WeightedStaking::getPriorVestingStakeByDate: not yet determined");
+		require(blockNumber < _getCurrentBlockNumber(), "getPriorVestingStakeByDate: not yet determined");
 
 		uint32 nCheckpoints = numVestingCheckpoints[date];
 		if (nCheckpoints == 0) {
@@ -545,14 +545,15 @@ contract WeightedStaking is Checkpoints {
 	 * @return The actual unlocking date (might be up to 2 weeks shorter than intended).
 	 * */
 	function timestampToLockDate(uint256 timestamp) public view returns (uint256 lockDate) {
-		require(timestamp >= kickoffTS, "timestamp lies before contract creation");
+		uint256 kickOffTime = kickoffTS;
+		require(timestamp >= kickOffTime, "timestamp lies before contract creation");
 		/**
 		 * @dev If staking timestamp does not match any of the unstaking dates
 		 * , set the lockDate to the closest one before the timestamp.
 		 * E.g. Passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks.
 		 * */
-		uint256 periodFromKickoff = (timestamp - kickoffTS) / TWO_WEEKS;
-		lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
+		uint256 periodFromKickoff = (timestamp - kickOffTime) / TWO_WEEKS;
+		lockDate = periodFromKickoff * TWO_WEEKS + kickOffTime;
 	}
 
 	/**

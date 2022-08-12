@@ -77,7 +77,7 @@ contract ISovrynBrownie is
 
 	function setFeesController(address newController) external;
 
-	function withdrawFees(address[] calldata tokens, address receiver) external returns (uint256);
+	function withdrawFees(address[] calldata tokens, address receiver) external returns (uint256 totalWRBTCWithdrawn);
 
 	function withdrawLendingFees(
 		address token,
@@ -418,4 +418,6 @@ contract ISovrynBrownie is
 	function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint) external;
 
 	function getTradingRebateRewardsBasisPoint() external view returns (uint256);
+
+	function getDedicatedSOVRebate() external view returns (uint256);
 }

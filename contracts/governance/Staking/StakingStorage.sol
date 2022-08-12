@@ -23,7 +23,7 @@ import "../Vesting/VestingRegistryLogic.sol";
  * */
 contract StakingStorage is Ownable {
 	/// @notice 2 weeks in seconds.
-	uint256 constant TWO_WEEKS = 1209600;
+	uint256 public constant TWO_WEEKS = 1209600;
 
 	/// @notice The maximum possible voting weight before adding +1 (actually 10, but need 9 for computation).
 	uint96 public constant MAX_VOTING_WEIGHT = 9;
@@ -36,19 +36,19 @@ contract StakingStorage is Ownable {
 	uint256 public constant MAX_DURATION = 1092 days;
 
 	/// @notice The maximum duration ^2
-	uint96 constant MAX_DURATION_POW_2 = 1092 * 1092;
+	uint96 public constant MAX_DURATION_POW_2 = 1092 * 1092;
 
 	/// @notice Default weight scaling.
-	uint96 constant DEFAULT_WEIGHT_SCALING = 3;
+	uint96 public constant DEFAULT_WEIGHT_SCALING = 3;
 
 	/// @notice Range for weight scaling.
-	uint96 constant MIN_WEIGHT_SCALING = 1;
-	uint96 constant MAX_WEIGHT_SCALING = 9;
+	uint96 public constant MIN_WEIGHT_SCALING = 1;
+	uint96 public constant MAX_WEIGHT_SCALING = 9;
 
 	/// @notice The timestamp of contract creation. Base for the staking period calculation.
 	uint256 public kickoffTS;
 
-	string name = "SOVStaking";
+	string public name = "SOVStaking";
 
 	/// @notice The token to be staked.
 	IERC20 public SOVToken;
@@ -57,7 +57,7 @@ contract StakingStorage is Ownable {
 	mapping(address => mapping(uint256 => address)) public delegates;
 
 	/// @notice If this flag is set to true, all tokens are unlocked immediately.
-	bool public allUnlocked = false;
+	bool public allUnlocked;
 
 	/// @notice The EIP-712 typehash for the contract's domain.
 	bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");

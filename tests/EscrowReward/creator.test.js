@@ -1,7 +1,30 @@
 // For this test, multisig wallet will be done by normal wallets.
 
+/** Speed optimized on branch hardhatTestRefactor, 2021-09-20
+ * No bottlenecks found, all tests run smoothly.
+ *
+ * Total time elapsed: 4.2s
+ * After optimization: 4.1s
+ *
+ * Other minor optimizations:
+ * - removed unneeded variables
+ *
+ * Notes: Moved mint, approval and init values to
+ *   before hook from two tests requiring SOV tokens.
+ * Unsuccessful attempt to use Waffle mock for LockedSOV:
+ *   Time improvement is zero.
+ *   Waffle mock doesn't support explicit signed calls, as required on this test set.
+ *     https://ethereum.stackexchange.com/questions/110270/how-to-mock-out-a-signed-transaction-w-waffle-mocks
+ */
+
 const EscrowReward = artifacts.require("EscrowReward");
-const LockedSOV = artifacts.require("LockedSOVMockup"); // Ideally should be using actual LockedSOV for testing.
+const LockedSOV = artifacts.require("LockedSOV"); // Ideally should be using actual LockedSOV for testing.
+const VestingLogic = artifacts.require("VestingLogic");
+const VestingFactory = artifacts.require("VestingFactory");
+const VestingRegistry = artifacts.require("VestingRegistry3");
+const StakingLogic = artifacts.require("Staking");
+const StakingProxy = artifacts.require("StakingProxy");
+const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const SOV = artifacts.require("TestToken");
 
 const {
@@ -9,14 +32,17 @@ const {
 	expectRevert,
 	constants, // Assertions for transactions that should fail.
 } = require("@openzeppelin/test-helpers");
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const { assert } = require("chai");
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
 let zeroAddress = constants.ZERO_ADDRESS;
+let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
+let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 const depositLimit = 75000000;
+
+let value;
 
 /**
  * Function to create a random value.
@@ -44,14 +70,35 @@ contract("Escrow Rewards (Creator Functions)", (accounts) => {
 
 	before("Initiating Accounts & Creating Test Token Instance.", async () => {
 		// Checking if we have enough accounts to test.
-		assert.isAtLeast(accounts.length, 9, "Alteast 9 accounts are required to test the contracts.");
+		assert.isAtLeast(accounts.length, 9, "At least 9 accounts are required to test the contracts.");
 		[creator, multisig, newMultisig, safeVault, userOne, userTwo, userThree, userFour, userFive] = accounts;
 
 		// Creating the instance of SOV Token.
 		sov = await SOV.new("Sovryn", "SOV", 18, zero);
 
-		// Creating the instance of LockedSOV Contract.
-		lockedSOV = await LockedSOV.new(sov.address, [multisig]);
+		// Creating the Staking Instance.
+		stakingLogic = await StakingLogic.new(sov.address);
+		staking = await StakingProxy.new(sov.address);
+		await staking.setImplementation(stakingLogic.address);
+		staking = await StakingLogic.at(staking.address);
+
+		// Creating the FeeSharing Instance.
+		feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);
+
+		// Creating the Vesting Instance.
+		vestingLogic = await VestingLogic.new();
+		vestingFactory = await VestingFactory.new(vestingLogic.address);
+		vestingRegistry = await VestingRegistry.new(
+			vestingFactory.address,
+			sov.address,
+			staking.address,
+			feeSharingProxy.address,
+			creator // This should be Governance Timelock Contract.
+		);
+		vestingFactory.transferOwnership(vestingRegistry.address);
+
+		// Creating the instance of newLockedSOV Contract.
+		lockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [multisig]);
 
 		// Creating the contract instance.
 		escrowReward = await EscrowReward.new(lockedSOV.address, sov.address, multisig, zero, depositLimit, { from: creator });
@@ -61,6 +108,11 @@ contract("Escrow Rewards (Creator Functions)", (accounts) => {
 
 		// Adding the contract as an admin in the lockedSOV.
 		await lockedSOV.addAdmin(escrowReward.address, { from: multisig });
+
+		/// @dev Minting, approval and test values calculation moved here for optimization
+		value = randomValue() + 1;
+		await sov.mint(creator, value * 2); // To be spent along 2 tests
+		await sov.approve(escrowReward.address, value * 2, { from: creator });
 	});
 
 	it("Creator should be able to create Escrow Contract without specifying the locked sov contract.", async () => {
@@ -101,17 +153,11 @@ contract("Escrow Rewards (Creator Functions)", (accounts) => {
 	});
 
 	it("Creator could deposit Tokens during Deposit State.", async () => {
-		let value = randomValue() + 1;
-		await sov.mint(creator, value);
-		await sov.approve(escrowReward.address, value, { from: creator });
 		await escrowReward.depositTokens(value, { from: creator });
 	});
 
 	it("Creator could not deposit Tokens during any other State other than Deposit.", async () => {
 		await escrowReward.changeStateToHolding({ from: multisig });
-		let value = randomValue() + 1;
-		await sov.mint(creator, value);
-		await sov.approve(escrowReward.address, value, { from: creator });
 
 		await expectRevert(escrowReward.depositTokens(value, { from: creator }), "The contract is not in the right state.");
 	});

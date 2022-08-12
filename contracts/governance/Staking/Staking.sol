@@ -116,8 +116,10 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 			/// @dev Update delegatee.
 			delegates[stakeFor][until] = delegatee;
 
-			/// @dev Decrease stake on previous balance for previous delegatee.
-			_decreaseDelegateStake(previousDelegatee, until, previousBalance);
+			if (previousDelegatee != address(0)) {
+				/// @dev Decrease stake on previous balance for previous delegatee.
+				_decreaseDelegateStake(previousDelegatee, until, previousBalance);
+			}
 
 			/// @dev Add previousBalance to amount.
 			amount = add96(previousBalance, amount, "balance overflow");
@@ -185,7 +187,7 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 	) internal {
 		/// @dev Retrieve the SOV tokens.
 		bool success = SOVToken.transferFrom(sender, address(this), amount);
-		require(success);
+		require(success, "transfer failed");
 
 		/// @dev Increase staked balance.
 		uint96 balance = currentBalance(stakeFor, until);
@@ -683,9 +685,10 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		uint256 latest = timestampToLockDate(block.timestamp + MAX_DURATION);
 
 		/// @dev Calculate stakes.
-		uint256 count = 0;
+		uint256 count;
+		uint256 kickOffTime = kickoffTS;
 		/// @dev We need to iterate from first possible stake date after deployment to the latest from current time.
-		for (uint256 i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
+		for (uint256 i = kickOffTime + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
 			if (currentBalance(account, i) > 0) {
 				count++;
 			}
@@ -694,8 +697,8 @@ contract Staking is IStaking, WeightedStaking, ApprovalReceiver {
 		stakes = new uint96[](count);
 
 		/// @dev We need to iterate from first possible stake date after deployment to the latest from current time.
-		uint256 j = 0;
-		for (uint256 i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
+		uint256 j;
+		for (uint256 i = kickOffTime + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
 			uint96 balance = currentBalance(account, i);
 			if (balance > 0) {
 				dates[j] = i;

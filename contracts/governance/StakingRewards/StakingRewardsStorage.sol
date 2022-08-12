@@ -48,4 +48,21 @@ contract StakingRewardsStorage is Ownable {
 
 	/// @notice Represents the block when the StakingRwards Program is started
 	uint256 public deploymentBlock;
+
+	/// Moved the variables from Initializable contract to resolve issue caused by incorrect Inheritance Order
+	/**
+	 * @dev Indicates that the contract has been initialized.
+	 */
+	bool private _initialized;
+
+	/**
+	 * @dev Indicates that the contract is in the process of being initialized.
+	 */
+	bool private _initializing;
+
+	/// @notice BlockTime -> BlockNumber for a Staking Checkpoint
+	mapping(uint256 => uint256) public checkpointBlockDetails;
+
+	/// @notice Average Block Time - making it flexible
+	uint256 public averageBlockTime;
 }

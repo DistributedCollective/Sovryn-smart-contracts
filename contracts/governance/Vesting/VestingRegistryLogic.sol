@@ -113,7 +113,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 		uint256 _amount,
 		uint256 _cliff,
 		uint256 _duration
-	) external onlyAuthorized {
+	) external {
 		createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 3);
 	}
 
@@ -295,7 +295,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 	/**
 	 * @notice returns cliff and duration for Vesting & TeamVesting contracts
 	 */
-	function getVestingDetails(address _vestingAddress) external view returns (uint256 cliff, uint256 duration) {
+	function getVestingDetails(address _vestingAddress) external view returns (uint256, uint256) {
 		VestingLogic vesting = VestingLogic(_vestingAddress);
 		return (vesting.cliff(), vesting.duration());
 	}
@@ -303,7 +303,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 	/**
 	 * @notice returns if the address is a vesting address
 	 */
-	function isVestingAdress(address _vestingAddress) external view returns (bool isVestingAddr) {
+	function isVestingAdress(address _vestingAddress) external view returns (bool) {
 		return isVesting[_vestingAddress];
 	}
 }
