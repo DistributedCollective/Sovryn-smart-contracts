@@ -599,7 +599,7 @@ Each lender has 2 balances on the iToken contract. The balance of iTokens (e.g. 
 
 The loan token (iToken) contract as well as the protocol contract act as proxies, delegating all calls to underlying contracts. Therefore, if you want to interact with them using web3, you need to use the ABIs from the contracts containing the actual logic or the interface contract.
 
-ABI for `LoanToken` contracts: `LoanTokenLogicStandard`
+ABI for `LoanToken` contracts: `LoanTokenLogicLM` (if the underlying asset is any but RBTC) and `LoanTokenLogicWrbtc` (if the underlying asset is RBTC)
 
 ABI for `Protocol` contract: `ISovryn`
 
@@ -636,6 +636,12 @@ The protocol can withdraw SOV tokens using `sovryn.withdrawProtocolToken()` from
 ## UML
 
 ![UML Diagram](UML.svg)
+
+## Hardhat mainnet forking
+
+Out of the box, Hardhat's [mainnet forking mode](https://hardhat.org/hardhat-network/guides/mainnet-forking) does
+not work with RSK. This package uses `patch-package` to patch the installed version of Hardhat to enable support for
+forking from RSK. For more details, see [HARDHAT_FORKING.md](HARDHAT_FORKING.md).
 
 ## Contributing
 

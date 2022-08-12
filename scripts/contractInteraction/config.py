@@ -3,7 +3,6 @@ from brownie.network.contract import InterfaceContainer
 import json
 from os import environ
 
-
 def loadConfig():
     global contracts, acct
     thisNetwork = network.show_active()
@@ -13,6 +12,10 @@ def loadConfig():
             './scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
+        configFile = open(
+            './scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-dev":
+        acct = accounts.load("rskdeployerdev")
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet-ws":
@@ -36,7 +39,25 @@ def loadConfig():
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-pub":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
+        acct = accounts.load("rskdeployer")
+        configFile = open(
+            './scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet2":
+        acct = accounts.load("rskdeployer")
+        configFile = open(
+            './scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-ws":
+        acct = accounts.load("rskdeployer")
+        configFile = open(
+            './scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-websocket":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet2-ws":
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/mainnet_contracts.json')
@@ -47,3 +68,6 @@ def loadConfig():
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
+
+
+loadConfig()

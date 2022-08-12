@@ -281,3 +281,65 @@ def setOracleOnV1Converter(converterAddress, oracleAddress):
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'], converterContract.address, data, conf.acct)
+
+def printV1ConverterData(converterAddress): #, reserve1, reserve2
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json')
+    abiLPv1Converter = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV1Converter", address=converterAddress, abi=abiLPv1Converter, owner=conf.acct)
+    anchor = converter.anchor()
+    poolToken = Contract.from_abi("Token", address=anchor, abi=TestToken.abi, owner=conf.acct)
+    print("")
+    converterType = converter.converterType()
+    print('converter',poolToken.symbol(),"type", converterType,":", converterAddress)
+    if(converterType == 1):
+        try:
+            print('oracle:', converter.oracle())
+        except:
+            print('NO ORACLE!')
+    print('converter.reserveRatio():', converter.reserveRatio())
+    print('amm converter pool token (anchor):', anchor)
+    print('reserve token: (balance, weight, deprecated1, deprecated2, isSet)')
+    for i in range(0, 2):
+        reserveTokenAddress = converter.reserveTokens(i)
+        try:
+            reserveToken = Contract.from_abi("Token", address=reserveTokenAddress, abi=TestToken.abi, owner=conf.acct)
+            print('reserve token ',i,': ',reserveToken.symbol(),', address:', reserveTokenAddress, converter.reserves(reserveTokenAddress))
+        except:
+            print("Error when printing reserve token",i,reserveTokenAddress)
+
+def printConverterRegistryData():
+    abiFile =  open('./scripts/contractInteraction/ABIs/ConverterRegistry.json')
+    abi = json.load(abiFile)
+    converterRegistry = Contract.from_abi("ConverterRegistry", address=conf.contracts["ConverterRegistry"], abi=abi, owner=conf.acct)
+    anchors = converterRegistry.getAnchors()
+    converters = converterRegistry.getConvertersByAnchors(anchors)
+    print("\n", "======= ALL CONVERTERS DATA =======", "\n")
+    print("converters:", converters)
+    print("")
+    print("anchors (pool tokens):", anchors)
+    print("")
+    print("converters qty:", len(converters))
+    for i in range (0, len(converters)):
+        printV1ConverterData(converters[i])
+
+def removeLiquidityV2toMultisig(converter, poolToken, amount, minReturn):
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV2Converter", address=converter, abi=abi, owner=conf.acct)
+    print("is active? ", converter.isActive())
+    print("price oracle", converter.priceOracle())
+    data = converter.removeLiquidity.encode_input(poolToken, amount, minReturn)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], converter.address, data, conf.acct)
+
+def getReturnForV2PoolToken(converter, poolToken, amount):
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')
+    abi = json.load(abiFile)
+    converter = Contract.from_abi("LiquidityPoolV2Converter", address=converter, abi=abi, owner=conf.acct)
+    print(converter.removeLiquidityReturnAndFee(poolToken, amount))
+
+def withdrawFromRBTCWrapperProxy(tokenAddress, to, amount):
+    abiFile =  open('./scripts/contractInteraction/ABIs/RBTCWrapperProxy.json')
+    abi = json.load(abiFile)
+    wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=conf.contracts['RBTCWrapperProxy'], abi=abi, owner=conf.acct)
+    wrapperProxy.withdraw(tokenAddress, to, amount)

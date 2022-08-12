@@ -6,8 +6,6 @@ import copy
 from scripts.utils import *
 import scripts.contractInteraction.config as conf
 
-conf.loadConfig()
-
 
 def isProtocolPaused():
     sovryn = Contract.from_abi(
@@ -26,7 +24,16 @@ def readLendingFee():
 def readLoan(loanId):
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    loan = sovryn.getLoan(loanId).dict()
+    print('--------------------------------')
+    print('loan ID:', loan['loanId'])
+    print('principal:', loan['principal'] /1e18)
+    print('collateral:', loan['collateral']/1e18)
+    print('currentMargin', loan['currentMargin']/1e18)
+    print('complete object:')
     print(sovryn.getLoan(loanId).dict())
+    print('--------------------------------')
+    
 
 
 def liquidate(protocolAddress, loanId):
@@ -582,12 +589,6 @@ def setTradingRebateRewardsBasisPoint(basisPoint):
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
-
-def upgradeStaking():
-    print('Deploying account:', conf.acct.address)
-    print("Upgrading staking")
-
-
 def pauseProtocolModules():
     print("Pause Protocol Modules")
     sovryn = Contract.from_abi(
@@ -634,9 +635,72 @@ def readRolloverReward():
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     print(sovryn.rolloverBaseReward())
 
+def withdrawWRBTCFromFeeSharingProxyToProtocol(amount):
+    receiver = conf.contracts['sovrynProtocol']
+    feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
+    wrbtc = Contract.from_abi("WRBTC", address=conf.contracts['WRBTC'], abi=ERC20.abi, owner=conf.acct)
+    print("=============================================================")
+    print('withdrawWRBTCFromFeeSharingProxyToProtocol')
+    print("FeeSharingProxy WRBTC balance:  ", wrbtc.balanceOf(conf.contracts['FeeSharingProxy']))
+    print("receiver:                       ", receiver)
+    print("amount to withdraw:             ", amount)
+    print("=============================================================")
+    withdrawWRBTCFromFeeSharingProxy(receiver, amount)
+
 def withdrawWRBTCFromFeeSharingProxy(receiver, amount):
     feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
     data = feeSharingProxy.withdrawWRBTC.encode_input(receiver, amount)
-
     print(data)
     sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+
+def setRolloverFlexFeePercent(rolloverFlexFeePercentage):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setRolloverFlexFeePercent.encode_input(rolloverFlexFeePercentage)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+def setRolloverBaseReward(baseReward):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setRolloverBaseReward.encode_input(baseReward)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+def depositCollateral(loanId,depositAmount, tokenAddress):
+    token = Contract.from_abi("TestToken", address = tokenAddress, abi = TestToken.abi, owner = conf.acct)
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    if(token.allowance(conf.acct, sovryn.address) < depositAmount):
+        token.approve(sovryn.address, depositAmount)
+    sovryn.depositCollateral(loanId,depositAmount)
+
+def setDefaultPathConversion(sourceTokenAddress, destTokenAddress, defaultPath):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setDefaultPathConversion.encode_input(defaultPath)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+def removeDefaultPathConversion(sourceTokenAddress, destTokenAddress):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.removeDefaultPathConversion.encode_input(sourceTokenAddress, destTokenAddress)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+def readDefaultPathConversion(sourceTokenAddress, destTokenAddress):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    defaultPathConversion = sovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress)
+    print(defaultPathConversion)
+    return defaultPathConversion
+
+# Transferring Ownership to GOV
+def transferProtocolOwnershipToGovernance():
+    print("Transferring sovryn protocol ownserhip to: ", conf.contracts['TimelockOwner'])
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+

@@ -96,6 +96,8 @@ def addBRZtoken():
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId)
 
+# step 1: update the allocation points. any pool which should not get rewards is set to 1
+# step 2: adjust the input for the update call to contain the allocation points which change. this always includes the Liqudity Mining Config Token
 def updateLMConfig():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
@@ -104,35 +106,36 @@ def updateLMConfig():
     # SOV/rBTC - 30k SOV
     ALLOCATION_POINT_BTC_SOV = 30000 # (WR)BTC/SOV
     # ETH/rBTC - 15k SOV
-    ALLOCATION_POINT_BTC_ETH = 15000 # (WR)BTC/ETH
+    ALLOCATION_POINT_BTC_ETH = 5000 # (WR)BTC/ETH
     # xUSD/rBTC - 15k SOV
-    ALLOCATION_POINT_BTC_XUSD = 15000 # (WR)BTC/XUSD
+    ALLOCATION_POINT_BTC_XUSD = 25000 # (WR)BTC/XUSD
     # BNB/rBTC - 15k SOV
-    ALLOCATION_POINT_BTC_BNB = 15000 # (WR)BTC/BNB
+    ALLOCATION_POINT_BTC_BNB = 1 # (WR)BTC/BNB
 
-    ALLOCATION_POINT_I_XUSD = 15000 # iXUSD
+    ALLOCATION_POINT_I_XUSD = 2500 # iXUSD
 
-    ALLOCATION_POINT_BTC_MYNT = 15000 # (WR)BTC/MYNT
+    ALLOCATION_POINT_BTC_MYNT = 5000 # (WR)BTC/MYNT
 
-    ALLOCATION_POINT_DEFAULT = 1 # (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC
+    ALLOCATION_POINT_DEFAULT = 1 # (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF
     ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_ETH - ALLOCATION_POINT_BTC_XUSD \
                                     - ALLOCATION_POINT_BTC_BNB - ALLOCATION_POINT_I_XUSD -ALLOCATION_POINT_BTC_MYNT - ALLOCATION_POINT_DEFAULT * 9
 
-    print("ALLOCATION_POINT_BTC_SOV: ", ALLOCATION_POINT_BTC_SOV)
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
 
-    print(lm.getPoolInfo(contracts['(WR)BTC/MYNT']))
-    print(lm.getPoolInfo(contracts['LiquidityMiningConfigToken']))
+    print('LiquidityMiningConfigToken:', lm.getPoolInfo(contracts['LiquidityMiningConfigToken']))
+    print('iXUSD:',lm.getPoolInfo(contracts['iXUSD']))
 
-    # data = lm.update.encode_input(contracts['(WR)BTC/MYNT'],ALLOCATION_POINT_BTC_MYNT,True)
-    # tx = multisig.submitTransaction(lm.address,0,data)
-    # txId = tx.events["Submission"]["transactionId"]
-    # print("txid",txId)
-    #
-    # data = lm.update.encode_input(contracts['LiquidityMiningConfigToken'],ALLOCATION_POINT_CONFIG_TOKEN,True)
-    # tx = multisig.submitTransaction(lm.address,0,data)
-    # txId = tx.events["Submission"]["transactionId"]
-    # print("txid",txId)
+    #update this before executing
+    data = lm.updateTokens.encode_input(
+        [contracts['iXUSD'], contracts['LiquidityMiningConfigToken']],
+        [ALLOCATION_POINT_I_XUSD, ALLOCATION_POINT_CONFIG_TOKEN],
+        True
+    )
+    tx = multisig.submitTransaction(lm.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
+
 
 def check():
     liquidityMining = Contract.from_abi("LiquidityMining", address=contracts['LiquidityMiningProxy'], abi=LiquidityMining.abi, owner=acct)

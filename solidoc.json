@@ -1,0 +1,10 @@
+{
+    "pathToRoot": "./",
+    "outputPath": "docs",
+    "buildFolder": "build/contracts",
+    "noCompilation": true,
+    "compiler": "truffle compile",
+    "language": "en",
+    "ignoreFiles": ["**/*test*.json", "**/*[T|t]est*.json", "**/*[M|m]ock*.json"],
+    "readme": "docs"
+}

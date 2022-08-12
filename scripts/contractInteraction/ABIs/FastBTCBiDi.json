@@ -1,0 +1,1108 @@
+[
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "accessControl",
+                "type": "address"
+            },
+            {
+                "internalType": "contract IBTCAddressValidator",
+                "name": "newBtcAddressValidator",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "bitcoinTxHash",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint8",
+                "name": "transferBatchSize",
+                "type": "uint8"
+            }
+        ],
+        "name": "BitcoinTransferBatchSending",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "baseFeeSatoshi",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dynamicFee",
+                "type": "uint256"
+            }
+        ],
+        "name": "BitcoinTransferFeeChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "transferId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "enum FastBTCBridge.BitcoinTransferStatus",
+                "name": "newStatus",
+                "type": "uint8"
+            }
+        ],
+        "name": "BitcoinTransferStatusUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "Frozen",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "transferId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "btcAddress",
+                "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "nonce",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amountSatoshi",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "feeSatoshi",
+                "type": "uint256"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "rskAddress",
+                "type": "address"
+            }
+        ],
+        "name": "NewBitcoinTransfer",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "Paused",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "Unfrozen",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "Unpaused",
+        "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "DYNAMIC_FEE_DIVISOR",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "MAXIMUM_VALID_NONCE",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "MAX_BASE_FEE_SATOSHI",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "SATOSHI_DIVISOR",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "accessControl",
+        "outputs": [
+            {
+                "internalType": "contract IFastBTCAccessControl",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "feeStructureIndex",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "newBaseFeeSatoshi",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "newDynamicFee",
+                "type": "uint256"
+            }
+        ],
+        "name": "addFeeStructure",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "baseFeeSatoshi",
+        "outputs": [
+            {
+                "internalType": "uint32",
+                "name": "",
+                "type": "uint32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "btcAddressValidator",
+        "outputs": [
+            {
+                "internalType": "contract IBTCAddressValidator",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amountSatoshi",
+                "type": "uint256"
+            }
+        ],
+        "name": "calculateCurrentFeeSatoshi",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amountWei",
+                "type": "uint256"
+            }
+        ],
+        "name": "calculateCurrentFeeWei",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "currentFeeStructureIndex",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes",
+                "name": "userData",
+                "type": "bytes"
+            }
+        ],
+        "name": "decodeBridgeUserData",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "rskAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "btcAddress",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "dynamicFee",
+        "outputs": [
+            {
+                "internalType": "uint16",
+                "name": "",
+                "type": "uint16"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "rskAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "btcAddress",
+                "type": "string"
+            }
+        ],
+        "name": "encodeBridgeUserData",
+        "outputs": [
+            {
+                "internalType": "bytes",
+                "name": "userData",
+                "type": "bytes"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "federators",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "addresses",
+                "type": "address[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "feeStructures",
+        "outputs": [
+            {
+                "internalType": "uint32",
+                "name": "baseFeeSatoshi",
+                "type": "uint32"
+            },
+            {
+                "internalType": "uint16",
+                "name": "dynamicFee",
+                "type": "uint16"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "freeze",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "frozen",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "btcAddress",
+                "type": "string"
+            }
+        ],
+        "name": "getNextNonce",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "btcAddress",
+                "type": "string"
+            },
+            {
+                "internalType": "uint8",
+                "name": "nonce",
+                "type": "uint8"
+            }
+        ],
+        "name": "getTransfer",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "rskAddress",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "enum FastBTCBridge.BitcoinTransferStatus",
+                        "name": "status",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "nonce",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "feeStructureIndex",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "blockNumber",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint40",
+                        "name": "totalAmountSatoshi",
+                        "type": "uint40"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "btcAddress",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct FastBTCBridge.BitcoinTransfer",
+                "name": "transfer",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32[]",
+                "name": "transferIds",
+                "type": "bytes32[]"
+            },
+            {
+                "internalType": "enum FastBTCBridge.BitcoinTransferStatus",
+                "name": "newStatus",
+                "type": "uint8"
+            }
+        ],
+        "name": "getTransferBatchUpdateHash",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "bitcoinTxHash",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32[]",
+                "name": "transferIds",
+                "type": "bytes32[]"
+            },
+            {
+                "internalType": "enum FastBTCBridge.BitcoinTransferStatus",
+                "name": "newStatus",
+                "type": "uint8"
+            }
+        ],
+        "name": "getTransferBatchUpdateHashWithTxHash",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "transferId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getTransferByTransferId",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "rskAddress",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "enum FastBTCBridge.BitcoinTransferStatus",
+                        "name": "status",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "nonce",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "feeStructureIndex",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "blockNumber",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint40",
+                        "name": "totalAmountSatoshi",
+                        "type": "uint40"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "btcAddress",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct FastBTCBridge.BitcoinTransfer",
+                "name": "transfer",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "btcAddress",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "nonce",
+                "type": "uint256"
+            }
+        ],
+        "name": "getTransferId",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string[]",
+                "name": "btcAddresses",
+                "type": "string[]"
+            },
+            {
+                "internalType": "uint8[]",
+                "name": "nonces",
+                "type": "uint8[]"
+            }
+        ],
+        "name": "getTransfers",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "rskAddress",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "enum FastBTCBridge.BitcoinTransferStatus",
+                        "name": "status",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "nonce",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "feeStructureIndex",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "blockNumber",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint40",
+                        "name": "totalAmountSatoshi",
+                        "type": "uint40"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "btcAddress",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct FastBTCBridge.BitcoinTransfer[]",
+                "name": "ret",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32[]",
+                "name": "transferIds",
+                "type": "bytes32[]"
+            }
+        ],
+        "name": "getTransfersByTransferId",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "rskAddress",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "enum FastBTCBridge.BitcoinTransferStatus",
+                        "name": "status",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "nonce",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "feeStructureIndex",
+                        "type": "uint8"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "blockNumber",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint40",
+                        "name": "totalAmountSatoshi",
+                        "type": "uint40"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "btcAddress",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct FastBTCBridge.BitcoinTransfer[]",
+                "name": "ret",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "btcAddress",
+                "type": "string"
+            }
+        ],
+        "name": "isValidBtcAddress",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32[]",
+                "name": "transferIds",
+                "type": "bytes32[]"
+            },
+            {
+                "internalType": "bytes[]",
+                "name": "signatures",
+                "type": "bytes[]"
+            }
+        ],
+        "name": "markTransfersAsMined",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "bitcoinTxHash",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32[]",
+                "name": "transferIds",
+                "type": "bytes32[]"
+            },
+            {
+                "internalType": "bytes[]",
+                "name": "signatures",
+                "type": "bytes[]"
+            }
+        ],
+        "name": "markTransfersAsSending",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "maxTransferSatoshi",
+        "outputs": [
+            {
+                "internalType": "uint40",
+                "name": "",
+                "type": "uint40"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "minTransferSatoshi",
+        "outputs": [
+            {
+                "internalType": "uint40",
+                "name": "",
+                "type": "uint40"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "name": "nextNonces",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "pause",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "paused",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes",
+                "name": "userData",
+                "type": "bytes"
+            }
+        ],
+        "name": "receiveEthFromBridge",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32[]",
+                "name": "transferIds",
+                "type": "bytes32[]"
+            },
+            {
+                "internalType": "bytes[]",
+                "name": "signatures",
+                "type": "bytes[]"
+            }
+        ],
+        "name": "refundTransfers",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IBTCAddressValidator",
+                "name": "newBtcAddressValidator",
+                "type": "address"
+            }
+        ],
+        "name": "setBtcAddressValidator",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "feeStructureIndex",
+                "type": "uint256"
+            }
+        ],
+        "name": "setCurrentFeeStructure",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "newMaxTransferSatoshi",
+                "type": "uint256"
+            }
+        ],
+        "name": "setMaxTransferSatoshi",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "newMinTransferSatoshi",
+                "type": "uint256"
+            }
+        ],
+        "name": "setMinTransferSatoshi",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "btcAddress",
+                "type": "string"
+            }
+        ],
+        "name": "transferToBtc",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "transfers",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "rskAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "enum FastBTCBridge.BitcoinTransferStatus",
+                "name": "status",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint8",
+                "name": "nonce",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint8",
+                "name": "feeStructureIndex",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint32",
+                "name": "blockNumber",
+                "type": "uint32"
+            },
+            {
+                "internalType": "uint40",
+                "name": "totalAmountSatoshi",
+                "type": "uint40"
+            },
+            {
+                "internalType": "string",
+                "name": "btcAddress",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "unfreeze",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "unpause",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address payable",
+                "name": "receiver",
+                "type": "address"
+            }
+        ],
+        "name": "withdrawRbtc",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IERC20",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "receiver",
+                "type": "address"
+            }
+        ],
+        "name": "withdrawTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]

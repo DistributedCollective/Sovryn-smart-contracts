@@ -11,14 +11,17 @@ import "../../proxy/UpgradableProxy.sol";
  * the possibility of being enhanced and re-deployed.
  * */
 contract FeeSharingProxy is FeeSharingProxyStorage, UpgradableProxy {
-	/**
-	 * @notice Construct a new feeSharingProxy contract.
-	 * @param _protocol The address of the sovryn protocol.
-	 * @param _staking The address of the staking
-	 */
-	constructor(IProtocol _protocol, IStaking _staking) public {
-		require(address(_protocol) != address(0) && address(_staking) != address(0), "ERR_ZERO_ADDRESS");
-		protocol = _protocol;
-		staking = _staking;
-	}
+    /**
+     * @notice Construct a new feeSharingProxy contract.
+     * @param _protocol The address of the sovryn protocol.
+     * @param _staking The address of the staking
+     */
+    constructor(IProtocol _protocol, IStaking _staking) public {
+        require(
+            address(_protocol) != address(0) && address(_staking) != address(0),
+            "ERR_ZERO_ADDRESS"
+        );
+        protocol = _protocol;
+        staking = _staking;
+    }
 }
