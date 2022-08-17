@@ -1122,8 +1122,7 @@ contract("Vesting", (accounts) => {
             const previousStake = await staking.getPriorUserStakeByDate(
                 vesting.address,
                 skippedIterations,
-                currentBlockNumber - 1,
-                false
+                currentBlockNumber - 1
             );
             expect(previousStake).to.be.bignumber.to.greaterThan(new BN(1));
 
@@ -1157,8 +1156,7 @@ contract("Vesting", (accounts) => {
                 const latestStake = await staking.getPriorUserStakeByDate(
                     vesting.address,
                     i,
-                    currentBlockNumber - 1,
-                    false
+                    currentBlockNumber - 1
                 );
                 expect(latestStake.toString()).to.equal("1");
             }
@@ -1244,11 +1242,6 @@ contract("Vesting", (accounts) => {
                 from: a1,
             });
 
-            expectEvent(tx, "VestingTokensWithdrawn", {
-                vesting: vesting.address,
-                receiver: root,
-            });
-
             const getStartDate = vesting.startDate();
             const getCliff = vesting.cliff();
             const getMaxIterations = staking.getMaxVestingWithdrawIterations();
@@ -1290,6 +1283,19 @@ contract("Vesting", (accounts) => {
 
             let vestingBalance = await staking.balanceOf(vesting.address);
             expect(vestingBalance).to.be.bignumber.equal(new BN(0));
+
+            /// should emit token withdrawn event for complete withdrawal
+            const end = vesting.endDate();
+            tx = await staking.governanceDirectWithdrawVesting(
+                vesting.address,
+                root,
+                new BN(end.toString()).add(new BN(FOUR_WEEKS))
+            );
+
+            expectEvent(tx, "TokensWithdrawn", {
+                caller: root,
+                receiver: root,
+            });
         });
     });
 

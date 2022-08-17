@@ -54,8 +54,7 @@ interface IStaking {
     function getPriorUserStakeByDate(
         address account,
         uint256 date,
-        uint256 blockNumber,
-        bool isDirectGovernanceWithdraw
+        uint256 blockNumber
     ) external view returns (uint96);
 
     function governanceWithdraw(

@@ -382,19 +382,17 @@ contract WeightedStaking is Checkpoints {
      * @param account The address of the account to check.
      * @param date The lock date.
      * @param blockNumber The block number to get the vote balance at.
-     * @param isDirectGovernanceWithdraw Flag for direct governance withdrawal.
      * @return The number of votes the account had as of the given block.
      * */
     function getPriorUserStakeByDate(
         address account,
         uint256 date,
-        uint256 blockNumber,
-        bool isDirectGovernanceWithdraw
+        uint256 blockNumber
     ) public view returns (uint96) {
         uint96 priorStake = _getPriorUserStakeByDate(account, date, blockNumber);
         // @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
         //		return 1 instead of 0 if message sender is a contract.
-        if (priorStake == 0 && (isVestingContract(msg.sender) || isDirectGovernanceWithdraw)) {
+        if (priorStake == 0 && isVestingContract(msg.sender)) {
             priorStake = 1;
         }
         return priorStake;

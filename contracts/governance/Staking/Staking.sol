@@ -303,6 +303,13 @@ contract Staking is
      * @param until The date until which the tokens were staked.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
      * @param vestingConfig The vesting config.
+     * @dev VestingConfig struct intended to avoid stack too deep issue, and it contains this properties:
+        address vestingAddress; // vesting contract address
+        uint256 startDate; //start date of vesting
+        uint256 endDate; // end date of vesting
+        uint256 cliff; // cliff. After this time period the tokens begin to unlock.
+        uint256 duration; // The duration. After this period all tokens will have been unlocked.
+        address tokenOwner; // The owner of the vested tokens.
      * @dev Only used to governance direct withdrawal.
      * */
     function _governanceWithdrawDirect(
@@ -334,8 +341,6 @@ contract Staking is
         uint256 startFrom
     ) external onlyAuthorized whenNotFrozen {
         _governanceDirectWithdrawVesting(vesting, receiver, startFrom);
-
-        emit VestingTokensWithdrawn(vesting, receiver, startFrom);
     }
 
     /**
@@ -388,12 +393,14 @@ contract Staking is
         ///		workaround found, but it doesn't work with TWO_WEEKS
         for (uint256 i = _startFrom; i < adjustedEnd; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
-            tempStake = getPriorUserStakeByDate(_vesting, i, block.number - 1, true);
+            tempStake = _getPriorUserStakeByDate(_vesting, i, block.number - 1);
 
-            /// @dev Withdraw if > 0
-            if (tempStake > 0) {
-                _governanceWithdrawDirect(tempStake, i, _receiver, vestingConfig);
+            // We need to execute _withdrawNext(until, receiver, false); even if stake for _withdraw(amount, until, receiver, false); is zero.
+            if (tempStake == 0) {
+                tempStake = 1;
             }
+
+            _governanceWithdrawDirect(tempStake, i, _receiver, vestingConfig);
         }
 
         if (adjustedEnd < end) {
@@ -474,6 +481,13 @@ contract Staking is
      * @param until The date until which the tokens were staked.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender.
      * @param vestingConfig The vesting config.
+     * @dev VestingConfig struct intended to avoid stack too deep issue, and it contains this properties:
+        address vestingAddress; // vesting contract address
+        uint256 startDate; //start date of vesting
+        uint256 endDate; // end date of vesting
+        uint256 cliff; // cliff. After this time period the tokens begin to unlock.
+        uint256 duration; // The duration. After this period all tokens will have been unlocked.
+        address tokenOwner; // The owner of the vested tokens.
      * */
     function _withdrawDirect(
         uint96 amount,

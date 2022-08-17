@@ -349,7 +349,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         /// time and hence we use extendDurationFor.
         for (uint256 i = startFrom; i <= end; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
-            stake = staking.getPriorUserStakeByDate(address(this), i, block.number.sub(1), false);
+            stake = staking.getPriorUserStakeByDate(address(this), i, block.number.sub(1));
 
             /// @dev Withdraw if > 0
             if (stake > 0) {

@@ -16,7 +16,7 @@ import "./VestingStorage.sol";
  *
  * In the previous version, there is public functions that is removed:
  * governanceWithdrawTokens(address _receiver)
- * We removed this because we changed the flow for governance vesting withdrawal from Staking -> Vesting -> Staking, into directly frorm staking.
+ * We removed this because we changed the flow for governance vesting withdrawal from Staking -> Vesting -> Staking, into directly from staking.
  * */
 contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
     /* Events */
@@ -176,7 +176,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         ///		workaround found, but it doesn't work with TWO_WEEKS
         for (uint256 i = _startFrom; i < adjustedEnd; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
-            stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1, false);
+            stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
 
             /// @dev Withdraw if > 0
             if (stake > 0) {

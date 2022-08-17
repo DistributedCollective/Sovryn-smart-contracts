@@ -451,11 +451,6 @@ contract("Staking", (accounts) => {
                 from: account1,
             });
 
-            expectEvent(tx, "VestingTokensWithdrawn", {
-                vesting: vesting.address,
-                receiver: root,
-            });
-
             const getStartDate = vesting.startDate();
             const getCliff = vesting.cliff();
             const getMaxIterations = staking.getMaxVestingWithdrawIterations();
@@ -497,6 +492,19 @@ contract("Staking", (accounts) => {
 
             let vestingBalance = await staking.balanceOf(vesting.address);
             expect(vestingBalance).to.be.bignumber.equal(new BN(0));
+
+            /// should emit token withdrawn event for complete withdrawal
+            const end = vesting.endDate();
+            tx = await staking.governanceDirectWithdrawVesting(
+                vesting.address,
+                root,
+                new BN(end.toString()).add(new BN(FOUR_WEEKS))
+            );
+
+            expectEvent(tx, "TokensWithdrawn", {
+                caller: root,
+                receiver: root,
+            });
         });
     });
 
