@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./Staking/SafeMath96.sol";
 import "./Timelock.sol";
-import "./Staking/Staking.sol";
+import "./Staking/interfaces/IStaking.sol";
 import "../rsk/RSKAddrValidator.sol";
 
 /**

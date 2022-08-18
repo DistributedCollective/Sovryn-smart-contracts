@@ -3,7 +3,6 @@ pragma experimental ABIEncoderV2;
 
 import "../../../openzeppelin/Ownable.sol";
 import "../../../interfaces/IERC20.sol";
-import "../../Staking/Staking.sol";
 import "../../IFeeSharingProxy.sol";
 import "../../ApprovalReceiver.sol";
 import "./FourYearVestingStorage.sol";
@@ -48,7 +47,7 @@ contract FourYearVesting is FourYearVestingStorage, UpgradableProxy {
 
         _setImplementation(_logic);
         SOV = IERC20(_SOV);
-        staking = Staking(_stakingAddress);
+        staking = IStaking(_stakingAddress);
         tokenOwner = _tokenOwner;
         feeSharingProxy = IFeeSharingProxy(_feeSharingProxy);
         maxInterval = 18 * FOUR_WEEKS;

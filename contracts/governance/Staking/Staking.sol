@@ -9,6 +9,8 @@ import "../Vesting/IVesting.sol";
 import "../ApprovalReceiver.sol"; //uncomment when refactoring
 import "../../openzeppelin/SafeMath.sol";
 
+//TODO: remove after Staking EIP-170 refactored deployed
+
 /**
  * @title Staking contract.
  * @notice Pay-in and pay-out function for staking and withdrawing tokens.

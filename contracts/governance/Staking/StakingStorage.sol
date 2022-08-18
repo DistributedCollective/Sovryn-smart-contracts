@@ -7,6 +7,8 @@ import "../IFeeSharingProxy.sol";
 import "../Vesting/IVestingRegistry.sol";
 import "../Staking/interfaces/IStaking.sol";
 
+//TODO: remove after Staking EIP-170 refactored deployed
+
 /**
  * @title Staking Storage contact.
  * @notice Just the storage part of stacking contract, no functions,
