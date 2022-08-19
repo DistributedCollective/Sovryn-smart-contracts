@@ -23,7 +23,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 
     event TokensStaked(address indexed caller, uint256 amount);
     event VotesDelegated(address indexed caller, address delegatee);
-    event TokensWithdrawn(address indexed caller, address receiver);
+    event GovernanceWithdrawVesting(address indexed caller, address receiver);
     event DividendsCollected(
         address indexed caller,
         address loanPoolToken,
@@ -31,7 +31,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         uint32 maxCheckpoints
     );
     event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
-    event IncompleteWithdrawTokens(
+    event IncompleteGovernanceWithdrawVesting(
         address indexed caller,
         address receiver,
         uint256 lastProcessedDate
@@ -124,7 +124,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * forwards them to an address specified by the token owner.
      * @param _receiver The receiving address.
      * */
-    function withdrawTokens(address _receiver) public onlyOwners {
+    function withdrawTokens(address _receiver) external onlyOwners {
         _withdrawTokens(_receiver, 0);
     }
 
@@ -135,7 +135,10 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @param _receiver The receiving address.
      * @param  _startFrom The start value for the iterations.
      * */
-    function withdrawTokensStartingFrom(address _receiver, uint256 _startFrom) public onlyOwners {
+    function withdrawTokensStartingFrom(address _receiver, uint256 _startFrom)
+        external
+        onlyOwners
+    {
         _withdrawTokens(_receiver, _startFrom);
     }
 
@@ -185,9 +188,13 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         }
 
         if (adjustedEnd < end) {
-            emit IncompleteWithdrawTokens(msg.sender, _receiver, adjustedEnd - FOUR_WEEKS);
+            emit IncompleteGovernanceWithdrawVesting(
+                msg.sender,
+                _receiver,
+                adjustedEnd - FOUR_WEEKS
+            );
         } else {
-            emit TokensWithdrawn(msg.sender, _receiver);
+            emit GovernanceWithdrawVesting(msg.sender, _receiver);
         }
     }
 

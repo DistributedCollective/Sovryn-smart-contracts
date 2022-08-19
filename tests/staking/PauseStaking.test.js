@@ -465,7 +465,7 @@ contract("Staking", (accounts) => {
             const decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
                 StakingMockup,
-                "IncompleteGovernanceWithdrawTokens"
+                "IncompleteGovernanceWithdrawVesting"
             )[0].args;
             // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
@@ -501,7 +501,7 @@ contract("Staking", (accounts) => {
                 new BN(end.toString()).add(new BN(FOUR_WEEKS))
             );
 
-            expectEvent(tx, "TokensWithdrawn", {
+            expectEvent(tx, "GovernanceWithdrawVesting", {
                 caller: root,
                 receiver: root,
             });

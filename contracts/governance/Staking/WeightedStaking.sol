@@ -388,7 +388,7 @@ contract WeightedStaking is Checkpoints {
         address account,
         uint256 date,
         uint256 blockNumber
-    ) public view returns (uint96) {
+    ) external view returns (uint96) {
         uint96 priorStake = _getPriorUserStakeByDate(account, date, blockNumber);
         // @dev we need to modify function in order to workaround issue with Vesting.withdrawTokens:
         //		return 1 instead of 0 if message sender is a contract.

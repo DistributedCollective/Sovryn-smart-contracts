@@ -632,7 +632,7 @@ contract("FourYearVesting", (accounts) => {
             tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "TokensWithdrawn", {
+            expectEvent(tx, "GovernanceWithdrawVesting", {
                 caller: root,
                 receiver: root,
             });
@@ -780,7 +780,7 @@ contract("FourYearVesting", (accounts) => {
             await expectRevert(vesting.withdrawTokens(root, { from: a2 }), "unauthorized");
         });
 
-        it("shouldn't be possible to use governanceDierctWithdrawVesting by anyone but owner", async () => {
+        it("shouldn't be possible to use governanceDirectWithdrawVesting by anyone but owner", async () => {
             let toStake = ONE_MILLON;
 
             // Stake
@@ -1061,7 +1061,7 @@ contract("FourYearVesting", (accounts) => {
             tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "TokensWithdrawn", {
+            expectEvent(tx, "GovernanceWithdrawVesting", {
                 caller: root,
                 receiver: root,
             });

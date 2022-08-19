@@ -17,7 +17,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
     /* Events */
     event TokensStaked(address indexed caller, uint256 amount);
     event VotesDelegated(address indexed caller, address delegatee);
-    event TokensWithdrawn(address indexed caller, address receiver);
+    event GovernanceWithdrawVesting(address indexed caller, address receiver);
     event DividendsCollected(
         address indexed caller,
         address loanPoolToken,
@@ -26,7 +26,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
     );
     event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
     event TokenOwnerChanged(address indexed newOwner, address indexed oldOwner);
-    event IncompleteWithdrawTokens(
+    event IncompleteGovernanceWithdrawVesting(
         address indexed caller,
         address receiver,
         uint256 lastProcessedDate
@@ -339,7 +339,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 
         uint256 totalIterationValue =
             (startFrom + (FOUR_WEEKS * getMaxVestingWithdrawIterations()));
-        uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
+        uint256 adjustedEnd = end <= totalIterationValue ? end : totalIterationValue;
 
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
@@ -347,7 +347,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         /// @dev For four year vesting, withdrawal of stakes for the first year is not allowed. These
         /// stakes are extended for three years. In some cases the withdrawal may be allowed at a different
         /// time and hence we use extendDurationFor.
-        for (uint256 i = startFrom; i <= end; i += FOUR_WEEKS) {
+        for (uint256 i = startFrom; i < adjustedEnd; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number.sub(1));
 
@@ -358,9 +358,13 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         }
 
         if (adjustedEnd < end) {
-            emit IncompleteWithdrawTokens(msg.sender, receiver, adjustedEnd - FOUR_WEEKS);
+            emit IncompleteGovernanceWithdrawVesting(
+                msg.sender,
+                receiver,
+                adjustedEnd - FOUR_WEEKS
+            );
         } else {
-            emit TokensWithdrawn(msg.sender, receiver);
+            emit GovernanceWithdrawVesting(msg.sender, receiver);
         }
     }
 

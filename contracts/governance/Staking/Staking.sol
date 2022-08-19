@@ -307,12 +307,12 @@ contract Staking is
         address vestingAddress; // vesting contract address
         uint256 startDate; //start date of vesting
         uint256 endDate; // end date of vesting
-        uint256 cliff; // cliff. After this time period the tokens begin to unlock.
-        uint256 duration; // The duration. After this period all tokens will have been unlocked.
-        address tokenOwner; // The owner of the vested tokens.
-     * @dev Only used to governance direct withdrawal.
+        uint256 cliff; // after this time period the tokens begin to unlock
+        uint256 duration; // after this period all the tokens will be unlocked
+        address tokenOwner; // owner of the vested tokens
+     * @dev used exclusively for governance direct withdrawal
      * */
-    function _governanceWithdrawDirect(
+    function _governanceWithdrawVestingDirect(
         uint96 amount,
         uint256 until,
         address receiver,
@@ -400,17 +400,17 @@ contract Staking is
                 tempStake = 1;
             }
 
-            _governanceWithdrawDirect(tempStake, i, _receiver, vestingConfig);
+            _governanceWithdrawVestingDirect(tempStake, i, _receiver, vestingConfig);
         }
 
         if (adjustedEnd < end) {
-            emit IncompleteGovernanceWithdrawTokens(
+            emit IncompleteGovernanceWithdrawVesting(
                 msg.sender,
                 _receiver,
                 adjustedEnd - FOUR_WEEKS
             );
         } else {
-            emit TokensWithdrawn(msg.sender, _receiver);
+            emit GovernanceWithdrawVesting(msg.sender, _receiver);
         }
     }
 
@@ -485,9 +485,9 @@ contract Staking is
         address vestingAddress; // vesting contract address
         uint256 startDate; //start date of vesting
         uint256 endDate; // end date of vesting
-        uint256 cliff; // cliff. After this time period the tokens begin to unlock.
-        uint256 duration; // The duration. After this period all tokens will have been unlocked.
-        address tokenOwner; // The owner of the vested tokens.
+        uint256 cliff; // after this time period the tokens begin to unlock
+        uint256 duration; // after this period all the tokens will be unlocked
+        address tokenOwner; // owner of the vested tokens
      * */
     function _withdrawDirect(
         uint96 amount,
@@ -502,7 +502,7 @@ contract Staking is
                 vestingConfig.tokenOwner,
                 vestingConfig.cliff,
                 vestingConfig.duration,
-                _getVestingCreationType(vestingConfig.duration)
+                vestingCreationType[vestingConfig.duration]
             ) == vesting,
             "Only team vesting allowed"
         );
@@ -980,25 +980,11 @@ contract Staking is
         emit MaxVestingWithdrawIterationsUpdated(oldIterations, maxVestingWithdrawIterations);
     }
 
-    /**
-     * @dev get vesting creation type.
-     *
-     * @param duration duration of the vesting
-     *
-     * @return vesting creation type.
-     * If months not 10 | 26 | 48, it will return 0 as the type
-     */
-    function _getVestingCreationType(uint256 duration) internal pure returns (uint256) {
-        uint256 creationType;
-        uint256 months = duration.div(4 weeks);
-        if (months == 10) {
-            creationType = 3;
-        } else if (months == 26) {
-            creationType = 1;
-        } else if (months == 48) {
-            creationType = 4;
-        }
-
-        return creationType;
+    function setVestingCreationType(uint256 _duration, uint256 _vestingCreationType)
+        external
+        onlyAuthorized
+    {
+        vestingCreationType[_duration] = _vestingCreationType;
+        emit VestingCreationTypeUpdated(_duration, _vestingCreationType);
     }
 }

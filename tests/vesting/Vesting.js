@@ -662,7 +662,7 @@ contract("Vesting", (accounts) => {
             let tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "TokensWithdrawn", {
+            expectEvent(tx, "GovernanceWithdrawVesting", {
                 caller: root,
                 receiver: root,
             });
@@ -721,7 +721,7 @@ contract("Vesting", (accounts) => {
             const decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
                 VestingLogic,
-                "IncompleteWithdrawTokens"
+                "IncompleteGovernanceWithdrawVesting"
             )[0].args;
             // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
@@ -781,7 +781,7 @@ contract("Vesting", (accounts) => {
             let tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "TokensWithdrawn", {
+            expectEvent(tx, "GovernanceWithdrawVesting", {
                 caller: root,
                 receiver: root,
             });
@@ -831,7 +831,7 @@ contract("Vesting", (accounts) => {
             let tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "TokensWithdrawn", {
+            expectEvent(tx, "GovernanceWithdrawVesting", {
                 caller: root,
                 receiver: root,
             });
@@ -976,14 +976,14 @@ contract("Vesting", (accounts) => {
             const decodedIncompleteEvent = decodeLogs(
                 receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawTokens"
+                "IncompleteGovernanceWithdrawVesting"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
                 startIteration
-                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(FOUR_WEEKS)))
                     .toString()
             );
         });
@@ -1023,7 +1023,7 @@ contract("Vesting", (accounts) => {
             let decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawTokens"
+                "IncompleteGovernanceWithdrawVesting"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
@@ -1046,7 +1046,7 @@ contract("Vesting", (accounts) => {
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawTokens"
+                "IncompleteGovernanceWithdrawVesting"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
@@ -1093,14 +1093,14 @@ contract("Vesting", (accounts) => {
             let decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawTokens"
+                "IncompleteGovernanceWithdrawVesting"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
                 startIteration
-                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(FOUR_WEEKS)))
                     .toString()
             );
 
@@ -1116,7 +1116,7 @@ contract("Vesting", (accounts) => {
 
             // Withdrawn skipped iterations
             const skippedIterations = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
-                new BN(2419200)
+                new BN(FOUR_WEEKS)
             );
             let currentBlockNumber = await web3.eth.getBlockNumber();
             const previousStake = await staking.getPriorUserStakeByDate(
@@ -1136,13 +1136,13 @@ contract("Vesting", (accounts) => {
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawTokens"
+                "IncompleteGovernanceWithdrawVesting"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
                 skippedIterations
-                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(2419200)))
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(FOUR_WEEKS)))
                     .toString()
             );
 
@@ -1256,7 +1256,7 @@ contract("Vesting", (accounts) => {
             const decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawTokens"
+                "IncompleteGovernanceWithdrawVesting"
             )[0].args;
             // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
@@ -1292,7 +1292,7 @@ contract("Vesting", (accounts) => {
                 new BN(end.toString()).add(new BN(FOUR_WEEKS))
             );
 
-            expectEvent(tx, "TokensWithdrawn", {
+            expectEvent(tx, "GovernanceWithdrawVesting", {
                 caller: root,
                 receiver: root,
             });

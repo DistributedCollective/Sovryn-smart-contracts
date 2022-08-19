@@ -382,7 +382,7 @@ def governanceDirectWithdrawVesting( vesting,  receiver):
     maxIterations = stakingProxy.getMaxVestingWithdrawIterations()
     maxIterationsEnd = defaultStart + (FOUR_WEEKS * maxIterations)
 
-    counter = 1;
+    counter = 1
 
     if vestingEnd > maxIterationsEnd:
         counter = math.ceil(maxIterationsEnd / vestingEnd)
@@ -438,3 +438,7 @@ def addVestingCodeHash(vestingLogic):
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
 
+def setVestingCreationType(duration, vestingCreationType):
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    data = staking.setVestingCreationType.encode_input(duration, vestingCreationType)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
