@@ -339,7 +339,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 
         uint256 totalIterationValue =
             (startFrom + (FOUR_WEEKS * getMaxVestingWithdrawIterations()));
-        uint256 adjustedEnd = end <= totalIterationValue ? end : totalIterationValue;
+        uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
 
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
