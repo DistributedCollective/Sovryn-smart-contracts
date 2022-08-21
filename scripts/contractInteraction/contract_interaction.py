@@ -10,21 +10,23 @@ def main():
     brownie run scripts/contractInteraction/contract_interaction.py --network testnet
     brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
     '''
-    
+
     # call the function you want here
 
     #used often:
 
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
-    #withdrawRBTCFromFastBTCBiDi(19e18, conf.contracts['multisig'])
+    #withdrawRBTCFromFastBTCBiDi(5e18, conf.contracts['Watcher'])
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
     #bal = getBalance(conf.contracts['FastBTCBiDi'], conf.contracts['Watcher'])
-    #withdrawTokensFromWatcher(conf.contracts['DoC'], 170000e18, conf.contracts['multisig'])
+    #withdrawTokensFromWatcher(conf.contracts['XUSD'], 750000e18, conf.contracts['multisig'])
+    #withdrawTokensFromWatcher(conf.contracts['USDT'], 150000e18, conf.contracts['multisig'])
 
     #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 300000e18)
     #sendTokensFromMultisig(conf.contracts['DoC'], conf.contracts['Watcher'], 19000e18)
     #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
-    #sendFromMultisig('0xD3582f616059044c6289155433940b564bCB6476', 4.9e18)
+    #sendFromMultisig(conf.contracts['FastBTC'], 25e18)
+    #sendFromMultisig(conf.contracts['Watcher'], 5e18)
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
     #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
@@ -32,17 +34,39 @@ def main():
     #checkTxOnBF(8)
     
     #confirmMultipleTxsWithMS(960, 963)
-    
-    #checkTx(979)
-    #confirmWithMS(960)
+    #executeOnMultisig(1071)
+    '''
+    for i in range (1041, 1043):
+        confirmWithMS(i)
+        checkTx(i)
+
+    for i in range (1045, 1055):
+        confirmWithMS(i)
+        checkTx(i)
+    '''
+    #confirmWithMS(1064)
+    #checkTx(1064)
+    #confirmWithMS(1072)
+    #confirmWithMS(1063)
+
+    #mintAggregatedToken(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1e18)
+
+    #setupMarginLoanParams(conf.contracts['SOV'], conf.contracts['iXUSD'])
+    #readOwner(conf.contracts['iXUSD'])
     
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
+    #sendTokensFromMultisig(conf.contracts['SOV'], conf.contracts['StakingRewardsProxy'], 200000e18)
+    revokeConfirmation(1075)
 
-    #transferRBTCFromFastBTCOffRampToOnRamp(16e18)
+    #withdrawFees()
+    #readFeesController()
+    #setFeesController(conf.contracts['FeeSharingProxy1DayStaking'])
+
+    #transferRBTCFromFastBTCOffRampToOnRamp(5.7e18)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
-    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1000000e18)
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 100000e18)
     #sendTokensFromMultisig(conf.contracts['USDT'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 1000000e18)
     #bal = getBalance(conf.contracts['(WR)BTC/ETH'], conf.contracts['multisig'])
     #removeLiquidityV1toMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterBNBs'], 1e18, [conf.contracts['WRBTC'], conf.contracts['BNBs']], [1,1])
@@ -59,7 +83,7 @@ def main():
     #governanceWithdrawVesting('0x750C49DD9928061Df2224AA81E08Bc4a3c334874', conf.contracts['multisig'])
 
     #addOwnerToMultisig('0x832E1bd30d037d0327F2A0447eD44FB952A9a043')
-    removeOwnerFromMultisig('0x832E1bd30d037d0327F2A0447eD44FB952A9a043')
+    #removeOwnerFromMultisig('0x832E1bd30d037d0327F2A0447eD44FB952A9a043')
 
     # # ---------- Transfer ownership to gov ----------
     # # core protocol

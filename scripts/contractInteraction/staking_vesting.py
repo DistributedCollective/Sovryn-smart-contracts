@@ -415,4 +415,6 @@ def addVestingCodeHash(vestingLogic):
     data = staking.addContractCodeHash.encode_input(vestingLogic)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
-
+def readTokenOwner(vestingAddress):
+    vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
+    print(vesting.tokenOwner())
