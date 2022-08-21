@@ -43,8 +43,7 @@ const {
     getSOV,
 } = require("../Utils/initializer.js");
 
-const StakingLogic = artifacts.require("StakingMock");
-const StakingLogicMockup = artifacts.require("StakingMockup");
+const StakingLogic = artifacts.require("StakingMockupMix");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
@@ -319,12 +318,6 @@ contract("StakingRewards", (accounts) => {
         });
 
         it("should be getting correct rewards after stopblock", async () => {
-            const stakingLogicMockup = await StakingLogicMockup.new(SOV.address);
-            staking = await StakingProxy.at(staking.address);
-
-            await staking.setImplementation(stakingLogicMockup.address);
-            staking = await StakingLogicMockup.at(staking.address); // Test - 01/07/2021
-
             let block = await web3.eth.getBlock("latest");
             let timestamp = block.timestamp;
 
@@ -337,6 +330,9 @@ contract("StakingRewards", (accounts) => {
             const endTime = await staking.timestampToLockDate(timestamp);
             const wsIteration = endTime.sub(startTime).div(new BN(1209600 /** two weeks */));
 
+            // Since the stake has been withdrawn, mock the current weighted stake.
+            await staking.MOCK_priorWeightedStake(MOCK_WEIGHTED_STAKE.mul(new BN(multiplier)));
+
             await staking.MOCK_priorWeightedStakeAtBlock(
                 MOCK_WEIGHTED_STAKE,
                 stopBlock.toString()
@@ -346,12 +342,7 @@ contract("StakingRewards", (accounts) => {
                 multiplier.mul(wsIteration).sub(new BN(1)).toString()
             );
             await staking.MOCK_priorWeightedStakeAtBlock(0, stopBlock.toString());
-
-            // Revert back staking logic
-            const stakingLogic = await StakingLogic.new(SOV.address);
-            staking = await StakingProxy.at(staking.address);
-            await staking.setImplementation(stakingLogic.address);
-            staking = await StakingLogic.at(staking.address);
+            await staking.MOCK_priorWeightedStake(0);
         });
 
         it("should process for max duration at a time", async () => {

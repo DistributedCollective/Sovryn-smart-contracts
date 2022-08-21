@@ -1,11 +1,7 @@
 from brownie import *
 
-import calendar
-import time
 import json
 import csv
-import math
-import datetime
 
 def main():
     ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -27,10 +23,15 @@ def main():
     contracts = json.load(configFile)
 
     staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    '''
     registries = []
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct))
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry2'], abi=VestingRegistry.abi, owner=acct))
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry3'], abi=VestingRegistry.abi, owner=acct))
+    '''
+
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=acct)
+
 
     INPUT_FILE = "./scripts/staking/users.csv"
     OUTPUT_FILE = "./scripts/staking/vestings.json"
@@ -50,7 +51,7 @@ def main():
             print(user)
             if user in users:
                 continue
-            vestings = getUserVestings(registries, user)
+            vestings = getUserVestings(vestingRegistry, user)
             vestingDataList = []
             if (len(vestings) == 0):
                 vestingData = {
@@ -96,13 +97,22 @@ def getUsers(fileName):
         users.append(vestingData["user"])
     return users
 
-def getUserVestings(registries, user):
+def getUserVestings(vestingRegistry, user):
+    DAY = 24 * 60 * 60
+    FOUR_WEEKS = 4 * 7 * DAY
+    MONTHS_10 = 10 * FOUR_WEEKS
+    MONTHS_26 = 26 * FOUR_WEEKS # 2 year: 4 weeks * 10 * 2 = 
+    WEEKS_156 = 156 * 7 * DAY # 4 year: 4 weeks * 10 (10 months - 1 year) * 4 == 160, 160 - 4 (cliff) = 156
+    LOCKEDSOV_DURATION = 24192000
+    cliff = FOUR_WEEKS
     vestings = []
-    for registry in registries:
-        vesting = registry.getVesting(user)
+    durationTypes = [[LOCKEDSOV_DURATION, 0], [MONTHS_10, 3], [MONTHS_26, 1], [WEEKS_156, 4]]
+    for durationType in durationTypes:
+        vesting = vestingRegistry.getVestingAddr(user, cliff, durationType[0], durationType[1]) 
         if (vesting != ZERO_ADDRESS):
             vestings.append(vesting)
-        vesting = registry.getTeamVesting(user)
+        vesting = vestingRegistry.getTeamVesting(user, cliff, durationType[0], durationType[1]) 
         if (vesting != ZERO_ADDRESS):
             vestings.append(vesting)
+    
     return vestings
