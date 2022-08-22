@@ -57,7 +57,7 @@ def main():
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
     #sendTokensFromMultisig(conf.contracts['SOV'], conf.contracts['StakingRewardsProxy'], 200000e18)
-    revokeConfirmation(1075)
+    #revokeConfirmation(1075)
 
     #withdrawFees()
     #readFeesController()
@@ -112,6 +112,8 @@ def main():
 
     # # VestingRegistry
     # transferVestingRegistryOwnershipToGovernance()
+
+    # getLMInfo()
 
     
     
