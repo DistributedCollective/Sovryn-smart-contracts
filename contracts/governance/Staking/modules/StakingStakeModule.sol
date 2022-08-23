@@ -223,7 +223,8 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
     }
 
     /**
-     * @dev TO BE DEPRECATED. Use stakeBySchedule function.
+     * @dev DO NOT USE this misspelled function. Use stakeBySchedule function instead.
+     * This function cannot be deprecated while we have non-upgradeable vesting contracts.
      * */
     function stakesBySchedule(
         uint256 amount,

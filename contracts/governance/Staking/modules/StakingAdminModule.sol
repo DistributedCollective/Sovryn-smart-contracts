@@ -79,7 +79,6 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _freeze true when freezing, false when unfreezing
      * @dev When freezing, pause is always applied too. When unfreezing, the contract is left in paused stated.
      * */
-    //TODO: separate freeze from unfreeze
     function freezeUnfreeze(bool _freeze) external onlyPauserOrOwner {
         require(_freeze != frozen, "WS25");
         if (_freeze) pauseUnpause(true);
@@ -132,6 +131,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * */
     function migrateToNewStakingContract() external whenNotFrozen {
         require(newStakingContract != address(0), "S19"); // there is no new staking contract set
+        revert("not implemented");
         /// @dev implementation:
         /// @dev Iterate over all possible lock dates from now until now + MAX_DURATION.
         /// @dev Read the stake & delegate of the msg.sender
