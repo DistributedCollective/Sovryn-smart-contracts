@@ -33,21 +33,13 @@ def main():
     #confirmWithBFMS(8)
     #checkTxOnBF(8)
     
-    #confirmMultipleTxsWithMS(960, 963)
     #executeOnMultisig(1071)
-    '''
-    for i in range (1041, 1043):
-        confirmWithMS(i)
-        checkTx(i)
-
-    for i in range (1045, 1055):
-        confirmWithMS(i)
-        checkTx(i)
-    '''
+   
     #confirmWithMS(1064)
-    #checkTx(1064)
-    #confirmWithMS(1072)
-    #confirmWithMS(1063)
+    #checkTx(1077)
+    
+    #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
+    #confirmMultipleTxsWithMS(960, 963)
 
     #mintAggregatedToken(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1e18)
 
