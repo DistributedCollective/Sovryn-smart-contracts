@@ -1100,13 +1100,15 @@ contract("Vesting", (accounts) => {
             await staking.setNewStakingContract(newStaking.address);
 
             // 2. call migrateToNewStakingContract
-            let tx = await vesting.migrateToNewStakingContract();
+            //uncomment when implemented
+            /*let tx = await vesting.migrateToNewStakingContract();
             expectEvent(tx, "MigratedToNewStakingContract", {
                 caller: root,
                 newStakingContract: newStaking.address,
             });
             let _staking = await vesting.staking();
-            assert.equal(_staking, newStaking.address);
+            assert.equal(_staking, newStaking.address);*/
+            await expectRevert(vesting.migrateToNewStakingContract(), "not implemented");
         });
 
         it("should fail if there is no new staking contract set", async () => {
@@ -1147,9 +1149,6 @@ contract("Vesting", (accounts) => {
 
             await expectRevert(vesting.migrateToNewStakingContract({ from: a2 }), "unauthorized");
             await expectRevert(vesting.migrateToNewStakingContract({ from: a3 }), "unauthorized");
-
-            await vesting.migrateToNewStakingContract();
-            await vesting.migrateToNewStakingContract({ from: a1 });
         });
     });
 });
