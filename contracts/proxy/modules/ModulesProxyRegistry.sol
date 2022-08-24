@@ -52,7 +52,10 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         address[] calldata _implementationsFrom,
         address[] calldata _implementationsTo
     ) external onlyProxyOwner {
-        require(_implementationsFrom.length == _implementationsTo.length, "MR10"); //arrays sizes must be equal
+        require(
+            _implementationsFrom.length == _implementationsTo.length,
+            "arrays sizes must be equal"
+        ); //MR10
         for (uint256 i = 0; i < _implementationsFrom.length; i++)
             _replaceModule(_implementationsFrom[i], _implementationsTo[i]);
     }
@@ -79,7 +82,7 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     /// @param _impl module implementation address to verify
     /// @return true if module can be added
     function canAddModule(address _impl) external view returns (bool) {
-        require(_impl.isContract(), "MR06"); //Proxy::canAddModule: address is not a contract
+        require(_impl.isContract(), "Proxy::canAddModule: address is not a contract"); //MR06
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 0; i < functions.length; i++)
             if (_getFuncImplementation(functions[i]) != address(0)) return (false);
@@ -98,7 +101,7 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
             bytes4[] memory registryClashingSelectors
         )
     {
-        require(_newModule.isContract(), "MR06"); //Proxy::canAddModule: address is not a contract
+        require(_newModule.isContract(), "Proxy::canAddModule: address is not a contract"); //MR06
         bytes4[] memory functions = IFunctionsList(_newModule).getFunctionsList();
         bytes4[] memory functionList = _getFunctionsList(); //registry functions list
         uint256 clashingRegistrySize;
@@ -147,19 +150,28 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     }
 
     function _addModule(address _impl) internal {
-        require(_impl.isContract(), "MR01"); //ModulesRegistry::_addModule: address is not a contract
+        require(_impl.isContract(), "ModulesRegistry::_addModule: address is not a contract"); //MR01
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 0; i < functions.length; i++) {
-            require(_getFuncImplementation(functions[i]) == address(0), "MR02"); //function already registered in another module - use ReplaceModule if you need to replace the whole module
-            require(functions[i] != bytes4(0), "MR03"); // does not allow empty function id
-            require(_checkClashingWithProxyFunctions(functions[i]), "MR09"); //ModulesRegistry has function with the same signature
+            require(
+                _getFuncImplementation(functions[i]) == address(0),
+                "function already registered in another module - use ReplaceModule if you need to replace the whole module"
+            ); //MR02
+            require(functions[i] != bytes4(0), "does not allow empty function id"); // MR03
+            require(
+                _checkClashingWithProxyFunctions(functions[i]),
+                "ModulesRegistry has function with the same signature"
+            ); //MR09
             _setModuleFuncImplementation(functions[i], _impl);
         }
         emit AddModule(_impl);
     }
 
     function _removeModule(address _impl) internal onlyProxyOwner {
-        require(_impl.isContract(), "MR07"); //ModulesRegistry::_removeModuleImplementation: address is not a contract
+        require(
+            _impl.isContract(),
+            "ModulesRegistry::_removeModuleImplementation: address is not a contract"
+        ); //MR07
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 0; i < functions.length; i++)
             _setModuleFuncImplementation(functions[i], address(0));
@@ -168,8 +180,14 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     }
 
     function _replaceModule(address _oldModuleImpl, address _newModuleImpl) internal {
-        require(_newModuleImpl.isContract(), "MR03"); //ModulesRegistry::replaceModule - _newModuleImpl is not a contract
-        require(_oldModuleImpl.isContract(), "MR04"); //ModulesRegistry::replaceModule - _oldModuleImpl is not a contract
+        require(
+            _newModuleImpl.isContract(),
+            "ModulesRegistry::replaceModule - _newModuleImpl is not a contract"
+        ); //MR03
+        require(
+            _oldModuleImpl.isContract(),
+            "ModulesRegistry::replaceModule - _oldModuleImpl is not a contract"
+        ); //MR04
         _removeModule(_oldModuleImpl);
         _addModule(_newModuleImpl);
 

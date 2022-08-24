@@ -138,7 +138,7 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
         uint256 date,
         uint256 blockNumber
     ) public view returns (uint96) {
-        require(blockNumber < _getCurrentBlockNumber(), "WS11"); // not determined yet
+        require(blockNumber < _getCurrentBlockNumber(), "not determined yet"); // WS11
 
         uint32 nCheckpoints = numDelegateStakingCheckpoints[account][date];
         if (nCheckpoints == 0) {
@@ -188,7 +188,7 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
         view
         returns (uint96)
     {
-        require(blockNumber < _getCurrentBlockNumber(), "WS08"); // not determined
+        require(blockNumber < _getCurrentBlockNumber(), "not determined"); // WS08
 
         uint32 nCheckpoints = numTotalStakingCheckpoints[date];
         if (nCheckpoints == 0) {
@@ -386,9 +386,12 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
         address signatory = ecrecover(digest, v, r, s);
 
         /// @dev Verify address is not null and PK is not null either.
-        require(RSKAddrValidator.checkPKNotZero(signatory), "S13"); // Staking::delegateBySig: invalid signature
-        require(nonce == nonces[signatory]++, "S14"); // Staking::delegateBySig: invalid nonce
-        require(now <= expiry, "S15"); // Staking::delegateBySig: signature expired
+        require(
+            RSKAddrValidator.checkPKNotZero(signatory),
+            "Staking::delegateBySig: invalid signature"
+        ); // S13
+        require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce"); // S14
+        require(now <= expiry, "Staking::delegateBySig: signature expired"); // S15
         _delegate(signatory, delegatee, lockDate);
         // @dev delegates tokens for lock date 2 weeks later than given lock date
         //		if message sender is a contract

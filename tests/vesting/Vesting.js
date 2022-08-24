@@ -919,7 +919,7 @@ contract("Vesting", (accounts) => {
 
             await expectRevert(
                 staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }),
-                "SS01"
+                "unauthorized"
             );
         });
 
@@ -943,7 +943,7 @@ contract("Vesting", (accounts) => {
 
             await expectRevert(
                 staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root),
-                "S07"
+                "unauthorized"
             );
         });
 
@@ -1125,7 +1125,10 @@ contract("Vesting", (accounts) => {
                 feeSharingProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
-            await expectRevert(vesting.migrateToNewStakingContract(), "S19");
+            await expectRevert(
+                vesting.migrateToNewStakingContract(),
+                "there is no new staking contract set"
+            );
         });
 
         it("should fail if the caller is neither owner nor token owner", async () => {

@@ -80,7 +80,7 @@ describe("Modules Proxy", () => {
             ).deploy();
             await modulesProxy.addModule(adminModuleDeployment.address);
             await expect(modulesProxy.addModule(adminModuleNew.address)).to.be.revertedWith(
-                "MR02"
+                "function already registered in another module - use ReplaceModule if you need to replace the whole module"
             ); //func already registered
         });
 
@@ -154,7 +154,9 @@ describe("Modules Proxy", () => {
                 "StakingAdminModule",
                 modulesProxy.address
             );
-            await expect(adminModuleAtProxy.addAdmin(acct1.address)).to.be.revertedWith("MP03"); // module was removed - func is not registered
+            await expect(adminModuleAtProxy.addAdmin(acct1.address)).to.be.revertedWith(
+                "ModulesProxy:target module not registered"
+            ); // module was removed - func is not registered
         });
 
         it("Replaces module correctly", async () => {
@@ -215,7 +217,7 @@ describe("Modules Proxy", () => {
 
             // ModulesRegistry has function with the same signature
             await expect(modulesProxy.addModule(adminModuleNew.address)).to.be.revertedWith(
-                "MR09"
+                "ModulesRegistry has function with the same signature"
             );
         });
     });

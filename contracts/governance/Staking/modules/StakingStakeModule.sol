@@ -98,12 +98,15 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         bool timeAdjusted,
         bool transferToken
     ) internal {
-        require(amount > 0, "S01"); // amount needs to be bigger than 0
+        require(amount > 0, "amount needs to be bigger than 0"); // S01
 
         if (!timeAdjusted) {
             until = _timestampToLockDate(until);
         }
-        require(until > block.timestamp, "S02"); // Staking::_timestampToLockDate: staking period too short
+        require(
+            until > block.timestamp,
+            "Staking::_timestampToLockDate: staking period too short"
+        ); // S02
 
         /// @dev Stake for the sender if not specified otherwise.
         if (stakeFor == address(0)) {
@@ -154,7 +157,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * */
     function extendStakingDuration(uint256 previousLock, uint256 until) external whenNotPaused {
         until = _timestampToLockDate(until);
-        require(previousLock < until, "S04"); // must increase staking duration
+        require(previousLock < until, "must increase staking duration"); // S04
 
         _notSameBlockAsStakingCheckpoint(previousLock);
 
@@ -165,7 +168,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         /// @dev Update checkpoints.
         /// @dev TODO James: Can reading stake at block.number -1 cause trouble with multiple tx in a block?
         uint96 amount = _getPriorUserStakeByDate(msg.sender, previousLock, block.number - 1);
-        require(amount > 0, "S05"); // no stakes till the prev lock date
+        require(amount > 0, "no stakes till the prev lock date"); // S05
         _decreaseUserStake(msg.sender, previousLock, amount);
         _increaseUserStake(msg.sender, until, amount);
 
@@ -207,7 +210,11 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         bool transferToken
     ) internal {
         /// @dev Retrieve the SOV tokens.
-        if (transferToken) require(SOVToken.transferFrom(sender, address(this), amount), "IS10"); // Should transfer tokens successfully
+        if (transferToken)
+            require(
+                SOVToken.transferFrom(sender, address(this), amount),
+                "Should transfer tokens successfully"
+            ); // IS10
 
         /// @dev Increase staked balance.
         uint96 balance = _currentBalance(stakeFor, until);
@@ -289,7 +296,10 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 stakedPerInterval = amount / numIntervals;
 
         /// @dev transferring total SOV amount before staking
-        require(SOVToken.transferFrom(msg.sender, address(this), amount), "SS10"); // Should transfer tokens successfully
+        require(
+            SOVToken.transferFrom(msg.sender, address(this), amount),
+            "Should transfer tokens successfully"
+        ); // SS10
         /// @dev stakedPerInterval might lose some dust on rounding. Add it to the first staking date.
         if (numIntervals >= 1) {
             _stakeOptionalTokenTransfer(

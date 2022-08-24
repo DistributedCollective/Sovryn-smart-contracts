@@ -17,7 +17,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
      * @dev Throws if paused.
      */
     modifier whenNotPaused() {
-        require(!paused, "SS03"); // paused
+        require(!paused, "paused"); // SS03
         _;
     }
 
@@ -25,7 +25,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
      * @dev Throws if called by any account other than the owner or admin.
      */
     modifier onlyAuthorized() {
-        require(isOwner() || admins[msg.sender], "SS01"); // unauthorized
+        require(isOwner() || admins[msg.sender], "unauthorized"); // SS01
         _;
     }
 
@@ -33,7 +33,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
 	 * @dev Throws if called by any account other than the owner or admin or pauser.
 	 
 	modifier onlyAuthorizedOrPauser() {
-		require(isOwner() || admins[msg.sender] || pausers[msg.sender], "WS02"); // unauthorized
+		require(isOwner() || admins[msg.sender] || pausers[msg.sender], "unauthorized"); // WS02
 		_;
 	}
 	*/
@@ -42,7 +42,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
      * @dev Throws if called by any account other than the owner or pauser.
      */
     modifier onlyPauserOrOwner() {
-        require(isOwner() || pausers[msg.sender], "SS02"); // unauthorized
+        require(isOwner() || pausers[msg.sender], "unauthorized"); // SS02
         _;
     }
 
@@ -61,7 +61,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
      * @dev Throws if frozen.
      */
     modifier whenNotFrozen() {
-        require(!frozen, "SS04"); // paused
+        require(!frozen, "paused"); // SS04
         _;
     }
 
@@ -74,7 +74,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
         bool notSameBlock =
             userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock !=
                 block.number;
-        require(notSameBlock, "S20"); //S20 : "cannot be mined in the same block as last stake"
+        require(notSameBlock, "cannot be mined in the same block as last stake"); // S20
     }
 
     /**
@@ -85,7 +85,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
      * @return The actual unlocking date (might be up to 2 weeks shorter than intended).
      * */
     function _timestampToLockDate(uint256 timestamp) internal view returns (uint256 lockDate) {
-        require(timestamp >= kickoffTS, "WS23"); // timestamp < contract creation
+        require(timestamp >= kickoffTS, "timestamp < contract creation"); // WS23
         /**
          * @dev If staking timestamp does not match any of the unstaking dates
          * , set the lockDate to the closest one before the timestamp.
@@ -120,7 +120,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
         uint256 date,
         uint256 blockNumber
     ) internal view returns (uint96) {
-        require(blockNumber < _getCurrentBlockNumber(), "WS14"); // not determined
+        require(blockNumber < _getCurrentBlockNumber(), "not determined"); // WS14
 
         date = _adjustDateForOrigin(date);
         uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
@@ -181,9 +181,9 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
         pure
         returns (uint96 weight)
     {
-        require(date >= startDate, "WS18"); // date < startDate
+        require(date >= startDate, "date < startDate"); // WS18
         uint256 remainingTime = (date - startDate);
-        require(MAX_DURATION >= remainingTime, "WS19"); // remaining time < max duration
+        require(MAX_DURATION >= remainingTime, "remaining time < max duration"); // WS19
         /// @dev x = max days - remaining days
         uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);
         /// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)

@@ -157,16 +157,16 @@ contract("Staking", (accounts) => {
 
         it("should not pause/unpause when frozen", async () => {
             await staking.freezeUnfreeze(true); // Freezed
-            await expectRevert(staking.pauseUnpause(true), "SS04");
+            await expectRevert(staking.pauseUnpause(true), "paused");
         });
 
         it("fails pausing if sender isn't an owner/pauser", async () => {
-            await expectRevert(staking.pauseUnpause(true, { from: account1 }), "SS02"); // SS02 : unauthorized
+            await expectRevert(staking.pauseUnpause(true, { from: account1 }), "unauthorized"); // SS02 : unauthorized
         });
 
         it("fails pausing if sender is an admin", async () => {
             await staking.addAdmin(account1);
-            await expectRevert(staking.pauseUnpause(true, { from: account1 }), "SS02"); // SS02 : unauthorized
+            await expectRevert(staking.pauseUnpause(true, { from: account1 }), "unauthorized"); // SS02 : unauthorized
         });
 
         it("should not allow staking when paused", async () => {
@@ -175,7 +175,7 @@ contract("Staking", (accounts) => {
             let lockedTS = await getTimeFromKickoff(MAX_DURATION);
             await expectRevert(
                 staking.stake(amount, lockedTS, ZERO_ADDRESS, ZERO_ADDRESS),
-                "SS03"
+                "paused"
             ); // SS03 : paused
         });
 
@@ -199,7 +199,7 @@ contract("Staking", (accounts) => {
                 .encodeABI();
             await expectRevert(
                 token.approveAndCall(staking.address, amount, data, { from: sender }),
-                "SS03"
+                "paused"
             ); // SS03 : paused
         });
 
@@ -215,7 +215,7 @@ contract("Staking", (accounts) => {
 
             let newLockedTS = await getTimeFromKickoff(TWO_WEEKS * 2);
             await staking.pauseUnpause(true); // Paused
-            await expectRevert(staking.extendStakingDuration(lockedTS, newLockedTS), "SS03"); // SS03 : paused
+            await expectRevert(staking.extendStakingDuration(lockedTS, newLockedTS), "paused"); // SS03 : paused
         });
 
         it("should not allow stakesBySchedule when paused", async () => {
@@ -226,7 +226,7 @@ contract("Staking", (accounts) => {
             let intervalLength = new BN(10000000);
             await expectRevert(
                 staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root),
-                "SS03"
+                "paused"
             ); // SS03 : paused
         });
 
@@ -242,7 +242,7 @@ contract("Staking", (accounts) => {
             await iWeightedStakingModuleMockup.setDelegateStake(root, lockedTS, 0); // <=== MOCK!!!
 
             await staking.pauseUnpause(true); // Paused
-            await expectRevert(staking.delegate(account1, lockedTS), "SS03"); // SS03 : paused
+            await expectRevert(staking.delegate(account1, lockedTS), "paused"); // SS03 : paused
         });
 
         it("should not delegate on behalf of the signatory when paused", async () => {
@@ -284,7 +284,7 @@ contract("Staking", (accounts) => {
             await staking.pauseUnpause(true); // Paused
             await expectRevert(
                 staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
-                "SS03"
+                "paused"
             ); // SS03 : paused
 
             let tx = await staking.pauseUnpause(false); // Unpaused
@@ -321,12 +321,12 @@ contract("Staking", (accounts) => {
         });
 
         it("fails freezing if sender isn't an owner/pauser", async () => {
-            await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "SS02"); // SS02 : unauthorized
+            await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "unauthorized"); // SS02 : unauthorized
         });
 
         it("fails freezing if sender is an admin", async () => {
             await staking.addAdmin(account1);
-            await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "SS02"); // SS02 : unauthorized
+            await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "unauthorized"); // SS02 : unauthorized
         });
 
         it("should not allow withdrawal when frozen", async () => {
@@ -344,7 +344,7 @@ contract("Staking", (accounts) => {
             let beforeBalance = await token.balanceOf.call(root);
 
             await staking.freezeUnfreeze(true); // Freeze
-            await expectRevert(staking.withdraw(amount / 2, lockedTS, root), "SS04"); // SS04 : frozen
+            await expectRevert(staking.withdraw(amount / 2, lockedTS, root), "paused"); // SS04 : frozen
 
             await staking.freezeUnfreeze(false); // Unfreeze
             let tx2 = await staking.withdraw(amount / 2, lockedTS, root);
@@ -434,7 +434,7 @@ contract("Staking", (accounts) => {
             await staking.freezeUnfreeze(true); // Freeze
             await expectRevert(
                 staking.governanceWithdrawVesting(vesting.address, root, { from: account1 }),
-                "SS04"
+                "paused"
             ); // SS04 : frozen
 
             await staking.freezeUnfreeze(false); // Unfreeze

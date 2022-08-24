@@ -47,12 +47,12 @@ contract ModulesProxy is ModulesProxyRegistry {
         address beforeFallback = _getFuncImplementation(BEFORE_FALLBACK_SIG_BYTES4);
         if (beforeFallback != address(0)) {
             (bool success, ) = beforeFallback.delegatecall(bytes(0x39b0111a)); // abi.encodeWithSignature("beforeFallback()")
-            require(success, "MP02"); //ModulesProxy::fallback: beforeFallback() fail
+            require(success, "ModulesProxy::fallback: beforeFallback() fail"); //MP02
         }
         */
 
         address target = _getFuncImplementation(msg.sig);
-        require(target != address(0), "MP03"); // ModulesProxy:target module not registered
+        require(target != address(0), "ModulesProxy:target module not registered"); // MP03
 
         bytes memory data = msg.data;
         assembly {
