@@ -320,10 +320,7 @@ contract Staking is
     ) internal {
         _notSameBlockAsStakingCheckpoint(until);
 
-        _withdrawDirect(amount, until, receiver, vestingConfig);
-        // @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
-        //		we don't need to check block.timestamp here
-        _withdrawNextDirect(until, receiver, vestingConfig);
+        _withdrawFromTeamVesting(amount, until, receiver, vestingConfig);
     }
 
     /**
@@ -335,12 +332,12 @@ contract Staking is
      * @param receiver The receiving address.
      * @param startFrom The start value for the iterations.
      */
-    function governanceDirectWithdrawVesting(
+    function cancelTeamVesting(
         address vesting,
         address receiver,
         uint256 startFrom
     ) external onlyAuthorized whenNotFrozen {
-        _governanceDirectWithdrawVesting(vesting, receiver, startFrom);
+        _cancelTeamVesting(vesting, receiver, startFrom);
     }
 
     /**
@@ -352,7 +349,7 @@ contract Staking is
      * @param _startFrom The start value for the iterations.
      * or just unlocked tokens (false).
      * */
-    function _governanceDirectWithdrawVesting(
+    function _cancelTeamVesting(
         address _vesting,
         address _receiver,
         uint256 _startFrom
@@ -391,26 +388,19 @@ contract Staking is
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
         ///		workaround found, but it doesn't work with TWO_WEEKS
-        for (uint256 i = _startFrom; i < adjustedEnd; i += FOUR_WEEKS) {
+        for (uint256 i = _startFrom; i < adjustedEnd; i += TWO_WEEKS) {
             /// @dev Read amount to withdraw.
             tempStake = _getPriorUserStakeByDate(_vesting, i, block.number - 1);
 
-            // We need to execute _withdrawNext(until, receiver, false); even if stake for _withdraw(amount, until, receiver, false); is zero.
-            if (tempStake == 0) {
-                tempStake = 1;
+            if (tempStake > 0) {
+                _governanceWithdrawVestingDirect(tempStake, i, _receiver, vestingConfig);
             }
-
-            _governanceWithdrawVestingDirect(tempStake, i, _receiver, vestingConfig);
         }
 
         if (adjustedEnd < end) {
-            emit IncompleteGovernanceWithdrawVesting(
-                msg.sender,
-                _receiver,
-                adjustedEnd - FOUR_WEEKS
-            );
+            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd - FOUR_WEEKS);
         } else {
-            emit GovernanceWithdrawVesting(msg.sender, _receiver);
+            emit TeamVestingCancelled(msg.sender, _receiver);
         }
     }
 
@@ -475,7 +465,7 @@ contract Staking is
     /**
      * @notice Send user' staked tokens to a receiver.
      * This function is dedicated only for direct withdrawal from staking contract.
-     * Currently only being used by governanceDirectWithdrawVesting()
+     * Currently only being used by cancelTeamVesting()
      *
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
@@ -489,7 +479,7 @@ contract Staking is
         uint256 duration; // after this period all the tokens will be unlocked
         address tokenOwner; // owner of the vested tokens
      * */
-    function _withdrawDirect(
+    function _withdrawFromTeamVesting(
         uint96 amount,
         uint256 until,
         address receiver,
@@ -497,15 +487,7 @@ contract Staking is
     ) internal {
         address vesting = vestingConfig.vestingAddress;
         /// require the caller only for team vesting contract.
-        require(
-            vestingRegistryLogic.getTeamVesting(
-                vestingConfig.tokenOwner,
-                vestingConfig.cliff,
-                vestingConfig.duration,
-                vestingCreationType[vestingConfig.duration]
-            ) == vesting,
-            "Only team vesting allowed"
-        );
+        require(vestingRegistryLogic.isTeamVesting(vesting), "Only team vesting allowed");
 
         // @dev it's very unlikely some one will have 1/10**18 SOV staked in Vesting contract
         if (amount == 1) {
@@ -545,25 +527,6 @@ contract Staking is
                 if (stakes > 0) {
                     _withdraw(stakes, nextLock, receiver, isGovernance);
                 }
-            }
-        }
-    }
-
-    /**
-     * @dev withdraws tokens for lock date 2 weeks later than given lock date
-     * Dedicated only for direct withdrawal from staking contract.
-     */
-    function _withdrawNextDirect(
-        uint256 until,
-        address receiver,
-        VestingConfig memory vestingConfig
-    ) internal {
-        uint256 nextLock = until.add(TWO_WEEKS);
-        if (block.timestamp >= nextLock) {
-            uint96 stakes =
-                _getPriorUserStakeByDate(vestingConfig.vestingAddress, nextLock, block.number - 1);
-            if (stakes > 0) {
-                _withdrawDirect(stakes, nextLock, receiver, vestingConfig);
             }
         }
     }
@@ -978,13 +941,5 @@ contract Staking is
         maxVestingWithdrawIterations = maxIterations;
 
         emit MaxVestingWithdrawIterationsUpdated(oldIterations, maxVestingWithdrawIterations);
-    }
-
-    function setVestingCreationType(uint256 _duration, uint256 _vestingCreationType)
-        external
-        onlyAuthorized
-    {
-        vestingCreationType[_duration] = _vestingCreationType;
-        emit VestingCreationTypeUpdated(_duration, _vestingCreationType);
     }
 }

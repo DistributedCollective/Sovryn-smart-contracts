@@ -7,20 +7,11 @@ contract VestingRegistryLogicMockup is VestingRegistryLogic {
         return true;
     }
 
-    function setTeamVesting(
-        address _vesting,
-        address _tokenOwner,
-        uint256 _cliff,
-        uint256 _duration,
-        uint256 _vestingCreationType
-    ) external {
-        uint256 type_ = uint256(VestingType.TeamVesting);
-        uint256 uid =
-            uint256(
-                keccak256(
-                    abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
-                )
-            );
-        vestings[uid].vestingAddress = _vesting;
+    function setTeamVesting(address _vesting, uint256 _vestingCreationType) external {
+        vestingDetail[_vesting] = Vesting(
+            uint256(VestingType.TeamVesting),
+            _vestingCreationType,
+            _vesting
+        );
     }
 }

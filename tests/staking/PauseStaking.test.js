@@ -356,7 +356,7 @@ contract("Staking", (accounts) => {
             });
         });
 
-        it("should not allow other than team vesting to withdraw from governanceDirectWithdrawVesting", async () => {
+        it("should not allow other than team vesting to withdraw from cancelTeamVesting", async () => {
             const WEEK = new BN(7 * 24 * 60 * 60);
             let vestingLogic = await VestingLogic.new();
             const ONE_MILLON = "1000000000000000000000000";
@@ -388,7 +388,7 @@ contract("Staking", (accounts) => {
 
             // governance withdraw until duration must withdraw all staked tokens without fees
             await expectRevert(
-                staking.governanceDirectWithdrawVesting(vesting.address, root, 0, {
+                staking.cancelTeamVesting(vesting.address, root, 0, {
                     from: account1,
                 }),
                 "Only team vesting allowed"
@@ -421,7 +421,7 @@ contract("Staking", (accounts) => {
                 feeSharingProxy.address
             );
 
-            await vestingRegistry.setTeamVesting(vesting.address, root, 16 * WEEK, 38 * WEEK, 0);
+            await vestingRegistry.setTeamVesting(vesting.address, 0);
 
             vesting = await VestingLogic.at(vesting.address);
             await staking.addContractCodeHash(vesting.address);
@@ -439,7 +439,7 @@ contract("Staking", (accounts) => {
 
             await staking.freezeUnfreeze(true); // Freeze
             await expectRevert(
-                staking.governanceDirectWithdrawVesting(vesting.address, root, 0, {
+                staking.cancelTeamVesting(vesting.address, root, 0, {
                     from: account1,
                 }),
                 "WS04"
@@ -447,7 +447,7 @@ contract("Staking", (accounts) => {
 
             await staking.freezeUnfreeze(false); // Unfreeze
             // governance withdraw until duration must withdraw all staked tokens without fees
-            let tx = await staking.governanceDirectWithdrawVesting(vesting.address, root, 0, {
+            let tx = await staking.cancelTeamVesting(vesting.address, root, 0, {
                 from: account1,
             });
 
@@ -465,7 +465,7 @@ contract("Staking", (accounts) => {
             const decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
                 StakingMockup,
-                "IncompleteGovernanceWithdrawVesting"
+                "TeamVestingPartiallyCancelled"
             )[0].args;
             // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
@@ -475,7 +475,7 @@ contract("Staking", (accounts) => {
             );
 
             // Withdraw another iteration
-            await staking.governanceDirectWithdrawVesting(
+            await staking.cancelTeamVesting(
                 vesting.address,
                 root,
                 new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(FOUR_WEEKS))
@@ -495,13 +495,13 @@ contract("Staking", (accounts) => {
 
             /// should emit token withdrawn event for complete withdrawal
             const end = vesting.endDate();
-            tx = await staking.governanceDirectWithdrawVesting(
+            tx = await staking.cancelTeamVesting(
                 vesting.address,
                 root,
                 new BN(end.toString()).add(new BN(FOUR_WEEKS))
             );
 
-            expectEvent(tx, "GovernanceWithdrawVesting", {
+            expectEvent(tx, "TeamVestingCancelled", {
                 caller: root,
                 receiver: root,
             });

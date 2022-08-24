@@ -152,9 +152,6 @@ contract StakingStorage is Ownable {
     /// @dev max iterations that can be supported in 1 tx for the withdrawal
     uint256 internal maxVestingWithdrawIterations;
 
-    /// @dev mapping (duration => creationType). Duration is the vesting duration.
-    mapping(uint256 => uint256) public vestingCreationType;
-
     /// @dev Struct for direct withdraw function -- to avoid stack too deep issue
     struct VestingConfig {
         address vestingAddress;

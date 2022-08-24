@@ -662,7 +662,7 @@ contract("Vesting", (accounts) => {
             let tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "GovernanceWithdrawVesting", {
+            expectEvent(tx, "TeamVestingCancelled", {
                 caller: root,
                 receiver: root,
             });
@@ -721,7 +721,7 @@ contract("Vesting", (accounts) => {
             const decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
                 VestingLogic,
-                "IncompleteGovernanceWithdrawVesting"
+                "TeamVestingPartiallyCancelled"
             )[0].args;
             // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
@@ -781,7 +781,7 @@ contract("Vesting", (accounts) => {
             let tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "GovernanceWithdrawVesting", {
+            expectEvent(tx, "TeamVestingCancelled", {
                 caller: root,
                 receiver: root,
             });
@@ -831,7 +831,7 @@ contract("Vesting", (accounts) => {
             let tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "GovernanceWithdrawVesting", {
+            expectEvent(tx, "TeamVestingCancelled", {
                 caller: root,
                 receiver: root,
             });
@@ -937,7 +937,7 @@ contract("Vesting", (accounts) => {
             await vesting.withdrawTokens(root, { from: a1 });
         });
 
-        it("governanceDirectWithdrawVesting should emit incompletion event if greater the max iterations (with 0 starting iteration)", async () => {
+        it("cancelTeamVesting should emit incompletion event if greater the max iterations (with 0 starting iteration)", async () => {
             let toStake = ONE_MILLON;
 
             // Stake
@@ -951,7 +951,7 @@ contract("Vesting", (accounts) => {
                 feeSharingProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
-            await vestingReg.setTeamVesting(vesting.address, root, 26 * WEEK, 142 * WEEK, 0);
+            await vestingReg.setTeamVesting(vesting.address, 0);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -967,16 +967,12 @@ contract("Vesting", (accounts) => {
             ]);
             const startIteration = startDate.add(cliff);
 
-            const { receipt } = await staking.governanceDirectWithdrawVesting(
-                vesting.address,
-                root,
-                0
-            );
+            const { receipt } = await staking.cancelTeamVesting(vesting.address, root, 0);
 
             const decodedIncompleteEvent = decodeLogs(
                 receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawVesting"
+                "TeamVestingPartiallyCancelled"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
@@ -988,7 +984,7 @@ contract("Vesting", (accounts) => {
             );
         });
 
-        it("governanceDirectWithdrawVesting utilizing lastProcessedDate from incompletion event", async () => {
+        it("cancelTeamVesting utilizing lastProcessedDate from incompletion event", async () => {
             let toStake = ONE_MILLON;
 
             // Stake
@@ -1002,7 +998,7 @@ contract("Vesting", (accounts) => {
                 feeSharingProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
-            await vestingReg.setTeamVesting(vesting.address, root, 26 * WEEK, 142 * WEEK, 0);
+            await vestingReg.setTeamVesting(vesting.address, 0);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -1018,12 +1014,12 @@ contract("Vesting", (accounts) => {
             ]);
             const startIteration = startDate.add(cliff);
 
-            const tx = await staking.governanceDirectWithdrawVesting(vesting.address, root, 0);
+            const tx = await staking.cancelTeamVesting(vesting.address, root, 0);
 
             let decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawVesting"
+                "TeamVestingPartiallyCancelled"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
@@ -1038,15 +1034,11 @@ contract("Vesting", (accounts) => {
             const nextStartIteration = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
                 new BN(FOUR_WEEKS)
             );
-            const tx2 = await staking.governanceDirectWithdrawVesting(
-                vesting.address,
-                root,
-                nextStartIteration
-            );
+            const tx2 = await staking.cancelTeamVesting(vesting.address, root, nextStartIteration);
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawVesting"
+                "TeamVestingPartiallyCancelled"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
@@ -1058,7 +1050,7 @@ contract("Vesting", (accounts) => {
             );
         });
 
-        it("governanceDirectWithdrawVesting utilizing lastProcessedDate from incompletion event (should be able to retrieve reward for the accidental skip date)", async () => {
+        it("cancelTeamVesting utilizing lastProcessedDate from incompletion event (should be able to retrieve reward for the accidental skip date)", async () => {
             let toStake = ONE_MILLON;
 
             // Stake
@@ -1072,7 +1064,7 @@ contract("Vesting", (accounts) => {
                 feeSharingProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
-            await vestingReg.setTeamVesting(vesting.address, root, 26 * WEEK, 142 * WEEK, 0);
+            await vestingReg.setTeamVesting(vesting.address, 0);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -1088,12 +1080,12 @@ contract("Vesting", (accounts) => {
             ]);
             const startIteration = startDate.add(cliff);
 
-            const tx = await staking.governanceDirectWithdrawVesting(vesting.address, root, 0);
+            const tx = await staking.cancelTeamVesting(vesting.address, root, 0);
 
             let decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawVesting"
+                "TeamVestingPartiallyCancelled"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
@@ -1108,11 +1100,7 @@ contract("Vesting", (accounts) => {
             const nextStartIteration = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
                 new BN(15).mul(new BN(FOUR_WEEKS))
             );
-            await staking.governanceDirectWithdrawVesting(
-                vesting.address,
-                root,
-                nextStartIteration
-            );
+            await staking.cancelTeamVesting(vesting.address, root, nextStartIteration);
 
             // Withdrawn skipped iterations
             const skippedIterations = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
@@ -1126,17 +1114,13 @@ contract("Vesting", (accounts) => {
             );
             expect(previousStake).to.be.bignumber.to.greaterThan(new BN(1));
 
-            const tx2 = await staking.governanceDirectWithdrawVesting(
-                vesting.address,
-                root,
-                skippedIterations
-            );
+            const tx2 = await staking.cancelTeamVesting(vesting.address, root, skippedIterations);
             await mineBlock();
 
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawVesting"
+                "TeamVestingPartiallyCancelled"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
@@ -1162,7 +1146,7 @@ contract("Vesting", (accounts) => {
             }
         });
 
-        it("Shouldn't be possible to use governanceDirectWithdrawVesting by not owner", async () => {
+        it("Shouldn't be possible to use cancelTeamVesting by not owner", async () => {
             let toStake = ONE_MILLON;
 
             // Stake
@@ -1181,7 +1165,7 @@ contract("Vesting", (accounts) => {
             await vesting.stakeTokens(toStake);
 
             await expectRevert(
-                staking.governanceDirectWithdrawVesting(vesting.address, root, 0, { from: a1 }),
+                staking.cancelTeamVesting(vesting.address, root, 0, { from: a1 }),
                 "WS01"
             );
         });
@@ -1225,7 +1209,7 @@ contract("Vesting", (accounts) => {
                 feeSharingProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
-            await vestingReg.setTeamVesting(vesting.address, root, 16 * WEEK, 38 * WEEK, 0);
+            await vestingReg.setTeamVesting(vesting.address, 0);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -1238,7 +1222,7 @@ contract("Vesting", (accounts) => {
 
             await staking.addAdmin(a1);
             // governance withdraw until duration must withdraw all staked tokens without fees
-            let tx = await staking.governanceDirectWithdrawVesting(vesting.address, root, 0, {
+            let tx = await staking.cancelTeamVesting(vesting.address, root, 0, {
                 from: a1,
             });
 
@@ -1256,7 +1240,7 @@ contract("Vesting", (accounts) => {
             const decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
                 StakingLogic,
-                "IncompleteGovernanceWithdrawVesting"
+                "TeamVestingPartiallyCancelled"
             )[0].args;
             // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
             expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
@@ -1266,7 +1250,7 @@ contract("Vesting", (accounts) => {
             );
 
             // Withdraw another iteration
-            await staking.governanceDirectWithdrawVesting(
+            await staking.cancelTeamVesting(
                 vesting.address,
                 root,
                 new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(FOUR_WEEKS))
@@ -1286,13 +1270,13 @@ contract("Vesting", (accounts) => {
 
             /// should emit token withdrawn event for complete withdrawal
             const end = vesting.endDate();
-            tx = await staking.governanceDirectWithdrawVesting(
+            tx = await staking.cancelTeamVesting(
                 vesting.address,
                 root,
                 new BN(end.toString()).add(new BN(FOUR_WEEKS))
             );
 
-            expectEvent(tx, "GovernanceWithdrawVesting", {
+            expectEvent(tx, "TeamVestingCancelled", {
                 caller: root,
                 receiver: root,
             });

@@ -17,7 +17,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
     /* Events */
     event TokensStaked(address indexed caller, uint256 amount);
     event VotesDelegated(address indexed caller, address delegatee);
-    event GovernanceWithdrawVesting(address indexed caller, address receiver);
+    event TeamVestingCancelled(address indexed caller, address receiver);
     event DividendsCollected(
         address indexed caller,
         address loanPoolToken,
@@ -26,7 +26,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
     );
     event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
     event TokenOwnerChanged(address indexed newOwner, address indexed oldOwner);
-    event IncompleteGovernanceWithdrawVesting(
+    event TeamVestingPartiallyCancelled(
         address indexed caller,
         address receiver,
         uint256 lastProcessedDate
@@ -358,13 +358,9 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         }
 
         if (adjustedEnd < end) {
-            emit IncompleteGovernanceWithdrawVesting(
-                msg.sender,
-                receiver,
-                adjustedEnd - FOUR_WEEKS
-            );
+            emit TeamVestingPartiallyCancelled(msg.sender, receiver, adjustedEnd - FOUR_WEEKS);
         } else {
-            emit GovernanceWithdrawVesting(msg.sender, receiver);
+            emit TeamVestingCancelled(msg.sender, receiver);
         }
     }
 

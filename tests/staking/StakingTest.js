@@ -625,27 +625,6 @@ contract("Staking", (accounts) => {
         });
     });
 
-    describe("setVestingCreationType", async () => {
-        it("should fail if unauthorized", async () => {
-            const duration = 1000;
-            const vestingCreationType = 2;
-            await expectRevert(
-                staking.setVestingCreationType(duration, vestingCreationType, { from: a1 }),
-                "WS01"
-            ); // WS01 : unauthorized
-            expect((await staking.vestingCreationType(duration)).toString()).to.equal("0");
-        });
-
-        it("should set vestingCreationType", async () => {
-            const duration = 1000;
-            const vestingCreationType = 2;
-            await staking.setVestingCreationType(duration, vestingCreationType);
-            expect((await staking.vestingCreationType(duration)).toString()).to.equal(
-                vestingCreationType.toString()
-            );
-        });
-    });
-
     function getAmountWithWeight(amount) {
         return new BN(MAX_VOTING_WEIGHT.toNumber() + 1).mul(new BN(amount));
     }
