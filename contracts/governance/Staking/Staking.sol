@@ -934,7 +934,7 @@ contract Staking is
      * @param maxIterations new max iterations value.
      */
     function setMaxVestingWithdrawIterations(uint256 maxIterations) external onlyAuthorized {
-        require(maxIterations > 0, "S21");
+        require(maxIterations > 0, "Invalid max iterations");
         uint256 oldIterations = maxVestingWithdrawIterations;
         maxVestingWithdrawIterations = maxIterations;
 

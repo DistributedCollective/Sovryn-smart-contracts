@@ -623,6 +623,22 @@ contract("Staking", (accounts) => {
                 newMaxWithdrawIterations.toString()
             );
         });
+
+        it("should fail if unauthorized", async () => {
+            const newMaxWithdrawIterations = 20;
+            await expectRevert(
+                staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations, { from: a1 }),
+                "WS01"
+            );
+        });
+
+        it("should fail for 0 max iterations maxWithdrawIterations", async () => {
+            const newMaxWithdrawIterations = 0;
+            await expectRevert(
+                staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations),
+                "Invalid max iterations"
+            );
+        });
     });
 
     function getAmountWithWeight(amount) {
