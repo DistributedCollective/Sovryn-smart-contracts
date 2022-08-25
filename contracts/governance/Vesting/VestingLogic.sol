@@ -170,14 +170,15 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
             end = block.timestamp;
         }
 
+        /// @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
         uint256 totalIterationValue =
-            (_startFrom + (FOUR_WEEKS * getMaxVestingWithdrawIterations()));
+            (_startFrom + (FOUR_WEEKS * (getMaxVestingWithdrawIterations() - 1)));
         uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
 
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
         ///		workaround found, but it doesn't work with TWO_WEEKS
-        for (uint256 i = _startFrom; i < adjustedEnd; i += FOUR_WEEKS) {
+        for (uint256 i = _startFrom; i <= adjustedEnd; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
 
@@ -188,7 +189,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         }
 
         if (adjustedEnd < end) {
-            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd - FOUR_WEEKS);
+            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd);
         } else {
             emit TeamVestingCancelled(msg.sender, _receiver);
         }

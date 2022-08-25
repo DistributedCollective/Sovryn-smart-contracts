@@ -372,7 +372,7 @@ def governanceDirectWithdrawVesting( vesting,  receiver):
     vesting = Contract.from_abi("VestingLogic", address=vesting, abi=VestingLogic.abi, owner=conf.acct)
 
     DAY = 24 * 60 * 60
-    FOUR_WEEKS = 4 * 7 * DAY
+    TWO_WEEKS = 2 * 7 * DAY
 
     vestingStartDate = vesting.startDate()
     vestingEnd = vesting.endDate()
@@ -380,7 +380,7 @@ def governanceDirectWithdrawVesting( vesting,  receiver):
     defaultStart = vestingStartDate + vestingCliff
 
     maxIterations = stakingProxy.getMaxVestingWithdrawIterations()
-    maxIterationsEnd = defaultStart + (FOUR_WEEKS * maxIterations)
+    maxIterationsEnd = defaultStart + (TWO_WEEKS * maxIterations)
 
     counter = 1
 
@@ -392,7 +392,7 @@ def governanceDirectWithdrawVesting( vesting,  receiver):
         data = stakingProxy.governanceDirectWithdrawVesting.encode_input( vesting,  receiver, startFrom)
         print(data)
         sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
-        startFrom = startFrom + (maxIterations * FOUR_WEEKS)
+        startFrom = startFrom + (maxIterations * TWO_WEEKS)
 
 def transferStakingOwnershipToGovernance():
     print("Add staking admin for address: ", conf.contracts['TimelockAdmin'])

@@ -769,14 +769,14 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTime(20 * WEEK);
+            await increaseTime(17 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
             let amountAfterStake = await token.balanceOf(root);
 
             // time travel
-            await increaseTime(34 * WEEK);
+            await increaseTime(31 * WEEK);
 
             // withdraw
             let tx = await vesting.withdrawTokens(root);
@@ -789,7 +789,6 @@ contract("Vesting", (accounts) => {
 
             // verify amount
             let amount = await token.balanceOf(root);
-
             assert.equal(
                 previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(),
                 amountAfterStake.toString()

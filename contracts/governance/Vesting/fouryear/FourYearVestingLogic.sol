@@ -337,8 +337,9 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
             end = block.timestamp;
         }
 
+        /// @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
         uint256 totalIterationValue =
-            (startFrom + (FOUR_WEEKS * getMaxVestingWithdrawIterations()));
+            (startFrom + (FOUR_WEEKS * (getMaxVestingWithdrawIterations() - 1)));
         uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
 
         /// @dev Withdraw for each unlocked position.
@@ -347,7 +348,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         /// @dev For four year vesting, withdrawal of stakes for the first year is not allowed. These
         /// stakes are extended for three years. In some cases the withdrawal may be allowed at a different
         /// time and hence we use extendDurationFor.
-        for (uint256 i = startFrom; i < adjustedEnd; i += FOUR_WEEKS) {
+        for (uint256 i = startFrom; i <= adjustedEnd; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number.sub(1));
 
@@ -358,7 +359,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         }
 
         if (adjustedEnd < end) {
-            emit TeamVestingPartiallyCancelled(msg.sender, receiver, adjustedEnd - FOUR_WEEKS);
+            emit TeamVestingPartiallyCancelled(msg.sender, receiver, adjustedEnd);
         } else {
             emit TeamVestingCancelled(msg.sender, receiver);
         }
