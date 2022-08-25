@@ -437,8 +437,13 @@ def addVestingCodeHash(vestingLogic):
     data = staking.addContractCodeHash.encode_input(vestingLogic)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
-
-def setVestingCreationType(duration, vestingCreationType):
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
-    data = staking.setVestingCreationType.encode_input(duration, vestingCreationType)
-    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+# vestings is the array of Vesting struct
+# struct Vesting {
+#     uint256 vestingType;
+#     uint256 vestingCreationType;
+#     address vestingAddress;
+# }
+def registerVestingToVestingDetail(vestings):
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    data = vestingRegistry.registerVestingToVestingDetail.encode_input(vestings)
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)

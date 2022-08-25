@@ -382,12 +382,10 @@ contract Staking is
         end = vestingConfig.endDate;
 
         uint256 totalIterationValue =
-            (_startFrom + (FOUR_WEEKS * getMaxVestingWithdrawIterations()));
+            (_startFrom + (TWO_WEEKS * getMaxVestingWithdrawIterations()));
         uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
 
         /// @dev Withdraw for each unlocked position.
-        /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
-        ///		workaround found, but it doesn't work with TWO_WEEKS
         for (uint256 i = _startFrom; i < adjustedEnd; i += TWO_WEEKS) {
             /// @dev Read amount to withdraw.
             tempStake = _getPriorUserStakeByDate(_vesting, i, block.number - 1);
@@ -398,7 +396,7 @@ contract Staking is
         }
 
         if (adjustedEnd < end) {
-            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd - FOUR_WEEKS);
+            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd - TWO_WEEKS);
         } else {
             emit TeamVestingCancelled(msg.sender, _receiver);
         }
