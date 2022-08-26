@@ -1146,6 +1146,39 @@ contract("Vesting", (accounts) => {
             }
         });
 
+        it("should not allow other than team vesting to withdraw from cancelTeamVesting", async () => {
+            const WEEK = new BN(7 * 24 * 60 * 60);
+            let vestingLogic = await VestingLogic.new();
+            const ONE_MILLON = "1000000000000000000000000";
+            let previousAmount = await token.balanceOf(root);
+            let toStake = ONE_MILLON;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                16 * WEEK,
+                38 * WEEK,
+                feeSharingProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await increaseTime(20 * WEEK);
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            // governance withdraw until duration must withdraw all staked tokens without fees
+            await expectRevert(
+                staking.cancelTeamVesting(vesting.address, root, 0),
+                "Only team vesting allowed"
+            );
+        });
+
         it("Shouldn't be possible to use cancelTeamVesting by not owner", async () => {
             let toStake = ONE_MILLON;
 

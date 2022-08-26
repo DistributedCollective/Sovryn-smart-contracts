@@ -411,7 +411,7 @@ contract("VestingRegistryLogic", (accounts) => {
             );
             expect(await vesting.isVestingAdress(vestingAddress)).equal(true);
 
-            let vestingDetail = await vesting.vestingDetail(vestingAddress);
+            let vestingDetail = await vesting.vestingDetails(vestingAddress);
             expect(await vestingDetail["vestingType"].toString()).to.equal(vestingType.toString());
             expect(await vestingDetail["vestingCreationType"].toString()).to.equal(
                 vestingCreationType.toString()
@@ -569,7 +569,7 @@ contract("VestingRegistryLogic", (accounts) => {
             await lockedSOV.createVesting({ from: accounts4 });
             let vestingAddr = await vesting.getVesting(accounts4);
 
-            let vestingDetail = await vesting.vestingDetail(vestingAddr);
+            let vestingDetail = await vesting.vestingDetails(vestingAddr);
             let vestingType = new BN(1); // normal vesting
             let vestingCreationType = new BN(3);
             expect(await vestingDetail["vestingType"].toString()).to.equal(vestingType.toString());
@@ -616,7 +616,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 duration,
                 vestingCreationType
             );
-            let vestingDetail = await vesting.vestingDetail(vestingAddress);
+            let vestingDetail = await vesting.vestingDetails(vestingAddress);
             expect(await vesting.isVestingAdress(vestingAddress)).equal(true);
             expect(await vestingDetail["vestingType"].toString()).to.equal(vestingType.toString());
             expect(await vestingDetail["vestingCreationType"].toString()).to.equal(
@@ -863,7 +863,7 @@ contract("VestingRegistryLogic", (accounts) => {
         });
     });
 
-    describe("registerVestingToVestingDetail", () => {
+    describe("registerVestingToVestingDetails", () => {
         it("isTeamVesting should return false for unregistered vesting", async () => {
             expect(await vesting.isTeamVesting(account2)).to.equal(false);
         });
@@ -878,7 +878,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingAddress: sampleVesting,
             };
             await expectRevert(
-                vesting.registerVestingToVestingDetail([vestingDetails], { from: account2 }),
+                vesting.registerVestingToVestingDetails([vestingDetails], { from: account2 }),
                 "unauthorized"
             );
             expect(await vesting.isTeamVesting(account2)).to.equal(false);
@@ -893,9 +893,9 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingCreationType: vestingCreationType.toString(),
                 vestingAddress: sampleVesting,
             };
-            await vesting.registerVestingToVestingDetail([vestingDetails]);
+            await vesting.registerVestingToVestingDetails([vestingDetails]);
 
-            let vestingDetail = await vesting.vestingDetail(sampleVesting);
+            let vestingDetail = await vesting.vestingDetails(sampleVesting);
             expect(await vestingDetail["vestingType"].toString()).to.equal(vestingType.toString());
             expect(await vestingDetail["vestingCreationType"].toString()).to.equal(
                 vestingCreationType.toString()
@@ -913,9 +913,9 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingCreationType: vestingCreationType.toString(),
                 vestingAddress: sampleVesting,
             };
-            await vesting.registerVestingToVestingDetail([vestingDetails]);
+            await vesting.registerVestingToVestingDetails([vestingDetails]);
 
-            let vestingDetail = await vesting.vestingDetail(sampleVesting);
+            let vestingDetail = await vesting.vestingDetails(sampleVesting);
             expect(await vestingDetail["vestingType"].toString()).to.equal(vestingType.toString());
             expect(await vestingDetail["vestingCreationType"].toString()).to.equal(
                 vestingCreationType.toString()

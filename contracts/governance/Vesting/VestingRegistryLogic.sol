@@ -26,7 +26,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 vestingCreationType
     );
     event TokensStaked(address indexed vesting, uint256 amount);
-    event VestingDetailPushed(address indexed vesting, Vesting vestingDetail);
+    event VestingDetailsSet(address indexed vesting, Vesting vestingDetail);
 
     /**
      * @notice Replace constructor with initialize function for Upgradable Contracts
@@ -184,13 +184,13 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                 _vestingCreationType
             );
 
-        vestingDetail[vesting] = Vesting(
+        vestingDetails[vesting] = Vesting(
             uint256(VestingType.Vesting),
             _vestingCreationType,
             vesting
         );
 
-        emit VestingDetailPushed(vesting, vestingDetail[vesting]);
+        emit VestingDetailsSet(vesting, vestingDetails[vesting]);
 
         emit VestingCreated(
             _tokenOwner,
@@ -226,13 +226,13 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                 _vestingCreationType
             );
 
-        vestingDetail[vesting] = Vesting(
+        vestingDetails[vesting] = Vesting(
             uint256(VestingType.TeamVesting),
             _vestingCreationType,
             vesting
         );
 
-        emit VestingDetailPushed(vesting, vestingDetail[vesting]);
+        emit VestingDetailsSet(vesting, vestingDetails[vesting]);
 
         emit TeamVestingCreated(
             _tokenOwner,
@@ -318,8 +318,8 @@ contract VestingRegistryLogic is VestingRegistryStorage {
      */
     function isTeamVesting(address _vestingAddress) external view returns (bool) {
         if (
-            vestingDetail[_vestingAddress].vestingAddress == address(0) ||
-            vestingDetail[_vestingAddress].vestingType != uint256(VestingType.TeamVesting)
+            vestingDetails[_vestingAddress].vestingAddress == address(0) ||
+            vestingDetails[_vestingAddress].vestingType != uint256(VestingType.TeamVesting)
         ) return false;
         else return true;
     }
@@ -330,15 +330,15 @@ contract VestingRegistryLogic is VestingRegistryStorage {
      *
      * @param vestings array for Vesting struct
      */
-    function registerVestingToVestingDetail(Vesting[] memory vestings) public onlyAuthorized {
+    function registerVestingToVestingDetails(Vesting[] memory vestings) public onlyAuthorized {
         for (uint256 i = 0; i < vestings.length; i++) {
             Vesting memory _vesting = vestings[i];
             require(_vesting.vestingAddress != address(0), "ZERO_VESTING_ADDRESS");
-            vestingDetail[_vesting.vestingAddress] = _vesting;
+            vestingDetails[_vesting.vestingAddress] = _vesting;
 
-            emit VestingDetailPushed(
+            emit VestingDetailsSet(
                 _vesting.vestingAddress,
-                vestingDetail[_vesting.vestingAddress]
+                vestingDetails[_vesting.vestingAddress]
             );
         }
     }

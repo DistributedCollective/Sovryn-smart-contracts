@@ -117,7 +117,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * @notice Withdraws unlocked tokens from the staking contract and
      * forwards them to an address specified by the token owner.
      * @param receiver The receiving address.
-     * @param startFrom The start value for the iterations.
+     * @param startFrom The start date (timestamp) for the iterations.
      * */
     function withdrawTokensWithStartFrom(address receiver, uint256 startFrom)
         external

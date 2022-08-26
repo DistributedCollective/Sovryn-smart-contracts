@@ -65,5 +65,5 @@ contract VestingRegistryStorage is Initializable, AdminRole {
     ///@notice A record of all vesting addresses with the detail
     ///@dev vestingDetail[vestingAddress] returns Vesting struct data
     ///@dev can be used to easily check the vesting type / creation type based on the vesting address itself
-    mapping(address => Vesting) public vestingDetail;
+    mapping(address => Vesting) public vestingDetails;
 }
