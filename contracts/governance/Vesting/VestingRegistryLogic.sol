@@ -26,7 +26,10 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 vestingCreationType
     );
     event TokensStaked(address indexed vesting, uint256 amount);
-    event VestingDetailsSet(address indexed vesting, Vesting vestingDetail);
+    event VestingCreationAndTypesSet(
+        address indexed vesting,
+        VestingCreationAndTypeDetail vestingCreationAndTypes
+    );
 
     /**
      * @notice Replace constructor with initialize function for Upgradable Contracts
@@ -184,13 +187,13 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                 _vestingCreationType
             );
 
-        vestingDetails[vesting] = Vesting(
-            uint256(VestingType.Vesting),
-            _vestingCreationType,
-            vesting
+        vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetail(
+            true,
+            uint120(VestingType.Vesting),
+            uint128(_vestingCreationType)
         );
 
-        emit VestingDetailsSet(vesting, vestingDetails[vesting]);
+        emit VestingCreationAndTypesSet(vesting, vestingCreationAndTypes[vesting]);
 
         emit VestingCreated(
             _tokenOwner,
@@ -226,13 +229,13 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                 _vestingCreationType
             );
 
-        vestingDetails[vesting] = Vesting(
-            uint256(VestingType.TeamVesting),
-            _vestingCreationType,
-            vesting
+        vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetail(
+            true,
+            uint120(VestingType.TeamVesting),
+            uint128(_vestingCreationType)
         );
 
-        emit VestingDetailsSet(vesting, vestingDetails[vesting]);
+        emit VestingCreationAndTypesSet(vesting, vestingCreationAndTypes[vesting]);
 
         emit TeamVestingCreated(
             _tokenOwner,
@@ -310,7 +313,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 
     /**
      * @dev check if the specific vesting address is team vesting or not
-     * @dev read the vestingType from vestingDetail storage
+     * @dev read the vestingType from vestingCreationAndTypes storage
      *
      * @param _vestingAddress address of vesting contract
      *
@@ -318,27 +321,35 @@ contract VestingRegistryLogic is VestingRegistryStorage {
      */
     function isTeamVesting(address _vestingAddress) external view returns (bool) {
         if (
-            vestingDetails[_vestingAddress].vestingAddress == address(0) ||
-            vestingDetails[_vestingAddress].vestingType != uint256(VestingType.TeamVesting)
+            !vestingCreationAndTypes[_vestingAddress].isSet ||
+            vestingCreationAndTypes[_vestingAddress].vestingType !=
+            uint256(VestingType.TeamVesting)
         ) return false;
         else return true;
     }
 
     /**
-     * @dev setter function to register existing vesting contract to vestingDetail storage
-     * @dev need to set the function visilibty to public to support Vesting struct as parameter
+     * @dev setter function to register existing vesting contract to vestingCreationAndTypes storage
+     * @dev need to set the function visilibty to public to support VestingCreationAndTypeDetail struct as parameter
      *
-     * @param vestings array for Vesting struct
+     * @param _vestingAddresses array of vesting address
+     * @param _vestingCreationAndTypes array for VestingCreationAndTypeDetail struct
      */
-    function registerVestingToVestingDetails(Vesting[] memory vestings) public onlyAuthorized {
-        for (uint256 i = 0; i < vestings.length; i++) {
-            Vesting memory _vesting = vestings[i];
-            require(_vesting.vestingAddress != address(0), "ZERO_VESTING_ADDRESS");
-            vestingDetails[_vesting.vestingAddress] = _vesting;
+    function registerVestingToVestingCreationAndTypes(
+        address[] memory _vestingAddresses,
+        VestingCreationAndTypeDetail[] memory _vestingCreationAndTypes
+    ) public onlyAuthorized {
+        require(_vestingAddresses.length == _vestingCreationAndTypes.length, "Unmatched length");
+        for (uint256 i = 0; i < _vestingCreationAndTypes.length; i++) {
+            VestingCreationAndTypeDetail memory _vestingCreationAndType =
+                _vestingCreationAndTypes[i];
+            address _vestingAddress = _vestingAddresses[i];
 
-            emit VestingDetailsSet(
-                _vesting.vestingAddress,
-                vestingDetails[_vesting.vestingAddress]
+            vestingCreationAndTypes[_vestingAddress] = _vestingCreationAndType;
+
+            emit VestingCreationAndTypesSet(
+                _vestingAddress,
+                vestingCreationAndTypes[_vestingAddress]
             );
         }
     }

@@ -8,10 +8,10 @@ contract VestingRegistryLogicMockup is VestingRegistryLogic {
     }
 
     function setTeamVesting(address _vesting, uint256 _vestingCreationType) external {
-        vestingDetails[_vesting] = Vesting(
-            uint256(VestingType.TeamVesting),
-            _vestingCreationType,
-            _vesting
+        vestingCreationAndTypes[_vesting] = VestingCreationAndTypeDetail(
+            true,
+            uint120(VestingType.TeamVesting),
+            uint128(_vestingCreationType)
         );
     }
 }

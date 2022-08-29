@@ -298,32 +298,6 @@ contract Staking is
     }
 
     /**
-     * @notice Withdraw the given amount of tokens.
-     * @param amount The number of tokens to withdraw.
-     * @param until The date until which the tokens were staked.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @param vestingConfig The vesting config.
-     * @dev VestingConfig struct intended to avoid stack too deep issue, and it contains this properties:
-        address vestingAddress; // vesting contract address
-        uint256 startDate; //start date of vesting
-        uint256 endDate; // end date of vesting
-        uint256 cliff; // after this time period the tokens begin to unlock
-        uint256 duration; // after this period all the tokens will be unlocked
-        address tokenOwner; // owner of the vested tokens
-     * @dev used exclusively for governance direct withdrawal
-     * */
-    function _governanceWithdrawVestingDirect(
-        uint96 amount,
-        uint256 until,
-        address receiver,
-        VestingConfig memory vestingConfig
-    ) internal {
-        _notSameBlockAsStakingCheckpoint(until);
-
-        _withdrawFromTeamVesting(amount, until, receiver, vestingConfig);
-    }
-
-    /**
      * @notice New governance withdraw vesting directly through staking contract.
      * This direct withdraw vesting, can solve the out of gas issue from the old withdraw vesting function.
      * This function only allowing the call from vesting contract which type is TeamVesting.
@@ -337,6 +311,9 @@ contract Staking is
         address receiver,
         uint256 startFrom
     ) external onlyAuthorized whenNotFrozen {
+        /// require the caller only for team vesting contract.
+        require(vestingRegistryLogic.isTeamVesting(vesting), "Only team vesting allowed");
+
         _cancelTeamVesting(vesting, receiver, startFrom);
     }
 
@@ -392,7 +369,10 @@ contract Staking is
             tempStake = _getPriorUserStakeByDate(_vesting, i, block.number - 1);
 
             if (tempStake > 0) {
-                _governanceWithdrawVestingDirect(tempStake, i, _receiver, vestingConfig);
+                /// @dev do governance direct withdraw for team vesting
+                _notSameBlockAsStakingCheckpoint(i);
+
+                _withdrawFromTeamVesting(tempStake, i, _receiver, vestingConfig);
             }
         }
 
@@ -485,13 +465,6 @@ contract Staking is
         VestingConfig memory vestingConfig
     ) internal {
         address vesting = vestingConfig.vestingAddress;
-        /// require the caller only for team vesting contract.
-        require(vestingRegistryLogic.isTeamVesting(vesting), "Only team vesting allowed");
-
-        // @dev it's very unlikely some one will have 1/10**18 SOV staked in Vesting contract
-        if (amount == 1) {
-            return;
-        }
 
         until = _adjustDateForOrigin(until);
         _validateWithdrawParams(vesting, amount, until);

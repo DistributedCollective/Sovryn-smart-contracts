@@ -13,17 +13,13 @@ import "./VestingStorage.sol";
  * @title Vesting Logic contract.
  * @notice Staking, delegating and withdrawal functionality.
  * @dev Deployed by a VestingFactory contract.
- *
- * In the previous version, there is public functions that is removed:
- * governanceWithdrawTokens(address _receiver)
- * We removed this because we changed the flow for governance vesting withdrawal from Staking -> Vesting -> Staking, into directly from staking.
  * */
 contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
     /* Events */
 
     event TokensStaked(address indexed caller, uint256 amount);
     event VotesDelegated(address indexed caller, address delegatee);
-    event TeamVestingCancelled(address indexed caller, address receiver);
+    event TokensWithdrawn(address indexed caller, address receiver);
     event DividendsCollected(
         address indexed caller,
         address loanPoolToken,
@@ -31,12 +27,6 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         uint32 maxCheckpoints
     );
     event MigratedToNewStakingContract(address indexed caller, address newStakingContract);
-    event TeamVestingPartiallyCancelled(
-        address indexed caller,
-        address receiver,
-        uint256 lastProcessedDate
-    );
-    event MaxVestingWithdrawIterationsUpdated(uint256 oldMaxIterations, uint256 newMaxIterations);
 
     /* Modifiers */
 
@@ -120,79 +110,68 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
     }
 
     /**
-     * @notice Withdraws unlocked tokens from the staking contract and
+     * @notice Withdraws all tokens from the staking contract and
      * forwards them to an address specified by the token owner.
-     * @param _receiver The receiving address.
+     * @param receiver The receiving address.
+     * @dev Can be called only by owner.
      * */
-    function withdrawTokens(address _receiver) external onlyOwners {
-        _withdrawTokens(_receiver, 0);
+    function governanceWithdrawTokens(address receiver) public {
+        require(msg.sender == address(staking), "unauthorized");
+
+        _withdrawTokens(receiver, true);
     }
 
     /**
-     * @notice Withdraws unlocked tokens from the staking contract from the given start time (for optimization) and
+     * @notice Withdraws unlocked tokens from the staking contract and
      * forwards them to an address specified by the token owner.
-     *
-     * @param _receiver The receiving address.
-     * @param  _startFrom The start value for the iterations.
+     * @param receiver The receiving address.
      * */
-    function withdrawTokensStartingFrom(address _receiver, uint256 _startFrom)
-        external
-        onlyOwners
-    {
-        _withdrawTokens(_receiver, _startFrom);
+    function withdrawTokens(address receiver) public onlyOwners {
+        _withdrawTokens(receiver, false);
     }
 
     /**
      * @notice Withdraws tokens from the staking contract and forwards them
      * to an address specified by the token owner. Low level function.
      * @dev Once here the caller permission is taken for granted.
-     * @param _receiver The receiving address.
-     * @param _startFrom The start value for the iterations.
+     * @param receiver The receiving address.
+     * @param isGovernance Whether all tokens (true)
      * or just unlocked tokens (false).
      * */
-    function _withdrawTokens(address _receiver, uint256 _startFrom) internal {
-        require(_receiver != address(0), "receiver address invalid");
+    function _withdrawTokens(address receiver, bool isGovernance) internal {
+        require(receiver != address(0), "receiver address invalid");
 
         uint96 stake;
 
         /// @dev Usually we just need to iterate over the possible dates until now.
         uint256 end;
 
-        uint256 defaultStart = startDate + cliff;
-
-        _startFrom = _startFrom >= defaultStart ? _startFrom : defaultStart;
-
         /// @dev In the unlikely case that all tokens have been unlocked early,
         ///   allow to withdraw all of them.
-        if (staking.allUnlocked()) {
+        if (staking.allUnlocked() || isGovernance) {
             end = endDate;
         } else {
             end = block.timestamp;
         }
 
-        /// @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
-        uint256 totalIterationValue =
-            (_startFrom + (FOUR_WEEKS * (getMaxVestingWithdrawIterations() - 1)));
-        uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
-
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
         ///		workaround found, but it doesn't work with TWO_WEEKS
-        for (uint256 i = _startFrom; i <= adjustedEnd; i += FOUR_WEEKS) {
+        for (uint256 i = startDate + cliff; i <= end; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
-                staking.withdraw(stake, i, _receiver);
+                if (isGovernance) {
+                    staking.governanceWithdraw(stake, i, receiver);
+                } else {
+                    staking.withdraw(stake, i, receiver);
+                }
             }
         }
 
-        if (adjustedEnd < end) {
-            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd);
-        } else {
-            emit TeamVestingCancelled(msg.sender, _receiver);
-        }
+        emit TokensWithdrawn(msg.sender, receiver);
     }
 
     /**
@@ -242,14 +221,5 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = this.stakeTokensWithApproval.selector;
         return selectors;
-    }
-
-    /**
-     * @notice Max iteration for vesting withdrawal to prevent out of gas issue.
-     *
-     * @return max iteration value.
-     */
-    function getMaxVestingWithdrawIterations() public view returns (uint256) {
-        return staking.getMaxVestingWithdrawIterations();
     }
 }

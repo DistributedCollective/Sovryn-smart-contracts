@@ -663,7 +663,7 @@ contract("Vesting", (accounts) => {
             let tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "TeamVestingCancelled", {
+            expectEvent(tx, "TokensWithdrawn", {
                 caller: root,
                 receiver: root,
             });
@@ -695,8 +695,6 @@ contract("Vesting", (accounts) => {
             );
             vesting = await VestingLogic.at(vesting.address);
 
-            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
-
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
@@ -708,34 +706,11 @@ contract("Vesting", (accounts) => {
             // withdraw
             let tx = await vesting.withdrawTokens(root);
 
-            const getStartDate = vesting.startDate();
-            const getCliff = vesting.cliff();
-            const getMaxIterations = vesting.getMaxVestingWithdrawIterations();
-
-            const [startDate, cliff, maxIterations] = await Promise.all([
-                getStartDate,
-                getCliff,
-                getMaxIterations,
-            ]);
-            const startIteration = startDate.add(cliff);
-
-            const decodedIncompleteEvent = decodeLogs(
-                tx.receipt.rawLogs,
-                VestingLogic,
-                "TeamVestingPartiallyCancelled"
-            )[0].args;
-            // last processed date = starIteration + ( (max_iterations - 1) * 2419200 )  // 2419200 is FOUR_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
-                startIteration
-                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(FOUR_WEEKS)))
-                    .toString()
-            );
-
-            // Withdraw another iteration
-            await vesting.withdrawTokensStartingFrom(
-                root,
-                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(FOUR_WEEKS))
-            );
+            // check event
+            expectEvent(tx, "TokensWithdrawn", {
+                caller: root,
+                receiver: root,
+            });
 
             // verify amount
             let amount = await token.balanceOf(root);
@@ -782,7 +757,7 @@ contract("Vesting", (accounts) => {
             let tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "TeamVestingCancelled", {
+            expectEvent(tx, "TokensWithdrawn", {
                 caller: root,
                 receiver: root,
             });
@@ -831,7 +806,7 @@ contract("Vesting", (accounts) => {
             let tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "TeamVestingCancelled", {
+            expectEvent(tx, "TokensWithdrawn", {
                 caller: root,
                 receiver: root,
             });
@@ -1439,27 +1414,6 @@ contract("Vesting", (accounts) => {
 
             await vesting.migrateToNewStakingContract();
             await vesting.migrateToNewStakingContract({ from: a1 });
-        });
-    });
-
-    describe("maxWithdrawIterations", async () => {
-        it("should set maxWithdrawIterations", async () => {
-            vesting = await Vesting.new(
-                vestingLogic.address,
-                token.address,
-                staking.address,
-                a1,
-                26 * WEEK,
-                104 * WEEK,
-                feeSharingProxy.address
-            );
-            vesting = await VestingLogic.at(vesting.address);
-
-            const newMaxWithdrawIterations = 20;
-            await staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations);
-            expect((await vesting.getMaxVestingWithdrawIterations()).toString()).to.equal(
-                newMaxWithdrawIterations.toString()
-            );
         });
     });
 });

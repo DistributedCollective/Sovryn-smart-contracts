@@ -632,7 +632,7 @@ contract("FourYearVesting", (accounts) => {
             tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "TeamVestingCancelled", {
+            expectEvent(tx, "TokensWithdrawn", {
                 caller: root,
                 receiver: root,
             });
@@ -1061,7 +1061,7 @@ contract("FourYearVesting", (accounts) => {
             tx = await vesting.withdrawTokens(root);
 
             // check event
-            expectEvent(tx, "TeamVestingCancelled", {
+            expectEvent(tx, "TokensWithdrawn", {
                 caller: root,
                 receiver: root,
             });
