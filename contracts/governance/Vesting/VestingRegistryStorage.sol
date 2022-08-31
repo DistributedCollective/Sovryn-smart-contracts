@@ -64,7 +64,7 @@ contract VestingRegistryStorage is Initializable, AdminRole {
 
     /// @notice Store vesting creation type & vesting type information
     /// @dev it is packed into 1 single storage slot for cheaper gas usage
-    struct VestingCreationAndTypeDetail {
+    struct VestingCreationAndTypeDetails {
         bool isSet;
         uint120 vestingType;
         uint128 vestingCreationType;
@@ -73,5 +73,5 @@ contract VestingRegistryStorage is Initializable, AdminRole {
     ///@notice A record of all vesting addresses with the detail
     ///@dev vestingDetail[vestingAddress] returns Vesting struct data
     ///@dev can be used to easily check the vesting type / creation type based on the vesting address itself
-    mapping(address => VestingCreationAndTypeDetail) public vestingCreationAndTypes;
+    mapping(address => VestingCreationAndTypeDetails) public vestingCreationAndTypes;
 }

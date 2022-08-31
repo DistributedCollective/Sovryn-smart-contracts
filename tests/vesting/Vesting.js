@@ -45,7 +45,6 @@ const WEEK = new BN(7 * 24 * 60 * 60);
 
 const TOTAL_SUPPLY = "20000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
-const FOUR_WEEKS = 2419200;
 const TWO_WEEKS = 1209600;
 
 contract("Vesting", (accounts) => {

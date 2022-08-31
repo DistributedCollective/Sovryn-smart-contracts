@@ -28,7 +28,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
     event TokensStaked(address indexed vesting, uint256 amount);
     event VestingCreationAndTypesSet(
         address indexed vesting,
-        VestingCreationAndTypeDetail vestingCreationAndTypes
+        VestingCreationAndTypeDetails vestingCreationAndType
     );
 
     /**
@@ -187,11 +187,11 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                 _vestingCreationType
             );
 
-        vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetail(
-            true,
-            uint120(VestingType.Vesting),
-            uint128(_vestingCreationType)
-        );
+        vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetails({
+            isSet: true,
+            vestingType: uint120(VestingType.Vesting),
+            vestingCreationType: uint128(_vestingCreationType)
+        });
 
         emit VestingCreationAndTypesSet(vesting, vestingCreationAndTypes[vesting]);
 
@@ -229,11 +229,11 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                 _vestingCreationType
             );
 
-        vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetail(
-            true,
-            uint120(VestingType.TeamVesting),
-            uint128(_vestingCreationType)
-        );
+        vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetails({
+            isSet: true,
+            vestingType: uint120(VestingType.TeamVesting),
+            vestingCreationType: uint128(_vestingCreationType)
+        });
 
         emit VestingCreationAndTypesSet(vesting, vestingCreationAndTypes[vesting]);
 
@@ -320,12 +320,9 @@ contract VestingRegistryLogic is VestingRegistryStorage {
      * @return true for teamVesting, false for normal vesting
      */
     function isTeamVesting(address _vestingAddress) external view returns (bool) {
-        if (
-            !vestingCreationAndTypes[_vestingAddress].isSet ||
-            vestingCreationAndTypes[_vestingAddress].vestingType !=
-            uint256(VestingType.TeamVesting)
-        ) return false;
-        else return true;
+        return (vestingCreationAndTypes[_vestingAddress].isSet &&
+            vestingCreationAndTypes[_vestingAddress].vestingType ==
+            uint256(VestingType.TeamVesting));
     }
 
     /**
@@ -337,11 +334,11 @@ contract VestingRegistryLogic is VestingRegistryStorage {
      */
     function registerVestingToVestingCreationAndTypes(
         address[] memory _vestingAddresses,
-        VestingCreationAndTypeDetail[] memory _vestingCreationAndTypes
+        VestingCreationAndTypeDetails[] memory _vestingCreationAndTypes
     ) public onlyAuthorized {
         require(_vestingAddresses.length == _vestingCreationAndTypes.length, "Unmatched length");
         for (uint256 i = 0; i < _vestingCreationAndTypes.length; i++) {
-            VestingCreationAndTypeDetail memory _vestingCreationAndType =
+            VestingCreationAndTypeDetails memory _vestingCreationAndType =
                 _vestingCreationAndTypes[i];
             address _vestingAddress = _vestingAddresses[i];
 

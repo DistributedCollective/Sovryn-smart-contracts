@@ -387,8 +387,9 @@ def governanceDirectWithdrawVesting( vesting,  receiver):
     if vestingEnd > maxIterationsEnd:
         counter = math.ceil(maxIterationsEnd / vestingEnd)
 
+    startFrom = defaultStart
+
     for x in range(counter):
-        startFrom = defaultStart
         data = stakingProxy.governanceDirectWithdrawVesting.encode_input( vesting,  receiver, startFrom)
         print(data)
         sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
@@ -446,6 +447,7 @@ def addVestingCodeHash(vestingLogic):
 #     }
 # make sure the length of addresses & vestingCreationAndTypeDetails is the same
 def registerVestingToVestingCreationAndTypes(addresses, vestingCreationAndTypeDetails):
+    if len(addresses) != len(vestingCreationAndTypeDetails) print("umatched length of array between addresses & vestingCreationAndTypeDetails") return
     vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     data = vestingRegistry.registerVestingToVestingCreationAndTypes.encode_input(addresses, vestingCreationAndTypeDetails)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)

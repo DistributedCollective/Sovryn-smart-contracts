@@ -298,9 +298,9 @@ contract Staking is
     }
 
     /**
-     * @notice New governance withdraw vesting directly through staking contract.
-     * This direct withdraw vesting, can solve the out of gas issue from the old withdraw vesting function.
-     * This function only allowing the call from vesting contract which type is TeamVesting.
+     * @notice Governance withdraw vesting directly through staking contract.
+     * This direct withdraw vesting, solves the out of gas issue when there are too many iterations when withdrawing.
+     * This function only allows cancelling vesting contract of the TeamVesting type.
      *
      * @param vesting The vesting address.
      * @param receiver The receiving address.
@@ -345,18 +345,13 @@ contract Staking is
                 teamVesting.tokenOwner()
             );
 
-        uint96 tempStake;
-
-        /// @dev Usually we just need to iterate over the possible dates until now.
-        uint256 end;
+        /// @dev In the unlikely case that all tokens have been unlocked early,
+        /// allow to withdraw all of them, as long as the itrations less than maxVestingWithdrawIterations.
+        uint256 end = vestingConfig.endDate;
 
         uint256 defaultStart = vestingConfig.startDate + vestingConfig.cliff;
 
         _startFrom = _startFrom >= defaultStart ? _startFrom : defaultStart;
-
-        /// @dev In the unlikely case that all tokens have been unlocked early,
-        ///   allow to withdraw all of them.
-        end = vestingConfig.endDate;
 
         /// @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
         uint256 totalIterationValue =
@@ -366,12 +361,10 @@ contract Staking is
         /// @dev Withdraw for each unlocked position.
         for (uint256 i = _startFrom; i <= adjustedEnd; i += TWO_WEEKS) {
             /// @dev Read amount to withdraw.
-            tempStake = _getPriorUserStakeByDate(_vesting, i, block.number - 1);
+            uint96 tempStake = _getPriorUserStakeByDate(_vesting, i, block.number - 1);
 
             if (tempStake > 0) {
                 /// @dev do governance direct withdraw for team vesting
-                _notSameBlockAsStakingCheckpoint(i);
-
                 _withdrawFromTeamVesting(tempStake, i, _receiver, vestingConfig);
             }
         }

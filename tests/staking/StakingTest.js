@@ -617,11 +617,17 @@ contract("Staking", (accounts) => {
 
     describe("maxWithdrawIterations", async () => {
         it("should set maxWithdrawIterations", async () => {
-            const newMaxWithdrawIterations = 20;
-            await staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations);
+            const oldMaxWithdrawIterations = await staking.getMaxVestingWithdrawIterations();
+            const newMaxWithdrawIterations = new BN(20);
+            const tx = await staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations);
             expect((await staking.getMaxVestingWithdrawIterations()).toString()).to.equal(
                 newMaxWithdrawIterations.toString()
             );
+
+            expectEvent(tx, "MaxVestingWithdrawIterationsUpdated", {
+                oldMaxIterations: oldMaxWithdrawIterations.toString(),
+                newMaxIterations: newMaxWithdrawIterations.toString(),
+            });
         });
 
         it("should fail if unauthorized", async () => {

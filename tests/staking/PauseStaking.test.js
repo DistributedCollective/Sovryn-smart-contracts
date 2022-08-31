@@ -355,7 +355,7 @@ contract("Staking", (accounts) => {
             });
         });
 
-        it("should not allow governanceDirectWithdrawTokens when frozen", async () => {
+        it("should not allow cancelTeamVesting when frozen, and able to continue after unfrozen", async () => {
             const WEEK = new BN(7 * 24 * 60 * 60);
             let vestingLogic = await VestingLogic.new();
             const ONE_MILLON = "1000000000000000000000000";
