@@ -327,10 +327,10 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 
     /**
      * @dev setter function to register existing vesting contract to vestingCreationAndTypes storage
-     * @dev need to set the function visilibty to public to support VestingCreationAndTypeDetail struct as parameter
+     * @dev need to set the function visilibty to public to support VestingCreationAndTypeDetails struct as parameter
      *
      * @param _vestingAddresses array of vesting address
-     * @param _vestingCreationAndTypes array for VestingCreationAndTypeDetail struct
+     * @param _vestingCreationAndTypes array for VestingCreationAndTypeDetails struct
      */
     function registerVestingToVestingCreationAndTypes(
         address[] memory _vestingAddresses,

@@ -299,7 +299,7 @@ contract Staking is
 
     /**
      * @notice Governance withdraw vesting directly through staking contract.
-     * This direct withdraw vesting, solves the out of gas issue when there are too many iterations when withdrawing.
+     * This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing.
      * This function only allows cancelling vesting contract of the TeamVesting type.
      *
      * @param vesting The vesting address.
