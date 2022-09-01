@@ -337,3 +337,9 @@ def getReturnForV2PoolToken(converter, poolToken, amount):
     abi = json.load(abiFile)
     converter = Contract.from_abi("LiquidityPoolV2Converter", address=converter, abi=abi, owner=conf.acct)
     print(converter.removeLiquidityReturnAndFee(poolToken, amount))
+
+def withdrawFromRBTCWrapperProxy(tokenAddress, to, amount):
+    abiFile =  open('./scripts/contractInteraction/ABIs/RBTCWrapperProxy.json')
+    abi = json.load(abiFile)
+    wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=conf.contracts['RBTCWrapperProxy'], abi=abi, owner=conf.acct)
+    wrapperProxy.withdraw(tokenAddress, to, amount)

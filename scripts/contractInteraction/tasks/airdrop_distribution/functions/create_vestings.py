@@ -1,7 +1,6 @@
 '''
 Implements SOV distribution via vesting contracts
 '''
-from operator import concat
 from scripts.contractInteraction.contract_interaction_imports  import *
 import csv
 
@@ -46,12 +45,12 @@ def createVestings(path, dryRun, multiplier):
             vestingCreationType = 3
         elif teamVesting[3] == 26:
             vestingCreationType = 1
-        elif teamVesting[3] == 48:
+        elif teamVesting[3] == 39:
             vestingCreationType = 4
             print("Make sure 4 year vesting is really expected!")
         else:
             vestingCreationType = 0
-            print("OUCH!!!! ZERO!!!")
+            print("ALERT!!!! ZERO VESTING CREATION TYPE FALLBACK!!!")
 
         if isTeam:
             vestingAddress = vestingRegistry.getTeamVesting(tokenOwner, cliff, duration, vestingCreationType)

@@ -299,7 +299,7 @@ def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTo
 sets a collateral token address as collateral for margin trading
 '''
 def setupMarginLoanParams(collateralTokenAddress, loanTokenAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     
     params = [];
     setup = [

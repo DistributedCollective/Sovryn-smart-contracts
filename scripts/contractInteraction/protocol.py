@@ -419,11 +419,12 @@ def readMaxAffiliateFee():
         "SovrynSwapNetwork", address=conf.contracts['swapNetwork'], abi=abi, owner=conf.acct)
     print(swapNetwork.maxAffiliateFee())
 
-#todo: extend with SOV and RBTC
+
 def withdrawFees():
     # Withdraw fees from protocol
+    feesController = readFeesController()
     feeSharingProxy = Contract.from_abi(
-        "FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
+        "FeeSharingLogic", address=feesController, abi=FeeSharingLogic.abi, owner=conf.acct)
     feeSharingProxy.withdrawFees([
         conf.contracts['USDT'],
         conf.contracts['DoC'],
@@ -704,3 +705,9 @@ def transferProtocolOwnershipToGovernance():
     data = sovryn.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
 
+def readFeesController():
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    feesController = sovryn.feesController()
+    print(feesController)
+    return feesController
