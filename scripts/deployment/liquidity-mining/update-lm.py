@@ -105,30 +105,25 @@ def updateLMConfig():
     MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
     # SOV/rBTC - 25k SOV
     ALLOCATION_POINT_BTC_SOV = 25000 # (WR)BTC/SOV
-    # ETH/rBTC - 0 SOV
-    ALLOCATION_POINT_BTC_ETH = 1 # (WR)BTC/ETH
+
     # xUSD/rBTC - 25k SOV
     ALLOCATION_POINT_BTC_XUSD = 25000 # (WR)BTC/XUSD
-    # BNB/rBTC - 0 SOV
-    ALLOCATION_POINT_BTC_BNB = 1 # (WR)BTC/BNB
 
-    ALLOCATION_POINT_I_XUSD = 2500 # iXUSD
+    ALLOCATION_POINT_I_XUSD =  1 # iXUSD
 
-    ALLOCATION_POINT_BTC_MYNT = 1 # (WR)BTC/MYNT
-
-    ALLOCATION_POINT_DEFAULT = 1 # 9 tokens with 1 alloc point to account: (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF 
-    ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_ETH - ALLOCATION_POINT_BTC_XUSD \
-                                    - ALLOCATION_POINT_BTC_BNB - ALLOCATION_POINT_I_XUSD -ALLOCATION_POINT_BTC_MYNT - ALLOCATION_POINT_DEFAULT * 9
+    ALLOCATION_POINT_DEFAULT = 1 # 12 tokens with 1 alloc point to account: (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF | (WR)BTC/MYNT | (WR)BTC/BNB | (WR)BTC/ETH
+    ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_XUSD \
+                                     - ALLOCATION_POINT_I_XUSD - ALLOCATION_POINT_DEFAULT * 12
 
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
 
     print('LiquidityMiningConfigToken:', lm.getPoolInfo(contracts['LiquidityMiningConfigToken']))
-    #print('iXUSD:',lm.getPoolInfo(contracts['iXUSD']))
+    print('iXUSD:',lm.getPoolInfo(contracts['iXUSD']))
 
     #update this before executing
     data = lm.updateTokens.encode_input(
-        [contracts['(WR)BTC/MYNT'], contracts['(WR)BTC/ETH'], contracts['(WR)BTC/SOV'], contracts['LiquidityMiningConfigToken']],
-        [ALLOCATION_POINT_BTC_MYNT, ALLOCATION_POINT_BTC_ETH, ALLOCATION_POINT_BTC_SOV, ALLOCATION_POINT_CONFIG_TOKEN],
+        [contracts['iXUSD'], contracts['LiquidityMiningConfigToken']],
+        [ALLOCATION_POINT_I_XUSD, ALLOCATION_POINT_CONFIG_TOKEN],
         True
     )
     tx = multisig.submitTransaction(lm.address,0,data)
