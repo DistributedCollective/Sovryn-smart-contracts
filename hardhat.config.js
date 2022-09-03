@@ -9,6 +9,7 @@ require("hardhat-contract-sizer"); //yarn run hardhat size-contracts
 require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
 require("hardhat-abi-exporter");
+require("hardhat-deploy-ethers");
 require("hardhat-deploy");
 
 require("dotenv").config();
@@ -65,8 +66,8 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
 });
 
 /*task("accounts", "Prints accounts", async (_, { web3 }) => {
-	console.log();
-	console.log(await web3.eth.getAccounts());
+    console.log();
+    console.log(await web3.eth.getAccounts());
 });*/
 
 // You need to export an object to set up your config
