@@ -1,8 +1,4 @@
 from brownie import *
-from brownie.network.contract import InterfaceContainer
-import json
-import time;
-import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 
@@ -49,9 +45,9 @@ def getPoolId(poolToken):
 
 def getLMInfo():
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
-    print(lm.getPoolLength())
-    print(lm.getPoolInfoList())
-    print(lm.wrapper())
+    print('getPoolLength():\n', lm.getPoolLength())
+    print('getPoolInfoList():\n', lm.getPoolInfoList())
+    print('wrapper():\n', lm.wrapper())
 
 def setLockedSOV(newLockedSOV):
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)

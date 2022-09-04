@@ -451,3 +451,7 @@ def registerVestingToVestingCreationAndTypes(addresses, vestingCreationAndTypeDe
     vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     data = vestingRegistry.registerVestingToVestingCreationAndTypes.encode_input(addresses, vestingCreationAndTypeDetails)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+def readTokenOwner(vestingAddress):
+    vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
+    print(vesting.tokenOwner())
