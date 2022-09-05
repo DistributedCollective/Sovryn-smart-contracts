@@ -343,3 +343,12 @@ def withdrawFromRBTCWrapperProxy(tokenAddress, to, amount):
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=conf.contracts['RBTCWrapperProxy'], abi=abi, owner=conf.acct)
     wrapperProxy.withdraw(tokenAddress, to, amount)
+
+def transferOwnershipAMMContractsToGovernance(contractAddress, destinationAddress):
+    print("Transferring ownership of {0} to {1}".format(contractAddress, destinationAddress))
+    abiFile =  open('./scripts/contractInteraction/ABIs/Owned.json')
+    abi = json.load(abiFile)
+    ammContract = Contract.from_abi("AMMContract", address=contractAddress, abi=abi, owner=conf.acct)
+    data = ammContract.transferOwnership.encode_input(destinationAddress)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], ammContract.address, data, conf.acct)
