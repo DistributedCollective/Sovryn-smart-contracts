@@ -675,7 +675,7 @@ interface IStaking {
         uint256 startFrom
     ) external;
 
-     /**
+    /**
      * @notice Max iteration for direct withdrawal from staking to prevent out of gas issue.
      *
      * @return max iteration value.
