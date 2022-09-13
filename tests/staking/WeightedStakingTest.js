@@ -14,8 +14,8 @@ const { loadFixture } = waffle;
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
 const { mineBlock, setTime } = require("../Utils/Ethereum");
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 const VestingLogic = artifacts.require("VestingLogicMockup");
@@ -38,10 +38,10 @@ contract("WeightedStaking", (accounts) => {
     async function deploymentAndInitFixture(_wallets, _provider) {
         token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
-        let stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(token.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         await token.transfer(a2, "1000");
         await token.approve(staking.address, "1000", { from: a2 });
@@ -64,60 +64,60 @@ contract("WeightedStaking", (accounts) => {
     describe("numCheckpoints", () => {
         it("returns the number of checkpoints for a user", async () => {
             await expect(
-                (await staking.numUserStakingCheckpoints.call(a1, inTwoWeeks)).toString()
-            ).to.be.equal("0");
+                parseInt(await staking.numUserStakingCheckpoints.call(a1, inTwoWeeks))
+            ).to.be.equal(0);
 
             await staking.stake("100", inTwoWeeks, a1, a1, { from: a2 });
             await expect(
-                (await staking.numUserStakingCheckpoints.call(a1, inTwoWeeks)).toString()
-            ).to.be.equal("1");
+                parseInt(await staking.numUserStakingCheckpoints.call(a1, inTwoWeeks))
+            ).to.be.equal(1);
 
             await expect(await staking.stake("50", inTwoWeeks, a1, a1, { from: a2 }));
             await expect(
-                (await staking.numUserStakingCheckpoints.call(a1, inTwoWeeks)).toString()
-            ).to.be.equal("2");
+                parseInt(await staking.numUserStakingCheckpoints.call(a1, inTwoWeeks))
+            ).to.be.equal(2);
         });
 
         it("returns the number of checkpoints for a delegate and date", async () => {
             await expect(
-                (await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks)).toString()
-            ).to.be.equal("0");
+                parseInt(await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks))
+            ).to.be.equal(0);
 
             await staking.stake("100", inTwoWeeks, a1, a3, { from: a2 });
             await expect(
-                (await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks)).toString()
-            ).to.be.equal("1");
+                parseInt(await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks))
+            ).to.be.equal(1);
 
             await expect(await staking.stake("50", inTwoWeeks, a1, a1, { from: a2 }));
             await expect(
-                (await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks)).toString()
-            ).to.be.equal("2");
+                parseInt(await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks))
+            ).to.be.equal(2);
 
             await staking.stake("100", inTwoWeeks, a2, a3, { from: a2 });
             await expect(
-                (await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks)).toString()
-            ).to.be.equal("3");
+                parseInt(await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks))
+            ).to.be.equal(3);
         });
 
         it("returns the number of total staking checkpoints for a date", async () => {
             await expect(
-                (await staking.numTotalStakingCheckpoints.call(inTwoWeeks)).toString()
-            ).to.be.equal("0");
+                parseInt(await staking.numTotalStakingCheckpoints.call(inTwoWeeks))
+            ).to.be.equal(0);
 
             await staking.stake("100", inTwoWeeks, a1, a3, { from: a2 });
             await expect(
-                (await staking.numTotalStakingCheckpoints.call(inTwoWeeks)).toString()
-            ).to.be.equal("1");
+                parseInt(await staking.numTotalStakingCheckpoints.call(inTwoWeeks))
+            ).to.be.equal(1);
 
             await expect(await staking.stake("50", inTwoWeeks, a1, a1, { from: a2 }));
             await expect(
-                (await staking.numTotalStakingCheckpoints.call(inTwoWeeks)).toString()
-            ).to.be.equal("2");
+                parseInt(await staking.numTotalStakingCheckpoints.call(inTwoWeeks))
+            ).to.be.equal(2);
 
             await staking.stake("100", inTwoWeeks, a2, a3, { from: a2 });
             await expect(
-                (await staking.numTotalStakingCheckpoints.call(inTwoWeeks)).toString()
-            ).to.be.equal("3");
+                parseInt(await staking.numTotalStakingCheckpoints.call(inTwoWeeks))
+            ).to.be.equal(3);
         });
     });
 
@@ -128,13 +128,13 @@ contract("WeightedStaking", (accounts) => {
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal("100");
             let checkpoint = await staking.userStakingCheckpoints(a1, inTwoWeeks, 0);
 
-            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+            await expect(parseInt(checkpoint.fromBlock)).to.be.equal(result.receipt.blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal("100");
 
             // max staking duration
             result = await staking.stake("100", inThreeYears, a2, a3, { from: a2 });
             checkpoint = await staking.userStakingCheckpoints(a2, inThreeYears, 0);
-            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+            await expect(parseInt(checkpoint.fromBlock)).to.be.equal(result.receipt.blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal("100");
         });
 
@@ -143,7 +143,7 @@ contract("WeightedStaking", (accounts) => {
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal("100");
 
             let checkpoint = await staking.delegateStakingCheckpoints(a3, inTwoWeeks, 0);
-            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+            await expect(parseInt(checkpoint.fromBlock)).to.be.equal(result.receipt.blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal("100");
 
             // add stake and change delegate
@@ -152,12 +152,12 @@ contract("WeightedStaking", (accounts) => {
 
             // old delegate
             checkpoint = await staking.delegateStakingCheckpoints(a3, inTwoWeeks, 1);
-            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+            await expect(parseInt(checkpoint.fromBlock)).to.be.equal(result.receipt.blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal("0");
 
             // new delegate
             checkpoint = await staking.delegateStakingCheckpoints(a2, inTwoWeeks, 0);
-            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+            await expect(parseInt(checkpoint.fromBlock)).to.be.equal(result.receipt.blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal("300");
         });
 
@@ -166,7 +166,7 @@ contract("WeightedStaking", (accounts) => {
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal("100");
             let checkpoint = await staking.totalStakingCheckpoints(inTwoWeeks, 0);
 
-            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(result.receipt.blockNumber);
+            await expect(parseInt(checkpoint.fromBlock)).to.be.equal(result.receipt.blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal("100");
         });
 
@@ -196,7 +196,7 @@ contract("WeightedStaking", (accounts) => {
 
             checkpoint = await staking.vestingCheckpoints(kickoffTS.add(new BN(DELAY)), 0);
 
-            await expect(checkpoint.fromBlock.toNumber()).to.be.equal(blockNumber);
+            await expect(parseInt(checkpoint.fromBlock)).to.be.equal(blockNumber);
             await expect(checkpoint.stake.toString()).to.be.equal("1000");
         });
     });
@@ -208,9 +208,9 @@ contract("WeightedStaking", (accounts) => {
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
             await mineBlock();
 
-            let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
-            let maxDuration = await staking.MAX_DURATION.call();
-            let weightFactor = await staking.WEIGHT_FACTOR.call();
+            let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();
+            let maxDuration = await staking.getStorageMaxDurationToStakeTokens.call();
+            let weightFactor = await staking.getStorageWeightFactor.call();
 
             // power on kickoff date
             let expectedPower =
@@ -287,9 +287,9 @@ contract("WeightedStaking", (accounts) => {
             let result = await staking.stake("100", inOneYear, a3, a2, { from: a2 });
             await mineBlock();
 
-            let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
-            let maxDuration = await staking.MAX_DURATION.call();
-            let weightFactor = await staking.WEIGHT_FACTOR.call();
+            let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();
+            let maxDuration = await staking.getStorageMaxDurationToStakeTokens.call();
+            let weightFactor = await staking.getStorageWeightFactor.call();
 
             // power on kickoff date
             let expectedPower =
@@ -350,9 +350,9 @@ contract("WeightedStaking", (accounts) => {
             await staking.stake("100", inThreeYears, a2, a2, { from: a2 });
             await mineBlock();
 
-            let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
-            let maxDuration = await staking.MAX_DURATION.call();
-            let weightFactor = await staking.WEIGHT_FACTOR.call();
+            let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();
+            let maxDuration = await staking.getStorageMaxDurationToStakeTokens.call();
+            let weightFactor = await staking.getStorageWeightFactor.call();
 
             let expectedPower = weightingFunction(
                 100,
@@ -373,9 +373,9 @@ contract("WeightedStaking", (accounts) => {
             let result = await staking.stake("100", inThreeYears, a2, a2, { from: a2 });
             await mineBlock();
 
-            let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
-            let maxDuration = await staking.MAX_DURATION.call();
-            let weightFactor = await staking.WEIGHT_FACTOR.call();
+            let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();
+            let maxDuration = await staking.getStorageMaxDurationToStakeTokens.call();
+            let weightFactor = await staking.getStorageWeightFactor.call();
 
             // power on kickoff date
             let expectedPower = weightingFunction(
@@ -430,9 +430,9 @@ contract("WeightedStaking", (accounts) => {
             );
             await mineBlock();
 
-            let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
-            let maxDuration = await staking.MAX_DURATION.call();
-            let weightFactor = await staking.WEIGHT_FACTOR.call();
+            let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();
+            let maxDuration = await staking.getStorageMaxDurationToStakeTokens.call();
+            let weightFactor = await staking.getStorageWeightFactor.call();
 
             //power on kickoff date
             let expectedPower =
@@ -504,9 +504,9 @@ contract("WeightedStaking", (accounts) => {
     describe("general weight computation", () => {
         it("should compute the expected weight for every staking duration", async () => {
             let kickoffTS = await staking.kickoffTS.call();
-            let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
-            let maxDuration = await staking.MAX_DURATION.call();
-            let weightFactor = await staking.WEIGHT_FACTOR.call();
+            let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();
+            let maxDuration = await staking.getStorageMaxDurationToStakeTokens.call();
+            let weightFactor = await staking.getStorageWeightFactor.call();
             console.log("maxVotingWeight", maxVotingWeight.toString());
             console.log("weightFactor", weightFactor.toString());
             let expectedWeight,

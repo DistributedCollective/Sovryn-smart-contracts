@@ -66,7 +66,7 @@ contract ApprovalReceiver is ErrorDecoder, IApproveAndCall {
      * @dev Should be overridden in child contracts, otherwise error will be thrown.
      * @return By default, empty array. When overriden, allowed selectors.
      */
-    function _getSelectors() internal view returns (bytes4[] memory) {
+    function _getSelectors() internal pure returns (bytes4[] memory) {
         return new bytes4[](0);
     }
 

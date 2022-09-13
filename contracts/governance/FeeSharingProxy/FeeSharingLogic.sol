@@ -11,7 +11,10 @@ import "../../interfaces/IConverterAMM.sol";
 
 /**
  * @title The FeeSharingLogic contract.
- * @notice Staking is not only granting voting rights, but also access to fee
+ * @notice This contract withdraws fees to be paid to SOV Stakers from the protocol.
+ * Stakers call withdraw() to get their share of the fees.
+ *
+ * Staking is not only granting voting rights, but also access to fee
  * sharing according to the own voting power in relation to the total. Whenever
  * somebody decides to collect the fees from the protocol, they get transferred
  * to a proxy contract which invests the funds in the lending pool and keeps
@@ -32,15 +35,15 @@ import "../../interfaces/IConverterAMM.sol";
  * Anybody can invoke the withdrawFees function which uses
  * protocol.withdrawFees to obtain available fees from operations on a
  * certain token. These fees are deposited in the corresponding loanPool.
- * Also, the staking contract sends slashed tokens to this contract. When a
- * user calls the withdraw function, the contract transfers the fee sharing
+ * Also, the staking contract sends slashed tokens to this contract.
+ * When a user calls the withdraw function, the contract transfers the fee sharing
  * rewards in proportion to the user’s weighted stake since the last withdrawal.
  *
- * The protocol is collecting fees in all sorts of currencies and then automatically
- * supplies them to the respective lending pools. Therefore, all fees are
- * generating interest for the SOV holders. If one of them withdraws fees, it will
- * get pool tokens. It is planned to add the option to convert anything to rBTC
- * before withdrawing, but not yet implemented.
+ * The protocol initially collects fees in all tokens.
+ * Then the FeeSharingProxy wihtdraws fees from the protocol.
+ * When the fees are withdrawn all the tokens except SOV will be converted to wRBTC
+ * and then transferred to wRBTC loan pool.
+ * For SOV, it will be directly deposited into the feeSharingProxy from the protocol.
  * */
 contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingProxyStorage {
     using SafeMath for uint256;

@@ -15,22 +15,13 @@
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 const {
-    address,
-    minerStart,
-    minerStop,
-    unlockedAccount,
-    mineBlock,
-    etherMantissa,
-    etherUnsigned,
-    setTime,
-    increaseTime,
-    lastBlock,
-} = require("../Utils/Ethereum");
-
-const { decodeLogs } = require("../Utils/initializer.js");
-
-const StakingLogic = artifacts.require("Staking");
+    deployAndGetIStaking,
+    initializeStakingModulesAt,
+    decodeLogs,
+} = require("../Utils/initializer");
+const StakingLogic = artifacts.require("IStaking");
 const StakingProxy = artifacts.require("StakingProxy");
+const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const SOV = artifacts.require("SOV");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
@@ -47,13 +38,21 @@ const TOTAL_SUPPLY = "20000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
 const TWO_WEEKS = 1209600;
 
+const hre = require("hardhat");
+const { ethers } = hre;
+
+const increaseTimeEthers = async (time) => {
+    await ethers.provider.send("evm_increaseTime", [time]);
+    await ethers.provider.send("evm_mine");
+};
+
 contract("Vesting", (accounts) => {
     const name = "Test token";
     const symbol = "TST";
     const maxWithdrawIterations = 10;
 
     let root, a1, a2, a3;
-    let token, staking, stakingLogic, feeSharingProxy;
+    let token, staking, stakingProxy, feeSharingProxy;
     let vestingLogic;
     let kickoffTS;
 
@@ -72,10 +71,10 @@ contract("Vesting", (accounts) => {
             constants.ZERO_ADDRESS
         );
 
-        stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Creating the Staking Instance (Staking Modules Interface).
+        stakingProxy = await StakingProxy.new(token.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
+
         //Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
         vestingReg = await VestingRegistryProxy.new();
@@ -230,7 +229,7 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTime(20 * WEEK);
+            await increaseTimeEthers(20 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
@@ -312,7 +311,7 @@ contract("Vesting", (accounts) => {
 
     describe("stakeTokens", () => {
         let vesting;
-        it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
+        it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff with correct self-delegation", async () => {
             vesting = await Vesting.new(
                 vestingLogic.address,
                 token.address,
@@ -340,8 +339,7 @@ contract("Vesting", (accounts) => {
         });
 
         it("should stake 1,000,000 SOV with a duration of 104 weeks and a 26 week cliff", async () => {
-            // let block = await web3.eth.getBlock("latest");
-            let block = await lastBlock(); // ethers.provider.getBlock("latest");
+            let block = await ethers.provider.getBlock("latest");
             let timestamp = parseInt(block.timestamp);
 
             let kickoffTS = await staking.kickoffTS();
@@ -362,7 +360,7 @@ contract("Vesting", (accounts) => {
                     0
                 );
 
-                assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
+                assert.equal(parseInt(userStakingCheckpoints.fromBlock), block.number);
                 assert.equal(userStakingCheckpoints.stake.toString(), stakedPerInterval);
 
                 let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(
@@ -383,7 +381,7 @@ contract("Vesting", (accounts) => {
                 0
             );
 
-            assert.equal(userStakingCheckpoints.fromBlock.toNumber(), 0);
+            assert.equal(parseInt(userStakingCheckpoints.fromBlock), 0);
             assert.equal(userStakingCheckpoints.stake.toString(), 0);
 
             let numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(
@@ -400,7 +398,7 @@ contract("Vesting", (accounts) => {
                 0
             );
 
-            assert.equal(userStakingCheckpoints.fromBlock.toNumber(), 0);
+            assert.equal(parseInt(userStakingCheckpoints.fromBlock), 0);
             assert.equal(userStakingCheckpoints.stake.toString(), 0);
 
             numUserStakingCheckpoints = await staking.numUserStakingCheckpoints(
@@ -428,8 +426,8 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, amount);
             await vesting.stakeTokens(amount);
 
-            let block1 = await web3.eth.getBlock("latest");
-            let timestamp1 = block1.timestamp;
+            let block1 = await ethers.provider.getBlock("latest");
+            let timestamp1 = parseInt(block1.timestamp);
 
             let start = timestamp1 + cliff;
             let end = timestamp1 + duration;
@@ -437,11 +435,11 @@ contract("Vesting", (accounts) => {
             let numIntervals = Math.floor((end - start) / (4 * WEEK)) + 1;
             let stakedPerInterval = amount / numIntervals;
 
-            await increaseTime(52 * WEEK);
+            await increaseTimeEthers(52 * WEEK);
             await token.approve(vesting.address, amount);
             await vesting.stakeTokens(amount);
 
-            let block2 = await web3.eth.getBlock("latest");
+            let block2 = await ethers.provider.getBlock("latest");
             let timestamp2 = block2.timestamp;
 
             let start2 = await staking.timestampToLockDate(timestamp2 + cliff);
@@ -487,8 +485,8 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, amount);
             await vesting.stakeTokens(amount);
 
-            let block = await web3.eth.getBlock("latest");
-            let timestamp = block.timestamp;
+            let block = await ethers.provider.getBlock("latest");
+            let timestamp = parseInt(block.timestamp);
 
             let start = timestamp + cliff;
             let end = timestamp + duration;
@@ -508,7 +506,7 @@ contract("Vesting", (accounts) => {
                     0
                 );
 
-                assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
+                assert.equal(parseInt(userStakingCheckpoints.fromBlock), block.number);
                 if (i === start) {
                     assert.equal(userStakingCheckpoints.stake.toString(), stakeForFirstInterval);
                 } else {
@@ -589,7 +587,7 @@ contract("Vesting", (accounts) => {
             let data = contract.methods.stakeTokensWithApproval(sender, amount).encodeABI();
             await token.approveAndCall(vesting.address, amount, data, { from: sender });
 
-            let block = await web3.eth.getBlock("latest");
+            let block = await ethers.provider.getBlock("latest");
             let timestamp = block.timestamp;
 
             let start = timestamp + cliff;
@@ -610,7 +608,7 @@ contract("Vesting", (accounts) => {
                     0
                 );
 
-                assert.equal(userStakingCheckpoints.fromBlock.toNumber(), block.number);
+                assert.equal(parseInt(userStakingCheckpoints.fromBlock), block.number);
                 if (i === start) {
                     assert.equal(userStakingCheckpoints.stake.toString(), stakeForFirstInterval);
                 } else {
@@ -634,7 +632,7 @@ contract("Vesting", (accounts) => {
             let previousAmount = await token.balanceOf(root);
             let toStake = ONE_MILLON;
 
-            await increaseTime(3 * WEEK);
+            await increaseTimeEthers(3 * WEEK);
 
             // Stake
             vesting = await Vesting.new(
@@ -656,7 +654,7 @@ contract("Vesting", (accounts) => {
             let amountAfterStake = await token.balanceOf(root);
 
             // time travel
-            await increaseTime(3 * WEEK);
+            await increaseTimeEthers(3 * WEEK);
 
             // withdraw
             let tx = await vesting.withdrawTokens(root);
@@ -700,7 +698,7 @@ contract("Vesting", (accounts) => {
             let amountAfterStake = await token.balanceOf(root);
 
             // time travel
-            await increaseTime(104 * WEEK);
+            await increaseTimeEthers(104 * WEEK);
 
             // withdraw
             let tx = await vesting.withdrawTokens(root);
@@ -743,14 +741,14 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTime(17 * WEEK);
+            await increaseTimeEthers(17 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
             let amountAfterStake = await token.balanceOf(root);
 
             // time travel
-            await increaseTime(31 * WEEK);
+            await increaseTimeEthers(31 * WEEK);
 
             // withdraw
             let tx = await vesting.withdrawTokens(root);
@@ -792,14 +790,14 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTime(2 * WEEK);
+            await increaseTimeEthers(2 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
             let amountAfterStake = await token.balanceOf(root);
 
             // time travel
-            await increaseTime(20 * WEEK);
+            await increaseTimeEthers(20 * WEEK);
 
             // withdraw
             let tx = await vesting.withdrawTokens(root);
@@ -817,6 +815,7 @@ contract("Vesting", (accounts) => {
                 previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(),
                 amountAfterStake.toString()
             );
+
             assert.equal(previousAmount.toString(), amount.toString());
         });
 
@@ -842,14 +841,14 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTime(2 * WEEK);
+            await increaseTimeEthers(2 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
             let amountAfterStake = await token.balanceOf(root);
 
             // time travel
-            await increaseTime(18 * WEEK);
+            await increaseTimeEthers(18 * WEEK);
 
             // withdraw
             await vesting.withdrawTokens(root);
@@ -891,7 +890,7 @@ contract("Vesting", (accounts) => {
             let amountAfterStake = await token.balanceOf(root);
 
             // time travel
-            await increaseTime(25 * WEEK);
+            await increaseTimeEthers(25 * WEEK);
 
             await vesting.withdrawTokens(root, { from: a1 });
             let amount = await token.balanceOf(root);
@@ -1080,7 +1079,9 @@ contract("Vesting", (accounts) => {
             const skippedIterations = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
                 new BN(TWO_WEEKS)
             );
-            let currentBlockNumber = await web3.eth.getBlockNumber();
+            let block = await ethers.provider.getBlock("latest");
+            let currentBlockNumber = block.number;
+
             const previousStake = await staking.getPriorUserStakeByDate(
                 vesting.address,
                 skippedIterations,
@@ -1089,7 +1090,7 @@ contract("Vesting", (accounts) => {
             expect(previousStake).to.be.bignumber.to.greaterThan(new BN(1));
 
             const tx2 = await staking.cancelTeamVesting(vesting.address, root, skippedIterations);
-            await mineBlock();
+            // await mineBlock();
 
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
@@ -1104,7 +1105,8 @@ contract("Vesting", (accounts) => {
                     .toString()
             );
 
-            currentBlockNumber = await web3.eth.getBlockNumber();
+            block = await ethers.provider.getBlock("latest");
+            currentBlockNumber = block.number;
 
             for (
                 let i = skippedIterations.toNumber();
@@ -1142,7 +1144,7 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTime(20 * WEEK);
+            await increaseTimeEthers(20 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
@@ -1173,7 +1175,7 @@ contract("Vesting", (accounts) => {
 
             await expectRevert(
                 staking.cancelTeamVesting(vesting.address, root, 0, { from: a1 }),
-                "WS01"
+                "SS01"
             );
         });
 
@@ -1221,7 +1223,7 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTime(10 * WEEK);
+            await increaseTimeEthers(10 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
@@ -1357,8 +1359,8 @@ contract("Vesting", (accounts) => {
             // 1. set new staking contract address on staking contract
 
             let newStaking = await StakingProxy.new(token.address);
-            await newStaking.setImplementation(stakingLogic.address);
-            newStaking = await StakingLogic.at(newStaking.address);
+            await newStaking.setImplementation(await stakingProxy.getImplementation()); //setting StakingModulesProxy address
+            await initializeStakingModulesAt(newStaking.address); // deployes and initializes modules in the newStaking storage using previous StakingModulesProxy contact
 
             await staking.setNewStakingContract(newStaking.address);
 
@@ -1374,9 +1376,8 @@ contract("Vesting", (accounts) => {
 
         it("should fail if there is no new staking contract set", async () => {
             let newStaking = await StakingProxy.new(token.address);
-            await newStaking.setImplementation(stakingLogic.address);
-            newStaking = await StakingLogic.at(newStaking.address);
-
+            await newStaking.setImplementation(await stakingProxy.getImplementation()); //setting StakingModulesProxy address
+            await initializeStakingModulesAt(newStaking.address); // deployes and initializes modules in the newStaking storage using previous StakingModulesProxy contact
             vesting = await Vesting.new(
                 vestingLogic.address,
                 token.address,
@@ -1392,7 +1393,8 @@ contract("Vesting", (accounts) => {
 
         it("should fail if the caller is neither owner nor token owner", async () => {
             let newStaking = await StakingProxy.new(token.address);
-            await newStaking.setImplementation(stakingLogic.address);
+            await newStaking.setImplementation(await stakingProxy.getImplementation()); //setting StakingModulesProxy address
+            await initializeStakingModulesAt(newStaking.address); // deployes and initializes modules in the newStaking storage using previous StakingModulesProxy contact
             newStaking = await StakingLogic.at(newStaking.address);
 
             vesting = await Vesting.new(
@@ -1406,7 +1408,7 @@ contract("Vesting", (accounts) => {
             );
             vesting = await VestingLogic.at(vesting.address);
 
-            await newStaking.setNewStakingContract(newStaking.address);
+            await newStaking.setNewStakingContract(staking.address); // can be any address, asing the staking.address for simplicity
 
             await expectRevert(vesting.migrateToNewStakingContract({ from: a2 }), "unauthorized");
             await expectRevert(vesting.migrateToNewStakingContract({ from: a3 }), "unauthorized");

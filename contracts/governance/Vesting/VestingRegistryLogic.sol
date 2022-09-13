@@ -483,8 +483,16 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 
     /**
      * @notice returns if the address is a vesting address
+     * @dev will be deprecated due to wrong spelling. use isVestingAddress(address _vestingAddress).
      */
     function isVestingAdress(address _vestingAddress) external view returns (bool isVestingAddr) {
+        return isVesting[_vestingAddress];
+    }
+
+    /**
+     * @notice returns if the address is a vesting address
+     */
+    function isVestingAddress(address _vestingAddress) external view returns (bool isVestingAddr) {
         return isVesting[_vestingAddress];
     }
 }

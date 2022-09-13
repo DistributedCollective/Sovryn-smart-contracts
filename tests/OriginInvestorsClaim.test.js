@@ -24,7 +24,6 @@ const {
 
 const { mineBlock, setNextBlockTimestamp } = require("./Utils/Ethereum");
 
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
@@ -34,6 +33,16 @@ const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry2"); // removed some methods from VestingRegistry to prevent double spendings
 const OriginInvestorsClaim = artifacts.require("OriginInvestorsClaim");
+
+const {
+    deployAndGetIStaking,
+    replaceStakingModule,
+    getStakingModulesObject,
+    getStakingModulesAddressList,
+} = require("./Utils/initializer");
+
+const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
+const IWeightedStakingModuleMockup = artifacts.require("IWeightedStakingModuleMockup");
 
 const ONE_WEEK = new BN(7 * 24 * 60 * 60);
 const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);
@@ -53,6 +62,7 @@ contract("OriginInvestorsClaim", (accounts) => {
     let investors;
     let amounts, amount1, amount2, amount3, amount4;
     let investorsClaim;
+    let iWeightedStakingModuleMockup;
 
     function getTimeFromKickoff(offset) {
         return kickoffTS.add(new BN(offset));
@@ -142,10 +152,19 @@ contract("OriginInvestorsClaim", (accounts) => {
         cSOV1 = await TestToken.new("cSOV1", "cSOV1", 18, TOTAL_SUPPLY);
         cSOV2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
 
-        stakingLogic = await StakingLogic.new(SOV.address);
-        staking = await StakingProxy.new(SOV.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        const stakingProxy = await StakingProxy.new(SOV.address);
+        const modulesObject = await getStakingModulesObject();
+        staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+        const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
+        const modulesAddressList = getStakingModulesAddressList(modulesObject);
+        //console.log(modulesAddressList);
+        await replaceStakingModule(
+            stakingProxy.address,
+            modulesAddressList["WeightedStakingModule"],
+            weightedStakingModuleMockup.address
+        );
+
+        iWeightedStakingModuleMockup = await IWeightedStakingModuleMockup.at(staking.address);
 
         feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
 

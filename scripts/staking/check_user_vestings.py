@@ -22,8 +22,7 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
-    '''
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
     registries = []
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct))
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry2'], abi=VestingRegistry.abi, owner=acct))

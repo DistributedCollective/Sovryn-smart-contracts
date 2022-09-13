@@ -45,7 +45,7 @@ contract TeamVesting is VestingStorage, Proxy {
 
         _setImplementation(_logic);
         SOV = IERC20(_SOV);
-        staking = Staking(_stakingAddress);
+        staking = IStaking(_stakingAddress);
         require(_duration <= staking.MAX_DURATION(), "duration may not exceed the max duration");
         tokenOwner = _tokenOwner;
         cliff = _cliff;

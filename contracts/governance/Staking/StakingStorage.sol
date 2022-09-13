@@ -4,7 +4,8 @@ pragma experimental ABIEncoderV2;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../IFeeSharingProxy.sol";
-import "../Vesting/VestingRegistryLogic.sol";
+import "../Vesting/IVestingRegistry.sol";
+import "../Staking/interfaces/IStaking.sol";
 
 /**
  * @title Staking Storage contact.
@@ -73,15 +74,15 @@ contract StakingStorage is Ownable {
     /*************************** Checkpoints *******************************/
 
     /// @notice A checkpoint for marking the stakes from a given block
-    struct Checkpoint {
+    /*struct Checkpoint {
         uint32 fromBlock;
         uint96 stake;
-    }
+    }*/
 
     /// @notice A record of tokens to be unstaked at a given time in total.
     /// For total voting power computation. Voting weights get adjusted bi-weekly.
     /// @dev totalStakingCheckpoints[date][index] is a checkpoint.
-    mapping(uint256 => mapping(uint32 => Checkpoint)) public totalStakingCheckpoints;
+    mapping(uint256 => mapping(uint32 => IStaking.Checkpoint)) public totalStakingCheckpoints;
 
     /// @notice The number of total staking checkpoints for each date.
     /// @dev numTotalStakingCheckpoints[date] is a number.
@@ -90,7 +91,7 @@ contract StakingStorage is Ownable {
     /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address.
     /// For delegatee voting power computation. Voting weights get adjusted bi-weekly.
     /// @dev delegateStakingCheckpoints[delegatee][date][index] is a checkpoint.
-    mapping(address => mapping(uint256 => mapping(uint32 => Checkpoint)))
+    mapping(address => mapping(uint256 => mapping(uint32 => IStaking.Checkpoint)))
         public delegateStakingCheckpoints;
 
     /// @notice The number of total staking checkpoints for each date per delegate.
@@ -99,7 +100,7 @@ contract StakingStorage is Ownable {
 
     /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)
     /// @dev userStakingCheckpoints[user][date][index] is a checkpoint.
-    mapping(address => mapping(uint256 => mapping(uint32 => Checkpoint)))
+    mapping(address => mapping(uint256 => mapping(uint32 => IStaking.Checkpoint)))
         public userStakingCheckpoints;
 
     /// @notice The number of total staking checkpoints for each date per user.
@@ -131,14 +132,14 @@ contract StakingStorage is Ownable {
 
     /// @notice A record of tokens to be unstaked from vesting contract at a given time (lockDate -> vest checkpoint)
     /// @dev vestingCheckpoints[date][index] is a checkpoint.
-    mapping(uint256 => mapping(uint32 => Checkpoint)) public vestingCheckpoints;
+    mapping(uint256 => mapping(uint32 => IStaking.Checkpoint)) public vestingCheckpoints;
 
     /// @notice The number of total vesting checkpoints for each date.
     /// @dev numVestingCheckpoints[date] is a number.
     mapping(uint256 => uint32) public numVestingCheckpoints;
 
     ///@notice vesting registry contract
-    VestingRegistryLogic public vestingRegistryLogic;
+    IVestingRegistry public vestingRegistryLogic;
 
     /// @dev user => flag whether user has pauser role.
     mapping(address => bool) public pausers;

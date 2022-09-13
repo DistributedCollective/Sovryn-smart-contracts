@@ -41,11 +41,12 @@ const { encodeParameters, etherMantissa, mineBlock, increaseTime } = require("..
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
+
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const QUORUM_VOTES = etherMantissa(4000000);
 
@@ -68,10 +69,9 @@ contract("GovernanceIntegration", (accounts) => {
         await sovryn.setSovrynProtocolAddress(sovryn.address);
 
         // Staking
-        let stakingLogic = await StakingLogic.new(SUSD.address);
-        staking = await StakingProxy.new(SUSD.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(SUSD.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Governor
         timelock = await Timelock.new(root, TWO_DAYS);

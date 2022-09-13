@@ -19,6 +19,8 @@ const { expectRevert, expectEvent, BN, constants } = require("@openzeppelin/test
 const { waffle } = require("hardhat");
 const { loadFixture } = waffle;
 
+const { deployAndGetIStaking } = require("../Utils/initializer");
+
 const LockedSOV = artifacts.require("LockedSOV");
 
 const LoanToken = artifacts.require("LoanToken");
@@ -30,7 +32,6 @@ const SwapsExternal = artifacts.require("SwapsExternal");
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 
 const FeeSharingLogic = artifacts.require("FeeSharingLogic");
@@ -114,10 +115,10 @@ contract("SwapsExternal", (accounts) => {
         loanToken = await ILoanTokenModules.at(loanToken.address);
 
         // Staking
-        let stakingLogic = await StakingLogic.new(SUSD.address);
-        staking = await StakingProxy.new(SUSD.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(SUSD.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // FeeSharingProxy
         feeSharingLogic = await FeeSharingLogic.new();

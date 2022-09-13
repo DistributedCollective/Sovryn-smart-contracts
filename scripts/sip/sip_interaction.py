@@ -73,7 +73,7 @@ def checkIfUserHasToken(tokenAddr, user):
 
 def currentVotingPower(acctAddress):
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acctAddress)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acctAddress)
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acctAddress)
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acctAddress)
     balance = SOVtoken.balanceOf(acctAddress)
@@ -229,7 +229,7 @@ def createProposalSIP0019():
 def createProposalSIP0020():
 
     staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingLogic = Contract.from_abi("StakingLogic3", address=contracts['StakingLogic3'], abi=Staking.abi, owner=acct)
+    stakingLogic = Contract.from_abi("StakingLogic3", address=contracts['StakingLogic3'], abi=interface.IStaking.abi, owner=acct)
 
     # Action
     targets = [contracts['Staking'], contracts['Staking']]
@@ -260,7 +260,7 @@ def createProposalSIP0030():
     # TODO VestingRegistryProxy should be deployed
 
     stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingImpl = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    stakingImpl = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
 
     # Action
     targets = [contracts['Staking'], contracts['Staking'], contracts['Staking']]
@@ -348,7 +348,7 @@ def createProposalSIP0041():
 def createProposalSIP0042():
 
     staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingLogic = Contract.from_abi("StakingLogic5", address=contracts['StakingLogic5'], abi=Staking.abi, owner=acct)
+    stakingLogic = Contract.from_abi("StakingLogic5", address=contracts['StakingLogic5'], abi=interface.IStaking.abi, owner=acct)
 
     # Action
     targets = [contracts['Staking'], contracts['Staking']]

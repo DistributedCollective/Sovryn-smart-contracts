@@ -36,6 +36,13 @@ const {
     getSOV,
 } = require("../Utils/initializer.js");
 const {
+    deployAndGetIStaking,
+    initStakingModulesMockup,
+    getStakingModulesObject,
+    replaceStakingModule,
+    getStakingModulesAddressList,
+} = require("../Utils/initializer");
+const {
     address,
     minerStart,
     minerStop,
@@ -50,7 +57,6 @@ const {
 } = require("../Utils/Ethereum");
 
 const StakingProxy = artifacts.require("StakingProxy");
-const StakingMockup = artifacts.require("StakingMockup");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
 
@@ -66,6 +72,9 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 // Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
+
+const StakingStakeModule = artifacts.require("StakingStakeModule");
+const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -86,6 +95,7 @@ contract("Staking", (accounts) => {
     let loanTokenLogic, loanToken;
     let feeSharingProxy;
     let kickoffTS, inOneWeek;
+    let stakingStakeModule, iWeightedStakingModuleMockup, modulesObject, modulesAddressList;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
         // Deploying sovrynProtocol w/ generic function from initializer.js
@@ -103,11 +113,25 @@ contract("Staking", (accounts) => {
         ///   like the approveAndCall method.
         token = await SOV.new(TOTAL_SUPPLY);
 
-        // Staking
-        let stakingLogic = await StakingMockup.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingMockup.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface Mockup).
+
+        const stakingProxy = await StakingProxy.new(token.address);
+        modulesObject = await getStakingModulesObject();
+        staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+        const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
+        modulesAddressList = getStakingModulesAddressList(modulesObject);
+
+        await replaceStakingModule(
+            stakingProxy.address,
+            modulesAddressList["WeightedStakingModule"],
+            weightedStakingModuleMockup.address
+        );
+        modulesAddressList["WeightedStakingModule"] = weightedStakingModuleMockup.address;
+
+        const contracts = await initStakingModulesMockup(token.address);
+        staking = contracts.staking;
+        iWeightedStakingModuleMockup = contracts.iWeightedStakingModuleMockup;
 
         await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
@@ -178,19 +202,28 @@ contract("Staking", (accounts) => {
             let amount = "100";
             let lockedTS = await getTimeFromKickoff(MAX_DURATION);
             let tx = await staking.stake(amount, lockedTS, account1, account1);
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensStaked",
+                {
+                    staker: account1,
+                    amount: amount,
+                    lockedUntil: lockedTS,
+                    totalStaked: amount,
+                }
+            );
 
-            expectEvent(tx, "TokensStaked", {
-                staker: account1,
-                amount: amount,
-                lockedUntil: lockedTS,
-                totalStaked: amount,
-            });
-
-            expectEvent(tx, "DelegateChanged", {
-                delegator: account1,
-                fromDelegate: ZERO_ADDRESS,
-                toDelegate: account1,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "DelegateChanged",
+                {
+                    delegator: account1,
+                    fromDelegate: ZERO_ADDRESS,
+                    toDelegate: account1,
+                }
+            );
         });
 
         it("Sender should be used if zero addresses passed", async () => {
@@ -198,18 +231,28 @@ contract("Staking", (accounts) => {
             let lockedTS = await getTimeFromKickoff(MAX_DURATION);
             let tx = await staking.stake(amount, lockedTS, ZERO_ADDRESS, ZERO_ADDRESS);
 
-            expectEvent(tx, "TokensStaked", {
-                staker: root,
-                amount: amount,
-                lockedUntil: lockedTS,
-                totalStaked: amount,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensStaked",
+                {
+                    staker: root,
+                    amount: amount,
+                    lockedUntil: lockedTS,
+                    totalStaked: amount,
+                }
+            );
 
-            expectEvent(tx, "DelegateChanged", {
-                delegator: root,
-                fromDelegate: ZERO_ADDRESS,
-                toDelegate: root,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "DelegateChanged",
+                {
+                    delegator: root,
+                    fromDelegate: ZERO_ADDRESS,
+                    toDelegate: root,
+                }
+            );
         });
 
         it("Should be able to stake and delegate for yourself", async () => {
@@ -230,18 +273,18 @@ contract("Staking", (accounts) => {
 
             // _writeUserCheckpoint
             let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
-            expect(numUserCheckpoints.toNumber()).to.be.equal(1);
+            expect(parseInt(numUserCheckpoints)).to.be.equal(1);
             let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
             // _increaseDailyStake
             let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
                 lockedTS
             );
-            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
+            expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(1);
             checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
             // _delegate
@@ -252,23 +295,33 @@ contract("Staking", (accounts) => {
                 root,
                 lockedTS
             );
-            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
+            expect(parseInt(numDelegateStakingCheckpoints)).to.be.equal(1);
             checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-            expectEvent(tx, "TokensStaked", {
-                staker: root,
-                amount: amount,
-                lockedUntil: lockedTS,
-                totalStaked: amount,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensStaked",
+                {
+                    staker: root,
+                    amount: amount,
+                    lockedUntil: lockedTS,
+                    totalStaked: amount,
+                }
+            );
 
-            expectEvent(tx, "DelegateChanged", {
-                delegator: root,
-                fromDelegate: ZERO_ADDRESS,
-                toDelegate: root,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "DelegateChanged",
+                {
+                    delegator: root,
+                    fromDelegate: ZERO_ADDRESS,
+                    toDelegate: root,
+                }
+            );
         });
 
         it("Should be able to stake and delegate for another person", async () => {
@@ -283,18 +336,18 @@ contract("Staking", (accounts) => {
                 account1,
                 lockedTS
             );
-            expect(numUserCheckpoints.toNumber()).to.be.equal(1);
+            expect(parseInt(numUserCheckpoints)).to.be.equal(1);
             let checkpoint = await staking.userStakingCheckpoints.call(account1, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
             // _increaseDailyStake
             let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
                 lockedTS
             );
-            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
+            expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(1);
             checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
             // _delegate
@@ -305,23 +358,33 @@ contract("Staking", (accounts) => {
                 account1,
                 lockedTS
             );
-            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
+            expect(parseInt(numDelegateStakingCheckpoints)).to.be.equal(1);
             checkpoint = await staking.delegateStakingCheckpoints.call(account1, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-            expectEvent(tx, "TokensStaked", {
-                staker: account1,
-                amount: amount,
-                lockedUntil: lockedTS,
-                totalStaked: amount,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensStaked",
+                {
+                    staker: account1,
+                    amount: amount,
+                    lockedUntil: lockedTS,
+                    totalStaked: amount,
+                }
+            );
 
-            expectEvent(tx, "DelegateChanged", {
-                delegator: account1,
-                fromDelegate: ZERO_ADDRESS,
-                toDelegate: account1,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "DelegateChanged",
+                {
+                    delegator: account1,
+                    fromDelegate: ZERO_ADDRESS,
+                    toDelegate: account1,
+                }
+            );
         });
 
         it("Should be able to stake after withdrawing whole amount", async () => {
@@ -350,10 +413,10 @@ contract("Staking", (accounts) => {
 
             // _writeUserCheckpoint
             let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
-            expect(numUserCheckpoints.toNumber()).to.be.equal(1);
+            expect(parseInt(numUserCheckpoints)).to.be.equal(1);
             let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount * 2);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount * 2);
         });
 
         it("Should be able to stake after withdrawing amount partially", async () => {
@@ -390,10 +453,10 @@ contract("Staking", (accounts) => {
 
             // _writeUserCheckpoint
             let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
-            expect(numUserCheckpoints.toNumber()).to.be.equal(1);
+            expect(parseInt(numUserCheckpoints)).to.be.equal(1);
             let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount * 2.5);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount * 2.5);
         });
     });
 
@@ -427,16 +490,16 @@ contract("Staking", (accounts) => {
 
 			// _writeUserCheckpoint
 			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
-			expect(numUserCheckpoints.toNumber()).to.be.equal(1);
+			expect(parseInt(numUserCheckpoints)).to.be.equal(1);
 			let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+			expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 
 			// _increaseDailyStake
 			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
-			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
+			expect(parseInt(checkpoint.stake)).to.be.equal(1);
 			checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
-			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+			expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 
 			// _delegate
@@ -444,9 +507,9 @@ contract("Staking", (accounts) => {
 			expect(delegator).to.be.equal(root);
 
 			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
-			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
+			expect(parseInt(numDelegateStakingCheckpoints)).to.be.equal(1);
 			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
-			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+			expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
 			expect(checkpoint.stake.toString()).to.be.equal(amount);
 		});
 		*/
@@ -632,13 +695,17 @@ contract("Staking", (accounts) => {
 
             let newTime = await getTimeFromKickoff(MAX_DURATION.mul(new BN(2)));
             let tx = await staking.extendStakingDuration(lockedTS, newTime);
-
-            expectEvent(tx, "ExtendedStakingDuration", {
-                staker: root,
-                previousDate: lockedTS,
-                newDate: await getTimeFromKickoff(MAX_DURATION),
-                amountStaked: amount,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "ExtendedStakingDuration",
+                {
+                    staker: root,
+                    previousDate: lockedTS,
+                    newDate: await getTimeFromKickoff(MAX_DURATION),
+                    amountStaked: amount,
+                }
+            );
         });
 
         it("Should be able to extend staking duration", async () => {
@@ -650,7 +717,9 @@ contract("Staking", (accounts) => {
             expect(stakingBalance.toString()).to.be.equal(amount);
             let beforeBalance = await token.balanceOf.call(root);
 
-            expect(tx1.logs[2].args.lockedUntil.toNumber()).to.be.equal(lockedTS.toNumber());
+            const decode = decodeLogs(tx1.receipt.rawLogs, StakingStakeModule, "TokensStaked");
+            //const loan_id = decode[0].args["loanId"];
+            expect(parseInt(decode[0].args["lockedUntil"])).to.be.equal(lockedTS.toNumber());
 
             let newLockedTS = await getTimeFromKickoff(TWO_WEEKS * 2);
             let tx2 = await staking.extendStakingDuration(lockedTS, newLockedTS);
@@ -664,39 +733,44 @@ contract("Staking", (accounts) => {
             let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
                 lockedTS
             );
-            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(2);
+            expect(ethers.BigNumber.from(numTotalStakingCheckpoints).toNumber()).to.be.equal(2);
             let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 1);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal("0");
 
             // _increaseDailyStake
             numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
                 newLockedTS
             );
-            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
+            expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(1);
             checkpoint = await staking.totalStakingCheckpoints.call(newLockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
             // _writeUserCheckpoint
             let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
-            expect(numUserCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(numUserCheckpoints)).to.be.equal(2);
             checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.userStakingCheckpoints.call(root, newLockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-            expectEvent(tx2, "ExtendedStakingDuration", {
-                staker: root,
-                previousDate: lockedTS,
-                newDate: newLockedTS,
-                amountStaked: amount,
-            });
+            await expectEvent.inTransaction(
+                tx2.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "ExtendedStakingDuration",
+                {
+                    staker: root,
+                    previousDate: lockedTS,
+                    newDate: newLockedTS,
+                    amountStaked: amount,
+                }
+            );
         });
 
         it("should update the vesting checkpoints if the stake is extended with a vesting contract", async () => {
@@ -796,7 +870,7 @@ contract("Staking", (accounts) => {
             let maxValue = new BN(2).pow(new BN(96)).sub(new BN(1));
             await expectRevert(
                 staking.stake(maxValue.sub(new BN(100)), lockTS, root, root),
-                "S06"
+                "IS20"
             ); // S06 : overflow
         });
 
@@ -829,53 +903,58 @@ contract("Staking", (accounts) => {
             let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
                 lockedTS
             );
-            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(2);
             let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 1);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount * 3);
 
             // _writeUserCheckpoint
             let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
-            expect(numUserCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(numUserCheckpoints)).to.be.equal(2);
             checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 1);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount * 3);
 
             // delegateStakingCheckpoints - root
             let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(
                 root,
                 lockedTS
             );
-            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(numDelegateStakingCheckpoints)).to.be.equal(2);
             checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 1);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(0);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(0);
 
             // delegateStakingCheckpoints - account1
             numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(
                 account1,
                 lockedTS
             );
-            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
+            expect(parseInt(numDelegateStakingCheckpoints)).to.be.equal(1);
             checkpoint = await staking.delegateStakingCheckpoints.call(account1, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount * 3);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount * 3);
 
-            expectEvent(tx2, "TokensStaked", {
-                staker: root,
-                amount: new BN(amount * 2),
-                lockedUntil: lockedTS,
-                totalStaked: new BN(amount * 3),
-            });
+            await expectEvent.inTransaction(
+                tx2.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensStaked",
+                {
+                    staker: root,
+                    amount: new BN(amount * 2),
+                    lockedUntil: lockedTS,
+                    totalStaked: new BN(amount * 3),
+                }
+            );
         });
     });
 
@@ -972,23 +1051,23 @@ contract("Staking", (accounts) => {
             let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
                 lockedTS
             );
-            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(2);
             let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 1);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount / 2);
 
             // _writeUserCheckpoint
             let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
-            expect(numUserCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(numUserCheckpoints)).to.be.equal(2);
             checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 1);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount / 2);
 
             // _decreaseDelegateStake
             let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(
@@ -1000,14 +1079,19 @@ contract("Staking", (accounts) => {
                 lockedTS,
                 numDelegateStakingCheckpoints - 1
             );
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
-            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount / 2);
+            expect(parseInt(numDelegateStakingCheckpoints)).to.be.equal(2);
 
-            expectEvent(tx2, "StakingWithdrawn", {
-                staker: root,
-                amount: new BN(amount / 2),
-            });
+            await expectEvent.inTransaction(
+                tx2.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "StakingWithdrawn",
+                {
+                    staker: root,
+                    amount: new BN(amount / 2),
+                }
+            );
         });
 
         it("Should be able to withdraw second time", async () => {
@@ -1034,8 +1118,8 @@ contract("Staking", (accounts) => {
                 lockedTS,
                 numDelegateStakingCheckpoints - 1
             );
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
-            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount / 2);
+            expect(parseInt(numDelegateStakingCheckpoints)).to.be.equal(2);
 
             await staking.withdraw(amount / 2, lockedTS, account2);
 
@@ -1052,15 +1136,15 @@ contract("Staking", (accounts) => {
                 lockedTS,
                 numDelegateStakingCheckpoints - 1
             );
-            expect(checkpoint.stake.toNumber()).to.be.equal(0);
-            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(3);
+            expect(parseInt(checkpoint.stake)).to.be.equal(0);
+            expect(parseInt(numDelegateStakingCheckpoints)).to.be.equal(3);
 
             let feeSharingBalance = await token.balanceOf.call(feeSharingProxy.address);
             let userBalance = await token.balanceOf.call(account2);
 
-            let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
-            let maxDuration = await staking.MAX_DURATION.call();
-            let weightFactor = await staking.WEIGHT_FACTOR.call();
+            let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();
+            let maxDuration = await staking.getStorageMaxDurationToStakeTokens.call();
+            let weightFactor = await staking.getStorageWeightFactor.call();
             let weight =
                 weightingFunction(
                     amount,
@@ -1112,7 +1196,7 @@ contract("Staking", (accounts) => {
             await staking.withdraw(amount, lockedTS, root);
 
             await staking.stake(amount, lockedTS, root, root);
-            await staking.setDelegateStake(root, lockedTS, 0);
+            await iWeightedStakingModuleMockup.setDelegateStake(root, lockedTS, 0);
 
             await staking.withdraw(amount, lockedTS, root);
         });
@@ -1126,7 +1210,7 @@ contract("Staking", (accounts) => {
             await staking.withdraw(amount, lockedTS, root);
 
             await staking.stake(amount, lockedTS, root, root);
-            await staking.setDelegateStake(root, lockedTS, 0);
+            await iWeightedStakingModuleMockup.setDelegateStake(root, lockedTS, 0);
 
             let lockedTS2 = await getTimeFromKickoff(duration.mul(new BN(3)));
             await staking.extendStakingDuration(lockedTS, lockedTS2);
@@ -1141,7 +1225,7 @@ contract("Staking", (accounts) => {
             await staking.withdraw(amount, lockedTS, root);
 
             await staking.stake(amount, lockedTS, root, root);
-            await staking.setDelegateStake(root, lockedTS, 0);
+            await iWeightedStakingModuleMockup.setDelegateStake(root, lockedTS, 0);
 
             await staking.delegate(account1, lockedTS);
         });
@@ -1182,9 +1266,9 @@ contract("Staking", (accounts) => {
                 let feeSharingBalance = await token.balanceOf.call(feeSharingProxy.address);
                 let userBalance = await token.balanceOf.call(account2);
 
-                let maxVotingWeight = await staking.MAX_VOTING_WEIGHT.call();
-                let maxDuration = await staking.MAX_DURATION.call();
-                let weightFactor = await staking.WEIGHT_FACTOR.call();
+                let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();
+                let maxDuration = await staking.getStorageMaxDurationToStakeTokens.call();
+                let weightFactor = await staking.getStorageWeightFactor.call();
                 let weight =
                     weightingFunction(
                         amount,
@@ -1239,23 +1323,23 @@ contract("Staking", (accounts) => {
             let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
                 lockedTS
             );
-            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(2);
             let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 1);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(0);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(0);
 
             //_decreaseVestingStake
             let numVestingCheckpoints = await staking.numVestingCheckpoints.call(lockedTS);
-            expect(numVestingCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(numVestingCheckpoints)).to.be.equal(2);
             checkpoint = await staking.vestingCheckpoints.call(lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.vestingCheckpoints.call(lockedTS, 1);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(0);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(0);
         });
     });
 
@@ -1272,9 +1356,14 @@ contract("Staking", (accounts) => {
 
             let tx = await staking.unlockAllTokens();
 
-            expectEvent(tx, "TokensUnlocked", {
-                amount: amount,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensUnlocked",
+                {
+                    amount: amount,
+                }
+            );
 
             await staking.withdraw(amount, lockedTS, root);
         });
@@ -1322,25 +1411,31 @@ contract("Staking", (accounts) => {
             let balance = await staking.balanceOf.call(root);
             expect(balance.toNumber()).to.be.equal(amount);
             let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount);
 
             // upgrade
-            staking = await StakingProxy.at(staking.address);
-            let stakingMockup = await StakingMockup.new(token.address);
-            await staking.setImplementation(stakingMockup.address);
-            staking = await StakingMockup.at(staking.address);
+            /// Staking Modules
+            // Replace all staking modules
+            const newModulesObject = await getStakingModulesObject();
+            const newModulesAddressList = getStakingModulesAddressList(newModulesObject);
+            for (let moduleName in newModulesObject) {
+                await replaceStakingModule(
+                    staking.address,
+                    modulesAddressList[moduleName],
+                    newModulesAddressList[moduleName]
+                );
+            }
 
             // after upgrade: storage data remained the same
             balance = await staking.balanceOf.call(root);
             expect(balance.toNumber()).to.be.equal(amount);
             checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount);
 
-            // after upgrade: new method added
-            balance = await staking.balanceOf_MultipliedByTwo.call(root);
-            expect(balance.toNumber()).to.be.equal(amount * 2);
+            balance = await staking.balanceOf(root);
+            expect(balance.toNumber() * 2).to.be.equal(amount * 2);
         });
     });
 

@@ -15,6 +15,8 @@
  *   Updated to use WRBTC as collateral token, instead of custom testWrbtc.
  */
 
+const { deployAndGetIStaking } = require("../Utils/initializer");
+
 const { BN, constants, expectEvent } = require("@openzeppelin/test-helpers");
 const { expect, waffle } = require("hardhat");
 const { deployMockContract, loadFixture } = waffle;
@@ -23,7 +25,6 @@ const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanToken = artifacts.require("LoanToken");
 const LockedSOV = artifacts.require("LockedSOV");
-const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -119,10 +120,11 @@ contract("Affiliates", (accounts) => {
         }
 
         // Creating the Staking Instance.
-        stakingLogic = await StakingLogic.new(SUSD.address);
-        staking = await StakingProxy.new(SUSD.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        //stakingLogic = await deployAndGetIStaking();
+        stakingProxy = await StakingProxy.new(SUSD.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
+        //await staking.setImplementation(stakingLogic.address);
+        //staking = await StakingLogic.at(staking.address);
 
         // Creating the FeeSharing Instance.
         feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);

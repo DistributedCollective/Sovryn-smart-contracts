@@ -76,7 +76,7 @@ contract WeightedStaking is Checkpoints {
      * various other functionalities without the necessity of linking it with Vesting Registry
      */
     function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner whenNotFrozen {
-        vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
+        vestingRegistryLogic = IVestingRegistry(_vestingRegistryProxy);
     }
 
     /**
@@ -113,7 +113,7 @@ contract WeightedStaking is Checkpoints {
         //blockNumber should be in the past
         nCheckpoints = 0;
         uint32 blockNumber = 0;
-        vestingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, value);
+        vestingCheckpoints[lockedTS][nCheckpoints] = IStaking.Checkpoint(blockNumber, value);
         numVestingCheckpoints[lockedTS] = nCheckpoints + 1;
 
         emit VestingStakeSet(lockedTS, value);
@@ -201,7 +201,7 @@ contract WeightedStaking is Checkpoints {
         uint32 upper = nCheckpoints - 1;
         while (upper > lower) {
             uint32 center = upper - (upper - lower) / 2; // ceil, avoiding overflow
-            Checkpoint memory cp = totalStakingCheckpoints[date][center];
+            IStaking.Checkpoint memory cp = totalStakingCheckpoints[date][center];
             if (cp.fromBlock == blockNumber) {
                 return cp.stake;
             } else if (cp.fromBlock < blockNumber) {
@@ -302,7 +302,7 @@ contract WeightedStaking is Checkpoints {
         uint32 upper = nCheckpoints - 1;
         while (upper > lower) {
             uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
-            Checkpoint memory cp = delegateStakingCheckpoints[account][date][center];
+            IStaking.Checkpoint memory cp = delegateStakingCheckpoints[account][date][center];
             if (cp.fromBlock == blockNumber) {
                 return cp.stake;
             } else if (cp.fromBlock < blockNumber) {
@@ -338,7 +338,6 @@ contract WeightedStaking is Checkpoints {
         /// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
         uint256 start = timestampToLockDate(date);
         uint256 end = start + MAX_DURATION;
-
         /// @dev Max 78 iterations.
         for (uint256 i = start; i <= end; i += TWO_WEEKS) {
             uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
@@ -436,7 +435,7 @@ contract WeightedStaking is Checkpoints {
         uint32 upper = nCheckpoints - 1;
         while (upper > lower) {
             uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
-            Checkpoint memory cp = userStakingCheckpoints[account][date][center];
+            IStaking.Checkpoint memory cp = userStakingCheckpoints[account][date][center];
             if (cp.fromBlock == blockNumber) {
                 return cp.stake;
             } else if (cp.fromBlock < blockNumber) {
@@ -558,7 +557,7 @@ contract WeightedStaking is Checkpoints {
         uint32 upper = nCheckpoints - 1;
         while (upper > lower) {
             uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
-            Checkpoint memory cp = vestingCheckpoints[date][center];
+            IStaking.Checkpoint memory cp = vestingCheckpoints[date][center];
             if (cp.fromBlock == blockNumber) {
                 return cp.stake;
             } else if (cp.fromBlock < blockNumber) {
@@ -734,7 +733,7 @@ contract WeightedStaking is Checkpoints {
         bool isVesting;
         bytes32 codeHash = _getCodeHash(stakerAddress);
         if (address(vestingRegistryLogic) != address(0)) {
-            isVesting = vestingRegistryLogic.isVestingAdress(stakerAddress);
+            isVesting = vestingRegistryLogic.isVestingAddress(stakerAddress);
         }
 
         if (isVesting) return true;

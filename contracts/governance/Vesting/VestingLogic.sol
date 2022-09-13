@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
-import "../Staking/IStaking.sol";
+import "../Staking/interfaces/IStaking.sol";
 import "../IFeeSharingProxy.sol";
 import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
@@ -87,7 +87,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         /// @dev Allow the staking contract to access them.
         SOV.approve(address(staking), _amount);
 
-        staking.stakesBySchedule(_amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
+        staking.stakeBySchedule(_amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
 
         emit TokensStaked(_sender, _amount);
     }
@@ -217,7 +217,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * register stakeTokensWithApproval selector on this contract.
      * @return The array of registered selectors on this contract.
      * */
-    function _getSelectors() internal view returns (bytes4[] memory) {
+    function _getSelectors() internal pure returns (bytes4[] memory) {
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = this.stakeTokensWithApproval.selector;
         return selectors;

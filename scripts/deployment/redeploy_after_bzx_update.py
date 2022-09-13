@@ -843,7 +843,7 @@ def createProposalSIP005():
 
 def checkVotingPower(address):
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
 
     votingPower = staking.getCurrentVotes(address)
 

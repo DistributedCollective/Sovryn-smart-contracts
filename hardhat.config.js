@@ -9,6 +9,7 @@ require("hardhat-contract-sizer"); //yarn run hardhat size-contracts
 require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
 require("hardhat-abi-exporter");
+require("hardhat-deploy");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -79,6 +80,11 @@ module.exports = {
 				enabled: true,
 				runs: 200,
 			},
+			outputSelection: {
+          		"*": {
+            		"*": ["storageLayout"]
+          		}
+        	},
 		},
 	},
 	abiExporter: {
@@ -97,7 +103,7 @@ module.exports = {
 	networks: {
 		hardhat: {
 			allowUnlimitedContractSize: true,
-			initialBaseFeePerGas: 0,
+			accounts: { mnemonic: "test test test test test test test test test test test junk" },
 		},
 		rskPublicTestnet: {
 			url: "https://public-node.testnet.rsk.co/",
@@ -131,9 +137,14 @@ module.exports = {
 	paths: {
 		sources: "./contracts",
 		tests: "./tests",
+		deploy: "./deployment/deploy",
+        deployments: './deployment/deployments'
 	},
 	mocha: {
 		timeout: 800000,
 		grep: "^(?!.*; using Ganache).*",
 	},
+	namedAccounts: {
+        deployer: 0
+    },
 };

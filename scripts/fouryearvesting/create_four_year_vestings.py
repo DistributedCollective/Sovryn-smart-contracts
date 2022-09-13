@@ -34,7 +34,7 @@ def main():
     feeSharingAddress = contracts['FeeSharingProxy']
     fourYearVestingLogic = contracts['FourYearVestingLogic']
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
-    staking = Contract.from_abi("Staking", address=stakingAddress, abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=stakingAddress, abi=interface.IStaking.abi, owner=acct)
     fourYearVestingFactory = Contract.from_abi("FourYearVestingFactory", address=contracts['FourYearVestingFactory'], abi=FourYearVestingFactory.abi, owner=acct)
 
     MULTIPLIER = 10**16 # Expecting two decimals

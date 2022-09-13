@@ -2005,7 +2005,7 @@ contract("LiquidityMining", (accounts) => {
             expect(await liquidityMining.BONUS_BLOCK_MULTIPLIER()).bignumber.equal("10");
         });
 
-        it("SVR", async () => {
+        it("SOV token address set correctly", async () => {
             expect(await liquidityMining.SOV()).equal(SOVToken.address);
         });
 

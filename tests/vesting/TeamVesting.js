@@ -9,7 +9,6 @@
  *
  */
 
-const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 
@@ -27,14 +26,14 @@ contract("TeamVesting", (accounts) => {
         [root, a1, a2, a3, ...accounts] = accounts;
         token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
-        let stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(token.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         await token.transfer(a2, "1000");
         await token.approve(staking.address, "1000", { from: a2 });
 
         kickoffTS = await staking.kickoffTS.call();
     });
+    //TODO: where are tests???
 });
