@@ -1091,7 +1091,7 @@ contract("Vesting", (accounts) => {
             expect(previousStake).to.be.bignumber.to.greaterThan(new BN(1));
 
             const tx2 = await staking.cancelTeamVesting(vesting.address, root, skippedIterations);
-            await increaseTimeEthers(1000)
+            await increaseTimeEthers(1000);
 
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
@@ -1121,7 +1121,6 @@ contract("Vesting", (accounts) => {
                 );
 
                 expect(latestStake.toString()).to.equal("1");
-
             }
         });
 
