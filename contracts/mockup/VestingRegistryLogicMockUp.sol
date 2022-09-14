@@ -7,6 +7,10 @@ contract VestingRegistryLogicMockup is VestingRegistryLogic {
         return true;
     }
 
+    function isVestingAddress(address _vestingAddress) external view returns (bool isVestingAddr) {
+        return true;
+    }
+
     function setTeamVesting(address _vesting, uint256 _vestingCreationType) external {
         vestingCreationAndTypes[_vesting] = VestingCreationAndTypeDetails({
             isSet: true,
