@@ -944,7 +944,7 @@ contract("Vesting", (accounts) => {
 
             const decodedIncompleteEvent = decodeLogs(
                 receipt.rawLogs,
-                StakingLogic,
+                StakingWithdrawModule,
                 "TeamVestingPartiallyCancelled"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
@@ -991,7 +991,7 @@ contract("Vesting", (accounts) => {
 
             let decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
-                StakingLogic,
+                StakingWithdrawModule,
                 "TeamVestingPartiallyCancelled"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
@@ -1010,7 +1010,7 @@ contract("Vesting", (accounts) => {
             const tx2 = await staking.cancelTeamVesting(vesting.address, root, nextStartIteration);
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
-                StakingLogic,
+                StakingWithdrawModule,
                 "TeamVestingPartiallyCancelled"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
@@ -1057,7 +1057,7 @@ contract("Vesting", (accounts) => {
 
             let decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
-                StakingLogic,
+                StakingWithdrawModule,
                 "TeamVestingPartiallyCancelled"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
@@ -1087,14 +1087,15 @@ contract("Vesting", (accounts) => {
                 skippedIterations,
                 currentBlockNumber - 1
             );
+
             expect(previousStake).to.be.bignumber.to.greaterThan(new BN(1));
 
             const tx2 = await staking.cancelTeamVesting(vesting.address, root, skippedIterations);
-            // await mineBlock();
+            await increaseTimeEthers(1000)
 
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
-                StakingLogic,
+                StakingWithdrawModule,
                 "TeamVestingPartiallyCancelled"
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
@@ -1118,7 +1119,9 @@ contract("Vesting", (accounts) => {
                     i,
                     currentBlockNumber - 1
                 );
+
                 expect(latestStake.toString()).to.equal("1");
+
             }
         });
 
@@ -1223,7 +1226,7 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTimeEthers(20 * WEEK);
+            await increaseTimeEthers(10 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
@@ -1248,7 +1251,7 @@ contract("Vesting", (accounts) => {
 
             const decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
-                StakingLogic,
+                StakingWithdrawModule,
                 "TeamVestingPartiallyCancelled"
             )[0].args;
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
@@ -1285,10 +1288,15 @@ contract("Vesting", (accounts) => {
                 new BN(end.toString()).add(new BN(TWO_WEEKS))
             );
 
-            expectEvent(tx, "TeamVestingCancelled", {
-                caller: root,
-                receiver: root,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingWithdrawModule,
+                "TeamVestingCancelled",
+                {
+                    caller: root,
+                    receiver: root,
+                }
+            );
         });
     });
 
