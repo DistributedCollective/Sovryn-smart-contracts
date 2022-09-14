@@ -658,7 +658,7 @@ contract("Staking", (accounts) => {
             const newMaxWithdrawIterations = 20;
             await expectRevert(
                 staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations, { from: a1 }),
-                "SS01"
+                "unauthorized"
             );
         });
 

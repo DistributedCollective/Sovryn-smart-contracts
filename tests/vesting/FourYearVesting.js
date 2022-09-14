@@ -814,7 +814,7 @@ contract("FourYearVesting", (accounts) => {
 
             await expectRevert(
                 staking.cancelTeamVesting(vesting.address, root, 0, { from: a1 }),
-                "SS01"
+                "unauthorized"
             );
         });
 
