@@ -48,13 +48,7 @@ function randomValue() {
 }
 
 contract("Locked SOV (Events)", (accounts) => {
-    let sov,
-        lockedSOV,
-        newLockedSOV,
-        vestingRegistry,
-        newVestingRegistry,
-        vestingLogic,
-        stakingLogic;
+    let sov, staking, lockedSOV, newLockedSOV, vestingRegistry, newVestingRegistry, vestingLogic;
     let creator, admin, newAdmin, userOne, userTwo, userThree, userFour, userFive;
 
     before("Initiating Accounts & Creating Test Token Instance.", async () => {

@@ -119,12 +119,9 @@ contract("Affiliates", (accounts) => {
             await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
         }
 
-        // Creating the Staking Instance.
-        //stakingLogic = await deployAndGetIStaking();
+        // Creating the Staking Modules Instance.
         stakingProxy = await StakingProxy.new(SUSD.address);
         staking = await deployAndGetIStaking(stakingProxy.address);
-        //await staking.setImplementation(stakingLogic.address);
-        //staking = await StakingLogic.at(staking.address);
 
         // Creating the FeeSharing Instance.
         feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);

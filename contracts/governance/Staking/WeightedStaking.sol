@@ -4,6 +4,8 @@ pragma experimental ABIEncoderV2;
 import "./Checkpoints.sol";
 import "../../openzeppelin/Address.sol";
 
+//TODO: remove after Staking EIP-170 refactored deployed
+
 /**
  * @title Weighted Staking contract.
  * @notice Computation of power and votes used by FeeSharingProxy and

@@ -26,7 +26,6 @@ const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
-const TestWrbtc = artifacts.require("TestWrbtc");
 const TestToken = artifacts.require("TestToken");
 const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -47,7 +46,7 @@ const pricsSats = "2500";
 contract("VestingRegistry", (accounts) => {
     let root, account1, account2, account3;
     let SOV, cSOV1, cSOV2;
-    let staking, stakingLogic, feeSharingProxy;
+    let staking, feeSharingProxy;
     let vestingFactory, vestingLogic, vestingRegistry;
 
     async function deploymentAndInitFixture(_wallets, _provider) {

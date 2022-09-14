@@ -4,6 +4,8 @@ pragma experimental ABIEncoderV2;
 import "./StakingStorage.sol";
 import "./SafeMath96.sol";
 
+//TODO: remove after Staking EIP-170 refactored deployed
+
 /**
  * @title Checkpoints contract.
  * @notice Increases and decreases storage values for users, delegatees and

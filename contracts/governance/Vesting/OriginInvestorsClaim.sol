@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./VestingRegistry.sol";
-import "../Staking/Staking.sol";
+import "../Staking/interfaces/IStaking.sol";
 
 /**
  * @title Origin investors claim vested cSOV tokens.
@@ -25,7 +25,7 @@ contract OriginInvestorsClaim is Ownable {
     uint256 public investorsQty;
     bool public investorsListInitialized;
     VestingRegistry public vestingRegistry;
-    Staking public staking;
+    IStaking public staking;
     IERC20 public SOVToken;
 
     /// @dev user => flag : Whether user has admin role.
@@ -89,9 +89,9 @@ contract OriginInvestorsClaim is Ownable {
      * */
     constructor(address vestingRegistryAddress) public {
         vestingRegistry = VestingRegistry(vestingRegistryAddress);
-        staking = Staking(vestingRegistry.staking());
+        staking = IStaking(vestingRegistry.staking());
         kickoffTS = staking.kickoffTS();
-        SOVToken = staking.SOVToken();
+        SOVToken = IERC20(staking.SOVToken());
         vestingTerm = kickoffTS + SOV_VESTING_CLIFF;
     }
 

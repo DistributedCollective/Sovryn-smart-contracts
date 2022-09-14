@@ -211,13 +211,13 @@ contract("Staking", (accounts) => {
 
     describe("setVestingStakes", () => {
         it("should fail if unauthorized", async () => {
-            await expectRevert(staking.setVestingStakes([], [], { from: a1 }), "SS01"); // WS01 : unauthorized
+            await expectRevert(staking.setVestingStakes([], [], { from: a1 }), "unauthorized"); // WS01 : unauthorized
         });
 
         it("should fail if arrays have different length", async () => {
             let lockedDates = [kickoffTS.add(new BN(TWO_WEEKS))];
             let values = [];
-            await expectRevert(staking.setVestingStakes(lockedDates, values), "WS05"); // WS05 : arrays mismatch
+            await expectRevert(staking.setVestingStakes(lockedDates, values), "arrays mismatch"); // WS05 : arrays mismatch
         });
     });
 
@@ -248,7 +248,7 @@ contract("Staking", (accounts) => {
                 expiry = 0;
             await expectRevert(
                 staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, 0, "0xbad", "0xbad"),
-                "S13" /**Staking::delegateBySig: invalid nonce */
+                "Staking::delegateBySig: invalid signature" /** S13: Staking::delegateBySig: invalid nonce */
             );
         });
 
@@ -272,21 +272,21 @@ contract("Staking", (accounts) => {
                 // unlockedAccount(a1).secretKey
             );
             /*const { v, r, s } = EIP712Ethers.sign(
-				Domain(staking),
-				"Delegation",
-				{
-					delegatee,
-					lockDate,
-					nonce,
-					expiry,
-				},
-				Types,
-				pA1
-			);*/
+                Domain(staking),
+                "Delegation",
+                {
+                    delegatee,
+                    lockDate,
+                    nonce,
+                    expiry,
+                },
+                Types,
+                pA1
+            );*/
 
             await expectRevert(
                 staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
-                "S14" /**Staking::delegateBySig: invalid nonce */
+                "Staking::delegateBySig: invalid nonce" /**Staking::delegateBySig: invalid nonce */
             );
         });
 
@@ -309,7 +309,7 @@ contract("Staking", (accounts) => {
             );
             await expectRevert(
                 staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
-                "S15" /**Staking::delegateBySig: signature expired */
+                "Staking::delegateBySig: signature expired" /**Staking::delegateBySig: signature expired */
             );
         });
 
@@ -427,7 +427,7 @@ contract("Staking", (accounts) => {
 
         it("reverts if block number >= current block", async () => {
             let time = kickoffTS.add(new BN(DELAY));
-            await expectRevert(staking.getPriorVotes.call(a1, 5e10, time), "WS11"); // WS11 : not determined yet
+            await expectRevert(staking.getPriorVotes.call(a1, 5e10, time), "not determined yet"); // WS11 : not determined yet
         });
 
         it("returns 0 if there are no checkpoints", async () => {

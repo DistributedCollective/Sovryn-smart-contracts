@@ -6,9 +6,9 @@ pragma solidity 0.5.17;
  */
 
 contract IModulesProxyRegistry {
-    event AddModule(address moduleAddress);
-    event ReplaceModule(address oldAddress, address newAddress);
-    event RemoveModule(address moduleAddress);
+    event AddModule(address indexed moduleAddress);
+    event ReplaceModule(address indexed oldAddress, address indexed newAddress);
+    event RemoveModule(address indexed moduleAddress);
     event SetModuleFuncImplementation(
         bytes4 indexed _funcSig,
         address indexed _oldImplementation,
@@ -20,10 +20,30 @@ contract IModulesProxyRegistry {
     /// @param _impl Module implementation address
     function addModule(address _impl) external;
 
+    /// @notice Add modules functions.
+    /// @param _implementations Modules implementation addresses
+    function addModules(address[] calldata _implementations) external;
+
     /// @notice Replace module - remove the previous, add the new one
     /// @param _oldModuleImpl Module implementation address to remove
     /// @param _newModuleImpl Module implementation address to add
     function replaceModule(address _oldModuleImpl, address _newModuleImpl) external;
+
+    /// @notice Add modules functions.
+    /// @param _implementationsFrom Modules to replace
+    /// @param _implementationsTo Replacing modules
+    function replaceModules(
+        address[] calldata _implementationsFrom,
+        address[] calldata _implementationsTo
+    ) external;
+
+    /// @notice to disable module - set all its functions implementation to address(0)
+    /// @param _impl implementation address
+    function removeModule(address _impl) external;
+
+    /// @notice Add modules functions.
+    /// @param _implementations Modules implementation addresses
+    function removeModules(address[] calldata _implementations) external;
 
     /// @param _sig function signature to get impmementation address for
     /// @return function's contract implelementation address
@@ -45,8 +65,4 @@ contract IModulesProxyRegistry {
             bytes4[] memory clashingFuncSelectors,
             bytes4[] memory registryClashingSelectors
         );
-
-    /// @notice to disable module - set all its functions implementation to address(0)
-    /// @param _impl implementation address
-    function removeModule(address _impl) external;
 }

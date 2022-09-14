@@ -16,12 +16,13 @@
 const { expect } = require("chai");
 const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum");
+const { deployAndGetIStaking, getStakingModulesWithBlockMockup } = require("../Utils/initializer");
 
 const SOV_ABI = artifacts.require("SOV");
-const StakingLogic = artifacts.require("StakingMock");
 const StakingProxy = artifacts.require("StakingProxy");
 const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
+const IStakingModuleBlockMockup = artifacts.require("IStakingModuleBlockMockup");
 
 // Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
@@ -36,7 +37,7 @@ const DELAY = TWO_WEEKS;
 
 contract("StakingRewards - First Period", (accounts) => {
     let root, a1, a2, a3, a4, a5;
-    let SOV, staking;
+    let SOV, staking, blockMockUp;
     let kickoffTS, inOneYear, inTwoYears, inThreeYears;
 
     before(async () => {
@@ -47,10 +48,12 @@ contract("StakingRewards - First Period", (accounts) => {
         blockMockUp = await BlockMockUp.new();
 
         // Deployed Staking Functionality
-        let stakingLogic = await StakingLogic.new(SOV.address);
-        staking = await StakingProxy.new(SOV.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        const stakingProxy = await StakingProxy.new(SOV.address);
+        iStaking = await deployAndGetIStaking(
+            stakingProxy.address,
+            await getStakingModulesWithBlockMockup()
+        );
+        staking = await IStakingModuleBlockMockup.at(iStaking.address); // applying extended mockup interface
 
         //Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();

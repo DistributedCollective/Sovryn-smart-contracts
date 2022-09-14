@@ -45,6 +45,7 @@ const StakingStorageModule = artifacts.require("StakingStorageModule");
 const StakingVestingModule = artifacts.require("StakingVestingModule");
 const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const WeightedStakingModule = artifacts.require("WeightedStakingModule");
+const StakingModuleBlockMockup = artifacts.require("StakingModuleBlockMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 
 const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
@@ -79,7 +80,21 @@ const getStakingModulesObject = async () => {
     };
 };
 
-const initStakingModulesMockup = async (tokenAddress) => {
+const getStakingModulesWithBlockMockup = async () => {
+    // commented modules are aggregated into StakingModuleBlockMockup
+    return {
+        StakingAdminModule: await StakingAdminModule.new(),
+        // StakingGovernanceModule: await StakingGovernanceModule.new(),
+        // StakingStakeModule: await StakingStakeModule.new(),
+        StakingStorageModule: await StakingStorageModule.new(),
+        // StakingVestingModule: await StakingVestingModule.new(),
+        StakingWithdrawModule: await StakingWithdrawModule.new(),
+        //WeightedStakingModule: await WeightedStakingModule.new(),
+        StakingModuleBlockMockup: await StakingModuleBlockMockup.new(), // aggregating mockup module
+    };
+};
+
+const initWeightedStakingModulesMockup = async (tokenAddress) => {
     const stakingProxy = await StakingProxy.new(tokenAddress);
     const modulesObject = await getStakingModulesObject();
     const staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
@@ -134,7 +149,7 @@ const deployAndGetIStaking = async (stakingProxyAddress, modulesObject = undefin
         stakingProxyAddress,
         modulesObject
     );
-    return await getIStaking(stakingProxyAddress);
+    return await getIStaking(stakingModulesProxy.address);
 };
 
 const getIStaking = async (stakingProxyAddress) => {
@@ -645,7 +660,8 @@ module.exports = {
     initializeStakingModulesAt,
     getStakingModulesObject,
     getStakingModulesAddressList,
-    initStakingModulesMockup,
+    initWeightedStakingModulesMockup,
+    getStakingModulesWithBlockMockup,
 
     loan_pool_setup,
     lend_to_pool,

@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
-import "../StakingStorageShared.sol";
+import "./shared/StakingStorageShared.sol";
 
 /**
  * @title Staking Storage Module
@@ -14,8 +14,9 @@ contract StakingStorageModule is IFunctionsList, StakingStorageShared {
     }
 
     /// @notice The maximum duration to stake tokens
+    /// @return MAX_DURATION to stake tokens
     function getStorageMaxDurationToStakeTokens() external pure returns (uint256) {
-        return uint256(MAX_DURATION);
+        return MAX_DURATION;
     }
 
     /// @notice The maximum possible voting weight before adding +1 (actually 10, but need 9 for computation).

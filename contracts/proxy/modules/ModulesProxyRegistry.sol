@@ -18,13 +18,21 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     bytes32 internal constant KEY_IMPLEMENTATION = keccak256("key.implementation");
 
     ///@notice constructor is internal to make contract abstract
-    constructor() internal {}
+    constructor() internal {
+        // abstract
+    }
 
     /// @notice Add module functions.
     /// Overriding functions is not allowed. To replace modules use ReplaceModule function.
     /// @param _impl Module implementation address
     function addModule(address _impl) external onlyProxyOwner {
         _addModule(_impl);
+    }
+
+    /// @notice Add modules functions.
+    /// @param _implementations Modules implementation addresses
+    function addModules(address[] calldata _implementations) external onlyProxyOwner {
+        for (uint256 i = 0; i < _implementations.length; i++) _addModule(_implementations[i]);
     }
 
     /// @notice Replace module - remove the previous, add the new one
@@ -34,12 +42,34 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         external
         onlyProxyOwner
     {
-        require(_newModuleImpl.isContract(), "MR03"); //ModulesRegistry::replaceModule - _newModuleImpl is not a contract
-        require(_oldModuleImpl.isContract(), "MR04"); //ModulesRegistry::replaceModule - _oldModuleImpl is not a contract
-        _removeModule(_oldModuleImpl);
-        _addModule(_newModuleImpl);
+        _replaceModule(_oldModuleImpl, _newModuleImpl);
+    }
 
-        emit ReplaceModule(_oldModuleImpl, _newModuleImpl);
+    /// @notice Add modules functions.
+    /// @param _implementationsFrom Modules to replace
+    /// @param _implementationsTo Replacing modules
+    function replaceModules(
+        address[] calldata _implementationsFrom,
+        address[] calldata _implementationsTo
+    ) external onlyProxyOwner {
+        require(
+            _implementationsFrom.length == _implementationsTo.length,
+            "arrays sizes must be equal"
+        ); //MR10
+        for (uint256 i = 0; i < _implementationsFrom.length; i++)
+            _replaceModule(_implementationsFrom[i], _implementationsTo[i]);
+    }
+
+    /// @notice to disable module - set all its functions implementation to address(0)
+    /// @param _impl implementation address
+    function removeModule(address _impl) external onlyProxyOwner {
+        _removeModule(_impl);
+    }
+
+    /// @notice Add modules functions.
+    /// @param _implementations Modules implementation addresses
+    function removeModules(address[] calldata _implementations) external onlyProxyOwner {
+        for (uint256 i = 0; i < _implementations.length; i++) _removeModule(_implementations[i]);
     }
 
     /// @param _sig function signature to get impmementation address for
@@ -52,7 +82,7 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     /// @param _impl module implementation address to verify
     /// @return true if module can be added
     function canAddModule(address _impl) external view returns (bool) {
-        require(_impl.isContract(), "MR06"); //Proxy::canAddModule: address is not a contract
+        require(_impl.isContract(), "Proxy::canAddModule: address is not a contract"); //MR06
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 0; i < functions.length; i++)
             if (_getFuncImplementation(functions[i]) != address(0)) return (false);
@@ -71,7 +101,7 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
             bytes4[] memory registryClashingSelectors
         )
     {
-        require(_newModule.isContract(), "MR06"); //Proxy::canAddModule: address is not a contract
+        require(_newModule.isContract(), "Proxy::canAddModule: address is not a contract"); //MR06
         bytes4[] memory functions = IFunctionsList(_newModule).getFunctionsList();
         bytes4[] memory functionList = _getFunctionsList(); //registry functions list
         uint256 clashingRegistrySize;
@@ -107,25 +137,7 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         }
     }
 
-    /// @notice to disable module - set all its functions implementation to address(0)
-    /// @param _impl implementation address
-    function removeModule(address _impl) external onlyProxyOwner {
-        _removeModule(_impl);
-    }
-
     /****************** INTERNAL FUNCTIONS ******************/
-
-    function _addModule(address _impl) internal {
-        require(_impl.isContract(), "MR01"); //ModulesRegistry::_addModule: address is not a contract
-        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
-        for (uint256 i = 0; i < functions.length; i++) {
-            require(_getFuncImplementation(functions[i]) == address(0), "MR02"); //function already registered in another module - use ReplaceModule if you need to replace the whole module
-            require(functions[i] != bytes4(0), "MR03"); // does not allow empty function id
-            require(_checkClashingWithProxyFunctions(functions[i]), "MR09"); //ModulesRegistry has function with the same signature
-            _setModuleFuncImplementation(functions[i], _impl);
-        }
-        emit AddModule(_impl);
-    }
 
     function _getFuncImplementation(bytes4 _sig) internal view returns (address) {
         //TODO: add querying Registry for logic address and then delegate call to it OR use proxy memory slots like this:
@@ -137,8 +149,29 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         return implementation;
     }
 
+    function _addModule(address _impl) internal {
+        require(_impl.isContract(), "ModulesRegistry::_addModule: address is not a contract"); //MR01
+        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
+        for (uint256 i = 0; i < functions.length; i++) {
+            require(
+                _getFuncImplementation(functions[i]) == address(0),
+                "function already registered in another module - use ReplaceModule if you need to replace the whole module"
+            ); //MR02
+            require(functions[i] != bytes4(0), "does not allow empty function id"); // MR03
+            require(
+                _checkClashingWithProxyFunctions(functions[i]),
+                "ModulesRegistry has function with the same signature"
+            ); //MR09
+            _setModuleFuncImplementation(functions[i], _impl);
+        }
+        emit AddModule(_impl);
+    }
+
     function _removeModule(address _impl) internal onlyProxyOwner {
-        require(_impl.isContract(), "MR07"); //ModulesRegistry::_removeModuleImplementation: address is not a contract
+        require(
+            _impl.isContract(),
+            "ModulesRegistry::_removeModuleImplementation: address is not a contract"
+        ); //MR07
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 0; i < functions.length; i++)
             _setModuleFuncImplementation(functions[i], address(0));
@@ -146,12 +179,28 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         emit RemoveModule(_impl);
     }
 
+    function _replaceModule(address _oldModuleImpl, address _newModuleImpl) internal {
+        require(
+            _newModuleImpl.isContract(),
+            "ModulesRegistry::replaceModule - _newModuleImpl is not a contract"
+        ); //MR03
+        require(
+            _oldModuleImpl.isContract(),
+            "ModulesRegistry::replaceModule - _oldModuleImpl is not a contract"
+        ); //MR04
+        _removeModule(_oldModuleImpl);
+        _addModule(_newModuleImpl);
+
+        emit ReplaceModule(_oldModuleImpl, _newModuleImpl);
+    }
+
     function _setModuleFuncImplementation(bytes4 _sig, address _impl) internal {
+        emit SetModuleFuncImplementation(_sig, _getFuncImplementation(_sig), _impl);
+
         bytes32 key = keccak256(abi.encode(_sig, KEY_IMPLEMENTATION));
         assembly {
             sstore(key, _impl)
         }
-        emit SetModuleFuncImplementation(_sig, _getFuncImplementation(_sig), _impl);
     }
 
     function _checkClashingWithProxyFunctions(bytes4 _sig) internal pure returns (bool) {
@@ -165,15 +214,18 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     }
 
     function _getFunctionsList() internal pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](8);
+        bytes4[] memory functionList = new bytes4[](11);
         functionList[0] = this.getFuncImplementation.selector;
         functionList[1] = this.addModule.selector;
-        functionList[2] = this.removeModule.selector;
-        functionList[3] = this.canAddModule.selector;
-        functionList[4] = this.replaceModule.selector;
-        functionList[5] = this.setProxyOwner.selector;
-        functionList[6] = this.getProxyOwner.selector;
-        functionList[7] = this.checkClashingFuncSelectors.selector;
+        functionList[2] = this.addModules.selector;
+        functionList[3] = this.removeModule.selector;
+        functionList[4] = this.removeModules.selector;
+        functionList[5] = this.replaceModule.selector;
+        functionList[6] = this.replaceModules.selector;
+        functionList[7] = this.canAddModule.selector;
+        functionList[8] = this.setProxyOwner.selector;
+        functionList[9] = this.getProxyOwner.selector;
+        functionList[10] = this.checkClashingFuncSelectors.selector;
         return functionList;
     }
 }

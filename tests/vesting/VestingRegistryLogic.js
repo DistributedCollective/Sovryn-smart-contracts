@@ -28,7 +28,7 @@ const pricsSats = "2500";
 contract("VestingRegistryLogic", (accounts) => {
     let root, account1, account2, account3, account4;
     let SOV, lockedSOV;
-    let staking, stakingLogic, feeSharingProxy;
+    let staking, feeSharingProxy;
     let vesting, vestingFactory, vestingLogic, vestingRegistryLogic;
     let vestingRegistry, vestingRegistry2, vestingRegistry3;
 

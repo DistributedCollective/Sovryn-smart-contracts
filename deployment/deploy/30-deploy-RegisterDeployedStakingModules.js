@@ -1,7 +1,12 @@
 const path = require("path");
 const { getContractNameFromScriptFileName } = require("../helpers/utils");
 const hre = require("hardhat");
-const { getStakingModulesNames } = require("../helpers/helpers");
+const {
+    getStakingModulesNames,
+    stakingRegisterModuleWithMultisig,
+    sendWithMultisig,
+    multisigCheckTx,
+} = require("../helpers/helpers");
 
 const func = async function () {
     const {
@@ -10,28 +15,41 @@ const func = async function () {
         ethers,
     } = hre;
     //const { deployer } = await getNamedAccounts();
-    const proxy = await ethers.getContract("StakingModulesProxy");
+    const proxyDeployment = await get("StakingModulesProxy");
+    const stakingModulesProxy = await ethers.getContract("StakingModulesProxy");
 
-    log("====================================================================================");
+    log("Registering Staking Modules...");
 
-    const abi = ["event AddModule(address moduleAddress)"];
+    //const abi = ["event AddModule(address moduleAddress)"];
+    const abi = proxyDeployment.abi;
     const iface = new ethers.utils.Interface(abi);
 
-    const moduleNames = getStakingModulesNames();
+    const moduleNamesObject = getStakingModulesNames();
+    const moduleNames = Object.values(moduleNamesObject);
+    let moduleAddressList = [];
 
-    for (let moduleName in moduleNames) {
+    for (let moduleName in moduleNamesObject) {
         const moduleDeployment = await get(moduleName);
-        const receipt = await (await proxy.addModule(moduleDeployment.address)).wait();
-        const parsedLogs = iface.parseLog(receipt.logs[receipt.logs.length - 1]);
-        try {
-            if (parsedLogs.args["moduleAddress"] == moduleDeployment.address)
-                log(`Registered module "${moduleName}" @ ${moduleDeployment.address}`);
-            else throw `ERROR registering module "${moduleName}" @ ${moduleDeployment.address}`;
-        } catch (e) {
-            throw new Error(e);
-        }
+        moduleAddressList.push(moduleDeployment.address);
     }
-    log("====================================================================================");
+    //TODO: 2 options:
+    //  [x]    - register directly (e.g. for the testnet) create tx for multisig
+    //  [ ]    - create tx for multisig or SIP
+    if (stakingRegisterModuleWithMultisig() && hre.network.live) {
+        const iStakingModulesProxy = new ethers.utils.Interface(proxyDeployment.abi);
+        const data = iStakingModulesProxy.encodeFunctionData("addModules", [moduleAddressList]);
+        const multisigDeployment = await get("multisig");
+        const { deployer } = await getNamedAccounts("deployer");
+        await sendWithMultisig(
+            multisigDeployment.address,
+            stakingModulesProxy.address,
+            data,
+            deployer
+        );
+    } else {
+        const receipt = await (await stakingModulesProxy.addModules(moduleAddressList)).wait();
+        log(`gasUsed: ${receipt.gasUsed}`);
+    }
 };
 func.tags = [getContractNameFromScriptFileName(path.basename(__filename))];
 func.dependencies = ["StakingModulesProxy", "StakingModules"];

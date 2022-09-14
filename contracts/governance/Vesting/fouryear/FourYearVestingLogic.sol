@@ -178,7 +178,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * */
     function migrateToNewStakingContract() external onlyOwners {
         staking.migrateToNewStakingContract();
-        staking = Staking(staking.newStakingContract());
+        staking = IStaking(staking.newStakingContract());
         emit MigratedToNewStakingContract(msg.sender, address(staking));
     }
 

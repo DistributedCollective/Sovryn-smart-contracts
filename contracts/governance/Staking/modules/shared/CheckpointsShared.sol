@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./StakingStorageShared.sol";
-import "./SafeMath96.sol";
+import "../../SafeMath96.sol";
 
 /**
  * @title Checkpoints contract.
@@ -88,6 +88,10 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
     );
 
     event MaxVestingWithdrawIterationsUpdated(uint256 oldMaxIterations, uint256 newMaxIterations);
+
+    constructor() internal {
+        // abstract
+    }
 
     /**
      * @notice Increases the user's vesting stake for a giving lock date and writes a checkpoint.
@@ -330,10 +334,7 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
      * @return The stake amount.
      * */
     function _currentBalance(address account, uint256 lockDate) internal view returns (uint96) {
-        return
-            userStakingCheckpoints[account][lockDate][
-                numUserStakingCheckpoints[account][lockDate] - 1
-            ]
-                .stake;
+        uint32 _numUnserStakingCheckpoints = numUserStakingCheckpoints[account][lockDate] - 1;
+        return userStakingCheckpoints[account][lockDate][_numUnserStakingCheckpoints].stake;
     }
 }

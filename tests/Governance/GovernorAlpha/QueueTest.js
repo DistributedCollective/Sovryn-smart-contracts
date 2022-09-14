@@ -8,6 +8,7 @@
  */
 
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { mine } = require("@nomicfoundation/hardhat-network-helpers");
 
 const {
     etherMantissa,
@@ -16,6 +17,7 @@ const {
     increaseTime,
 } = require("../../Utils/Ethereum");
 const { deployAndGetIStaking } = require("../../Utils/initializer");
+const { ethers } = require("hardhat");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
@@ -94,7 +96,9 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 
         it("reverts on queueing overlapping actions in different proposals, works if waiting", async () => {
             await enfranchise(token, staking, a2, QUORUM_VOTES);
-            await ethers.provider.send("evm_mine");
+            //await mineBlock();
+
+            await mine();
 
             const targets = [staking.address];
             const values = ["0"];
@@ -110,8 +114,8 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 
             await gov.castVote(proposalId1, true, { from: a1 });
             await gov.castVote(proposalId2, true, { from: a2 });
-            await advanceBlocks(30);
 
+            await mine(30);
             await expectRevert(
                 gov.queueProposals([proposalId1, proposalId2]),
                 "GovernorAlpha::_queueOrRevert: proposal action already queued at eta"
@@ -119,7 +123,8 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 
             await gov.queue(proposalId1);
             await ethers.provider.send("evm_increaseTime", [60]);
-            await ethers.provider.send("evm_mine");
+            await mine();
+
             await gov.queue(proposalId2);
         });
     });

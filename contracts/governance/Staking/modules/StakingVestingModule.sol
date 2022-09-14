@@ -1,7 +1,7 @@
 pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../StakingShared.sol";
+import "./shared/StakingShared.sol";
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
 
 /**
@@ -33,7 +33,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         onlyAuthorized
         whenNotFrozen
     {
-        require(lockedDates.length == values.length, "WS05"); // arrays mismatch
+        require(lockedDates.length == values.length, "arrays mismatch"); // WS05
 
         uint256 length = lockedDates.length;
         for (uint256 i = 0; i < length; i++) {
@@ -103,7 +103,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         uint256 date,
         uint256 blockNumber
     ) internal view returns (uint96) {
-        require(blockNumber < _getCurrentBlockNumber(), "WS14"); // not determined
+        require(blockNumber < _getCurrentBlockNumber(), "not determined"); // WS14
 
         date = _adjustDateForOrigin(date);
         uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
@@ -224,7 +224,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         view
         returns (uint96)
     {
-        require(blockNumber < _getCurrentBlockNumber(), "WS17"); // not determined
+        require(blockNumber < _getCurrentBlockNumber(), "not determined"); // WS17
 
         uint32 nCheckpoints = numVestingCheckpoints[date];
         if (nCheckpoints == 0) {

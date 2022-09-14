@@ -9,6 +9,8 @@ import "../Vesting/IVesting.sol";
 import "../ApprovalReceiver.sol"; //uncomment when refactoring
 import "../../openzeppelin/SafeMath.sol";
 
+//TODO: remove after Staking EIP-170 refactored deployed
+
 /**
  * @title Staking contract.
  * @notice Pay-in and pay-out function for staking and withdrawing tokens.
@@ -209,7 +211,8 @@ contract Staking is
     }
 
     /**
-     * @dev TO BE DEPRECATED. Use stakeBySchedule function.
+     * @dev DO NOT USE this misspelled function. Use stakeBySchedule function instead.
+     * This function cannot be deprecated while we have non-upgradeable vesting contracts.
      * */
     function stakesBySchedule(
         uint256 amount,

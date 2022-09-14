@@ -275,7 +275,7 @@ contract("WeightedStaking", (accounts) => {
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
             await expectRevert(
                 staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS),
-                "WS08"
+                "not determined"
             ); // WS08 : not determined
         });
     });
@@ -342,7 +342,7 @@ contract("WeightedStaking", (accounts) => {
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
             await expectRevert(
                 staking.getPriorVotes(a3, result.receipt.blockNumber, kickoffTS),
-                "WS11"
+                "not determined yet"
             ); // WS11: not determined yet
         });
 
@@ -412,7 +412,7 @@ contract("WeightedStaking", (accounts) => {
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
             await expectRevert(
                 staking.getPriorWeightedStake(a3, result.receipt.blockNumber, kickoffTS),
-                "WS14"
+                "not determined"
             );
         });
     });

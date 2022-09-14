@@ -30,7 +30,7 @@ let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
 contract("Locked SOV (Creator Functions)", (accounts) => {
-    let sov, lockedSOV, newLockedSOV, vestingRegistry, vestingLogic, stakingLogic;
+    let sov, lockedSOV, newLockedSOV, vestingRegistry, vestingLogic;
     let creator, admin, newAdmin, userOne, userTwo, userThree, userFour, userFive;
 
     before("Initiating Accounts & Creating Test Token Instance.", async () => {

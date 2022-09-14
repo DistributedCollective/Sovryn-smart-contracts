@@ -27,9 +27,11 @@ import "./ModulesProxyRegistry.sol";
  */
 
 contract ModulesProxy is ModulesProxyRegistry {
+    // Uncomment for using beforeFallback() hook
+    /*
     bytes private constant BEFORE_FALLBACK_SIG = abi.encodeWithSignature("beforeFallback()");
-    bytes4 private constant BEFORE_FALLBACK_SIG_BYTES4 =
-        bytes4(keccak256(abi.encodePacked("beforeFallback()")));
+    bytes4 private constant BEFORE_FALLBACK_SIG_BYTES4 = bytes4(keccak256(abi.encodePacked("beforeFallback()")));
+    */
 
     /**
      * @notice Fallback function delegates calls to modules.
@@ -40,17 +42,17 @@ contract ModulesProxy is ModulesProxyRegistry {
     function() external payable {
         /*
         // Commented to safe gas by default
-        // Uncomment using beforeFallback() hook 
+        // Uncomment for using beforeFallback() hook 
         // Implement and register beforeFallback() function in a module
         address beforeFallback = _getFuncImplementation(BEFORE_FALLBACK_SIG_BYTES4);
         if (beforeFallback != address(0)) {
-            (bool success, ) = beforeFallback.delegatecall(BEFORE_FALLBACK_SIG);
-            require(success, "MP02"); //ModulesProxy::fallback: beforeFallback() fail
+            (bool success, ) = beforeFallback.delegatecall(bytes(0x39b0111a)); // abi.encodeWithSignature("beforeFallback()")
+            require(success, "ModulesProxy::fallback: beforeFallback() fail"); //MP02
         }
         */
 
         address target = _getFuncImplementation(msg.sig);
-        require(target != address(0), "MP03"); // ModulesProxy:target module not registered
+        require(target != address(0), "ModulesProxy:target module not registered"); // MP03
 
         bytes memory data = msg.data;
         assembly {

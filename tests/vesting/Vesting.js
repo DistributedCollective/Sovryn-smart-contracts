@@ -372,7 +372,7 @@ contract("Vesting", (accounts) => {
 
             // negative cases
 
-            // start-10 to avoid coming to active checkpoint
+            // start-100 to avoid coming to active checkpoint
             let periodFromKickoff = Math.floor((start - 100 - kickoffTS.toNumber()) / (2 * WEEK));
             let startBuf = periodFromKickoff * 2 * WEEK + kickoffTS.toNumber();
             let userStakingCheckpoints = await staking.userStakingCheckpoints(
@@ -427,7 +427,7 @@ contract("Vesting", (accounts) => {
             await vesting.stakeTokens(amount);
 
             let block1 = await ethers.provider.getBlock("latest");
-            let timestamp1 = parseInt(block1.timestamp);
+            let timestamp1 = block1.timestamp;
 
             let start = timestamp1 + cliff;
             let end = timestamp1 + duration;
@@ -588,7 +588,7 @@ contract("Vesting", (accounts) => {
             await token.approveAndCall(vesting.address, amount, data, { from: sender });
 
             let block = await ethers.provider.getBlock("latest");
-            let timestamp = block.timestamp;
+            let timestamp = parseInt(block.timestamp);
 
             let start = timestamp + cliff;
             let end = timestamp + duration;
@@ -741,14 +741,14 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTimeEthers(17 * WEEK);
+            await increaseTimeEthers(20 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
             let amountAfterStake = await token.balanceOf(root);
 
             // time travel
-            await increaseTimeEthers(31 * WEEK);
+            await increaseTimeEthers(34 * WEEK);
 
             // withdraw
             let tx = await vesting.withdrawTokens(root);
@@ -1175,7 +1175,7 @@ contract("Vesting", (accounts) => {
 
             await expectRevert(
                 staking.cancelTeamVesting(vesting.address, root, 0, { from: a1 }),
-                "SS01"
+                "unauthorized"
             );
         });
 
@@ -1199,7 +1199,7 @@ contract("Vesting", (accounts) => {
 
             await expectRevert(
                 staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root),
-                "S07"
+                "unauthorized"
             );
         });
 
@@ -1223,7 +1223,7 @@ contract("Vesting", (accounts) => {
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTimeEthers(10 * WEEK);
+            await increaseTimeEthers(20 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
@@ -1365,13 +1365,15 @@ contract("Vesting", (accounts) => {
             await staking.setNewStakingContract(newStaking.address);
 
             // 2. call migrateToNewStakingContract
-            let tx = await vesting.migrateToNewStakingContract();
+            //uncomment when implemented
+            /*let tx = await vesting.migrateToNewStakingContract();
             expectEvent(tx, "MigratedToNewStakingContract", {
                 caller: root,
                 newStakingContract: newStaking.address,
             });
             let _staking = await vesting.staking();
-            assert.equal(_staking, newStaking.address);
+            assert.equal(_staking, newStaking.address);*/
+            await expectRevert(vesting.migrateToNewStakingContract(), "not implemented");
         });
 
         it("should fail if there is no new staking contract set", async () => {
@@ -1388,7 +1390,10 @@ contract("Vesting", (accounts) => {
                 feeSharingProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
-            await expectRevert(vesting.migrateToNewStakingContract(), "S19");
+            await expectRevert(
+                vesting.migrateToNewStakingContract(),
+                "there is no new staking contract set"
+            );
         });
 
         it("should fail if the caller is neither owner nor token owner", async () => {
@@ -1412,9 +1417,6 @@ contract("Vesting", (accounts) => {
 
             await expectRevert(vesting.migrateToNewStakingContract({ from: a2 }), "unauthorized");
             await expectRevert(vesting.migrateToNewStakingContract({ from: a3 }), "unauthorized");
-
-            await vesting.migrateToNewStakingContract();
-            await vesting.migrateToNewStakingContract({ from: a1 });
         });
     });
 });

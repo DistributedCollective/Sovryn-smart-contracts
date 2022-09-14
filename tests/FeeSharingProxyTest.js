@@ -139,10 +139,6 @@ contract("FeeSharingProxy:", (accounts) => {
         SOVToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
         // Staking
-        /*let stakingLogic = await StakingLogic.new(SOVToken.address);
-        staking = await StakingProxy.new(SOVToken.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);*/
 
         // Creating the Staking Instance (Staking Modules Interface).
         const stakingProxy = await StakingProxy.new(SOVToken.address);
@@ -160,11 +156,6 @@ contract("FeeSharingProxy:", (accounts) => {
         );
 
         iWeightedStakingModuleMockup = await IWeightedStakingModuleMockup.at(staking.address);
-        //weightedStakingModuleMockup = await WeightedStakingModuleMockup.at(staking.address);
-        /*for (let moduleName in modulesObject) {
-            console.log(`module ${moduleName}:`);
-            console.log(await modulesObject[moduleName].getFunctionsList());
-        }*/
 
         SUSD = await getSUSD();
         RBTC = await getRBTC();

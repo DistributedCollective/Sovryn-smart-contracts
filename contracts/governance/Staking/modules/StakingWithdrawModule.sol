@@ -3,11 +3,11 @@ pragma experimental ABIEncoderV2;
 
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
 
-import "../CheckpointsShared.sol";
+import "./shared/CheckpointsShared.sol";
 import "../../../rsk/RSKAddrValidator.sol";
 import "../../Vesting/ITeamVesting.sol";
 import "../../Vesting/IVesting.sol";
-import "../StakingShared.sol";
+import "./shared/StakingShared.sol";
 
 /**
  * @title Staking withdrawal functionality module
@@ -46,7 +46,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         uint256 until,
         address receiver
     ) external whenNotFrozen {
-        require(vestingWhitelist[msg.sender], "S07"); // unauthorized
+        require(vestingWhitelist[msg.sender], "unauthorized"); // S07
 
         _notSameBlockAsStakingCheckpoint(until);
 
@@ -178,7 +178,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
 
             /// @dev punishedAmount can be 0 if block.timestamp are very close to 'until'
             if (punishedAmount > 0) {
-                require(address(feeSharing) != address(0), "S08"); // FeeSharing address wasn't set
+                require(address(feeSharing) != address(0), "FeeSharing address wasn't set"); // S08
                 /// @dev Move punished amount to fee sharing.
                 /// @dev Approve transfer here and let feeSharing do transfer and write checkpoint.
                 SOVToken.approve(address(feeSharing), punishedAmount);
@@ -188,7 +188,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
 
         /// @dev transferFrom
         bool success = SOVToken.transfer(receiver, amount);
-        require(success, "S09"); // Token transfer failed
+        require(success, "Token transfer failed"); // S09
 
         emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
     }
@@ -293,9 +293,9 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         uint96 amount,
         uint256 until
     ) internal view {
-        require(amount > 0, "S10"); // Amount of tokens to withdraw must be > 0
+        require(amount > 0, "Amount of tokens to withdraw must be > 0"); // S10
         uint96 balance = _getPriorUserStakeByDate(account, until, block.number - 1);
-        require(amount <= balance, "S11"); // Staking::withdraw: not enough balance
+        require(amount <= balance, "Staking::withdraw: not enough balance"); // S11
     }
 
     /**

@@ -1,30 +1,5 @@
-/** Speed optimized on branch hardhatTestRefactor, 2021-09-14
- * Greatest bottlenecks found at:
- * 	- should revert if contract doesn't have enough funds to reward user (4055ms)
- * 		Due to the tx => stakingRewards.collectReward
- * 			Due to call => getStakerCurrentReward (up to 2s)
- *  - initialization on before hook takes 4s.
- *
- * Total time elapsed: 34s
- * After optimization: 32s
- *
- * Other minor optimizations:
- *  - removed unused lines of code
- *  - reformatted code comments
- *
- * Notes:
- *   StakingRewards test suite takes around 30 seconds to run. Contract deployment is
- *   only performed at first step, the before hook, and never again, so fixture strategy
- *   is not applicable. Major bottleneck in this test is executing the reward calculation
- *   transactions taking around 2 seconds each one, and every test is a different staking
- *   scenario so it seems like this calculation cannot be spared.
- *
- *   Updated to use the initializer.js functions for protocol deployment.
- *   Updated to use the SOV test token from initializer.js.
- */
-
 //TODO: #REFACTOR this contract needs refactoring - remove mock contracts and use it with Staking modules.
-// interaction - via IStaking.sol interface
+// interaction - via generic IStaking.sol interface
 const { expect } = require("chai");
 const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum");
@@ -33,20 +8,15 @@ const {
     getRBTC,
     getWRBTC,
     getBZRX,
-    getLoanTokenLogic,
-    getLoanToken,
-    getLoanTokenLogicWrbtc,
-    getLoanTokenWRBTC,
-    loan_pool_setup,
-    set_demand_curve,
     getPriceFeeds,
     getSovryn,
-    decodeLogs,
     getSOV,
 } = require("../Utils/initializer.js");
 
-const StakingLogic = artifacts.require("StakingMockupMix");
+const { deployAndGetIStaking, getStakingModulesWithBlockMockup } = require("../Utils/initializer");
+
 const StakingProxy = artifacts.require("StakingProxy");
+
 const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const FeeSharingLogic = artifacts.require("FeeSharingLogic");
@@ -56,6 +26,7 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const BlockMockUp = artifacts.require("BlockMockUp");
+const IStakingModuleBlockMockup = artifacts.require("IStakingModuleBlockMockup");
 
 const wei = web3.utils.toWei;
 
@@ -64,9 +35,19 @@ const DELAY = TWO_WEEKS;
 
 contract("StakingRewards", (accounts) => {
     let root, a1, a2, a3;
-    let SOV, staking;
+    let SOV, staking, stakingRewards, blockMockUp;
     let kickoffTS, inOneYear, inTwoYears, inThreeYears;
     let totalRewards;
+
+    const initStakingModules = async () => {
+        const stakingProxy = await StakingProxy.new(SOV.address);
+        iStaking = await deployAndGetIStaking(
+            stakingProxy.address,
+            await getStakingModulesWithBlockMockup()
+        );
+
+        return await IStakingModuleBlockMockup.at(iStaking.address); // applying extended mockup interface
+    };
 
     before(async () => {
         [root, a1, a2, a3, a4, ...accounts] = accounts;
@@ -87,10 +68,7 @@ contract("StakingRewards", (accounts) => {
         blockMockUp = await BlockMockUp.new();
 
         // Deployed Staking Functionality
-        let stakingLogic = await StakingLogic.new(SOV.address);
-        staking = await StakingProxy.new(SOV.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address); // Test - 01/07/2021
+        staking = await initStakingModules();
 
         // FeeSharingProxy
         let feeSharingLogic = await FeeSharingLogic.new();
@@ -319,11 +297,12 @@ contract("StakingRewards", (accounts) => {
             expect(afterBalance).to.be.bignumber.equal(beforeBalance);
         });
 
-        it("should be getting correct rewards after stopblock", async () => {
+        it("should be getting correct rewards after stopBlock", async () => {
             let block = await web3.eth.getBlock("latest");
             let timestamp = block.timestamp;
 
-            const BASE_RATE = await stakingRewards.BASE_RATE();
+            const BASE_RATE = await stakingRewards.BASE_RATE(); //2975
+            /// @notice DIVISOR is set as 2600000 = 26 (num 2-weeks periods per year) * 10 (max voting weight) * 10000 (2975 -> 0.2975)
             const DIVISOR = await stakingRewards.DIVISOR();
             const multiplier = new BN(2);
             const MOCK_WEIGHTED_STAKE = multiplier.mul(DIVISOR).div(BASE_RATE);
@@ -339,10 +318,14 @@ contract("StakingRewards", (accounts) => {
                 MOCK_WEIGHTED_STAKE,
                 stopBlock.toString()
             );
+
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 });
-            expect(fields[1].toString()).to.equal(
+
+            expect(fields.amount.toString()).to.equal(
                 multiplier.mul(wsIteration).sub(new BN(1)).toString()
             );
+
+            // resetting mocked values
             await staking.MOCK_priorWeightedStakeAtBlock(0, stopBlock.toString());
             await staking.MOCK_priorWeightedStake(0);
         });

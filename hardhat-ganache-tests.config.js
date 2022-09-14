@@ -1,3 +1,5 @@
+//TODO: remove this legacy config for tests using truffle ganache as a workaround before hh 
+// added instant blocks advance
 const { default: Ganache } = require("ganache-core");
 const { task } = require("hardhat/config");
 

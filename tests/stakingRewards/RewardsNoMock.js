@@ -1,30 +1,19 @@
 /**
  * This test suite is an adapted copy of the tests based on mocked Staking and StakingRewards contracts
- * The mocks are removed but it is tricky to align it with the "mocked" logic
+ * The mocks are removed but it is tricky to align it with the previous "mocked" logic
  * All the tests are adjusted artificially to fit into "mocked" logic (see Rewards.js)
  * Requires further research and refactoring to use it with Staking modules.
- * Interaction - via IStaking.sol interface
+ * Interaction - via generic IStaking.sol interface
  */
 
-// TODO: #REFACTOR
+// TODO: #REFACTOR: resolve 2 skipped tests
 
 const { expect } = require("chai");
 const { BigNumber } = require("@ethersproject/bignumber");
 const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
-//const { increaseTime, blockNumber } = require("../Utils/Ethereum");
 const { mine, mineUpTo } = require("@nomicfoundation/hardhat-network-helpers");
 
-const SOV_ABI = artifacts.require("SOV");
-const StakingLogic = artifacts.require("Staking");
-const StakingProxy = artifacts.require("StakingProxy");
-// const StakingRewards = artifacts.require("StakingRewardsMockUp");
-const StakingRewards = artifacts.require("StakingRewards");
-const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
-
-// Upgradable Vesting Registry
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
-const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
-// const BlockMockUp = artifacts.require("BlockMockUp");
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const TWO_WEEKS = 1209600;
@@ -36,7 +25,11 @@ const {
     FakeContract,
     smock,
 } = require("@defi-wonderland/smock");
-const { ethers, network } = require("hardhat");
+const {
+    ethers,
+    deployments: { deploy, get, log },
+    getNamedAccounts,
+} = require("hardhat");
 //chai.use(smock.matchers);
 
 //const wei = web3.utils.toWei;
@@ -56,13 +49,11 @@ describe("StakingRewards - First Period", () => {
 
         SOV = await (await ethers.getContractFactory("SOV")).deploy(TOTAL_SUPPLY);
 
-        // let stakingLogic = await (await smock.mock("Staking")).deploy();
-
-        let stakingLogic = await (await ethers.getContractFactory("Staking")).deploy();
-        const stakingProxy = await (
-            await ethers.getContractFactory("StakingProxy")
-        ).deploy(SOV.address);
-        await stakingProxy.setImplementation(stakingLogic.address);
+        // Creating the Staking Modules Instance.
+        stakingProxy = await (await ethers.getContractFactory("StakingProxy")).deploy(SOV.address);
+        //stakingProxy = await ethers.getContract("StakingProxy", root);
+        //stakingProxy = await StakingProxy.new(SUSD.address);
+        await deployAndGetIStaking(stakingProxy.address);
         staking = await ethers.getContractAt("Staking", stakingProxy.address);
 
         vestingRegistryLogic = await (

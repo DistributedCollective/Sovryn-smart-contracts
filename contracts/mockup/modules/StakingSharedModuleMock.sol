@@ -1,9 +1,10 @@
 pragma solidity ^0.5.17;
 
-import "../governance/Staking/Staking.sol";
-import "./BlockMockUp.sol";
+import "../../governance/Staking/modules/shared/StakingShared.sol";
+import "../BlockMockUp.sol";
+import "../../proxy/modules/interfaces/IFunctionsList.sol";
 
-contract StakingMock is Staking {
+contract StakingModuleMock is IFunctionsList, StakingShared {
     ///@notice the block mock up contract
     BlockMockUp public blockMockUp;
 
@@ -21,5 +22,10 @@ contract StakingMock is Staking {
      * */
     function _getCurrentBlockNumber() internal view returns (uint256) {
         return blockMockUp.getBlockNum();
+    }
+
+    function getFunctionsList() external pure returns (bytes4[] memory) {
+        bytes4[] memory functionList = new bytes4[](1);
+        functionList[0] = this.setBlockMockUpAddr.selector;
     }
 }

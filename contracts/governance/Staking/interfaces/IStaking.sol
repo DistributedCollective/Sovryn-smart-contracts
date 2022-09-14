@@ -230,6 +230,17 @@ interface IStaking {
     ) external;
 
     /**
+     * @notice Receives approval from SOV token.
+     * @param _data The data will be used for low level call.
+     */
+    function receiveApproval(
+        address _sender,
+        uint256 _amount,
+        address _token,
+        bytes calldata _data
+    ) external;
+
+    /**
      * @notice Extend the staking duration until the specified date.
      * @param previousLock The old unlocking timestamp.
      * @param until The new unlocking timestamp in seconds.
@@ -237,7 +248,8 @@ interface IStaking {
     function extendStakingDuration(uint256 previousLock, uint256 until) external;
 
     /**
-     * @dev TO BE DEPRECATED. Use stakeBySchedule function.
+     * @dev DO NOT USE this misspelled function. Use stakeBySchedule function instead.
+     * This function cannot be deprecated while we have non-upgradeable vesting contracts.
      * */
     function stakesBySchedule(
         uint256 amount,
@@ -302,7 +314,7 @@ interface IStaking {
     /*************************** StakingStorageModule ***************************/
 
     /// @notice The maximum duration to stake tokens
-    /// @return uint256(MAX_DURATION);
+    /// @return MAX_DURATION to stake tokens
     function getStorageMaxDurationToStakeTokens() external pure returns (uint256);
 
     /// @notice The maximum possible voting weight before adding +1 (actually 10, but need 9 for computation).

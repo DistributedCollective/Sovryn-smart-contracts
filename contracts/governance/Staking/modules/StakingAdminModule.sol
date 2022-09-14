@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../../openzeppelin/Address.sol";
-import "../StakingShared.sol";
+import "./shared/StakingShared.sol";
 import "../../../proxy/modules/interfaces/IFunctionsList.sol";
 
 /**
@@ -79,9 +79,8 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _freeze true when freezing, false when unfreezing
      * @dev When freezing, pause is always applied too. When unfreezing, the contract is left in paused stated.
      * */
-    //TODO: separate freeze from unfreeze
     function freezeUnfreeze(bool _freeze) external onlyPauserOrOwner {
-        require(_freeze != frozen, "WS25");
+        require(_freeze != frozen, "Cannot freeze/unfreeze to the same state"); // WS25
         if (_freeze) pauseUnpause(true);
         frozen = _freeze;
         emit StakingFrozen(_freeze);
@@ -93,7 +92,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _feeSharing The address of FeeSharingProxy contract.
      * */
     function setFeeSharing(address _feeSharing) external onlyOwner whenNotFrozen {
-        require(_feeSharing != address(0), "S17"); // FeeSharing address shouldn't be 0
+        require(_feeSharing != address(0), "FeeSharing address shouldn't be 0"); // S17
         feeSharing = IFeeSharingProxy(_feeSharing);
     }
 
@@ -119,7 +118,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _newStakingContract The address of the new staking contract.
      * */
     function setNewStakingContract(address _newStakingContract) external onlyOwner whenNotFrozen {
-        require(_newStakingContract != address(0), "S16"); // can't reset the new staking contract to 0
+        require(_newStakingContract != address(0), "can't reset the new staking contract to 0"); // S16
         newStakingContract = _newStakingContract;
     }
 
@@ -131,7 +130,8 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      *      the implementation needs to be changed first.
      * */
     function migrateToNewStakingContract() external whenNotFrozen {
-        require(newStakingContract != address(0), "S19"); // there is no new staking contract set
+        require(newStakingContract != address(0), "there is no new staking contract set"); // S19
+        revert("not implemented");
         /// @dev implementation:
         /// @dev Iterate over all possible lock dates from now until now + MAX_DURATION.
         /// @dev Read the stake & delegate of the msg.sender
