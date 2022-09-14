@@ -36,7 +36,8 @@ const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 
 // Upgradable Vesting Registry
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogicMockup");
+// const VestingRegistryLogic = artifacts.require("VestingRegistryLogicMockup");
+const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const Vesting = artifacts.require("TeamVesting");
@@ -430,7 +431,19 @@ contract("Staking", (accounts) => {
                 feeSharingProxy.address
             );
 
-            await vestingRegistry.setTeamVesting(vesting.address, 0);
+            const sampleVesting = vesting.address;
+            const vestingType = new BN(0); // TeamVesting
+            const vestingCreationType = new BN(3);
+            const vestingCreationAndTypes = {
+                isSet: true,
+                vestingType: vestingType.toString(),
+                vestingCreationType: vestingCreationType.toString(),
+            };
+
+            await vestingRegistry.registerVestingToVestingCreationAndTypes(
+                [sampleVesting],
+                [vestingCreationAndTypes]
+            );
 
             vesting = await VestingLogic.at(vesting.address);
             await staking.addContractCodeHash(vesting.address);
