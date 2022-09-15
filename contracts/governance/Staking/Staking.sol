@@ -467,7 +467,7 @@ contract Staking is
 
         /// @dev transferFrom
         bool success = SOVToken.transfer(receiver, amount);
-        require(success, "S09"); // Token transfer failed
+        require(success, "Token transfer failed"); // S09
 
         emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
     }
@@ -512,7 +512,7 @@ contract Staking is
 
         /// @dev transferFrom
         bool success = SOVToken.transfer(receiver, amount);
-        require(success, "S09"); // Token transfer failed
+        require(success, "Token transfer failed"); // S09
 
         emit StakingWithdrawn(vesting, amount, until, receiver, true);
     }

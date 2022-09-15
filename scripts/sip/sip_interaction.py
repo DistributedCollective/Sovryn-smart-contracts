@@ -452,3 +452,23 @@ def createProposalSIP0049():
     print(datas)
     print(description)
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+# SIP to set the max vesting withdraw iterations in staking contract
+def createProposalSIP0050(maxWithdrawIterations):
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setMaxVestingWithdrawIterations(uint256)"]
+    data = staking.setMaxVestingWithdrawIterations.encode_input(maxWithdrawIterations)
+    datas = ["0x" + data[10:]]
+    # TODO finalized the details with github link & checksum
+    description = "SIP-0050: Set max vesting withdraw iterations"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
