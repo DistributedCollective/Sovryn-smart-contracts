@@ -13,6 +13,22 @@ import "./shared/StakingShared.sol";
 contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared, ApprovalReceiver {
     using SafeMath for uint256;
 
+    /// @notice An event emitted when tokens get staked.
+    event TokensStaked(
+        address indexed staker,
+        uint256 amount,
+        uint256 lockedUntil,
+        uint256 totalStaked
+    );
+
+    /// @notice An event emitted when a staking period gets extended.
+    event ExtendedStakingDuration(
+        address indexed staker,
+        uint256 previousDate,
+        uint256 newDate,
+        uint256 amountStaked
+    );
+
     /**
      * @notice Stake the given amount for the given duration of time.
      * @param amount The number of tokens to stake.

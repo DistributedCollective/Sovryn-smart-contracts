@@ -26,57 +26,6 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
         uint256 newBalance
     );
 
-    /// @notice An event emitted when tokens get staked.
-    event TokensStaked(
-        address indexed staker,
-        uint256 amount,
-        uint256 lockedUntil,
-        uint256 totalStaked
-    );
-
-    /// @notice An event emitted when staked tokens get withdrawn.
-    event StakingWithdrawn(
-        address indexed staker,
-        uint256 amount,
-        uint256 until,
-        address indexed receiver,
-        bool isGovernance
-    );
-
-    /// @notice An event emitted when vesting tokens get withdrawn.
-    event VestingTokensWithdrawn(address vesting, address receiver);
-
-    /// @notice An event emitted when the owner unlocks all tokens.
-    event TokensUnlocked(uint256 amount);
-
-    /// @notice An event emitted when a staking period gets extended.
-    event ExtendedStakingDuration(
-        address indexed staker,
-        uint256 previousDate,
-        uint256 newDate,
-        uint256 amountStaked
-    );
-
-    event AdminAdded(address admin);
-
-    event AdminRemoved(address admin);
-
-    /// @param pauser address to grant power to pause the contract
-    /// @param added true - added, false - removed
-    event PauserAddedOrRemoved(address indexed pauser, bool indexed added);
-
-    /// @notice An event emitted when a staking is paused or unpaused
-    /// @param setPaused true - pause, false - unpause
-    event StakingPaused(bool indexed setPaused);
-
-    /// @notice An event emitted when a staking is frozen or unfrozen
-    /// @param setFrozen true - freeze, false - unfreeze
-    event StakingFrozen(bool indexed setFrozen);
-
-    event ContractCodeHashAdded(bytes32 hash);
-
-    event ContractCodeHashRemoved(bytes32 hash);
-
     constructor() internal {
         // abstract
     }
