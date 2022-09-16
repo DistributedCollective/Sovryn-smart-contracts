@@ -35,7 +35,7 @@
     "ammOracleWhitelist": "0x8e75774Ef928cE730255AB594dD1b9F0a725a56b",
     "ConverterRegistry": "0x31A0F8400c75d52FdB413372233F28E3bdFB1c06",
     "ConverterFactory": "0xcF46f24423B8da97E2c06B41df28163D55e80935",
-    "ConversionPathFinder": "0xcF46f24423B8da97E2c06B41df28163D55e80935",
+    "ConversionPathFinder": "0xad3376bE8Df32Bb00df4c4402e6662C630167d62",
     "ConverterUpgrader": "0x40346f7Ce14B3a10bAB22F6a0A444902CF0Bc598",
     "ConverterRegistryData": "0x73eef416cb8B63dBfcc66719F0b74Bb7baEa48Fe",
     "ConverterDOC": "0xd715192612F03D20BaE53a5054aF530C9Bb0fA3f",
