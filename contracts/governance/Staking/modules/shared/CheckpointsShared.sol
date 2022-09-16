@@ -77,8 +77,6 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
 
     event ContractCodeHashRemoved(bytes32 hash);
 
-    event VestingStakeSet(uint256 lockedTS, uint96 value);
-
     constructor() internal {
         // abstract
     }
