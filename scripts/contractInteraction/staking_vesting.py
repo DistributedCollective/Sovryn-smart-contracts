@@ -547,10 +547,16 @@ def addVestingCodeHash(vestingLogic):
 #     }
 # make sure the length of addresses & vestingCreationAndTypeDetails is the same
 def registerVestingToVestingCreationAndTypes(addresses, vestingCreationAndTypeDetails):
-    if len(addresses) != len(vestingCreationAndTypeDetails) print("umatched length of array between addresses & vestingCreationAndTypeDetails") return
+    if len(addresses) != len(vestingCreationAndTypeDetails):
+        raise Exception("umatched length of array between addresses & vestingCreationAndTypeDetails")
+
     vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     data = vestingRegistry.registerVestingToVestingCreationAndTypes.encode_input(addresses, vestingCreationAndTypeDetails)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+def getVestingCreationAndTypes(vestingAddress):
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    print(vestingRegistry.vestingCreationAndTypes(vestingAddress))
 
 def readTokenOwner(vestingAddress):
     vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)

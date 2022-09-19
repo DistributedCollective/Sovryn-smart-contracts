@@ -15,6 +15,18 @@ import "./shared/StakingShared.sol";
 contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShared {
     using SafeMath for uint256;
 
+    event MaxVestingWithdrawIterationsUpdated(uint256 oldMaxIterations, uint256 newMaxIterations);
+
+    /// @dev Struct for direct withdraw function -- to avoid stack too deep issue
+    struct VestingConfig {
+        address vestingAddress;
+        uint256 startDate;
+        uint256 endDate;
+        uint256 cliff;
+        uint256 duration;
+        address tokenOwner;
+    }
+
     /**
      * @notice Withdraw the given amount of tokens if they are unlocked.
      * @param amount The number of tokens to withdraw.
@@ -114,7 +126,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
 
         /// @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
         uint256 totalIterationValue =
-            (_startFrom + (TWO_WEEKS * (getMaxVestingWithdrawIterations() - 1)));
+            (_startFrom + (TWO_WEEKS * (maxVestingWithdrawIterations - 1)));
         uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
 
         /// @dev Withdraw for each unlocked position.
@@ -312,36 +324,24 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     }
 
     /**
-     * @notice Max iteration for direct withdrawal from staking to prevent out of gas issue.
-     *
-     * @return max iteration value.
-     */
-    function getMaxVestingWithdrawIterations() public view returns (uint256) {
-        return maxVestingWithdrawIterations;
-    }
-
-    /**
      * @dev set max withdraw iterations.
      *
-     * @param maxIterations new max iterations value.
+     * @param newMaxIterations new max iterations value.
      */
-    function setMaxVestingWithdrawIterations(uint256 maxIterations) external onlyAuthorized {
-        require(maxIterations > 0, "Invalid max iterations");
-        uint256 oldIterations = maxVestingWithdrawIterations;
-        maxVestingWithdrawIterations = maxIterations;
-
-        emit MaxVestingWithdrawIterationsUpdated(oldIterations, maxVestingWithdrawIterations);
+    function setMaxVestingWithdrawIterations(uint256 newMaxIterations) external onlyAuthorized {
+        require(newMaxIterations > 0, "Invalid max iterations");
+        emit MaxVestingWithdrawIterationsUpdated(maxVestingWithdrawIterations, newMaxIterations);
+        maxVestingWithdrawIterations = newMaxIterations;
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](7);
+        bytes4[] memory functionsList = new bytes4[](6);
         functionsList[0] = this.withdraw.selector;
         functionsList[1] = this.governanceWithdraw.selector;
         functionsList[2] = this.cancelTeamVesting.selector;
         functionsList[3] = this.getWithdrawAmounts.selector;
         functionsList[4] = this.unlockAllTokens.selector;
-        functionsList[5] = this.getMaxVestingWithdrawIterations.selector;
-        functionsList[6] = this.setMaxVestingWithdrawIterations.selector;
+        functionsList[5] = this.setMaxVestingWithdrawIterations.selector;
         return functionsList;
     }
 }

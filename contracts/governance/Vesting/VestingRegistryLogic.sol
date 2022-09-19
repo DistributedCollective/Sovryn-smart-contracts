@@ -187,14 +187,6 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                 _vestingCreationType
             );
 
-        vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetails({
-            isSet: true,
-            vestingType: uint120(VestingType.Vesting),
-            vestingCreationType: uint128(_vestingCreationType)
-        });
-
-        emit VestingCreationAndTypesSet(vesting, vestingCreationAndTypes[vesting]);
-
         emit VestingCreated(
             _tokenOwner,
             vesting,
@@ -228,14 +220,6 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                 uint256(VestingType.TeamVesting),
                 _vestingCreationType
             );
-
-        vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetails({
-            isSet: true,
-            vestingType: uint120(VestingType.TeamVesting),
-            vestingCreationType: uint128(_vestingCreationType)
-        });
-
-        emit VestingCreationAndTypesSet(vesting, vestingCreationAndTypes[vesting]);
 
         emit TeamVestingCreated(
             _tokenOwner,
@@ -322,7 +306,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
     function isTeamVesting(address _vestingAddress) external view returns (bool) {
         return (vestingCreationAndTypes[_vestingAddress].isSet &&
             vestingCreationAndTypes[_vestingAddress].vestingType ==
-            uint256(VestingType.TeamVesting));
+            uint120(VestingType.TeamVesting));
     }
 
     /**
@@ -398,6 +382,14 @@ contract VestingRegistryLogic is VestingRegistryStorage {
             vestings[uid] = Vesting(_type, _vestingCreationType, vesting);
             vestingsOf[_tokenOwner].push(uid);
             isVesting[vesting] = true;
+
+            vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetails({
+                isSet: true,
+                vestingType: uint120(_type),
+                vestingCreationType: uint128(_vestingCreationType)
+            });
+
+            emit VestingCreationAndTypesSet(vesting, vestingCreationAndTypes[vesting]);
         }
         return vestings[uid].vestingAddress;
     }

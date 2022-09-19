@@ -936,13 +936,11 @@ contract Staking is
     /**
      * @dev set max withdraw iterations.
      *
-     * @param maxIterations new max iterations value.
+     * @param newMaxIterations new max iterations value.
      */
-    function setMaxVestingWithdrawIterations(uint256 maxIterations) external onlyAuthorized {
-        require(maxIterations > 0, "Invalid max iterations");
-        uint256 oldIterations = maxVestingWithdrawIterations;
-        maxVestingWithdrawIterations = maxIterations;
-
-        emit MaxVestingWithdrawIterationsUpdated(oldIterations, maxVestingWithdrawIterations);
+    function setMaxVestingWithdrawIterations(uint256 newMaxIterations) external onlyAuthorized {
+        require(newMaxIterations > 0, "Invalid max iterations");
+        emit MaxVestingWithdrawIterationsUpdated(maxVestingWithdrawIterations, newMaxIterations);
+        maxVestingWithdrawIterations = newMaxIterations;
     }
 }

@@ -87,8 +87,6 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
         uint256 lastProcessedDate
     );
 
-    event MaxVestingWithdrawIterationsUpdated(uint256 oldMaxIterations, uint256 newMaxIterations);
-
     constructor() internal {
         // abstract
     }

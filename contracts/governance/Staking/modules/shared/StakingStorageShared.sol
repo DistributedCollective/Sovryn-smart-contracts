@@ -153,16 +153,6 @@ contract StakingStorageShared is Ownable {
     /// @dev max iterations that can be supported in 1 tx for the withdrawal
     uint256 internal maxVestingWithdrawIterations;
 
-    /// @dev Struct for direct withdraw function -- to avoid stack too deep issue
-    struct VestingConfig {
-        address vestingAddress;
-        uint256 startDate;
-        uint256 endDate;
-        uint256 cliff;
-        uint256 duration;
-        address tokenOwner;
-    }
-
     constructor() internal {
         //abstract
     }
