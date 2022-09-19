@@ -27,6 +27,21 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         address tokenOwner;
     }
 
+    /// @notice An event emitted when staked tokens get withdrawn.
+    event StakingWithdrawn(
+        address indexed staker,
+        uint256 amount,
+        uint256 until,
+        address indexed receiver,
+        bool isGovernance
+    );
+
+    /// @notice An event emitted when vesting tokens get withdrawn.
+    event VestingTokensWithdrawn(address vesting, address receiver);
+
+    /// @notice An event emitted when the owner unlocks all tokens.
+    event TokensUnlocked(uint256 amount);
+
     /**
      * @notice Withdraw the given amount of tokens if they are unlocked.
      * @param amount The number of tokens to withdraw.

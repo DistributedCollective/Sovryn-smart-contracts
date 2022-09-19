@@ -23,6 +23,7 @@ def main():
     contracts = json.load(configFile)
 
     staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
+    '''
     registries = []
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct))
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry2'], abi=VestingRegistry.abi, owner=acct))
@@ -39,7 +40,7 @@ def main():
 
     usersSet = set()
 
-    currentTS = 1636182187
+    currentTS = chain.time() #or literal 1661730293
 
     jsonFile = open(OUTPUT_FILE, "a")
     with open(INPUT_FILE, 'r') as file:
@@ -102,7 +103,7 @@ def getUserVestings(vestingRegistry, user):
     MONTHS_10 = 10 * FOUR_WEEKS
     MONTHS_26 = 26 * FOUR_WEEKS # 2 year: 4 weeks * 10 * 2 = 
     WEEKS_156 = 156 * 7 * DAY # 4 year: 4 weeks * 10 (10 months - 1 year) * 4 == 160, 160 - 4 (cliff) = 156
-    LOCKEDSOV_DURATION = 24192000
+    LOCKEDSOV_DURATION = 24192000 # 10 months
     cliff = FOUR_WEEKS
     vestings = []
     durationTypes = [[LOCKEDSOV_DURATION, 0], [MONTHS_10, 3], [MONTHS_26, 1], [WEEKS_156, 4]]

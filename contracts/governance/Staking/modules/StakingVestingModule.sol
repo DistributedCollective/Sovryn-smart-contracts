@@ -27,6 +27,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * @notice Sets the users' vesting stakes for a giving lock dates and writes checkpoints.
      * @param lockedDates The arrays of lock dates.
      * @param values The array of values to add to the staked balance.
+     * TODO: remove - it was designed as a disposable function to initialize vesting checkpoints
      */
     function setVestingStakes(uint256[] calldata lockedDates, uint96[] calldata values)
         external
@@ -45,6 +46,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * @notice Sets the users' vesting stake for a giving lock date and writes a checkpoint.
      * @param lockedTS The lock date.
      * @param value The value to be set.
+     * TODO: remove - it was designed as a disposable function to initialize vesting checkpoints
      */
     function _setVestingStake(uint256 lockedTS, uint96 value) internal {
         //delete all checkpoints (shouldn't be any during the first initialization)

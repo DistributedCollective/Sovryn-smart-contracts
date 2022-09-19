@@ -74,6 +74,7 @@ const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const StakingStakeModule = artifacts.require("StakingStakeModule");
+const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
@@ -1127,7 +1128,7 @@ contract("Staking", (accounts) => {
 
             await expectEvent.inTransaction(
                 tx2.receipt.rawLogs[0].transactionHash,
-                StakingStakeModule,
+                StakingWithdrawModule,
                 "StakingWithdrawn",
                 {
                     staker: root,
@@ -1400,7 +1401,7 @@ contract("Staking", (accounts) => {
 
             await expectEvent.inTransaction(
                 tx.receipt.rawLogs[0].transactionHash,
-                StakingStakeModule,
+                StakingWithdrawModule,
                 "TokensUnlocked",
                 {
                     amount: amount,
