@@ -5,6 +5,7 @@ import time;
 import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
+from web3 import Web3
 
 def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTokenAddress):
     abiFile =  open('./scripts/contractInteraction/ABIs/SovrynSwapNetwork.json')
@@ -344,10 +345,19 @@ def withdrawFromRBTCWrapperProxy(tokenAddress, to, amount):
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=conf.contracts['RBTCWrapperProxy'], abi=abi, owner=conf.acct)
     wrapperProxy.withdraw(tokenAddress, to, amount)
 
-def transferOwnershipAMMContractsToGovernance(contractAddress, destinationAddress):
+def transferOwnershipAMMContractsToGovernance(contractAddress, destinationAddress, contractName=''):
     abiFile =  open('./scripts/contractInteraction/ABIs/Owned.json')
     abi = json.load(abiFile)
     ammContract = Contract.from_abi("AMMContract", address=contractAddress, abi=abi, owner=conf.acct)
+
+    if(contractName):
+        # # verify the contract address
+        contractRegistry = Contract.from_abi("sovryn", address=conf.contracts['ammContractRegistry'], abi=interface.IContractRegistry.abi, owner=conf.acct)
+        _contractAddress = contractRegistry.addressOf(web3.toHex(contractName.encode('utf-8')).ljust(66, '0'))
+
+        if(_contractAddress != contractAddress):
+            raise Exception("Unmatched contract address with the on-chain")
+
     currentOwner = ammContract.owner()
     if(currentOwner != conf.contracts['multisig']):
         raise Exception("Multisig is not the owner")

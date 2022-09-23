@@ -8,58 +8,58 @@ def main():
     # Transferring Ownership of AMM Contracts to Governance
     # === SovrynSwapNetwork ===
     print("Transfer ownership of sovrynSwapNetwork to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['swapNetwork'], conf.contracts['TimelockAdmin'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['swapNetwork'], conf.contracts['TimelockAdmin'], 'SovrynSwapNetwork')
 
 
     # === SwapSettings ===
     print("Transfer ownership of swapSettings to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ammSwapSettings'], conf.contracts['TimelockAdmin'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ammSwapSettings'], conf.contracts['TimelockAdmin'], 'SwapSettings')
     
 
     # === Converters ===
     # DOC
-    print("Transfer ownership of converter DoC to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterDOC'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter DoC to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterDOC'], conf.contracts['TimelockOwner'])
 
     #  USDT
-    print("Transfer ownership of converter USDT to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterUSDT'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter USDT to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterUSDT'], conf.contracts['TimelockOwner'])
 
     #  BPro
-    print("Transfer ownership of converter BPro to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterBPRO'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter BPro to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterBPRO'], conf.contracts['TimelockOwner'])
 
     # BNBs
-    print("Transfer ownership of converter BNBs to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterBNBs'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter BNBs to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterBNBs'], conf.contracts['TimelockOwner'])
 
     # MoC
-    print("Transfer ownership of converter MoC to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterMOC'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter MoC to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterMOC'], conf.contracts['TimelockOwner'])
 
     # XUSD
-    print("Transfer ownership of converter XUSD to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterXUSD'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter XUSD to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterXUSD'], conf.contracts['TimelockOwner'])
 
     # SOV
-    print("Transfer ownership of converter SOV to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterSOV'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter SOV to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterSOV'], conf.contracts['TimelockOwner'])
 
     # ETHs
-    print("Transfer ownership of converter ETHs to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterETHs'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter ETHs to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterETHs'], conf.contracts['TimelockOwner'])
 
     # FISH
-    print("Transfer ownership of converter FISH to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterFISH'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter FISH to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterFISH'], conf.contracts['TimelockOwner'])
 
     # MYNT
-    print("Transfer ownership of converter MYNT to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterMYNT'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter MYNT to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterMYNT'], conf.contracts['TimelockOwner'])
 
     # RIF
-    print("Transfer ownership of converter RIF to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterRIF'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of converter RIF to timelockOwner: ", conf.contracts['TimelockAdmin'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterRIF'], conf.contracts['TimelockOwner'])
 
 
     # === Oracles ===
@@ -93,27 +93,27 @@ def main():
 
     # === AMM Contract Registry ===
     print("Transfer ownership of Contract Registry to timelockOwner: ", conf.contracts['TimelockOwner'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ammContractRegistry'], conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ammContractRegistry'], conf.contracts['TimelockOwner'], 'ContractRegistry')
 
 
     # === Converter Factory ===
-    print("Transfer ownership of Converter Factory to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterFactory'], conf.contracts['TimelockAdmin'])
+    print("Transfer ownership of Converter Factory to timelockOwner: ", conf.contracts['TimelockOwner'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterFactory'], conf.contracts['TimelockOwner'], 'ConverterFactory')
 
 
     # === Conversion Path Finder ===
     print("Transfer ownership of Conversion Path Finder to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConversionPathFinder'], conf.contracts['TimelockAdmin'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConversionPathFinder'], conf.contracts['TimelockAdmin'], 'ConversionPathFinder')
 
 
     # ===  Converter Upgrader ===
     print("Transfer ownership of Converter Upgrader to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterUpgrader'], conf.contracts['TimelockAdmin'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterUpgrader'], conf.contracts['TimelockAdmin'], 'SovrynSwapConverterUpgrader')
 
 
     # === Converter Registry Data ===
     print("Transfer ownership of Converter Registry Data to timelockAdmin: ", conf.contracts['TimelockAdmin'])
-    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterRegistryData'], conf.contracts['TimelockAdmin'])
+    transferOwnershipAMMContractsToGovernance(conf.contracts['ConverterRegistryData'], conf.contracts['TimelockAdmin'], 'SovrynSwapConverterRegistryData')
 
 
     # === Oracle Whitelist ===
