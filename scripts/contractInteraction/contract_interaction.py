@@ -55,7 +55,9 @@ def main():
     #readFeesController()
     #setFeesController(conf.contracts['FeeSharingProxy1DayStaking'])
 
-    #transferRBTCFromFastBTCOffRampToOnRamp(5.7e18)
+    #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
+    #print('FastBTC offramp balance:', bal/10**18)
+    #transferRBTCFromFastBTCOffRampToOnRamp(8e18)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
     #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 100000e18)

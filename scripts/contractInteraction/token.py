@@ -1,8 +1,5 @@
 from brownie import *
-from brownie.network.contract import InterfaceContainer
 import json
-import time;
-import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 
@@ -11,6 +8,10 @@ def getBalance(contractAddress, acct):
     balance = contract.balanceOf(acct)
     print(balance)
     return balance
+
+def getContractBTCBalance(contractAddress):
+     contract = Contract.from_abi("Token", address=contractAddress, abi=LoanToken.abi, owner=conf.acct)
+     return contract.balance()
     
 def buyWRBTC(amount):
     contract = Contract.from_abi("WRBTC", address=conf.contracts["WRBTC"], abi=WRBTC.abi, owner=conf.acct)
