@@ -9,6 +9,4 @@ interface IWrbtc {
     function deposit() external payable;
 
     function withdraw(uint256 wad) external;
-
-    function tokenPrice() external view returns (uint256 price);
 }
