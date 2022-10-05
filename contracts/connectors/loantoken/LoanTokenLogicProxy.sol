@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./AdvancedTokenStorage.sol";
 import "../../openzeppelin/Initializable.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Loan Token Logic Proxy contract.

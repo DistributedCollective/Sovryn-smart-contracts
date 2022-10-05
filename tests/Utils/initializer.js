@@ -39,7 +39,8 @@ const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
 const tenKEth = new BN(wei("10", "kether"));
-const totalSupply = new BN(10).pow(new BN(50)).toString();
+// const totalSupply = new BN(10).pow(new BN(50)).toString();
+const totalSupply = new BN(10).pow(new BN(27)).toString();
 
 const CONSTANTS = {
     ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
@@ -319,8 +320,8 @@ const set_demand_curve = async (loanToken) => {
 const lend_to_pool = async (loanToken, SUSD, lender) => {
     const lend_amount = new BN(10).pow(new BN(30)).toString();
     await SUSD.mint(lender, lend_amount);
-    await SUSD.approve(loanToken.address, lend_amount);
-    await loanToken.mint(lender, lend_amount);
+    await SUSD.approve(loanToken.address, lend_amount, {from: lender});
+    await loanToken.mint(lender, lend_amount, {from: lender});
     return [lender, lend_amount];
 };
 

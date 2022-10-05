@@ -6,6 +6,7 @@
 pragma solidity 0.5.17;
 
 import "./AdvancedTokenStorage.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Loan Token contract.

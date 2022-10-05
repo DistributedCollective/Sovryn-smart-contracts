@@ -15,6 +15,8 @@
 
 pragma solidity 0.5.17;
 
+import "hardhat/console.sol";
+
 contract TestWrbtc {
     string public name = "Wrapped BTC";
     string public symbol = "WRBTC";

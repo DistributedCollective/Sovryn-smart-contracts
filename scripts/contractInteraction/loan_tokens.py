@@ -956,3 +956,86 @@ def transferLoanTokenOwnershipToGovernance():
     data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
+def testA():
+    # loanToken = Contract.from_abi("loanToken", address=conf.contracts['iUSDT'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    # print(loanToken.tokenPrice())
+    
+    # loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDOC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    # print(loanToken.tokenPrice())
+
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print(loanToken.tokenPrice())
+
+    # loanToken = Contract.from_abi("loanToken", address=conf.contracts['iXUSD'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    # print(loanToken.tokenPrice())
+
+    # loanToken = Contract.from_abi("loanToken", address=conf.contracts['iUSDT'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    # print(loanToken.tokenPrice())
+
+    # loanToken = Contract.from_abi("loanToken", address=conf.contracts['iBPro'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    # print(loanToken.tokenPrice())
+
+    # loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    # loanTokenLogicBeaconWRBTC = Contract.from_abi("loanTokenLogicBeaconWRBTC", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    # print(loanTokenLogicBeaconLM.paused())
+    # print(loanTokenLogicBeaconWRBTC.paused())
+
+def getTotalAssetSupply(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print(loanToken.totalAssetSupply())
+    return loanToken.totalAssetSupply()
+
+def getTotalSupply(contractAddress):
+    contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=conf.acct)
+    balance = contract.totalSupply()
+    print(balance)
+    return balance
+
+def getLoss():
+    print("=== iRBTC <> WRBTC ===")
+    getLossPerToken(conf.contracts['iRBTC'])
+
+    print("=== iDOC <> DoC ===")
+    getLossPerToken(conf.contracts['iDOC'])
+
+    print("=== iXUSD <> XUSD ===")
+    getLossPerToken(conf.contracts['iXUSD'])
+
+    print("=== iUSDT <> USDT ===")
+    getLossPerToken(conf.contracts['iUSDT'])
+
+    print("=== iBPro <> BPro ===")
+    getLossPerToken(conf.contracts['iBPro'])
+
+    # print(439307944034383556955.
+    # 11667323299487811921
+
+    #to be extended
+
+def getLossPerToken(loanContract):
+    ts = getTotalSupply(loanContract)
+    tas = getTotalAssetSupply(loanContract)
+    print(ts - tas)
+    #calc diff
+
+# ```
+# === WRBTC <> iRBTC ===
+# 439.307944034383556955
+# 11.667323299487811921
+
+# === DoC <> iDOC ===
+# 5,229,676.240756364026835788
+# 512,064.706042506305906377
+
+# === XUSD <> iXUSD ===
+# 8,054,132.252349077276032064
+# 177,9024.352224179116409338
+
+# === USDT <> iUSDT ===
+# 3,946,967.216107000000000000
+# 360,667.964932259373906454
+
+# === BPro <> iBPro ===
+# 1,130.179641851895958962
+# 0.177287488646365529
+# ```

@@ -7,6 +7,7 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../LoanTokenLogicStandard.sol";
+import "hardhat/console.sol";
 
 contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
     /**

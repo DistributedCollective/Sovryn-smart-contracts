@@ -13,6 +13,7 @@ import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 import "../mixins/RewardHelper.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
+import "hardhat/console.sol";
 
 /**
  * @title LoanClosingsShared contract.
@@ -433,9 +434,11 @@ contract LoanClosingsShared is
             : loanParamsLocal.loanToken;
 
         if (withdrawAmount != 0) {
+            console.log("Refund from close with swap SUSD: ", withdrawAmount);
             _withdrawAsset(withdrawToken, receiver, withdrawAmount);
         }
 
+        console.log("Total loan that will be closed (RBTC): ", loanCloseAmount);
         _finalizeClose(
             loanLocal,
             loanParamsLocal,

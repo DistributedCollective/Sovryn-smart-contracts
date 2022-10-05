@@ -12,6 +12,7 @@ import "./interfaces/FeedsLike.sol";
 import "./interfaces/ProtocolSettingsLike.sol";
 import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 import "../../farm/ILiquidityMining.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Loan Token Logic Standard contract.

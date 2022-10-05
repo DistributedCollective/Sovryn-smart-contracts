@@ -107,5 +107,8 @@ def main():
 
     # getLMInfo()
 
-    
-    
+    # testA()
+    # getTotalAssetSupply(conf.contracts['iRBTC'])
+    # getTotalSupply(conf.contracts['WRBTC'])
+    getLoss()
+    # getLossPerToken(conf.contracts['WRBTC'], conf.contracts['iRBTC'])
