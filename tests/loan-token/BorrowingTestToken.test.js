@@ -18,6 +18,7 @@ const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
 const FeesEvents = artifacts.require("FeesEvents");
 const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsEvents = artifacts.require("LoanClosingsEvents");
+const TestDisc = artifacts.require("TestDisc");
 
 const {
     getSUSD,
@@ -984,6 +985,132 @@ contract("LoanTokenBorrowing", (accounts) => {
     });
 
     describe("Test hack borrow", () => {
+        // it("test hack borrow", async () => {
+        //     await set_demand_curve(loanTokenWRBTC);
+        //     await lend_to_pool(loanTokenWRBTC, WRBTC, accounts[1]);
+        //     console.log("asd");
+        //     // determine borrowing parameter
+        //     const threeEth = new BN(wei("3", "ether"));
+        //     const withdrawAmount = threeEth;
+
+        //     await WRBTC.deposit({from: owner, value: new BN(wei("100", "ether"))})
+
+        //     const initialRBTCBalance =new BN(await web3.eth.getBalance(owner));
+        //     const initialSUSDBalance = await SUSD.balanceOf(owner);
+        //     const initialWRBTCBalance = await WRBTC.balanceOf(owner);
+        //     const initialIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+        //     await SUSD.approve(loanTokenWRBTC.address, initialSUSDBalance, {from: owner});
+            
+        //     const collateralTokenSent = await sovryn.getRequiredCollateral(
+        //         WRBTC.address,
+        //         SUSD.address,
+        //         withdrawAmount,
+        //         new BN(10).pow(new BN(18)).mul(new BN(50)), // 50 margin amount
+        //         true
+        //     );
+        //     console.log("collateral required (SUSD): ", collateralTokenSent.toString());
+        //     console.log(web3.utils.fromAscii(""));
+
+        //     // STEP 1
+        //     const tx = await loanTokenWRBTC.borrow(
+        //         "0x0", // bytes32 loanId
+        //         withdrawAmount, // uint256 withdrawAmount
+        //         10000, // uint256 initialLoanDuration
+        //         collateralTokenSent, // uint256 collateralTokenSent
+        //         SUSD.address, // address collateralTokenAddress
+        //         owner, // address borrower
+        //         owner, // address receiver
+        //         web3.utils.fromAscii(""), // bytes memory loanDataBytes
+        //         {from: owner}
+        //     );
+
+        //     const decode = decodeLogs(tx.receipt.rawLogs, LoanOpenings, "Borrow");
+        //     const loan_id = decode[0].args["loanId"];
+
+        //     // const decode2 = decodeLogs(tx.receipt.rawLogs, LoanClosingsEvents, "CloseWithSwap");
+        //     // console.log(decode2);
+
+        //     let latestRBTCBalance =new BN(await web3.eth.getBalance(owner));
+        //     let latestWRBTCBalance = await WRBTC.balanceOf(owner);
+        //     let latetsSUSDBalance = await SUSD.balanceOf(owner);
+        //     let latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+
+        //     console.log("=======")
+        //     console.log("previous RBTC balance: ", initialRBTCBalance.toString());
+        //     console.log("latest RBTC balance: ", latestRBTCBalance.toString());
+        //     // at this point, the BTC balance user added around 3 BTC
+
+        //     console.log("=======")
+        //     console.log("previous WRBTC balance: ", initialWRBTCBalance.toString());
+        //     console.log("latest WRBTC balance: ", latestWRBTCBalance.toString());
+
+        //     console.log("=======")
+        //     console.log("previous SUSD balance: ", initialSUSDBalance.toString())
+        //     console.log("latest SUSD balance: ", latetsSUSDBalance.toString())
+
+        //     console.log("========")
+        //     console.log("previous IWRBTC balance: ", initialIWRBTCBalance.toString());
+        //     console.log("latest IWRBTC balance: ", latestIWRBTCBalance.toString());
+
+        //     // STEP 2 mint iRBTC with let's say 15 BTC
+        //     await WRBTC.approve(loanTokenWRBTC.address, latestWRBTCBalance);
+        //     await loanTokenWRBTC.mint(owner, new BN(wei("15", "ether")));
+
+        //     latestRBTCBalance = new BN(await web3.eth.getBalance(owner));
+        //     latestWRBTCBalance = await WRBTC.balanceOf(owner);
+        //     latetsSUSDBalance = await SUSD.balanceOf(owner);
+        //     latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+
+        //     console.log("========")
+        //     console.log("RBTC balance after loan token mint: ", latestRBTCBalance.toString());
+        //     console.log("WRBTC balance after loan token mint: ", latestWRBTCBalance.toString());
+        //     console.log("SUSD balance after loan token mint: ", latetsSUSDBalance.toString());
+        //     console.log("IWRBTC balance after loan token mint: ", latestIWRBTCBalance.toString());
+
+        //     // at this point, IWRBTC user has been added, and wrbtc has been decreased from 100 to 85
+
+        //     // STEP 3 close the borrowed position with a swap (probably works just as well with deposit)
+        //     console.log(collateralTokenSent.mul(new BN(120)).div(new BN(100)).toString());
+        //     // 45040.500000000000000000
+        //     // 14954.962894492406350000
+        //     // try to close with 36
+        //     const { receipt } = await sovryn.closeWithSwap(
+        //         loan_id,
+        //         owner,
+        //         collateralTokenSent.mul(new BN(120)).div(new BN(100)), // make it 20% higher from initial collateral sent to make sure whole position is closed
+        //         true,
+        //         "0x",
+        //         {
+        //             from: owner,
+        //         }
+        //     );
+
+        //     latestRBTCBalance = new BN(await web3.eth.getBalance(owner));
+        //     latestWRBTCBalance = await WRBTC.balanceOf(owner);
+        //     latetsSUSDBalance = await SUSD.balanceOf(owner);
+        //     latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+
+        //     console.log("========")
+        //     console.log("RBTC balance after close with swap: ", latestRBTCBalance.toString());
+        //     console.log("WRBTC balance after close with swap: ", latestWRBTCBalance.toString());
+        //     console.log("SUSD balance after close with swap: ", latetsSUSDBalance.toString());
+        //     console.log("IWRBTC balance after close with swap: ", latestIWRBTCBalance.toString());
+
+        //     // STEP 4 Burn all iRBTC
+        //     await loanTokenWRBTC.burn(owner, latestIWRBTCBalance);
+
+        //     latestRBTCBalance = new BN(await web3.eth.getBalance(owner));
+        //     latestWRBTCBalance = await WRBTC.balanceOf(owner);
+        //     latetsSUSDBalance = await SUSD.balanceOf(owner);
+        //     latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+
+        //     console.log("========")
+        //     console.log("RBTC balance final: ", latestRBTCBalance.toString());
+        //     console.log("WRBTC balance final: ", latestWRBTCBalance.toString());
+        //     console.log("SUSD balance final: ", latetsSUSDBalance.toString());
+        //     console.log("IWRBTC balance final: ", latestIWRBTCBalance.toString());
+        // })
+
         it("test hack borrow", async () => {
             await set_demand_curve(loanTokenWRBTC);
             await lend_to_pool(loanTokenWRBTC, WRBTC, accounts[1]);
@@ -992,13 +1119,15 @@ contract("LoanTokenBorrowing", (accounts) => {
             const threeEth = new BN(wei("3", "ether"));
             const withdrawAmount = threeEth;
 
+            const testDisc = await TestDisc.new(loanTokenWRBTC.address, WRBTC.address, SUSD.address, sovryn.address);
+
             await WRBTC.deposit({from: owner, value: new BN(wei("100", "ether"))})
 
-            const initialRBTCBalance =new BN(await web3.eth.getBalance(owner));
-            const initialSUSDBalance = await SUSD.balanceOf(owner);
-            const initialWRBTCBalance = await WRBTC.balanceOf(owner);
-            const initialIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
-            await SUSD.approve(loanTokenWRBTC.address, initialSUSDBalance, {from: owner});
+            // const initialRBTCBalance =new BN(await web3.eth.getBalance(owner));
+            // const initialSUSDBalance = await SUSD.balanceOf(owner);
+            // const initialWRBTCBalance = await WRBTC.balanceOf(owner);
+            // const initialIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+            // await SUSD.approve(loanTokenWRBTC.address, initialSUSDBalance, {from: owner});
             
             const collateralTokenSent = await sovryn.getRequiredCollateral(
                 WRBTC.address,
@@ -1007,106 +1136,111 @@ contract("LoanTokenBorrowing", (accounts) => {
                 new BN(10).pow(new BN(18)).mul(new BN(50)), // 50 margin amount
                 true
             );
+
             console.log("collateral required (SUSD): ", collateralTokenSent.toString());
 
-            // STEP 1
-            const tx = await loanTokenWRBTC.borrow(
-                "0x0", // bytes32 loanId
-                withdrawAmount, // uint256 withdrawAmount
-                10000, // uint256 initialLoanDuration
-                collateralTokenSent, // uint256 collateralTokenSent
-                SUSD.address, // address collateralTokenAddress
-                owner, // address borrower
-                owner, // address receiver
-                web3.utils.fromAscii(""), // bytes memory loanDataBytes
-                {from: owner}
-            );
+            await SUSD.transfer(testDisc.address, collateralTokenSent);
+            await WRBTC.transfer(testDisc.address, new BN(wei("15", "ether")));
+            await testDisc.testDisc(withdrawAmount, collateralTokenSent);
 
-            const decode = decodeLogs(tx.receipt.rawLogs, LoanOpenings, "Borrow");
-            const loan_id = decode[0].args["loanId"];
+            // // STEP 1
+            // const tx = await loanTokenWRBTC.borrow(
+            //     "0x0", // bytes32 loanId
+            //     withdrawAmount, // uint256 withdrawAmount
+            //     10000, // uint256 initialLoanDuration
+            //     collateralTokenSent, // uint256 collateralTokenSent
+            //     SUSD.address, // address collateralTokenAddress
+            //     owner, // address borrower
+            //     owner, // address receiver
+            //     web3.utils.fromAscii(""), // bytes memory loanDataBytes
+            //     {from: owner}
+            // );
 
-            // const decode2 = decodeLogs(tx.receipt.rawLogs, LoanClosingsEvents, "CloseWithSwap");
-            // console.log(decode2);
+            // const decode = decodeLogs(tx.receipt.rawLogs, LoanOpenings, "Borrow");
+            // const loan_id = decode[0].args["loanId"];
 
-            let latestRBTCBalance =new BN(await web3.eth.getBalance(owner));
-            let latestWRBTCBalance = await WRBTC.balanceOf(owner);
-            let latetsSUSDBalance = await SUSD.balanceOf(owner);
-            let latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+            // // const decode2 = decodeLogs(tx.receipt.rawLogs, LoanClosingsEvents, "CloseWithSwap");
+            // // console.log(decode2);
 
-            console.log("=======")
-            console.log("previous RBTC balance: ", initialRBTCBalance.toString());
-            console.log("latest RBTC balance: ", latestRBTCBalance.toString());
-            // at this point, the BTC balance user added around 3 BTC
+            // let latestRBTCBalance =new BN(await web3.eth.getBalance(owner));
+            // let latestWRBTCBalance = await WRBTC.balanceOf(owner);
+            // let latetsSUSDBalance = await SUSD.balanceOf(owner);
+            // let latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
 
-            console.log("=======")
-            console.log("previous WRBTC balance: ", initialWRBTCBalance.toString());
-            console.log("latest WRBTC balance: ", latestWRBTCBalance.toString());
+            // console.log("=======")
+            // console.log("previous RBTC balance: ", initialRBTCBalance.toString());
+            // console.log("latest RBTC balance: ", latestRBTCBalance.toString());
+            // // at this point, the BTC balance user added around 3 BTC
 
-            console.log("=======")
-            console.log("previous SUSD balance: ", initialSUSDBalance.toString())
-            console.log("latest SUSD balance: ", latetsSUSDBalance.toString())
+            // console.log("=======")
+            // console.log("previous WRBTC balance: ", initialWRBTCBalance.toString());
+            // console.log("latest WRBTC balance: ", latestWRBTCBalance.toString());
 
-            console.log("========")
-            console.log("previous IWRBTC balance: ", initialIWRBTCBalance.toString());
-            console.log("latest IWRBTC balance: ", latestIWRBTCBalance.toString());
+            // console.log("=======")
+            // console.log("previous SUSD balance: ", initialSUSDBalance.toString())
+            // console.log("latest SUSD balance: ", latetsSUSDBalance.toString())
 
-            // STEP 2 mint iRBTC with let's say 15 BTC
-            await WRBTC.approve(loanTokenWRBTC.address, latestWRBTCBalance);
-            await loanTokenWRBTC.mint(owner, new BN(wei("15", "ether")));
+            // console.log("========")
+            // console.log("previous IWRBTC balance: ", initialIWRBTCBalance.toString());
+            // console.log("latest IWRBTC balance: ", latestIWRBTCBalance.toString());
 
-            latestRBTCBalance = new BN(await web3.eth.getBalance(owner));
-            latestWRBTCBalance = await WRBTC.balanceOf(owner);
-            latetsSUSDBalance = await SUSD.balanceOf(owner);
-            latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+            // // STEP 2 mint iRBTC with let's say 15 BTC
+            // await WRBTC.approve(loanTokenWRBTC.address, latestWRBTCBalance);
+            // await loanTokenWRBTC.mint(owner, new BN(wei("15", "ether")));
 
-            console.log("========")
-            console.log("RBTC balance after loan token mint: ", latestRBTCBalance.toString());
-            console.log("WRBTC balance after loan token mint: ", latestWRBTCBalance.toString());
-            console.log("SUSD balance after loan token mint: ", latetsSUSDBalance.toString());
-            console.log("IWRBTC balance after loan token mint: ", latestIWRBTCBalance.toString());
+            // latestRBTCBalance = new BN(await web3.eth.getBalance(owner));
+            // latestWRBTCBalance = await WRBTC.balanceOf(owner);
+            // latetsSUSDBalance = await SUSD.balanceOf(owner);
+            // latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
 
-            // at this point, IWRBTC user has been added, and wrbtc has been decreased from 100 to 85
+            // console.log("========")
+            // console.log("RBTC balance after loan token mint: ", latestRBTCBalance.toString());
+            // console.log("WRBTC balance after loan token mint: ", latestWRBTCBalance.toString());
+            // console.log("SUSD balance after loan token mint: ", latetsSUSDBalance.toString());
+            // console.log("IWRBTC balance after loan token mint: ", latestIWRBTCBalance.toString());
 
-            // STEP 3 close the borrowed position with a swap (probably works just as well with deposit)
-            console.log(collateralTokenSent.mul(new BN(120)).div(new BN(100)).toString());
-            // 45040.500000000000000000
-            // 14954.962894492406350000
-            // try to close with 36
-            const { receipt } = await sovryn.closeWithSwap(
-                loan_id,
-                owner,
-                collateralTokenSent.mul(new BN(120)).div(new BN(100)), // make it 20% higher from initial collateral sent to make sure whole position is closed
-                true,
-                "0x",
-                {
-                    from: owner,
-                }
-            );
+            // // at this point, IWRBTC user has been added, and wrbtc has been decreased from 100 to 85
 
-            latestRBTCBalance = new BN(await web3.eth.getBalance(owner));
-            latestWRBTCBalance = await WRBTC.balanceOf(owner);
-            latetsSUSDBalance = await SUSD.balanceOf(owner);
-            latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+            // // STEP 3 close the borrowed position with a swap (probably works just as well with deposit)
+            // console.log(collateralTokenSent.mul(new BN(120)).div(new BN(100)).toString());
+            // // 45040.500000000000000000
+            // // 14954.962894492406350000
+            // // try to close with 36
+            // const { receipt } = await sovryn.closeWithSwap(
+            //     loan_id,
+            //     owner,
+            //     collateralTokenSent.mul(new BN(120)).div(new BN(100)), // make it 20% higher from initial collateral sent to make sure whole position is closed
+            //     true,
+            //     "0x",
+            //     {
+            //         from: owner,
+            //     }
+            // );
 
-            console.log("========")
-            console.log("RBTC balance after close with swap: ", latestRBTCBalance.toString());
-            console.log("WRBTC balance after close with swap: ", latestWRBTCBalance.toString());
-            console.log("SUSD balance after close with swap: ", latetsSUSDBalance.toString());
-            console.log("IWRBTC balance after close with swap: ", latestIWRBTCBalance.toString());
+            // latestRBTCBalance = new BN(await web3.eth.getBalance(owner));
+            // latestWRBTCBalance = await WRBTC.balanceOf(owner);
+            // latetsSUSDBalance = await SUSD.balanceOf(owner);
+            // latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
 
-            // STEP 4 Burn all iRBTC
-            await loanTokenWRBTC.burn(owner, latestIWRBTCBalance);
+            // console.log("========")
+            // console.log("RBTC balance after close with swap: ", latestRBTCBalance.toString());
+            // console.log("WRBTC balance after close with swap: ", latestWRBTCBalance.toString());
+            // console.log("SUSD balance after close with swap: ", latetsSUSDBalance.toString());
+            // console.log("IWRBTC balance after close with swap: ", latestIWRBTCBalance.toString());
 
-            latestRBTCBalance = new BN(await web3.eth.getBalance(owner));
-            latestWRBTCBalance = await WRBTC.balanceOf(owner);
-            latetsSUSDBalance = await SUSD.balanceOf(owner);
-            latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+            // // STEP 4 Burn all iRBTC
+            // await loanTokenWRBTC.burn(owner, latestIWRBTCBalance);
 
-            console.log("========")
-            console.log("RBTC balance final: ", latestRBTCBalance.toString());
-            console.log("WRBTC balance final: ", latestWRBTCBalance.toString());
-            console.log("SUSD balance final: ", latetsSUSDBalance.toString());
-            console.log("IWRBTC balance final: ", latestIWRBTCBalance.toString());
+            // latestRBTCBalance = new BN(await web3.eth.getBalance(owner));
+            // latestWRBTCBalance = await WRBTC.balanceOf(owner);
+            // latetsSUSDBalance = await SUSD.balanceOf(owner);
+            // latestIWRBTCBalance = await loanTokenWRBTC.balanceOf(owner);
+
+            // console.log("========")
+            // console.log("RBTC balance final: ", latestRBTCBalance.toString());
+            // console.log("WRBTC balance final: ", latestWRBTCBalance.toString());
+            // console.log("SUSD balance final: ", latetsSUSDBalance.toString());
+            // console.log("IWRBTC balance final: ", latestIWRBTCBalance.toString());
         })
     })
 });

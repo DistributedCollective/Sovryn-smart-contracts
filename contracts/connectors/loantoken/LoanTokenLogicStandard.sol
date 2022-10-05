@@ -79,6 +79,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         nonReentrant
         returns (uint256 mintAmount)
     {
+        console.log("qqq");
         return _mintToken(receiver, depositAmount);
     }
 
@@ -970,8 +971,10 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     {
         uint256 currentPrice;
 
+        console.log("MINT1");
         //calculate amount to mint and transfer the underlying asset
         (mintAmount, currentPrice) = _prepareMinting(depositAmount);
+        console.log("MINT2");
 
         //compute balances needed for checkpoint update, considering that the user might have a pool token balance
         //on the liquidity mining contract
@@ -984,8 +987,10 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         uint256 oldBalance = balances[receiver].add(balanceOnLM);
         uint256 newBalance = oldBalance.add(mintAmount);
 
+console.log("MINT3");
         //mint the tokens to the receiver
         _mint(receiver, mintAmount, depositAmount, currentPrice);
+        console.log("MINT4");
 
         //update the checkpoint of the receiver
         _updateCheckpoints(receiver, oldBalance, newBalance, currentPrice);

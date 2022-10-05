@@ -2,6 +2,7 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../LoanTokenLogicStandard.sol";
+import "hardhat/console.sol";
 
 contract LoanTokenLogicLM is LoanTokenLogicStandard {
     /**
@@ -89,6 +90,7 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
         uint256 depositAmount,
         bool useLM
     ) external nonReentrant returns (uint256 minted) {
+        console.log("hhhh");
         if (useLM) return _mintWithLM(receiver, depositAmount);
         else return _mintToken(receiver, depositAmount);
     }
