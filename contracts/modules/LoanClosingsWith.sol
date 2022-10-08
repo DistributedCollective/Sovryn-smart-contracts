@@ -104,7 +104,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         )
     {
         _checkAuthorized(loanId);
-        return
+        CloseWithSwapReturn memory closeWithSwapReturn =
             _closeWithSwap(
                 loanId,
                 receiver,
@@ -112,6 +112,12 @@ contract LoanClosingsWith is LoanClosingsShared {
                 returnTokenIsCollateral,
                 "" /// loanDataBytes
             );
+
+        return (
+            closeWithSwapReturn.loanCloseAmount,
+            closeWithSwapReturn.withdrawAmount,
+            closeWithSwapReturn.withdrawToken
+        );
     }
 
     /**

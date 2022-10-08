@@ -13,6 +13,7 @@ import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 import "../mixins/RewardHelper.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
+import "../interfaces/ILoanTokenModules.sol";
 
 /**
  * @title LoanClosingsShared contract.
@@ -137,6 +138,7 @@ contract LoanClosingsShared is
             amountInRbtc,
             paySwapExcessToBorrowerThreshold
         );
+
         return amountInRbtc > paySwapExcessToBorrowerThreshold;
     }
 
@@ -319,9 +321,10 @@ contract LoanClosingsShared is
      * @param returnTokenIsCollateral Defines if the remainder should be paid
      *   out in collateral tokens or underlying loan tokens.
      *
-     * @return loanCloseAmount The amount of the collateral token of the loan.
-     * @return withdrawAmount The withdraw amount in the collateral token.
-     * @return withdrawToken The loan token address.
+     * @return closeWithSwapReturn struct which consist of:
+     * - uint256 loanCloseAmount -- The amount of the collateral token of the loan.
+     * - uint256 withdrawAmount -- The withdraw amount in the collateral token.
+     * - address withdrawToken -- The loan token address.
      * */
     function _closeWithSwap(
         bytes32 loanId,
@@ -329,17 +332,20 @@ contract LoanClosingsShared is
         uint256 swapAmount,
         bool returnTokenIsCollateral,
         bytes memory loanDataBytes
-    )
-        internal
-        returns (
-            uint256 loanCloseAmount,
-            uint256 withdrawAmount,
-            address withdrawToken
-        )
-    {
+    ) internal returns (CloseWithSwapReturn memory closeWithSwapReturn) {
         require(swapAmount != 0, "swapAmount == 0");
 
         (Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
+
+        /// Cache the Loan Token Price
+        address loanTokenPoolAddress = underlyingToLoanPool[loanParamsLocal.loanToken];
+        require(loanTokenPoolAddress != address(0), "Invalid loan token pool address");
+
+        TempLoanPoolBalance memory loanPoolBalance =
+            TempLoanPoolBalance({
+                initialLoanTokenSupply: ILoanTokenModules(loanTokenPoolAddress).totalSupply(),
+                latestLoanTokenSupply: 0
+            });
 
         /// Can't swap more than collateral.
         swapAmount = swapAmount > loanLocal.collateral ? loanLocal.collateral : swapAmount;
@@ -361,16 +367,16 @@ contract LoanClosingsShared is
             /// loanCloseAmountLessInterest will be passed as required amount amount of destination tokens.
             /// this means, the actual swapAmount passed to the swap contract does not matter at all.
             /// the source token amount will be computed depending on the required amount amount of destination tokens.
-            loanCloseAmount = swapAmount == loanLocal.collateral
+            closeWithSwapReturn.loanCloseAmount = swapAmount == loanLocal.collateral
                 ? loanLocal.principal
                 : loanLocal.principal.mul(swapAmount).div(loanLocal.collateral);
-            require(loanCloseAmount != 0, "loanCloseAmount == 0");
+            require(closeWithSwapReturn.loanCloseAmount != 0, "loanCloseAmount == 0");
 
             /// Computes the interest refund for the borrower and sends it to the lender to cover part of the principal.
             loanCloseAmountLessInterest = _settleInterestToPrincipal(
                 loanLocal,
                 loanParamsLocal,
-                loanCloseAmount,
+                closeWithSwapReturn.loanCloseAmount,
                 receiver
             );
         } else {
@@ -381,8 +387,14 @@ contract LoanClosingsShared is
 
         uint256 coveredPrincipal;
         uint256 usedCollateral;
+
         /// swapAmount repurposed for collateralToLoanSwapRate to avoid stack too deep error.
-        (coveredPrincipal, usedCollateral, withdrawAmount, swapAmount) = _coverPrincipalWithSwap(
+        (
+            coveredPrincipal,
+            usedCollateral,
+            closeWithSwapReturn.withdrawAmount,
+            swapAmount
+        ) = _coverPrincipalWithSwap(
             loanLocal,
             loanParamsLocal,
             swapAmount, /// The amount of source tokens to swap (only matters if !returnTokenIsCollateral or loanCloseAmountLessInterest = 0)
@@ -395,28 +407,32 @@ contract LoanClosingsShared is
             /// Condition prior to swap: swapAmount != loanLocal.collateral && !returnTokenIsCollateral
 
             /// Amounts that is closed.
-            loanCloseAmount = coveredPrincipal;
+            closeWithSwapReturn.loanCloseAmount = coveredPrincipal;
             if (coveredPrincipal != loanLocal.principal) {
-                loanCloseAmount = loanCloseAmount.mul(usedCollateral).div(loanLocal.collateral);
+                closeWithSwapReturn.loanCloseAmount = closeWithSwapReturn
+                    .loanCloseAmount
+                    .mul(usedCollateral)
+                    .div(loanLocal.collateral);
             }
-            require(loanCloseAmount != 0, "loanCloseAmount == 0");
+            require(closeWithSwapReturn.loanCloseAmount != 0, "loanCloseAmount == 0");
 
             /// Amount that is returned to the lender.
             loanCloseAmountLessInterest = _settleInterestToPrincipal(
                 loanLocal,
                 loanParamsLocal,
-                loanCloseAmount,
+                closeWithSwapReturn.loanCloseAmount,
                 receiver
             );
 
             /// Remaining amount withdrawn to the receiver.
-            withdrawAmount = withdrawAmount.add(coveredPrincipal).sub(loanCloseAmountLessInterest);
+            closeWithSwapReturn.withdrawAmount = closeWithSwapReturn
+                .withdrawAmount
+                .add(coveredPrincipal)
+                .sub(loanCloseAmountLessInterest);
         } else {
             /// Pay back the amount which was covered by the swap.
             loanCloseAmountLessInterest = coveredPrincipal;
         }
-
-        require(loanCloseAmountLessInterest != 0, "closeAmount is 0 after swap");
 
         /// Reduce the collateral by the amount which was swapped for the closure.
         if (usedCollateral != 0) {
@@ -428,18 +444,31 @@ contract LoanClosingsShared is
         /// withdraw directly rather than use the _withdrawAsset helper function.
         vaultWithdraw(loanParamsLocal.loanToken, loanLocal.lender, loanCloseAmountLessInterest);
 
-        withdrawToken = returnTokenIsCollateral
+        closeWithSwapReturn.withdrawToken = returnTokenIsCollateral
             ? loanParamsLocal.collateralToken
             : loanParamsLocal.loanToken;
 
-        if (withdrawAmount != 0) {
-            _withdrawAsset(withdrawToken, receiver, withdrawAmount);
+        if (closeWithSwapReturn.withdrawAmount != 0) {
+            _withdrawAsset(
+                closeWithSwapReturn.withdrawToken,
+                receiver,
+                closeWithSwapReturn.withdrawAmount
+            );
         }
+
+        /// Validate the Loan Token Price
+        loanPoolBalance.latestLoanTokenSupply = ILoanTokenModules(loanTokenPoolAddress)
+            .totalSupply();
+
+        require(
+            loanPoolBalance.initialLoanTokenSupply == loanPoolBalance.latestLoanTokenSupply,
+            "mismatch loan token supply"
+        );
 
         _finalizeClose(
             loanLocal,
             loanParamsLocal,
-            loanCloseAmount,
+            closeWithSwapReturn.loanCloseAmount,
             usedCollateral,
             swapAmount, /// collateralToLoanSwapRate
             CloseTypes.Swap

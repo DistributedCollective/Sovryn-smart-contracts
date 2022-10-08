@@ -17,6 +17,9 @@ const { loadFixture } = waffle;
 const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
 const FeesEvents = artifacts.require("FeesEvents");
 const LoanOpenings = artifacts.require("LoanOpenings");
+const LoanClosingsEvents = artifacts.require("LoanClosingsEvents");
+const LoanClosingsWithMockup = artifacts.require("LoanClosingsWithMockup");
+const TestDisc = artifacts.require("TestDisc");
 
 const {
     getSUSD,
@@ -976,6 +979,57 @@ contract("LoanTokenBorrowing", (accounts) => {
                     .div(new BN(new BN(10).pow(new BN(20))).sub(new BN(kinkLevel)))
             );
             expect(interestRate).to.be.a.bignumber.equal(interest);
+        });
+
+        it("invariant check loan token pool iWRBTC", async () => {
+            await set_demand_curve(loanTokenWRBTC);
+
+            await sovryn.replaceContract((await LoanClosingsWithMockup.new()).address);
+
+            // Lend to pool
+            const lender = accounts[1];
+            const lend_amount = new BN(10).pow(new BN(18)).mul(new BN(50)).toString();
+            await WRBTC.mint(lender, lend_amount);
+            await WRBTC.approve(loanTokenWRBTC.address, lend_amount, { from: lender });
+            await loanTokenWRBTC.mint(lender, lend_amount, { from: lender });
+
+            // determine borrowing parameter
+            const threeEth = new BN(wei("3", "ether"));
+            const withdrawAmount = threeEth;
+
+            const testDisc = await TestDisc.new(
+                loanTokenWRBTC.address,
+                WRBTC.address,
+                SUSD.address,
+                sovryn.address
+            );
+
+            await WRBTC.deposit({ from: owner, value: new BN(wei("100", "ether")) });
+
+            let collateralTokenSent = await sovryn.getRequiredCollateral(
+                WRBTC.address,
+                SUSD.address,
+                withdrawAmount,
+                new BN(10).pow(new BN(18)).mul(new BN(50)), // 50 margin amount
+                true
+            );
+
+            collateralTokenSent = collateralTokenSent.mul(new BN(85)).div(new BN(100));
+
+            // funds contract with 100 RBTC
+            await web3.eth.sendTransaction({
+                from: accounts[2].toString(),
+                to: testDisc.address,
+                value: new BN(wei("100", "ether")),
+                gas: 50000,
+            });
+
+            await SUSD.transfer(testDisc.address, collateralTokenSent);
+            await WRBTC.transfer(testDisc.address, new BN(wei("15", "ether")));
+            await expectRevert(
+                testDisc.testDisc(withdrawAmount, collateralTokenSent),
+                "mismatch loan token supply"
+            );
         });
     });
 });
