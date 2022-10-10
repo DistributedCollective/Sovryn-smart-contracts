@@ -6,7 +6,7 @@ import "../connectors/loantoken/interfaces/ProtocolLike.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../interfaces/IWrbtcERC20.sol";
 
-contract TestDisc {
+contract TestDiscRBTC {
     address public loanTokenWRBTC;
     address public WRBTC;
     address public SUSD;

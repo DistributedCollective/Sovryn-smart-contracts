@@ -96,4 +96,17 @@ interface ProtocolLike {
             uint256 withdrawAmount,
             address withdrawToken
         );
+
+    function closeWithDeposit(
+        bytes32 loanId,
+        address receiver,
+        uint256 depositAmount // denominated in loanToken
+    )
+        external
+        payable
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        );
 }
