@@ -39,7 +39,7 @@ const getOrDeployMutex = async () => {
         const whale = (await ethers.getSigners())[0];
         const tx = await whale.sendTransaction({
             to: deployerAddress,
-            value: transactionCostWei,
+            value: requiredBalance,
         })
         await tx.wait();
     }
