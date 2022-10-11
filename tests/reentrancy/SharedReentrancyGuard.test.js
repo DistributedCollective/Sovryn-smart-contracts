@@ -45,7 +45,7 @@ describe("SharedReentrancyGuard", async () => {
         expect(await proxiedValueSetter.value()).to.equal(4);
     });
 
-    it("non-globallyNonReentrant call from globallyNonReentrant call does not revert", async () => {
+    it("globallyNonReentrant call from globallyNonReentrant call reverts", async () => {
         await expect(
             nonReentrantValueSetter.setOtherContractValueNonReentrant(
                 anotherNonReentrantValueSetter.address,
@@ -55,7 +55,7 @@ describe("SharedReentrancyGuard", async () => {
         expect(await anotherNonReentrantValueSetter.value()).to.equal(0);
     });
 
-    it("globallyNonReentrant call from globallyNonReentrant call reverts", async () => {
+    it("non-globallyNonReentrant call from globallyNonReentrant call does not revert", async () => {
         await nonReentrantValueSetter.setOtherContractValueNonReentrant(
             reentrantValueSetter.address,
             1
