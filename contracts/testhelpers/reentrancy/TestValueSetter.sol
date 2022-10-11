@@ -4,11 +4,7 @@ contract TestValueSetter {
     uint256 public value;
 
     // This is intentionally reentrant for testing
-    function setValue(
-        uint256 newValue
-    )
-    public
-    {
+    function setValue(uint256 newValue) public {
         value = newValue;
     }
 }
