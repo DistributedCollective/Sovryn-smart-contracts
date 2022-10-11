@@ -6,11 +6,13 @@ import "../connectors/loantoken/interfaces/ProtocolLike.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../interfaces/IWrbtcERC20.sol";
 import "../interfaces/IERC1820Registry.sol";
+import "../mockup/MockLoanTokenLogic.sol";
 
 contract TestDiscERC777 {
     address public loanToken;
     address public WRBTC;
     address public SUSD; /// ERC777
+    bool testSharedReentrancyGuard;
     ProtocolLike public sovrynProtocol;
 
     IERC1820Registry internal constant ERC1820_REGISTRY =
@@ -31,12 +33,14 @@ contract TestDiscERC777 {
         address _loanToken,
         address _WRBTC,
         address _SUSD,
-        address _sovrynProtocol
+        address _sovrynProtocol,
+        bool _testSharedReentrancyGuard
     ) public {
         loanToken = _loanToken;
         WRBTC = _WRBTC;
         SUSD = _SUSD;
         sovrynProtocol = ProtocolLike(_sovrynProtocol);
+        testSharedReentrancyGuard = _testSharedReentrancyGuard;
 
         ERC1820_REGISTRY.setInterfaceImplementer(
             address(this),
@@ -124,7 +128,12 @@ contract TestDiscERC777 {
         if (operator == address(sovrynProtocol) && to == loanToken && from == address(this)) {
             uint256 _SUSDBalance = IERC20(SUSD).balanceOf(address(this));
             IERC20(SUSD).approve(loanToken, _SUSDBalance);
-            ILoanTokenModules(loanToken).mint(address(this), 1000000 ether); // unable to reentrant mint here since mint function have reentrancy guard in place
+
+            if (testSharedReentrancyGuard) {
+                ILoanTokenModulesMock(loanToken).triggerReentrancy(); // unable to reentrant mint here since mint function have reentrancy guard in place
+            } else {
+                ILoanTokenModules(loanToken).mint(address(this), 1000000 ether); // unable to reentrant mint here since mint function have reentrancy guard in place
+            }
         }
     }
 }

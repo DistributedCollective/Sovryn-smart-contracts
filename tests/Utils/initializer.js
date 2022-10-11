@@ -178,7 +178,7 @@ const getLoanTokenLogic = async (isMockLoanToken = false) => {
 
     return [loanTokenLogicProxy, loanTokenLogicBeacon];
 };
-const getLoanTokenLogicWrbtc = async () => {
+const getLoanTokenLogicWrbtc = async (isMockLoanToken = false) => {
     /** Deploy LoanTokenLogicBeacon */
     const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
 
@@ -188,8 +188,13 @@ const getLoanTokenLogicWrbtc = async () => {
     /** Register Loan Token Modules to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
 
-    /** Deploy LoanTokenLogicLM */
-    const loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+    /** Deploy LoanTokenLogicWRBTC */
+    let loanTokenLogicLM;
+    if (isMockLoanToken) {
+        loanTokenLogicWrbtc = await MockLoanTokenLogic.new();
+    } else {
+        loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+    }
 
     /** Register Loan Token Logic LM to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicWrbtc.address);

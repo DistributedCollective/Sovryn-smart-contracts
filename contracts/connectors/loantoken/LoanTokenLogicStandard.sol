@@ -76,6 +76,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     function mint(address receiver, uint256 depositAmount)
         external
         nonReentrant
+        globallyNonReentrant
         returns (uint256 mintAmount)
     {
         return _mintToken(receiver, depositAmount);
@@ -96,6 +97,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     function burn(address receiver, uint256 burnAmount)
         external
         nonReentrant
+        globallyNonReentrant
         returns (uint256 loanAmountPaid)
     {
         loanAmountPaid = _burnToken(burnAmount);

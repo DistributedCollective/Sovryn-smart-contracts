@@ -88,7 +88,7 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
         address receiver,
         uint256 depositAmount,
         bool useLM
-    ) external nonReentrant returns (uint256 minted) {
+    ) external nonReentrant globallyNonReentrant returns (uint256 minted) {
         if (useLM) return _mintWithLM(receiver, depositAmount);
         else return _mintToken(receiver, depositAmount);
     }
@@ -104,7 +104,7 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external nonReentrant returns (uint256 redeemed) {
+    ) external nonReentrant globallyNonReentrant returns (uint256 redeemed) {
         if (useLM) redeemed = _burnFromLM(burnAmount);
         else redeemed = _burnToken(burnAmount);
         //this needs to be here and not in _burnTokens because of the WRBTC implementation

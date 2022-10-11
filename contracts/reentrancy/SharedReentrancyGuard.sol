@@ -38,6 +38,6 @@ contract SharedReentrancyGuard {
          * If the mutex state was changed by a nested function call, then
          * the value of the state variable will be different from the previous value.
          */
-        require (previous == mutex.value(), "reentrancy violation");
+        require(previous == mutex.value(), "reentrancy violation");
     }
 }

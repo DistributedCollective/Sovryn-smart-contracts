@@ -22,6 +22,7 @@ const LoanClosingsWithMockup = artifacts.require("LoanClosingsWithMockup");
 const TestDiscRBTC = artifacts.require("TestDiscRBTC");
 const TestDiscERC777 = artifacts.require("TestDiscERC777");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
+const mutexUtils = require("../reentrancy/utils");
 
 const {
     getSUSD,
@@ -67,11 +68,13 @@ contract("LoanTokenBorrowing", (accounts) => {
 
         sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-        loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD);
-        loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
+        loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD, true);
+        loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD, true);
         await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
         SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
+
+        await mutexUtils.getOrDeployMutex();
     }
 
     before(async () => {
@@ -1005,7 +1008,8 @@ contract("LoanTokenBorrowing", (accounts) => {
                 loanTokenWRBTC.address,
                 WRBTC.address,
                 SUSD.address,
-                sovryn.address
+                sovryn.address,
+                false
             );
 
             await WRBTC.deposit({ from: owner, value: new BN(wei("100", "ether")) });
@@ -1033,6 +1037,58 @@ contract("LoanTokenBorrowing", (accounts) => {
             await expectRevert(
                 testDiscRBTC.testDisc(withdrawAmount, collateralTokenSent),
                 "mismatch loan token supply"
+            );
+        });
+
+        it("invariant check loan token pool iWRBTC (Check cross reentrancy guard)", async () => {
+            await set_demand_curve(loanTokenWRBTC);
+
+            await sovryn.replaceContract((await LoanClosingsWithMockup.new()).address);
+
+            // Lend to pool
+            const lender = accounts[1];
+            const lend_amount = new BN(10).pow(new BN(18)).mul(new BN(50)).toString();
+            await WRBTC.mint(lender, lend_amount);
+            await WRBTC.approve(loanTokenWRBTC.address, lend_amount, { from: lender });
+            await loanTokenWRBTC.mint(lender, lend_amount, { from: lender });
+
+            // determine borrowing parameter
+            const threeEth = new BN(wei("3", "ether"));
+            const withdrawAmount = threeEth;
+
+            const testDiscRBTC = await TestDiscRBTC.new(
+                loanTokenWRBTC.address,
+                WRBTC.address,
+                SUSD.address,
+                sovryn.address,
+                true
+            );
+
+            await WRBTC.deposit({ from: owner, value: new BN(wei("100", "ether")) });
+
+            let collateralTokenSent = await sovryn.getRequiredCollateral(
+                WRBTC.address,
+                SUSD.address,
+                withdrawAmount,
+                new BN(10).pow(new BN(18)).mul(new BN(50)), // 50 margin amount
+                true
+            );
+
+            collateralTokenSent = collateralTokenSent.mul(new BN(85)).div(new BN(100));
+
+            // funds contract with 100 RBTC
+            await web3.eth.sendTransaction({
+                from: accounts[2].toString(),
+                to: testDiscRBTC.address,
+                value: new BN(wei("100", "ether")),
+                gas: 50000,
+            });
+
+            await SUSD.transfer(testDiscRBTC.address, collateralTokenSent);
+            await WRBTC.transfer(testDiscRBTC.address, new BN(wei("15", "ether")));
+            await expectRevert(
+                testDiscRBTC.testDisc(withdrawAmount, collateralTokenSent),
+                "reentrancy violation"
             );
         });
 
@@ -1070,7 +1126,8 @@ contract("LoanTokenBorrowing", (accounts) => {
                 loanToken.address,
                 WRBTC.address,
                 TestERC777.address,
-                sovryn.address
+                sovryn.address,
+                false
             );
 
             let collateralTokenSent = await sovryn.getRequiredCollateral(
@@ -1090,6 +1147,64 @@ contract("LoanTokenBorrowing", (accounts) => {
             await expectRevert(
                 testDiscERC777.testDisc(withdrawAmount, collateralTokenSent),
                 "mismatch loan token supply"
+            );
+        });
+
+        it("invariant check loan token pool ERC777 (Check cross reentrancy guard)", async () => {
+            priceFeeds = await getPriceFeeds(WRBTC, TestERC777, RBTC, BZRX);
+
+            const sovrynSwapSimulator = await TestSovrynSwap.new(priceFeeds.address);
+            await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
+            SOV = await getSOV(sovryn, priceFeeds, TestERC777, accounts);
+
+            await sovryn.setPriceFeedContract(priceFeeds.address);
+
+            await sovryn.setSupportedTokens([TestERC777.address], [true]);
+
+            loanToken = await getLoanToken(owner, sovryn, WRBTC, TestERC777, true);
+            loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, TestERC777);
+            await loan_pool_setup(
+                sovryn,
+                owner,
+                RBTC,
+                WRBTC,
+                TestERC777,
+                loanToken,
+                loanTokenWRBTC
+            );
+
+            await set_demand_curve(loanToken);
+            await lend_to_pool(loanToken, TestERC777, owner);
+
+            await sovryn.replaceContract((await LoanClosingsWithMockup.new()).address);
+
+            const withdrawAmount = new BN(wei("500000", "ether"));
+
+            const testDiscERC777 = await TestDiscERC777.new(
+                loanToken.address,
+                WRBTC.address,
+                TestERC777.address,
+                sovryn.address,
+                true // test reentrancy guard
+            );
+
+            let collateralTokenSent = await sovryn.getRequiredCollateral(
+                TestERC777.address,
+                WRBTC.address,
+                withdrawAmount,
+                new BN(10).pow(new BN(18)).mul(new BN(50)), // 50 margin amount
+                true
+            );
+
+            collateralTokenSent = collateralTokenSent.mul(new BN(85)).div(new BN(100));
+
+            await TestERC777.transfer(testDiscERC777.address, new BN(wei("100000000", "ether")));
+            const initialWRBTCBalance = new BN(wei("100", "ether"));
+            await WRBTC.deposit({ from: owner, value: initialWRBTCBalance });
+            await WRBTC.transfer(testDiscERC777.address, collateralTokenSent);
+            await expectRevert(
+                testDiscERC777.testDisc(withdrawAmount, collateralTokenSent),
+                "reentrancy violation"
             );
         });
     });

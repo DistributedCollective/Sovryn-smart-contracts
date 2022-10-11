@@ -56,6 +56,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         public
         payable
         nonReentrant
+        globallyNonReentrant
         whenNotPaused
         returns (
             uint256 loanCloseAmount,
@@ -96,6 +97,7 @@ contract LoanClosingsWith is LoanClosingsShared {
     )
         public
         nonReentrant
+        globallyNonReentrant
         whenNotPaused
         returns (
             uint256 loanCloseAmount,

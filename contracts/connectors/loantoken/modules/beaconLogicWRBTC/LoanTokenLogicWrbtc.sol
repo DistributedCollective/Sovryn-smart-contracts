@@ -81,6 +81,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         external
         payable
         nonReentrant
+        globallyNonReentrant
         returns (uint256 mintAmount)
     {
         if (useLM) return _mintWithLM(receiver, msg.value);
@@ -91,7 +92,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external nonReentrant returns (uint256 loanAmountPaid) {
+    ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
         if (useLM) loanAmountPaid = _burnFromLM(burnAmount);
         else loanAmountPaid = _burnToken(burnAmount);
 
