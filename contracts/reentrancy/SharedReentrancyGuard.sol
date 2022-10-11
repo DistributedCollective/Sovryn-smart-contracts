@@ -14,12 +14,13 @@ import "./Mutex.sol";
  */
 contract SharedReentrancyGuard {
     /*
-     * This address is hardGet the mutex contract address from the constructor. This is the
-     * address of the mutex contract that will be used as the
+     * This is the address of the mutex contract that will be used as the
      * reentrancy guard.
      *
-     * NOTE: The address could also be hardcoded (like with ERC1820Registry),
-     * which would make this contract stateless.
+     * The address is hardcoded to avoid changing the memory layout of
+     * derived contracts (possibly upgradable). Hardcoding the address is possible,
+     * because the Mutex contract is always deployed to the same address, with the
+     * same method used in the deployment of ERC1820Registry.
      */
     Mutex private constant MUTEX = Mutex(0xc783106a68d2Dc47b443C20067448a9c53121207);
 
