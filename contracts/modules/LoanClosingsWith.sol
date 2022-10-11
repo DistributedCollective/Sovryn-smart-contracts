@@ -57,6 +57,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         payable
         nonReentrant
         globallyNonReentrant
+        iTokenSupplyUnchanged(loanId)
         whenNotPaused
         returns (
             uint256 loanCloseAmount,
@@ -98,6 +99,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         public
         nonReentrant
         globallyNonReentrant
+        iTokenSupplyUnchanged(loanId)
         whenNotPaused
         returns (
             uint256 loanCloseAmount,
@@ -106,7 +108,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         )
     {
         _checkAuthorized(loanId);
-        CloseWithSwapReturn memory closeWithSwapReturn =
+        return
             _closeWithSwap(
                 loanId,
                 receiver,
@@ -114,12 +116,6 @@ contract LoanClosingsWith is LoanClosingsShared {
                 returnTokenIsCollateral,
                 "" /// loanDataBytes
             );
-
-        return (
-            closeWithSwapReturn.loanCloseAmount,
-            closeWithSwapReturn.withdrawAmount,
-            closeWithSwapReturn.withdrawToken
-        );
     }
 
     /**
@@ -152,16 +148,6 @@ contract LoanClosingsWith is LoanClosingsShared {
 
         //TODO should we skip this check if invoked from rollover ?
         (Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
-
-        /// Cache the Loan Token Price
-        address loanTokenPoolAddress = underlyingToLoanPool[loanParamsLocal.loanToken];
-        require(loanTokenPoolAddress != address(0), "Invalid loan token pool address");
-
-        TempLoanPoolBalance memory loanPoolBalance =
-            TempLoanPoolBalance({
-                initialLoanTokenSupply: ILoanTokenModules(loanTokenPoolAddress).totalSupply(),
-                latestLoanTokenSupply: 0
-            });
 
         /// Can't close more than the full principal.
         loanCloseAmount = depositAmount > loanLocal.principal
@@ -200,15 +186,6 @@ contract LoanClosingsWith is LoanClosingsShared {
             loanLocal.collateral = loanLocal.collateral.sub(withdrawAmount);
             _withdrawAsset(withdrawToken, receiver, withdrawAmount);
         }
-
-        /// Validate the Loan Token Price
-        loanPoolBalance.latestLoanTokenSupply = ILoanTokenModules(loanTokenPoolAddress)
-            .totalSupply();
-
-        require(
-            loanPoolBalance.initialLoanTokenSupply == loanPoolBalance.latestLoanTokenSupply,
-            "mismatch loan token supply"
-        );
 
         _finalizeClose(
             loanLocal,

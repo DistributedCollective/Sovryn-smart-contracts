@@ -205,6 +205,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         public
         payable
         nonReentrant /// Note: needs to be removed to allow flashloan use cases.
+        globallyNonReentrant
         returns (
             uint256,
             uint256 /// Returns new principal and new collateral added to loan.
@@ -335,6 +336,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         public
         payable
         nonReentrant /// Note: needs to be removed to allow flashloan use cases.
+        globallyNonReentrant
         returns (
             uint256,
             uint256 /// Returns new principal and new collateral added to trade.

@@ -214,17 +214,6 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
     /// Will be used in internal swap.
     mapping(address => mapping(address => IERC20[])) internal defaultPathConversion;
 
-    struct CloseWithSwapReturn {
-        uint256 loanCloseAmount;
-        uint256 withdrawAmount;
-        address withdrawToken;
-    }
-
-    struct TempLoanPoolBalance {
-        uint256 initialLoanTokenSupply;
-        uint256 latestLoanTokenSupply;
-    }
-
     /**
      * @notice Add signature and target to storage.
      * @dev Protocol is a proxy and requires a way to add every

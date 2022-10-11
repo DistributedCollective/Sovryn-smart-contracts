@@ -11,7 +11,6 @@ contract TestDiscRBTC {
     address public loanTokenWRBTC;
     address public WRBTC;
     address public SUSD;
-    bool testSharedReentrancyGuard;
     ProtocolLike public sovrynProtocol;
 
     using SafeMath for uint256;
@@ -30,11 +29,7 @@ contract TestDiscRBTC {
             uint256 _WRBTCBalance = IERC20(WRBTC).balanceOf(address(this));
             IERC20(WRBTC).approve(loanTokenWRBTC, _WRBTCBalance);
 
-            if (testSharedReentrancyGuard) {
-                ILoanTokenModulesMock(loanTokenWRBTC).triggerReentrancy(); // unable to reentrant mint here since mint function have reentrancy guard in place
-            } else {
-                ILoanTokenModules(loanTokenWRBTC).mint(address(this), 14 ether); // unable to reentrant mint here since mint function have reentrancy guard in place
-            }
+            ILoanTokenModules(loanTokenWRBTC).mint(address(this), 14 ether); // unable to reentrant mint here since mint function have reentrancy guard in place
         }
     }
 
@@ -42,14 +37,12 @@ contract TestDiscRBTC {
         address _loanTokenWRBTC,
         address _WRBTC,
         address _SUSD,
-        address _sovrynProtocol,
-        bool _testSharedReentrancyGuard
+        address _sovrynProtocol
     ) public {
         loanTokenWRBTC = _loanTokenWRBTC;
         WRBTC = _WRBTC;
         SUSD = _SUSD;
         sovrynProtocol = ProtocolLike(_sovrynProtocol);
-        testSharedReentrancyGuard = _testSharedReentrancyGuard;
     }
 
     function testDisc(uint256 withdrawAmount, uint256 collateralTokenSent) public {

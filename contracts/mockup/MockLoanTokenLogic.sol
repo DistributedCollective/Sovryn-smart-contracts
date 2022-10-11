@@ -16,7 +16,7 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](39);
+        bytes4[] memory res = new bytes4[](38);
 
         // Loan Token Logic Standard
         res[0] = this.borrow.selector;
@@ -73,7 +73,6 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
 
         // Loan Token Logic Storage Additional Variable
         res[37] = this.getLiquidityMiningAddress.selector;
-        res[38] = this.triggerReentrancy.selector;
 
         return (res, stringToBytes32("MockLoanTokenLogic"));
     }
@@ -97,16 +96,10 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
     /*function initialize(address target) external onlyOwner {
 		_setTarget(this.setAffiliatesUserReferrer.selector, target);
 	}*/
-
-    function triggerReentrancy() external nonReentrant globallyNonReentrant returns (bool) {
-        return true;
-    }
 }
 
 contract ILoanTokenModulesMock is ILoanTokenModules {
     function setAffiliatesReferrer(address user, address referrer) external;
 
     function setUserNotFirstTradeFlag(address user) external;
-
-    function triggerReentrancy() external returns (bool);
 }

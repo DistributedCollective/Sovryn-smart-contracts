@@ -19,6 +19,7 @@ const FeesEvents = artifacts.require("FeesEvents");
 const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsEvents = artifacts.require("LoanClosingsEvents");
 const LoanClosingsWithMockup = artifacts.require("LoanClosingsWithMockup");
+const LoanClosingsWithoutInvariantCheck = artifacts.require("LoanClosingsWithoutInvariantCheck");
 const TestDiscRBTC = artifacts.require("TestDiscRBTC");
 const TestDiscERC777 = artifacts.require("TestDiscERC777");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
@@ -1008,8 +1009,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                 loanTokenWRBTC.address,
                 WRBTC.address,
                 SUSD.address,
-                sovryn.address,
-                false
+                sovryn.address
             );
 
             await WRBTC.deposit({ from: owner, value: new BN(wei("100", "ether")) });
@@ -1043,7 +1043,7 @@ contract("LoanTokenBorrowing", (accounts) => {
         it("invariant check loan token pool iWRBTC (Check cross reentrancy guard)", async () => {
             await set_demand_curve(loanTokenWRBTC);
 
-            await sovryn.replaceContract((await LoanClosingsWithMockup.new()).address);
+            await sovryn.replaceContract((await LoanClosingsWithoutInvariantCheck.new()).address);
 
             // Lend to pool
             const lender = accounts[1];
@@ -1060,8 +1060,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                 loanTokenWRBTC.address,
                 WRBTC.address,
                 SUSD.address,
-                sovryn.address,
-                true
+                sovryn.address
             );
 
             await WRBTC.deposit({ from: owner, value: new BN(wei("100", "ether")) });
@@ -1126,8 +1125,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                 loanToken.address,
                 WRBTC.address,
                 TestERC777.address,
-                sovryn.address,
-                false
+                sovryn.address
             );
 
             let collateralTokenSent = await sovryn.getRequiredCollateral(
@@ -1176,7 +1174,7 @@ contract("LoanTokenBorrowing", (accounts) => {
             await set_demand_curve(loanToken);
             await lend_to_pool(loanToken, TestERC777, owner);
 
-            await sovryn.replaceContract((await LoanClosingsWithMockup.new()).address);
+            await sovryn.replaceContract((await LoanClosingsWithoutInvariantCheck.new()).address);
 
             const withdrawAmount = new BN(wei("500000", "ether"));
 
@@ -1184,8 +1182,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                 loanToken.address,
                 WRBTC.address,
                 TestERC777.address,
-                sovryn.address,
-                true // test reentrancy guard
+                sovryn.address
             );
 
             let collateralTokenSent = await sovryn.getRequiredCollateral(
