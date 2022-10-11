@@ -1,4 +1,4 @@
-pragma solidity >=0.5.0 <0.6.0;
+pragma solidity ^0.5.17;
 
 import "./Mutex.sol";
 
@@ -21,7 +21,7 @@ contract SharedReentrancyGuard {
      * NOTE: The address could also be hardcoded (like with ERC1820Registry),
      * which would make this contract stateless.
      */
-    Mutex private constant mutex = Mutex(0xc783106a68d2Dc47b443C20067448a9c53121207);
+    Mutex private constant MUTEX = Mutex(0xc783106a68d2Dc47b443C20067448a9c53121207);
 
     /*
      * This is the modifier that will be used to protect functions from
@@ -30,7 +30,7 @@ contract SharedReentrancyGuard {
      * nested call.
      */
     modifier globallyNonReentrant() {
-        uint256 previous = mutex.incrementAndGetValue();
+        uint256 previous = MUTEX.incrementAndGetValue();
 
         _;
 
@@ -38,6 +38,6 @@ contract SharedReentrancyGuard {
          * If the mutex state was changed by a nested function call, then
          * the value of the state variable will be different from the previous value.
          */
-        require (previous == mutex.value(), "reentrancy violation");
+        require(previous == MUTEX.value(), "reentrancy violation");
     }
 }
