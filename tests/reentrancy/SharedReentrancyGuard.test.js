@@ -1,7 +1,7 @@
-const { ethers } = require('hardhat');
-const { getOrDeployMutex } = require('./utils');
+const { ethers } = require("hardhat");
+const { getOrDeployMutex } = require("./utils");
 
-describe('SharedReentrancyGuard', async () => {
+describe("SharedReentrancyGuard", async () => {
     let nonReentrantValueSetter;
     let anotherNonReentrantValueSetter;
     let reentrantValueSetter;
@@ -9,9 +9,11 @@ describe('SharedReentrancyGuard', async () => {
     let proxiedValueSetter;
 
     beforeEach(async () => {
-        const NonReentrantValueSetter = await ethers.getContractFactory('TestNonReentrantValueSetter');
-        const ValueSetter = await ethers.getContractFactory('TestValueSetter');
-        const ValueSetterProxy = await ethers.getContractFactory('TestValueSetterProxy');
+        const NonReentrantValueSetter = await ethers.getContractFactory(
+            "TestNonReentrantValueSetter"
+        );
+        const ValueSetter = await ethers.getContractFactory("TestValueSetter");
+        const ValueSetterProxy = await ethers.getContractFactory("TestValueSetterProxy");
         nonReentrantValueSetter = await NonReentrantValueSetter.deploy();
         anotherNonReentrantValueSetter = await NonReentrantValueSetter.deploy();
         reentrantValueSetter = await ValueSetter.deploy();
@@ -22,7 +24,7 @@ describe('SharedReentrancyGuard', async () => {
         await getOrDeployMutex();
     });
 
-    it('sanity check', async () => {
+    it("sanity check", async () => {
         expect(await nonReentrantValueSetter.value()).to.equal(0);
         expect(await anotherNonReentrantValueSetter.value()).to.equal(0);
         expect(await reentrantValueSetter.value()).to.equal(0);
@@ -43,17 +45,17 @@ describe('SharedReentrancyGuard', async () => {
         expect(await proxiedValueSetter.value()).to.equal(4);
     });
 
-    it('non-globallyNonReentrant call from globallyNonReentrant call does not revert', async () => {
+    it("non-globallyNonReentrant call from globallyNonReentrant call does not revert", async () => {
         await expect(
             nonReentrantValueSetter.setOtherContractValueNonReentrant(
                 anotherNonReentrantValueSetter.address,
                 1
             )
-        ).to.be.revertedWith('reentrancy violation');
+        ).to.be.revertedWith("reentrancy violation");
         expect(await anotherNonReentrantValueSetter.value()).to.equal(0);
     });
 
-    it('globallyNonReentrant call from globallyNonReentrant call reverts', async () => {
+    it("globallyNonReentrant call from globallyNonReentrant call reverts", async () => {
         await nonReentrantValueSetter.setOtherContractValueNonReentrant(
             reentrantValueSetter.address,
             1
@@ -61,10 +63,10 @@ describe('SharedReentrancyGuard', async () => {
         expect(await reentrantValueSetter.value()).to.equal(1);
     });
 
-    it('two globallyNonReentrant calls in the same transaction work if not nested', async () => {
+    it("two globallyNonReentrant calls in the same transaction work if not nested", async () => {
         await nonReentrantValueSetter.setThisAndOtherContractValue(
             anotherNonReentrantValueSetter.address,
-            1337,
+            1337
         );
         expect(await nonReentrantValueSetter.value()).to.equal(1337);
         expect(await anotherNonReentrantValueSetter.value()).to.equal(1337);
@@ -72,14 +74,14 @@ describe('SharedReentrancyGuard', async () => {
         // sanity check
         await nonReentrantValueSetter.setThisAndOtherContractValue(
             reentrantValueSetter.address,
-            1338,
+            1338
         );
         expect(await nonReentrantValueSetter.value()).to.equal(1338);
         expect(await reentrantValueSetter.value()).to.equal(1338);
         expect(await anotherNonReentrantValueSetter.value()).to.equal(1337);
     });
 
-    it('globallyNonReentrant works with proxies', async () => {
+    it("globallyNonReentrant works with proxies", async () => {
         await valueSetterProxy.setImplementation(reentrantValueSetter.address);
         expect(await proxiedValueSetter.value()).to.equal(0);
 
@@ -91,21 +93,17 @@ describe('SharedReentrancyGuard', async () => {
 
         await valueSetterProxy.setImplementation(anotherNonReentrantValueSetter.address);
         await expect(
-            nonReentrantValueSetter.setOtherContractValueNonReentrant(
-                valueSetterProxy.address,
-                2
-            )
-        ).to.be.revertedWith('reentrancy violation');
+            nonReentrantValueSetter.setOtherContractValueNonReentrant(valueSetterProxy.address, 2)
+        ).to.be.revertedWith("reentrancy violation");
         expect(await proxiedValueSetter.value()).to.equal(1);
 
         await proxiedValueSetter.setValue(3);
         expect(await proxiedValueSetter.value()).to.equal(3);
     });
 
-    it('works with proxies without breaking the memory layout', async () => {
+    it("works with proxies without breaking the memory layout", async () => {
         await valueSetterProxy.setImplementation(reentrantValueSetter.address);
         expect(await proxiedValueSetter.value()).to.equal(0);
-
 
         await proxiedValueSetter.setValue(1);
         expect(await proxiedValueSetter.value()).to.equal(1);

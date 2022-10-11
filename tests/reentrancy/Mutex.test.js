@@ -1,18 +1,18 @@
 const { ethers } = require("hardhat");
 const mutexUtils = require("./utils");
 
-describe('Mutex', function () {
-    describe('special deploy utilities', function () {
-        it('getOrDeployMutex', async () => {
+describe("Mutex", function () {
+    describe("special deploy utilities", function () {
+        it("getOrDeployMutex", async () => {
             let mutex = await mutexUtils.getOrDeployMutex();
-            expect(mutex.address).to.equal("0xc783106a68d2Dc47b443C20067448a9c53121207")
+            expect(mutex.address).to.equal("0xc783106a68d2Dc47b443C20067448a9c53121207");
 
             // Test that we can call it again, and it's basically a no-op
             mutex = await mutexUtils.getOrDeployMutex();
-            expect(mutex.address).to.equal("0xc783106a68d2Dc47b443C20067448a9c53121207")
+            expect(mutex.address).to.equal("0xc783106a68d2Dc47b443C20067448a9c53121207");
         });
 
-        it('createMutexDeployTransaction', async () => {
+        it("createMutexDeployTransaction", async () => {
             // Test that it doesn't fail. We could test something else too, but the data returned by
             // mutexUtils.createMutexDeployTransaction will change if *anything* in Mutex.sol changes,
             // including comments and whitespace
@@ -20,7 +20,7 @@ describe('Mutex', function () {
         });
     });
 
-    describe('Mutex contract', function () {
+    describe("Mutex contract", function () {
         let mutex;
         let owner;
         let anotherUser;
@@ -31,7 +31,7 @@ describe('Mutex', function () {
             [owner, anotherUser] = await ethers.getSigners();
         });
 
-        it('test value and incrementAndGetValue', async () => {
+        it("test value and incrementAndGetValue", async () => {
             expect(await mutex.value()).to.equal(0);
             expect(await mutex.callStatic.incrementAndGetValue()).to.equal(1);
             await mutex.incrementAndGetValue();
