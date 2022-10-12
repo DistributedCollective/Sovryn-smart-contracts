@@ -21,7 +21,7 @@ import "../mockup/MockLoanTokenLogic.sol";
  * Inside the hook function, it will try to mint the iERC777.
  * The details about the hook functions can be found here: https://eips.ethereum.org/EIPS/eip-777#hooks
  *
- * @note This function should never been passed in the unit testing since we have:
+ * This function should never been passed in the unit testing since we have:
  * 1. invariant check for the loan token (iToken) total supply for closeWithDeposit function.
  * 2. global reentrancy guard between the protocol & the loan token.
  */

@@ -19,7 +19,7 @@ import "../mockup/MockLoanTokenLogic.sol";
  * The refund happened in step #3, which will send back the RBTC back to this contract.
  * Then, this contract will try to do another iWRBTC minting to the loan token --> this is where the cross-reentrancy happened between the protocol & the loan token contract.
  *
- * @note This function should never been passed in the unit testing since we have:
+ * This function should never been passed in the unit testing since we have:
  * 1. invariant check for the loan token (iToken) total supply for closeWithSwap function.
  * 2. global reentrancy guard between the protocol & the loan token.
  */
