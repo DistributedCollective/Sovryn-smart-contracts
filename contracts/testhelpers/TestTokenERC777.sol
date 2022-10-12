@@ -1,8 +1,3 @@
-/**
- * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0.
- */
-
 pragma solidity 0.5.17;
 
 import "../openzeppelin/Context.sol";
@@ -12,7 +7,7 @@ import "../interfaces/IERC777.sol";
 import "../interfaces/IERC777Recipient.sol";
 import "../interfaces/IERC777Sender.sol";
 import "../interfaces/IERC20.sol";
-import "../interfaces/IERC1820Registry.sol";
+import "./interfaces/IERC1820Registry.sol";
 
 contract TestTokenERC777 is Context, IERC777, IERC20 {
     using SafeMath for uint256;

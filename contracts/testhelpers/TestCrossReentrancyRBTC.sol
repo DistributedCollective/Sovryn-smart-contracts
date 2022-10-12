@@ -24,7 +24,7 @@ import "../mockup/MockLoanTokenLogic.sol";
  * 2. global reentrancy guard between the protocol & the loan token.
  */
 
-contract TestDiscRBTC {
+contract TestCrossReentrancyRBTC {
     address public loanTokenWRBTC;
     address public WRBTC;
     address public SUSD;
@@ -62,7 +62,7 @@ contract TestDiscRBTC {
         sovrynProtocol = ProtocolLike(_sovrynProtocol);
     }
 
-    function testDisc(uint256 withdrawAmount, uint256 collateralTokenSent) public {
+    function testCrossReentrancy(uint256 withdrawAmount, uint256 collateralTokenSent) public {
         address _receiver = address(this);
         address _borrower = address(this);
 
@@ -114,17 +114,19 @@ contract TestDiscRBTC {
             ""
         );
 
-        /** Rest of code Should not be executed */
+        /** Rest of code Should not be executed as in there will be reverted in step #3 because of invariant check.
+        if it's got executed, means that there is an cross-reentrancy vulnerability */
         // STEP 4 Burn all iRBTC
         uint256 _iWRBTCBalance = ILoanTokenModules(loanTokenWRBTC).balanceOf(_borrower);
         ILoanTokenModules(loanTokenWRBTC).burn(_receiver, _iWRBTCBalance);
 
-        balanceState memory finalBalance =
-            balanceState({
-                rbtcBalance: address(this).balance,
-                wrbtcBalance: IERC20(WRBTC).balanceOf(address(this)),
-                susdBalance: IERC20(SUSD).balanceOf(address(this)),
-                iWRBTCBalance: ILoanTokenModules(loanTokenWRBTC).balanceOf(_borrower)
-            });
+        /** Used for debugging */
+        // balanceState memory finalBalance =
+        //     balanceState({
+        //         rbtcBalance: address(this).balance,
+        //         wrbtcBalance: IERC20(WRBTC).balanceOf(address(this)),
+        //         susdBalance: IERC20(SUSD).balanceOf(address(this)),
+        //         iWRBTCBalance: ILoanTokenModules(loanTokenWRBTC).balanceOf(_borrower)
+        //     });
     }
 }

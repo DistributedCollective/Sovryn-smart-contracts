@@ -5,7 +5,7 @@ import "../interfaces/IERC20.sol";
 import "../connectors/loantoken/interfaces/ProtocolLike.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../interfaces/IWrbtcERC20.sol";
-import "../interfaces/IERC1820Registry.sol";
+import "./interfaces/IERC1820Registry.sol";
 import "../mockup/MockLoanTokenLogic.sol";
 
 /**
@@ -26,7 +26,7 @@ import "../mockup/MockLoanTokenLogic.sol";
  * 2. global reentrancy guard between the protocol & the loan token.
  */
 
-contract TestDiscERC777 {
+contract TestCrossReentrancyERC777 {
     address public loanToken;
     address public WRBTC;
     address public SUSD; /// ERC777
@@ -69,7 +69,7 @@ contract TestDiscERC777 {
         );
     }
 
-    function testDisc(uint256 withdrawAmount, uint256 collateralTokenSent) public {
+    function testCrossReentrancy(uint256 withdrawAmount, uint256 collateralTokenSent) public {
         address _receiver = address(this);
         address _borrower = address(this);
 
@@ -118,18 +118,20 @@ contract TestDiscERC777 {
             collateralTokenSent.mul(20).div(100) // make it 20% higher from initial borrow amount
         );
 
-        /** Rest of code Should not be executed */
+        /** Rest of code Should not be executed as in there will be reverted in step #3 because of invariant check.
+        if it's got executed, means that there is an cross-reentrancy vulnerability */
         // STEP 4 Burn all iSUSD
         uint256 _iSUSDBalance = ILoanTokenModules(loanToken).balanceOf(_borrower);
         ILoanTokenModules(loanToken).burn(_receiver, _iSUSDBalance);
 
-        balanceState memory finalBalance =
-            balanceState({
-                rbtcBalance: address(this).balance,
-                wrbtcBalance: IERC20(WRBTC).balanceOf(address(this)),
-                susdBalance: IERC20(SUSD).balanceOf(address(this)),
-                iUSDTBalance: ILoanTokenModules(loanToken).balanceOf(_borrower)
-            });
+        /** Used for debugging */
+        // balanceState memory finalBalance =
+        //     balanceState({
+        //         rbtcBalance: address(this).balance,
+        //         wrbtcBalance: IERC20(WRBTC).balanceOf(address(this)),
+        //         susdBalance: IERC20(SUSD).balanceOf(address(this)),
+        //         iUSDTBalance: ILoanTokenModules(loanToken).balanceOf(_borrower)
+        //     });
     }
 
     function tokensToSend(

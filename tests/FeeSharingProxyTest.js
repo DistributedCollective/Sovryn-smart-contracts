@@ -126,6 +126,7 @@ contract("FeeSharingProxy:", (accounts) => {
     });
 
     async function protocolDeploymentFixture(_wallets, _provider) {
+        // need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevetion will not be working & throw an error
         await mutexUtils.getOrDeployMutex();
 
         // Token

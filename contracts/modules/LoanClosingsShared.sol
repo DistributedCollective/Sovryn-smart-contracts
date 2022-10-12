@@ -53,7 +53,7 @@ contract LoanClosingsShared is
         /// Validate iToken total supply
         require(
             previousITokenSupply == ILoanTokenModules(loanTokenPoolAddress).totalSupply(),
-            "mismatch loan token supply"
+            "loan token supply invariant check failure"
         );
     }
 
@@ -437,6 +437,8 @@ contract LoanClosingsShared is
             /// Pay back the amount which was covered by the swap.
             loanCloseAmountLessInterest = coveredPrincipal;
         }
+
+        require(loanCloseAmountLessInterest != 0, "closeAmount is 0 after swap");
 
         /// Reduce the collateral by the amount which was swapped for the closure.
         if (usedCollateral != 0) {
