@@ -12,9 +12,8 @@ import "../mockup/MockLoanTokenLogic.sol";
  * The cross-reentrancy can be triggered from the closeWithSwap, closeWithDeposit, liquidate, rollover since it might send the RBTC / ERC777 back to the receiver for refunding the excess of the swap.
  * This wrapper function will try to:
  * 1. Borrow some WRBTC from the lending pool.
- * 2. Mint iWRBTC.
- * 3. Close the loan with closeWithSwap function in the protocol.
- * 4. Burn all iWRBTC.
+ * 2. Close the loan with closeWithSwap function in the protocol.
+ * 3. Burn all iWRBTC.
  *
  * The refund happened in step #3, which will send back the RBTC back to this contract.
  * Then, this contract will try to do another iWRBTC minting to the loan token --> this is where the cross-reentrancy happened between the protocol & the loan token contract.
@@ -88,12 +87,6 @@ contract TestCrossReentrancyRBTC {
             _receiver,
             ""
         );
-
-        // step2 mint 15 iWRBTC
-        // prerequisite: this contract should have WRBTC
-        uint256 _WRBTCBalance = IERC20(WRBTC).balanceOf(address(this));
-        IERC20(WRBTC).approve(loanTokenWRBTC, _WRBTCBalance);
-        ILoanTokenModules(loanTokenWRBTC).mint(_receiver, 15 ether);
 
         uint256 _borrowerNonce = sovrynProtocol.borrowerNonce(_borrower);
         bytes32 loanParamsLocalId =

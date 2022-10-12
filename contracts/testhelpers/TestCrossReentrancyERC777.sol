@@ -13,9 +13,8 @@ import "../mockup/MockLoanTokenLogic.sol";
  * The cross-reentrancy can be triggered from the closeWithSwap, closeWithDeposit, liquidate, rollover since it might send the RBTC / ERC777 back to the receiver for refunding the excess of the swap.
  * This wrapper function will try to:
  * 1. Borrow some ERC777 from the lending pool.
- * 2. Mint iERC777.
- * 3. Close the loan with closeWithDeposit function in the protocol.
- * 4. Burn all iERC777.
+ * 2. Close the loan with closeWithDeposit function in the protocol.
+ * 3. Burn all iERC777.
  *
  * The cross-reentrancy happened in step#3. It might happened through a hook function (tokensToSend) that is implemented in this contract to support the ERC777 transfer.
  * Inside the hook function, it will try to mint the iERC777.
@@ -96,12 +95,6 @@ contract TestCrossReentrancyERC777 {
             ""
         );
 
-        // step2 mint iSUSD
-        // prerequisite: this contract should have SUSD
-        uint256 _SUSDBalance = IERC20(SUSD).balanceOf(address(this));
-        IERC20(SUSD).approve(loanToken, _SUSDBalance);
-        ILoanTokenModules(loanToken).mint(_receiver, 100 ether);
-
         uint256 _borrowerNonce = sovrynProtocol.borrowerNonce(_borrower);
         bytes32 loanParamsLocalId =
             ILoanTokenModules(loanToken).loanParamsIds(
@@ -111,6 +104,7 @@ contract TestCrossReentrancyERC777 {
             keccak256(abi.encodePacked(loanParamsLocalId, loanToken, _borrower, _borrowerNonce));
 
         // STEP 3 close the borrowed position with a deposit
+        uint256 _SUSDBalance = IERC20(SUSD).balanceOf(address(this));
         IERC20(SUSD).approve(address(sovrynProtocol), _SUSDBalance);
         sovrynProtocol.closeWithDeposit(
             loan_id,
