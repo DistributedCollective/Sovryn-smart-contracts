@@ -43,16 +43,15 @@ contract LoanClosingsShared is
         Loan storage loanLocal = loans[loanId];
         LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
 
-        address loanTokenPoolAddress = underlyingToLoanPool[loanParamsLocal.loanToken];
-        require(loanTokenPoolAddress != address(0), "Invalid loan token pool address");
+        require(loanLocal.lender != address(0), "Invalid loan token pool address");
 
-        uint256 previousITokenSupply = ILoanTokenModules(loanTokenPoolAddress).totalSupply();
+        uint256 previousITokenSupply = ILoanTokenModules(loanLocal.lender).totalSupply();
 
         _;
 
         /// Validate iToken total supply
         require(
-            previousITokenSupply == ILoanTokenModules(loanTokenPoolAddress).totalSupply(),
+            previousITokenSupply == ILoanTokenModules(loanLocal.lender).totalSupply(),
             "loan token supply invariant check failure"
         );
     }
