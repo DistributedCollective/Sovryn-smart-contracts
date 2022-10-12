@@ -41,7 +41,6 @@ contract LoanClosingsShared is
     /** modifier for invariant check */
     modifier iTokenSupplyUnchanged(bytes32 loanId) {
         Loan storage loanLocal = loans[loanId];
-        LoanParams storage loanParamsLocal = loanParams[loanLocal.loanParamsId];
 
         require(loanLocal.lender != address(0), "Invalid loan token pool address");
 
