@@ -7,6 +7,23 @@ import "../openzeppelin/SafeMath.sol";
 import "../interfaces/IWrbtcERC20.sol";
 import "../mockup/MockLoanTokenLogic.sol";
 
+/**
+ * @dev This is the smart contract wrapper that is designed to test the cross-reentrancy attack between the protocol & loan token contract.
+ * The cross-reentrancy can be triggered from the closeWithSwap, closeWithDeposit, liquidate, rollover since it might send the RBTC / ERC777 back to the receiver for refunding the excess of the swap.
+ * This wrapper function will try to:
+ * 1. Borrow some WRBTC from the lending pool.
+ * 2. Mint iWRBTC.
+ * 3. Close the loan with closeWithSwap function in the protocol.
+ * 4. Burn all iWRBTC.
+ *
+ * The refund happened in step #3, which will send back the RBTC back to this contract.
+ * Then, this contract will try to do another iWRBTC minting to the loan token --> this is where the cross-reentrancy happened between the protocol & the loan token contract.
+ *
+ * @note This function should never been passed in the unit testing since we have:
+ * 1. invariant check for the loan token (iToken) total supply for closeWithSwap function.
+ * 2. global reentrancy guard between the protocol & the loan token.
+ */
+
 contract TestDiscRBTC {
     address public loanTokenWRBTC;
     address public WRBTC;

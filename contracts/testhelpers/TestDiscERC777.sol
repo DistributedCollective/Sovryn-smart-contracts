@@ -8,6 +8,24 @@ import "../interfaces/IWrbtcERC20.sol";
 import "../interfaces/IERC1820Registry.sol";
 import "../mockup/MockLoanTokenLogic.sol";
 
+/**
+ * @dev This is the smart contract wrapper that is designed to test the cross-reentrancy attack between the protocol & loan token contract.
+ * The cross-reentrancy can be triggered from the closeWithSwap, closeWithDeposit, liquidate, rollover since it might send the RBTC / ERC777 back to the receiver for refunding the excess of the swap.
+ * This wrapper function will try to:
+ * 1. Borrow some ERC777 from the lending pool.
+ * 2. Mint iERC777.
+ * 3. Close the loan with closeWithDeposit function in the protocol.
+ * 4. Burn all iERC777.
+ *
+ * The cross-reentrancy happened in step#3. It might happened through a hook function (tokensToSend) that is implemented in this contract to support the ERC777 transfer.
+ * Inside the hook function, it will try to mint the iERC777.
+ * The details about the hook functions can be found here: https://eips.ethereum.org/EIPS/eip-777#hooks
+ *
+ * @note This function should never been passed in the unit testing since we have:
+ * 1. invariant check for the loan token (iToken) total supply for closeWithDeposit function.
+ * 2. global reentrancy guard between the protocol & the loan token.
+ */
+
 contract TestDiscERC777 {
     address public loanToken;
     address public WRBTC;
