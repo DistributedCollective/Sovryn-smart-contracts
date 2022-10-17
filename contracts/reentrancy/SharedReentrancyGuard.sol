@@ -22,7 +22,7 @@ contract SharedReentrancyGuard {
      * because the Mutex contract is always deployed to the same address, with the
      * same method used in the deployment of ERC1820Registry.
      */
-    Mutex private constant MUTEX = Mutex(0xc783106a68d2Dc47b443C20067448a9c53121207);
+    Mutex private constant MUTEX = Mutex(0xba10edD6ABC7696Eae685839217BdcC42139612b);
 
     /*
      * This is the modifier that will be used to protect functions from
