@@ -121,6 +121,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         external
         payable
         nonReentrant
+        globallyNonReentrant
         pausable(msg.sig)
         returns (bytes memory)
     {
