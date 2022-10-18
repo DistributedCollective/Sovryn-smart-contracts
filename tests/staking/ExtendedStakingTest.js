@@ -791,6 +791,37 @@ contract("Staking", (accounts) => {
             );
         });
 
+        it("Is protected from getting unlimited voting power by using corner case values in extendStakingDuration function", async () => {
+            let amount = "1337";
+            let newTime = ethers.constants.MaxUint256;
+
+            const until = await staking.timestampToLockDate(
+                new BN((await ethers.provider.getBlock()).timestamp + 1).add(
+                    new BN(await staking.MAX_DURATION())
+                )
+            );
+
+            await staking.stake(amount, until, root, root);
+
+            await mineBlock();
+
+            const startVotes = await staking.getCurrentVotes(root);
+
+            // Trying to increase voting power arbitrary by passing the edge values
+            for (let i = 0; i < 10; i++) {
+                await expectRevert(
+                    staking.extendStakingDuration(until, newTime),
+                    "must increase staking duration"
+                ); // S04 : cannot reduce or have the same staking duration
+                await staking.delegate(root, until);
+            }
+            const endVotes = await staking.getCurrentVotes(root);
+            expect(
+                startVotes - endVotes == 0,
+                `Voting power invalid incease: startVotes: ${startVotes.toString()}, ${endVotes.toString()}`
+            ).to.be.true;
+        });
+
         it("should update the vesting checkpoints if the stake is extended with a vesting contract", async () => {
             //TODO if vesting contracts should ever support this function.
             //currently, they don't and they are not upgradable.
