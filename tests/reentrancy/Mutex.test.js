@@ -5,11 +5,11 @@ describe("Mutex", function () {
     describe("special deploy utilities", function () {
         it("getOrDeployMutex", async () => {
             let mutex = await mutexUtils.getOrDeployMutex();
-            expect(mutex.address).to.equal("0xc783106a68d2Dc47b443C20067448a9c53121207");
+            expect(mutex.address).to.equal("0xba10edD6ABC7696Eae685839217BdcC42139612b");
 
             // Test that we can call it again, and it's basically a no-op
             mutex = await mutexUtils.getOrDeployMutex();
-            expect(mutex.address).to.equal("0xc783106a68d2Dc47b443C20067448a9c53121207");
+            expect(mutex.address).to.equal("0xba10edD6ABC7696Eae685839217BdcC42139612b");
         });
 
         it("createMutexDeployTransaction", async () => {
