@@ -396,96 +396,96 @@ contract("Staking", (accounts) => {
     describe("stakeWithApproval", () => {
         //TODO: resume when refactored to resolve EIP-170 contract size issue
         /*
-		it("Should be able to stake and delegate for yourself", async () => {
-			let amount = "100";
-			let duration = TWO_WEEKS;
-			let lockedTS = await getTimeFromKickoff(duration);
+        it("Should be able to stake and delegate for yourself", async () => {
+            let amount = "100";
+            let duration = TWO_WEEKS;
+            let lockedTS = await getTimeFromKickoff(duration);
 
-			let stakingBalance = await token.balanceOf.call(staking.address);
-			expect(stakingBalance.toNumber()).to.be.equal(0);
-			let beforeBalance = await token.balanceOf.call(root);
+            let stakingBalance = await token.balanceOf.call(staking.address);
+            expect(stakingBalance.toNumber()).to.be.equal(0);
+            let beforeBalance = await token.balanceOf.call(root);
 
-			await token.approve(staking.address, 0);
+            await token.approve(staking.address, 0);
 
-			// TODO
-			await token.approve(staking.address, amount * 2, { from: account1 });
+            // TODO
+            await token.approve(staking.address, amount * 2, { from: account1 });
 
-			let contract = new web3.eth.Contract(staking.abi, staking.address);
-			let sender = root;
-			let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
-			// let data = contract.methods.stakeWithApproval(account1, amount * 2, lockedTS, root, root).encodeABI();
-			let tx = await token.approveAndCall(staking.address, amount, data, { from: sender });
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let sender = root;
+            let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
+            // let data = contract.methods.stakeWithApproval(account1, amount * 2, lockedTS, root, root).encodeABI();
+            let tx = await token.approveAndCall(staking.address, amount, data, { from: sender });
 
-			stakingBalance = await token.balanceOf.call(staking.address);
-			expect(stakingBalance.toString()).to.be.equal(amount);
-			let afterBalance = await token.balanceOf.call(root);
-			expect(beforeBalance.sub(afterBalance).toString()).to.be.equal(amount);
+            stakingBalance = await token.balanceOf.call(staking.address);
+            expect(stakingBalance.toString()).to.be.equal(amount);
+            let afterBalance = await token.balanceOf.call(root);
+            expect(beforeBalance.sub(afterBalance).toString()).to.be.equal(amount);
 
-			// _writeUserCheckpoint
-			let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
-			expect(numUserCheckpoints.toNumber()).to.be.equal(1);
-			let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
-			expect(checkpoint.stake.toString()).to.be.equal(amount);
+            // _writeUserCheckpoint
+            let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
+            expect(numUserCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-			// _increaseDailyStake
-			let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
-			expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
-			checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
-			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
-			expect(checkpoint.stake.toString()).to.be.equal(amount);
+            // _increaseDailyStake
+            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(lockedTS);
+            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(1);
+            checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toString()).to.be.equal(amount);
 
-			// _delegate
-			let delegator = await staking.delegates.call(root, lockedTS);
-			expect(delegator).to.be.equal(root);
+            // _delegate
+            let delegator = await staking.delegates.call(root, lockedTS);
+            expect(delegator).to.be.equal(root);
 
-			let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
-			expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
-			checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
-			expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
-			expect(checkpoint.stake.toString()).to.be.equal(amount);
-		});
-		*/
+            let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(root, lockedTS);
+            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(1);
+            checkpoint = await staking.delegateStakingCheckpoints.call(root, lockedTS, 0);
+            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx.receipt.blockNumber);
+            expect(checkpoint.stake.toString()).to.be.equal(amount);
+        });
+        */
         //TODO: resume when refactored to resolve EIP-170 contract size issue
         /*it("fails if invoked directly", async () => {
-			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
-			await expectRevert(staking.stakeWithApproval(root, "100", lockedTS, root, root), "unauthorized");
-		});*/
+            let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+            await expectRevert(staking.stakeWithApproval(root, "100", lockedTS, root, root), "unauthorized");
+        });*/
         //TODO: resume when refactored to resolve EIP-170 contract size issue
         /*it("fails if wrong method passed in data", async () => {
-			let amount = "100";
-			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
-			let contract = new web3.eth.Contract(staking.abi, staking.address);
-			let data = contract.methods.stake(amount, lockedTS, root, root).encodeABI();
+            let amount = "100";
+            let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let data = contract.methods.stake(amount, lockedTS, root, root).encodeABI();
 
-			await expectRevert(token.approveAndCall(staking.address, amount, data), "method is not allowed");
-		});*/
+            await expectRevert(token.approveAndCall(staking.address, amount, data), "method is not allowed");
+        });*/
         //TODO: resume when refactored to resolve EIP-170 contract size issue
         /*it("fails if wrong sender passed in data", async () => {
-			let amount = "100";
-			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
-			let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let amount = "100";
+            let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
 
-			await token.approve(staking.address, amount * 2, { from: account1 });
-			let sender = root;
-			let data = contract.methods.stakeWithApproval(account1, amount, lockedTS, root, root).encodeABI();
+            await token.approve(staking.address, amount * 2, { from: account1 });
+            let sender = root;
+            let data = contract.methods.stakeWithApproval(account1, amount, lockedTS, root, root).encodeABI();
 
-			await expectRevert(token.approveAndCall(staking.address, amount, data, { from: sender }), "sender mismatch");
-		});
-		*/
+            await expectRevert(token.approveAndCall(staking.address, amount, data, { from: sender }), "sender mismatch");
+        });
+        */
         //TODO: resume when refactored to resolve EIP-170 contract size issue
         /*it("fails if wrong amount passed in data", async () => {
-			let amount = "100";
-			let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
-			let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let amount = "100";
+            let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
 
-			await token.approve(staking.address, amount * 2, { from: account1 });
-			let sender = root;
-			let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
+            await token.approve(staking.address, amount * 2, { from: account1 });
+            let sender = root;
+            let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
 
-			await expectRevert(token.approveAndCall(staking.address, amount * 2, data, { from: sender }), "amount mismatch");
-		});
-		*/
+            await expectRevert(token.approveAndCall(staking.address, amount * 2, data, { from: sender }), "amount mismatch");
+        });
+        */
     });
 
     describe("WeightedStaking", () => {
@@ -606,6 +606,34 @@ contract("Staking", (accounts) => {
 
             let newTime = await getTimeFromKickoff(TWO_WEEKS);
             await expectRevert(staking.extendStakingDuration(lockedTS, newTime), "S04"); // S04 : cannot reduce staking duration
+        });
+
+        it("Is protected from getting unlimited voting power by using corner case values in extendStakingDuration function", async () => {
+            let amount = "1337";
+            let newTime = ethers.constants.MaxUint256;
+
+            const until = await staking.timestampToLockDate(
+                new BN((await ethers.provider.getBlock()).timestamp + 1).add(
+                    new BN(await staking.MAX_DURATION())
+                )
+            );
+
+            await staking.stake(amount, until, root, root);
+
+            await mineBlock();
+
+            const startVotes = await staking.getCurrentVotes(root);
+
+            // Trying to increase voting power arbitrary by passing the edge values
+            for (let i = 0; i < 10; i++) {
+                await expectRevert(staking.extendStakingDuration(until, newTime), "S04"); // S04 : cannot reduce or have the same staking duration
+                await staking.delegate(root, until);
+            }
+            const endVotes = await staking.getCurrentVotes(root);
+            expect(
+                startVotes - endVotes == 0,
+                `Voting power invalid incease: startVotes: ${startVotes.toString()}, ${endVotes.toString()}`
+            ).to.be.true;
         });
 
         it("Do not exceed the max duration", async () => {
