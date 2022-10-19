@@ -23,6 +23,7 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 
     event SetTransactionLimits(address[] addresses, uint256[] limits);
     event ToggledFunctionPaused(string functionId, bool prevFlag, bool newFlag);
+    event WithdrawRBTCTo(address indexed to, uint256 amount);
 
     /* Functions */
 
@@ -43,7 +44,7 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](9);
+        bytes4[] memory res = new bytes4[](13);
         res[0] = this.setAdmin.selector;
         res[1] = this.setPauser.selector;
         res[2] = this.setupLoanParams.selector;
@@ -53,6 +54,10 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
         res[6] = this.setTransactionLimits.selector;
         res[7] = this.changeLoanTokenNameAndSymbol.selector;
         res[8] = this.pauser.selector;
+        res[9] = this.setLiquidityMiningAddress.selector;
+        res[10] = this.withdrawRBTCTo.selector;
+        res[11] = this.getLiquidityMiningAddress.selector;
+        res[12] = this.checkPause.selector;
         return (res, stringToBytes32("LoanTokenSettingsLowerAdmin"));
     }
 
@@ -252,5 +257,61 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
     {
         name = _name;
         symbol = _symbol;
+    }
+
+    /**
+     * @notice Withdraws RBTC from the contract by Multisig.
+     * @param _receiverAddress The address where the rBTC has to be transferred.
+     * @param _amount The amount of rBTC to be transferred.
+     */
+    function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external onlyOwner {
+        require(_receiverAddress != address(0), "receiver address invalid");
+        require(_amount > 0, "non-zero withdraw amount expected");
+        require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
+        _receiverAddress.transfer(_amount);
+        emit WithdrawRBTCTo(_receiverAddress, _amount);
+    }
+
+    /**
+     * @notice sets the liquidity mining contract address
+     * @param LMAddress the address of the liquidity mining contract
+     */
+    function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
+        liquidityMiningAddress = LMAddress;
+    }
+
+    /**
+	 * @notice We need separate getter for newly added storage variable
+	 * @notice Getter for liquidityMiningAddress
+
+	 * @return liquidityMiningAddress
+	 */
+    function getLiquidityMiningAddress() public view returns (address) {
+        return liquidityMiningAddress;
+    }
+
+    /**
+     * @notice Check whether a function is paused.
+     *
+     * @dev Used to read externally from the smart contract to see if a
+     *   function is paused.
+     *
+     * @param funcId The function ID, the selector.
+     *
+     * @return isPaused Whether the function is paused: true or false.
+     * */
+    function checkPause(string memory funcId) public view returns (bool isPaused) {
+        bytes4 sig = bytes4(keccak256(abi.encodePacked(funcId)));
+        bytes32 slot =
+            keccak256(
+                abi.encodePacked(
+                    sig,
+                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+                )
+            );
+        assembly {
+            isPaused := sload(slot)
+        }
+        return isPaused;
     }
 }

@@ -50,10 +50,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     using SafeMath for uint256;
     using SignedSafeMath for int256;
 
-    /* Events */
-
-    event WithdrawRBTCTo(address indexed to, uint256 amount);
-
     /// DON'T ADD VARIABLES HERE, PLEASE
 
     /* Public functions */
@@ -458,19 +454,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
                 minEntryPrice,
                 loanDataBytes
             );
-    }
-
-    /**
-     * @notice Withdraws RBTC from the contract by Multisig.
-     * @param _receiverAddress The address where the rBTC has to be transferred.
-     * @param _amount The amount of rBTC to be transferred.
-     */
-    function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external onlyOwner {
-        require(_receiverAddress != address(0), "receiver address invalid");
-        require(_amount > 0, "non-zero withdraw amount expected");
-        require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
-        _receiverAddress.transfer(_amount);
-        emit WithdrawRBTCTo(_receiverAddress, _amount);
     }
 
     /**
@@ -1641,31 +1624,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     }
 
     /**
-     * @notice Check whether a function is paused.
-     *
-     * @dev Used to read externally from the smart contract to see if a
-     *   function is paused.
-     *
-     * @param funcId The function ID, the selector.
-     *
-     * @return isPaused Whether the function is paused: true or false.
-     * */
-    function checkPause(string memory funcId) public view returns (bool isPaused) {
-        bytes4 sig = bytes4(keccak256(abi.encodePacked(funcId)));
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    sig,
-                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-                )
-            );
-        assembly {
-            isPaused := sload(slot)
-        }
-        return isPaused;
-    }
-
-    /**
      * @notice Make sure call is not paused.
      * @dev Used for internal verification if the called function is paused.
      *   It throws an exception in case it's not.
@@ -1719,24 +1677,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
             /// U = total_borrow / total_supply
             return assetBorrow.mul(10**20).div(assetSupply);
         }
-    }
-
-    /**
-     * @notice sets the liquidity mining contract address
-     * @param LMAddress the address of the liquidity mining contract
-     */
-    function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
-        liquidityMiningAddress = LMAddress;
-    }
-
-    /**
-	 * @notice We need separate getter for newly added storage variable
-	 * @notice Getter for liquidityMiningAddress
-
-	 * @return liquidityMiningAddress
-	 */
-    function getLiquidityMiningAddress() public view returns (address) {
-        return liquidityMiningAddress;
     }
 
     function _mintWithLM(address receiver, uint256 depositAmount)
