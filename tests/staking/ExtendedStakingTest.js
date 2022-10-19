@@ -609,7 +609,7 @@ contract("Staking", (accounts) => {
         });
 
         it("Is protected from getting unlimited voting power by using corner case values in extendStakingDuration function", async () => {
-            let amount = "1337";
+            let amount = 1000;
             let newTime = ethers.constants.MaxUint256;
 
             const until = await staking.timestampToLockDate(
@@ -623,7 +623,6 @@ contract("Staking", (accounts) => {
             await mineBlock();
 
             const startVotes = await staking.getCurrentVotes(root);
-
             // Trying to increase voting power arbitrary by passing the edge values
             for (let i = 0; i < 10; i++) {
                 await expectRevert(staking.extendStakingDuration(until, newTime), "S04"); // S04 : cannot reduce or have the same staking duration
@@ -632,7 +631,7 @@ contract("Staking", (accounts) => {
             const endVotes = await staking.getCurrentVotes(root);
             expect(
                 startVotes - endVotes == 0,
-                `Voting power invalid incease: startVotes: ${startVotes.toString()}, ${endVotes.toString()}`
+                `Voting power invalid incease - startVotes: ${startVotes.toString()}, endVotes: ${endVotes.toString()}`
             ).to.be.true;
         });
 
