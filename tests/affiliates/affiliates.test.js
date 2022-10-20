@@ -84,7 +84,7 @@ contract("Affiliates", (accounts) => {
     let swapsSovryn;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
-        // need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevetion will not be working & throw an error
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
         await mutexUtils.getOrDeployMutex();
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
