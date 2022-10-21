@@ -21,7 +21,7 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](36);
+        bytes4[] memory res = new bytes4[](32);
 
         // Loan Token Logic Standard
         res[0] = this.borrow.selector;
@@ -47,9 +47,7 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
         res[20] = this.getDepositAmountForBorrow.selector;
         res[21] = this.getBorrowAmountForDeposit.selector;
         res[22] = this.checkPriceDivergence.selector;
-        res[23] = this.checkPause.selector;
-        res[24] = this.setLiquidityMiningAddress.selector;
-        res[25] = this.calculateSupplyInterestRate.selector;
+        res[23] = this.calculateSupplyInterestRate.selector;
 
         // Loan Token LM & OVERLOADING function
         /**
@@ -57,22 +55,18 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
          * LoanTokenLogicStandard also has mint & burn function (overloading).
          * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
          */
-        res[26] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicStandard
-        res[27] = bytes4(keccak256("mint(address,uint256,bool)")); /// LoanTokenLogicLM
-        res[28] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
-        res[29] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
+        res[24] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicStandard
+        res[25] = bytes4(keccak256("mint(address,uint256,bool)")); /// LoanTokenLogicLM
+        res[26] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
+        res[27] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
 
         // Advanced Token
-        res[30] = this.approve.selector;
+        res[28] = this.approve.selector;
 
         // Advanced Token Storage
-        res[31] = this.totalSupply.selector;
-        res[32] = this.balanceOf.selector;
-        res[33] = this.allowance.selector;
-
-        // Loan Token Logic Storage Additional Variable
-        res[34] = this.getLiquidityMiningAddress.selector;
-        res[35] = this.withdrawRBTCTo.selector;
+        res[29] = this.totalSupply.selector;
+        res[30] = this.balanceOf.selector;
+        res[31] = this.allowance.selector;
 
         return (res, stringToBytes32("LoanTokenLogicLM"));
     }
@@ -88,7 +82,7 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
         address receiver,
         uint256 depositAmount,
         bool useLM
-    ) external nonReentrant returns (uint256 minted) {
+    ) external nonReentrant globallyNonReentrant returns (uint256 minted) {
         if (useLM) return _mintWithLM(receiver, depositAmount);
         else return _mintToken(receiver, depositAmount);
     }
@@ -104,7 +98,7 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external nonReentrant returns (uint256 redeemed) {
+    ) external nonReentrant globallyNonReentrant returns (uint256 redeemed) {
         if (useLM) redeemed = _burnFromLM(burnAmount);
         else redeemed = _burnToken(burnAmount);
         //this needs to be here and not in _burnTokens because of the WRBTC implementation

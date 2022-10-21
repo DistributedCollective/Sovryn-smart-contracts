@@ -26,7 +26,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](36);
+        bytes4[] memory res = new bytes4[](32);
 
         // Loan Token Logic Standard
         res[0] = this.mint.selector;
@@ -54,25 +54,19 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         res[22] = this.getDepositAmountForBorrow.selector;
         res[23] = this.getBorrowAmountForDeposit.selector;
         res[24] = this.checkPriceDivergence.selector;
-        res[25] = this.checkPause.selector;
-        res[26] = this.setLiquidityMiningAddress.selector;
-        res[27] = this.calculateSupplyInterestRate.selector;
+        res[25] = this.calculateSupplyInterestRate.selector;
 
         // Loan Token WRBTC
-        res[28] = this.mintWithBTC.selector;
-        res[29] = this.burnToBTC.selector;
+        res[26] = this.mintWithBTC.selector;
+        res[27] = this.burnToBTC.selector;
 
         // Advanced Token
-        res[30] = this.approve.selector;
+        res[28] = this.approve.selector;
 
         // Advanced Token Storage
-        res[31] = this.totalSupply.selector;
-        res[32] = this.balanceOf.selector;
-        res[33] = this.allowance.selector;
-
-        // Loan Token Logic Storage Additional Variable
-        res[34] = this.getLiquidityMiningAddress.selector;
-        res[35] = this.withdrawRBTCTo.selector;
+        res[29] = this.totalSupply.selector;
+        res[30] = this.balanceOf.selector;
+        res[31] = this.allowance.selector;
 
         return (res, stringToBytes32("LoanTokenLogicWrbtc"));
     }
@@ -81,6 +75,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         external
         payable
         nonReentrant
+        globallyNonReentrant
         returns (uint256 mintAmount)
     {
         if (useLM) return _mintWithLM(receiver, msg.value);
@@ -91,7 +86,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external nonReentrant returns (uint256 loanAmountPaid) {
+    ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
         if (useLM) loanAmountPaid = _burnFromLM(burnAmount);
         else loanAmountPaid = _burnToken(burnAmount);
 
