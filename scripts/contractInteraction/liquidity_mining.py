@@ -127,13 +127,14 @@ def transferLiquidityMiningOwnershipToGovernance():
     sendWithMultisig(conf.contracts['multisig'], lm.address, data, conf.acct)
 
 def upgradeLiquidityMiningLogic():
-    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    print("replacing LiquityMining logic")
+    liquidityMiningLogicAddress = '0x9f763eB07A3e0De6935005ad192FB776C37b64F5'
+    #liquidityMiningLogic = conf.acct.deploy(LiquidityMining)
     liquidityMiningProxy = Contract.from_abi("LiquidityMiningProxy", address = conf.contracts['LiquidityMiningProxy'], abi = UpgradableProxy.abi, owner = conf.acct)
 
-    liquidityMiningLogic = conf.acct.deploy(LiquidityMining)
-    print("new liquidityMiningLogic: ", liquidityMiningLogic.address)
+    print("new liquidityMiningLogic: ", liquidityMiningLogicAddress)
 
-    data = liquidityMiningProxy.setImplementation.encode_input(liquidityMiningLogic.address)
+    data = liquidityMiningProxy.setImplementation.encode_input(liquidityMiningLogicAddress)
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'], liquidityMiningProxy.address, data, conf.acct)

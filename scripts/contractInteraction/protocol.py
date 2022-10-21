@@ -1,8 +1,5 @@
 from brownie import *
-from brownie.network.contract import InterfaceContainer
 import json
-import time
-import copy
 from scripts.utils import *
 import scripts.contractInteraction.config as conf
 
@@ -67,20 +64,23 @@ def replaceLoanClosings():
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
 
     print('replacing loan closings liquidation')
-    loanClosingsLiquidation = conf.acct.deploy(LoanClosingsLiquidation)
-    data = sovryn.replaceContract.encode_input(loanClosingsLiquidation.address)
+    loanClosingsLiquidationAddress = '0x2d7b3c5B4985A5dA5059AF1466c3FF2fbff4c0A8'
+    #loanClosingsLiquidation = conf.acct.deploy(LoanClosingsLiquidation)
+    data = sovryn.replaceContract.encode_input(loanClosingsLiquidationAddress)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
 
     print('replacing loan closings rollover')
-    loanClosingsRollover = conf.acct.deploy(LoanClosingsRollover)
-    data = sovryn.replaceContract.encode_input(loanClosingsRollover.address)
+    loanClosingsRolloverAddress = '0xc424d620bCB1e62D6A3353D6dc6D626b720f1D52'
+    #loanClosingsRollover = conf.acct.deploy(LoanClosingsRollover)
+    data = sovryn.replaceContract.encode_input(loanClosingsRolloverAddress)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
 
     print('replacing loan closings with')
-    loanClosingsWith = conf.acct.deploy(LoanClosingsWith)
-    data = sovryn.replaceContract.encode_input(loanClosingsWith.address)
+    loanClosingsWithAddress = '0x88500b472a245a937D07c53B22a107Ce1901d30f'
+    #loanClosingsWith = conf.acct.deploy(LoanClosingsWith)
+    data = sovryn.replaceContract.encode_input(loanClosingsWithAddress)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
 
@@ -96,10 +96,11 @@ def replaceSwapsExternal():
 
 def replaceLoanOpenings():
     print("replacing loan openings")
-    loanOpenings = conf.acct.deploy(LoanOpenings)
+    loanOpeningsAddress = '0x78145b66Ee07365CDCf9D79B74100950C641Ba42'
+    #loanOpenings = conf.acct.deploy(LoanOpenings)
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    data = sovryn.replaceContract.encode_input(loanOpenings.address)
+    data = sovryn.replaceContract.encode_input(loanOpeningsAddress)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
 
@@ -116,10 +117,11 @@ def replaceLoanSettings():
 
 def replaceSwapsImplSovrynSwap():
     print("replacing swaps")
-    swaps = conf.acct.deploy(SwapsImplSovrynSwap)
+    swapsAddress = '0x6430a4F15eB72D5066E0405Ed4319F1780665408'
+    #swaps = conf.acct.deploy(SwapsImplSovrynSwap)
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    data = sovryn.setSwapsImplContract.encode_input(swaps.address)
+    data = sovryn.setSwapsImplContract.encode_input(swapsAddress)
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
 
@@ -184,13 +186,14 @@ def setMinReferralsToPayout(minReferrals):
 
 
 def replaceProtocolSettings():
-    print("Deploying ProtocolSettings.")
-    settings = conf.acct.deploy(ProtocolSettings)
+    #print("Deploying ProtocolSettings.")
+    settingsAddress = '0x8d15B8Ef9794b68b62DC889F2E5a0F1b0B768268'
+    #settings = conf.acct.deploy(ProtocolSettings)
 
     print("Calling replaceContract.")
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    data = sovryn.replaceContract.encode_input(settings.address)
+    data = sovryn.replaceContract.encode_input(settingsAddress)
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'],
@@ -198,13 +201,14 @@ def replaceProtocolSettings():
 
 
 def replaceLoanSettings():
-    print("Deploying LoanSettings.")
-    settings = conf.acct.deploy(LoanSettings)
+    #print("Deploying LoanSettings.")
+    settingsAddress = '0xab39152B4F3553c28b1b50031D654c83b10BAFc1'
+    #settings = conf.acct.deploy(LoanSettings)
 
     print("Calling replaceContract.")
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    data = sovryn.replaceContract.encode_input(settings.address)
+    data = sovryn.replaceContract.encode_input(settingsAddress)
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'],
@@ -366,10 +370,11 @@ def deployAffiliateWithZeroFeesPercent():
 
 def replaceAffiliates():
     print("replacing Affiliates")
-    affiliates = conf.acct.deploy(Affiliates)
+    affiliatesAddress = '0xb756218F36179e26102f7b485aa43031861f5D49'
+    #affiliates = conf.acct.deploy(Affiliates)
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    data = sovryn.replaceContract.encode_input(affiliates.address)
+    data = sovryn.replaceContract.encode_input(affiliatesAddress)
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'],
@@ -378,10 +383,11 @@ def replaceAffiliates():
 
 def replaceLoanMaintenance():
     print("replacing loan maintenance")
-    loanMaintenance = conf.acct.deploy(LoanMaintenance)
+    loanMaintenanceAddress = '0xf5Cb98bEAe74506Fafe4f5824C144bC7907869b0'
+    #loanMaintenance = conf.acct.deploy(LoanMaintenance)
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    data = sovryn.replaceContract.encode_input(loanMaintenance.address)
+    data = sovryn.replaceContract.encode_input(loanMaintenanceAddress)
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'],
@@ -390,10 +396,11 @@ def replaceLoanMaintenance():
 
 def redeploySwapsExternal():
     print('replacing swaps external')
-    swapsExternal = conf.acct.deploy(SwapsExternal)
+    swapsExternalAddress = '0x4010bc8A340fB7f9C98053cA2031631c9E575195'
+    #swapsExternal = conf.acct.deploy(SwapsExternal)
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
-    data = sovryn.replaceContract.encode_input(swapsExternal.address)
+    data = sovryn.replaceContract.encode_input(swapsExternalAddress)
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'],

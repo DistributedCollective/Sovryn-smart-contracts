@@ -35,8 +35,8 @@ def main():
     
     #executeOnMultisig(1071)
    
-    #confirmWithMS(1064)
-    #checkTx(1077)
+    #confirmWithMS(1139)
+    #checkTx(1139)
     
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
     #confirmMultipleTxsWithMS(960, 963)
@@ -108,6 +108,17 @@ def main():
     # transferVestingRegistryOwnershipToGovernance()
 
     # getLMInfo()
+
+    replaceLoanTokenLogicOnAllContracts()
+    replaceLoanClosings()
+    replaceLoanOpenings()
+    redeploySwapsExternal()
+    replaceProtocolSettings()
+    replaceLoanSettings()
+    replaceLoanMaintenance()
+    replaceAffiliates()
+    upgradeLiquidityMiningLogic()
+    replaceSwapsImplSovrynSwap()
 
     
     

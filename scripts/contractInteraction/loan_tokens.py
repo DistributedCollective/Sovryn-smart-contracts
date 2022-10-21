@@ -1,7 +1,4 @@
 from brownie import *
-from brownie.network.contract import InterfaceContainer
-import json
-import time;
 import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
@@ -525,37 +522,38 @@ def replaceLoanTokenLogicOnAllContracts():
 
 
     # ===================================== LM =====================================
-    print("Deploying LoanTokenlogicLM")
-    logicContractLM = conf.acct.deploy(LoanTokenLogicLM)
-    print("new LoanTokenLogicLM contract deployed at: ", logicContractLM.address)
-
-    print("Registering function signature to the LoanTokenLogicBeaconLM")
+    # print("Deploying LoanTokenlogicLM")
+    # logicContractLM = conf.acct.deploy(LoanTokenLogicLM)
+    loanTokenLogicLMAddress = '0xE13B1eEf35296d3b9e7bfd0Ac06756a752dA3c90'
+    print("new LoanTokenLogicLM contract deployed at: ", loanTokenLogicLMAddress)
+    print("Registering function signature to the LoanTokenLogicBeaconLM", )
     loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
-    data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(logicContractLM.address)
+    data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(loanTokenLogicLMAddress)
     sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
 
-    print("Deploy Loan Token Settings Lower Admin Module")
-    loanTokenSettingsLowerAdmin = conf.acct.deploy(LoanTokenSettingsLowerAdmin)
-    print("LoanTokenSettingsLowerAdmin for BeaconLM module deployed at: ", loanTokenSettingsLowerAdmin.address)
-
-    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconLM")
-    data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    #print("Deploy Loan Token Settings Lower Admin Module")
+    #loanTokenSettingsLowerAdmin = conf.acct.deploy(LoanTokenSettingsLowerAdmin)
+    loanTokenSettingsLowerAdminAddress = '0x8ACc9877438FCdF37b93eb09f86e442B06EC0FFc'
+    print("LoanTokenSettingsLowerAdmin for BeaconLM module deployed at: ", loanTokenSettingsLowerAdminAddress)
+    print("Registering Loan Protocol Settings Module to LoanTokenLogicBeaconLM")
+    data = loanTokenLogicBeaconLM.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdminAddress)
     sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
 
     # ===================================== WRBTC =====================================
 
-    print("Deploying LoanTokenlogicWrbtc")
-    logicContractWrbtc = conf.acct.deploy(LoanTokenLogicWrbtc)
-    print("new LoanTokenLogicWRBTC contract deployed at: ", logicContractWrbtc.address)
+    #print("Deploying LoanTokenlogicWrbtc")
+    #logicContractWrbtc = conf.acct.deploy(LoanTokenLogicWrbtc)
+    loanTokenLogicWrbtcAddress = '0xB6D6Ed584240308b6CF2f654aA6027A35926e129'
+    print("new LoanTokenLogicWRBTC contract deployed at: ", loanTokenLogicWrbtcAddress)
 
     print("Registering function signature to the LoanTokenLogicBeaconWRBTC")
     loanTokenLogicBeaconWrbtc = Contract.from_abi("loanTokenLogicBeaconWrbtc", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
-    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(logicContractWrbtc.address)
+    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(loanTokenLogicWrbtcAddress)
     sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
 
     # Can use the same Loan Protocol Settings with the LoanTokenLogicLM
-    print("Registering Loan Protocol Settings Module to LoanTOkenLogicBeaconWrbtc")
-    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdmin.address)
+    print("Registering Loan Protocol Settings Module to LoanTokenLogicBeaconWrbtc")
+    data = loanTokenLogicBeaconWrbtc.registerLoanTokenModule.encode_input(loanTokenSettingsLowerAdminAddress)
     sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconWrbtc.address, data, conf.acct)
     
 
