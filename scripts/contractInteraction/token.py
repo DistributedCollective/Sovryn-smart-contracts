@@ -9,7 +9,7 @@ import scripts.contractInteraction.config as conf
 def getBalance(contractAddress, acct):
     contract = Contract.from_abi("Token", address=contractAddress, abi=LoanToken.abi, owner=conf.acct)
     balance = contract.balanceOf(acct)
-    print(balance)
+    print(balance/1e18)
     return balance
     
 def buyWRBTC(amount):
@@ -17,6 +17,12 @@ def buyWRBTC(amount):
     tx = contract.deposit({'value':amount})
     tx.info()
     print("New balance: ", contract.balanceOf(conf.acct))
+
+def buyWRBTCWithMS(amount):
+    contract = Contract.from_abi("WRBTC", address=conf.contracts["WRBTC"], abi=WRBTC.abi, owner=conf.acct)
+    data = contract.deposit.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], contract, data, conf.acct, amount)
+
 
 def hasApproval(tokenContractAddr, sender, receiver):
     tokenContract = Contract.from_abi("Token", address=tokenContractAddr, abi=TestToken.abi, owner=sender)
@@ -67,5 +73,11 @@ def sendMYNTFromMultisigToFeeSharingProxy(amount):
 def getBalanceOf(contractAddress, acct):
     contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=conf.acct)
     balance = contract.balanceOf(acct)
+    print(balance)
+    return balance
+
+def getTotalSupply(contractAddress):
+    contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=conf.acct)
+    balance = contract.totalSupply()
     print(balance)
     return balance

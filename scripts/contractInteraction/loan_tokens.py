@@ -956,3 +956,17 @@ def transferLoanTokenOwnershipToGovernance():
     data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
+def readLoanTokenStorage(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStorage.abi, owner=conf.acct)
+    print(loanToken.sovrynContractAddress())
+    print(loanToken.wrbtcTokenAddress())
+    print(loanToken.target_())
+    print(loanToken.admin())
+    #print(loanToken.earlyAccessToken())
+    print(loanToken.pauser())
+    #print(loanToken.liquidityMiningAddress())
+
+def getTotalAssetSupply(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print(loanToken.totalAssetSupply())
+    return loanToken.totalAssetSupply()
