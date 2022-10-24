@@ -1,9 +1,11 @@
-const { BN } = require("@openzeppelin/test-helpers");
+const { BN, singletons } = require("@openzeppelin/test-helpers");
 const constants = require("@openzeppelin/test-helpers/src/constants");
+require("@openzeppelin/test-helpers/configure");
 const { expect } = require("chai");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
+const TestERC777 = artifacts.require("TestTokenERC777");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
@@ -50,6 +52,12 @@ const CONSTANTS = {
 const getSUSD = async () => {
     const susd = await TestToken.new("SUSD", "SUSD", 18, totalSupply);
     return susd;
+};
+
+const getERC777 = async (deployer) => {
+    await singletons.ERC1820Registry(deployer);
+    const testERC777 = await TestERC777.new("Test Token", "TEST", totalSupply, 18, []);
+    return testERC777;
 };
 
 const getRBTC = async () => {
@@ -170,7 +178,7 @@ const getLoanTokenLogic = async (isMockLoanToken = false) => {
 
     return [loanTokenLogicProxy, loanTokenLogicBeacon];
 };
-const getLoanTokenLogicWrbtc = async () => {
+const getLoanTokenLogicWrbtc = async (isMockLoanToken = false) => {
     /** Deploy LoanTokenLogicBeacon */
     const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
 
@@ -180,8 +188,13 @@ const getLoanTokenLogicWrbtc = async () => {
     /** Register Loan Token Modules to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
 
-    /** Deploy LoanTokenLogicLM */
-    const loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+    /** Deploy LoanTokenLogicWRBTC */
+    let loanTokenLogicLM;
+    if (isMockLoanToken) {
+        loanTokenLogicWrbtc = await MockLoanTokenLogic.new();
+    } else {
+        loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+    }
 
     /** Register Loan Token Logic LM to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicWrbtc.address);
@@ -510,6 +523,7 @@ const verify_sov_reward_payment = async (
 module.exports = {
     getSUSD,
     getRBTC,
+    getERC777,
     getWRBTC,
     getBZRX,
     getSOV,

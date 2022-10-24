@@ -1,8 +1,4 @@
 from brownie import *
-from brownie.network.contract import InterfaceContainer
-import json
-import time;
-import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 
@@ -49,9 +45,9 @@ def getPoolId(poolToken):
 
 def getLMInfo():
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
-    print(lm.getPoolLength())
-    print(lm.getPoolInfoList())
-    print(lm.wrapper())
+    print('getPoolLength():\n', lm.getPoolLength())
+    print('getPoolInfoList():\n', lm.getPoolInfoList())
+    print('wrapper():\n', lm.wrapper())
 
 def setLockedSOV(newLockedSOV):
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
@@ -129,3 +125,15 @@ def transferLiquidityMiningOwnershipToGovernance():
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
     data = lm.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
     sendWithMultisig(conf.contracts['multisig'], lm.address, data, conf.acct)
+
+def upgradeLiquidityMiningLogic():
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    liquidityMiningProxy = Contract.from_abi("LiquidityMiningProxy", address = conf.contracts['LiquidityMiningProxy'], abi = UpgradableProxy.abi, owner = conf.acct)
+
+    liquidityMiningLogic = conf.acct.deploy(LiquidityMining)
+    print("new liquidityMiningLogic: ", liquidityMiningLogic.address)
+
+    data = liquidityMiningProxy.setImplementation.encode_input(liquidityMiningLogic.address)
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], liquidityMiningProxy.address, data, conf.acct)

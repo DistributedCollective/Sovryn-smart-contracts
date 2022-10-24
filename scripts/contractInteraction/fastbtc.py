@@ -1,8 +1,5 @@
 from brownie import *
-from brownie.network.contract import InterfaceContainer
 import json
-import time;
-import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 
@@ -63,3 +60,27 @@ def addPauser(address):
     data = fastBTC.addPauser.encode_input(address)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+def fastBTCBiDiPause():
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.pause.encode_input()
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def fastBTCBiDiUnpause():
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.unpause.encode_input()
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def fastBTCBiDiFreeze():
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.freeze.encode_input()
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def fastBTCBiDiUnfreeze():
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.unfreeze.encode_input()
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+

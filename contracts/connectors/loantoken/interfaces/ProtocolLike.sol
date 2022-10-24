@@ -80,4 +80,33 @@ interface ProtocolLike {
         address destToken,
         uint256 sourceTokenAmount
     ) external view returns (uint256);
+
+    function borrowerNonce(address) external view returns (uint256);
+
+    function closeWithSwap(
+        bytes32 loanId,
+        address receiver,
+        uint256 swapAmount, // denominated in collateralToken
+        bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
+        bytes calldata // for future use /*loanDataBytes*/
+    )
+        external
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        );
+
+    function closeWithDeposit(
+        bytes32 loanId,
+        address receiver,
+        uint256 depositAmount // denominated in loanToken
+    )
+        external
+        payable
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        );
 }

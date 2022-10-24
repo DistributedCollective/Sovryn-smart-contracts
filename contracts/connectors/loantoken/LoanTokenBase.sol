@@ -12,6 +12,7 @@ import "../../openzeppelin/Ownable.sol";
 import "../../openzeppelin/Address.sol";
 import "../../interfaces/IWrbtcERC20.sol";
 import "./Pausable.sol";
+import "../../reentrancy/SharedReentrancyGuard.sol";
 
 /**
  * @title Loan Token Base contract.
@@ -35,7 +36,7 @@ import "./Pausable.sol";
  * positions, they automatically receive pTokens. The system is also designed to
  * use the BZRX tokens, which are only used to pay fees on the network currently.
  * */
-contract LoanTokenBase is ReentrancyGuard, Ownable, Pausable {
+contract LoanTokenBase is ReentrancyGuard, SharedReentrancyGuard, Ownable, Pausable {
     uint256 internal constant WEI_PRECISION = 10**18;
     uint256 internal constant WEI_PERCENT_PRECISION = 10**20;
 

@@ -20,6 +20,7 @@ const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const mutexUtils = require("../reentrancy/utils");
 
 const {
     getSUSD,
@@ -50,6 +51,9 @@ contract("LoanTokenAdministration", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         SUSD = await getSUSD();
         RBTC = await getRBTC();
         WRBTC = await getWRBTC();
