@@ -497,7 +497,6 @@ contract("ProtocolCloseDeposit", (accounts) => {
                 borrower,
                 swap_amount,
                 return_token_is_collateral,
-                "0x",
                 {
                     from: borrower,
                 }

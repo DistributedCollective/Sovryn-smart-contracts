@@ -33,7 +33,6 @@ def margin_trading_sending_loan_tokens(accounts, sovryn, loanToken, loan_token_s
         collateral_sent, # no collateral token sent
         collateralToken.address, #collateralTokenAddress
         accounts[0], #trader,
-        b'', #loanDataBytes (only required with ether)
         {'value': value}
     )
     
@@ -122,7 +121,6 @@ def margin_trading_sending_loan_tokens_tiny_amount(accounts, sovryn, loanToken, 
             collateral_sent, # no collateral token sent
             collateralToken.address, #collateralTokenAddress
             accounts[0], #trader,
-            b'', #loanDataBytes (only required with ether)
             {'value': value}
         )
 
@@ -145,7 +143,6 @@ def margin_trading_sov_reward_payment(accounts, loanToken, loan_token_sent, unde
         collateral_sent, # no collateral token sent
         collateralToken.address, #collateralTokenAddress
         trader, #trader,
-        b'', #loanDataBytes (only required with ether)
         {'value': value}
     )
 
@@ -177,7 +174,6 @@ def margin_trading_sending_collateral_tokens(accounts, sovryn, loanToken, underl
         collateralTokenSent, 
         collateralToken.address, #collateralTokenAddress
         accounts[0], #trader, 
-        b'', #loanDataBytes (only required with ether),
         {'value' : value}
     )
 
@@ -200,7 +196,6 @@ def margin_trading_sending_collateral_tokens_sov_reward_payment(trader, loanToke
         collateralTokenSent,
         collateralToken.address,  # collateralTokenAddress
         trader,  # trader,
-        b'',  # loanDataBytes (only required with ether),
         {'from': trader, 'value': value}
     )
 

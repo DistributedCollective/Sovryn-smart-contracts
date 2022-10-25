@@ -393,7 +393,6 @@ contract("Affiliates", (accounts) => {
             trader, // trader
             0, // max slippage
             referrer, // referrer address
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
 
@@ -477,7 +476,6 @@ contract("Affiliates", (accounts) => {
 			trader, // trader
 			0, // max slippage
 			referrer, // referrer address
-			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
 		);
 
@@ -534,7 +532,6 @@ contract("Affiliates", (accounts) => {
             trader, // trader
             0, // max slippage
             referrer, // referrer address
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
 
@@ -766,7 +763,6 @@ contract("Affiliates", (accounts) => {
 			trader, // trader
 			0, // max slippage
 			referrer, // referrer address
-			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
 		);
 
@@ -818,7 +814,6 @@ contract("Affiliates", (accounts) => {
             trader, // trader
             0, // max slippage
             referrer, // referrer address,
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
 
@@ -1045,7 +1040,6 @@ contract("Affiliates", (accounts) => {
 			trader, // trader
 			0, // max slippage
 			referrer, // referrer address
-			"0x", // loanDataBytes (only required with ether)
 			{ from: trader }
 		);
 

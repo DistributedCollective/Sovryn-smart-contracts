@@ -341,7 +341,7 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
             // Try to liquidate an inactive loan
             let value = 0;
             await expectRevert(
-                sovryn.rollover(loan_id, "0x", { from: liquidator, value: value }),
+                sovryn.rollover(loan_id, { from: liquidator, value: value }),
                 "loan is closed"
             );
         });
@@ -369,7 +369,7 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
             // Try to roll over a healthy loan
             let value = 0;
             await expectRevert(
-                sovryn.rollover(loan_id, "0x", { from: liquidator, value: value }),
+                sovryn.rollover(loan_id, { from: liquidator, value: value }),
                 "healthy position"
             );
         });
@@ -399,7 +399,7 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
 
             // Roll over an unhealthy loan
             let value = 0;
-            await sovryn.rollover(loan_id, "0x", { from: liquidator, value: value });
+            await sovryn.rollover(loan_id, { from: liquidator, value: value });
         });
 
         it("should work when setting a delegated manager", async () => {

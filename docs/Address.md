@@ -12,9 +12,7 @@ Collection of functions related to the address type
 - [toPayable(address account)](#topayable)
 - [sendValue(address recipient, uint256 amount)](#sendvalue)
 
----    
-
-> ### isContract
+### isContract
 
 Returns true if `account` is a contract.
      * [IMPORTANT]
@@ -29,7 +27,7 @@ types of addresses:
  - an address where a contract lived, but was destroyed
 ====
 
-```solidity
+```js
 function isContract(address account) internal view
 returns(bool)
 ```
@@ -40,34 +38,13 @@ returns(bool)
 | ------------- |------------- | -----|
 | account | address |  | 
 
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function isContract(address account) internal view returns (bool) {
-        // According to EIP-1052, 0x0 is the value returned for not-yet created accounts
-        // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned
-        // for accounts without code, i.e. `keccak256('')`
-        bytes32 codehash;
-        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            codehash := extcodehash(account)
-        }
-        return (codehash != accountHash && codehash != 0x0);
-    }
-```
-</details>
-
----    
-
-> ### toPayable
+### toPayable
 
 Converts an `address` into `address payable`. Note that this is
 simply a type cast: the actual underlying value is not changed.
      * _Available since v2.4.0._
 
-```solidity
+```js
 function toPayable(address account) internal pure
 returns(address payable)
 ```
@@ -78,19 +55,7 @@ returns(address payable)
 | ------------- |------------- | -----|
 | account | address |  | 
 
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function toPayable(address account) internal pure returns (address payable) {
-        return address(uint160(account));
-    }
-```
-</details>
-
----    
-
-> ### sendValue
+### sendValue
 
 Replacement for Solidity's `transfer`: sends `amount` wei to
 `recipient`, forwarding all available gas and reverting on errors.
@@ -106,7 +71,7 @@ https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html
   #use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].
      * _Available since v2.4.0._
 
-```solidity
+```js
 function sendValue(address recipient, uint256 amount) internal nonpayable
 ```
 
@@ -116,20 +81,6 @@ function sendValue(address recipient, uint256 amount) internal nonpayable
 | ------------- |------------- | -----|
 | recipient | address |  | 
 | amount | uint256 |  | 
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function sendValue(address recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, "Address: insufficient balance");
-
-        // solhint-disable-next-line avoid-call-value
-        (bool success, ) = recipient.call.value(amount)("");
-        require(success, "Address: unable to send value, recipient may have reverted");
-    }
-```
-</details>
 
 ## Contracts
 
@@ -141,7 +92,9 @@ function sendValue(address recipient, uint256 amount) internal {
 * [Affiliates](Affiliates.md)
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
+* [BlockMockUp](BlockMockUp.md)
 * [BProPriceFeed](BProPriceFeed.md)
+* [BProPriceFeedMockup](BProPriceFeedMockup.md)
 * [Checkpoints](Checkpoints.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
@@ -160,21 +113,28 @@ function sendValue(address recipient, uint256 amount) internal {
 * [FeesEvents](FeesEvents.md)
 * [FeeSharingLogic](FeeSharingLogic.md)
 * [FeeSharingProxy](FeeSharingProxy.md)
+* [FeeSharingProxyMockup](FeeSharingProxyMockup.md)
 * [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
 * [FeesHelper](FeesHelper.md)
+* [FlashLoanerTest](FlashLoanerTest.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
 * [FourYearVestingLogic](FourYearVestingLogic.md)
 * [FourYearVestingStorage](FourYearVestingStorage.md)
 * [GenericTokenSender](GenericTokenSender.md)
 * [GovernorAlpha](GovernorAlpha.md)
+* [GovernorAlphaMockup](GovernorAlphaMockup.md)
 * [GovernorVault](GovernorVault.md)
 * [IApproveAndCall](IApproveAndCall.md)
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
 * [IFeeSharingProxy](IFeeSharingProxy.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
@@ -186,9 +146,11 @@ function sendValue(address recipient, uint256 amount) internal {
 * [ILoanTokenLogicModules](ILoanTokenLogicModules.md)
 * [ILoanTokenLogicProxy](ILoanTokenLogicProxy.md)
 * [ILoanTokenModules](ILoanTokenModules.md)
+* [ILoanTokenModulesMock](ILoanTokenModulesMock.md)
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [ImplementationMockup](ImplementationMockup.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -202,6 +164,7 @@ function sendValue(address recipient, uint256 amount) internal {
 * [ISwapsImpl](ISwapsImpl.md)
 * [ITeamVesting](ITeamVesting.md)
 * [ITimelock](ITimelock.md)
+* [ITokenFlashLoanTest](ITokenFlashLoanTest.md)
 * [IV1PoolOracle](IV1PoolOracle.md)
 * [IVesting](IVesting.md)
 * [IVestingFactory](IVestingFactory.md)
@@ -212,13 +175,17 @@ function sendValue(address recipient, uint256 amount) internal {
 * [LiquidationHelper](LiquidationHelper.md)
 * [LiquidityMining](LiquidityMining.md)
 * [LiquidityMiningConfigToken](LiquidityMiningConfigToken.md)
+* [LiquidityMiningMockup](LiquidityMiningMockup.md)
 * [LiquidityMiningProxy](LiquidityMiningProxy.md)
 * [LiquidityMiningStorage](LiquidityMiningStorage.md)
+* [LiquidityPoolV1ConverterMockup](LiquidityPoolV1ConverterMockup.md)
 * [LoanClosingsEvents](LoanClosingsEvents.md)
 * [LoanClosingsLiquidation](LoanClosingsLiquidation.md)
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithMockup](LoanClosingsWithMockup.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -232,17 +199,28 @@ function sendValue(address recipient, uint256 amount) internal {
 * [LoanTokenBase](LoanTokenBase.md)
 * [LoanTokenLogicBeacon](LoanTokenLogicBeacon.md)
 * [LoanTokenLogicLM](LoanTokenLogicLM.md)
+* [LoanTokenLogicLMMockup](LoanTokenLogicLMMockup.md)
+* [LoanTokenLogicLMV1Mockup](LoanTokenLogicLMV1Mockup.md)
+* [LoanTokenLogicLMV2Mockup](LoanTokenLogicLMV2Mockup.md)
 * [LoanTokenLogicProxy](LoanTokenLogicProxy.md)
 * [LoanTokenLogicStandard](LoanTokenLogicStandard.md)
 * [LoanTokenLogicStorage](LoanTokenLogicStorage.md)
+* [LoanTokenLogicTest](LoanTokenLogicTest.md)
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [LockedSOVFailedMockup](LockedSOVFailedMockup.md)
+* [LockedSOVMockup](LockedSOVMockup.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
+* [MockAffiliates](MockAffiliates.md)
+* [MockFourYearVestingLogic](MockFourYearVestingLogic.md)
+* [MockLoanTokenLogic](MockLoanTokenLogic.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -253,18 +231,23 @@ function sendValue(address recipient, uint256 amount) internal {
 * [PreviousLoanToken](PreviousLoanToken.md)
 * [PreviousLoanTokenSettingsLowerAdmin](PreviousLoanTokenSettingsLowerAdmin.md)
 * [PriceFeedRSKOracle](PriceFeedRSKOracle.md)
+* [PriceFeedRSKOracleMockup](PriceFeedRSKOracleMockup.md)
 * [PriceFeeds](PriceFeeds.md)
 * [PriceFeedsLocal](PriceFeedsLocal.md)
 * [PriceFeedsMoC](PriceFeedsMoC.md)
+* [PriceFeedsMoCMockup](PriceFeedsMoCMockup.md)
 * [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md)
 * [ProtocolAffiliatesInterface](ProtocolAffiliatesInterface.md)
 * [ProtocolLike](ProtocolLike.md)
 * [ProtocolSettings](ProtocolSettings.md)
 * [ProtocolSettingsEvents](ProtocolSettingsEvents.md)
 * [ProtocolSettingsLike](ProtocolSettingsLike.md)
+* [ProtocolSettingsMockup](ProtocolSettingsMockup.md)
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyMockup](ProxyMockup.md)
+* [RBTCWrapperProxyMockup](RBTCWrapperProxyMockup.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -272,17 +255,23 @@ function sendValue(address recipient, uint256 amount) internal {
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
 * [Staking](Staking.md)
 * [StakingInterface](StakingInterface.md)
+* [StakingMock](StakingMock.md)
+* [StakingMockup](StakingMockup.md)
+* [StakingMockupMix](StakingMockupMix.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
+* [StakingRewardsMockUp](StakingRewardsMockUp.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
 * [StakingStorage](StakingStorage.md)
 * [State](State.md)
+* [StorageMockup](StorageMockup.md)
 * [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
@@ -290,9 +279,21 @@ function sendValue(address recipient, uint256 amount) internal {
 * [SwapsImplSovrynSwap](SwapsImplSovrynSwap.md)
 * [SwapsUser](SwapsUser.md)
 * [TeamVesting](TeamVesting.md)
+* [TestCoverage](TestCoverage.md)
+* [TestCrossReentrancyERC777](TestCrossReentrancyERC777.md)
+* [TestCrossReentrancyRBTC](TestCrossReentrancyRBTC.md)
+* [TestLibraries](TestLibraries.md)
+* [TestNonReentrantValueSetter](TestNonReentrantValueSetter.md)
+* [TestSovrynSwap](TestSovrynSwap.md)
+* [TestToken](TestToken.md)
+* [TestTokenERC777](TestTokenERC777.md)
+* [TestValueSetter](TestValueSetter.md)
+* [TestValueSetterProxy](TestValueSetterProxy.md)
+* [TestWrbtc](TestWrbtc.md)
 * [Timelock](Timelock.md)
 * [TimelockHarness](TimelockHarness.md)
 * [TimelockInterface](TimelockInterface.md)
+* [TimelockTest](TimelockTest.md)
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
@@ -301,10 +302,12 @@ function sendValue(address recipient, uint256 amount) internal {
 * [VestingCreator](VestingCreator.md)
 * [VestingFactory](VestingFactory.md)
 * [VestingLogic](VestingLogic.md)
+* [VestingLogicMockup](VestingLogicMockup.md)
 * [VestingRegistry](VestingRegistry.md)
 * [VestingRegistry2](VestingRegistry2.md)
 * [VestingRegistry3](VestingRegistry3.md)
 * [VestingRegistryLogic](VestingRegistryLogic.md)
+* [VestingRegistryLogicMockup](VestingRegistryLogicMockup.md)
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)

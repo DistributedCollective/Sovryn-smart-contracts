@@ -26,7 +26,6 @@ def setup_rollover_test(RBTC, SUSD, accounts, chain, loanToken, loan_token_sent,
         0,  # no collateral token sent
         RBTC.address,  # collateralTokenAddress
         borrower,  # trader,
-        b'',  # loanDataBytes (only required with ether)
         {'from': borrower}
     )
     loan_id = tx.events['Trade']['loanId']

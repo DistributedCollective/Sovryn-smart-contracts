@@ -105,18 +105,18 @@ event PayInterestTransfer(address indexed interestToken, address indexed lender,
 - [getLoanParamsList(address owner, uint256 start, uint256 count)](#getloanparamslist)
 - [getTotalPrincipal(address lender, address loanToken)](#gettotalprincipal)
 - [minInitialMargin(bytes32 loanParamsId)](#mininitialmargin)
-- [borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes)](#borrowortradefrompool)
+- [borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues)](#borrowortradefrompool)
 - [setDelegatedManager(bytes32 loanId, address delegated, bool toggle)](#setdelegatedmanager)
 - [getEstimatedMarginExposure(address loanToken, address collateralToken, uint256 loanTokenSent, uint256 collateralTokenSent, uint256 interestRate, uint256 newPrincipal)](#getestimatedmarginexposure)
 - [getRequiredCollateral(address loanToken, address collateralToken, uint256 newPrincipal, uint256 marginAmount, bool isTorqueLoan)](#getrequiredcollateral)
 - [getBorrowAmount(address loanToken, address collateralToken, uint256 collateralTokenAmount, uint256 marginAmount, bool isTorqueLoan)](#getborrowamount)
 - [liquidate(bytes32 loanId, address receiver, uint256 closeAmount)](#liquidate)
-- [rollover(bytes32 loanId, bytes loanDataBytes)](#rollover)
+- [rollover(bytes32 loanId)](#rollover)
 - [closeWithDeposit(bytes32 loanId, address receiver, uint256 depositAmount)](#closewithdeposit)
-- [closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral, bytes loanDataBytes)](#closewithswap)
+- [closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral)](#closewithswap)
 - [depositCollateral(bytes32 loanId, uint256 depositAmount)](#depositcollateral)
 - [withdrawCollateral(bytes32 loanId, address receiver, uint256 withdrawAmount)](#withdrawcollateral)
-- [extendLoanByInterest(bytes32 loanId, address payer, uint256 depositAmount, bool useCollateral, bytes loanDataBytes)](#extendloanbyinterest)
+- [extendLoanByInterest(bytes32 loanId, address payer, uint256 depositAmount, bool useCollateral)](#extendloanbyinterest)
 - [reduceLoanByInterest(bytes32 loanId, address receiver, uint256 withdrawAmount)](#reduceloanbyinterest)
 - [withdrawAccruedInterest(address loanToken)](#withdrawaccruedinterest)
 - [getLenderInterestData(address lender, address loanToken)](#getlenderinterestdata)
@@ -1185,7 +1185,7 @@ function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
 > ### borrowOrTradeFromPool
 
 ```solidity
-function borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes) external payable
+function borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues) external payable
 returns(uint256)
 ```
 
@@ -1199,7 +1199,6 @@ returns(uint256)
 | initialMargin | uint256 |  | 
 | sentAddresses | address[4] |  | 
 | sentValues | uint256[5] |  | 
-| loanDataBytes | bytes |  | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
@@ -1215,13 +1214,12 @@ function borrowOrTradeFromPool(
         // borrower: must match loan if loanId provided
         // receiver: receiver of funds (address(0) assumes borrower address)
         // manager: delegated manager of loan unless address(0)
-        uint256[5] calldata sentValues,
+        uint256[5] calldata sentValues
         // newRate: new loan interest rate
         // newPrincipal: new loan size (borrowAmount + any borrowed interest)
         // torqueInterest: new amount of interest to escrow for Torque loan (determines initial loan length)
         // loanTokenReceived: total loanToken deposit (amount not sent to borrower in the case of Torque loans)
         // collateralTokenReceived: total collateralToken deposit
-        bytes calldata loanDataBytes
     ) external payable returns (uint256);
 ```
 </details>
@@ -1396,7 +1394,7 @@ function liquidate(
 > ### rollover
 
 ```solidity
-function rollover(bytes32 loanId, bytes loanDataBytes) external nonpayable
+function rollover(bytes32 loanId) external nonpayable
 ```
 
 **Arguments**
@@ -1404,13 +1402,12 @@ function rollover(bytes32 loanId, bytes loanDataBytes) external nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | loanId | bytes32 |  | 
-| loanDataBytes | bytes |  | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function rollover(bytes32 loanId, bytes calldata loanDataBytes) external;
+function rollover(bytes32 loanId) external;
 ```
 </details>
 
@@ -1455,7 +1452,7 @@ function closeWithDeposit(
 > ### closeWithSwap
 
 ```solidity
-function closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral, bytes loanDataBytes) external nonpayable
+function closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral) external nonpayable
 returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 ```
 
@@ -1466,8 +1463,7 @@ returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 | loanId | bytes32 |  | 
 | receiver | address |  | 
 | swapAmount | uint256 |  | 
-| returnTokenIsCollateral | bool |  | 
-| loanDataBytes | bytes |  | 
+| returnTokenIsCollateral | bool |  |
 
 <details>
 	<summary><strong>Source Code</strong></summary>
@@ -1477,8 +1473,7 @@ function closeWithSwap(
         bytes32 loanId,
         address receiver,
         uint256 swapAmount, // denominated in collateralToken
-        bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
-        bytes calldata loanDataBytes
+        bool returnTokenIsCollateral // true: withdraws collateralToken, false: withdraws loanToken
     )
         external
         returns (
@@ -1549,7 +1544,7 @@ function withdrawCollateral(
 > ### extendLoanByInterest
 
 ```solidity
-function extendLoanByInterest(bytes32 loanId, address payer, uint256 depositAmount, bool useCollateral, bytes loanDataBytes) external payable
+function extendLoanByInterest(bytes32 loanId, address payer, uint256 depositAmount, bool useCollateral) external payable
 returns(secondsExtended uint256)
 ```
 
@@ -1560,8 +1555,7 @@ returns(secondsExtended uint256)
 | loanId | bytes32 |  | 
 | payer | address |  | 
 | depositAmount | uint256 |  | 
-| useCollateral | bool |  | 
-| loanDataBytes | bytes |  | 
+| useCollateral | bool |  |
 
 <details>
 	<summary><strong>Source Code</strong></summary>
@@ -1571,8 +1565,7 @@ function extendLoanByInterest(
         bytes32 loanId,
         address payer,
         uint256 depositAmount,
-        bool useCollateral,
-        bytes calldata loanDataBytes
+        bool useCollateral
     ) external payable returns (uint256 secondsExtended);
 ```
 </details>

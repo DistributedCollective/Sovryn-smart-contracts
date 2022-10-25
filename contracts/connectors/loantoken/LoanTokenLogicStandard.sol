@@ -196,8 +196,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         uint256 collateralTokenSent, /// If 0, loanId must be provided; any rBTC sent must equal this value.
         address collateralTokenAddress, /// If address(0), this means rBTC and rBTC must be sent with the call or loanId must be provided.
         address borrower,
-        address receiver,
-        bytes memory /// loanDataBytes: arbitrary order data (for future use).
+        address receiver
     )
         public
         payable
@@ -278,8 +277,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
                 ),
                 collateralTokenAddress,
                 sentAddresses,
-                sentAmounts,
-                "" /// loanDataBytes
+                sentAmounts
             );
     }
 
@@ -316,7 +314,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
      * @param collateralTokenAddress The token address of collateral.
      * @param trader The account that performs this trade.
      * @param minEntryPrice Value of loan token in collateral.
-     * @param loanDataBytes Additional loan data (not in use for token swaps).
      *
      * @return New principal and new collateral added to trade.
      * */
@@ -327,8 +324,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         uint256 collateralTokenSent,
         address collateralTokenAddress,
         address trader,
-        uint256 minEntryPrice, // value of loan token in collateral
-        bytes memory loanDataBytes /// Arbitrary order data.
+        uint256 minEntryPrice // value of loan token in collateral
     )
         public
         payable
@@ -399,8 +395,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
                 leverageAmount, //initial margin
                 collateralTokenAddress,
                 sentAddresses,
-                sentAmounts,
-                loanDataBytes
+                sentAmounts
             );
     }
 
@@ -416,7 +411,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
      * @param trader The account that performs this trade.
      * @param minEntryPrice Value of loan token in collateral.
      * @param affiliateReferrer The address of the referrer from affiliates program.
-     * @param loanDataBytes Additional loan data (not in use for token swaps).
      *
      * @return New principal and new collateral added to trade.
      */
@@ -428,8 +422,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         address collateralTokenAddress,
         address trader,
         uint256 minEntryPrice, /// Value of loan token in collateral
-        address affiliateReferrer, /// The user was brought by the affiliate (referrer).
-        bytes calldata loanDataBytes /// Arbitrary order data.
+        address affiliateReferrer /// The user was brought by the affiliate (referrer).
     )
         external
         payable
@@ -451,8 +444,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
                 collateralTokenSent,
                 collateralTokenAddress,
                 trader,
-                minEntryPrice,
-                loanDataBytes
+                minEntryPrice
             );
     }
 
@@ -1176,7 +1168,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
      * @param sentAddresses The addresses to send tokens: lender, borrower,
      *   receiver and manager.
      * @param sentAmounts The amounts to send to each address.
-     * @param loanDataBytes Additional loan data (not in use for token swaps).
      *
      * @return The new principal and the new collateral. Principal is the
      *   complete borrowed amount (in loan tokens). Collateral is the complete
@@ -1188,8 +1179,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         uint256 initialMargin,
         address collateralTokenAddress,
         MarginTradeStructHelpers.SentAddresses memory sentAddresses,
-        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
-        bytes memory loanDataBytes
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts
     ) internal returns (uint256, uint256) {
         _checkPause();
         require(
@@ -1238,8 +1228,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
             withdrawAmountExist,
             initialMargin,
             sentAddresses,
-            sentAmounts,
-            loanDataBytes
+            sentAmounts
         ); /// newPrincipal, newCollateral
         require(sentAmounts.newPrincipal != 0, "25");
 

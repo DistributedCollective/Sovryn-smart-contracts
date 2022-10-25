@@ -254,8 +254,7 @@ contract("LoanTokenLending", (accounts) => {
                     accounts[0],
                     wei("1", "ether"),
                     0,
-                    wei("10", "ether"),
-                    "0x"
+                    wei("10", "ether")
                 ),
                 "destTokenAmountReceived too low"
             );
@@ -275,30 +274,7 @@ contract("LoanTokenLending", (accounts) => {
                 accounts[0],
                 wei("1", "ether"),
                 0,
-                wei("0.01", "ether"),
-                "0x"
-            );
-        });
-
-        it("Should revert _swapsCall through swapExternal w/ non-empty loanDataBytes", async () => {
-            const balanceOf0 = await loanToken.assetBalanceOf(lender);
-            await SUSD.approve(
-                sovryn.address,
-                balanceOf0.add(new BN(wei("10", "ether"))).toString()
-            );
-
-            await expectRevert(
-                sovryn.swapExternal(
-                    SUSD.address,
-                    WRBTC.address,
-                    accounts[0],
-                    accounts[0],
-                    wei("1", "ether"),
-                    0,
-                    wei("0.01", "ether"),
-                    "0x1"
-                ),
-                "invalid state"
+                wei("0.01", "ether")
             );
         });
     });

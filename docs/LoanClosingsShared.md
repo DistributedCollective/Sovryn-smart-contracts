@@ -40,14 +40,14 @@ uint256 public constant TINY_AMOUNT;
 - [_settleInterestToPrincipal(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 loanCloseAmount, address receiver)](#_settleinteresttoprincipal)
 - [_returnPrincipalWithDeposit(address loanToken, address receiver, uint256 principalNeeded)](#_returnprincipalwithdeposit)
 - [worthTheTransfer(address asset, uint256 amount)](#worththetransfer)
-- [_doCollateralSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, uint256 principalNeeded, bool returnTokenIsCollateral, bytes loanDataBytes)](#_docollateralswap)
+- [_doCollateralSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, uint256 principalNeeded, bool returnTokenIsCollateral)](#_docollateralswap)
 - [_withdrawAsset(address assetToken, address receiver, uint256 assetAmount)](#_withdrawasset)
 - [_closeLoan(struct LoanStruct.Loan loanLocal, uint256 loanCloseAmount)](#_closeloan)
 - [_settleInterest(struct LoanParamsStruct.LoanParams loanParamsLocal, struct LoanStruct.Loan loanLocal, uint256 closePrincipal)](#_settleinterest)
 - [_checkAuthorized(bytes32 loanId)](#_checkauthorized)
-- [_closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral, bytes loanDataBytes)](#_closewithswap)
+- [_closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral)](#_closewithswap)
 - [_finalizeClose(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 loanCloseAmount, uint256 collateralCloseAmount, uint256 collateralToLoanSwapRate, enum LoanClosingsShared.CloseTypes closeType)](#_finalizeclose)
-- [_coverPrincipalWithSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, uint256 principalNeeded, bool returnTokenIsCollateral, bytes loanDataBytes)](#_coverprincipalwithswap)
+- [_coverPrincipalWithSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, uint256 principalNeeded, bool returnTokenIsCollateral)](#_coverprincipalwithswap)
 - [_emitClosingEvents(struct LoanParamsStruct.LoanParams loanParamsLocal, struct LoanStruct.Loan loanLocal, uint256 loanCloseAmount, uint256 collateralCloseAmount, uint256 collateralToLoanRate, uint256 collateralToLoanSwapRate, uint256 currentMargin, enum LoanClosingsShared.CloseTypes closeType)](#_emitclosingevents)
 - [_getAmountInRbtc(address asset, uint256 amount)](#_getamountinrbtc)
 - [_checkLoan(bytes32 loanId)](#_checkloan)
@@ -222,7 +222,7 @@ function worthTheTransfer(address asset, uint256 amount) internal returns (bool)
 > ### _doCollateralSwap
 
 ```solidity
-function _doCollateralSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, uint256 principalNeeded, bool returnTokenIsCollateral, bytes loanDataBytes) internal nonpayable
+function _doCollateralSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, uint256 principalNeeded, bool returnTokenIsCollateral) internal nonpayable
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256, collateralToLoanSwapRate uint256)
 ```
 
@@ -234,8 +234,7 @@ returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256, collater
 | loanParamsLocal | struct LoanParamsStruct.LoanParams | the loan parameters | 
 | swapAmount | uint256 | the amount to be swapped | 
 | principalNeeded | uint256 | the required destination token amount | 
-| returnTokenIsCollateral | bool | if true -> required destination token amount will be passed on, else not          note: quite dirty. should be refactored. | 
-| loanDataBytes | bytes | additional loan data (not in use for token swaps) | 
+| returnTokenIsCollateral | bool | if true -> required destination token amount will be passed on, else not          note: quite dirty. should be refactored. |
 
 <details>
 	<summary><strong>Source Code</strong></summary>
@@ -246,8 +245,7 @@ function _doCollateralSwap(
         LoanParams memory loanParamsLocal,
         uint256 swapAmount,
         uint256 principalNeeded,
-        bool returnTokenIsCollateral,
-        bytes memory loanDataBytes
+        bool returnTokenIsCollateral
     )
         internal
         returns (
@@ -266,8 +264,7 @@ function _doCollateralSwap(
             returnTokenIsCollateral
                 ? principalNeeded // requiredDestTokenAmount
                 : 0,
-            false, // bypassFee
-            loanDataBytes
+            false // bypassFee
         );
         require(destTokenAmountReceived >= principalNeeded, "insufficient dest amount");
         require(sourceTokenAmountUsed <= loanLocal.collateral, "excessive source amount");
@@ -483,7 +480,7 @@ the remainder.
      *
 
 ```solidity
-function _closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral, bytes loanDataBytes) internal nonpayable
+function _closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral) internal nonpayable
 returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 ```
 
@@ -494,8 +491,7 @@ returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
 | loanId | bytes32 | The id of the loan. | 
 | receiver | address | The receiver of the remainder (unused collatral + profit). | 
 | swapAmount | uint256 | Defines how much of the position should be closed and   is denominated in collateral tokens.     If swapAmount >= collateral, the complete position will be closed.     Else if returnTokenIsCollateral, (swapAmount/collateral) * principal will be swapped (partial closure).     Else coveredPrincipal | 
-| returnTokenIsCollateral | bool | Defines if the remainder should be paid   out in collateral tokens or underlying loan tokens.      * | 
-| loanDataBytes | bytes |  | 
+| returnTokenIsCollateral | bool | Defines if the remainder should be paid   out in collateral tokens or underlying loan tokens.      * |
 
 **Returns**
 
@@ -509,8 +505,7 @@ function _closeWithSwap(
         bytes32 loanId,
         address receiver,
         uint256 swapAmount,
-        bool returnTokenIsCollateral,
-        bytes memory loanDataBytes
+        bool returnTokenIsCollateral
     )
         internal
         returns (
@@ -569,8 +564,7 @@ function _closeWithSwap(
             loanParamsLocal,
             swapAmount, /// The amount of source tokens to swap (only matters if !returnTokenIsCollateral or loanCloseAmountLessInterest = 0)
             loanCloseAmountLessInterest, /// This is the amount of destination tokens we want to receive (only matters if returnTokenIsCollateral)
-            returnTokenIsCollateral,
-            loanDataBytes
+            returnTokenIsCollateral
         );
 
         if (loanCloseAmountLessInterest == 0) {
@@ -719,7 +713,7 @@ Swaps a share of a loan's collateral or the complete collateral
      *
 
 ```solidity
-function _coverPrincipalWithSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, uint256 principalNeeded, bool returnTokenIsCollateral, bytes loanDataBytes) internal nonpayable
+function _coverPrincipalWithSwap(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, uint256 principalNeeded, bool returnTokenIsCollateral) internal nonpayable
 returns(coveredPrincipal uint256, usedCollateral uint256, withdrawAmount uint256, collateralToLoanSwapRate uint256)
 ```
 
@@ -732,7 +726,7 @@ returns(coveredPrincipal uint256, usedCollateral uint256, withdrawAmount uint256
 | swapAmount | uint256 | in case principalNeeded == 0 or !returnTokenIsCollateral, this is the amount which is going to be swapped.  Else, swapAmount doesn't matter, because the amount of source tokens needed for the swap is estimated by the connector. | 
 | principalNeeded | uint256 | the required amount of destination tokens in order to cover the principle (only used if returnTokenIsCollateral) | 
 | returnTokenIsCollateral | bool | tells if the user wants to withdraw his remaining collateral + profit in collateral tokens | 
-| loanDataBytes | bytes |  | 
+
 
 **Returns**
 
@@ -747,8 +741,7 @@ function _coverPrincipalWithSwap(
         LoanParams memory loanParamsLocal,
         uint256 swapAmount,
         uint256 principalNeeded,
-        bool returnTokenIsCollateral,
-        bytes memory loanDataBytes
+        bool returnTokenIsCollateral
     )
         internal
         returns (
@@ -769,8 +762,7 @@ function _coverPrincipalWithSwap(
             loanParamsLocal,
             swapAmount,
             principalNeeded,
-            returnTokenIsCollateral,
-            loanDataBytes
+            returnTokenIsCollateral
         );
 
         if (returnTokenIsCollateral) {

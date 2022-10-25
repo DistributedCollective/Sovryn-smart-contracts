@@ -94,8 +94,7 @@ contract("LoanTokenTrading", (accounts) => {
                     "0", // no collateral token sent
                     WRBTC.address, // collateralTokenAddress
                     owner, // trader,
-                    0, // slippage
-                    "0x" // loanDataBytes (only required with ether)
+                    0 // slippage
                 ),
                 "principal too small"
             );

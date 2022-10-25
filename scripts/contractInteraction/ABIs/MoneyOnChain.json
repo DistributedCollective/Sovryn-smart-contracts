@@ -1,956 +1,956 @@
 [
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "bytes32",
-          "name": "bucket",
-          "type": "bytes32"
-        }
-      ],
-      "name": "BucketLiquidation",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "bucket",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BucketLiquidation",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "mocAddress",
-          "type": "address"
-        }
-      ],
-      "name": "ContractLiquidated",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "mocAddress",
+                "type": "address"
+            }
+        ],
+        "name": "ContractLiquidated",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "Paused",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "Paused",
+        "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "Unpaused",
-      "type": "event"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "Unpaused",
+        "type": "event"
     },
     {
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "fallback"
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "fallback"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "BUCKET_C0",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "BUCKET_C0",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "BUCKET_X2",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "BUCKET_X2",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "DEPRECATED_mocBurnout",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "DEPRECATED_mocBurnout",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "contract IGovernor",
-          "name": "newIGovernor",
-          "type": "address"
-        }
-      ],
-      "name": "changeIGovernor",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "contract IGovernor",
+                "name": "newIGovernor",
+                "type": "address"
+            }
+        ],
+        "name": "changeIGovernor",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "connector",
-      "outputs": [
-        {
-          "internalType": "contract MoCConnector",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "connector",
+        "outputs": [
+            {
+                "internalType": "contract MoCConnector",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "getDayPrecision",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "getDayPrecision",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "getMocPrecision",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "getMocPrecision",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "getReservePrecision",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "getReservePrecision",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "governor",
-      "outputs": [
-        {
-          "internalType": "contract IGovernor",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "governor",
+        "outputs": [
+            {
+                "internalType": "contract IGovernor",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "makeStoppable",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "makeStoppable",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "makeUnstoppable",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "makeUnstoppable",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "pause",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "pause",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "paused",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "paused",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "newStopper",
-          "type": "address"
-        }
-      ],
-      "name": "setStopper",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newStopper",
+                "type": "address"
+            }
+        ],
+        "name": "setStopper",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "stoppable",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "stoppable",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "stopper",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "stopper",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "unpause",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "unpause",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_stopper",
-          "type": "address"
-        },
-        {
-          "internalType": "contract IGovernor",
-          "name": "_governor",
-          "type": "address"
-        }
-      ],
-      "name": "initialize",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_stopper",
+                "type": "address"
+            },
+            {
+                "internalType": "contract IGovernor",
+                "name": "_governor",
+                "type": "address"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "contract IGovernor",
-          "name": "_governor",
-          "type": "address"
-        }
-      ],
-      "name": "initialize",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "contract IGovernor",
+                "name": "_governor",
+                "type": "address"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_stopper",
-          "type": "address"
-        },
-        {
-          "internalType": "contract IGovernor",
-          "name": "_governor",
-          "type": "address"
-        },
-        {
-          "internalType": "bool",
-          "name": "_stoppable",
-          "type": "bool"
-        }
-      ],
-      "name": "initialize",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_stopper",
+                "type": "address"
+            },
+            {
+                "internalType": "contract IGovernor",
+                "name": "_governor",
+                "type": "address"
+            },
+            {
+                "internalType": "bool",
+                "name": "_stoppable",
+                "type": "bool"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "connectorAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "governorAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "stopperAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "bool",
-          "name": "startStoppable",
-          "type": "bool"
-        }
-      ],
-      "name": "initialize",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "connectorAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "governorAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "stopperAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "bool",
+                "name": "startStoppable",
+                "type": "bool"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "bucket",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "bproxBalanceOf",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "bucket",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "bproxBalanceOf",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "index",
-          "type": "uint256"
-        }
-      ],
-      "name": "getRedeemRequestAt",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "index",
+                "type": "uint256"
+            }
+        ],
+        "name": "getRedeemRequestAt",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "redeemQueueSize",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "redeemQueueSize",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "redeemer",
-          "type": "address"
-        }
-      ],
-      "name": "docAmountToRedeem",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "redeemer",
+                "type": "address"
+            }
+        ],
+        "name": "docAmountToRedeem",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "docAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "redeemDocRequest",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "docAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "redeemDocRequest",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bool",
-          "name": "isAddition",
-          "type": "bool"
-        },
-        {
-          "internalType": "uint256",
-          "name": "delta",
-          "type": "uint256"
-        }
-      ],
-      "name": "alterRedeemRequestAmount",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bool",
+                "name": "isAddition",
+                "type": "bool"
+            },
+            {
+                "internalType": "uint256",
+                "name": "delta",
+                "type": "uint256"
+            }
+        ],
+        "name": "alterRedeemRequestAmount",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "btcToMint",
-          "type": "uint256"
-        }
-      ],
-      "name": "mintBPro",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "btcToMint",
+                "type": "uint256"
+            }
+        ],
+        "name": "mintBPro",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "btcToMint",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address payable",
-          "name": "vendorAccount",
-          "type": "address"
-        }
-      ],
-      "name": "mintBProVendors",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "btcToMint",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address payable",
+                "name": "vendorAccount",
+                "type": "address"
+            }
+        ],
+        "name": "mintBProVendors",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "bproAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "redeemBPro",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "bproAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "redeemBPro",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "bproAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address payable",
-          "name": "vendorAccount",
-          "type": "address"
-        }
-      ],
-      "name": "redeemBProVendors",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "bproAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address payable",
+                "name": "vendorAccount",
+                "type": "address"
+            }
+        ],
+        "name": "redeemBProVendors",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "btcToMint",
-          "type": "uint256"
-        }
-      ],
-      "name": "mintDoc",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "btcToMint",
+                "type": "uint256"
+            }
+        ],
+        "name": "mintDoc",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "btcToMint",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address payable",
-          "name": "vendorAccount",
-          "type": "address"
-        }
-      ],
-      "name": "mintDocVendors",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "btcToMint",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address payable",
+                "name": "vendorAccount",
+                "type": "address"
+            }
+        ],
+        "name": "mintDocVendors",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "bucket",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint256",
-          "name": "bproxAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "redeemBProx",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "bucket",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "bproxAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "redeemBProx",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "bucket",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint256",
-          "name": "bproxAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address payable",
-          "name": "vendorAccount",
-          "type": "address"
-        }
-      ],
-      "name": "redeemBProxVendors",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "bucket",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "bproxAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address payable",
+                "name": "vendorAccount",
+                "type": "address"
+            }
+        ],
+        "name": "redeemBProxVendors",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "bucket",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint256",
-          "name": "btcToMint",
-          "type": "uint256"
-        }
-      ],
-      "name": "mintBProx",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "bucket",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "btcToMint",
+                "type": "uint256"
+            }
+        ],
+        "name": "mintBProx",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "bucket",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint256",
-          "name": "btcToMint",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address payable",
-          "name": "vendorAccount",
-          "type": "address"
-        }
-      ],
-      "name": "mintBProxVendors",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "bucket",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "btcToMint",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address payable",
+                "name": "vendorAccount",
+                "type": "address"
+            }
+        ],
+        "name": "mintBProxVendors",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "docAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "redeemFreeDoc",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "docAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "redeemFreeDoc",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "docAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address payable",
-          "name": "vendorAccount",
-          "type": "address"
-        }
-      ],
-      "name": "redeemFreeDocVendors",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "docAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address payable",
+                "name": "vendorAccount",
+                "type": "address"
+            }
+        ],
+        "name": "redeemFreeDocVendors",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "redeemAllDoc",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "redeemAllDoc",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "dailyInratePayment",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "dailyInratePayment",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "payBitProHoldersInterestPayment",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "payBitProHoldersInterestPayment",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "calculateBitProHoldersInterest",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "calculateBitProHoldersInterest",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "getBitProInterestAddress",
-      "outputs": [
-        {
-          "internalType": "address payable",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "getBitProInterestAddress",
+        "outputs": [
+            {
+                "internalType": "address payable",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "getBitProRate",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "getBitProRate",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "getBitProInterestBlockSpan",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "getBitProInterestBlockSpan",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "isDailyEnabled",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "isDailyEnabled",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "isBitProInterestEnabled",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "isBitProInterestEnabled",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "isSettlementEnabled",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [],
+        "name": "isSettlementEnabled",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "bucket",
-          "type": "bytes32"
-        }
-      ],
-      "name": "isBucketLiquidationReached",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "bucket",
+                "type": "bytes32"
+            }
+        ],
+        "name": "isBucketLiquidationReached",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "bucket",
-          "type": "bytes32"
-        }
-      ],
-      "name": "evalBucketLiquidation",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "bucket",
+                "type": "bytes32"
+            }
+        ],
+        "name": "evalBucketLiquidation",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [],
-      "name": "evalLiquidation",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [],
+        "name": "evalLiquidation",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "steps",
-          "type": "uint256"
-        }
-      ],
-      "name": "runSettlement",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "steps",
+                "type": "uint256"
+            }
+        ],
+        "name": "runSettlement",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address payable",
-          "name": "receiver",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "btcAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "sendToAddress",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address payable",
+                "name": "receiver",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "btcAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "sendToAddress",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
     }
-  ]
+]

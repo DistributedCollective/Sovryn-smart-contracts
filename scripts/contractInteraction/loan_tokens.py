@@ -94,7 +94,6 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
         collateralTokenAddress,  # collateralTokenAddress
         conf.acct,  # trader,
         0, # slippage
-        b'',  # loanDataBytes (only required with ether)
         {'value': sendValue}#, 'allow_revert': True
     )
     tx.info()
@@ -127,7 +126,6 @@ def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, 
         collateralTokenAddress,  # collateralTokenAddress
         conf.acct,  # trader,
         0, # slippage
-        b'',  # loanDataBytes (only required with ether)
         {'value': sendValue, "allow_revert": True}
     )
     tx.info()
@@ -236,7 +234,6 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
         testToken.address,                   # address collateralTokenAddress
         conf.acct,                    # address borrower
         conf.acct,                    # address receiver
-        b'' ,                            # bytes memory loanDataBytes
         {'value': 0, 'allow_revert': True}#collateralTokenSent
     )
     

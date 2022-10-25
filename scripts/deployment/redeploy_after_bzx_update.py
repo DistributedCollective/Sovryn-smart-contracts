@@ -275,7 +275,6 @@ def testTradeOpeningAndClosing(protocolAddress, loanTokenAddress, underlyingToke
         0,  # no collateral token sent
         collateralTokenAddress,  # collateralTokenAddress
         acct,  # trader,
-        b'',  # loanDataBytes (only required with ether)
         {'value': sendValue}
     )
     tx.info()
@@ -303,7 +302,6 @@ def testTradeOpeningAndClosingWithCollateral(protocolAddress, loanTokenAddress, 
         collateralTokenSent,  # no collateral token sent
         collateralTokenAddress,  # collateralTokenAddress
         acct,  # trader,
-        b'',  # loanDataBytes (only required with ether)
         {'value': sendValue}
     )
     tx.info()
@@ -353,7 +351,6 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
         testToken.address,                   # address collateralTokenAddress
         acct,                    # address borrower
         acct,                    # address receiver
-        b'' ,                            # bytes memory loanDataBytes
         {'value': collateralTokenSent}
     )
     

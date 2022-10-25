@@ -182,7 +182,6 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
             owner, // trader
             //referrer, // affiliates referrer
             0,
-            "0x", // loanDataBytes (only required with ether)
             { from: owner }
         );
         expect(

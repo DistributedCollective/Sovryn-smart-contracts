@@ -236,8 +236,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                 collateralTokenSent, // uint256 collateralTokenSent
                 RBTC.address, // address collateralTokenAddress
                 owner, // address borrower
-                account1, // address receiver
-                web3.utils.fromAscii("") // bytes memory loanDataBytes
+                account1 // address receiver
             );
             // assert the trade was processed as expected
             await expectEvent.inTransaction(tx, LoanOpenings, "Borrow", {
@@ -328,8 +327,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                 collateralTokenSent, // uint256 collateralTokenSent
                 RBTC.address, // address collateralTokenAddress
                 owner, // address borrower
-                account1, // address receiver
-                web3.utils.fromAscii("") // bytes memory loanDataBytes
+                account1 // address receiver
             );
             // assert the trade was processed as expected
             await expectEvent.inTransaction(tx, LoanOpenings, "Borrow", {
@@ -377,8 +375,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                     0, // uint256 collateralTokenSent
                     RBTC.address, // address collateralTokenAddress
                     owner, // address borrower
-                    account1, // address receiver
-                    "0x0" // bytes memory loanDataBytes
+                    account1 // address receiver
                 ),
                 "7"
             );
@@ -395,8 +392,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                     10, // uint256 collateralTokenSent
                     RBTC.address, // address collateralTokenAddress
                     owner, // address borrower
-                    account1, // address receiver
-                    "0x0" // bytes memory loanDataBytes
+                    account1 // address receiver
                 ),
                 "6"
             );
@@ -414,7 +410,6 @@ contract("LoanTokenBorrowing", (accounts) => {
                     RBTC.address, // address collateralTokenAddress
                     owner, // address borrower
                     account1, // address receiver
-                    "0x0", // bytes memory loanDataBytes
                     { value: 100 }
                 ),
                 "7"
@@ -432,8 +427,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                     10, // uint256 collateralTokenSent
                     CONSTANTS.ZERO_ADDRESS, // address collateralTokenAddress
                     owner, // address borrower
-                    account1, // address receiver
-                    "0x0" // bytes memory loanDataBytes
+                    account1 // address receiver
                 ),
                 "7"
             );
@@ -446,8 +440,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                     10, // uint256 collateralTokenSent
                     SUSD.address, // address collateralTokenAddress
                     owner, // address borrower
-                    account1, // address receiver
-                    "0x0" // bytes memory loanDataBytes
+                    account1 // address receiver
                 ),
                 "10"
             );
@@ -479,8 +472,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                     collateralTokenSent, // uint256 collateralTokenSent
                     RBTC.address, // address collateralTokenAddress
                     owner, // address borrower
-                    account1, // address receiver
-                    "0x0" // bytes memory loanDataBytes
+                    account1 // address receiver
                 ),
                 "invalid interest"
             );
@@ -514,8 +506,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                     collateralTokenSent, // uint256 collateralTokenSent
                     RBTC.address, // address collateralTokenAddress
                     owner, // address borrower
-                    account1, // address receiver
-                    "0x0" // bytes memory loanDataBytes
+                    account1 // address receiver
                 ),
                 "collateral insufficient"
             );
@@ -552,8 +543,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                 collateralTokenSent, // uint256 collateralTokenSent
                 RBTC.address, // address collateralTokenAddress
                 borrower, // address borrower
-                account1, // address receiver
-                "0x0" // bytes memory loanDataBytes
+                account1 // address receiver
             );
 
             const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Borrow");
@@ -572,7 +562,6 @@ contract("LoanTokenBorrowing", (accounts) => {
                     RBTC.address, // address collateralTokenAddress
                     borrower, // address borrower
                     accounts[2], // address receiver
-                    "0x0", // bytes memory loanDataBytes
                     { from: accounts[2] }
                 ),
                 "7"
@@ -610,8 +599,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                 collateralTokenSent, // uint256 collateralTokenSent
                 RBTC.address, // address collateralTokenAddress
                 borrower, // address borrower
-                account1, // address receiver
-                web3.utils.fromAscii("") // bytes memory loanDataBytes
+                account1 // address receiver
             );
 
             const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Borrow");
@@ -630,7 +618,6 @@ contract("LoanTokenBorrowing", (accounts) => {
                     RBTC.address, // address collateralTokenAddress
                     accounts[2], // address receiver
                     0,
-                    "0x0", // bytes memory loanDataBytes
                     { from: accounts[2] }
                 ),
                 "borrower mismatch"
@@ -656,8 +643,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                 0,
                 RBTC.address, // address collateralTokenAddress
                 accounts[0], // address receiver
-                0,
-                "0x" // bytes memory loanDataBytes
+                0
             );
 
             const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
@@ -674,8 +660,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                     1, // uint256 collateralTokenSent
                     RBTC.address, // address collateralTokenAddress
                     accounts[0], // address borrower
-                    accounts[0], // address receiver
-                    "0x" // bytes memory loanDataBytes
+                    accounts[0] // address receiver
                 ),
                 "loanParams mismatch"
             );
@@ -737,8 +722,7 @@ contract("LoanTokenBorrowing", (accounts) => {
                 collateralTokenSent, // uint256 collateralTokenSent
                 RBTC.address, // address collateralTokenAddress
                 owner, // address borrower
-                account1, // address receiver
-                web3.utils.fromAscii("") // bytes memory loanDataBytes
+                account1 // address receiver
             );
             // assert the trade was processed as expected
             await expectEvent.inTransaction(tx, LoanOpenings, "Borrow", {

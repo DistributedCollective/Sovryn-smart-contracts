@@ -156,7 +156,7 @@ contract("LoanTokenAdministration", (accounts) => {
         it("Test toggle function pause", async () => {
             await lend_to_pool(loanToken, SUSD, owner);
             const functionSignature =
-                "marginTrade(bytes32,uint256,uint256,uint256,address,address,uint256,bytes)";
+                "marginTrade(bytes32,uint256,uint256,uint256,address,address,uint256)";
 
             // pause the given function and make sure the function can't be called anymore
             let localLoanToken = loanToken;

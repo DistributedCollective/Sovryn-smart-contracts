@@ -119,7 +119,6 @@ def test_margin_trading_sending_collateral_tokens():
         collateral_token_sent,
         RBTC.address, #collateralTokenAddress
         acct, #trader,
-        b'', #loanDataBytes (only required with ether)
         {'value': collateral_token_sent}
     )
     
@@ -145,7 +144,6 @@ def test_margin_trading_sending_loan_tokens():
         0, # no collateral token sent
         RBTC.address, # collateralTokenAddress
         acct, # trader,
-        b'' # loanDataBytes (only required with ether)
     )
 
     sovryn_after_rbtc_balance = RBTC.balanceOf(sovryn.address)
@@ -252,7 +250,6 @@ def test_supply_interest_fee():
         0, # no collateral token sent
         RBTC.address, #collateralTokenAddress
         acct, #trader,
-        b'' #loanDataBytes (only required with ether)
     )
 
     tas = loan_token.totalAssetSupply()
@@ -310,7 +307,6 @@ def test_liquidate():
         0,  # no collateral token sent
         RBTC.address,  # collateralTokenAddress
         borrower,  # trader,
-        b'',  # loanDataBytes (only required with ether)
         {'from': borrower}
     )
 

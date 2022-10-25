@@ -57,18 +57,17 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
      * @param loanId The ID of the loan to roll over.
      * // param calldata The payload for the call. These loan DataBytes are additional loan data (not in use for token swaps).
      * */
-    function rollover(
-        bytes32 loanId,
-        bytes calldata // for future use /*loanDataBytes*/
-    ) external nonReentrant globallyNonReentrant iTokenSupplyUnchanged(loanId) whenNotPaused {
+    function rollover(bytes32 loanId)
+        external
+        nonReentrant
+        globallyNonReentrant
+        iTokenSupplyUnchanged(loanId)
+        whenNotPaused
+    {
         // restrict to EOAs to prevent griefing attacks, during interest rate recalculation
         require(msg.sender == tx.origin, "EOAs call");
 
-        return
-            _rollover(
-                loanId,
-                "" // loanDataBytes
-            );
+        return _rollover(loanId);
     }
 
     /**
@@ -83,10 +82,9 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
      * it's 28 days, in case of borrowing it's a month.
      *
      * @param loanId The ID of the loan to roll over.
-     * @param loanDataBytes The payload for the call. These loan DataBytes are
      *   additional loan data (not in use for token swaps).
      * */
-    function _rollover(bytes32 loanId, bytes memory loanDataBytes) internal {
+    function _rollover(bytes32 loanId) internal {
         (Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
         require(block.timestamp > loanLocal.endTimestamp.sub(3600), "healthy position");
         require(loanPoolToUnderlying[loanLocal.lender] != address(0), "invalid lender");
@@ -169,8 +167,7 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                 loanParamsLocal,
                 0, //min swap 0 -> swap connector estimates the amount of source tokens to use
                 interestAmountRequired, //required destination tokens
-                true, // returnTokenIsCollateral
-                loanDataBytes
+                true // returnTokenIsCollateral
             );
 
         //received more tokens than needed to pay the interest
@@ -185,8 +182,7 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                 (destTokenAmountReceived, , ) = _swapBackExcess(
                     loanLocal,
                     loanParamsLocal,
-                    destTokenAmountReceived - interestAmountRequired, //amount to be swapped
-                    loanDataBytes
+                    destTokenAmountReceived - interestAmountRequired //amount to be swapped
                 );
                 sourceTokenAmountUsed = sourceTokenAmountUsed.sub(destTokenAmountReceived);
             }
@@ -222,13 +218,7 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                 // 1. pay back the remaining loan to the lender
                 // 2. pay the remaining collateral to msg.sender
                 // 3. close the position & emit close event
-                _closeWithSwap(
-                    loanLocal.id,
-                    msg.sender,
-                    loanLocal.collateral,
-                    false,
-                    "" // loanDataBytes
-                );
+                _closeWithSwap(loanLocal.id, msg.sender, loanLocal.collateral, false);
             } else {
                 // pay out reward to caller
                 loanLocal.collateral = loanLocal.collateral.sub(rolloverReward);
@@ -244,8 +234,7 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                     loanLocal.id,
                     loanLocal.borrower,
                     loanLocal.collateral, // swap all collaterals
-                    false,
-                    "" /// loanDataBytes
+                    false
                 );
             } else {
                 (uint256 currentMargin, ) =
@@ -283,7 +272,6 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
      * @param loanLocal The loan object.
      * @param loanParamsLocal The loan parameters.
      * @param swapAmount The amount to be swapped.
-     * @param loanDataBytes Additional loan data (not in use for token swaps).
      *
      * @return destTokenAmountReceived The amount of destiny tokens received.
      * @return sourceTokenAmountUsed The amount of source tokens used.
@@ -292,8 +280,7 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
     function _swapBackExcess(
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
-        uint256 swapAmount,
-        bytes memory loanDataBytes
+        uint256 swapAmount
     )
         internal
         returns (
@@ -310,8 +297,7 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
             swapAmount, // minSourceTokenAmount
             swapAmount, // maxSourceTokenAmount
             0, // requiredDestTokenAmount
-            false, // bypassFee
-            loanDataBytes
+            false // bypassFee
         );
         require(sourceTokenAmountUsed <= swapAmount, "excessive source amount");
     }

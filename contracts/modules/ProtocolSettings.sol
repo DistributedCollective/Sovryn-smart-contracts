@@ -466,8 +466,7 @@ contract ProtocolSettings is
                         protocolAddress, // protocol as the sender
                         tempAmount, // source token amount
                         0, // reqDestToken
-                        0, // minReturn
-                        "" // loan data bytes
+                        0 // minReturn
                     );
 
                     /// Will revert if disagreement found.

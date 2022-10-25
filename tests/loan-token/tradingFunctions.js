@@ -47,7 +47,6 @@ const margin_trading_sending_loan_tokens = async (
         collateralToken.address, // collateralTokenAddress
         accounts[0], // trader,
         0, // slippage
-        "0x", // loanDataBytes (only required with ether)
         { value: value }
     );
 
@@ -202,8 +201,7 @@ const margin_trading_sov_reward_payment = async (
         collateral_sent.toString(), // no collateral token sent
         collateralToken.address, // collateralTokenAddress
         trader, // trader,
-        0, // slippage
-        "0x" // loanDataBytes (only required with ether)
+        0 // slippage
     );
 
     await increaseTime(10 * 24 * 60 * 60);
@@ -259,8 +257,7 @@ const margin_trading_sov_reward_payment_with_special_rebates = async (
         collateral_sent.toString(), // no collateral token sent
         collateralToken.address, // collateralTokenAddress
         trader, // trader,
-        0, // slippage
-        "0x" // loanDataBytes (only required with ether)
+        0 // slippage
     );
 
     await increaseTime(10 * 24 * 60 * 60);
@@ -314,7 +311,6 @@ const margin_trading_sending_collateral_tokens = async (
         collateralToken.address,
         accounts[0],
         0,
-        "0x",
         { value: value }
     );
 
@@ -367,7 +363,6 @@ const margin_trading_sending_collateral_tokens_sov_reward_payment = async (
         collateralToken.address,
         trader,
         0,
-        "0x",
         {
             from: trader,
             value: value,
@@ -417,7 +412,6 @@ const margin_trading_sending_collateral_tokens_sov_reward_payment_with_special_r
         collateralToken.address,
         trader,
         0,
-        "0x",
         {
             from: trader,
             value: value,
@@ -478,7 +472,7 @@ const close_complete_margin_trade = async (
 
     // needs to be called by the trader
     expectRevert(
-        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "0x"),
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral),
         "unauthorized"
     );
 
@@ -525,7 +519,7 @@ const close_complete_margin_trade_wrbtc = async (
 
     // needs to be called by the trader
     expectRevert(
-        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "0x"),
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral),
         "unauthorized"
     );
 
@@ -574,7 +568,7 @@ const close_complete_margin_trade_sov_reward_payment = async (
 
     // needs to be called by the trader
     expectRevert(
-        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "0x"),
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral),
         "unauthorized"
     );
 
@@ -590,7 +584,6 @@ const close_complete_margin_trade_sov_reward_payment = async (
         trader,
         swap_amount,
         return_token_is_collateral,
-        "0x",
         { from: trader }
     );
     await verify_sov_reward_payment(
@@ -639,7 +632,7 @@ const close_complete_margin_trade_sov_reward_payment_with_special_rebates = asyn
 
     // needs to be called by the trader
     expectRevert(
-        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "0x"),
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral),
         "unauthorized"
     );
 
@@ -655,7 +648,6 @@ const close_complete_margin_trade_sov_reward_payment_with_special_rebates = asyn
         trader,
         swap_amount,
         return_token_is_collateral,
-        "0x",
         { from: trader }
     );
     await verify_sov_reward_payment(
@@ -709,7 +701,7 @@ const close_partial_margin_trade = async (
 
     // needs to be called by the trader
     expectRevert(
-        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "0x"),
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral),
         "unauthorized"
     );
 
@@ -756,7 +748,7 @@ const close_partial_margin_trade_wrbtc = async (
 
     // needs to be called by the trader
     expectRevert(
-        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral, "0x"),
+        sovryn.closeWithSwap(loan_id, trader, loan_token_sent, return_token_is_collateral),
         "unauthorized"
     );
 
@@ -815,7 +807,6 @@ const close_partial_margin_trade_sov_reward_payment = async (
         trader,
         swap_amount,
         return_token_is_collateral,
-        "0x",
         { from: trader }
     );
     await verify_sov_reward_payment(
@@ -874,7 +865,6 @@ const close_partial_margin_trade_sov_reward_payment_with_special_rebates = async
         trader,
         swap_amount,
         return_token_is_collateral,
-        "0x",
         { from: trader }
     );
     await verify_sov_reward_payment(
@@ -909,7 +899,6 @@ const internal_test_close_margin_trade = async (
         trader,
         swap_amount,
         return_token_is_collateral,
-        "0x",
         { from: trader }
     );
     const closed_loan = await sovryn.getLoan(loan_id);

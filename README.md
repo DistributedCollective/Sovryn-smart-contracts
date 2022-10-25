@@ -365,8 +365,7 @@ uint256 leverageAmount,
 uint256 loanTokenSent,
 uint256 collateralTokenSent,
 address collateralTokenAddress,
-address trader,
-bytes memory loanDataBytes
+address trader
 ```
 
 `loanId` is 0 in case a new loan is opened for this position (the case most of the time). If an existing loan is used, this ID needs to be passed.
@@ -379,8 +378,6 @@ bytes memory loanDataBytes
 
 `trader` is the user's wallet address.
 
-`loanDataBytes` is empty in case of ERC20 tokens.
-
 ##### 3.2 Close a position
 
 There are 2 functions for ending a loan on the protocol contract: `closeWithSwap` and `closeWithDeposit`. Margin trade positions are always closed with a swap.
@@ -391,8 +388,7 @@ There are 2 functions for ending a loan on the protocol contract: `closeWithSwap
 bytes32 loanId,
 address receiver,
 uint256 swapAmount,
-bool returnTokenIsCollateral,
-bytes memory loanDataBytes
+bool returnTokenIsCollateral
 ```
 
 `loanId` is the ID of the loan, which is created on loan opening. It can be obtained either by parsing the Trade event or by reading the open loans from the contract by calling `getActiveLoans` or `getUserLoans`.
@@ -402,8 +398,6 @@ bytes memory loanDataBytes
 `swapAmount` defines how much of the position should be closed and is denominated in collateral tokens (e.g. rBTC on a iSUSD contract). If `swapAmount >= collateral`, the complete position will be closed. Else if `returnTokenIsCollateral == True` `(swapAmount/collateral) * principal` will be swapped (partial closure). Else the closure amount will be the principal's covered amount
 
 `returnTokenIsCollateral` pass `true` if you want to withdraw remaining collateral + profit in collateral tokens (e.g. rBTC on a iSUSD contract), `false` if you want to withdraw it in loan tokens (e.g. sUSD on a iSUSD contract).
-
-`loanDataBytes` is not used at this point. Pass empty bytes.
 
 ### 4. Borrowing
 
@@ -420,8 +414,7 @@ uint256 initialLoanDuration,
 uint256 collateralTokenSent,
 address collateralTokenAddress,
 address borrower,
-address receiver,
-bytes memory loanDataBytes
+address receiver
 ```
 
 `loanId` is the ID of the loan, 0 for a new loan
@@ -481,13 +474,10 @@ When the maximum loan duration has been exceeded, the position will need to be r
 `rollover` expects following parameter:
 
 ```
-bytes32 loanId,
-bytes calldata loanDataBytes
+bytes32 loanId
 ```
 
 `loanId` is the ID of the loan.
-
-`loanDataBytes` is a placeholder for future use. Send an empty bytes array.
 
 ### 6. Liquidation Handling
 

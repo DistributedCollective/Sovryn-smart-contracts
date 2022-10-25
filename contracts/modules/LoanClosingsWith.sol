@@ -93,8 +93,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         bytes32 loanId,
         address receiver,
         uint256 swapAmount, // denominated in collateralToken
-        bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
-        bytes memory // for future use /*loanDataBytes*/
+        bool returnTokenIsCollateral // true: withdraws collateralToken, false: withdraws loanToken
     )
         public
         nonReentrant
@@ -108,14 +107,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         )
     {
         _checkAuthorized(loanId);
-        return
-            _closeWithSwap(
-                loanId,
-                receiver,
-                swapAmount,
-                returnTokenIsCollateral,
-                "" /// loanDataBytes
-            );
+        return _closeWithSwap(loanId, receiver, swapAmount, returnTokenIsCollateral);
     }
 
     /**

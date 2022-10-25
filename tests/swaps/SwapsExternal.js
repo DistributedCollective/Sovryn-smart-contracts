@@ -209,8 +209,7 @@ contract("SwapsExternal", (accounts) => {
                     accounts[0],
                     0,
                     0,
-                    0,
-                    "0x"
+                    0
                 ),
                 "sourceTokenAmount == 0"
             );
@@ -225,8 +224,7 @@ contract("SwapsExternal", (accounts) => {
                     accounts[0],
                     hunEth,
                     0,
-                    0,
-                    "0x"
+                    0
                 ),
                 "SafeERC20: low-level call failed"
             );
@@ -241,8 +239,7 @@ contract("SwapsExternal", (accounts) => {
                     accounts[0],
                     100,
                     0,
-                    0,
-                    "0x"
+                    0
                 ),
                 "call to non-contract"
             );
@@ -263,7 +260,6 @@ contract("SwapsExternal", (accounts) => {
                     wei("1", "ether"),
                     0,
                     0,
-                    "0x",
                     {
                         value: wei("1", "ether"),
                     }
@@ -286,8 +282,7 @@ contract("SwapsExternal", (accounts) => {
                     accounts[0],
                     100,
                     0,
-                    0,
-                    "0x"
+                    0
                 ),
                 "swap failed"
             );
@@ -308,7 +303,6 @@ contract("SwapsExternal", (accounts) => {
                     wei("1", "ether"),
                     0,
                     0,
-                    "0x",
                     {
                         value: wei("1", "ether"),
                     }
@@ -332,7 +326,6 @@ contract("SwapsExternal", (accounts) => {
                     wei("1", "ether"),
                     0,
                     0,
-                    "0x",
                     {
                         value: 100,
                     }
@@ -355,8 +348,7 @@ contract("SwapsExternal", (accounts) => {
                     accounts[0],
                     wei("1", "ether"),
                     0,
-                    wei("10", "ether"),
-                    "0x"
+                    wei("10", "ether")
                 ),
                 "destTokenAmountReceived too low"
             );
@@ -376,8 +368,7 @@ contract("SwapsExternal", (accounts) => {
                 accounts[0],
                 wei("1", "ether"),
                 0,
-                wei("0.01", "ether"),
-                "0x"
+                wei("0.01", "ether")
             );
             const fields = await sovryn.swapExternal.call(
                 SUSD.address,
@@ -386,8 +377,7 @@ contract("SwapsExternal", (accounts) => {
                 accounts[0],
                 wei("1", "ether"),
                 0,
-                wei("0.01", "ether"),
-                "0x"
+                wei("0.01", "ether")
             );
             expectEvent(tx, "ExternalSwap", {
                 user: lender,
@@ -431,8 +421,7 @@ contract("SwapsExternal", (accounts) => {
                 accounts[0],
                 wei("1", "ether"),
                 0,
-                wei("0.01", "ether"),
-                "0x"
+                wei("0.01", "ether")
             );
 
             const fields = await sovryn.swapExternal.call(
@@ -442,8 +431,7 @@ contract("SwapsExternal", (accounts) => {
                 accounts[0],
                 wei("1", "ether"),
                 0,
-                wei("0.01", "ether"),
-                "0x"
+                wei("0.01", "ether")
             );
 
             let destTokenAmount = await sovryn.getSwapExpectedReturn(
@@ -509,7 +497,6 @@ contract("SwapsExternal", (accounts) => {
                 rbtcValueBeingSent, // sourceTokenAmount
                 0, // requiredDestTokenAmount
                 0, // minReturn (slippage)
-                "0x",
                 { value: rbtcValueBeingSent, from: swapper }
             );
 
@@ -557,7 +544,6 @@ contract("SwapsExternal", (accounts) => {
                     rbtcValueBeingSent, // sourceTokenAmount
                     0, // requiredDestTokenAmount
                     0, // minReturn (slippage)
-                    "0x",
                     { value: 2e14 }
                 ),
                 "sourceTokenAmount mismatch"

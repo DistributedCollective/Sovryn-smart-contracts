@@ -368,7 +368,6 @@ const open_margin_trade_position = async (
         collateralToken, // collateralTokenAddress
         trader, // trader,
         0, // slippage
-        [], // loanDataBytes (only required with ether)
         { from: trader }
     );
     const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
@@ -390,7 +389,6 @@ const open_margin_trade_position_iBTC = async (
         SUSD.address, // collateralTokenAddress
         trader, // trader,
         0, // slippage
-        [], // loanDataBytes (only required with ether)
         { from: trader, value: loan_token_sent }
     );
 
@@ -429,7 +427,6 @@ const borrow_indefinite_loan = async (
         RBTC.address, // address collateralTokenAddress
         borrower, // address borrower
         receiver, // address receiver
-        "0x", // bytes memory loanDataBytes
         { from: borrower }
     );
     const decode = decodeLogs(tx.receipt.rawLogs, LoanOpenings, "Borrow");

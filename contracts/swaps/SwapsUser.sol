@@ -26,7 +26,6 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
      * @param maxSourceTokenAmount The maximum amount of source tokens to swap.
      * @param requiredDestTokenAmount The required amount of destination tokens.
      * @param bypassFee To bypass or not the fee.
-     * @param loanDataBytes The payload for the call. These loan DataBytes are
      *   additional loan data (not in use for token swaps).
      *
      * @return destTokenAmountReceived
@@ -41,8 +40,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
         uint256 minSourceTokenAmount,
         uint256 maxSourceTokenAmount,
         uint256 requiredDestTokenAmount,
-        bool bypassFee,
-        bytes memory loanDataBytes
+        bool bypassFee
     )
         internal
         returns (
@@ -62,7 +60,6 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
             [minSourceTokenAmount, maxSourceTokenAmount, requiredDestTokenAmount],
             loanId,
             bypassFee,
-            loanDataBytes,
             false // swap external flag, set to false so that it will use the tradingFeePercent
         );
 
@@ -97,7 +94,6 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
      * @param vals The array of values.
      * @param loanId The Id of the associated loan.
      * @param miscBool True/false to bypassFee.
-     * @param loanDataBytes Additional loan data (not in use yet).
      *
      * @return destTokenAmountReceived The amount of destiny tokens received.
      * @return sourceTokenAmountUsed The amount of source tokens used.
@@ -107,7 +103,6 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
         uint256[3] memory vals,
         bytes32 loanId,
         bool miscBool, /// bypassFee
-        bytes memory loanDataBytes,
         bool isSwapExternal
     ) internal returns (uint256, uint256) {
         /// addrs[0]: sourceToken
@@ -166,8 +161,6 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
                 }
             }
         }
-
-        require(loanDataBytes.length == 0, "invalid state");
 
         (destTokenAmountReceived, sourceTokenAmountUsed) = _swapsCall_internal(addrs, vals);
 

@@ -183,7 +183,6 @@ const prepare_liquidation = async (
         collateralToken.address, // collateralTokenAddress
         borrower, // trader,
         0,
-        "0x", // loanDataBytes (only required with ether)
         { from: borrower, value: value }
     );
     const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");

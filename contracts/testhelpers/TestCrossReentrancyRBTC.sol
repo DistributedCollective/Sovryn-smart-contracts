@@ -84,8 +84,7 @@ contract TestCrossReentrancyRBTC {
             collateralTokenSent,
             SUSD,
             _borrower,
-            _receiver,
-            ""
+            _receiver
         );
 
         uint256 _borrowerNonce = sovrynProtocol.borrowerNonce(_borrower);
@@ -103,8 +102,7 @@ contract TestCrossReentrancyRBTC {
             loan_id,
             msg.sender,
             collateralTokenSent.mul(200).div(100), // make it 20% higher from initial collateral sent to make sure whole position is closed
-            true,
-            ""
+            true
         );
 
         /** Rest of code Should not be executed as in there will be reverted in step #3 because of invariant check.

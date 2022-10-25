@@ -6,7 +6,7 @@ View Source: [contracts/connectors/loantoken/interfaces/ProtocolLike.sol](../con
 
 ## Functions
 
-- [borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes)](#borrowortradefrompool)
+- [borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues)](#borrowortradefrompool)
 - [getTotalPrincipal(address lender, address loanToken)](#gettotalprincipal)
 - [withdrawAccruedInterest(address loanToken)](#withdrawaccruedinterest)
 - [getLenderInterestData(address lender, address loanToken)](#getlenderinterestdata)
@@ -23,7 +23,7 @@ View Source: [contracts/connectors/loantoken/interfaces/ProtocolLike.sol](../con
 > ### borrowOrTradeFromPool
 
 ```solidity
-function borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes) external payable
+function borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues) external payable
 returns(newPrincipal uint256, newCollateral uint256)
 ```
 
@@ -36,8 +36,7 @@ returns(newPrincipal uint256, newCollateral uint256)
 | isTorqueLoan | bool |  | 
 | initialMargin | uint256 |  | 
 | sentAddresses | address[4] |  | 
-| sentValues | uint256[5] |  | 
-| loanDataBytes | bytes |  | 
+| sentValues | uint256[5] |  |
 
 <details>
 	<summary><strong>Source Code</strong></summary>
@@ -53,13 +52,12 @@ function borrowOrTradeFromPool(
         // borrower: must match loan if loanId provided
         // receiver: receiver of funds (address(0) assumes borrower address)
         // manager: delegated manager of loan unless address(0)
-        uint256[5] calldata sentValues,
+        uint256[5] calldata sentValues
         // newRate: new loan interest rate
         // newPrincipal: new loan size (borrowAmount + any borrowed interest)
         // torqueInterest: new amount of interest to escrow for Torque loan (determines initial loan length)
         // loanTokenReceived: total loanToken deposit (amount not sent to borrower in the case of Torque loans)
         // collateralTokenReceived: total collateralToken deposit
-        bytes calldata loanDataBytes
     ) external payable returns (uint256 newPrincipal, uint256 newCollateral);
 ```
 </details>

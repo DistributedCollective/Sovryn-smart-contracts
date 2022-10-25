@@ -533,7 +533,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             );
             const loanMaintenance = await LoanMaintenance.at(sovryn.address);
             await expectRevert(
-                loanMaintenance.extendLoanDuration(loan_id, loan_token_sent, false, "0x", {
+                loanMaintenance.extendLoanDuration(loan_id, loan_token_sent, false, {
                     from: trader,
                 }),
                 "indefinite-term only"
@@ -567,7 +567,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const initial_borrower_balance = await SUSD.balanceOf(borrower);
 
             const loanMaintenance = await LoanMaintenance.at(sovryn.address);
-            await loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, "0x", {
+            await loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, {
                 from: borrower,
             });
 
@@ -618,7 +618,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             // 5 days after loan endtime is overpassed
             await increaseTime(15 * 86400);
             await expectRevert(
-                loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, "0x", {
+                loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, {
                     from: borrower,
                 }),
                 "loan too short"
@@ -627,7 +627,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             // 20 days after loan endtime is overpassed
             await increaseTime(15 * 86400);
             await expectRevert(
-                loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, "0x", {
+                loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, {
                     from: borrower,
                 }),
                 "deposit cannot cover back interest"
@@ -645,7 +645,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             );
             const loanMaintenance = await LoanMaintenance.at(sovryn.address);
             await expectRevert(
-                loanMaintenance.extendLoanDuration(loan_id, 0, false, "0x", { from: borrower }),
+                loanMaintenance.extendLoanDuration(loan_id, 0, false, { from: borrower }),
                 "depositAmount is 0"
             );
         });
@@ -666,13 +666,13 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const owed_per_day = initial_loan_interest_data["interestOwedPerDay"];
             const deposit_amount = owed_per_day.mul(days_to_extend);
 
-            await sovryn.closeWithSwap(loan_id, borrower, collateral, false, "0x", {
+            await sovryn.closeWithSwap(loan_id, borrower, collateral, false, {
                 from: borrower,
             });
 
             const loanMaintenance = await LoanMaintenance.at(sovryn.address);
             await expectRevert(
-                loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, "0x", {
+                loanMaintenance.extendLoanDuration(loan_id, deposit_amount, false, {
                     from: borrower,
                 }),
                 "loan is closed"
@@ -696,7 +696,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
             const loanMaintenance = await LoanMaintenance.at(sovryn.address);
             await expectRevert(
-                loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, "0x", {
+                loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, {
                     from: receiver,
                 }),
                 "unauthorized"
@@ -742,7 +742,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 loan_id,
                 deposit_amount,
                 true,
-                "0x",
                 { from: borrower }
             );
             const decode = decodeLogs(receipt.rawLogs, SwapsEvents, "LoanSwap");
@@ -810,7 +809,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 loan_id,
                 deposit_amount,
                 true,
-                "0x",
                 { from: borrower }
             );
             const borrower_initial_balance = borrower_initial_balance_before_extend.sub(
@@ -868,7 +866,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 loan_id,
                 deposit_amount,
                 true,
-                "0x",
                 { from: borrower }
             );
             const borrower_initial_balance = borrower_initial_balance_before_extend.sub(
@@ -925,7 +922,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 loan_id,
                 deposit_amount,
                 true,
-                "0x",
                 { from: borrower }
             );
             const borrower_initial_balance = borrower_initial_balance_before_extend.sub(
@@ -976,7 +972,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 loan_id,
                 deposit_amount,
                 true,
-                "0x",
                 { from: borrower }
             );
             const borrower_initial_balance = borrower_initial_balance_before_extend.sub(
@@ -1032,7 +1027,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 loan_id,
                 deposit_amount,
                 true,
-                "0x",
                 { from: borrower }
             );
 
@@ -1102,7 +1096,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 loan_id,
                 deposit_amount,
                 true,
-                "0x",
                 { from: borrower }
             );
             const borrower_initial_balance = borrower_initial_balance_before_extend.sub(
@@ -1140,7 +1133,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
             const loanMaintenance = await LoanMaintenance.at(sovryn.address);
             await expectRevert(
-                loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, "0x", {
+                loanMaintenance.extendLoanDuration(loan_id, deposit_amount, true, {
                     from: borrower,
                     value: deposit_amount,
                 }),
@@ -1377,7 +1370,6 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 loan_id,
                 deposit_amount,
                 true,
-                "0x",
                 { from: borrower }
             );
 
@@ -1556,7 +1548,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const receiver = accounts[3];
 
             const initial_loan_interest_data = await sovryn.getLoanInterestData(loan_id);
-            await sovryn.closeWithSwap(loan_id, borrower, collateral, false, "0x", {
+            await sovryn.closeWithSwap(loan_id, borrower, collateral, false, {
                 from: borrower,
             });
 

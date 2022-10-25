@@ -91,8 +91,7 @@ contract TestCrossReentrancyERC777 {
             collateralTokenSent,
             WRBTC,
             _borrower,
-            _receiver,
-            ""
+            _receiver
         );
 
         uint256 _borrowerNonce = sovrynProtocol.borrowerNonce(_borrower);

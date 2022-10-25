@@ -171,14 +171,18 @@ contract ISovrynBrownie is
         // borrower: must match loan if loanId provided
         // receiver: receiver of funds (address(0) assumes borrower address)
         // manager: delegated manager of loan unless address(0)
-        MarginTradeStructHelpers.SentAmounts calldata sentValues,
-        // newRate: new loan interest rate
-        // newPrincipal: new loan size (borrowAmount + any borrowed interest)
-        // torqueInterest: new amount of interest to escrow for Torque loan (determines initial loan length)
-        // loanTokenReceived: total loanToken deposit (amount not sent to borrower in the case of Torque loans)
-        // collateralTokenReceived: total collateralToken deposit
-        bytes calldata loanDataBytes
-    ) external payable returns (uint256);
+        MarginTradeStructHelpers.SentAmounts calldata sentValues
+    )
+        external
+        payable
+        returns (
+            // newRate: new loan interest rate
+            // newPrincipal: new loan size (borrowAmount + any borrowed interest)
+            // torqueInterest: new amount of interest to escrow for Torque loan (determines initial loan length)
+            // loanTokenReceived: total loanToken deposit (amount not sent to borrower in the case of Torque loans)
+            // collateralTokenReceived: total collateralToken deposit
+            uint256
+        );
 
     function setDelegatedManager(
         bytes32 loanId,
@@ -226,7 +230,7 @@ contract ISovrynBrownie is
             address seizedToken
         );
 
-    function rollover(bytes32 loanId, bytes calldata loanDataBytes) external;
+    function rollover(bytes32 loanId) external;
 
     function closeWithDeposit(
         bytes32 loanId,
@@ -245,8 +249,7 @@ contract ISovrynBrownie is
         bytes32 loanId,
         address receiver,
         uint256 swapAmount, // denominated in collateralToken
-        bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
-        bytes calldata loanDataBytes
+        bool returnTokenIsCollateral // true: withdraws collateralToken, false: withdraws loanToken
     )
         external
         returns (
@@ -272,8 +275,7 @@ contract ISovrynBrownie is
         bytes32 loanId,
         address payer,
         uint256 depositAmount,
-        bool useCollateral,
-        bytes calldata loanDataBytes
+        bool useCollateral
     ) external payable returns (uint256 secondsExtended);
 
     function reduceLoanByInterest(
@@ -458,8 +460,7 @@ contract ISovrynBrownie is
         address returnToSender,
         uint256 sourceTokenAmount,
         uint256 requiredDestTokenAmount,
-        uint256 minReturn,
-        bytes calldata swapData
+        uint256 minReturn
     ) external returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 
     function getSwapExpectedReturn(

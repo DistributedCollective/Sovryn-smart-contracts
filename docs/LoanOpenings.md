@@ -16,12 +16,12 @@ margin trading and lending https://bzx.network similar to the dYdX protocol.
 - [constructor()](#constructor)
 - [constructor()](#constructor)
 - [initialize(address target)](#initialize)
-- [borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes)](#borrowortradefrompool)
+- [borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues)](#borrowortradefrompool)
 - [setDelegatedManager(bytes32 loanId, address delegated, bool toggle)](#setdelegatedmanager)
 - [getEstimatedMarginExposure(address loanToken, address collateralToken, uint256 loanTokenSent, uint256 collateralTokenSent, uint256 interestRate, uint256 newPrincipal)](#getestimatedmarginexposure)
 - [getRequiredCollateral(address loanToken, address collateralToken, uint256 newPrincipal, uint256 marginAmount, bool isTorqueLoan)](#getrequiredcollateral)
 - [getBorrowAmount(address loanToken, address collateralToken, uint256 collateralTokenAmount, uint256 marginAmount, bool isTorqueLoan)](#getborrowamount)
-- [_borrowOrTrade(struct LoanParamsStruct.LoanParams loanParamsLocal, bytes32 loanId, bool isTorqueLoan, uint256 collateralAmountRequired, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes)](#_borrowortrade)
+- [_borrowOrTrade(struct LoanParamsStruct.LoanParams loanParamsLocal, bytes32 loanId, bool isTorqueLoan, uint256 collateralAmountRequired, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues)](#_borrowortrade)
 - [_finalizeOpen(struct LoanParamsStruct.LoanParams loanParamsLocal, struct LoanStruct.Loan loanLocal, address[4] sentAddresses, uint256[5] sentValues, bool isTorqueLoan)](#_finalizeopen)
 - [_emitOpeningEvents(struct LoanParamsStruct.LoanParams loanParamsLocal, struct LoanStruct.Loan loanLocal, address[4] sentAddresses, uint256[5] sentValues, uint256 collateralToLoanRate, uint256 margin, bool isTorqueLoan)](#_emitopeningevents)
 - [_setDelegatedManager(bytes32 loanId, address delegator, address delegated, bool toggle)](#_setdelegatedmanager)
@@ -107,7 +107,7 @@ Borrow or trade from pool.
      *
 
 ```solidity
-function borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes) external payable nonReentrant whenNotPaused 
+function borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues) external payable nonReentrant whenNotPaused 
 returns(newPrincipal uint256, newCollateral uint256)
 ```
 
@@ -120,8 +120,7 @@ returns(newPrincipal uint256, newCollateral uint256)
 | isTorqueLoan | bool | Whether the loan is a Torque loan. | 
 | initialMargin | uint256 | The initial amount of margin. | 
 | sentAddresses | address[4] | The addresses to send tokens: lender, borrower,   receiver and manager:     lender: must match loan if loanId provided.     borrower: must match loan if loanId provided.     receiver: receiver of funds (address(0) assumes borrower address).     manager: delegated manager of loan unless address(0). | 
-| sentValues | uint256[5] | The values to send:     newRate: New loan interest rate.     newPrincipal: New loan size (borrowAmount + any borrowed interest).     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).     collateralTokenReceived: Total collateralToken deposit. | 
-| loanDataBytes | bytes | The payload for the call. These loan DataBytes are   additional loan data (not in use for token swaps).      * | 
+| sentValues | uint256[5] | The values to send:     newRate: New loan interest rate.     newPrincipal: New loan size (borrowAmount + any borrowed interest).     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).     collateralTokenReceived: Total collateralToken deposit. |
 
 **Returns**
 
@@ -137,8 +136,7 @@ function borrowOrTradeFromPool(
         bool isTorqueLoan,
         uint256 initialMargin,
         address[4] calldata sentAddresses,
-        uint256[5] calldata sentValues,
-        bytes calldata loanDataBytes
+        uint256[5] calldata sentValues
     )
         external
         payable
@@ -146,8 +144,6 @@ function borrowOrTradeFromPool(
         whenNotPaused
         returns (uint256 newPrincipal, uint256 newCollateral)
     {
-        require(msg.value == 0 || loanDataBytes.length != 0, "loanDataBytes required with ether");
-
         /// Only callable by loan pools.
         require(loanPoolToUnderlying[msg.sender] != address(0), "not authorized");
 
@@ -173,8 +169,7 @@ function borrowOrTradeFromPool(
                 collateralAmountRequired,
                 initialMargin,
                 sentAddresses,
-                sentValues,
-                loanDataBytes
+                sentValues
             );
     }
 ```
@@ -432,7 +427,7 @@ Borrow or trade.
      *
 
 ```solidity
-function _borrowOrTrade(struct LoanParamsStruct.LoanParams loanParamsLocal, bytes32 loanId, bool isTorqueLoan, uint256 collateralAmountRequired, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes) internal nonpayable
+function _borrowOrTrade(struct LoanParamsStruct.LoanParams loanParamsLocal, bytes32 loanId, bool isTorqueLoan, uint256 collateralAmountRequired, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues) internal nonpayable
 returns(uint256, uint256)
 ```
 
@@ -446,8 +441,7 @@ returns(uint256, uint256)
 | collateralAmountRequired | uint256 | The required amount of collateral. | 
 | initialMargin | uint256 | The initial amount of margin. | 
 | sentAddresses | address[4] | The addresses to send tokens: lender, borrower,   receiver and manager:     lender: must match loan if loanId provided.     borrower: must match loan if loanId provided.     receiver: receiver of funds (address(0) assumes borrower address).     manager: delegated manager of loan unless address(0). | 
-| sentValues | uint256[5] | The values to send:     newRate: New loan interest rate.     newPrincipal: New loan size (borrowAmount + any borrowed interest).     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).     collateralTokenReceived: Total collateralToken deposit. | 
-| loanDataBytes | bytes | The payload for the call. These loan DataBytes are   additional loan data (not in use for token swaps).      * | 
+| sentValues | uint256[5] | The values to send:     newRate: New loan interest rate.     newPrincipal: New loan size (borrowAmount + any borrowed interest).     torqueInterest: New amount of interest to escrow for Torque loan (determines initial loan length).     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).     collateralTokenReceived: Total collateralToken deposit. |
 
 **Returns**
 
@@ -464,8 +458,7 @@ function _borrowOrTrade(
         uint256 collateralAmountRequired,
         uint256 initialMargin,
         address[4] memory sentAddresses,
-        uint256[5] memory sentValues,
-        bytes memory loanDataBytes
+        uint256[5] memory sentValues
     ) internal returns (uint256, uint256) {
         require(
             loanParamsLocal.collateralToken != loanParamsLocal.loanToken,
@@ -529,8 +522,7 @@ function _borrowOrTrade(
                 sentValues[3], /// loanTokenUsable (minSourceTokenAmount)
                 0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
                 0, /// requiredDestTokenAmount (enforces that all of loanTokenUsable is swapped)
-                false, /// bypassFee
-                loanDataBytes
+                false /// bypassFee
             );
             sentValues[4] = sentValues[4] /// collateralTokenReceived
                 .add(receivedAmount);

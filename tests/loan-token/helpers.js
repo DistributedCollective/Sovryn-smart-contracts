@@ -110,7 +110,6 @@ const verify_lending_result_and_itoken_price_change = async (
         collateralToken.address, // collateralTokenAddress
         lender, // trader,
         0,
-        "0x", // loanDataBytes (only required with ether),
         {
             value: value,
         }

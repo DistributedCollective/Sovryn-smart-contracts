@@ -173,7 +173,6 @@ contract("ProtocolAddingMargin", (accounts) => {
                 collateralToken, // collateralTokenAddress
                 trader, // trader,
                 0, // slippage
-                [], // loanDataBytes (only required with ether)
                 { from: trader }
             );
             const decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Trade");
@@ -245,7 +244,7 @@ contract("ProtocolAddingMargin", (accounts) => {
             // close the loan
             const loadData = await sovryn.getLoan(loan_id);
             const collateral = new BN(loadData["collateral"]);
-            await sovryn.closeWithSwap(loan_id, owner, collateral, false, "0x", { from: owner });
+            await sovryn.closeWithSwap(loan_id, owner, collateral, false, { from: owner });
 
             let withdrawAmount = new BN(10).pow(new BN(15));
             await expectRevert(

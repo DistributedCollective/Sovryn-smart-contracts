@@ -44,8 +44,8 @@ event ToggledFunctionPaused(string  functionId, bool  prevFlag, bool  newFlag);
 - [toggleFunctionPause(string funcId, bool isPaused)](#togglefunctionpause)
 - [setTransactionLimits(address[] addresses, uint256[] limits)](#settransactionlimits)
 - [changeLoanTokenNameAndSymbol(string _name, string _symbol)](#changeloantokennameandsymbol)
-- [marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, bytes loanDataBytes)](#margintrade)
-- [marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, address affiliateReferrer, bytes loanDataBytes)](#margintradeaffiliate)
+- [marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice)](#margintrade)
+- [marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, address affiliateReferrer)](#margintradeaffiliate)
 - [borrowInterestRate()](#borrowinterestrate)
 - [mint(address receiver, uint256 depositAmount)](#mint)
 - [burn(address receiver, uint256 burnAmount)](#burn)
@@ -293,7 +293,7 @@ function changeLoanTokenNameAndSymbol(string calldata _name, string calldata _sy
 > ### marginTrade
 
 ```solidity
-function marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, bytes loanDataBytes) external payable
+function marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice) external payable
 returns(uint256, uint256)
 ```
 
@@ -308,7 +308,6 @@ returns(uint256, uint256)
 | collateralTokenAddress | address |  | 
 | trader | address |  | 
 | minEntryPrice | uint256 |  | 
-| loanDataBytes | bytes |  | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
@@ -321,8 +320,7 @@ function marginTrade(
         uint256 collateralTokenSent,
         address collateralTokenAddress,
         address trader,
-        uint256 minEntryPrice, // Value of loan token in collateral.
-        bytes calldata loanDataBytes /// Arbitrary order data.
+        uint256 minEntryPrice // Value of loan token in collateral.
     )
         external
         payable
@@ -338,7 +336,7 @@ function marginTrade(
 > ### marginTradeAffiliate
 
 ```solidity
-function marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, address affiliateReferrer, bytes loanDataBytes) external payable
+function marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, address affiliateReferrer) external payable
 returns(uint256, uint256)
 ```
 
@@ -354,7 +352,6 @@ returns(uint256, uint256)
 | trader | address |  | 
 | minEntryPrice | uint256 |  | 
 | affiliateReferrer | address |  | 
-| loanDataBytes | bytes |  | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
@@ -368,8 +365,7 @@ function marginTradeAffiliate(
         address collateralTokenAddress,
         address trader,
         uint256 minEntryPrice, // Value of loan token in collateral.
-        address affiliateReferrer, // The user was brought by the affiliate (referrer).
-        bytes calldata loanDataBytes // Arbitrary order data.
+        address affiliateReferrer // The user was brought by the affiliate (referrer).
     )
         external
         payable
@@ -558,8 +554,7 @@ function borrow(
         uint256 collateralTokenSent, /// If 0, loanId must be provided; any rBTC sent must equal this value.
         address collateralTokenAddress, /// If address(0), this means rBTC and rBTC must be sent with the call or loanId must be provided.
         address borrower,
-        address receiver,
-        bytes calldata /// loanDataBytes: arbitrary order data (for future use).
+        address receiver
     )
         external
         payable

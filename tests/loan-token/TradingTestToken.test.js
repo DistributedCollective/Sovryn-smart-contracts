@@ -113,8 +113,7 @@ contract("LoanTokenTrading", (accounts) => {
                     "0", // no collateral token sent
                     WRBTC.address, // collateralTokenAddress
                     owner, // trader,
-                    0, // slippage
-                    "0x" // loanDataBytes (only required with ether)
+                    0 // slippage
                 ),
                 "principal too small"
             );
@@ -170,7 +169,6 @@ contract("LoanTokenTrading", (accounts) => {
                     RBTC.address, // collateralTokenAddress
                     accounts[0], // trader,
                     0, // slippage
-                    "0x", // loanDataBytes (only required with ether)
                     { from: accounts[2] }
                 ),
                 "principal too small"
@@ -545,7 +543,6 @@ contract("LoanTokenTrading", (accounts) => {
                     RBTC.address, // collateralTokenAddress
                     accounts[1], // trader,
                     0, // slippage
-                    "0x", // loanDataBytes (only required with ether)
                     { from: accounts[2] }
                 ),
                 "401 use of existing loan"
@@ -581,7 +578,6 @@ contract("LoanTokenTrading", (accounts) => {
                     SUSD.address, // collateralTokenAddress != loanTokenAddress
                     accounts[1], // trader,
                     0,
-                    "0x", // loanDataBytes (only required with ether)
                     { from: accounts[2] }
                 ),
                 "11"
@@ -620,7 +616,6 @@ contract("LoanTokenTrading", (accounts) => {
                 RBTC.address, // collateralTokenAddress
                 accounts[0], // trader,
                 0,
-                "0x", // loanDataBytes (only required with ether)
                 { from: accounts[0] }
             );
 
@@ -681,7 +676,6 @@ contract("LoanTokenTrading", (accounts) => {
                 RBTC.address, // collateralTokenAddress
                 accounts[0], // trader,
                 0,
-                "0x", // loanDataBytes (only required with ether)
                 { from: accounts[0] }
             );
 
@@ -734,7 +728,6 @@ contract("LoanTokenTrading", (accounts) => {
                 ZERO_ADDRESS, // collateralTokenAddress (address 0 means collateral is WRBTC)
                 accounts[1], // trader,
                 2000,
-                "0x", // loanDataBytes (only required with ether)
                 { from: accounts[2] }
             );
         });
@@ -754,7 +747,6 @@ contract("LoanTokenTrading", (accounts) => {
                     RBTC.address, // collateralTokenAddress (RBTC)
                     accounts[1], // trader,
                     20000, // minEntryPrice
-                    "0x", // loanDataBytes (only required with ether)
                     { from: accounts[2] }
                 ),
                 "principal too small"
@@ -779,7 +771,6 @@ contract("LoanTokenTrading", (accounts) => {
                 RBTC.address, // collateralTokenAddress (RBTC)
                 accounts[1], // trader,
                 200000, // minEntryPrice
-                "0x", // loanDataBytes (only required with ether)
                 { from: accounts[2] }
             );
         });
@@ -808,7 +799,6 @@ contract("LoanTokenTrading", (accounts) => {
                     RBTC.address, // collateralTokenAddress (RBTC)
                     accounts[1], // trader,
                     20000, // minEntryPrice
-                    "0x", // loanDataBytes (only required with ether)
                     { from: accounts[2] }
                 ),
                 "principal too small"
@@ -839,7 +829,6 @@ contract("LoanTokenTrading", (accounts) => {
                 RBTC.address, // collateralTokenAddress (RBTC)
                 accounts[1], // trader,
                 200000, // minEntryPrice
-                "0x", // loanDataBytes (only required with ether)
                 { from: accounts[2] }
             );
         });
@@ -882,7 +871,6 @@ contract("LoanTokenTrading", (accounts) => {
                 RBTC.address, // collateralTokenAddress
                 accounts[0], // trader,
                 0,
-                "0x", // loanDataBytes (only required with ether)
                 { from: accounts[0] }
             );
 
@@ -949,7 +937,6 @@ contract("LoanTokenTrading", (accounts) => {
                 RBTC.address, // collateralTokenAddress
                 accounts[0], // trader,
                 0,
-                "0x", // loanDataBytes (only required with ether)
                 { from: accounts[0] }
             );
 
@@ -997,7 +984,6 @@ contract("LoanTokenTrading", (accounts) => {
                 RBTC.address, // collateralTokenAddress
                 accounts[0], // trader,
                 0,
-                "0x", // loanDataBytes (only required with ether)
                 { from: accounts[0] }
             );
 
@@ -1041,7 +1027,6 @@ contract("LoanTokenTrading", (accounts) => {
                     RBTC.address, // collateralTokenAddress (RBTC)
                     accounts[1], // trader,
                     20000, // minEntryPrice
-                    "0x", // loanDataBytes (only required with ether)
                     { from: accounts[2] }
                 ),
                 "principal too small"
@@ -1056,7 +1041,6 @@ contract("LoanTokenTrading", (accounts) => {
                     RBTC.address, // collateralTokenAddress (RBTC)
                     accounts[1], // trader,
                     2e14, // minEntryPrice
-                    "0x", // loanDataBytes (only required with ether)
                     { from: accounts[2] }
                 ),
                 "entry price above the minimum"

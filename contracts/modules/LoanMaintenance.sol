@@ -225,8 +225,7 @@ contract LoanMaintenance is
     function extendLoanDuration(
         bytes32 loanId,
         uint256 depositAmount,
-        bool useCollateral,
-        bytes calldata /// loanDataBytes, for future use.
+        bool useCollateral
     ) external payable nonReentrant whenNotPaused returns (uint256 secondsExtended) {
         require(depositAmount != 0, "depositAmount is 0");
         Loan storage loanLocal = loans[loanId];
@@ -887,8 +886,7 @@ contract LoanMaintenance is
                 loanLocal.collateral, /// minSourceTokenAmount
                 0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
                 depositAmount, /// requiredDestTokenAmount (partial spend of loanLocal.collateral to fill this amount)
-                true, /// bypassFee
-                "" /// loanDataBytes
+                true /// bypassFee
             );
         loanLocal.collateral = loanLocal.collateral.sub(sourceTokenAmountUsed);
 

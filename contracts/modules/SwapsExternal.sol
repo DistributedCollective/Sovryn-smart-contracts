@@ -59,7 +59,6 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
      * @param sourceTokenAmount The amount of source tokens.
      * @param requiredDestTokenAmount The amount of required destiny tokens.
      * @param minReturn Minimum amount (position size) in the collateral tokens.
-     * @param swapData Additional swap data (not in use yet).
      *
      * @return destTokenAmountReceived The amount of destiny tokens sent.
      * @return sourceTokenAmountUsed The amount of source tokens spent.
@@ -71,8 +70,7 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
         address returnToSender,
         uint256 sourceTokenAmount,
         uint256 requiredDestTokenAmount,
-        uint256 minReturn,
-        bytes memory swapData
+        uint256 minReturn
     )
         public
         payable
@@ -115,7 +113,6 @@ contract SwapsExternal is VaultController, SwapsUser, ModuleCommonFunctionalitie
             ],
             0, /// loanId (not tied to a specific loan)
             false, /// bypassFee
-            swapData,
             true // the flag for swapExternal (so that it will use the swapExternalFeePercent)
         );
 

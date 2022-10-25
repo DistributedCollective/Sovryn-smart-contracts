@@ -146,7 +146,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     0,
                     0,
                 ],
-                "0x", // loanDataBytes
                 { from: accounts[1] }
             );
 
@@ -220,7 +219,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     0,
                     0,
                 ],
-                "0x", // loanDataBytes
                 { from: accounts[1] }
             );
             // TODO: add expected and actual result comparison or else the borrow test is without validation
@@ -271,7 +269,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     0,
                     0,
                 ],
-                "0x", // loanDataBytes
                 { from: accounts[1] }
             );
 
@@ -327,7 +324,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     0,
                     0,
                 ],
-                "0x", // loanDataBytes
                 { from: accounts[1] }
             );
 
@@ -380,7 +376,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     0,
                     0,
                 ],
-                "0x", // loanDataBytes
                 { from: accounts[1] }
             );
 
@@ -435,7 +430,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                     0,
                     0,
                 ],
-                "0x", // loanDataBytes
                 { from: accounts[1] }
             );
 
@@ -449,48 +443,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                 new BN(0)
             );
             expect(result).to.be.false;
-        });
-
-        it("should revert when sending Ethers w/o loanDataBytes", async () => {
-            // Prepare the test
-            const loanTokenSent = oneEth;
-            const newPrincipal = new BN(101).mul(oneEth);
-            const collateralTokenSent = await sovryn.getRequiredCollateral(
-                SUSD.address,
-                RBTC.address,
-                newPrincipal,
-                new BN(50).mul(oneEth),
-                true
-            );
-
-            await expectRevert(
-                sovryn.borrowOrTradeFromPool(
-                    await LinkDaiBorrowParamsId(), // loanParamsId
-                    "0x0", // loanId
-                    true, // isTorqueLoan,
-                    new BN(50).mul(oneEth), // initialMargin
-                    [
-                        accounts[2], // lender
-                        accounts[1], // borrower
-                        accounts[1], // receiver
-                        constants.ZERO_ADDRESS, // manager
-                    ],
-                    [
-                        new BN(5).mul(oneEth), // newRate (5%)
-                        newPrincipal, // newPrincipal
-                        oneEth, // torqueInterest
-                        loanTokenSent, // loanTokenSent
-                        collateralTokenSent, // collateralTokenSent
-                        0,
-                        0,
-                        0,
-                        0,
-                    ],
-                    "0x", // loanDataBytes
-                    { from: accounts[1], value: 1 }
-                ),
-                "loanDataBytes required with ether"
-            );
         });
 
         /// @dev Loan pool accounts are accounts[1] and accounts[2], according to fixture init
@@ -529,7 +481,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                         0,
                         0,
                     ],
-                    "0x", // loanDataBytes
                     { from: accounts[3] }
                 ),
                 "not authorized"
@@ -571,7 +522,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                         0,
                         0,
                     ],
-                    "0x", // loanDataBytes
                     { from: accounts[1] }
                 ),
                 "loanParams not exists"
@@ -614,7 +564,6 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
                         0,
                         0,
                     ],
-                    "0x", // loanDataBytes
                     { from: accounts[1] }
                 ),
                 "collateral is 0"

@@ -107,7 +107,6 @@ contract("ProtocolCloseDeposit", (accounts) => {
             RBTC.address, // collateralTokenAddress
             borrower, // trader,
             0,
-            "0x", // loanDataBytes (only required with ether)
             { from: borrower }
         );
 
@@ -153,7 +152,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
                 await lockedSOV.getLockedBalance(borrower)
             );
 
-            const { receipt } = await sovryn.rollover(loan_id, "0x");
+            const { receipt } = await sovryn.rollover(loan_id);
             const susd_bal_after_rollover = (await SUSD.balanceOf(loanToken.address)).toString();
 
             const lender_interest_after = await sovryn.getLenderInterestData(
@@ -273,7 +272,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
             const previousBorrowerBalanceRBTC = await RBTC.balanceOf(borrower);
             const previousRolloverWalletBalanceSUSD = await SUSD.balanceOf(rollover_wallet);
             const previousRolloverWalletBalanceRBTC = await RBTC.balanceOf(rollover_wallet);
-            const { receipt } = await sovryn.rollover(loan_id, "0x", { from: rollover_wallet });
+            const { receipt } = await sovryn.rollover(loan_id, { from: rollover_wallet });
             const latestBorrowerBalanceSUSD = await SUSD.balanceOf(borrower);
             const latestBorrowerBalanceRBTC = await RBTC.balanceOf(borrower);
             const latestRolloverWalletBalanceSUSD = await SUSD.balanceOf(rollover_wallet);
@@ -383,7 +382,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 
             const previousRolloverWalletBalanceSUSD = await SUSD.balanceOf(rollover_wallet);
             const previousRolloverWalletBalanceWRBTC = await WRBTC.balanceOf(rollover_wallet);
-            const { receipt } = await sovryn.rollover(loan_id, "0x", { from: rollover_wallet });
+            const { receipt } = await sovryn.rollover(loan_id, { from: rollover_wallet });
             const latestRolloverWalletBalanceSUSD = await SUSD.balanceOf(rollover_wallet);
             const latestRolloverWalletBalanceWRBTC = await WRBTC.balanceOf(rollover_wallet);
 
@@ -480,7 +479,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
                 await lockedSOV.getLockedBalance(borrower)
             );
 
-            const { receipt } = await sovryn.rollover(loan_id, "0x");
+            const { receipt } = await sovryn.rollover(loan_id);
             const susd_bal_after_rollover = (await SUSD.balanceOf(loanToken.address)).toString();
 
             const lender_interest_after = await sovryn.getLenderInterestData(
@@ -583,7 +582,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 
             const previousRolloverWalletBalanceSUSD = await SUSD.balanceOf(receiver);
             const previousRolloverWalletBalanceRBTC = await RBTC.balanceOf(receiver);
-            const { receipt } = await sovryn.rollover(loan_id, "0x", { from: receiver });
+            const { receipt } = await sovryn.rollover(loan_id, { from: receiver });
             const latestRolloverWalletBalanceSUSD = await SUSD.balanceOf(receiver);
             const latestRolloverWalletBalanceRBTC = await RBTC.balanceOf(receiver);
 
@@ -636,10 +635,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
                 SUSD.address,
                 new BN(10).pow(new BN(21)).toString()
             );
-            await expectRevert(
-                sovryn.rollover(loan_id, "0x", { from: receiver }),
-                "unhealthy position"
-            );
+            await expectRevert(sovryn.rollover(loan_id, { from: receiver }), "unhealthy position");
         });
     });
 });

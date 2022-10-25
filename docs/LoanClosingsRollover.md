@@ -24,8 +24,8 @@ uint256 internal constant MONTH;
 - [constructor()](#constructor)
 - [initialize(address target)](#initialize)
 - [rollover(bytes32 loanId, bytes )](#rollover)
-- [_rollover(bytes32 loanId, bytes loanDataBytes)](#_rollover)
-- [_swapBackExcess(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, bytes loanDataBytes)](#_swapbackexcess)
+- [_rollover(bytes32 loanId)](#_rollover)
+- [_swapBackExcess(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount)](#_swapbackexcess)
 
 ---    
 
@@ -114,16 +114,14 @@ function rollover(bytes32 loanId, bytes ) external nonpayable nonReentrant whenN
 
 ```javascript
 function rollover(
-        bytes32 loanId,
-        bytes calldata // for future use /*loanDataBytes*/
+        bytes32 loanId
     ) external nonReentrant whenNotPaused {
         // restrict to EOAs to prevent griefing attacks, during interest rate recalculation
         require(msg.sender == tx.origin, "EOAs call");
 
         return
             _rollover(
-                loanId,
-                "" // loanDataBytes
+                loanId
             );
     }
 ```
@@ -144,21 +142,20 @@ it's 28 days, in case of borrowing it's a month.
      *
 
 ```solidity
-function _rollover(bytes32 loanId, bytes loanDataBytes) internal nonpayable
+function _rollover(bytes32 loanId) internal nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| loanId | bytes32 | The ID of the loan to roll over. | 
-| loanDataBytes | bytes | The payload for the call. These loan DataBytes are   additional loan data (not in use for token swaps). | 
+| loanId | bytes32 | The ID of the loan to roll over. |
 
 <details>
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function _rollover(bytes32 loanId, bytes memory loanDataBytes) internal {
+function _rollover(bytes32 loanId) internal {
         (Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
         require(block.timestamp > loanLocal.endTimestamp.sub(3600), "healthy position");
         require(loanPoolToUnderlying[loanLocal.lender] != address(0), "invalid lender");
@@ -241,8 +238,7 @@ function _rollover(bytes32 loanId, bytes memory loanDataBytes) internal {
                 loanParamsLocal,
                 0, //min swap 0 -> swap connector estimates the amount of source tokens to use
                 interestAmountRequired, //required destination tokens
-                true, // returnTokenIsCollateral
-                loanDataBytes
+                true // returnTokenIsCollateral
             );
 
         //received more tokens than needed to pay the interest
@@ -257,8 +253,7 @@ function _rollover(bytes32 loanId, bytes memory loanDataBytes) internal {
                 (destTokenAmountReceived, , ) = _swapBackExcess(
                     loanLocal,
                     loanParamsLocal,
-                    destTokenAmountReceived - interestAmountRequired, //amount to be swapped
-                    loanDataBytes
+                    destTokenAmountReceived - interestAmountRequired //amount to be swapped
                 );
                 sourceTokenAmountUsed = sourceTokenAmountUsed.sub(destTokenAmountReceived);
             }
@@ -298,8 +293,7 @@ function _rollover(bytes32 loanId, bytes memory loanDataBytes) internal {
                     loanLocal.id,
                     msg.sender,
                     loanLocal.collateral,
-                    false,
-                    "" // loanDataBytes
+                    false
                 );
             } else {
                 // pay out reward to caller
@@ -316,8 +310,7 @@ function _rollover(bytes32 loanId, bytes memory loanDataBytes) internal {
                     loanLocal.id,
                     loanLocal.borrower,
                     loanLocal.collateral, // swap all collaterals
-                    false,
-                    "" /// loanDataBytes
+                    false
                 );
             } else {
                 (uint256 currentMargin, ) =
@@ -359,7 +352,7 @@ Swap back excessive loan tokens to collateral tokens.
      *
 
 ```solidity
-function _swapBackExcess(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, bytes loanDataBytes) internal nonpayable
+function _swapBackExcess(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount) internal nonpayable
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256, collateralToLoanSwapRate uint256)
 ```
 
@@ -369,8 +362,7 @@ returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256, collater
 | ------------- |------------- | -----|
 | loanLocal | struct LoanStruct.Loan | The loan object. | 
 | loanParamsLocal | struct LoanParamsStruct.LoanParams | The loan parameters. | 
-| swapAmount | uint256 | The amount to be swapped. | 
-| loanDataBytes | bytes | Additional loan data (not in use for token swaps).      * | 
+| swapAmount | uint256 | The amount to be swapped. |
 
 **Returns**
 
@@ -383,8 +375,7 @@ destTokenAmountReceived The amount of destiny tokens received.
 function _swapBackExcess(
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
-        uint256 swapAmount,
-        bytes memory loanDataBytes
+        uint256 swapAmount
     )
         internal
         returns (
@@ -401,8 +392,7 @@ function _swapBackExcess(
             swapAmount, // minSourceTokenAmount
             swapAmount, // maxSourceTokenAmount
             0, // requiredDestTokenAmount
-            false, // bypassFee
-            loanDataBytes
+            false // bypassFee
         );
         require(sourceTokenAmountUsed <= swapAmount, "excessive source amount");
     }

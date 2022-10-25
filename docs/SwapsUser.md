@@ -9,8 +9,8 @@ View Source: [contracts/swaps/SwapsUser.sol](../contracts/swaps/SwapsUser.sol)
 
 ## Functions
 
-- [_loanSwap(bytes32 loanId, address sourceToken, address destToken, address user, uint256 minSourceTokenAmount, uint256 maxSourceTokenAmount, uint256 requiredDestTokenAmount, bool bypassFee, bytes loanDataBytes)](#_loanswap)
-- [_swapsCall(address[5] addrs, uint256[3] vals, bytes32 loanId, bool miscBool, bytes loanDataBytes, bool isSwapExternal)](#_swapscall)
+- [_loanSwap(bytes32 loanId, address sourceToken, address destToken, address user, uint256 minSourceTokenAmount, uint256 maxSourceTokenAmount, uint256 requiredDestTokenAmount, bool bypassFee)](#_loanswap)
+- [_swapsCall(address[5] addrs, uint256[3] vals, bytes32 loanId, bool miscBool, bool isSwapExternal)](#_swapscall)
 - [_swapsCall_internal(address[5] addrs, uint256[3] vals)](#_swapscall_internal)
 - [_swapsExpectedReturn(address sourceToken, address destToken, uint256 sourceTokenAmount)](#_swapsexpectedreturn)
 - [_checkSwapSize(address tokenAddress, uint256 amount)](#_checkswapsize)
@@ -23,7 +23,7 @@ Internal loan swap.
      *
 
 ```solidity
-function _loanSwap(bytes32 loanId, address sourceToken, address destToken, address user, uint256 minSourceTokenAmount, uint256 maxSourceTokenAmount, uint256 requiredDestTokenAmount, bool bypassFee, bytes loanDataBytes) internal nonpayable
+function _loanSwap(bytes32 loanId, address sourceToken, address destToken, address user, uint256 minSourceTokenAmount, uint256 maxSourceTokenAmount, uint256 requiredDestTokenAmount, bool bypassFee) internal nonpayable
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256, sourceToDestSwapRate uint256)
 ```
 
@@ -38,8 +38,7 @@ returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256, sourceTo
 | minSourceTokenAmount | uint256 | The minimum amount of source tokens to swap. | 
 | maxSourceTokenAmount | uint256 | The maximum amount of source tokens to swap. | 
 | requiredDestTokenAmount | uint256 | The required amount of destination tokens. | 
-| bypassFee | bool | To bypass or not the fee. | 
-| loanDataBytes | bytes | The payload for the call. These loan DataBytes are   additional loan data (not in use for token swaps).      * | 
+| bypassFee | bool | To bypass or not the fee. |
 
 **Returns**
 
@@ -57,8 +56,7 @@ function _loanSwap(
         uint256 minSourceTokenAmount,
         uint256 maxSourceTokenAmount,
         uint256 requiredDestTokenAmount,
-        bool bypassFee,
-        bytes memory loanDataBytes
+        bool bypassFee
     )
         internal
         returns (
@@ -78,7 +76,6 @@ function _loanSwap(
             [minSourceTokenAmount, maxSourceTokenAmount, requiredDestTokenAmount],
             loanId,
             bypassFee,
-            loanDataBytes,
             false // swap external flag, set to false so that it will use the tradingFeePercent
         );
 
@@ -114,7 +111,7 @@ Calculate amount of source and destiny tokens.
      *
 
 ```solidity
-function _swapsCall(address[5] addrs, uint256[3] vals, bytes32 loanId, bool miscBool, bytes loanDataBytes, bool isSwapExternal) internal nonpayable
+function _swapsCall(address[5] addrs, uint256[3] vals, bytes32 loanId, bool miscBool, bool isSwapExternal) internal nonpayable
 returns(uint256, uint256)
 ```
 
@@ -125,8 +122,7 @@ returns(uint256, uint256)
 | addrs | address[5] | The array of addresses. | 
 | vals | uint256[3] | The array of values. | 
 | loanId | bytes32 | The Id of the associated loan. | 
-| miscBool | bool | True/false to bypassFee. | 
-| loanDataBytes | bytes | Additional loan data (not in use yet).      * | 
+| miscBool | bool | True/false to bypassFee. |
 | isSwapExternal | bool |  | 
 
 **Returns**
@@ -142,7 +138,6 @@ function _swapsCall(
         uint256[3] memory vals,
         bytes32 loanId,
         bool miscBool, /// bypassFee
-        bytes memory loanDataBytes,
         bool isSwapExternal
     ) internal returns (uint256, uint256) {
         /// addrs[0]: sourceToken
@@ -201,8 +196,6 @@ function _swapsCall(
                 }
             }
         }
-
-        require(loanDataBytes.length == 0, "invalid state");
 
         (destTokenAmountReceived, sourceTokenAmountUsed) = _swapsCall_internal(addrs, vals);
 

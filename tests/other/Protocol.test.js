@@ -126,7 +126,7 @@ contract("Protocol", (accounts) => {
         });
 
         it("Test replaceContract - LoanClosingsRollover", async () => {
-            const selector = "rollover(bytes32,bytes)";
+            const selector = "rollover(bytes32)";
             let oldLoanClosingsRolloverAddr = await sovryn.getTarget(selector);
             let newLoanClosingsRolloverAddr = await LoanClosingsRollover.new();
             let tx = await sovryn.replaceContract(newLoanClosingsRolloverAddr.address);

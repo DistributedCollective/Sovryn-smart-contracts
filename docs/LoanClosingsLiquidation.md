@@ -25,7 +25,7 @@ uint256 internal constant MONTH;
 - [initialize(address target)](#initialize)
 - [liquidate(bytes32 loanId, address receiver, uint256 closeAmount)](#liquidate)
 - [_liquidate(bytes32 loanId, address receiver, uint256 closeAmount)](#_liquidate)
-- [_swapBackExcess(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, bytes loanDataBytes)](#_swapbackexcess)
+- [_swapBackExcess(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount)](#_swapbackexcess)
 
 ---    
 
@@ -291,7 +291,7 @@ Swap back excessive loan tokens to collateral tokens.
      *
 
 ```solidity
-function _swapBackExcess(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount, bytes loanDataBytes) internal nonpayable
+function _swapBackExcess(struct LoanStruct.Loan loanLocal, struct LoanParamsStruct.LoanParams loanParamsLocal, uint256 swapAmount) internal nonpayable
 returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256, collateralToLoanSwapRate uint256)
 ```
 
@@ -302,7 +302,6 @@ returns(destTokenAmountReceived uint256, sourceTokenAmountUsed uint256, collater
 | loanLocal | struct LoanStruct.Loan | The loan object. | 
 | loanParamsLocal | struct LoanParamsStruct.LoanParams | The loan parameters. | 
 | swapAmount | uint256 | The amount to be swapped. | 
-| loanDataBytes | bytes | Additional loan data (not in use for token swaps).      * | 
 
 **Returns**
 
@@ -315,8 +314,7 @@ destTokenAmountReceived The amount of destiny tokens received.
 function _swapBackExcess(
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
-        uint256 swapAmount,
-        bytes memory loanDataBytes
+        uint256 swapAmount
     )
         internal
         returns (
@@ -334,7 +332,6 @@ function _swapBackExcess(
             swapAmount, // maxSourceTokenAmount
             0, // requiredDestTokenAmount
             false, // bypassFee
-            loanDataBytes
         );
         require(sourceTokenAmountUsed <= swapAmount, "excessive source amount");
     }

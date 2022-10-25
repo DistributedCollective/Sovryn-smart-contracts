@@ -76,7 +76,6 @@ contract LoanOpenings is
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
      *     collateralTokenSent: Total collateralToken deposit.
      *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
-     * @param loanDataBytes The payload for the call. These loan DataBytes are
      *   additional loan data (not in use for token swaps).
      *
      * @return newPrincipal The new loan size.
@@ -88,8 +87,7 @@ contract LoanOpenings is
         bool isTorqueLoan,
         uint256 initialMargin,
         MarginTradeStructHelpers.SentAddresses calldata sentAddresses,
-        MarginTradeStructHelpers.SentAmounts calldata sentValues,
-        bytes calldata loanDataBytes
+        MarginTradeStructHelpers.SentAmounts calldata sentValues
     )
         external
         payable
@@ -97,8 +95,6 @@ contract LoanOpenings is
         whenNotPaused
         returns (uint256 newPrincipal, uint256 newCollateral)
     {
-        require(msg.value == 0 || loanDataBytes.length != 0, "loanDataBytes required with ether");
-
         /// Only callable by loan pools.
         require(loanPoolToUnderlying[msg.sender] != address(0), "not authorized");
 
@@ -124,8 +120,7 @@ contract LoanOpenings is
                 collateralAmountRequired,
                 initialMargin,
                 sentAddresses,
-                sentValues,
-                loanDataBytes
+                sentValues
             );
     }
 
@@ -324,7 +319,6 @@ contract LoanOpenings is
      *     loanTokenReceived: Total loanToken deposit (amount not sent to borrower in the case of Torque loans).
      *     collateralTokenSent: Total collateralToken deposit.
      *     minEntryPrice: Minimum entry price for checking price divergence (Value of loan token in collateral).
-     * @param loanDataBytes The payload for the call. These loan DataBytes are
      *   additional loan data (not in use for token swaps).
      *
      * @return The new loan size.
@@ -337,8 +331,7 @@ contract LoanOpenings is
         uint256 collateralAmountRequired,
         uint256 initialMargin,
         MarginTradeStructHelpers.SentAddresses memory sentAddresses,
-        MarginTradeStructHelpers.SentAmounts memory sentValues,
-        bytes memory loanDataBytes
+        MarginTradeStructHelpers.SentAmounts memory sentValues
     ) internal returns (uint256, uint256) {
         require(
             loanParamsLocal.collateralToken != loanParamsLocal.loanToken,
@@ -406,8 +399,7 @@ contract LoanOpenings is
                 sentValues.loanTokenSent, /// loanTokenUsable (minSourceTokenAmount)
                 0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
                 0, /// requiredDestTokenAmount (enforces that all of loanTokenUsable is swapped)
-                false, /// bypassFee
-                loanDataBytes
+                false /// bypassFee
             );
             sentValues.collateralTokenSent = sentValues.collateralTokenSent.add(receivedAmount);
 

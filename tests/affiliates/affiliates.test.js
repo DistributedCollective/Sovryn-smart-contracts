@@ -255,7 +255,6 @@ contract("Affiliates", (accounts) => {
             trader,
             0, // max slippage
             constants.ZERO_ADDRESS, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
     });
@@ -276,7 +275,6 @@ contract("Affiliates", (accounts) => {
             trader,
             0, // max slippage
             referrer, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
 
@@ -345,7 +343,6 @@ contract("Affiliates", (accounts) => {
             trader,
             0, // max slippage
             referrer, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
 
@@ -415,7 +412,6 @@ contract("Affiliates", (accounts) => {
             trader,
             0, // max slippage
             referrer, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
 
@@ -497,7 +493,6 @@ contract("Affiliates", (accounts) => {
             trader,
             0, // max slippage
             referrer, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
 
@@ -602,7 +597,6 @@ contract("Affiliates", (accounts) => {
             trader, // trader,
             0, // max slippage
             // referrer, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
         expect(
@@ -715,7 +709,6 @@ contract("Affiliates", (accounts) => {
             trader,
             0, // max slippage
             referrer, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
 
@@ -843,7 +836,6 @@ contract("Affiliates", (accounts) => {
             trader,
             0, // max slippage
             referrer, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
         const referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
@@ -857,7 +849,6 @@ contract("Affiliates", (accounts) => {
             trader,
             0, // max slippage
             referrer, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
         const referrerFee2 = await sovryn.affiliatesReferrerBalances(referrer, eur.address);
@@ -1065,7 +1056,6 @@ contract("Affiliates", (accounts) => {
             trader,
             0, // max slippage
             referrer, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
         const referrerFee = await sovryn.affiliatesReferrerBalances(referrer, doc.address);
@@ -1079,7 +1069,6 @@ contract("Affiliates", (accounts) => {
             trader,
             0, // max slippage
             referrer, // affiliates referrer
-            "0x", // loanDataBytes (only required with ether)
             { from: trader }
         );
         const referrerFee2 = await sovryn.affiliatesReferrerBalances(referrer, eur.address);

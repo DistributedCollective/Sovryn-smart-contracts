@@ -213,7 +213,6 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
      * @param loanLocal The loan object.
      * @param loanParamsLocal The loan parameters.
      * @param swapAmount The amount to be swapped.
-     * @param loanDataBytes Additional loan data (not in use for token swaps).
      *
      * @return destTokenAmountReceived The amount of destiny tokens received.
      * @return sourceTokenAmountUsed The amount of source tokens used.
@@ -222,8 +221,7 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
     function _swapBackExcess(
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
-        uint256 swapAmount,
-        bytes memory loanDataBytes
+        uint256 swapAmount
     )
         internal
         returns (
@@ -240,8 +238,7 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
             swapAmount, // minSourceTokenAmount
             swapAmount, // maxSourceTokenAmount
             0, // requiredDestTokenAmount
-            false, // bypassFee
-            loanDataBytes
+            false // bypassFee
         );
         require(sourceTokenAmountUsed <= swapAmount, "excessive source amount");
     }

@@ -13,7 +13,6 @@ interface ProtocolSwapExternalInterface {
         address returnToSender,
         uint256 sourceTokenAmount,
         uint256 requiredDestTokenAmount,
-        uint256 minReturn,
-        bytes calldata swapData
+        uint256 minReturn
     ) external returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
 }

@@ -119,7 +119,6 @@ contract("Pause Modules", (accounts) => {
             RBTC.address, // collateralTokenAddress
             borrower, // trader,
             0, // slippage
-            "0x", // loanDataBytes (only required with ether)
             { from: borrower }
         );
 
@@ -188,7 +187,7 @@ contract("Pause Modules", (accounts) => {
                 oldFlag: false,
                 newFlag: true,
             });
-            await expectRevert(sovryn.rollover(loan_id, "0x", { from: receiver }), "Paused");
+            await expectRevert(sovryn.rollover(loan_id, { from: receiver }), "Paused");
         });
     });
 

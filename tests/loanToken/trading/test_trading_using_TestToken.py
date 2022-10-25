@@ -166,6 +166,5 @@ def test_increasing_position_of_other_trader_should_fail(accounts, sovryn, loanT
             1000, # no collateral token sent
             RBTC.address, #collateralTokenAddress
             accounts[1], #trader,
-            b'', #loanDataBytes (only required with ether)
             {'from':accounts[2]}
         )

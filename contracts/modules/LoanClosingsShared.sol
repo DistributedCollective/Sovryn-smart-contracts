@@ -167,15 +167,13 @@ contract LoanClosingsShared is
      * @param principalNeeded the required destination token amount
      * @param returnTokenIsCollateral if true -> required destination token amount will be passed on, else not
      *          note: quite dirty. should be refactored.
-     * @param loanDataBytes additional loan data (not in use for token swaps)
      * */
     function _doCollateralSwap(
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
         uint256 swapAmount,
         uint256 principalNeeded,
-        bool returnTokenIsCollateral,
-        bytes memory loanDataBytes
+        bool returnTokenIsCollateral
     )
         internal
         returns (
@@ -194,8 +192,7 @@ contract LoanClosingsShared is
             returnTokenIsCollateral
                 ? principalNeeded // requiredDestTokenAmount
                 : 0,
-            false, // bypassFee
-            loanDataBytes
+            false // bypassFee
         );
         require(destTokenAmountReceived >= principalNeeded, "insufficient dest amount");
         require(sourceTokenAmountUsed <= loanLocal.collateral, "excessive source amount");
@@ -346,8 +343,7 @@ contract LoanClosingsShared is
         bytes32 loanId,
         address receiver,
         uint256 swapAmount,
-        bool returnTokenIsCollateral,
-        bytes memory loanDataBytes
+        bool returnTokenIsCollateral
     )
         internal
         returns (
@@ -407,8 +403,7 @@ contract LoanClosingsShared is
             loanParamsLocal,
             swapAmount, /// The amount of source tokens to swap (only matters if !returnTokenIsCollateral or loanCloseAmountLessInterest = 0)
             loanCloseAmountLessInterest, /// This is the amount of destination tokens we want to receive (only matters if returnTokenIsCollateral)
-            returnTokenIsCollateral,
-            loanDataBytes
+            returnTokenIsCollateral
         );
 
         if (loanCloseAmountLessInterest == 0) {
@@ -562,8 +557,7 @@ contract LoanClosingsShared is
         LoanParams memory loanParamsLocal,
         uint256 swapAmount,
         uint256 principalNeeded,
-        bool returnTokenIsCollateral,
-        bytes memory loanDataBytes
+        bool returnTokenIsCollateral
     )
         internal
         returns (
@@ -584,8 +578,7 @@ contract LoanClosingsShared is
             loanParamsLocal,
             swapAmount,
             principalNeeded,
-            returnTokenIsCollateral,
-            loanDataBytes
+            returnTokenIsCollateral
         );
 
         if (returnTokenIsCollateral) {

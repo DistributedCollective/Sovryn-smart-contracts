@@ -44,8 +44,8 @@ event WithdrawRBTCTo(address indexed to, uint256  amount);
 - [mint(address receiver, uint256 depositAmount)](#mint)
 - [burn(address receiver, uint256 burnAmount)](#burn)
 - [borrow(bytes32 loanId, uint256 withdrawAmount, uint256 initialLoanDuration, uint256 collateralTokenSent, address collateralTokenAddress, address borrower, address receiver, bytes )](#borrow)
-- [marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, bytes loanDataBytes)](#margintrade)
-- [marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, address affiliateReferrer, bytes loanDataBytes)](#margintradeaffiliate)
+- [marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice)](#margintrade)
+- [marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, address affiliateReferrer)](#margintradeaffiliate)
 - [withdrawRBTCTo(address payable _receiverAddress, uint256 _amount)](#withdrawrbtcto)
 - [transfer(address _to, uint256 _value)](#transfer)
 - [transferFrom(address _from, address _to, uint256 _value)](#transferfrom)
@@ -77,7 +77,7 @@ event WithdrawRBTCTo(address indexed to, uint256  amount);
 - [_totalDeposit(address collateralTokenAddress, uint256 collateralTokenSent, uint256 loanTokenSent)](#_totaldeposit)
 - [_getAmountInRbtc(address asset, uint256 amount)](#_getamountinrbtc)
 - [_getInterestRateAndBorrowAmount(uint256 borrowAmount, uint256 assetSupply, uint256 initialLoanDuration)](#_getinterestrateandborrowamount)
-- [_borrowOrTrade(bytes32 loanId, uint256 withdrawAmount, uint256 initialMargin, address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, bytes loanDataBytes)](#_borrowortrade)
+- [_borrowOrTrade(bytes32 loanId, uint256 withdrawAmount, uint256 initialMargin, address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts)](#_borrowortrade)
 - [_verifyTransfers(address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, uint256 withdrawalAmount)](#_verifytransfers)
 - [_safeTransfer(address token, address to, uint256 amount, string errorMsg)](#_safetransfer)
 - [_safeTransferFrom(address token, address from, address to, uint256 amount, string errorMsg)](#_safetransferfrom)
@@ -230,8 +230,7 @@ function borrow(
         uint256 collateralTokenSent, /// If 0, loanId must be provided; any rBTC sent must equal this value.
         address collateralTokenAddress, /// If address(0), this means rBTC and rBTC must be sent with the call or loanId must be provided.
         address borrower,
-        address receiver,
-        bytes memory /// loanDataBytes: arbitrary order data (for future use).
+        address receiver
     )
         public
         payable
@@ -307,8 +306,7 @@ function borrow(
                 ),
                 collateralTokenAddress,
                 sentAddresses,
-                sentAmounts,
-                "" /// loanDataBytes
+                sentAmounts
             );
     }
 ```
@@ -341,7 +339,7 @@ which is why positions need to be closed at the protocol proxy contract.
      *
 
 ```solidity
-function marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, bytes loanDataBytes) public payable nonReentrant 
+function marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice) public payable nonReentrant 
 returns(uint256, uint256)
 ```
 
@@ -355,8 +353,7 @@ returns(uint256, uint256)
 | collateralTokenSent | uint256 | The amount of collateral tokens provided by the user. | 
 | collateralTokenAddress | address | The token address of collateral. | 
 | trader | address | The account that performs this trade. | 
-| minEntryPrice | uint256 | Value of loan token in collateral. | 
-| loanDataBytes | bytes | Additional loan data (not in use for token swaps).      * | 
+| minEntryPrice | uint256 | Value of loan token in collateral. |
 
 **Returns**
 
@@ -373,8 +370,7 @@ function marginTrade(
         uint256 collateralTokenSent,
         address collateralTokenAddress,
         address trader,
-        uint256 minEntryPrice, // value of loan token in collateral
-        bytes memory loanDataBytes /// Arbitrary order data.
+        uint256 minEntryPrice // value of loan token in collateral
     )
         public
         payable
@@ -448,8 +444,7 @@ function marginTrade(
                 leverageAmount, //initial margin
                 collateralTokenAddress,
                 sentAddresses,
-                sentAmounts,
-                loanDataBytes
+                sentAmounts
             );
     }
 ```
@@ -464,7 +459,7 @@ Wrapper for marginTrade invoking setAffiliatesReferrer to track
      *
 
 ```solidity
-function marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, address affiliateReferrer, bytes loanDataBytes) external payable
+function marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, address affiliateReferrer) external payable
 returns(uint256, uint256)
 ```
 
@@ -479,8 +474,7 @@ returns(uint256, uint256)
 | collateralTokenAddress | address | The token address of collateral. | 
 | trader | address | The account that performs this trade. | 
 | minEntryPrice | uint256 | Value of loan token in collateral. | 
-| affiliateReferrer | address | The address of the referrer from affiliates program. | 
-| loanDataBytes | bytes | Additional loan data (not in use for token swaps).      * | 
+| affiliateReferrer | address | The address of the referrer from affiliates program. |
 
 **Returns**
 
@@ -498,8 +492,7 @@ function marginTradeAffiliate(
         address collateralTokenAddress,
         address trader,
         uint256 minEntryPrice, /// Value of loan token in collateral
-        address affiliateReferrer, /// The user was brought by the affiliate (referrer).
-        bytes calldata loanDataBytes /// Arbitrary order data.
+        address affiliateReferrer /// The user was brought by the affiliate (referrer).
     )
         external
         payable
@@ -521,8 +514,7 @@ function marginTradeAffiliate(
                 collateralTokenSent,
                 collateralTokenAddress,
                 trader,
-                minEntryPrice,
-                loanDataBytes
+                minEntryPrice
             );
     }
 ```
@@ -1829,7 +1821,7 @@ Compute principal and collateral.
      *
 
 ```solidity
-function _borrowOrTrade(bytes32 loanId, uint256 withdrawAmount, uint256 initialMargin, address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, bytes loanDataBytes) internal nonpayable
+function _borrowOrTrade(bytes32 loanId, uint256 withdrawAmount, uint256 initialMargin, address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts) internal nonpayable
 returns(uint256, uint256)
 ```
 
@@ -1842,8 +1834,7 @@ returns(uint256, uint256)
 | initialMargin | uint256 | The initial margin with 18 decimals | 
 | collateralTokenAddress | address | The address of the token to be used as   collateral. Cannot be the loan token address. | 
 | sentAddresses | address[4] | The addresses to send tokens: lender, borrower,   receiver and manager. | 
-| sentAmounts | uint256[5] | The amounts to send to each address. | 
-| loanDataBytes | bytes | Additional loan data (not in use for token swaps).      * | 
+| sentAmounts | uint256[5] | The amounts to send to each address. |
 
 **Returns**
 
@@ -1861,8 +1852,7 @@ function _borrowOrTrade(
         uint256 initialMargin,
         address collateralTokenAddress,
         address[4] memory sentAddresses,
-        uint256[5] memory sentAmounts,
-        bytes memory loanDataBytes
+        uint256[5] memory sentAmounts
     ) internal returns (uint256, uint256) {
         _checkPause();
         require(
@@ -1909,8 +1899,7 @@ function _borrowOrTrade(
             withdrawAmountExist,
             initialMargin,
             sentAddresses,
-            sentAmounts,
-            loanDataBytes
+            sentAmounts
         );
         require(sentAmounts[1] != 0, "25");
 

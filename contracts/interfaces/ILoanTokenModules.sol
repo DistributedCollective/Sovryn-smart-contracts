@@ -95,8 +95,7 @@ interface ILoanTokenModules {
         uint256 collateralTokenSent,
         address collateralTokenAddress,
         address trader,
-        uint256 minEntryPrice, // Value of loan token in collateral.
-        bytes calldata loanDataBytes /// Arbitrary order data.
+        uint256 minEntryPrice // Value of loan token in collateral.
     )
         external
         payable
@@ -113,8 +112,7 @@ interface ILoanTokenModules {
         address collateralTokenAddress,
         address trader,
         uint256 minEntryPrice, // Value of loan token in collateral.
-        address affiliateReferrer, // The user was brought by the affiliate (referrer).
-        bytes calldata loanDataBytes // Arbitrary order data.
+        address affiliateReferrer // The user was brought by the affiliate (referrer).
     )
         external
         payable
@@ -144,8 +142,7 @@ interface ILoanTokenModules {
         uint256 collateralTokenSent, /// If 0, loanId must be provided; any rBTC sent must equal this value.
         address collateralTokenAddress, /// If address(0), this means rBTC and rBTC must be sent with the call or loanId must be provided.
         address borrower,
-        address receiver,
-        bytes calldata /// loanDataBytes: arbitrary order data (for future use).
+        address receiver
     )
         external
         payable
