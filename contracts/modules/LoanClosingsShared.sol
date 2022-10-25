@@ -13,6 +13,7 @@ import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 import "../mixins/RewardHelper.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
+import "../interfaces/ILoanTokenModules.sol";
 
 /**
  * @title LoanClosingsShared contract.
@@ -36,6 +37,23 @@ contract LoanClosingsShared is
     uint256 public constant TINY_AMOUNT = 25e13;
 
     enum CloseTypes { Deposit, Swap, Liquidation }
+
+    /** modifier for invariant check */
+    modifier iTokenSupplyUnchanged(bytes32 loanId) {
+        Loan storage loanLocal = loans[loanId];
+
+        require(loanLocal.lender != address(0), "Invalid loan token pool address");
+
+        uint256 previousITokenSupply = ILoanTokenModules(loanLocal.lender).totalSupply();
+
+        _;
+
+        /// Validate iToken total supply
+        require(
+            previousITokenSupply == ILoanTokenModules(loanLocal.lender).totalSupply(),
+            "loan token supply invariant check failure"
+        );
+    }
 
     /**
      * @dev computes the interest which needs to be refunded to the borrower based on the amount he's closing and either
@@ -137,6 +155,7 @@ contract LoanClosingsShared is
             amountInRbtc,
             paySwapExcessToBorrowerThreshold
         );
+
         return amountInRbtc > paySwapExcessToBorrowerThreshold;
     }
 
@@ -381,6 +400,7 @@ contract LoanClosingsShared is
 
         uint256 coveredPrincipal;
         uint256 usedCollateral;
+
         /// swapAmount repurposed for collateralToLoanSwapRate to avoid stack too deep error.
         (coveredPrincipal, usedCollateral, withdrawAmount, swapAmount) = _coverPrincipalWithSwap(
             loanLocal,

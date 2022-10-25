@@ -14,6 +14,7 @@ const { loadFixture } = waffle;
 
 const FeesEvents = artifacts.require("FeesEvents");
 const LoanClosingsEvents = artifacts.require("LoanClosingsEvents");
+const mutexUtils = require("../reentrancy/utils");
 
 const {
     getSUSD,
@@ -52,6 +53,9 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();
@@ -458,12 +462,11 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
             const loan_token_sent = new BN(10).mul(oneEth);
             let fakeLoan_id = "0x7af58ba7b104005f8e95f09abbbed011dab7e97dcfc9a353ce37948c7c320b45";
             let value = 0;
-            await expectRevert(
+            await expectRevert.unspecified(
                 sovryn.liquidate(fakeLoan_id, liquidator, loan_token_sent, {
                     from: liquidator,
                     value: value,
-                }),
-                "loan is closed"
+                })
             );
         });
     });

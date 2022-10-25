@@ -1,18 +1,36 @@
-from loan_tokens import *
-from protocol import *
-from staking_vesting import *
-from fastbtc import *
+from scripts.contractInteraction.contract_interaction_imports import *
 
-#pauseAllLoanTokens()
-#unpauseAllLoanTokens()
+'''
+
+run from CLI:
+brownie run scripts/contractInteraction/tasks/pause_unpause.py --network testnet
+brownie run scripts/contractInteraction/tasks/pause_unpause.py --network rsk-mainnet
+'''
+def main():
+
+    areAllLendingPoolsPaused()
+    #pauseAllLoanTokens()
+    #unpauseAllLoanTokens() 
+
+    #  if need to pause separately
+    # --- LoanTokenLogicBeaconLM ---
+    #isLoanTokenLogicBeaconLMPaused()
+    #pauseLoanTokenLogicBeaconLM()
+    #unpauseLoanTokenLogicBeaconLM() 
+    # --- LoanTokenLogicBeaconWRBTC ---
+    #isLoanTokenLogicBeaconWRBTCPaused()
+    #pauseLoanTokenLogicBeaconWRBTC()
+    #unpauseLoanTokenLogicBeaconWRBTC()
 
 
-#pauseProtocolModules()
-#unpauseProtocolModules()
+    isProtocolPaused()  
+    #pauseProtocolModules() 
+    #unpauseProtocolModules() 
 
-#pauseStaking = True #False to unpause
-#pauseOrUnpauseStaking(pauseStaking)
+    isStakingPaused()
+    #pauseStaking = False #False to unpause
+    #pauseOrUnpauseStaking(pauseStaking) 
 
-#fastBTCBiDiPause()
-#fastBTCBiDiUnpause()
-
+    isBiDiFastBTCPaused()
+    #pauseBiDiFastBTC() 
+    #unpauseBiDiFastBTC

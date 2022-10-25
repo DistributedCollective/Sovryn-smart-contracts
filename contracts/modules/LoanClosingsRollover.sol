@@ -60,7 +60,7 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
     function rollover(
         bytes32 loanId,
         bytes calldata // for future use /*loanDataBytes*/
-    ) external nonReentrant whenNotPaused {
+    ) external nonReentrant globallyNonReentrant iTokenSupplyUnchanged(loanId) whenNotPaused {
         // restrict to EOAs to prevent griefing attacks, during interest rate recalculation
         require(msg.sender == tx.origin, "EOAs call");
 

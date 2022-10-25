@@ -16,7 +16,7 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](38);
+        bytes4[] memory res = new bytes4[](35);
 
         // Loan Token Logic Standard
         res[0] = this.borrow.selector;
@@ -42,9 +42,7 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
         res[20] = this.getDepositAmountForBorrow.selector;
         res[21] = this.getBorrowAmountForDeposit.selector;
         res[22] = this.checkPriceDivergence.selector;
-        res[23] = this.checkPause.selector;
-        res[24] = this.setLiquidityMiningAddress.selector;
-        res[25] = this.calculateSupplyInterestRate.selector;
+        res[23] = this.calculateSupplyInterestRate.selector;
 
         // Loan Token LM & OVERLOADING function
         /**
@@ -53,26 +51,23 @@ contract MockLoanTokenLogic is LoanTokenLogicLM {
          * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
          */
 
-        res[26] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicStandard
-        res[27] = bytes4(keccak256("mint(address,uint256,bool)")); /// LoanTokenLogicLM
-        res[28] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
-        res[29] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
+        res[24] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicStandard
+        res[25] = bytes4(keccak256("mint(address,uint256,bool)")); /// LoanTokenLogicLM
+        res[26] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
+        res[27] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
 
         // Advanced Token
-        res[30] = this.approve.selector;
+        res[28] = this.approve.selector;
 
         // Advanced Token Storage
-        res[31] = this.totalSupply.selector;
-        res[32] = this.balanceOf.selector;
-        res[33] = this.allowance.selector;
+        res[29] = this.totalSupply.selector;
+        res[30] = this.balanceOf.selector;
+        res[31] = this.allowance.selector;
 
         // Mock
-        res[34] = this.setAffiliatesReferrer.selector;
-        res[35] = this.setUserNotFirstTradeFlag.selector;
-        res[36] = this.getMarginBorrowAmountAndRate.selector;
-
-        // Loan Token Logic Storage Additional Variable
-        res[37] = this.getLiquidityMiningAddress.selector;
+        res[32] = this.setAffiliatesReferrer.selector;
+        res[33] = this.setUserNotFirstTradeFlag.selector;
+        res[34] = this.getMarginBorrowAmountAndRate.selector;
 
         return (res, stringToBytes32("MockLoanTokenLogic"));
     }
