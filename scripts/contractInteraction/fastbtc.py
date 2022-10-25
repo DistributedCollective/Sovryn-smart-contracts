@@ -35,11 +35,20 @@ def loadFastBTC():
     abi = json.load(abiFile)
     return Contract.from_abi("FastBTC", address = conf.contracts['FastBTC'], abi = abi, owner = conf.acct)
 
-def freezeBiDiFastBTC():
-    fastBTC = loadBiDiFastBTC()
-    data = fastBTC.freeze.encode_input()
+
+
+
+def addPauser(address):
+    abiFile =  open('./scripts/contractInteraction/ABIs/FastBTCAccessControl.json')
+    abi = json.load(abiFile)
+    fastBTC = Contract.from_abi("FastBTC", address = conf.contracts['FastBTCAccessControl'], abi = abi, owner = conf.acct)
+    data = fastBTC.addPauser.encode_input(address)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+    
+def isBiDiFastBTCPaused():
+    fastBTC = loadBiDiFastBTC()
+    print('FastBTCBiDi paused:', fastBTC.paused())
 
 def pauseBiDiFastBTC():
     fastBTC = loadBiDiFastBTC()
@@ -53,32 +62,17 @@ def unpauseBiDiFastBTC():
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
 
-def addPauser(address):
-    abiFile =  open('./scripts/contractInteraction/ABIs/FastBTCAccessControl.json')
-    abi = json.load(abiFile)
-    fastBTC = Contract.from_abi("FastBTC", address = conf.contracts['FastBTCAccessControl'], abi = abi, owner = conf.acct)
-    data = fastBTC.addPauser.encode_input(address)
-    print(data)
-    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
-def fastBTCBiDiPause():
+def isBiDiFastBTCFrozen():
     fastBTC = loadBiDiFastBTC()
-    data = fastBTC.pause.encode_input()
-    print(data)
-    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+    print('FastBTCBiDi frozen:', fastBTC.frozen())
 
-def fastBTCBiDiUnpause():
-    fastBTC = loadBiDiFastBTC()
-    data = fastBTC.unpause.encode_input()
-    print(data)
-    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
-
-def fastBTCBiDiFreeze():
+def freezeBiDiFastBTC():
     fastBTC = loadBiDiFastBTC()
     data = fastBTC.freeze.encode_input()
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
 
-def fastBTCBiDiUnfreeze():
+def unfreezeBiDiFastBTC():
     fastBTC = loadBiDiFastBTC()
     data = fastBTC.unfreeze.encode_input()
     print(data)

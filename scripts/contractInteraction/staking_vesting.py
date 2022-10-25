@@ -322,6 +322,10 @@ def isStakingPaused():
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
     print("isStakingPaused:", staking.paused())
 
+def isStakingFrozen():
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
+    print("isStakingFrozen:", staking.frozen())    
+
 def freezeOrUnfreezeStakingWithdawal(flag):
     # Get the proxy contract instance
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=Staking.abi, owner=conf.acct)
