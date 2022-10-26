@@ -140,7 +140,8 @@ contract("SwapsExternal", (accounts) => {
         const loanTokenAddressWrbtc = await loanTokenWrbtc.loanTokenAddress();
         await sovryn.setLoanPool([loanTokenWrbtc.address], [loanTokenAddressWrbtc]);
 
-        await WRBTC.mint(sovryn.address, wei("500", "ether"));
+        await WRBTC.deposit({value: wei("500", "ether")});
+        await WRBTC.transfer(sovryn.address, wei("500", "ether"));
 
         // Creating the Vesting Instance.
         vestingLogic = await VestingLogic.new();
@@ -473,7 +474,7 @@ contract("SwapsExternal", (accounts) => {
 
             expectEvent(tx, "FeeWithdrawn", {
                 sender: lender,
-                token: loanTokenWrbtc.address,
+                token: ZERO_ADDRESS,
                 amount: loanTokenWRBTCBalanceShouldBe,
             });
         });
