@@ -4,9 +4,7 @@ This script serves the purpose of interacting with governance (SIP) on the testn
 '''
 
 from brownie import *
-from brownie.network.contract import InterfaceContainer
 import json
-import time
 
 def main():
 
@@ -20,7 +18,7 @@ def main():
 
     # Call the function you want here
 
-    # createProposalSIP0048()
+    # createProposalSIP0050()
 
     balanceAfter = acct.balance()
 
@@ -411,3 +409,23 @@ def createProposalSIP0048():
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0050():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setImplementation(address)"]
+    if(contracts['StakingLogic8'] == '' or bytes.hex(web3.eth.get_code(contracts['StakingLogic8'])) == ''):
+        raise Exception("check the new Staking contract implementation address")
+    data = staking.setImplementation.encode_input(contracts['StakingLogic8'])
+    datas = ["0x" + data[10:]]
+    description = "SIP-0050 : Staking contract critical bug fix - invalid voting power increase, Details: _________/SIP-0050.md, sha256: ________________" #TODO: check title, set SIP-0050.md path and sha256
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
