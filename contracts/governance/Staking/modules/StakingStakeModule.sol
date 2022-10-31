@@ -173,13 +173,14 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * */
     function extendStakingDuration(uint256 previousLock, uint256 until) external whenNotPaused {
         until = _timestampToLockDate(until);
-        require(previousLock < until, "must increase staking duration"); // S04
 
         _notSameBlockAsStakingCheckpoint(previousLock);
 
         /// @dev Do not exceed the max duration, no overflow possible.
         uint256 latest = _timestampToLockDate(block.timestamp + MAX_DURATION);
         if (until > latest) until = latest;
+
+        require(previousLock < until, "must increase staking duration"); // S04
 
         /// @dev Update checkpoints.
         /// @dev TODO James: Can reading stake at block.number -1 cause trouble with multiple tx in a block?
@@ -198,12 +199,12 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
 
         /// @dev Delegate might change: if there is already a delegate set for the until date, it will remain the delegate for this position
         address delegateFrom = delegates[msg.sender][previousLock];
+        delegates[msg.sender][previousLock] = address(0); //the previousLock delegates nullifying before reading that form `until` guards in case delegateTo == until
         address delegateTo = delegates[msg.sender][until];
         if (delegateTo == address(0)) {
             delegateTo = delegateFrom;
             delegates[msg.sender][until] = delegateFrom;
         }
-        delegates[msg.sender][previousLock] = address(0);
         _decreaseDelegateStake(delegateFrom, previousLock, amount);
         _increaseDelegateStake(delegateTo, until, amount);
 
