@@ -82,3 +82,6 @@ def getTotalSupply(contractAddress):
     balance = contract.totalSupply()
     print(balance)
     return balance
+
+def deployTestTokenLimited(name, symbol):
+    token = conf.acct.deploy(TestTokenLimited, name, symbol, 18, 100000e18)
