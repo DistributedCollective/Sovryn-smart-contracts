@@ -4,7 +4,10 @@ This script serves the purpose of interacting with governance (SIP) on the testn
 '''
 
 from brownie import *
+from brownie.network.contract import InterfaceContainer
 import json
+import time
+#import scripts.contractInteraction.config as conf
 
 def main():
 
@@ -18,7 +21,7 @@ def main():
 
     # Call the function you want here
 
-    # createProposalSIP0050()
+    #createProposalSIP0050()
 
     balanceAfter = acct.balance()
 
@@ -45,6 +48,7 @@ def loadConfig():
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet-dev":
         acct = accounts.load("rskdeployerdev")
+        print("acct:", acct)
         configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
@@ -418,14 +422,14 @@ def createProposalSIP0050():
     targets = [contracts['Staking']]
     values = [0]
     signatures = ["setImplementation(address)"]
-    if(contracts['StakingLogic8'] == '' or bytes.hex(web3.eth.get_code(contracts['StakingLogic8'])) == ''):
+    if(contracts['StakingLogic8'] == '' or bytes.hex(web3.eth.getCode(contracts['StakingLogic8'])) == ''):
         raise Exception("check the new Staking contract implementation address")
     data = staking.setImplementation.encode_input(contracts['StakingLogic8'])
     datas = ["0x" + data[10:]]
-    description = "SIP-0050 : Staking contract critical bug fix - invalid voting power increase, Details: _________/SIP-0050.md, sha256: ________________" #TODO: check title, set SIP-0050.md path and sha256
+    description = "SIP-0050: Critical staking vulnerability fix, Details: https://github.com/DistributedCollective/SIPS/blob/c787752/SIP-0050.md, sha256: 75b0dd906e4b9f4fbf28c6b1c500f7390a9496cba07172ff962cb2fd0d9c098f"
 
     # Create Proposal
     print(signatures)
     print(datas)
     print(description)
-    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+    #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
