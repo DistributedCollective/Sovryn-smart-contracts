@@ -66,7 +66,7 @@ contract VestingRegistryStorage is Initializable, AdminRole {
     /// @dev it is packed into 1 single storage slot for cheaper gas usage
     struct VestingCreationAndTypeDetails {
         bool isSet;
-        uint120 vestingType;
+        uint32 vestingType;
         uint128 vestingCreationType;
     }
 

@@ -306,7 +306,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
     function isTeamVesting(address _vestingAddress) external view returns (bool) {
         return (vestingCreationAndTypes[_vestingAddress].isSet &&
             vestingCreationAndTypes[_vestingAddress].vestingType ==
-            uint120(VestingType.TeamVesting));
+            uint32(VestingType.TeamVesting));
     }
 
     /**
@@ -385,7 +385,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 
             vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetails({
                 isSet: true,
-                vestingType: uint120(_type),
+                vestingType: uint32(_type),
                 vestingCreationType: uint128(_vestingCreationType)
             });
 
