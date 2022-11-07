@@ -85,7 +85,13 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
     /* Functions */
 
     /// @dev fallback function to support rbtc transfer when unwrap the wrbtc.
-    function() external payable {}
+    function() external payable {
+        IWrbtcERC20 wRBTCToken = protocol.wrbtcToken();
+        require(
+            msg.sender == address(wRBTCToken),
+            "FeeSharingProxy::fallback: only allowed wrbtc"
+        );
+    }
 
     /**
      * @notice Withdraw fees for the given token:
@@ -119,7 +125,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             uint96 amount96 =
                 safe96(
                     wrbtcAmountWithdrawn,
-                    "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits"
+                    "FeeSharingProxy::withdrawFees: wrbtc token amount exceeds 96 bits"
                 );
 
             _addCheckpoint(address(0), amount96);
@@ -158,13 +164,13 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
                 uint96 amount96 =
                     safe96(
                         wrbtcAmountWithdrawn,
-                        "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits"
+                        "FeeSharingProxy::withdrawFeesAMM: wrbtc token amount exceeds 96 bits"
                     );
 
                 totalPoolTokenAmount = add96(
                     totalPoolTokenAmount,
                     amount96,
-                    "FeeSharingProxy::withdrawFees: total pool token amount exceeds 96 bits"
+                    "FeeSharingProxy::withdrawFeesAMM: total wrbtc token amount exceeds 96 bits"
                 );
 
                 emit FeeAMMWithdrawn(msg.sender, _converters[i], wrbtcAmountWithdrawn);
@@ -347,14 +353,10 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             _receiver = msg.sender;
         }
 
-        (
-            rbtcAmount,
-            wrbtcAmount,
-            iWrbtcAmount,
-            endRBTC,
-            endWRBTC,
-            endIWRBTC
-        ) = _getAllRBTCComponentBalances(user, _maxCheckpoints);
+        (rbtcAmount, wrbtcAmount, iWrbtcAmount, endRBTC, endWRBTC, endIWRBTC) = _getRBTCBalances(
+            user,
+            _maxCheckpoints
+        );
 
         processedCheckpoints[user][address(0)] = endRBTC;
         processedCheckpoints[user][address(wrbtcToken)] = endWRBTC;
@@ -625,7 +627,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
     }
 
     /**
-     * @dev view function that calculate the total RBTC that constructed by:
+     * @dev view function that calculate the total RBTC that includes:
      * - RBTC
      * - WRBTC
      * - iWRBTC * iWRBTC.tokenPrice()
@@ -636,7 +638,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         uint256 _rbtcAmount;
         uint256 _wrbtcAmount;
         uint256 _iWrbtcAmount;
-        (_rbtcAmount, _wrbtcAmount, _iWrbtcAmount, , , ) = _getAllRBTCComponentBalances(_user, 0);
+        (_rbtcAmount, _wrbtcAmount, _iWrbtcAmount, , , ) = _getRBTCBalances(_user, 0);
         return _rbtcAmount.add(_wrbtcAmount).add(_iWrbtcAmount);
     }
 
@@ -653,7 +655,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
      * @return _endWRBTC end time of accumulated fee calculation for wrbtc
      * @return _endIWRBTC end time of accumulated fee calculation for iwrbtc
      */
-    function _getAllRBTCComponentBalances(address _user, uint32 _maxCheckpoints)
+    function _getRBTCBalances(address _user, uint32 _maxCheckpoints)
         private
         view
         returns (

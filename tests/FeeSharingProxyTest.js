@@ -447,7 +447,7 @@ contract("FeeSharingProxy:", (accounts) => {
             let feeSharingProxyBalance = await loanTokenWrbtc.balanceOf.call(
                 feeSharingProxy.address
             );
-            // feeSharingProxy no longer provide the liquidity to lending pool.
+            // feeSharingProxy no longer provides the liquidity to lending pool.
             expect(feeSharingProxyBalance.toString()).to.be.equal("0");
 
             // make sure wrbtc balance is 0 after withdrawal
