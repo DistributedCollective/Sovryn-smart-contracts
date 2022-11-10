@@ -30,8 +30,12 @@ task("accounts", "Prints the list of accounts", async () => {
     }
 });
 
-const testnetAccounts = process.env.TESTNET_PRIVATE_KEY ? [process.env.TESTNET_PRIVATE_KEY] : { mnemonic: "brownie", count: 10 };
-const mainnetAccounts = process.env.MAINNET_PRIVATE_KEY ? [process.env.MAINNET_PRIVATE_KEY] : { mnemonic: "brownie", count: 10 };
+const testnetAccounts = process.env.TESTNET_PRIVATE_KEY
+    ? [process.env.TESTNET_PRIVATE_KEY]
+    : { mnemonic: "brownie", count: 10 };
+const mainnetAccounts = process.env.MAINNET_PRIVATE_KEY
+    ? [process.env.MAINNET_PRIVATE_KEY]
+    : { mnemonic: "brownie", count: 10 };
 
 /*
  * Test hardhat forking with patched hardhat
