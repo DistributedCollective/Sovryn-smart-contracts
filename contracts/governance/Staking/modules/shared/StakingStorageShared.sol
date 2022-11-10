@@ -150,6 +150,9 @@ contract StakingStorageShared is Ownable {
     /// @dev Staking contract is frozen
     bool public frozen;
 
+    /// @dev max iterations that can be supported in 1 tx for the withdrawal
+    uint256 internal maxVestingWithdrawIterations;
+
     constructor() internal {
         //abstract
     }

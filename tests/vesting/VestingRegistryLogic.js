@@ -394,21 +394,33 @@ contract("VestingRegistryLogic", (accounts) => {
 
             let cliff = FOUR_WEEKS;
             let duration = FOUR_WEEKS.mul(new BN(20));
-            let vestingType = new BN(2); //Bug Bounty
+            let vestingType = new BN(1); // normal vesting
+            let vestingCreationType = new BN(3); //Bug Bounty
             let tx = await vesting.createVestingAddr(
                 account2,
                 amount,
                 cliff,
                 duration,
-                vestingType
+                vestingCreationType
             );
             let vestingAddress = await vesting.getVestingAddr(
                 account2,
                 cliff,
                 duration,
-                vestingType
+                vestingCreationType
             );
             expect(await vesting.isVestingAdress(vestingAddress)).equal(true);
+
+            let vestingCreationAndType = await vesting.vestingCreationAndTypes(vestingAddress);
+            expect(await vestingCreationAndType["isSet"]).to.equal(true);
+            expect(await vestingCreationAndType["vestingType"].toString()).to.equal(
+                vestingType.toString()
+            );
+            expect(await vestingCreationAndType["vestingCreationType"].toString()).to.equal(
+                vestingCreationType.toString()
+            );
+            expect(await vesting.isTeamVesting(vestingAddress)).to.equal(false);
+
             await vesting.stakeTokens(vestingAddress, amount);
 
             expectEvent(tx, "VestingCreated", {
@@ -417,7 +429,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 cliff: cliff,
                 duration: duration,
                 amount: amount,
-                vestingCreationType: vestingType,
+                vestingCreationType: vestingCreationType,
             });
 
             let balance = await SOV.balanceOf(vesting.address);
@@ -425,11 +437,6 @@ contract("VestingRegistryLogic", (accounts) => {
 
             let vestingAddr = await VestingLogic.at(vestingAddress);
             await checkVesting(vestingAddr, account2, cliff, duration, amount);
-
-            await expectRevert(
-                vestingAddr.governanceWithdrawTokens(account2),
-                "operation not supported"
-            );
 
             let proxy = await UpgradableProxy.at(vestingAddress);
             await expectRevert(proxy.setImplementation(account2), "revert");
@@ -482,11 +489,6 @@ contract("VestingRegistryLogic", (accounts) => {
 
             let vestingAddr = await VestingLogic.at(vestingAddress);
             await checkVesting(vestingAddr, account2, cliff, duration, amount);
-
-            await expectRevert(
-                vestingAddr.governanceWithdrawTokens(account2),
-                "operation not supported"
-            );
 
             let proxy = await UpgradableProxy.at(vestingAddress);
             await expectRevert(proxy.setImplementation(account2), "revert");
@@ -568,6 +570,19 @@ contract("VestingRegistryLogic", (accounts) => {
             await SOV.transfer(vesting.address, amount);
             await lockedSOV.createVesting({ from: accounts4 });
             let vestingAddr = await vesting.getVesting(accounts4);
+
+            let vestingCreationAndType = await vesting.vestingCreationAndTypes(vestingAddr);
+            let vestingType = new BN(1); // normal vesting
+            let vestingCreationType = new BN(3);
+            expect(await vestingCreationAndType["isSet"]).to.equal(true);
+            expect(await vestingCreationAndType["vestingType"].toString()).to.equal(
+                vestingType.toString()
+            );
+            expect(await vestingCreationAndType["vestingCreationType"].toString()).to.equal(
+                vestingCreationType.toString()
+            );
+            expect(await vesting.isTeamVesting(vestingAddr)).to.equal(false);
+
             expect(await vesting.isVestingAdress(vestingAddr)).equal(true);
             assert.notEqual(vestingAddr, ZERO_ADDRESS, "Vesting Address should not be zero.");
         });
@@ -590,28 +605,38 @@ contract("VestingRegistryLogic", (accounts) => {
 
             let cliff = TEAM_VESTING_CLIFF;
             let duration = TEAM_VESTING_DURATION;
-            let vestingType = new BN(3); //Team Salary
+            let vestingType = new BN(0); //TeamVesting
+            let vestingCreationType = new BN(3); //Team Salary
             let tx = await vesting.createTeamVesting(
                 account2,
                 amount,
                 cliff,
                 duration,
-                vestingType
+                vestingCreationType
             );
             let vestingAddress = await vesting.getTeamVesting(
                 account2,
                 cliff,
                 duration,
-                vestingType
+                vestingCreationType
             );
+            let vestingCreationAndType = await vesting.vestingCreationAndTypes(vestingAddress);
+            expect(await vestingCreationAndType["isSet"]).to.equal(true);
             expect(await vesting.isVestingAdress(vestingAddress)).equal(true);
+            expect(await vestingCreationAndType["vestingType"].toString()).to.equal(
+                vestingType.toString()
+            );
+            expect(await vestingCreationAndType["vestingCreationType"].toString()).to.equal(
+                vestingCreationType.toString()
+            );
+            expect(await vesting.isTeamVesting(vestingAddress)).to.equal(true);
             expectEvent(tx, "TeamVestingCreated", {
                 tokenOwner: account2,
                 vesting: vestingAddress,
                 cliff: cliff,
                 duration: duration,
                 amount: amount,
-                vestingCreationType: vestingType,
+                vestingCreationType: vestingCreationType,
             });
             let tx2 = await vesting.stakeTokens(vestingAddress, amount);
             expectEvent(tx2, "TokensStaked", {
@@ -623,8 +648,6 @@ contract("VestingRegistryLogic", (accounts) => {
 
             let vestingAddr = await VestingLogic.at(vestingAddress);
             await checkVesting(vestingAddr, account2, cliff, duration, amount);
-
-            await expectRevert(vestingAddr.governanceWithdrawTokens(account2), "unauthorized");
 
             let proxy = await UpgradableProxy.at(vestingAddress);
             await expectRevert(proxy.setImplementation(account2), "revert");
@@ -843,6 +866,90 @@ contract("VestingRegistryLogic", (accounts) => {
     describe("isVestingAdress", () => {
         it("should return false if the address isn't a vesting address", async () => {
             expect(await vesting.isVestingAdress(account1)).equal(false);
+        });
+    });
+
+    describe("registerVestingToVestingCreationAndTypes", () => {
+        it("isTeamVesting should return false for unregistered vesting", async () => {
+            expect(await vesting.isTeamVesting(account2)).to.equal(false);
+            let vestingCreationAndType = await vesting.vestingCreationAndTypes(account2);
+            expect(await vestingCreationAndType["isSet"]).to.equal(false);
+            expect((await vestingCreationAndType["vestingType"]).toString()).to.equal(
+                new BN(0).toString()
+            );
+            expect((await vestingCreationAndType["vestingCreationType"]).toString()).to.equal(
+                new BN(0).toString()
+            );
+        });
+
+        it("fails if sender isn't the owner", async () => {
+            const sampleVesting = account2;
+            const vestingType = new BN(0); // TeamVesting
+            const vestingCreationType = new BN(3);
+            const vestingCreationAndTypes = {
+                isSet: true,
+                vestingType: vestingType.toString(),
+                vestingCreationType: vestingCreationType.toString(),
+            };
+            await expectRevert(
+                vesting.registerVestingToVestingCreationAndTypes(
+                    [sampleVesting],
+                    [vestingCreationAndTypes],
+                    { from: account2 }
+                ),
+                "unauthorized"
+            );
+            expect(await vesting.isTeamVesting(account2)).to.equal(false);
+        });
+
+        it("should be able to registerVestingToVestingCreationAndTypes (Team Vesting)", async () => {
+            const sampleVesting = account2;
+            const vestingType = new BN(0); // TeamVesting
+            const vestingCreationType = new BN(3);
+            const vestingCreationAndTypes = {
+                isSet: true,
+                vestingType: vestingType.toString(),
+                vestingCreationType: vestingCreationType.toString(),
+            };
+            await vesting.registerVestingToVestingCreationAndTypes(
+                [sampleVesting],
+                [vestingCreationAndTypes]
+            );
+
+            let vestingCreationAndType = await vesting.vestingCreationAndTypes(sampleVesting);
+            expect(await vestingCreationAndType["isSet"]).to.equal(true);
+            expect(await vestingCreationAndType["vestingType"].toString()).to.equal(
+                vestingType.toString()
+            );
+            expect(await vestingCreationAndType["vestingCreationType"].toString()).to.equal(
+                vestingCreationType.toString()
+            );
+            expect(await vesting.isTeamVesting(sampleVesting)).to.equal(true);
+        });
+
+        it("should be able to registerVestingToVestingCreationAndTypes (Normal Vesting)", async () => {
+            const sampleVesting = account2;
+            const vestingType = new BN(1); // Normal vesting
+            const vestingCreationType = new BN(3);
+            const vestingCreationAndTypes = {
+                isSet: true,
+                vestingType: vestingType.toString(),
+                vestingCreationType: vestingCreationType.toString(),
+            };
+            await vesting.registerVestingToVestingCreationAndTypes(
+                [sampleVesting],
+                [vestingCreationAndTypes]
+            );
+
+            let vestingCreationAndType = await vesting.vestingCreationAndTypes(sampleVesting);
+            expect(await vestingCreationAndType["isSet"]).to.equal(true);
+            expect(await vestingCreationAndType["vestingType"].toString()).to.equal(
+                vestingType.toString()
+            );
+            expect(await vestingCreationAndType["vestingCreationType"].toString()).to.equal(
+                vestingCreationType.toString()
+            );
+            expect(await vesting.isTeamVesting(sampleVesting)).to.equal(false);
         });
     });
 

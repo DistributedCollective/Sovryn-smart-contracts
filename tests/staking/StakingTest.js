@@ -28,6 +28,7 @@ const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const StakingAdminModule = artifacts.require("StakingAdminModule");
 const StakingVestingModule = artifacts.require("StakingVestingModule");
+const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
@@ -630,6 +631,43 @@ contract("Staking", (accounts) => {
                     }
                 );
             }
+        });
+    });
+
+    describe("maxWithdrawIterations", async () => {
+        it("should set maxWithdrawIterations", async () => {
+            const oldMaxWithdrawIterations = await staking.getMaxVestingWithdrawIterations();
+            const newMaxWithdrawIterations = new BN(20);
+            const tx = await staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations);
+            expect((await staking.getMaxVestingWithdrawIterations()).toString()).to.equal(
+                newMaxWithdrawIterations.toString()
+            );
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingWithdrawModule,
+                "MaxVestingWithdrawIterationsUpdated",
+                {
+                    oldMaxIterations: oldMaxWithdrawIterations.toString(),
+                    newMaxIterations: newMaxWithdrawIterations.toString(),
+                }
+            );
+        });
+
+        it("should fail if unauthorized", async () => {
+            const newMaxWithdrawIterations = 20;
+            await expectRevert(
+                staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations, { from: a1 }),
+                "unauthorized"
+            );
+        });
+
+        it("should fail for 0 max iterations maxWithdrawIterations", async () => {
+            const newMaxWithdrawIterations = 0;
+            await expectRevert(
+                staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations),
+                "Invalid max iterations"
+            );
         });
     });
 

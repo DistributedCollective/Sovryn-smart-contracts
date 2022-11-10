@@ -24,6 +24,7 @@ const TOTAL_SUPPLY = "10000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
 const ONE_ETHER = "1000000000000000000";
 
+const maxWithdrawIterations = 50;
 const increaseTimeEthers = async (time) => {
     await ethers.provider.send("evm_increaseTime", [time]);
     await ethers.provider.send("evm_mine");
@@ -64,6 +65,7 @@ contract("FourYearVesting", (accounts) => {
 
         console.log(`staking owner: ${await staking.owner()}`);
         await staking.setVestingRegistry(vestingReg.address);
+        await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
         await token.transfer(a2, "1000");
         await token.approve(staking.address, "1000", { from: a2 });
@@ -619,6 +621,7 @@ contract("FourYearVesting", (accounts) => {
                 52 * WEEK
             );
             vesting = await VestingLogic.at(vesting.address);
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
             await token.approve(vesting.address, toStake);
             let remainingStakeAmount = ONE_MILLON;
@@ -786,7 +789,7 @@ contract("FourYearVesting", (accounts) => {
             await expectRevert(vesting.withdrawTokens(root, { from: a2 }), "unauthorized");
         });
 
-        it("shouldn't be possible to use governanceWithdrawVesting by anyone but owner", async () => {
+        it("shouldn't be possible to use cancelTeamVesting by anyone but owner", async () => {
             let toStake = ONE_MILLON;
 
             // Stake
@@ -810,7 +813,7 @@ contract("FourYearVesting", (accounts) => {
             }
 
             await expectRevert(
-                staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }),
+                staking.cancelTeamVesting(vesting.address, root, 0, { from: a1 }),
                 "unauthorized"
             );
         });
@@ -1063,6 +1066,8 @@ contract("FourYearVesting", (accounts) => {
         it("should withdraw unlocked tokens for four year vesting after first year", async () => {
             // time travel
             await increaseTimeEthers(104 * WEEK);
+
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
             // withdraw
             tx = await vesting.withdrawTokens(root);

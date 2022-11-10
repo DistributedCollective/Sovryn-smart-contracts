@@ -384,8 +384,6 @@ contract("VestingRegistry", (accounts) => {
             let vestingAddress = await vestingRegistry.getVesting(account2);
             let vesting = await VestingLogic.at(vestingAddress);
             await checkVesting(vesting, account2, cliff, duration, amount);
-
-            await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
         });
 
         it("should be able to exchange CSOV partially", async () => {
@@ -421,8 +419,6 @@ contract("VestingRegistry", (accounts) => {
             let vestingAddress = await vestingRegistry.getVesting(account2);
             let vesting = await VestingLogic.at(vestingAddress);
             await checkVesting(vesting, account2, cliff, duration, amount);
-
-            await expectRevert(vesting.governanceWithdrawTokens(account2), "revert");
         });
 
         it("fails if trying to withdraw second time", async () => {
@@ -504,11 +500,6 @@ contract("VestingRegistry", (accounts) => {
             let vesting = await VestingLogic.at(vestingAddress);
             await checkVesting(vesting, account2, cliff, duration, amount);
 
-            await expectRevert(
-                vesting.governanceWithdrawTokens(account2),
-                "operation not supported"
-            );
-
             let proxy = await UpgradableProxy.at(vestingAddress);
             await expectRevert(proxy.setImplementation(account2), "revert");
         });
@@ -576,8 +567,6 @@ contract("VestingRegistry", (accounts) => {
 
             let vesting = await VestingLogic.at(vestingAddress);
             await checkVesting(vesting, account2, cliff, duration, amount);
-
-            await expectRevert(vesting.governanceWithdrawTokens(account2), "unauthorized");
 
             let proxy = await UpgradableProxy.at(vestingAddress);
             await expectRevert(proxy.setImplementation(account2), "revert");

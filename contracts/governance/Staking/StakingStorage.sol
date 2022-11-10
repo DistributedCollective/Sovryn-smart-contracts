@@ -126,8 +126,7 @@ contract StakingStorage is Ownable {
     mapping(address => bool) public vestingWhitelist;
 
     /// @dev user => flag whether user has admin role.
-    /// @dev multisig should be an admin, admin can invoke only governanceWithdrawVesting function,
-    /// 	this function works only with Team Vesting contracts
+    /// @dev used for administrative tasks not requiring governance approval and SIP; meant to be dedicated multisig(s)
     mapping(address => bool) public admins;
 
     /// @dev vesting contract code hash => flag whether it's registered code hash
@@ -152,4 +151,17 @@ contract StakingStorage is Ownable {
 
     /// @dev Staking contract is frozen
     bool public frozen;
+
+    /// @dev max iterations that can be supported in 1 tx for the withdrawal
+    uint256 internal maxVestingWithdrawIterations;
+
+    /// @dev Struct for vesting cancelling by governance - to avoid stack too deep issue
+    struct VestingConfig {
+        address vestingAddress;
+        uint256 startDate;
+        uint256 endDate;
+        uint256 cliff;
+        uint256 duration;
+        address tokenOwner;
+    }
 }

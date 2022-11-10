@@ -13,6 +13,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
     using SafeMath for uint256;
 
     uint256 internal constant FOUR_WEEKS = 4 weeks;
+
     /**
      * @dev Throws if paused.
      */

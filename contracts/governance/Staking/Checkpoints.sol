@@ -45,9 +45,6 @@ contract Checkpoints is StakingStorage, SafeMath96 {
         bool isGovernance
     );
 
-    /// @notice An event emitted when vesting tokens get withdrawn.
-    event VestingTokensWithdrawn(address vesting, address receiver);
-
     /// @notice An event emitted when the owner unlocks all tokens.
     event TokensUnlocked(uint256 amount);
 
@@ -80,6 +77,16 @@ contract Checkpoints is StakingStorage, SafeMath96 {
     event ContractCodeHashRemoved(bytes32 hash);
 
     event VestingStakeSet(uint256 lockedTS, uint96 value);
+
+    event TeamVestingCancelled(address indexed caller, address receiver);
+
+    event TeamVestingPartiallyCancelled(
+        address indexed caller,
+        address receiver,
+        uint256 lastProcessedDate
+    );
+
+    event MaxVestingWithdrawIterationsUpdated(uint256 oldMaxIterations, uint256 newMaxIterations);
 
     /**
      * @notice Increases the user's vesting stake for a giving lock date and writes a checkpoint.

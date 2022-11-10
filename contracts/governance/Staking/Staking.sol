@@ -336,21 +336,82 @@ contract Staking is
     }
 
     /**
-     * @notice Withdraw tokens for vesting contract.
-     * @param vesting The address of Vesting contract.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
-     * */
-    function governanceWithdrawVesting(address vesting, address receiver)
-        public
-        onlyAuthorized
-        whenNotFrozen
-    {
-        vestingWhitelist[vesting] = true;
-        ITeamVesting(vesting).governanceWithdrawTokens(receiver);
-        vestingWhitelist[vesting] = false;
+     * @notice Governance withdraw vesting directly through staking contract.
+     * This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing.
+     * This function only allows cancelling vesting contract of the TeamVesting type.
+     *
+     * @param vesting The vesting address.
+     * @param receiver The receiving address.
+     * @param startFrom The start value for the iterations.
+     */
+    function cancelTeamVesting(
+        address vesting,
+        address receiver,
+        uint256 startFrom
+    ) external onlyAuthorized whenNotFrozen {
+        /// require the caller only for team vesting contract.
+        require(vestingRegistryLogic.isTeamVesting(vesting), "Only team vesting allowed");
 
-        emit VestingTokensWithdrawn(vesting, receiver);
+        _cancelTeamVesting(vesting, receiver, startFrom);
+    }
+
+    /**
+     * @notice Withdraws tokens from the staking contract and forwards them
+     * to an address specified by the token owner. Low level function.
+     * @dev Once here the caller permission is taken for granted.
+     * @param _vesting The vesting address.
+     * @param _receiver The receiving address.
+     * @param _startFrom The start value for the iterations.
+     * or just unlocked tokens (false).
+     * */
+    function _cancelTeamVesting(
+        address _vesting,
+        address _receiver,
+        uint256 _startFrom
+    ) private {
+        require(_receiver != address(0), "receiver address invalid");
+
+        ITeamVesting teamVesting = ITeamVesting(_vesting);
+
+        VestingConfig memory vestingConfig =
+            VestingConfig(
+                _vesting,
+                teamVesting.startDate(),
+                teamVesting.endDate(),
+                teamVesting.cliff(),
+                teamVesting.duration(),
+                teamVesting.tokenOwner()
+            );
+
+        /// @dev In the unlikely case that all tokens have been unlocked early,
+        /// allow to withdraw all of them, as long as the itrations less than maxVestingWithdrawIterations.
+        uint256 end = vestingConfig.endDate;
+
+        uint256 defaultStart = vestingConfig.startDate + vestingConfig.cliff;
+
+        _startFrom = _startFrom >= defaultStart ? _startFrom : defaultStart;
+
+        /// @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
+        uint256 totalIterationValue =
+            (_startFrom + (TWO_WEEKS * (getMaxVestingWithdrawIterations() - 1)));
+        uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
+
+        /// @dev Withdraw for each unlocked position.
+        for (uint256 i = _startFrom; i <= adjustedEnd; i += TWO_WEEKS) {
+            /// @dev Read amount to withdraw.
+            uint96 tempStake = _getPriorUserStakeByDate(_vesting, i, block.number - 1);
+
+            if (tempStake > 0) {
+                /// @dev do governance direct withdraw for team vesting
+                _withdrawFromTeamVesting(tempStake, i, _receiver, vestingConfig);
+            }
+        }
+
+        if (adjustedEnd < end) {
+            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd);
+        } else {
+            emit TeamVestingCancelled(msg.sender, _receiver);
+        }
     }
 
     /**
@@ -378,7 +439,7 @@ contract Staking is
             return;
         }
         until = _adjustDateForOrigin(until);
-        _validateWithdrawParams(amount, until);
+        _validateWithdrawParams(msg.sender, amount, until);
 
         /// @dev Determine the receiver.
         if (receiver == address(0)) receiver = msg.sender;
@@ -406,9 +467,54 @@ contract Staking is
 
         /// @dev transferFrom
         bool success = SOVToken.transfer(receiver, amount);
-        require(success, "S09"); // Token transfer failed
+        require(success, "Token transfer failed"); // S09
 
         emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
+    }
+
+    /**
+     * @notice Send user' staked tokens to a receiver.
+     * This function is dedicated only for direct withdrawal from staking contract.
+     * Currently only being used by cancelTeamVesting()
+     *
+     * @param amount The number of tokens to withdraw.
+     * @param until The date until which the tokens were staked.
+     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender.
+     * @param vestingConfig The vesting config.
+     * @dev VestingConfig struct intended to avoid stack too deep issue, and it contains this properties:
+        address vestingAddress; // vesting contract address
+        uint256 startDate; //start date of vesting
+        uint256 endDate; // end date of vesting
+        uint256 cliff; // after this time period the tokens begin to unlock
+        uint256 duration; // after this period all the tokens will be unlocked
+        address tokenOwner; // owner of the vested tokens
+     * */
+    function _withdrawFromTeamVesting(
+        uint96 amount,
+        uint256 until,
+        address receiver,
+        VestingConfig memory vestingConfig
+    ) internal {
+        address vesting = vestingConfig.vestingAddress;
+
+        until = _adjustDateForOrigin(until);
+        _validateWithdrawParams(vesting, amount, until);
+
+        /// @dev Determine the receiver.
+        if (receiver == address(0)) receiver = msg.sender;
+
+        /// @dev Update the checkpoints.
+        _decreaseDailyStake(until, amount);
+        _decreaseUserStake(vesting, until, amount);
+
+        _decreaseVestingStake(until, amount);
+        _decreaseDelegateStake(delegates[vesting][until], until, amount);
+
+        /// @dev transferFrom
+        bool success = SOVToken.transfer(receiver, amount);
+        require(success, "Token transfer failed"); // S09
+
+        emit StakingWithdrawn(vesting, amount, until, receiver, true);
     }
 
     // @dev withdraws tokens for lock date 2 weeks later than given lock date
@@ -438,7 +544,7 @@ contract Staking is
         view
         returns (uint96, uint96)
     {
-        _validateWithdrawParams(amount, until);
+        _validateWithdrawParams(msg.sender, amount, until);
         uint96 punishedAmount = _getPunishedAmount(amount, until);
         return (amount - punishedAmount, punishedAmount);
     }
@@ -457,12 +563,17 @@ contract Staking is
 
     /**
      * @notice Validate withdraw parameters.
+     * @param account Address to be validated.
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
      * */
-    function _validateWithdrawParams(uint96 amount, uint256 until) internal view {
+    function _validateWithdrawParams(
+        address account,
+        uint96 amount,
+        uint256 until
+    ) internal view {
         require(amount > 0, "S10"); // Amount of tokens to withdraw must be > 0
-        uint96 balance = _getPriorUserStakeByDate(msg.sender, until, block.number - 1);
+        uint96 balance = _getPriorUserStakeByDate(account, until, block.number - 1);
         require(amount <= balance, "S11"); // Staking::withdraw: not enough balance
     }
 
@@ -811,5 +922,25 @@ contract Staking is
             userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock !=
                 block.number;
         require(notSameBlock, "S20"); //S20 : "cannot be mined in the same block as last stake"
+    }
+
+    /**
+     * @notice Max iteration for direct withdrawal from staking to prevent out of gas issue.
+     *
+     * @return max iteration value.
+     */
+    function getMaxVestingWithdrawIterations() public view returns (uint256) {
+        return maxVestingWithdrawIterations;
+    }
+
+    /**
+     * @dev set max withdraw iterations.
+     *
+     * @param newMaxIterations new max iterations value.
+     */
+    function setMaxVestingWithdrawIterations(uint256 newMaxIterations) external onlyAuthorized {
+        require(newMaxIterations > 0, "Invalid max iterations");
+        emit MaxVestingWithdrawIterationsUpdated(maxVestingWithdrawIterations, newMaxIterations);
+        maxVestingWithdrawIterations = newMaxIterations;
     }
 }

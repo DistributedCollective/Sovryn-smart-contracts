@@ -57,8 +57,17 @@ contract StakingStorageModule is IFunctionsList, StakingStorageShared {
         return name;
     }
 
+    /**
+     * @notice Max iteration for direct withdrawal from staking to prevent out of gas issue.
+     *
+     * @return max iteration value.
+     */
+    function getMaxVestingWithdrawIterations() public view returns (uint256) {
+        return maxVestingWithdrawIterations;
+    }
+
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](31);
+        bytes4[] memory functionsList = new bytes4[](32);
         functionsList[0] = this.getStorageMaxDurationToStakeTokens.selector;
         functionsList[1] = this.getStorageMaxVotingWeight.selector;
         functionsList[2] = this.getStorageWeightFactor.selector;
@@ -90,6 +99,7 @@ contract StakingStorageModule is IFunctionsList, StakingStorageShared {
         functionsList[28] = this.pausers.selector;
         functionsList[29] = this.paused.selector;
         functionsList[30] = this.frozen.selector;
+        functionsList[31] = this.getMaxVestingWithdrawIterations.selector;
 
         return functionsList;
     }

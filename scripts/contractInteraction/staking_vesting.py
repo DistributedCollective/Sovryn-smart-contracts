@@ -3,8 +3,11 @@ from brownie.network.contract import InterfaceContainer
 import json
 import time
 import copy
+import math
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
+import eth_abi
+
 
 def sendSOVFromVestingRegistry():
     amount = 307470805 * 10**14
@@ -466,11 +469,33 @@ def updateLockedSOV():
     # sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
 
 #receiver is usually the multisig
-def governanceWithdrawVesting( vesting,  receiver):
+def governanceDirectWithdrawVesting( vesting,  receiver):
     stakingProxy = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
-    data = stakingProxy.governanceWithdrawVesting.encode_input( vesting,  receiver)
-    print(data)
-    sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
+    vesting = Contract.from_abi("VestingLogic", address=vesting, abi=VestingLogic.abi, owner=conf.acct)
+
+    DAY = 24 * 60 * 60
+    TWO_WEEKS = 2 * 7 * DAY
+
+    vestingStartDate = vesting.startDate()
+    vestingEnd = vesting.endDate()
+    vestingCliff = vesting.cliff()
+    defaultStart = vestingStartDate + vestingCliff
+
+    maxIterations = stakingProxy.getMaxVestingWithdrawIterations()
+    maxIterationsEnd = defaultStart + (TWO_WEEKS * maxIterations)
+
+    counter = 1
+
+    if vestingEnd > maxIterationsEnd:
+        counter = math.ceil(maxIterationsEnd / vestingEnd)
+
+    startFrom = defaultStart
+
+    for x in range(counter):
+        data = stakingProxy.governanceDirectWithdrawVesting.encode_input( vesting,  receiver, startFrom)
+        print(data)
+        sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
+        startFrom = startFrom + (maxIterations * TWO_WEEKS)
 
 def transferStakingOwnershipToGovernance():
     print("Add staking admin for address: ", conf.contracts['TimelockAdmin'])
@@ -514,6 +539,26 @@ def addVestingCodeHash(vestingLogic):
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.addContractCodeHash.encode_input(vestingLogic)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
+# addresses is vesting addresses that will be set
+# vestingCreationAndTypes is the array of VestingCreationAndTypeDetail struct
+# struct VestingCreationAndTypeDetail {
+#         bool isSet;
+#         uint32 vestingType;
+#         uint128 vestingCreationType;
+#     }
+# make sure the length of addresses & vestingCreationAndTypeDetails is the same
+def registerVestingToVestingCreationAndTypes(addresses, vestingCreationAndTypeDetails):
+    if len(addresses) != len(vestingCreationAndTypeDetails):
+        raise Exception("umatched length of array between addresses & vestingCreationAndTypeDetails")
+
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    data = vestingRegistry.registerVestingToVestingCreationAndTypes.encode_input(addresses, vestingCreationAndTypeDetails)
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+def getVestingCreationAndTypes(vestingAddress):
+    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    print(vestingRegistry.vestingCreationAndTypes(vestingAddress))
 
 def readTokenOwner(vestingAddress):
     vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)

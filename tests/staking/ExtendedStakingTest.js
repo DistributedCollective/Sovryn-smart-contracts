@@ -87,6 +87,8 @@ const DELAY = 86400 * 14;
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
+const maxWithdrawIterations = 10;
+
 contract("Staking", (accounts) => {
     let root, account1, account2;
     let token, SUSD, WRBTC, staking;
@@ -131,6 +133,8 @@ contract("Staking", (accounts) => {
         const contracts = await initWeightedStakingModulesMockup(token.address);
         staking = contracts.staking;
         iWeightedStakingModuleMockup = contracts.iWeightedStakingModuleMockup;
+
+        await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
         // Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
@@ -623,6 +627,18 @@ contract("Staking", (accounts) => {
                 root,
                 lockedTS,
                 new BN(block.number).sub(new BN(2))
+            );
+            expect(priorStake).to.be.bignumber.equal(new BN(0));
+        });
+
+        it("getPriorUserStakeByDate non direct withdraw vesting should return 0 for empty prior stake", async () => {
+            let duration = new BN(TWO_WEEKS).mul(new BN(2));
+            let lockedTS = await getTimeFromKickoff(duration);
+            let block = await web3.eth.getBlock("latest");
+            let priorStake = await staking.getPriorUserStakeByDate.call(
+                root,
+                lockedTS,
+                new BN(block.number - 1)
             );
             expect(priorStake).to.be.bignumber.equal(new BN(0));
         });
@@ -1527,6 +1543,7 @@ async function createVestingContractWithSingleDate(cliff, amount, token, staking
     vestingInstance = await VestingLogic.at(vestingInstance.address);
     //important, so it's recognized as vesting contract
     await staking.addContractCodeHash(vestingInstance.address);
+    await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
     await token.approve(vestingInstance.address, amount);
     let result = await vestingInstance.stakeTokens(amount);

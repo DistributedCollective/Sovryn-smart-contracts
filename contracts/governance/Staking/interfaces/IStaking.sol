@@ -580,14 +580,6 @@ interface IStaking {
     ) external;
 
     /**
-     * @notice Withdraw tokens for vesting contract.
-     * @param vesting The address of Vesting contract.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
-     * */
-    function governanceWithdrawVesting(address vesting, address receiver) external;
-
-    /**
      * @notice Get available and punished amount for withdrawing.
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
@@ -679,4 +671,33 @@ interface IStaking {
      * Can only be called by the current owner.
      */
     function transferOwnership(address newOwner) external;
+
+    /**
+     * @notice Governance withdraw vesting directly through staking contract.
+     * This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing.
+     * This function only allows cancelling vesting contract of the TeamVesting type.
+     *
+     * @param vesting The vesting address.
+     * @param receiver The receiving address.
+     * @param startFrom The start value for the iterations.
+     */
+    function cancelTeamVesting(
+        address vesting,
+        address receiver,
+        uint256 startFrom
+    ) external;
+
+    /**
+     * @notice Max iteration for direct withdrawal from staking to prevent out of gas issue.
+     *
+     * @return max iteration value.
+     */
+    function getMaxVestingWithdrawIterations() external view returns (uint256);
+
+    /**
+     * @dev set max withdraw iterations.
+     *
+     * @param maxIterations new max iterations value.
+     */
+    function setMaxVestingWithdrawIterations(uint256 maxIterations) external;
 }
