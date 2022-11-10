@@ -1,22 +1,29 @@
 from brownie import *
-from brownie.network.contract import InterfaceContainer
 import json
-import time;
-import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 
 def getBalance(contractAddress, acct):
     contract = Contract.from_abi("Token", address=contractAddress, abi=LoanToken.abi, owner=conf.acct)
     balance = contract.balanceOf(acct)
-    print(balance)
+    print(balance/1e18)
     return balance
+
+def getContractBTCBalance(contractAddress):
+     contract = Contract.from_abi("Token", address=contractAddress, abi=LoanToken.abi, owner=conf.acct)
+     return contract.balance()
     
 def buyWRBTC(amount):
     contract = Contract.from_abi("WRBTC", address=conf.contracts["WRBTC"], abi=WRBTC.abi, owner=conf.acct)
     tx = contract.deposit({'value':amount})
     tx.info()
     print("New balance: ", contract.balanceOf(conf.acct))
+
+def buyWRBTCWithMS(amount):
+    contract = Contract.from_abi("WRBTC", address=conf.contracts["WRBTC"], abi=WRBTC.abi, owner=conf.acct)
+    data = contract.deposit.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], contract, data, conf.acct, amount)
+
 
 def hasApproval(tokenContractAddr, sender, receiver):
     tokenContract = Contract.from_abi("Token", address=tokenContractAddr, abi=TestToken.abi, owner=sender)
@@ -69,3 +76,12 @@ def getBalanceOf(contractAddress, acct):
     balance = contract.balanceOf(acct)
     print(balance)
     return balance
+
+def getTotalSupply(contractAddress):
+    contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=conf.acct)
+    balance = contract.totalSupply()
+    print(balance)
+    return balance
+
+def deployTestTokenLimited(name, symbol):
+    token = conf.acct.deploy(TestTokenLimited, name, symbol, 18, 100000e18)

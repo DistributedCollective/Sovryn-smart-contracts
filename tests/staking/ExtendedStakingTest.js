@@ -543,7 +543,6 @@ contract("Staking", (accounts) => {
                 "method is not allowed"
             );
         });
-        //TODO: resume when refactored to resolve EIP-170 contract size issue
         it("fails if wrong sender passed in data", async () => {
             let amount = "100";
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
@@ -561,7 +560,6 @@ contract("Staking", (accounts) => {
             );
         });
 
-        //TODO: resume when refactored to resolve EIP-170 contract size issue
         it("fails if wrong amount passed in data", async () => {
             let amount = "100";
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
@@ -719,6 +717,36 @@ contract("Staking", (accounts) => {
                 staking.extendStakingDuration(lockedTS, newTime),
                 "must increase staking duration"
             ); // S04 : cannot reduce staking duration
+        });
+
+        it("Is protected from getting unlimited voting power by using corner case values in extendStakingDuration function", async () => {
+            let amount = 1000;
+            let newTime = ethers.constants.MaxUint256;
+
+            const until = await staking.timestampToLockDate(
+                new BN((await ethers.provider.getBlock()).timestamp + 1).add(
+                    new BN(await staking.MAX_DURATION())
+                )
+            );
+
+            await staking.stake(amount, until, root, root);
+
+            await mineBlock();
+
+            const startVotes = await staking.getCurrentVotes(root);
+            // Trying to increase voting power arbitrary by passing the edge values
+            for (let i = 0; i < 10; i++) {
+                await expectRevert(
+                    staking.extendStakingDuration(until, newTime),
+                    "must increase staking duration"
+                ); // S04 : cannot reduce or have the same staking duration
+                await staking.delegate(root, until);
+            }
+            const endVotes = await staking.getCurrentVotes(root);
+            expect(
+                startVotes - endVotes == 0,
+                `Voting power invalid incease - startVotes: ${startVotes.toString()}, endVotes: ${endVotes.toString()}`
+            ).to.be.true;
         });
 
         it("Do not exceed the max duration", async () => {

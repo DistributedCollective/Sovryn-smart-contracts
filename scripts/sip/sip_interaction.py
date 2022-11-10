@@ -8,6 +8,7 @@ from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
 import time
+#import scripts.contractInteraction.config as conf
 
 def main():
 
@@ -22,6 +23,7 @@ def main():
     # Call the function you want here
 
     createProposalSIP0049()
+    #createProposalSIP0050()
 
     balanceAfter = acct.balance()
 
@@ -48,6 +50,7 @@ def loadConfig():
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet-dev":
         acct = accounts.load("rskdeployerdev")
+        print("acct:", acct)
         configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
@@ -453,8 +456,28 @@ def createProposalSIP0049():
     print(description)
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
+
+def createProposalSIP0050():    
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setImplementation(address)"]
+    if(contracts['StakingLogic8'] == '' or bytes.hex(web3.eth.getCode(contracts['StakingLogic8'])) == ''):
+        raise Exception("check the new Staking contract implementation address")
+    data = staking.setImplementation.encode_input(contracts['StakingLogic8'])
+    datas = ["0x" + data[10:]]
+    description = "SIP-0050: Critical staking vulnerability fix, Details: https://github.com/DistributedCollective/SIPS/blob/c787752/SIP-0050.md, sha256: 75b0dd906e4b9f4fbf28c6b1c500f7390a9496cba07172ff962cb2fd0d9c098f"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
 # SIP to set the max vesting withdraw iterations in staking contract
-def createProposalSIP0050():
+def createProposalSIP005x():
     maxWithdrawIterations = 50 # need to be changed by referring to the SIP-050
     staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
 
@@ -464,11 +487,12 @@ def createProposalSIP0050():
     signatures = ["setMaxVestingWithdrawIterations(uint256)"]
     data = staking.setMaxVestingWithdrawIterations.encode_input(maxWithdrawIterations)
     datas = ["0x" + data[10:]]
-    # TODO finalized the details with github link & checksum
-    description = "SIP-0050: Set max vesting withdraw iterations"
+    # TODO finalize the details with github link & checksum
+    description = "SIP-005x: Set max vesting withdraw iterations"
 
-    # Create Proposal
+     # Create Proposal
     print(signatures)
     print(datas)
     print(description)
-    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+    #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)

@@ -43,6 +43,7 @@ const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
 const IV1PoolOracle = artifacts.require("IV1PoolOracle");
+const mutexUtils = require("../reentrancy/utils");
 
 const {
     getSUSD,
@@ -82,6 +83,8 @@ contract("Affiliates", (accounts) => {
     let referrerFee;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
         const provider = waffle.provider;
         [senderMock] = provider.getWallets();
 

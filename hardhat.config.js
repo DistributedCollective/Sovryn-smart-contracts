@@ -115,8 +115,11 @@ module.exports = {
         localhost: {
             allowUnlimitedContractSize: true,
             url: "http://localhost:8545",
-            saveDeployments: true,
-            live: true,
+        },
+        localhost: {
+            url: "http://127.0.0.1:8545/",
+            allowUnlimitedContractSize: true,
+            initialBaseFeePerGas: 0,
         },
         rskPublicTestnet: {
             url: "https://public-node.testnet.rsk.co/",

@@ -40,6 +40,7 @@
 		"chai-as-promised": "^7.1.1",
 		"chai-string": "^1.5.0",
 		"coveralls": "^3.1.0",
+		"cross-env": "^7.0.3",
 		"decimal.js": "10.2.0",
 		"dirty-chai": "^2.0.1",
 		"eslint": "^7.21.0",
@@ -86,6 +87,7 @@
 		"fees-withdraw": "brownie run rewards_cron",
 		"set-block": "brownie run setBlock_cron",
 		"fork:rsk-mainnet": "hardhat node --fork https://mainnet.sovryn.app/rpc",
+		"fork:rsk-mainnet-at-block": "cross-env IS_FORKED=1 && hardhat node --fork https://mainnet.sovryn.app/rpc --fork-block-number 4690000",
 		"fork:rsk-testnet": "hardhat node --fork https://testnet.sovryn.app/rpc"
 	},
 	"husky": {

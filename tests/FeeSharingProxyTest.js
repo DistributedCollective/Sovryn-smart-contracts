@@ -93,6 +93,7 @@ const MOCK_PRIOR_WEIGHTED_STAKE = false;
 const wei = web3.utils.toWei;
 
 const { lend_btc_before_cashout } = require("./loan-token/helpers");
+const mutexUtils = require("./reentrancy/utils");
 
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
@@ -135,6 +136,9 @@ contract("FeeSharingProxy:", (accounts) => {
     });
 
     async function protocolDeploymentFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         // Token
         SOVToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 

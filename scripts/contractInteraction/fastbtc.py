@@ -1,8 +1,5 @@
 from brownie import *
-from brownie.network.contract import InterfaceContainer
 import json
-import time;
-import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 
@@ -37,3 +34,47 @@ def loadFastBTC():
     abiFile =  open('./scripts/contractInteraction/ABIs/FastBTC.json')
     abi = json.load(abiFile)
     return Contract.from_abi("FastBTC", address = conf.contracts['FastBTC'], abi = abi, owner = conf.acct)
+
+
+
+
+def addPauser(address):
+    abiFile =  open('./scripts/contractInteraction/ABIs/FastBTCAccessControl.json')
+    abi = json.load(abiFile)
+    fastBTC = Contract.from_abi("FastBTC", address = conf.contracts['FastBTCAccessControl'], abi = abi, owner = conf.acct)
+    data = fastBTC.addPauser.encode_input(address)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+    
+def isBiDiFastBTCPaused():
+    fastBTC = loadBiDiFastBTC()
+    print('FastBTCBiDi paused:', fastBTC.paused())
+
+def pauseBiDiFastBTC():
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.pause.encode_input()
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def unpauseBiDiFastBTC():
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.unpause.encode_input()
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def isBiDiFastBTCFrozen():
+    fastBTC = loadBiDiFastBTC()
+    print('FastBTCBiDi frozen:', fastBTC.frozen())
+
+def freezeBiDiFastBTC():
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.freeze.encode_input()
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def unfreezeBiDiFastBTC():
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.unfreeze.encode_input()
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+

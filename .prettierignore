@@ -21,3 +21,4 @@ abi
 .pytest_cache
 *.md
 types/
+venv/

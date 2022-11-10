@@ -44,3 +44,4 @@ types/
 typechain/
 !.github/
 */deployments/localhost
+venv/

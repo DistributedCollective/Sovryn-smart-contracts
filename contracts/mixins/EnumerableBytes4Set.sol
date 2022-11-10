@@ -25,22 +25,6 @@ library EnumerableBytes4Set {
     }
 
     /**
-     * @notice Add an address value to a set. O(1).
-     *
-     * @param set The set of values.
-     * @param addrvalue The address to add.
-     *
-     * @return False if the value was already in the set.
-     */
-    function addAddress(Bytes4Set storage set, address addrvalue) internal returns (bool) {
-        bytes4 value;
-        assembly {
-            value := addrvalue
-        }
-        return addBytes4(set, value);
-    }
-
-    /**
      * @notice Add a value to a set. O(1).
      *
      * @param set The set of values.
@@ -55,22 +39,6 @@ library EnumerableBytes4Set {
         } else {
             return false;
         }
-    }
-
-    /**
-     * @notice Remove an address value from a set. O(1).
-     *
-     * @param set The set of values.
-     * @param addrvalue The address to remove.
-     *
-     * @return False if the address was not present in the set.
-     */
-    function removeAddress(Bytes4Set storage set, address addrvalue) internal returns (bool) {
-        bytes4 value;
-        assembly {
-            value := addrvalue
-        }
-        return removeBytes4(set, value);
     }
 
     /**
@@ -119,21 +87,6 @@ library EnumerableBytes4Set {
      * @return True if the value is in the set. O(1).
      */
     function contains(Bytes4Set storage set, bytes4 value) internal view returns (bool) {
-        return set.index[value] != 0;
-    }
-
-    /**
-     * @dev Returns true if the value is in the set. O(1).
-     */
-    function containsAddress(Bytes4Set storage set, address addrvalue)
-        internal
-        view
-        returns (bool)
-    {
-        bytes4 value;
-        assembly {
-            value := addrvalue
-        }
         return set.index[value] != 0;
     }
 
