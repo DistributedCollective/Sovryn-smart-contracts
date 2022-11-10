@@ -561,5 +561,5 @@ def getVestingCreationAndTypes(vestingAddress):
     print(vestingRegistry.vestingCreationAndTypes(vestingAddress))
 
 def readTokenOwner(vestingAddress):
-    vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingRegistryLogic.abi, owner=conf.acct)
+    vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
     print(vesting.tokenOwner())
