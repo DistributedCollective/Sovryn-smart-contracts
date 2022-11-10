@@ -30,6 +30,9 @@ task("accounts", "Prints the list of accounts", async () => {
     }
 });
 
+const testnetPrivateKey = process.env.TESTNET_PRIVATE_KEY;
+const mainnetPrivateKey = process.env.MAINNET_PRIVATE_KEY;
+
 /*
  * Test hardhat forking with patched hardhat
  *
@@ -123,7 +126,7 @@ module.exports = {
         },
         rskPublicTestnet: {
             url: "https://public-node.testnet.rsk.co/",
-            accounts: { mnemonic: "brownie", count: 10 },
+            accounts: [testnetPrivateKey],
             network_id: 31,
             confirmations: 4,
             gasMultiplier: 1.25,
@@ -133,11 +136,12 @@ module.exports = {
         rskPublicMainnet: {
             url: "https://public-node.rsk.co/",
             network_id: 30,
+            accounts: [mainnetPrivateKey],
             //timeout: 20000, // increase if needed; 20000 is the default value
         },
         rskSovrynTestnet: {
             url: "https://testnet.sovryn.app/rpc",
-            accounts: { mnemonic: "brownie", count: 10 },
+            accounts: [testnetPrivateKey],
             network_id: 31,
             confirmations: 4,
             gasMultiplier: 1.25,
@@ -147,6 +151,7 @@ module.exports = {
         rskSovrynMainnet: {
             url: "https://mainnet.sovryn.app/rpc",
             network_id: 30,
+            accounts: [mainnetPrivateKey],
             //timeout: 20000, // increase if needed; 20000 is the default value
         },
     },
