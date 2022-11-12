@@ -1,3 +1,4 @@
+//const { ethers } = require('hardhat');
 const { task } = require("hardhat/config");
 
 require("@nomiclabs/hardhat-ganache");
@@ -30,12 +31,12 @@ task("accounts", "Prints the list of accounts", async () => {
     }
 });
 
-const testnetAccounts = process.env.TESTNET_PRIVATE_KEY
-    ? [process.env.TESTNET_PRIVATE_KEY]
-    : { mnemonic: "brownie", count: 10 };
-const mainnetAccounts = process.env.MAINNET_PRIVATE_KEY
-    ? [process.env.MAINNET_PRIVATE_KEY]
-    : { mnemonic: "brownie", count: 10 };
+const testnetAccounts = process.env.TESTNET_DEPLOYER_PRIVATE_KEY
+    ? [process.env.TESTNET_DEPLOYER_PRIVATE_KEY]
+    : [];
+const mainnetAccounts = process.env.MAINNET_DEPLOYER_PRIVATE_KEY
+    ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY]
+    : [];
 
 /*
  * Test hardhat forking with patched hardhat
@@ -120,20 +121,24 @@ module.exports = {
             initialBaseFeePerGas: 0,
         },
         localhost: {
+            accounts: { mnemonic: "test test test test test test test test test test test junk" },
             allowUnlimitedContractSize: true,
-            url: "http://localhost:8545",
+            url: "http://127.0.0.1:8545/",
+            initialBaseFeePerGas: 0,
+            live: true,
+            saveDeployments: true,
         },
-        localhost: {
+        /*localhost: {
             url: "http://127.0.0.1:8545/",
             allowUnlimitedContractSize: true,
             initialBaseFeePerGas: 0,
-        },
+        },*/
         rskPublicTestnet: {
             url: "https://public-node.testnet.rsk.co/",
             accounts: testnetAccounts,
             network_id: 31,
             confirmations: 4,
-            gasMultiplier: 1.25,
+            gasMultiplier: 1.25, //
             //timeout: 20000, // increase if needed; 20000 is the default value
             //allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
         },
@@ -149,6 +154,7 @@ module.exports = {
             network_id: 31,
             confirmations: 4,
             gasMultiplier: 1.25,
+            tags: ["testnet"],
             //timeout: 20000, // increase if needed; 20000 is the default value
             //allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
         },
@@ -156,6 +162,7 @@ module.exports = {
             url: "https://mainnet.sovryn.app/rpc",
             network_id: 30,
             accounts: mainnetAccounts,
+            tags: ["mainnet"],
             //timeout: 20000, // increase if needed; 20000 is the default value
         },
     },
