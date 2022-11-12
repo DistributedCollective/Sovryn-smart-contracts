@@ -419,8 +419,7 @@ def createProposalSIP0048():
 def createProposalSIP0049():
 
     stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=contracts['StakingModulesProxy'], abi=StakingModulesProxy.abi, owner=acct)
-    stakingProxyRegistry = Contract.from_abi("StakingModulesProxy", address=contracts['Staking'], abi=StakingModulesProxy.abi, owner=acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=contracts['Staking'], abi=ModulesProxy.abi, owner=acct)
 
     #TODO: set modules addresses in the addresses .json
     moduleAddresses = { 
@@ -434,7 +433,7 @@ def createProposalSIP0049():
     }
     invalidModules = {}
     for module in moduleAddresses:
-        if not stakingProxyRegistry.canAddModule(moduleAddresses[module]):
+        if not stakingModulesProxy.canAddModule(moduleAddresses[module]):
             invalidModules.append({module: moduleAddresses[module]})
     
     if invalidModules != {}:
