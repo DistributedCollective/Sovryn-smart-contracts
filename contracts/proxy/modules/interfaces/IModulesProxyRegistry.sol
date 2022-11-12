@@ -54,6 +54,11 @@ contract IModulesProxyRegistry {
     /// @return true if module can be added
     function canAddModule(address _impl) external view returns (bool);
 
+    /// @notice Multiple modules verification if no functions from the modules already registered
+    /// @param _implementations modules implementation addresses to verify
+    /// @return True if all modules can be added, false otherwise
+    function canAddModules(address[] calldata _implementations) external view returns (bool);
+
     /// @notice used externally to verify module being added for clashing
     /// @param _newModule module implementation which functions to verify
     /// @return clashing functions signatures and corresponding modules (contracts) addresses
@@ -62,7 +67,7 @@ contract IModulesProxyRegistry {
         view
         returns (
             address[] memory clashingModules,
-            bytes4[] memory clashingFuncSelectors,
-            bytes4[] memory registryClashingSelectors
+            bytes4[] memory clashingModulesFuncSelectors,
+            bytes4[] memory clashingProxyRegistryFuncSelectors
         );
 }

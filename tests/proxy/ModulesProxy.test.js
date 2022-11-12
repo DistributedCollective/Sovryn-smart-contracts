@@ -80,7 +80,7 @@ describe("Modules Proxy", () => {
             ).deploy();
             await modulesProxy.addModule(adminModuleDeployment.address);
             await expect(modulesProxy.addModule(adminModuleNew.address)).to.be.revertedWith(
-                "function already registered in another module - use ReplaceModule if you need to replace the whole module"
+                "ModulesProxyRegistry::_addModule: function already registered - use replaceModule function"
             ); //func already registered
         });
 
@@ -205,7 +205,7 @@ describe("Modules Proxy", () => {
             await modulesProxy.addModule(adminModule.address);
             const res = await modulesProxy.checkClashingFuncSelectors(adminModuleNew.address);
             adminModuleFuncSelectors = await adminModule.getFunctionsList();
-            expect(res.clashingFuncSelectors).to.eql(adminModuleFuncSelectors); //func already registered
+            expect(res.clashingModulesFuncSelectors).to.eql(adminModuleFuncSelectors); //func already registered
 
             const fakeModule = await smock.fake(moduleNames.StakingAdminModule, {
                 address: adminModuleNew.address,
@@ -217,7 +217,7 @@ describe("Modules Proxy", () => {
 
             // ModulesRegistry has function with the same signature
             await expect(modulesProxy.addModule(adminModuleNew.address)).to.be.revertedWith(
-                "ModulesRegistry has function with the same signature"
+                "ModulesProxyRegistry::_addModule: has a function with the same signature"
             );
         });
     });

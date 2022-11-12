@@ -8,7 +8,7 @@ import "../modules/interfaces/IModulesProxyRegistry.sol";
 import "../../openzeppelin/Address.sol";
 
 /**
- * ModulesRegistry provides modules registration/removing/replacing functionality to ModulesProxy
+ * ModulesProxyRegistry provides modules registration/removing/replacing functionality to ModulesProxy
  * Designed to be inherited
  */
 
@@ -17,13 +17,13 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
 
     bytes32 internal constant KEY_IMPLEMENTATION = keccak256("key.implementation");
 
-    ///@notice constructor is internal to make contract abstract
+    ///@notice Constructor is internal to make contract abstract
     constructor() internal {
         // abstract
     }
 
     /// @notice Add module functions.
-    /// Overriding functions is not allowed. To replace modules use ReplaceModule function.
+    /// Overriding functions is not allowed. To replace modules use replaceModule function.
     /// @param _impl Module implementation address
     function addModule(address _impl) external onlyProxyOwner {
         _addModule(_impl);
@@ -54,13 +54,13 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     ) external onlyProxyOwner {
         require(
             _implementationsFrom.length == _implementationsTo.length,
-            "arrays sizes must be equal"
+            "ModulesProxyRegistry::replaceModules: arrays sizes must be equal"
         ); //MR10
         for (uint256 i = 0; i < _implementationsFrom.length; i++)
             _replaceModule(_implementationsFrom[i], _implementationsTo[i]);
     }
 
-    /// @notice to disable module - set all its functions implementation to address(0)
+    /// @notice To disable module - set all its functions implementation to address(0)
     /// @param _impl implementation address
     function removeModule(address _impl) external onlyProxyOwner {
         _removeModule(_impl);
@@ -72,65 +72,97 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         for (uint256 i = 0; i < _implementations.length; i++) _removeModule(_implementations[i]);
     }
 
-    /// @param _sig function signature to get impmementation address for
-    /// @return function's contract implelementation address
+    /// @param _sig Function signature to get impmementation address for
+    /// @return Function's contract implelementation address
     function getFuncImplementation(bytes4 _sig) external view returns (address) {
         return _getFuncImplementation(_sig);
     }
 
-    /// @notice verifies if no functions from the module deployed already registered
-    /// @param _impl module implementation address to verify
-    /// @return true if module can be added
-    function canAddModule(address _impl) external view returns (bool) {
-        require(_impl.isContract(), "Proxy::canAddModule: address is not a contract"); //MR06
+    /// @notice Verifies if no functions from the module deployed already registered
+    /// @param _impl Module implementation address to verify
+    /// @return True if module can be added
+    function _canAddModule(address _impl) internal view returns (bool) {
+        require(
+            _impl.isContract(),
+            "ModulesProxyRegistry::_canAddModule: address is not a contract"
+        ); //MR06
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 0; i < functions.length; i++)
             if (_getFuncImplementation(functions[i]) != address(0)) return (false);
         return true;
     }
 
-    /// @notice used externally to verify module being added for clashing
+    /// @notice Verifies if no functions from the module already registered
+    /// @param _impl Module implementation address to verify
+    /// @return True if module can be added
+    function canAddModule(address _impl) external view returns (bool) {
+        return _canAddModule(_impl);
+    }
+
+    /// @notice Multiple modules verification if no functions from the modules already registered
+    /// @param _implementations modules implementation addresses to verify
+    /// @return True if all modules can be added, false otherwise
+    function canAddModules(address[] calldata _implementations) external view returns (bool) {
+        for (uint256 i = 0; i < _implementations.length; i++) {
+            if (!_canAddModule(_implementations[i])) return false;
+        }
+        return true;
+    }
+
+    /// @notice Used externally to verify module being added for clashing
     /// @param _newModule module implementation which functions to verify
-    /// @return clashing functions signatures and corresponding modules (contracts) addresses
+    /// @return Clashing functions signatures and corresponding modules (contracts) addresses
     function checkClashingFuncSelectors(address _newModule)
         external
         view
         returns (
             address[] memory clashingModules,
-            bytes4[] memory clashingFuncSelectors,
-            bytes4[] memory registryClashingSelectors
+            bytes4[] memory clashingModulesFuncSelectors,
+            bytes4[] memory clashingProxyRegistryFuncSelectors
         )
     {
-        require(_newModule.isContract(), "Proxy::canAddModule: address is not a contract"); //MR06
-        bytes4[] memory functions = IFunctionsList(_newModule).getFunctionsList();
-        bytes4[] memory functionList = _getFunctionsList(); //registry functions list
-        uint256 clashingRegistrySize;
+        require(
+            _newModule.isContract(),
+            "ModulesProxyRegistry::checkClashingFuncSelectors: address is not a contract"
+        ); //MR06
+        bytes4[] memory newModuleFunctions = IFunctionsList(_newModule).getFunctionsList();
+        bytes4[] memory proxyRegistryFunctions = _getFunctionsList(); //registry functions list
+        uint256 clashingProxyRegistryFuncsSize;
         uint256 clashingArraySize;
         uint256 clashingArrayIndex;
         uint256 clashingRegistryArrayIndex;
-        for (uint256 i = 0; i < functions.length; i++) {
-            address funcImpl = _getFuncImplementation(functions[i]);
-            if (funcImpl != address(0)) {
+
+        for (uint256 i = 0; i < newModuleFunctions.length; i++) {
+            address funcImpl = _getFuncImplementation(newModuleFunctions[i]);
+            if (funcImpl != address(0) && funcImpl != _newModule) {
                 clashingArraySize++;
-            }
-            if (_checkClashingWithProxyFunctions(functions[i])) clashingRegistrySize++;
+            } else if (_isFuncClashingWithProxyFunctions(newModuleFunctions[i]))
+                clashingProxyRegistryFuncsSize++;
         }
-
         clashingModules = new address[](clashingArraySize);
-        clashingFuncSelectors = new bytes4[](clashingArraySize);
-        registryClashingSelectors = new bytes4[](clashingRegistrySize);
+        clashingModulesFuncSelectors = new bytes4[](clashingArraySize);
+        clashingProxyRegistryFuncSelectors = new bytes4[](clashingProxyRegistryFuncsSize);
 
-        for (uint256 i = 0; i < functions.length; i++) {
-            address funcImpl = _getFuncImplementation(functions[i]);
+        if (clashingArraySize == 0 && clashingProxyRegistryFuncsSize == 0)
+            //return empty arrays
+            return (
+                clashingModules,
+                clashingModulesFuncSelectors,
+                clashingProxyRegistryFuncSelectors
+            );
+        for (uint256 i = 0; i < newModuleFunctions.length; i++) {
+            address funcImpl = _getFuncImplementation(newModuleFunctions[i]);
             if (funcImpl != address(0)) {
                 clashingModules[clashingArrayIndex] = funcImpl;
-                clashingFuncSelectors[clashingArrayIndex] = functions[i];
+                clashingModulesFuncSelectors[clashingArrayIndex] = newModuleFunctions[i];
                 clashingArrayIndex++;
             }
-            for (uint256 j = 0; j < functionList.length; j++) {
-                //ModulesRegistry has function with the same selector
-                if (functionList[j] == functions[i]) {
-                    clashingFuncSelectors[clashingRegistryArrayIndex] = functions[i];
+            for (uint256 j = 0; j < proxyRegistryFunctions.length; j++) {
+                //ModulesProxyRegistry has a clashing function selector
+                if (proxyRegistryFunctions[j] == newModuleFunctions[i]) {
+                    clashingProxyRegistryFuncSelectors[
+                        clashingRegistryArrayIndex
+                    ] = proxyRegistryFunctions[j];
                     clashingRegistryArrayIndex++;
                 }
             }
@@ -150,17 +182,17 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     }
 
     function _addModule(address _impl) internal {
-        require(_impl.isContract(), "ModulesRegistry::_addModule: address is not a contract"); //MR01
+        require(_impl.isContract(), "ModulesProxyRegistry::_addModule: address is not a contract"); //MR01
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 0; i < functions.length; i++) {
             require(
                 _getFuncImplementation(functions[i]) == address(0),
-                "function already registered in another module - use ReplaceModule if you need to replace the whole module"
+                "ModulesProxyRegistry::_addModule: function already registered - use replaceModule function"
             ); //MR02
             require(functions[i] != bytes4(0), "does not allow empty function id"); // MR03
             require(
-                _checkClashingWithProxyFunctions(functions[i]),
-                "ModulesRegistry has function with the same signature"
+                !_isFuncClashingWithProxyFunctions(functions[i]),
+                "ModulesProxyRegistry::_addModule: has a function with the same signature"
             ); //MR09
             _setModuleFuncImplementation(functions[i], _impl);
         }
@@ -170,7 +202,7 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     function _removeModule(address _impl) internal onlyProxyOwner {
         require(
             _impl.isContract(),
-            "ModulesRegistry::_removeModuleImplementation: address is not a contract"
+            "ModulesProxyRegistry::_removeModule: address is not a contract"
         ); //MR07
         bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
         for (uint256 i = 0; i < functions.length; i++)
@@ -180,18 +212,20 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     }
 
     function _replaceModule(address _oldModuleImpl, address _newModuleImpl) internal {
-        require(
-            _newModuleImpl.isContract(),
-            "ModulesRegistry::replaceModule - _newModuleImpl is not a contract"
-        ); //MR03
-        require(
-            _oldModuleImpl.isContract(),
-            "ModulesRegistry::replaceModule - _oldModuleImpl is not a contract"
-        ); //MR04
-        _removeModule(_oldModuleImpl);
-        _addModule(_newModuleImpl);
+        if (_oldModuleImpl != _newModuleImpl) {
+            require(
+                _newModuleImpl.isContract(),
+                "ModulesProxyRegistry::_replaceModule - _newModuleImpl is not a contract"
+            ); //MR03
+            require(
+                _oldModuleImpl.isContract(),
+                "ModulesProxyRegistry::_replaceModule - _oldModuleImpl is not a contract"
+            ); //MR04
+            _removeModule(_oldModuleImpl);
+            _addModule(_newModuleImpl);
 
-        emit ReplaceModule(_oldModuleImpl, _newModuleImpl);
+            emit ReplaceModule(_oldModuleImpl, _newModuleImpl);
+        }
     }
 
     function _setModuleFuncImplementation(bytes4 _sig, address _impl) internal {
@@ -203,18 +237,18 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         }
     }
 
-    function _checkClashingWithProxyFunctions(bytes4 _sig) internal pure returns (bool) {
+    function _isFuncClashingWithProxyFunctions(bytes4 _sig) internal pure returns (bool) {
         bytes4[] memory functionList = _getFunctionsList();
         for (uint256 i = 0; i < functionList.length; i++) {
             if (_sig == functionList[i])
-                //ModulesRegistry has function with the same id
-                return false;
+                //ModulesProxyRegistry has function with the same id
+                return true;
         }
-        return true;
+        return false;
     }
 
     function _getFunctionsList() internal pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](11);
+        bytes4[] memory functionList = new bytes4[](12);
         functionList[0] = this.getFuncImplementation.selector;
         functionList[1] = this.addModule.selector;
         functionList[2] = this.addModules.selector;
@@ -223,9 +257,10 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         functionList[5] = this.replaceModule.selector;
         functionList[6] = this.replaceModules.selector;
         functionList[7] = this.canAddModule.selector;
-        functionList[8] = this.setProxyOwner.selector;
-        functionList[9] = this.getProxyOwner.selector;
-        functionList[10] = this.checkClashingFuncSelectors.selector;
+        functionList[8] = this.canAddModules.selector;
+        functionList[9] = this.setProxyOwner.selector;
+        functionList[10] = this.getProxyOwner.selector;
+        functionList[11] = this.checkClashingFuncSelectors.selector;
         return functionList;
     }
 }
