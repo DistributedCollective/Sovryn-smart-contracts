@@ -91,6 +91,10 @@ const getParsedEventLogFromReceipt = async (receipt, iface, eventName) => {
     return parseEthersLog(parsedLog);
 };
 
+const arrayToUnique = (value, index, self) => {
+    return self.indexOf(value) === index;
+};
+
 module.exports = {
     getStakingModulesNames,
     stakingRegisterModuleWithMultisig,
@@ -99,4 +103,5 @@ module.exports = {
     getParsedEventLogFromReceipt,
     sendWithMultisig,
     multisigCheckTx,
+    arrayToUnique,
 };
