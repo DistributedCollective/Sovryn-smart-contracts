@@ -16,11 +16,16 @@ const func = async function (hre) {
             args: [],
             log: true,
         });
-        //log(tx.receipt);
-        totalGas = totalGas.add(tx.receipt.gasUsed);
-        log(tx.receipt.cumulativeGasUsed.toString());
+        if (tx.newlyDeployed) {
+            totalGas = totalGas.add(tx.receipt.cumulativeGasUsed);
+            log(tx.receipt.cumulativeGasUsed.toString());
+        }
     }
-    log("Total gas used:", totalGas.toString());
+    if (totalGas != 0) {
+        log("=====================================================================");
+        log("Total gas used for Staking Modules deployment:", totalGas.toString());
+        log("=====================================================================");
+    }
 };
-func.tags = [getContractNameFromScriptFileName(path.basename(__filename))];
+func.tags = ["StakingModules"];
 module.exports = func;
