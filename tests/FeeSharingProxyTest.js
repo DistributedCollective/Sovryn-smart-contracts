@@ -292,7 +292,7 @@ contract("FeeSharingProxy:", (accounts) => {
             );
         });
 
-        it("Shouldn't be able to withdraw zero amount", async () => {
+        it("Withdraw zero amount will success with the proper emitted event", async () => {
             await protocolDeploymentFixture();
             const tx = await feeSharingProxy.withdrawFees([SUSD.address]);
             expectEvent(tx, "FeeWithdrawn", {
