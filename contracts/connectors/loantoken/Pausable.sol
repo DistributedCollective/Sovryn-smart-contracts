@@ -18,7 +18,7 @@ contract Pausable {
     bytes32 internal constant Pausable_FunctionPause =
         0xa7143c84d793a15503da6f19bf9119a2dac94448ca45d77c8bf08f57b2e91047;
 
-    modifier pausable(bytes4 sig) {
+    modifier pausable(bytes4 sig) {ilnt
         require(!_isPaused(sig), "unauthorized");
         _;
     }
