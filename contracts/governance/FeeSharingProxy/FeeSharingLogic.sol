@@ -394,6 +394,9 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
      * @param _user Address of the user's account.
      * @param _loanPoolToken Loan pool token address.
      * @param _maxCheckpoints Checkpoint index incremental.
+     *
+     * @return accumulated fees amount
+     * @return end timestamp of fees calculation
      * */
     function _getAccumulatedFees(
         address _user,
@@ -409,11 +412,11 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 
         /// @dev Additional bool param can't be used because of stack too deep error.
         if (_maxCheckpoints > 0) {
+            if (start >= numTokenCheckpoints[_loanPoolToken]) {
+                return (0, 0);
+            }
             /// @dev withdraw -> _getAccumulatedFees
             end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
-            if (start >= end) {
-                return (0, end);
-            }
         } else {
             /// @dev getAccumulatedFees -> _getAccumulatedFees
             /// Don't throw error for getter invocation outside of transaction.
