@@ -47,6 +47,8 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
     using SafeERC20 for IERC20;
 
     address constant ZERO_ADDRESS = address(0);
+    address public constant CHECKPOINT_RBTC_ADDRESS =
+        address(uint160(uint256(keccak256("CHECKPOINT_RBTC_ADDRESS"))));
 
     /* Events */
 
@@ -126,7 +128,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
                     "FeeSharingProxy::withdrawFees: wrbtc token amount exceeds 96 bits"
                 );
 
-            _addCheckpoint(ZERO_ADDRESS, amount96);
+            _addCheckpoint(CHECKPOINT_RBTC_ADDRESS, amount96);
         }
 
         emit FeeWithdrawn(msg.sender, ZERO_ADDRESS, wrbtcAmountWithdrawn);
@@ -172,7 +174,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         }
 
         if (totalPoolTokenAmount > 0) {
-            _addCheckpoint(ZERO_ADDRESS, totalPoolTokenAmount);
+            _addCheckpoint(CHECKPOINT_RBTC_ADDRESS, totalPoolTokenAmount);
         }
     }
 
@@ -191,7 +193,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
         if (_token == address(wrbtcToken)) {
             wrbtcToken.withdraw(_amount);
-            _token = ZERO_ADDRESS;
+            _token = CHECKPOINT_RBTC_ADDRESS;
         } else {
             /// @notice Transfer tokens from msg.sender
             bool success =
@@ -213,7 +215,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         uint96 _amount = uint96(msg.value);
         require(_amount > 0, "FeeSharingProxy::transferRBTC: invalid value");
 
-        _addCheckpoint(ZERO_ADDRESS, _amount);
+        _addCheckpoint(CHECKPOINT_RBTC_ADDRESS, _amount);
 
         emit TokensTransferred(msg.sender, ZERO_ADDRESS, _amount);
     }
@@ -334,7 +336,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             _maxCheckpoints
         );
 
-        processedCheckpoints[user][ZERO_ADDRESS] = endRBTC;
+        processedCheckpoints[user][CHECKPOINT_RBTC_ADDRESS] = endRBTC;
         processedCheckpoints[user][address(wrbtcToken)] = endWRBTC;
         processedCheckpoints[user][loanPoolTokenWRBTC] = endIWRBTC;
 
@@ -643,7 +645,11 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 
         address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
 
-        (_rbtcAmount, _endRBTC) = _getAccumulatedFees(_user, ZERO_ADDRESS, _maxCheckpoints);
+        (_rbtcAmount, _endRBTC) = _getAccumulatedFees(
+            _user,
+            CHECKPOINT_RBTC_ADDRESS,
+            _maxCheckpoints
+        );
         (_wrbtcAmount, _endWRBTC) = _getAccumulatedFees(
             _user,
             address(wrbtcToken),
