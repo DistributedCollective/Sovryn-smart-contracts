@@ -15,7 +15,7 @@ import "../../openzeppelin/Ownable.sol";
  * "marginal stakers" (ie, stakers by choice, not currently vesting) with liquid SOV
  * at the beginning of each new staking interval.
  * */
-contract StakingRewardsStorage is Ownable {
+contract StakingRewardsStorage is Ownable {lnit
     /// @notice The SOV token contract.
     IERC20 public SOV;
 
