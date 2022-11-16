@@ -12,8 +12,8 @@ pragma solidity 0.5.17;
  *
  * This contract contains the storage structure of the Loan Object.
  * */
-contract LoanStruct {
-    struct Loan {
+contract LoanStruct {lnit
+    struct Loan {lnit
         bytes32 id; /// ID of the loan.
         bytes32 loanParamsId; /// The linked loan params ID.
         bytes32 pendingTradesId; /// The linked pending trades ID.
