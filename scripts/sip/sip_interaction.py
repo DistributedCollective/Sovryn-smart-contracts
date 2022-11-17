@@ -444,7 +444,8 @@ def createProposalSIP0049():
     values = [0, 0]
     signatures = ["setImplementation(address)", "addModules(address[])"]
     data1 = stakingProxy.setImplementation.encode_input(contracts['StakingModulesProxy'])
-    data2 = stakingModulesProxy.addModules.encode_input(moduleAddresses)
+    #TODO: moduleAddresses should be array of addresses, not object
+    data2 = stakingModulesProxy.addModules.encode_input(moduleAddresses) 
     datas = ["0x" + data1[10:], "0x" + data2[10:]]
 
     description = "SIP-0049: Staking contract refactoring to resolve EIP-170 size limit, Details: <TODO: commit link>, sha256: <TODO: SIP file sha256>"

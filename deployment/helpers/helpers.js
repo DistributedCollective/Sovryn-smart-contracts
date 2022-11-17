@@ -1,4 +1,9 @@
 const hre = require("hardhat");
+const {
+    deployments: { deploy, get, log },
+    getNamedAccounts,
+    ethers,
+} = hre;
 
 const getStakingModulesNames = () => {
     return {
@@ -91,8 +96,66 @@ const getParsedEventLogFromReceipt = async (receipt, iface, eventName) => {
     return parseEthersLog(parsedLog);
 };
 
-const arrayToUnique = (value, index, self) => {
-    return self.indexOf(value) === index;
+const getStakingModuleClashingContracts = async (newModuleAddress) => {
+    const clashing = await stakingModulesProxy.checkClashingFuncSelectors(newModuleAddress);
+    if (
+        clashing.clashingModules.length == 0 &&
+        clashing.clashingProxyRegistryFuncSelectors.length == 0
+    )
+        return [ethers.constants.AddressZero];
+
+    if (clashing.clashingModules.length != 0) {
+        const clashingUnique = clashing.clashingModules.filter(arrayToUnique);
+        if (clashingUnique.length == 1) {
+            const addressModuleBeingReplaced = clashingUnique[0];
+            if (addressModuleBeingReplaced != moduleAddressList[i]) {
+                log(`Replacing module ${moduleNames[i]}`);
+                const receipt = await (
+                    await stakingModulesProxy.replaceModule(
+                        addressModuleBeingReplaced,
+                        moduleAddressList[i]
+                    )
+                ).wait();
+
+                log(`cumulativeGasUsed: ${receipt.cumulativeGasUsed.toString()}`);
+                totalGas = totalGas.add(receipt.cumulativeGasUsed);
+            } else log(`Skipping module ${moduleNames[i]} replacement - the module is reused`);
+        } else {
+            log(`can't replace multiple modules at once:`);
+            clashing.clashingModules.forEach((item, index, arr) => {
+                log(`${item[index]} - ${arr[1][index]}`);
+            });
+        }
+    }
+    if (
+        clashing.clashingProxyRegistryFuncSelectors.length !== 0 &&
+        clashing.clashingProxyRegistryFuncSelectors[0] != "0x00000000"
+    ) {
+        log("Clashing functions signatures with ModulesProxy functions:");
+        log(clashing.clashingProxyRegistryFuncSelectors);
+    }
+};
+
+const createProposal = async (
+    governorAddress,
+    targets,
+    values,
+    signatures,
+    datas,
+    description
+) => {
+    //governorDeployment = (await get("GovernorAlpha")).address;
+    console.log(`=============================================================
+    Governor Address:    ${governorAddress}
+    Target:              ${targets}
+    Values:              ${values}
+    Signature:           ${signatures}
+    Data:                ${datas}
+    Description:         ${description}
+    =============================================================`);
+    const gov = await ethers.getContractAt("GovernorAlpha", governorAddress);
+    const tx = await gov.propose(targets, values, signatures, callDatas, description);
+    console.log(tx.info());
 };
 
 module.exports = {
@@ -103,5 +166,5 @@ module.exports = {
     getParsedEventLogFromReceipt,
     sendWithMultisig,
     multisigCheckTx,
-    arrayToUnique,
+    createProposal,
 };

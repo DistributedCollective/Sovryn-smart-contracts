@@ -5,6 +5,17 @@ const getContractNameFromScriptFileName = (filename) => {
     return filename.substring(filename.lastIndexOf("-") + 1, filename.lastIndexOf("."));
 };
 
+const arrayToUnique = (value, index, self) => {
+    return self.indexOf(value) === index;
+};
+
+const encodeParameters = (types, values) => {
+    const abi = new ethers.utils.AbiCoder();
+    return abi.encode(types, values);
+};
+
 module.exports = {
     getContractNameFromScriptFileName,
+    arrayToUnique,
+    encodeParameters,
 };
