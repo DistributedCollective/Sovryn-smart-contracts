@@ -7,6 +7,8 @@ from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
 import time
+from scripts.utils import * 
+#import scripts.contractInteraction.config as conf
 
 def main():
 
@@ -20,7 +22,7 @@ def main():
 
     # Call the function you want here
 
-    # createProposalSIP0048()
+    #createProposalSIP0050()
 
     balanceAfter = acct.balance()
 
@@ -47,6 +49,7 @@ def loadConfig():
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet-dev":
         acct = accounts.load("rskdeployerdev")
+        print("acct:", acct)
         configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
@@ -113,6 +116,15 @@ def createProposal(governorAddr, target, value, signature, data, description):
     # Create Proposal
     tx = governor.propose(target, value, signature, data, description)
     tx.info()
+
+def cancelProposal(type, proposalId): 
+    # type == 'GovernorOwner' or 'GovernorAdmin'; proposalId - proposal ordered number
+    governor = Contract.from_abi("GovernorAlpha", address=contracts[type], abi=GovernorAlpha.abi, owner=acct)
+    data = governor.cancel.encode_input(proposalId)
+    if governor.guardian() == contracts['multisig']:
+        sendWithMultisig(contracts['multisig'], governor.address, data, acct)
+    else:
+        raise Exception("Guardian address is not multisig")
 
 def createProposalSIP0005():
     dummyAddress = contracts['GovernorOwner']
@@ -412,6 +424,26 @@ def createProposalSIP0048():
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
 
+def createProposalSIP0050():
+
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setImplementation(address)"]
+    if(contracts['StakingLogic8'] == '' or bytes.hex(web3.eth.getCode(contracts['StakingLogic8'])) == ''):
+        raise Exception("check the new Staking contract implementation address")
+    data = staking.setImplementation.encode_input(contracts['StakingLogic8'])
+    datas = ["0x" + data[10:]]
+    description = "SIP-0050: Critical staking vulnerability fix, Details: https://github.com/DistributedCollective/SIPS/blob/c787752/SIP-0050.md, sha256: 75b0dd906e4b9f4fbf28c6b1c500f7390a9496cba07172ff962cb2fd0d9c098f"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+  
 # === Accepting Ownership of AMM Contracts ===
 # === Governor Admin ===
 def createProposalSIP0049():
@@ -451,10 +483,10 @@ def createProposalSIP0049():
     print(datas)
     print(description)
     print(targets)
-    createProposal(contracts['GovernorAdmin'], targets, values, signatures, datas, description)
+    #createProposal(contracts['GovernorAdmin'], targets, values, signatures, datas, description)
 
 # === Governor Owner ===
-def createProposalSIP0050():
+def createProposalSIP005x():
     # total = 13
     # Action
     targets = [
@@ -482,10 +514,7 @@ def createProposalSIP0050():
         datas.append("0x")
 
     description = "SIP-0050 : Accepting ownership of AMM contracts"
-
-    # Create Proposal
     print(signatures)
     print(datas)
     print(description)
-    print(targets)
-    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+    #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)

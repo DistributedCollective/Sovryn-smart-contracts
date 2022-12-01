@@ -49,12 +49,12 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(
 			],
 		});
 		//const xusd = await IERC20.at("0xb5999795BE0EbB5bAb23144AA5FD6A02D080299F");
-        const xusd = await hre.ethers.getContractAt("ERC20", "0xb5999795BE0EbB5bAb23144AA5FD6A02D080299F");
+		const xusd = await hre.ethers.getContractAt("ERC20", "0xb5999795BE0EbB5bAb23144AA5FD6A02D080299F");
 		const totalSupply = await xusd.totalSupply();
 		if (totalSupply.toString() === "12346114443582774719512874")
-			console.log("Hardhat mainnet forking works properly!")
+			console.log("Hardhat mainnet forking works properly!");
 		else
-			console.log("Hardhat mainnet forking does NOT work properly!")
+			console.log("Hardhat mainnet forking does NOT work properly!");
 	});
 
 
@@ -96,6 +96,11 @@ module.exports = {
 	},
 	networks: {
 		hardhat: {
+			allowUnlimitedContractSize: true,
+			initialBaseFeePerGas: 0,
+		},
+		localhost: {
+			url: "http://127.0.0.1:8545/",
 			allowUnlimitedContractSize: true,
 			initialBaseFeePerGas: 0,
 		},

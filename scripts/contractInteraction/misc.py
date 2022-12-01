@@ -3,27 +3,34 @@ from brownie.network.contract import InterfaceContainer
 import json
 import time;
 import copy
-from scripts.utils import * 
+from scripts.utils import *
+from scripts.contractInteraction.token import * 
 import scripts.contractInteraction.config as conf
 
-def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
+def loadAggregator(aggregatorAddress):
     abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
     abi = json.load(abiFile)
-    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    return Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+
+def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
+    aggregator = loadAggregator(aggregatorAddress)
     aggregator.redeem(tokenAddress, amount)
 
 #used to exchange XUSD -> USDT on the aggregator
 def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
-    abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
-    abi = json.load(abiFile)
-    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    aggregator = loadAggregator(aggregatorAddress)
     data = aggregator.redeem.encode_input(tokenAddress, amount)
     sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
 
+def redeemBTCWithXUSD(amountOfXUSD):
+    redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DoC'], amountOfXUSD)
+    tokenApproveFromMS(conf.contracts['DoC'], conf.contracts['MoneyOnChain'], amountOfXUSD)
+    redeemFreeDocWithMS(amountOfXUSD)
+
+
+
 def mintAggregatedToken(aggregatorAddress, tokenAddress, amount):
-    abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
-    abi = json.load(abiFile)
-    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    aggregator = loadAggregator(aggregatorAddress)
     token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
     data = token.approve(aggregatorAddress, amount)
     tx = aggregator.mint(tokenAddress, amount)
@@ -31,9 +38,7 @@ def mintAggregatedToken(aggregatorAddress, tokenAddress, amount):
 
 #used to exchange USDT -> XUSD on the aggregator
 def mintAggregatedTokenWithMS(aggregatorAddress, tokenAddress, amount):
-    abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
-    abi = json.load(abiFile)
-    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    aggregator = loadAggregator(aggregatorAddress)
     token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
     if(token.allowance(conf.acct, aggregatorAddress) < amount):
         data = token.approve(aggregatorAddress, amount)
@@ -49,6 +54,14 @@ def upgradeAggregator(multisig, newImpl):
     data = proxy.upgradeTo(newImpl)
     sendWithMultisig(multisig, proxy.address, data, conf.acct)
     print(txId)
+
+def redeemFreeDocWithMS(amountOfXUSD):
+    abiFile =  open('./scripts/contractInteraction/ABIs/MoneyOnChain.json')
+    abi = json.load(abiFile)
+    moc = Contract.from_abi("moc", address = conf.contracts['MoneyOnChain'], abi = abi, owner = conf.acct)
+    data = moc.redeemFreeDoc.encode_input(amountOfXUSD)
+    sendWithMultisig(conf.contracts['multisig'], moc.address, data, conf.acct)
+
 
 def readClaimBalanceOrigin(address):
     originClaimContract = Contract.from_abi("originClaim", address=conf.contracts['OriginInvestorsClaim'], abi=OriginInvestorsClaim.abi, owner=conf.acct)
@@ -136,3 +149,22 @@ def deployFeeSharingLogic():
 def replaceTx(txStr, newGas):
     txReceipt = chain.get_transaction(txStr)
     txReceipt.replace(None, newGas)
+
+#gets the logic contract for a proxy
+def getImplementation(proxyContract):
+    proxy = Contract.from_abi("FeeSharingProxy", address=proxyContract, abi=FeeSharingProxy.abi, owner=conf.acct)
+    print(proxy.getImplementation())
+    
+def setNewContractGuardian(newGuardian):
+    #loan tokens
+    setPauser(conf.contracts['iXUSD'], newGuardian)
+    setPauser(conf.contracts['iUSDT'], newGuardian)
+    setPauser(conf.contracts['iRBTC'], newGuardian)
+    setPauser(conf.contracts['iDOC'], newGuardian)
+    setPauser(conf.contracts['iBPro'], newGuardian)
+
+    #loan token logic beacon
+
+    #protocol
+
+    #staking

@@ -822,6 +822,9 @@ def getDepositAmountForBorrow(loanTokenAddress, borrowAmount, initialLoanDuratio
     result = loanToken.getDepositAmountForBorrow(borrowAmount, initialLoanDuration, collateralTokenAddress)
     print(result)
 
+def isLoanTokenLogicBeaconLMPaused():
+    loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    print('isLoanTokenLogicBeaconLMPaused:', loanTokenLogicBeaconLM.paused())
 
 def pauseLoanTokenLogicBeaconLM():
     loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
@@ -832,6 +835,14 @@ def unpauseLoanTokenLogicBeaconLM():
     loanTokenLogicBeaconLM = Contract.from_abi("loanTokenLogicBeaconLM", address=conf.contracts['LoanTokenLogicBeaconLM'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
     data = loanTokenLogicBeaconLM.unpause.encode_input()
     sendWithMultisig(conf.contracts['multisig'], loanTokenLogicBeaconLM.address, data, conf.acct)
+
+def isLoanTokenLogicBeaconWRBTCPaused():
+    loanTokenLogicBeaconWRBTC = Contract.from_abi("loanTokenLogicBeaconWRBTC", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
+    print('isLoanTokenLogicBeaconWRBTCPaused:', loanTokenLogicBeaconWRBTC.paused())
+
+def areAllLendingPoolsPaused():
+    isLoanTokenLogicBeaconLMPaused()
+    isLoanTokenLogicBeaconWRBTCPaused()
 
 def pauseLoanTokenLogicBeaconWRBTC():
     loanTokenLogicBeaconWRBTC = Contract.from_abi("loanTokenLogicBeaconWRBTC", address=conf.contracts['LoanTokenLogicBeaconWrbtc'], abi=LoanTokenLogicBeacon.abi, owner=conf.acct)
@@ -956,3 +967,17 @@ def transferLoanTokenOwnershipToGovernance():
     data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
+def readLoanTokenStorage(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStorage.abi, owner=conf.acct)
+    print(loanToken.sovrynContractAddress())
+    print(loanToken.wrbtcTokenAddress())
+    print(loanToken.target_())
+    print(loanToken.admin())
+    #print(loanToken.earlyAccessToken())
+    print(loanToken.pauser())
+    #print(loanToken.liquidityMiningAddress())
+
+def getTotalAssetSupply(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print(loanToken.totalAssetSupply())
+    return loanToken.totalAssetSupply()
