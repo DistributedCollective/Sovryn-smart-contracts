@@ -721,6 +721,52 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("removePauser", () => {
+        it("the owner may remove a pauser if the contract is not frozen", async () => {
+            await staking.addPauser(a1);
+
+            const tx = await staking.removePauser(a1);
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "PauserAddedOrRemoved",
+                {
+                    pauser: a1,
+                    added: false,
+                }
+            );
+            expect(await staking.pausers(a1)).to.be.false;
+        });
+
+        it("the owner may not remove a pauser if the contract is frozen", async () => {
+            await staking.addPauser(a1);
+            await staking.freezeUnfreeze(true);
+            await expect(staking.removePauser(a1)).to.be.revertedWith("paused");
+        });
+
+        it("the owner may remove a pauser if the contract is paused", async () => {
+            await staking.addPauser(a1);
+            await staking.pauseUnpause(true);
+            await staking.removePauser(a1);
+            expect(await staking.pausers(a1)).to.be.false;
+        });
+
+        it("any other address may not remove a pauser", async () => {
+            await staking.addPauser(a1);
+            await expect(staking.removePauser(a1, { from: a1 })).to.be.revertedWith(
+                "unauthorized"
+            );
+            await staking.addAdmin(a2);
+            await expect(staking.removePauser(a1, { from: a2 })).to.be.revertedWith(
+                "unauthorized"
+            );
+        });
+
+        it("reverts if _pauser is not a pauser", async () => {
+            await expect(staking.removePauser(a1)).to.be.revertedWith("address is not a pauser");
+        });
+    });
+
     describe("vesting stakes", () => {
         it("should set vesting stakes", async () => {
             let lockedDates = [

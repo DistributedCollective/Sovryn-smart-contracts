@@ -64,6 +64,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _pauser The address to grant pauser permissions.
      * */
     function removePauser(address _pauser) external onlyOwner whenNotFrozen {
+        require(pausers[_pauser], "address is not a pauser");
         delete pausers[_pauser];
         emit PauserAddedOrRemoved(_pauser, false);
     }
