@@ -209,6 +209,46 @@ contract("Staking", (accounts) => {
     // 	});
     // });
 
+    describe("setVestingRegistry", () => {
+        it("the owner may set the vesting registry if the contract is not frozen", async () => {
+            //expect(await staking.frozen()).to.be.false; // sanity check
+            const newAddress = address(1337);
+            await staking.setVestingRegistry(newAddress);
+            expect(await staking.vestingRegistryLogic()).to.be.equal(newAddress);
+        });
+
+        it("the owner may not set the vesting registry if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.setVestingRegistry(address(1337))).to.be.revertedWith("paused");
+        });
+
+        it("the owner may set the vesting registry if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            const newAddress = address(1337);
+            await staking.setVestingRegistry(newAddress);
+            expect(await staking.vestingRegistryLogic()).to.be.equal(newAddress);
+        });
+
+        it("any other address may not set the vesting registry", async () => {
+            await expect(
+                staking.setVestingRegistry(address(1337), { from: a1 })
+            ).to.be.revertedWith("unauthorized");
+
+            await staking.addAdmin(a1);
+            // still reverts
+            await expect(
+                staking.setVestingRegistry(address(1337), { from: a1 })
+            ).to.be.revertedWith("unauthorized");
+        });
+
+        it("it is allowed to set the vesting registry to the 0 address", async () => {
+            await staking.setVestingRegistry(address(0));
+            expect(await staking.vestingRegistryLogic()).to.be.equal(address(0));
+        });
+
+        // "calling vestingRegistryLogic returns _vestingRegistryProxy" is tested implicitly in the above scenarios
+    });
+
     describe("setVestingStakes", () => {
         it("should fail if unauthorized", async () => {
             await expectRevert(staking.setVestingStakes([], [], { from: a1 }), "unauthorized"); // WS01 : unauthorized
