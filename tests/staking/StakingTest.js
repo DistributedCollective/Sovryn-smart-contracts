@@ -599,9 +599,10 @@ contract("Staking", (accounts) => {
     });
 
     describe("addAdmin", () => {
-        it("adds admin", async () => {
-            let tx = await staking.addAdmin(a1);
+        it("the owner may add an admin if the contract is not frozen", async () => {
+            expect(await staking.admins(a1)).to.be.false; // sanity check
 
+            const tx = await staking.addAdmin(a1);
             await expectEvent.inTransaction(
                 tx.receipt.rawLogs[0].transactionHash,
                 StakingAdminModule,
@@ -610,13 +611,30 @@ contract("Staking", (accounts) => {
                     admin: a1,
                 }
             );
-
-            let isAdmin = await staking.admins(a1);
-            expect(isAdmin).equal(true);
+            expect(await staking.admins(a1)).to.be.true;
         });
 
-        it("fails sender isn't an owner", async () => {
-            await expectRevert(staking.addAdmin(a1, { from: a1 }), "unauthorized");
+        it("the owner may not add an admin if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.addAdmin(a1)).to.be.revertedWith("paused");
+        });
+
+        it("the owner may add an admin if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await staking.addAdmin(a1);
+            expect(await staking.admins(a1)).to.be.true;
+        });
+
+        it("any other address may not add an admin", async () => {
+            await expect(staking.addAdmin(a1, { from: a1 })).to.be.revertedWith("unauthorized");
+            await staking.addAdmin(a1);
+            await expect(staking.addAdmin(a2, { from: a1 })).to.be.revertedWith("unauthorized");
+        });
+
+        it("it is not allowed to add the 0 address as an admin", async () => {
+            await expect(staking.addAdmin(address(0))).to.be.revertedWith(
+                "cannot add the zero address as an admin"
+            );
         });
     });
 

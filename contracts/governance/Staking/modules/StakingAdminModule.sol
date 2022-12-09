@@ -34,6 +34,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _admin The addresses of the account to grant permissions.
      * */
     function addAdmin(address _admin) external onlyOwner whenNotFrozen {
+        require(_admin != address(0), "cannot add the zero address as an admin");
         admins[_admin] = true;
         emit AdminAdded(_admin);
     }
