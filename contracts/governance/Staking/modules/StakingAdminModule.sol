@@ -44,6 +44,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _admin The addresses of the account to revoke permissions.
      * */
     function removeAdmin(address _admin) external onlyOwner whenNotFrozen {
+        require(admins[_admin], "address is not an admin");
         admins[_admin] = false;
         emit AdminRemoved(_admin);
     }

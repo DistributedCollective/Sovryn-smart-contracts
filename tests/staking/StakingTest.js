@@ -639,7 +639,7 @@ contract("Staking", (accounts) => {
     });
 
     describe("removeAdmin", () => {
-        it("removes admin", async () => {
+        it("the owner may remove an admin if the contract is not frozen", async () => {
             await staking.addAdmin(a1);
             let tx = await staking.removeAdmin(a1);
 
@@ -656,8 +656,27 @@ contract("Staking", (accounts) => {
             expect(isAdmin).equal(false);
         });
 
-        it("fails sender isn't an owner", async () => {
+        it("the owner may not remove an admin if the contract is frozen", async () => {
+            await staking.addAdmin(a1);
+            await staking.freezeUnfreeze(true);
+            await expect(staking.removeAdmin(a1)).to.be.revertedWith("paused");
+        });
+
+        it("the owner may remove an admin if the contract is paused", async () => {
+            await staking.addAdmin(a1);
+            await staking.pauseUnpause(true);
+            await staking.removeAdmin(a1);
+            expect(await staking.admins(a1)).to.be.false;
+        });
+
+        it("any other address may not remove an admin", async () => {
             await expectRevert(staking.removeAdmin(a1, { from: a1 }), "unauthorized");
+            await staking.addAdmin(a1);
+            await expectRevert(staking.removeAdmin(a2, { from: a1 }), "unauthorized");
+        });
+
+        it("reverts if _admin is not an admin", async () => {
+            await expectRevert(staking.removeAdmin(a1), "address is not an admin");
         });
     });
 
