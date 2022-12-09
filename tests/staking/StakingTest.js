@@ -767,6 +767,74 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("pauseUnpause", () => {
+        it("the owner may pause/unpause if the contract is not frozen", async () => {
+            expect(await staking.paused()).to.be.false; // sanity check
+
+            let tx = await staking.pauseUnpause(true);
+            expect(await staking.paused()).to.be.true;
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "StakingPaused",
+                {
+                    setPaused: true,
+                }
+            );
+
+            tx = await staking.pauseUnpause(false);
+            expect(await staking.paused()).to.be.false;
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "StakingPaused",
+                {
+                    setPaused: false,
+                }
+            );
+        });
+
+        it("the owner may not pause/unpause if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.pauseUnpause(true)).to.be.revertedWith("paused");
+
+            await staking.freezeUnfreeze(false);
+            await staking.pauseUnpause(true);
+
+            await staking.freezeUnfreeze(true);
+            await expect(staking.pauseUnpause(false)).to.be.revertedWith("paused");
+        });
+
+        it("a pauser different from the owner may pause/unpause if the contract is not frozen", async () => {
+            await staking.addPauser(a2);
+
+            await staking.pauseUnpause(true, { from: a2 });
+            expect(await staking.paused()).to.be.true;
+
+            await staking.pauseUnpause(false, { from: a2 });
+            expect(await staking.paused()).to.be.false;
+        });
+
+        it("any other address may not pause/unpause", async () => {
+            await expect(staking.pauseUnpause(true, { from: a1 })).to.be.revertedWith(
+                "unauthorized"
+            );
+            await expect(staking.pauseUnpause(false, { from: a1 })).to.be.revertedWith(
+                "unauthorized"
+            );
+            await staking.addAdmin(a1);
+            await expect(staking.pauseUnpause(true, { from: a1 })).to.be.revertedWith(
+                "unauthorized"
+            );
+            await expect(staking.pauseUnpause(false, { from: a1 })).to.be.revertedWith(
+                "unauthorized"
+            );
+        });
+
+    });
+
     describe("vesting stakes", () => {
         it("should set vesting stakes", async () => {
             let lockedDates = [
