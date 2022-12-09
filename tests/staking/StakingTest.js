@@ -680,6 +680,47 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("addPauser", () => {
+        it("the owner may add a pauser if the contract is not frozen", async () => {
+            expect(await staking.pausers(a1)).to.be.false; // sanity check
+
+            const tx = await staking.addPauser(a1);
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "PauserAddedOrRemoved",
+                {
+                    pauser: a1,
+                    added: true,
+                }
+            );
+            expect(await staking.pausers(a1)).to.be.true;
+        });
+
+        it("the owner may not add a pauser if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.addPauser(a1)).to.be.revertedWith("paused");
+        });
+
+        it("the owner may add a  pauser if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await staking.addPauser(a1);
+            expect(await staking.pausers(a1)).to.be.true;
+        });
+
+        it("any other address may not add a pauser", async () => {
+            await expect(staking.addPauser(a1, { from: a1 })).to.be.revertedWith("unauthorized");
+            await staking.addAdmin(a1);
+            await expect(staking.addPauser(a2, { from: a1 })).to.be.revertedWith("unauthorized");
+        });
+
+        it("it is not allowed to add the 0 address as a pauser", async () => {
+            await expect(staking.addPauser(address(0))).to.be.revertedWith(
+                "cannot add the zero address as a pauser"
+            );
+        });
+    });
+
     describe("vesting stakes", () => {
         it("should set vesting stakes", async () => {
             let lockedDates = [

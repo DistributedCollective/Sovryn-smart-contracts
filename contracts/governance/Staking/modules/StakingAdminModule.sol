@@ -54,6 +54,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _pauser The address to grant pauser permissions.
      * */
     function addPauser(address _pauser) external onlyOwner whenNotFrozen {
+        require(_pauser != address(0), "cannot add the zero address as a pauser");
         pausers[_pauser] = true;
         emit PauserAddedOrRemoved(_pauser, true);
     }
