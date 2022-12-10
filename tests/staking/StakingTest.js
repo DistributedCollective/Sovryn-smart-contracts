@@ -832,7 +832,99 @@ contract("Staking", (accounts) => {
                 "unauthorized"
             );
         });
+    });
 
+    describe("freezeUnfreeze", () => {
+        it("the owner may freeze/unfreeze if the contract is not frozen", async () => {
+            expect(await staking.frozen()).to.be.false; // sanity check
+            expect(await staking.paused()).to.be.false; // sanity check
+
+            let tx = await staking.freezeUnfreeze(true);
+            expect(await staking.frozen()).to.be.true;
+            expect(await staking.paused()).to.be.true; // freezing also pauses
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "StakingFrozen",
+                {
+                    setFrozen: true,
+                }
+            );
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "StakingPaused",
+                {
+                    setPaused: true,
+                }
+            );
+
+            tx = await staking.freezeUnfreeze(false);
+            expect(await staking.frozen()).to.be.false;
+            expect(await staking.paused()).to.be.true; // unfreezing doesn't unpause
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "StakingFrozen",
+                {
+                    setFrozen: false,
+                }
+            );
+        });
+
+        it("the owner may unfreeze if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            expect(await staking.frozen()).to.be.true;
+            await staking.freezeUnfreeze(false);
+            expect(await staking.frozen()).to.be.false;
+        });
+
+        it("the owner may freeze/unfreeze if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await staking.freezeUnfreeze(true);
+            expect(await staking.frozen()).to.be.true;
+            expect(await staking.paused()).to.be.true;
+
+            await staking.freezeUnfreeze(false);
+            expect(await staking.frozen()).to.be.false;
+        });
+
+        it("a pauser different from the owner may freeze/unfreeze", async () => {
+            await staking.addPauser(a2);
+
+            await staking.freezeUnfreeze(true, { from: a2 });
+            expect(await staking.frozen()).to.be.true;
+            expect(await staking.paused()).to.be.true;
+
+            await staking.freezeUnfreeze(false, { from: a2 });
+            expect(await staking.frozen()).to.be.false;
+        });
+
+        it("another contract may not freeze/unfreeze", async () => {
+            await expect(staking.freezeUnfreeze(true, { from: a1 })).to.be.revertedWith(
+                "unauthorized"
+            );
+            await staking.addAdmin(a1);
+            await expect(staking.freezeUnfreeze(true, { from: a1 })).to.be.revertedWith(
+                "unauthorized"
+            );
+            await staking.freezeUnfreeze(true);
+            await expect(staking.freezeUnfreeze(false, { from: a1 })).to.be.revertedWith(
+                "unauthorized"
+            );
+        });
+
+        it("freezing/unfreezing to the same state as before will revert", async () => {
+            await expect(staking.freezeUnfreeze(false)).to.be.revertedWith(
+                "Cannot freeze/unfreeze to the same state"
+            );
+            await staking.freezeUnfreeze(true);
+            await expect(staking.freezeUnfreeze(true)).to.be.revertedWith(
+                "Cannot freeze/unfreeze to the same state"
+            );
+        });
     });
 
     describe("vesting stakes", () => {
