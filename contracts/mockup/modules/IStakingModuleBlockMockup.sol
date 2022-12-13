@@ -319,7 +319,7 @@ interface IStakingModuleBlockMockup {
     function getStorageDefaultWeightScaling() external pure returns (uint256);
 
     /// @notice return (uint256(MIN_WEIGHT_SCALING), uint256(MAX_WEIGHT_SCALING))
-    function getStorageRangeForWeighScaling()
+    function getStorageRangeForWeightScaling()
         external
         pure
         returns (uint256 minWeightScaling, uint256 maxWeightScaling);

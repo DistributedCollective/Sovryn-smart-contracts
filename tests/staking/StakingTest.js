@@ -1132,7 +1132,7 @@ contract("Staking", (accounts) => {
         let MAX_WEIGHT_SCALING;
 
         beforeEach(async () => {
-            const ret = await staking.getStorageRangeForWeighScaling();
+            const ret = await staking.getStorageRangeForWeightScaling();
             MIN_WEIGHT_SCALING = ret.minWeightScaling.toNumber();
             MAX_WEIGHT_SCALING = ret.maxWeightScaling.toNumber();
         })
