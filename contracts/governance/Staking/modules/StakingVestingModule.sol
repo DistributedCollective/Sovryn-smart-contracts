@@ -277,6 +277,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      */
     function removeContractCodeHash(address vesting) external onlyAuthorized whenNotFrozen {
         bytes32 codeHash = _getCodeHash(vesting);
+        require(vestingCodeHashes[codeHash], "not a registered vesting code hash");
         vestingCodeHashes[codeHash] = false;
         emit ContractCodeHashRemoved(codeHash);
     }

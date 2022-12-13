@@ -984,6 +984,74 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("removeContractCodeHash", () => {
+        let randomContract;
+        let randomContractCodeHash;
+
+        beforeEach(async () => {
+            // It doesn't matter what this contract is, but it must be a contract that is deployed
+            randomContract = await TestToken.new("fake", "fake", 0, 0);
+            randomContractCodeHash = web3.utils.soliditySha3(
+                await web3.eth.getCode(randomContract.address)
+            );
+        });
+
+        it("the owner may remove a vesting code hash if the contract is not frozen", async () => {
+            // sanity checks
+            await staking.addContractCodeHash(randomContract.address);
+            expect(await staking.isVestingContract(randomContract.address)).to.be.true;
+            expect(await staking.frozen()).to.be.false; // sanity check
+
+            let tx = await staking.removeContractCodeHash(randomContract.address);
+            expect(await staking.isVestingContract(randomContract.address)).to.be.false;
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingVestingModule,
+                "ContractCodeHashRemoved",
+                {
+                    hash: randomContractCodeHash,
+                }
+            );
+        });
+
+        it("the owner may not remove a vesting code hash if the contract is frozen", async () => {
+            await staking.addContractCodeHash(randomContract.address);
+            await staking.freezeUnfreeze(true);
+            await expect(
+                staking.removeContractCodeHash(randomContract.address)
+            ).to.be.revertedWith("paused");
+        });
+
+        it("the owner may remove a vesting code hash if the contract is paused", async () => {
+            await staking.addContractCodeHash(randomContract.address);
+            await staking.pauseUnpause(true);
+            await staking.removeContractCodeHash(randomContract.address);
+            expect(await staking.isVestingContract(randomContract.address)).to.be.false;
+        });
+
+        it("an admin other than the owner may remove a vesting code hash if the contract is not frozen", async () => {
+            await staking.addContractCodeHash(randomContract.address);
+            await staking.addAdmin(a2);
+
+            await staking.removeContractCodeHash(randomContract.address, { from: a2 });
+            expect(await staking.isVestingContract(randomContract.address)).to.be.false;
+        });
+
+        it("other accounts cannot remove a vesting code hash", async () => {
+            await staking.addContractCodeHash(randomContract.address);
+            await expect(
+                staking.removeContractCodeHash(randomContract.address, { from: a2 })
+            ).to.be.revertedWith("unauthorized");
+        });
+
+        it("reverts if vesting is not actually a registered vesting contract code hash", async () => {
+            await expect(
+                staking.removeContractCodeHash(randomContract.address)
+            ).to.be.revertedWith("not a registered vesting code hash");
+        });
+    });
+
     describe("vesting stakes", () => {
         it("should set vesting stakes", async () => {
             let lockedDates = [
