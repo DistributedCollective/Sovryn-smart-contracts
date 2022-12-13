@@ -1128,9 +1128,14 @@ contract("Staking", (accounts) => {
     });
 
     describe("setWeightScaling", () => {
-        // These are not public functions so we must hardcode them
-        const MIN_WEIGHT_SCALING = 1;
-        const MAX_WEIGHT_SCALING = 9;
+        let MIN_WEIGHT_SCALING;
+        let MAX_WEIGHT_SCALING;
+
+        beforeEach(async () => {
+            const ret = await staking.getStorageRangeForWeighScaling();
+            MIN_WEIGHT_SCALING = ret.minWeightScaling.toNumber();
+            MAX_WEIGHT_SCALING = ret.maxWeightScaling.toNumber();
+        })
 
         it("the owner may set the scaling weight if the contract is not frozen", async () => {
             expect(await staking.frozen()).to.be.false; // sanity check
