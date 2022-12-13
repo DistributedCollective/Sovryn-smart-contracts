@@ -1135,7 +1135,7 @@ contract("Staking", (accounts) => {
             const ret = await staking.getStorageRangeForWeightScaling();
             MIN_WEIGHT_SCALING = ret.minWeightScaling.toNumber();
             MAX_WEIGHT_SCALING = ret.maxWeightScaling.toNumber();
-        })
+        });
 
         it("the owner may set the scaling weight if the contract is not frozen", async () => {
             expect(await staking.frozen()).to.be.false; // sanity check
