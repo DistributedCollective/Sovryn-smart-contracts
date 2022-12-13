@@ -1052,6 +1052,46 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("setNewStakingContract", () => {
+        it("the owner may set the new staking contract if the contract is not frozen", async () => {
+            // sanity checks
+            //expect(await staking.newStakingContract()).to.equal(constants.ZERO_ADDRESS);
+            expect(await staking.frozen()).to.be.false; // sanity check
+
+            await staking.setNewStakingContract(a2);
+            expect(await staking.newStakingContract()).to.equal(a2);
+        });
+
+        it("the owner may not set the new staking contract if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.setNewStakingContract(a2)).to.be.revertedWith("paused");
+        });
+
+        it("the owner may set the new staking contract if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await staking.setNewStakingContract(a2);
+            expect(await staking.newStakingContract()).to.equal(a2);
+        });
+
+        it("any other address may not set the new staking contract", async () => {
+            await expect(staking.setNewStakingContract(a2, { from: a2 })).to.be.revertedWith(
+                "unauthorized"
+            );
+        });
+
+        it("it is not allowed to set the new staking contract to the 0 address", async () => {
+            const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+            await expect(staking.setNewStakingContract(ZERO_ADDRESS)).to.be.revertedWith(
+                "can't reset the new staking contract to 0"
+            );
+        });
+
+        it("calling newStakingContract returns _newStakingContract", async () => {
+            await staking.setNewStakingContract(a2);
+            expect(await staking.newStakingContract()).to.equal(a2);
+        });
+    });
+
     describe("vesting stakes", () => {
         it("should set vesting stakes", async () => {
             let lockedDates = [
