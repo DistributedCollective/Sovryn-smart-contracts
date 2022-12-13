@@ -4,6 +4,7 @@ This script serves the purpose of interacting with existing smart contracts on t
 '''
 
 from brownie import *
+#from scripts.contractInteraction.token import * 
 import json
 
 def main():
@@ -17,17 +18,18 @@ def main():
     #sendTokensFromBridgeRSKMultisig(contracts['RSK-USDTes'], 10**16)
 
     #sendTokensFromBridgeETHMultisig(contracts['ETH-USDT'], 10**16)
-    print(acct)
-    sendAggregatedTokensFromExchequer(contracts['BNBbs'], contracts['Aggregator-BNB-RSK'], '0xD3582f616059044c6289155433940b564bCB6476', 14e18)
+    #print(acct)
+    #sendAggregatedTokensFromExchequer(contracts['BNBbs'], contracts['Aggregator-BNB-RSK'], '0x5092019A3E0334586273A21a701F1BD859ECAbD6', 764e18)
     #sendAggregatedTokensFromExchequer(contracts['ETHbs'], contracts['Aggregator-ETH-RSK'], acct, 39.5e18)
     #sendTokensToETHFromMultisig(contracts['SOV'], '0xdd0e3546eebf3f1cc4454a16b4dc5b677923bdc1', 50000e18)
-    #sendTokensToETHFromMultisig(contracts['SOV'], '0xbddf82bdb823d666b5bff940038ecb66f1ce41b5', 27530e18)
+    #bal = getBalance(conf.contracts['USDCes'], conf.contracts['multisig'])
+    sendTokensToETHFromMultisig(contracts['USDTes'], '0x9E0816a71B53ca67201a5088df960fE90910DE55', 2000e18)
     #sendAggregatedTokensFromWallet(contracts['ETHes'], contracts['Aggregator-ETH-RSK'], '0xf5972e2bcc10404367cbdca2a3319470fbea3ff7', 2e17)
 
     #send eSOV send eSOV over the bridge to our gate.io address
     #sendTokensFromMultisig(contracts['SOV'], '0xd71C3b440517bE7c660BB23f08bD2d6ED896C664', 100e18)
-
-   
+    
+    #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
 
 def loadConfig():
     global contracts, acct
@@ -44,6 +46,9 @@ def loadConfig():
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "sepolia":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/sepolia_contracts.json')
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
@@ -111,3 +116,12 @@ def sendAggregatedTokensFromWallet(basset, masset, receiver, amount):
     masset = Contract.from_abi("Masset", address=masset, abi=abi, owner=acct)
 
     masset.redeemToBridge(basset, amount, receiver)
+
+def sendTokensFromWalletFromSepolia(token, receiver, amount):
+    abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
+    abi = json.load(abiFile)
+    tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=acct)
+
+    Bridge = Contract.from_abi("bridge", address=contracts['bridge'], abi=abi, owner=acct)
+    tokenContract.approve(Bridge.address, amount)
+    Bridge.receiveTokensAt(token, amount, receiver, b'')
