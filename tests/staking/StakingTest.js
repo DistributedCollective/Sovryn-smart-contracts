@@ -33,6 +33,7 @@ const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
 const TWO_WEEKS = 86400 * 14;
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 contract("Staking", (accounts) => {
     const name = "Test token";
@@ -1054,8 +1055,6 @@ contract("Staking", (accounts) => {
 
     describe("setNewStakingContract", () => {
         it("the owner may set the new staking contract if the contract is not frozen", async () => {
-            // sanity checks
-            //expect(await staking.newStakingContract()).to.equal(constants.ZERO_ADDRESS);
             expect(await staking.frozen()).to.be.false; // sanity check
 
             await staking.setNewStakingContract(a2);
@@ -1080,7 +1079,6 @@ contract("Staking", (accounts) => {
         });
 
         it("it is not allowed to set the new staking contract to the 0 address", async () => {
-            const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
             await expect(staking.setNewStakingContract(ZERO_ADDRESS)).to.be.revertedWith(
                 "can't reset the new staking contract to 0"
             );
@@ -1089,6 +1087,43 @@ contract("Staking", (accounts) => {
         it("calling newStakingContract returns _newStakingContract", async () => {
             await staking.setNewStakingContract(a2);
             expect(await staking.newStakingContract()).to.equal(a2);
+        });
+    });
+
+    describe("setFeeSharing", () => {
+        it("the owner may set the fee sharing contract if the contract is not frozen", async () => {
+            expect(await staking.frozen()).to.be.false; // sanity check
+
+            await staking.setFeeSharing(a2);
+            expect(await staking.feeSharing()).to.equal(a2);
+        });
+
+        it("the owner may not set the fee sharing contract if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.setFeeSharing(a2)).to.be.revertedWith("paused");
+        });
+
+        it("the owner may set the fee sharing contract if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await staking.setFeeSharing(a2);
+            expect(await staking.feeSharing()).to.equal(a2);
+        });
+
+        it("any other address may not set the fee sharing contract", async () => {
+            await expect(staking.setFeeSharing(a2, { from: a2 })).to.be.revertedWith(
+                "unauthorized"
+            );
+        });
+
+        it("it is not allowed to set the fee sharing contract to the 0 address", async () => {
+            await expect(staking.setFeeSharing(ZERO_ADDRESS)).to.be.revertedWith(
+                "FeeSharing address shouldn't be 0"
+            );
+        });
+
+        it("calling feeSharing returns _feeSharing", async () => {
+            await staking.setFeeSharing(a2);
+            expect(await staking.feeSharing()).to.equal(a2);
         });
     });
 
