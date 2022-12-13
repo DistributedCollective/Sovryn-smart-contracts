@@ -1127,6 +1127,63 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("setWeightScaling", () => {
+        // These are not public functions so we must hardcode them
+        const MIN_WEIGHT_SCALING = 1;
+        const MAX_WEIGHT_SCALING = 9;
+
+        it("the owner may set the scaling weight if the contract is not frozen", async () => {
+            expect(await staking.frozen()).to.be.false; // sanity check
+
+            await staking.setWeightScaling(5);
+            expect(await staking.weightScaling()).to.bignumber.equal("5");
+        });
+
+        it("the owner may not set the scaling weight if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.setWeightScaling(5)).to.be.revertedWith("paused");
+        });
+
+        it("the owner may set the scaling weight if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await staking.setWeightScaling(6);
+            expect(await staking.weightScaling()).to.bignumber.equal("6");
+        });
+
+        it("any other address may not set the scaling weight", async () => {
+            await expect(staking.setWeightScaling(5, { from: a2 })).to.be.revertedWith(
+                "unauthorized"
+            );
+            // add a2 as admin and try again
+            await staking.addAdmin(a2);
+            await expect(staking.setWeightScaling(5, { from: a2 })).to.be.revertedWith(
+                "unauthorized"
+            );
+        });
+
+        it("it is not allowed to set the scaling weight lower than MIN_WEIGHT_SCALING", async () => {
+            await expect(staking.setWeightScaling(MIN_WEIGHT_SCALING - 1)).to.be.revertedWith(
+                "S18"
+            );
+            // test boundary
+            await staking.setWeightScaling(MIN_WEIGHT_SCALING);
+            expect(await staking.weightScaling()).to.bignumber.equal(
+                MIN_WEIGHT_SCALING.toString()
+            );
+        });
+
+        it("it is not allowed to set the scaling weight higher than MAX_WEIGHT_SCALING", async () => {
+            await expect(staking.setWeightScaling(MAX_WEIGHT_SCALING + 1)).to.be.revertedWith(
+                "S18"
+            );
+            // test boundary
+            await staking.setWeightScaling(MAX_WEIGHT_SCALING);
+            expect(await staking.weightScaling()).to.bignumber.equal(
+                MAX_WEIGHT_SCALING.toString()
+            );
+        });
+    });
+
     describe("vesting stakes", () => {
         it("should set vesting stakes", async () => {
             let lockedDates = [
