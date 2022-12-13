@@ -927,6 +927,63 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("addContractCodeHash", () => {
+        let randomContract;
+        let randomContractCodeHash;
+
+        beforeEach(async () => {
+            // It doesn't matter what this contract is, but it must be a contract that is deployed
+            randomContract = await TestToken.new("fake", "fake", 0, 0);
+            randomContractCodeHash = web3.utils.soliditySha3(
+                await web3.eth.getCode(randomContract.address)
+            );
+        });
+
+        it("the owner may add a vesting code hash if the contract is not frozen", async () => {
+            // sanity checks
+            expect(await staking.isVestingContract(randomContract.address)).to.be.false;
+            expect(await staking.frozen()).to.be.false; // sanity check
+
+            let tx = await staking.addContractCodeHash(randomContract.address);
+            expect(await staking.isVestingContract(randomContract.address)).to.be.true;
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingVestingModule,
+                "ContractCodeHashAdded",
+                {
+                    hash: randomContractCodeHash,
+                }
+            );
+        });
+
+        it("the owner may not add a vesting code hash if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.addContractCodeHash(randomContract.address)).to.be.revertedWith(
+                "paused"
+            );
+        });
+
+        it("the owner may add a vesting code hash if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await staking.addContractCodeHash(randomContract.address);
+            expect(await staking.isVestingContract(randomContract.address)).to.be.true;
+        });
+
+        it("other accounts cannot add a vesting code hash", async () => {
+            await expect(
+                staking.addContractCodeHash(randomContract.address, { from: a2 })
+            ).to.be.revertedWith("unauthorized");
+        });
+
+        it("an admin other than the owner may add a vesting code hash if the contract is not frozen", async () => {
+            await staking.addAdmin(a2);
+
+            await staking.addContractCodeHash(randomContract.address, { from: a2 });
+            expect(await staking.isVestingContract(randomContract.address)).to.be.true;
+        });
+    });
+
     describe("vesting stakes", () => {
         it("should set vesting stakes", async () => {
             let lockedDates = [
