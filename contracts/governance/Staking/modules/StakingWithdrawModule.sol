@@ -343,7 +343,11 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      *
      * @param newMaxIterations new max iterations value.
      */
-    function setMaxVestingWithdrawIterations(uint256 newMaxIterations) external onlyAuthorized {
+    function setMaxVestingWithdrawIterations(uint256 newMaxIterations)
+        external
+        onlyAuthorized
+        whenNotFrozen
+    {
         require(newMaxIterations > 0, "Invalid max iterations");
         emit MaxVestingWithdrawIterationsUpdated(maxVestingWithdrawIterations, newMaxIterations);
         maxVestingWithdrawIterations = newMaxIterations;

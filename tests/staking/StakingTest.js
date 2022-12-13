@@ -1215,8 +1215,8 @@ contract("Staking", (accounts) => {
         });
     });
 
-    describe("maxWithdrawIterations", async () => {
-        it("should set maxWithdrawIterations", async () => {
+    describe("setMaxVestingWithdrawIterations", async () => {
+        it("the owner may set max vesting iterations if the contract is not frozen", async () => {
             const oldMaxWithdrawIterations = await staking.getMaxVestingWithdrawIterations();
             const newMaxWithdrawIterations = new BN(20);
             const tx = await staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations);
@@ -1249,6 +1249,23 @@ contract("Staking", (accounts) => {
                 staking.setMaxVestingWithdrawIterations(newMaxWithdrawIterations),
                 "Invalid max iterations"
             );
+        });
+
+        it("the owner may not set max vesting iterations if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.setMaxVestingWithdrawIterations(20)).to.be.revertedWith("paused");
+        });
+
+        it("the owner may set max vesting iterations if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await staking.setMaxVestingWithdrawIterations(21);
+            expect(await staking.getMaxVestingWithdrawIterations()).to.bignumber.equal("21");
+        });
+
+        it("an admin other than the owner may set max vesting iterations if the contract is not frozen", async () => {
+            await staking.addAdmin(a2);
+            await staking.setMaxVestingWithdrawIterations(22, { from: a2 });
+            expect(await staking.getMaxVestingWithdrawIterations()).to.bignumber.equal("22");
         });
     });
 
