@@ -22,9 +22,9 @@ const func = async function (hre) {
 
     if (tx.newlyDeployed) {
         const stakingProxyDeployment = await get("StakingProxy");
-        const multisigDeployment = await get("MultiSigWallet");
         if (hre.network.tags["testnet"]) {
             //multisig is the owner
+            const multisigDeployment = await get("MultiSigWallet");
             let stakingProxyInterface = new ethers.utils.Interface(stakingProxyDeployment.abi);
             let data = stakingProxyInterface.encodeFunctionData("setImplementation", [tx.address]);
             const { deployer } = await getNamedAccounts("deployer");
@@ -32,8 +32,15 @@ const func = async function (hre) {
         } else if (hre.network.tags["mainnet"]) {
             //governance is the owner - need a SIP to register
             // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
+        } else {
+            const stakingProxy = await ethers.getContractAt(
+                "StakingProxy",
+                stakingProxyDeployment.address
+            );
+            await stakingProxy.setImplementation(tx.address);
         }
     }
 };
 func.tags = ["StakingModulesProxy"];
+func.dependencies = ["StakingProxy"];
 module.exports = func;
