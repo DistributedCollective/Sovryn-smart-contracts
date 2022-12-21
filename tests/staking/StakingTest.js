@@ -48,6 +48,7 @@ contract("Staking", (accounts) => {
     let currentChainId;
 
     let vestingLogic1, vestingLogic2;
+    let vesting;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
         chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
@@ -60,7 +61,7 @@ contract("Staking", (accounts) => {
         staking = await deployAndGetIStaking(stakingProxy.address);
 
         //Upgradable Vesting Registry
-        vestingRegistryLogic = await VestingRegistryLogic.new();
+        const vestingRegistryLogic = await VestingRegistryLogic.new();
         vesting = await VestingRegistryProxy.new();
         await vesting.setImplementation(vestingRegistryLogic.address);
         vesting = await VestingRegistryLogic.at(vesting.address);
@@ -1271,6 +1272,33 @@ contract("Staking", (accounts) => {
             await staking.addAdmin(a2);
             await staking.setMaxVestingWithdrawIterations(22, { from: a2 });
             expect(await staking.getMaxVestingWithdrawIterations()).to.bignumber.equal("22");
+        });
+    });
+
+    describe("isVestingContract", async () => {
+        let randomContract;
+        let randomContractCodeHash;
+
+        beforeEach(async () => {
+            // It doesn't matter what this contract is, but it must be a contract that is deployed
+            randomContract = await TestToken.new("fake", "fake", 0, 0);
+            randomContractCodeHash = web3.utils.soliditySha3(
+                await web3.eth.getCode(randomContract.address)
+            );
+        });
+
+        it("returns true if the code hash of stakerAddress is registered as a vesting contract", async () => {
+            await staking.addContractCodeHash(a1);
+            expect(await staking.isVestingContract(a1)).to.be.true;
+        });
+
+        it("returns true if is registered stakerAddress as a vesting contract on the vesting registry", async () => {
+            await vesting.addFourYearVestings([address(1337)], [a1]);
+            expect(await staking.isVestingContract(a1)).to.be.true;
+        });
+
+        it("returns false if none of the two is the case", async () => {
+            expect(await staking.isVestingContract(a1)).to.be.false;
         });
     });
 
