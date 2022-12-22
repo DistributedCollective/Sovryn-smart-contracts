@@ -184,7 +184,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
     {
         require(date >= startDate, "date < startDate"); // WS18
         uint256 remainingTime = (date - startDate);
-        require(MAX_DURATION >= remainingTime, "remaining time < max duration"); // WS19
+        require(MAX_DURATION >= remainingTime, "remaining time > max duration"); // WS19
         /// @dev x = max days - remaining days
         uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);
         /// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)

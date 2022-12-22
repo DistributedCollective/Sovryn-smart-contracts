@@ -1313,9 +1313,8 @@ contract("Staking", (accounts) => {
             let startDate = new BN(1000);
             let date = startDate.add(maxDuration).add(new BN(1));
 
-            // TODO: this error message is wrong, it should be remaining time > max duration
             await expect(staking.computeWeightByDate(date, startDate)).to.be.revertedWith(
-                "remaining time < max duration"
+                "remaining time > max duration"
             );
 
             date = date.sub(new BN(1));
