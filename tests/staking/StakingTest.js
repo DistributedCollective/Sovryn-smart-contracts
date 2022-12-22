@@ -1221,7 +1221,7 @@ contract("Staking", (accounts) => {
         });
     });
 
-    describe("setMaxVestingWithdrawIterations", async () => {
+    describe("setMaxVestingWithdrawIterations", () => {
         it("the owner may set max vesting iterations if the contract is not frozen", async () => {
             const oldMaxWithdrawIterations = await staking.getMaxVestingWithdrawIterations();
             const newMaxWithdrawIterations = new BN(20);
@@ -1275,7 +1275,7 @@ contract("Staking", (accounts) => {
         });
     });
 
-    describe("isVestingContract", async () => {
+    describe("isVestingContract", () => {
         let randomContract;
         let randomContractCodeHash;
 
@@ -1299,6 +1299,62 @@ contract("Staking", (accounts) => {
 
         it("returns false if none of the two is the case", async () => {
             expect(await staking.isVestingContract(a1)).to.be.false;
+        });
+    });
+
+    describe("computeWeightByDate", () => {
+        it("if date < startDate, the function reverts", async () => {
+            await expect(staking.computeWeightByDate(1, 2)).to.be.revertedWith("date < startDate");
+            await staking.computeWeightByDate(1, 1); // no revert
+        });
+
+        it("if date - startDate > max duration, the function reverts", async () => {
+            const maxDuration = await staking.MAX_DURATION();
+            let startDate = new BN(1000);
+            let date = startDate.add(maxDuration).add(new BN(1));
+
+            // TODO: this error message is wrong, it should be remaining time > max duration
+            await expect(staking.computeWeightByDate(date, startDate)).to.be.revertedWith(
+                "remaining time < max duration"
+            );
+
+            date = date.sub(new BN(1));
+            await staking.computeWeightByDate(date, startDate); // no revert
+        });
+
+        it("calculates the weight according to the formula for all lock dates (passed as date) from startDate until startDate + max duration", async () => {
+            const maxDuration = await staking.MAX_DURATION();
+            const oneDay = new BN(60 * 60 * 24);
+            const twoWeeks = oneDay.mul(new BN(14));
+            const weightFactor = new BN(10); // await staking.WEIGHT_FACTOR()
+            const maxVotingWeight = new BN(9); // await staking.MAX_VOTING_WEIGHT();
+
+            let startDate = await staking.kickoffTS();
+            let date = startDate;
+            while (date.lte(startDate.add(maxDuration))) {
+                const weight = await staking.computeWeightByDate(date, startDate);
+                const remainingTime = date.sub(startDate);
+                // NOTE: the code says: (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
+                // but actually it's ((m^2 - x^2)*MAX_VOTING_WEIGHT/m^2 + 1) * WEIGHT_FACTOR
+                const x = maxDuration.sub(remainingTime).div(oneDay);
+                const mPow2 = maxDuration.div(oneDay).pow(new BN(2));
+                const expectedWeight = mPow2
+                    .sub(x.mul(x))
+                    .mul(maxVotingWeight)
+                    .mul(weightFactor)
+                    .div(mPow2)
+                    .add(weightFactor);
+                expect(weight).to.be.bignumber.equal(expectedWeight);
+                date = date.add(twoWeeks);
+            }
+
+            // couple of sanity checks for the boundaries
+            expect(await staking.computeWeightByDate(startDate, startDate)).to.be.bignumber.equal(
+                new BN(10)
+            );
+            expect(
+                await staking.computeWeightByDate(startDate.add(maxDuration), startDate)
+            ).to.be.bignumber.equal(new BN(100));
         });
     });
 
