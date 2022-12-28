@@ -1413,6 +1413,128 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("getPriorUserStakeByDate", () => {
+        it("if blockNumber lies in the past, the function returns the amount of tokens account has staked until date at blockNumber", async () => {
+            // preparation
+            const user = a1;
+            await token.transfer(user, "1000");
+            await token.approve(staking.address, "1000", { from: user });
+            const stakeDate = inThreeYears;
+
+            // staking
+            const stakeTx = await staking.stake("100", stakeDate, user, user, { from: user });
+            const stakeBlockNumber = stakeTx.receipt.blockNumber;
+            // weirdly, we have to mine a block, because blockNumber needs to be in the past or it'll revert
+            await mineBlock();
+
+            expect(
+                await staking.getPriorUserStakeByDate(user, stakeDate, stakeBlockNumber)
+            ).to.be.bignumber.eq("100");
+            expect(
+                await staking.getPriorUserStakeByDate(
+                    user,
+                    stakeDate.sub(TWO_WEEKS_BN),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+            expect(
+                await staking.getPriorUserStakeByDate(
+                    user,
+                    stakeDate.add(TWO_WEEKS_BN),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+            expect(
+                await staking.getPriorUserStakeByDate(user, stakeDate, stakeBlockNumber - 1)
+            ).to.be.bignumber.eq("0");
+        });
+
+        it("if blockNumber  >= the current block number, the function reverts", async () => {
+            const blockNumber = await web3.eth.getBlockNumber();
+            await expect(
+                staking.getPriorUserStakeByDate(a1, kickoffTS, blockNumber)
+            ).to.be.revertedWith("not determined");
+            await expect(
+                staking.getPriorUserStakeByDate(a1, kickoffTS, blockNumber + 1)
+            ).to.be.revertedWith("not determined");
+        });
+
+        it("if date is not a valid lock date, the function will return account’s stake at the closest lock date AFTER date", async () => {
+            const user = a1;
+            await token.transfer(user, "100");
+            await token.approve(staking.address, "100", { from: user });
+            const stakeDate = inThreeYears;
+            const stakeTx = await staking.stake("100", stakeDate, user, user, { from: user });
+            const stakeBlockNumber = stakeTx.receipt.blockNumber;
+            await mineBlock();
+
+            // sanity check, should work or the next tests are invalid
+            expect(
+                await staking.getPriorUserStakeByDate(user, stakeDate, stakeBlockNumber)
+            ).to.be.bignumber.eq("100");
+
+            // these adjust to stakeDate
+            expect(
+                await staking.getPriorUserStakeByDate(
+                    user,
+                    stakeDate.sub(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("100");
+            expect(
+                await staking.getPriorUserStakeByDate(
+                    user,
+                    stakeDate.sub(TWO_WEEKS_BN).add(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("100");
+
+            // these adjust to the next lock date after stakeDate
+            expect(
+                await staking.getPriorUserStakeByDate(
+                    user,
+                    stakeDate.add(TWO_WEEKS_BN).sub(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+            expect(
+                await staking.getPriorUserStakeByDate(
+                    user,
+                    stakeDate.add(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+
+            // this adjusts to the previous lock date from stakeDate
+            expect(
+                await staking.getPriorUserStakeByDate(
+                    user,
+                    stakeDate.sub(TWO_WEEKS_BN).sub(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+        });
+
+        it("if the msg.sender is no vesting contract, and there is no stake for the passed parameters, the function returns 0", async () => {
+            const blockNumber = await web3.eth.getBlockNumber();
+            expect(
+                await staking.getPriorUserStakeByDate(a1, kickoffTS, blockNumber - 1)
+            ).to.be.bignumber.eq(new BN(0));
+        });
+
+        it("if the msg.sender is a vesting contract and there is no stake for the passed parameters, the function returns 1", async () => {
+            const randomContract = await TestToken.new("fake", "fake", 0, 0);
+            await staking.addContractCodeHash(randomContract.address);
+
+            const blockNumber = await web3.eth.getBlockNumber();
+            expect(
+                await staking.getPriorUserStakeByDate(a1, kickoffTS, blockNumber - 1, {
+                    from: randomContract.address,
+                })
+            ).to.be.bignumber.eq(new BN(1));
+        });
+    });
+
     function getAmountWithWeight(amount) {
         return new BN(MAX_VOTING_WEIGHT.toNumber() + 1).mul(new BN(amount));
     }

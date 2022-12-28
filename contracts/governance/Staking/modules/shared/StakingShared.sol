@@ -114,7 +114,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
      * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
      * return 1 instead of 0 if message sender is a contract.
      * @param account The address of the account to check.
-     * @param date The lock date.
+     * @param date The lock date. Adjusted to the next valid lock date, if necessary.
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */

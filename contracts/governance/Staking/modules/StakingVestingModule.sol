@@ -71,7 +71,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * @dev Block number must be a finalized block or else this function
      * will revert to prevent misinformation.
      * @param account The address of the account to check.
-     * @param date The lock date.
+     * @param date The lock date. Adjusted to the next valid lock date, if necessary.
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
@@ -96,7 +96,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
      * return 1 instead of 0 if message sender is a contract.
      * @param account The address of the account to check.
-     * @param date The lock date.
+     * @param date The lock date. Adjusted to the next valid lock date, if necessary.
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
