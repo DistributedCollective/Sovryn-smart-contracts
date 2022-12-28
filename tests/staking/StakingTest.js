@@ -32,8 +32,11 @@ const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
-const TWO_WEEKS = 86400 * 14;
+const ONE_DAY = 86400;
+const TWO_WEEKS = ONE_DAY * 14;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const ONE_DAY_BN = new BN(ONE_DAY);
+const TWO_WEEKS_BN = new BN(TWO_WEEKS);
 
 contract("Staking", (accounts) => {
     const name = "Test token";
@@ -1323,10 +1326,7 @@ contract("Staking", (accounts) => {
 
         it("calculates the weight according to the formula for all lock dates (passed as date) from startDate until startDate + max duration", async () => {
             const maxDuration = await staking.MAX_DURATION();
-            const oneDay = new BN(60 * 60 * 24);
-            const twoWeeks = oneDay.mul(new BN(14));
-            const weightFactor = new BN(10); // await staking.WEIGHT_FACTOR()
-            const maxVotingWeight = new BN(9); // await staking.MAX_VOTING_WEIGHT();
+            const weightFactor = await staking.getStorageWeightFactor();
 
             let startDate = await staking.kickoffTS();
             let date = startDate;
@@ -1335,16 +1335,16 @@ contract("Staking", (accounts) => {
                 const remainingTime = date.sub(startDate);
                 // NOTE: the code says: (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
                 // but actually it's ((m^2 - x^2)*MAX_VOTING_WEIGHT/m^2 + 1) * WEIGHT_FACTOR
-                const x = maxDuration.sub(remainingTime).div(oneDay);
-                const mPow2 = maxDuration.div(oneDay).pow(new BN(2));
+                const x = maxDuration.sub(remainingTime).div(ONE_DAY_BN);
+                const mPow2 = maxDuration.div(ONE_DAY_BN).pow(new BN(2));
                 const expectedWeight = mPow2
                     .sub(x.mul(x))
-                    .mul(maxVotingWeight)
+                    .mul(MAX_VOTING_WEIGHT)
                     .mul(weightFactor)
                     .div(mPow2)
                     .add(weightFactor);
                 expect(weight).to.be.bignumber.equal(expectedWeight);
-                date = date.add(twoWeeks);
+                date = date.add(TWO_WEEKS_BN);
             }
 
             // couple of sanity checks for the boundaries
