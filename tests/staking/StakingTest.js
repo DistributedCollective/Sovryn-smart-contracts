@@ -1404,6 +1404,13 @@ contract("Staking", (accounts) => {
                 "timestamp < contract creation"
             );
         });
+
+        it("the gas cost should be reduced", async () => {
+            const cost = await staking.timestampToLockDate.estimateGas(kickoffTS);
+            // 35255 is the original gas cost with reading kicoffTS 3 times from the storage, so it should be lower
+            // than that
+            expect(cost).to.be.lessThan(35255);
+        });
     });
 
     function getAmountWithWeight(amount) {
