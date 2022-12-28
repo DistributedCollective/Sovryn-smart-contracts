@@ -1357,6 +1357,55 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("timestampToLockDate", () => {
+        it("if timestamp is a valid lock date, timestamp is returned", async () => {
+            // kickoffTS is a valid lock date
+            expect(await staking.timestampToLockDate(kickoffTS)).to.be.bignumber.equal(kickoffTS);
+
+            // periods of two weeks after kickoff are valid lock dates
+            let timestamp = kickoffTS.add(TWO_WEEKS_BN);
+            expect(await staking.timestampToLockDate(timestamp)).to.be.bignumber.equal(timestamp);
+            timestamp = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(2)));
+            expect(await staking.timestampToLockDate(timestamp)).to.be.bignumber.equal(timestamp);
+            timestamp = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(1337)));
+            expect(await staking.timestampToLockDate(timestamp)).to.be.bignumber.equal(timestamp);
+        });
+
+        it("if timestamp is not a valid lock date, the function will return the closest lock date prior to timestamp ", async () => {
+            // test boundaries
+            let expectedLockDate = kickoffTS;
+            let timestamp = expectedLockDate.add(new BN(1));
+            expect(await staking.timestampToLockDate(timestamp)).to.be.bignumber.equal(
+                expectedLockDate
+            );
+
+            timestamp = expectedLockDate.add(TWO_WEEKS_BN).sub(new BN(1));
+            expect(await staking.timestampToLockDate(timestamp)).to.be.bignumber.equal(
+                expectedLockDate
+            );
+
+            expectedLockDate = kickoffTS.add(TWO_WEEKS_BN);
+            timestamp = expectedLockDate.add(new BN(1));
+            expect(await staking.timestampToLockDate(timestamp)).to.be.bignumber.equal(
+                expectedLockDate
+            );
+
+            // test some valid lock date plus one week
+            expectedLockDate = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(1337)));
+            timestamp = expectedLockDate.add(ONE_DAY_BN.mul(new BN(7)));
+            expect(await staking.timestampToLockDate(timestamp)).to.be.bignumber.equal(
+                expectedLockDate
+            );
+        });
+
+        it("if timestamp lies before the kickoff date, the function reverts", async () => {
+            const timestamp = kickoffTS.sub(new BN(1));
+            await expect(staking.timestampToLockDate(timestamp)).to.be.revertedWith(
+                "timestamp < contract creation"
+            );
+        });
+    });
+
     function getAmountWithWeight(amount) {
         return new BN(MAX_VOTING_WEIGHT.toNumber() + 1).mul(new BN(amount));
     }
