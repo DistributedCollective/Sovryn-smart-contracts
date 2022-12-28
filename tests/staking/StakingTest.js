@@ -1449,6 +1449,66 @@ contract("Staking", (accounts) => {
             ).to.be.bignumber.eq("0");
         });
 
+        it("if blockNumber lies in the past, the function returns the amount of tokens account has staked until date at blockNumber (multiple stakes)", async () => {
+            // preparation
+            const user = a1;
+            await token.transfer(user, "1000");
+            await token.approve(staking.address, "1000", { from: user });
+            const stakeDate1 = inThreeYears;
+
+            // stake 1st time
+            const stakeTx1 = await staking.stake("100", stakeDate1, user, user, { from: user });
+            const stakeBlockNumber1 = stakeTx1.receipt.blockNumber;
+            await mineBlock();
+
+            // this works as expected
+            expect(
+                await staking.getPriorUserStakeByDate(user, stakeDate1, stakeBlockNumber1)
+            ).to.be.bignumber.eq("100");
+
+            // stake 2nd time
+            const stakeDate2 = kickoffTS.add(TWO_WEEKS_BN); // this is before stakeDate
+            const stakeTx2 = await staking.stake("50", stakeDate2, user, user, { from: user });
+            const stakeBlockNumber2 = stakeTx2.receipt.blockNumber; // this is after stakeBlockNumber
+            await mineBlock();
+
+            // data from the stakeBlockNumber1 and stakeDate1 is unchanged as expected
+            expect(
+                await staking.getPriorUserStakeByDate(user, stakeDate1, stakeBlockNumber1)
+            ).to.be.bignumber.eq("100");
+
+            // stake for stakeDate1 with the new blockNumber is still unchanged
+            expect(
+                await staking.getPriorUserStakeByDate(user, stakeDate1, stakeBlockNumber2)
+            ).to.be.bignumber.eq("100");
+
+            // new date and block number only returns that stake
+            expect(
+                await staking.getPriorUserStakeByDate(user, stakeDate2, stakeBlockNumber2)
+            ).to.be.bignumber.eq("50");
+
+            // new date and old block number returns nothing, because stakeBlockNumber1 < stakeBlockNumber2
+            expect(
+                await staking.getPriorUserStakeByDate(user, stakeDate2, stakeBlockNumber1)
+            ).to.be.bignumber.eq("0");
+
+            // stake 3rd time
+            const stakeDate3 = stakeDate1;
+            const stakeTx3 = await staking.stake("20", stakeDate3, user, user, { from: user });
+            const stakeBlockNumber3 = stakeTx3.receipt.blockNumber;
+            await mineBlock();
+
+            // this should show the combined amount because stakeDate3 == stakeDate1
+            expect(
+                await staking.getPriorUserStakeByDate(user, stakeDate3, stakeBlockNumber3)
+            ).to.be.bignumber.eq("120");
+
+            // this should still show the old amount
+            expect(
+                await staking.getPriorUserStakeByDate(user, stakeDate3, stakeBlockNumber1)
+            ).to.be.bignumber.eq("100");
+        });
+
         it("if blockNumber  >= the current block number, the function reverts", async () => {
             const blockNumber = await web3.eth.getBlockNumber();
             await expect(
