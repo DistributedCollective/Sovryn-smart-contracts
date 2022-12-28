@@ -1593,17 +1593,6 @@ contract("Staking", (accounts) => {
         // *THIS IS NOT ACCORDING TO THE SPEC*
         // but adding those checks would result in marginally higher gas costs and hence I'm not changing it.
 
-        async function initializeStake(date, amount) {
-            await token.transfer(a1, amount);
-            await token.approve(staking.address, amount, { from: a1 });
-
-            const stakeTx = await staking.stake(amount, date, a1, a1, { from: a1 });
-            const blockNumber = stakeTx.receipt.blockNumber;
-            await mineBlock();
-
-            return blockNumber;
-        }
-
         it("if date < startDate, the function reverts", async () => {
             const date = kickoffTS.add(TWO_WEEKS_BN);
             const startDate = date.add(TWO_WEEKS_BN);
@@ -1725,6 +1714,148 @@ contract("Staking", (accounts) => {
             );
         });
     });
+
+    describe("getPriorWeightedStake", () => {
+        it("returns the total weights stake of account starting from date until the max duration using the checkpoints for blockNumber", async () => {
+            const stakeDate1 = kickoffTS.add(TWO_WEEKS_BN);
+            const stakeDate2 = stakeDate1.add(TWO_WEEKS_BN);
+
+            const amount1 = new BN("100");
+            const amount2 = new BN("50");
+
+            await initializeStake(stakeDate1, "10000", a2); // stake from another user -- should not be visible
+            const stakeBlockNumber1 = await initializeStake(stakeDate1, amount1);
+            const stakeBlockNumber2 = await initializeStake(stakeDate2, amount2);
+
+            // case 1: from earliest date and up to latest block number: both visible
+            let expected = getAmountWithWeight(amount1, stakeDate1, stakeDate1).add(
+                getAmountWithWeight(amount2, stakeDate2, stakeDate1)
+            );
+            let actual = await staking.getPriorWeightedStake(a1, stakeBlockNumber2, stakeDate1);
+            expect(actual).to.be.bignumber.eq(expected);
+
+            // case 2: from earliest date and up to earliest block number: only first visible
+            expected = getAmountWithWeight(amount1, stakeDate1, stakeDate1);
+            actual = await staking.getPriorWeightedStake(a1, stakeBlockNumber1, stakeDate1);
+            expect(actual).to.be.bignumber.eq(expected);
+
+            // case 3: from latest date and up to latest block number: only second visible (with less time)
+            expected = getAmountWithWeight(amount2, stakeDate2, stakeDate2);
+            actual = await staking.getPriorWeightedStake(a1, stakeBlockNumber2, stakeDate2);
+            expect(actual).to.be.bignumber.eq(expected);
+
+            // case 4: from latest date and up to earliest block number: none visible
+            expected = new BN(0);
+            actual = await staking.getPriorWeightedStake(a1, stakeBlockNumber1, stakeDate2);
+            expect(actual).to.be.bignumber.eq(expected);
+
+            // case 5: after the lock date after latest date: none visible
+            expected = new BN(0);
+            actual = await staking.getPriorWeightedStake(
+                a1,
+                stakeBlockNumber2,
+                stakeDate2.add(TWO_WEEKS_BN)
+            );
+            expect(actual).to.be.bignumber.eq(expected);
+
+            // check checkpoints
+            const amount3 = new BN("200");
+            const stakeDate3 = stakeDate2; // must be the same
+            const stakeBlockNumber3 = await initializeStake(stakeDate3, amount3);
+
+            // case 6: not including latest block number
+            expected = getAmountWithWeight(amount1, stakeDate1, stakeDate1).add(
+                getAmountWithWeight(amount2, stakeDate2, stakeDate1)
+            );
+            actual = await staking.getPriorWeightedStake(a1, stakeBlockNumber2, stakeDate1);
+            expect(actual).to.be.bignumber.eq(expected);
+
+            // case 7: including latest block number
+            expected = expected.add(getAmountWithWeight(amount3, stakeDate3, stakeDate1));
+            actual = await staking.getPriorWeightedStake(a1, stakeBlockNumber3, stakeDate1);
+            expect(actual).to.be.bignumber.eq(expected);
+        });
+
+        it("if blockNumber >= the current block number, the function reverts", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await expect(
+                staking.getPriorWeightedStake(a1, currentBlockNumber, date)
+            ).to.be.revertedWith("not determined");
+        });
+
+        it("if date is not a valid lock date, the function will return the weighted stake of account at the closest lock date prior to date", async () => {
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(2)));
+            const amount = new BN("100");
+            const stakeBlockNumber = await initializeStake(stakeDate, amount);
+
+            // sanity check
+            const expectedWeightOnLockDate = getAmountWithWeight(amount, stakeDate, stakeDate);
+            expect(expectedWeightOnLockDate).to.be.bignumber.gt(new BN(0));
+            expect(
+                await staking.getPriorWeightedStake(a1, stakeBlockNumber, stakeDate)
+            ).to.be.bignumber.eq(expectedWeightOnLockDate);
+
+            // case 1: before stake date -- we get one period of 2 weeks of more weight
+            const expectedWeight2WeeksBefore = getAmountWithWeight(
+                amount,
+                stakeDate,
+                stakeDate.sub(TWO_WEEKS_BN)
+            );
+            const dateBefore = stakeDate.sub(new BN(1)); // this should adjust to the lock date 2 wk before stake
+            expect(
+                await staking.getPriorWeightedStake(a1, stakeBlockNumber, dateBefore)
+            ).to.be.bignumber.eq(expectedWeight2WeeksBefore);
+
+            // case 2: after stake date
+            // this should just adjust to lock date
+            let dateAfter = stakeDate.add(new BN(1));
+            expect(
+                await staking.getPriorWeightedStake(a1, stakeBlockNumber, dateAfter)
+            ).to.be.bignumber.eq(expectedWeightOnLockDate);
+
+            // case 3: after stake date + 2 weeks + 1 -- should not see the stake any more
+            dateAfter = stakeDate.add(TWO_WEEKS_BN).add(new BN(1));
+            expect(
+                await staking.getPriorWeightedStake(a1, stakeBlockNumber, dateAfter)
+            ).to.be.bignumber.eq(new BN(0));
+        });
+
+        it("if account has no stakes at date, the function returns 0", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            const firstCheckedBlock = currentBlockNumber - 1;
+            const date = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(2)));
+            expect(
+                await staking.getPriorWeightedStake(a1, firstCheckedBlock, date)
+            ).to.be.bignumber.eq("0");
+
+            const previousDate = date.sub(TWO_WEEKS_BN);
+            const secondCheckedBlock = await initializeStake(previousDate, "1000");
+            expect(
+                await staking.getPriorWeightedStake(a1, secondCheckedBlock, date)
+            ).to.be.bignumber.eq("0");
+            expect(
+                await staking.getPriorWeightedStake(a1, firstCheckedBlock, previousDate)
+            ).to.be.bignumber.eq("0");
+        });
+    });
+
+    async function initializeStake(date, amount, user) {
+        // helper to grant tokens, stake, mine a block, and return the block number of the stake
+
+        if (!user) {
+            user = a1;
+        }
+
+        await token.transfer(user, amount);
+        await token.approve(staking.address, amount, { from: user });
+
+        const stakeTx = await staking.stake(amount, date, user, user, { from: user });
+        const blockNumber = stakeTx.receipt.blockNumber;
+        await mineBlock();
+
+        return blockNumber;
+    }
 
     function getAmountWithWeightMaxDuration(amount) {
         // equal to getAmountWithWeight(amount, inThreeYears, kickoffTS);
