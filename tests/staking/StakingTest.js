@@ -1840,6 +1840,119 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("getPriorTotalVotingPower", () => {
+        it("if there are stakes at several dates, this function returns the past total voting power at all these dates for time and blockNumber", async () => {
+            const stakeDate1 = kickoffTS.add(TWO_WEEKS_BN);
+            const stakeDate2 = stakeDate1.add(TWO_WEEKS_BN);
+
+            const amount1 = new BN("100");
+            const amount2 = new BN("50");
+
+            // these are from different users because all stakes count towards total voting power
+            expect(a1).to.not.be.eq(a2); // sanity check
+            const stakeBlockNumber1 = await initializeStake(stakeDate1, amount1, a1);
+            const stakeBlockNumber2 = await initializeStake(stakeDate2, amount2, a2);
+
+            // case 1: latest block number, earliest date: both visible
+            let expected = getAmountWithWeight(amount1, stakeDate1, stakeDate1).add(
+                getAmountWithWeight(amount2, stakeDate2, stakeDate1)
+            );
+            let actual = await staking.getPriorTotalVotingPower(stakeBlockNumber2, stakeDate1);
+            expect(actual).to.be.bignumber.eq(expected);
+
+            // case 2: latest block number, latest date: only the latest visible
+            expected = getAmountWithWeight(amount2, stakeDate2, stakeDate2);
+            actual = await staking.getPriorTotalVotingPower(stakeBlockNumber2, stakeDate2);
+            expect(actual).to.be.bignumber.eq(expected);
+
+            // case 3: earliest block number, earliest date: only the earliest visible
+            expected = getAmountWithWeight(amount1, stakeDate1, stakeDate1);
+            actual = await staking.getPriorTotalVotingPower(stakeBlockNumber1, stakeDate1);
+            expect(actual).to.be.bignumber.eq(expected);
+
+            // case 4: earliest block number, latest date: none visible
+            expected = new BN(0);
+            actual = await staking.getPriorTotalVotingPower(stakeBlockNumber1, stakeDate2);
+            expect(actual).to.be.bignumber.eq(expected);
+
+            // the above cases also test:
+            // "if there is at least one stake before time (or the lock date previous of it if it not exactly a lock date),
+            // it is not counted towards the total voting power"
+        });
+
+        it("if time is not a valid lock date, the function will start calculating the voting power from the closest lock date prior to time", async () => {
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(2)));
+            const amount = new BN("100");
+            const stakeBlockNumber = await initializeStake(stakeDate, amount);
+
+            // sanity check
+            const expectedWeightOnLockDate = getAmountWithWeight(amount, stakeDate, stakeDate);
+            expect(expectedWeightOnLockDate).to.be.bignumber.gt(new BN(0));
+            expect(
+                await staking.getPriorTotalVotingPower(stakeBlockNumber, stakeDate)
+            ).to.be.bignumber.eq(expectedWeightOnLockDate);
+
+            // case 1: before stake date -- we get one period of 2 weeks of more weight
+            const expectedWeight2WeeksBefore = getAmountWithWeight(
+                amount,
+                stakeDate,
+                stakeDate.sub(TWO_WEEKS_BN)
+            );
+            const dateBefore = stakeDate.sub(new BN(1)); // this should adjust to the lock date 2 wk before stake
+            expect(
+                await staking.getPriorTotalVotingPower(stakeBlockNumber, dateBefore)
+            ).to.be.bignumber.eq(expectedWeight2WeeksBefore);
+
+            // case 2: after stake date
+            // this should just adjust to lock date
+            let dateAfter = stakeDate.add(new BN(1));
+            expect(
+                await staking.getPriorTotalVotingPower(stakeBlockNumber, dateAfter)
+            ).to.be.bignumber.eq(expectedWeightOnLockDate);
+
+            // case 3: after stake date + 2 weeks + 1 -- should not see the stake any more
+            dateAfter = stakeDate.add(TWO_WEEKS_BN).add(new BN(1));
+            expect(
+                await staking.getPriorTotalVotingPower(stakeBlockNumber, dateAfter)
+            ).to.be.bignumber.eq(new BN(0));
+        });
+
+        it("the function reverts if blockNumber >= current block", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            await expect(
+                staking.getPriorTotalVotingPower(currentBlockNumber, kickoffTS)
+            ).to.be.revertedWith("not determined");
+        });
+
+        it("time may lie in the future", async () => {
+            const block = await web3.eth.getBlock("latest");
+            const currentTime = new BN(block.timestamp);
+            const futureTime = currentTime.add(TWO_WEEKS_BN);
+            expect(
+                await staking.getPriorTotalVotingPower(block.number - 1, futureTime)
+            ).to.be.bignumber.eq(new BN(0));
+        });
+
+        it("if there are no stakes at blockNumber or time, the function returns 0", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            expect(
+                await staking.getPriorTotalVotingPower(currentBlockNumber - 1, kickoffTS)
+            ).to.be.bignumber.eq("0");
+
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(2)));
+            const stakeBlockNumber = await initializeStake(stakeDate, "1000");
+            expect(
+                await staking.getPriorTotalVotingPower(
+                    stakeBlockNumber,
+                    stakeDate.add(TWO_WEEKS_BN)
+                )
+            ).to.be.bignumber.eq("0");
+            expect(
+                await staking.getPriorTotalVotingPower(stakeBlockNumber - 1, kickoffTS)
+            ).to.be.bignumber.eq("0");
+        });
+    });
+
     async function initializeStake(date, amount, user) {
         // helper to grant tokens, stake, mine a block, and return the block number of the stake
 
