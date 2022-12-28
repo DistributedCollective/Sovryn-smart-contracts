@@ -46,6 +46,8 @@ contract("Staking", (accounts) => {
     let pA1;
     let token, staking;
     let MAX_VOTING_WEIGHT;
+    let MAX_DURATION;
+    let WEIGHT_FACTOR;
 
     let kickoffTS, inThreeYears;
     let currentChainId;
@@ -72,6 +74,8 @@ contract("Staking", (accounts) => {
         await staking.setVestingRegistry(vesting.address);
 
         MAX_VOTING_WEIGHT = await staking.getStorageMaxVotingWeight.call();
+        MAX_DURATION = await staking.MAX_DURATION();
+        WEIGHT_FACTOR = await staking.getStorageWeightFactor();
 
         kickoffTS = await staking.kickoffTS.call();
         inThreeYears = kickoffTS.add(new BN(DELAY * 26 * 3));
@@ -487,7 +491,7 @@ contract("Staking", (accounts) => {
             await mineBlock();
             await mineBlock();
 
-            let amountWithWeight = getAmountWithWeight(amount);
+            let amountWithWeight = getAmountWithWeightMaxDuration(amount);
             expect(
                 (
                     await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), kickoffTS)
@@ -511,7 +515,7 @@ contract("Staking", (accounts) => {
             await mineBlock();
             await mineBlock();
 
-            let amountWithWeight = getAmountWithWeight(amount);
+            let amountWithWeight = getAmountWithWeightMaxDuration(amount);
             expect(
                 (
                     await staking.getPriorVotes.call(
@@ -562,7 +566,7 @@ contract("Staking", (accounts) => {
                 (
                     await staking.getPriorVotes.call(a1, new BN(t1.receipt.blockNumber), kickoffTS)
                 ).toString()
-            ).to.be.equal(getAmountWithWeight("1000").toString());
+            ).to.be.equal(getAmountWithWeightMaxDuration("1000").toString());
             expect(
                 (
                     await staking.getPriorVotes.call(
@@ -571,12 +575,12 @@ contract("Staking", (accounts) => {
                         kickoffTS
                     )
                 ).toString()
-            ).to.be.equal(getAmountWithWeight("1000").toString());
+            ).to.be.equal(getAmountWithWeightMaxDuration("1000").toString());
             expect(
                 (
                     await staking.getPriorVotes.call(a1, new BN(t2.receipt.blockNumber), kickoffTS)
                 ).toString()
-            ).to.be.equal(getAmountWithWeight("1010").toString());
+            ).to.be.equal(getAmountWithWeightMaxDuration("1010").toString());
             expect(
                 (
                     await staking.getPriorVotes.call(
@@ -585,12 +589,12 @@ contract("Staking", (accounts) => {
                         kickoffTS
                     )
                 ).toString()
-            ).to.be.equal(getAmountWithWeight("1010").toString());
+            ).to.be.equal(getAmountWithWeightMaxDuration("1010").toString());
             expect(
                 (
                     await staking.getPriorVotes.call(a1, new BN(t3.receipt.blockNumber), kickoffTS)
                 ).toString()
-            ).to.be.equal(getAmountWithWeight("1111").toString());
+            ).to.be.equal(getAmountWithWeightMaxDuration("1111").toString());
             expect(
                 (
                     await staking.getPriorVotes.call(
@@ -599,7 +603,7 @@ contract("Staking", (accounts) => {
                         kickoffTS
                     )
                 ).toString()
-            ).to.be.equal(getAmountWithWeight("1111").toString());
+            ).to.be.equal(getAmountWithWeightMaxDuration("1111").toString());
         });
     });
 
@@ -1312,9 +1316,8 @@ contract("Staking", (accounts) => {
         });
 
         it("if date - startDate > max duration, the function reverts", async () => {
-            const maxDuration = await staking.MAX_DURATION();
             let startDate = new BN(1000);
-            let date = startDate.add(maxDuration).add(new BN(1));
+            let date = startDate.add(MAX_DURATION).add(new BN(1));
 
             await expect(staking.computeWeightByDate(date, startDate)).to.be.revertedWith(
                 "remaining time > max duration"
@@ -1325,24 +1328,13 @@ contract("Staking", (accounts) => {
         });
 
         it("calculates the weight according to the formula for all lock dates (passed as date) from startDate until startDate + max duration", async () => {
-            const maxDuration = await staking.MAX_DURATION();
-            const weightFactor = await staking.getStorageWeightFactor();
+            const MAX_DURATION = await staking.MAX_DURATION();
 
             let startDate = await staking.kickoffTS();
             let date = startDate;
-            while (date.lte(startDate.add(maxDuration))) {
+            while (date.lte(startDate.add(MAX_DURATION))) {
                 const weight = await staking.computeWeightByDate(date, startDate);
-                const remainingTime = date.sub(startDate);
-                // NOTE: the code says: (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
-                // but actually it's ((m^2 - x^2)*MAX_VOTING_WEIGHT/m^2 + 1) * WEIGHT_FACTOR
-                const x = maxDuration.sub(remainingTime).div(ONE_DAY_BN);
-                const mPow2 = maxDuration.div(ONE_DAY_BN).pow(new BN(2));
-                const expectedWeight = mPow2
-                    .sub(x.mul(x))
-                    .mul(MAX_VOTING_WEIGHT)
-                    .mul(weightFactor)
-                    .div(mPow2)
-                    .add(weightFactor);
+                const expectedWeight = getWeight(date, startDate);
                 expect(weight).to.be.bignumber.equal(expectedWeight);
                 date = date.add(TWO_WEEKS_BN);
             }
@@ -1352,7 +1344,7 @@ contract("Staking", (accounts) => {
                 new BN(10)
             );
             expect(
-                await staking.computeWeightByDate(startDate.add(maxDuration), startDate)
+                await staking.computeWeightByDate(startDate.add(MAX_DURATION), startDate)
             ).to.be.bignumber.equal(new BN(100));
         });
     });
@@ -1595,7 +1587,165 @@ contract("Staking", (accounts) => {
         });
     });
 
-    function getAmountWithWeight(amount) {
+    describe("weightedStakeByDate", () => {
+        // TODO: this function only reverts in multiple cases if there's a stake, because the checking is done
+        // in internal functions that are not called for zero stakes.
+        // *THIS IS NOT ACCORDING TO THE SPEC*
+        // but adding those checks would result in marginally higher gas costs and hence I'm not changing it.
+
+        async function initializeStake(date, amount) {
+            await token.transfer(a1, amount);
+            await token.approve(staking.address, amount, { from: a1 });
+
+            const stakeTx = await staking.stake(amount, date, a1, a1, { from: a1 });
+            const blockNumber = stakeTx.receipt.blockNumber;
+            await mineBlock();
+
+            return blockNumber;
+        }
+
+        it("if date < startDate, the function reverts", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            const startDate = date.add(TWO_WEEKS_BN);
+
+            // TODO: should not require stake
+            const blockNumber = await initializeStake(date, "100");
+
+            await expect(
+                staking.weightedStakeByDate(a1, date, startDate, blockNumber)
+            ).to.be.revertedWith("date < startDate");
+        });
+
+        it("if date < startDate, but there's nothing staked for the date, the function returns 0", async () => {
+            // TODO: this is NOT according to the spec -- according to the spec, it should revert!
+            const date = kickoffTS;
+            const startDate = date.add(TWO_WEEKS_BN);
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            expect(
+                await staking.weightedStakeByDate(a1, date, startDate, currentBlockNumber - 1)
+            ).to.be.bignumber.eq("0");
+        });
+
+        it("if date - startDate > max duration, the function reverts", async () => {
+            // This must not be further away than MAX_DURATION or `stake` will adjust the locked ts
+            const date = kickoffTS.add(MAX_DURATION);
+            const startDate = kickoffTS.sub(new BN(1));
+
+            // TODO: should not require stake
+            const blockNumber = await initializeStake(date, "1000");
+
+            await expect(
+                staking.weightedStakeByDate(a1, date, startDate, blockNumber)
+            ).to.be.revertedWith("remaining time > max duration");
+        });
+
+        it("if blockNumber >= the current block number, the function reverts", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await expect(
+                staking.weightedStakeByDate(a1, date, date, currentBlockNumber)
+            ).to.be.revertedWith("not determined");
+            await expect(
+                staking.weightedStakeByDate(a1, date, date, currentBlockNumber + 1)
+            ).to.be.revertedWith("not determined");
+        });
+
+        it("returns the correct weight * stake for account and date (max duration)", async () => {
+            const startDate = kickoffTS;
+            // NOTE: this must be exactly the max lock date, or else `stake` will adjust the locked ts
+            const date = startDate.add(MAX_DURATION);
+            const blockNumber = await initializeStake(date, "10000");
+
+            const weightedStake = await staking.weightedStakeByDate(
+                a1,
+                date,
+                startDate,
+                blockNumber
+            );
+            expect(weightedStake).to.be.bignumber.eq(
+                getAmountWithWeight("10000", date, startDate)
+            );
+        });
+
+        it("returns the correct weight * stake for account and date (min duration)", async () => {
+            const startDate = kickoffTS.add(TWO_WEEKS_BN);
+            const date = startDate;
+            const blockNumber = await initializeStake(date, "10000");
+
+            const weightedStake = await staking.weightedStakeByDate(
+                a1,
+                date,
+                startDate,
+                blockNumber
+            );
+            expect(weightedStake).to.be.bignumber.eq(
+                getAmountWithWeight("10000", date, startDate)
+            );
+        });
+
+        it("returns the correct weight * stake for account and date (middle duration)", async () => {
+            const startDate = kickoffTS.add(TWO_WEEKS_BN);
+            const date = startDate.add(MAX_DURATION.div(new BN(2)));
+            const blockNumber = await initializeStake(date, "10000");
+
+            const weightedStake = await staking.weightedStakeByDate(
+                a1,
+                date,
+                startDate,
+                blockNumber
+            );
+            expect(weightedStake).to.be.bignumber.eq(
+                getAmountWithWeight("10000", date, startDate)
+            );
+        });
+
+        xit("if date is not a valid lock date, the function will return the weighted stake at the closest lock date prior to date", async () => {
+            // TODO: this is just an expected failure. The function does not work the way it's specified here, instead it will return 0
+            const startDate = kickoffTS.add(TWO_WEEKS_BN);
+            const stakeDate = startDate.add(TWO_WEEKS_BN);
+            const dateBefore = stakeDate.sub(new BN(1));
+            const dateAfter = stakeDate.add(new BN(1));
+            const blockNumber = await initializeStake(stakeDate, "10000");
+
+            let weightedStake = await staking.weightedStakeByDate(
+                a1,
+                dateBefore,
+                startDate,
+                blockNumber
+            );
+            expect(weightedStake).to.be.bignumber.eq("0");
+            weightedStake = await staking.weightedStakeByDate(
+                a1,
+                dateAfter,
+                startDate,
+                blockNumber
+            );
+            expect(weightedStake).to.be.bignumber.eq(
+                getAmountWithWeight("10000", stakeDate, startDate)
+            );
+        });
+    });
+
+    function getAmountWithWeightMaxDuration(amount) {
+        // equal to getAmountWithWeight(amount, inThreeYears, kickoffTS);
         return new BN(MAX_VOTING_WEIGHT.toNumber() + 1).mul(new BN(amount));
+    }
+
+    function getAmountWithWeight(amount, date, startDate) {
+        return new BN(amount).mul(getWeight(date, startDate)).div(WEIGHT_FACTOR);
+    }
+
+    function getWeight(date, startDate) {
+        const remainingTime = date.sub(startDate);
+        // NOTE: the code says: (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)
+        // but actually it's ((m^2 - x^2)*MAX_VOTING_WEIGHT/m^2 + 1) * WEIGHT_FACTOR
+        const x = MAX_DURATION.sub(remainingTime).div(ONE_DAY_BN);
+        const mPow2 = MAX_DURATION.div(ONE_DAY_BN).pow(new BN(2));
+        return mPow2
+            .sub(x.mul(x))
+            .mul(MAX_VOTING_WEIGHT)
+            .mul(WEIGHT_FACTOR)
+            .div(mPow2)
+            .add(WEIGHT_FACTOR);
     }
 });
