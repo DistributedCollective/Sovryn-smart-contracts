@@ -25,9 +25,8 @@
 		"abi/"
 	],
 	"devDependencies": {
-		"@defi-wonderland/smock": "^2.2.0",
-		"@nomicfoundation/hardhat-chai-matchers": "^1.0.2",
-		"@nomicfoundation/hardhat-network-helpers": "^1.0.3",
+		"@defi-wonderland/smock": "^2.3.4",
+		"@nomicfoundation/hardhat-toolbox": "^2.0.0",
 		"@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
 		"@nomiclabs/hardhat-ganache": "^2.0.0",
 		"@nomiclabs/hardhat-truffle5": "^2.0.0",
@@ -36,7 +35,6 @@
 		"@openzeppelin/test-helpers": "^0.5.10",
 		"bignumber.js": "^9.0.0",
 		"bn.js": "^5.1.2",
-		"chai": "^4.2.0",
 		"chai-as-promised": "^7.1.1",
 		"chai-string": "^1.5.0",
 		"coveralls": "^3.1.0",
@@ -47,7 +45,6 @@
 		"eslint-config-prettier": "^8.1.0",
 		"ethereum-waffle": "^3.4.0",
 		"ethereumjs-abi": "^0.6.8",
-		"ethers": "^5.5.4",
 		"ganache-core": "^2.10.2",
 		"hardhat": "^2.12.4",
 		"hardhat-abi-exporter": "^2.2.1",
@@ -61,7 +58,6 @@
 		"sol2uml": "^1.1.17",
 		"solhint": "^3.0.0",
 		"solhint-plugin-prettier": "^0.0.5",
-		"solidity-coverage": "^0.7.13",
 		"solparse": "^2.2.8",
 		"truffle": "^5.1.60",
 		"web3": "^1.3.1"
@@ -97,14 +93,11 @@
 		}
 	},
 	"dependencies": {
-		"@typechain/ethers-v5": "^7.1.2",
-		"@typechain/web3-v1": "^3.1.0",
 		"dotenv": "^16.0.1",
 		"keccak": "^3.0.1",
 		"keccak256": "^1.0.3",
 		"patch-package": "^6.4.7",
 		"phantomjs-prebuilt": "^2.1.16",
-		"typechain": "^5.1.2",
 		"yarn": "^1.22.10"
 	}
 }
