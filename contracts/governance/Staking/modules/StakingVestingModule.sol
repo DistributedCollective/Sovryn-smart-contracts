@@ -89,56 +89,6 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         return priorStake;
     }
 
-    /**
-     * @notice Determine the prior number of stake for an account until a
-     * 		certain lock date as of a block number.
-     * @dev All functions of Staking contract use this internal version,
-     * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
-     * return 1 instead of 0 if message sender is a contract.
-     * @param account The address of the account to check.
-     * @param date The lock date.
-     * @param blockNumber The block number to get the vote balance at.
-     * @return The number of votes the account had as of the given block.
-     * */
-    function _getPriorUserStakeByDate(
-        address account,
-        uint256 date,
-        uint256 blockNumber
-    ) internal view returns (uint96) {
-        require(blockNumber < _getCurrentBlockNumber(), "not determined"); // WS14
-
-        date = _adjustDateForOrigin(date);
-        uint32 nCheckpoints = numUserStakingCheckpoints[account][date];
-        if (nCheckpoints == 0) {
-            return 0;
-        }
-
-        /// @dev First check most recent balance.
-        if (userStakingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber) {
-            return userStakingCheckpoints[account][date][nCheckpoints - 1].stake;
-        }
-
-        /// @dev Next check implicit zero balance.
-        if (userStakingCheckpoints[account][date][0].fromBlock > blockNumber) {
-            return 0;
-        }
-
-        uint32 lower = 0;
-        uint32 upper = nCheckpoints - 1;
-        while (upper > lower) {
-            uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.
-            Checkpoint memory cp = userStakingCheckpoints[account][date][center];
-            if (cp.fromBlock == blockNumber) {
-                return cp.stake;
-            } else if (cp.fromBlock < blockNumber) {
-                lower = center;
-            } else {
-                upper = center - 1;
-            }
-        }
-        return userStakingCheckpoints[account][date][lower].stake;
-    }
-
     /*************************** Weighted Vesting Stake computation for fee sharing *******************************/
 
     /**
