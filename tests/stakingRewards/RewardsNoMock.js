@@ -11,7 +11,9 @@
 const { expect } = require("chai");
 const { BigNumber } = require("@ethersproject/bignumber");
 const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
-const { mine, mineUpTo } = require("@nomicfoundation/hardhat-network-helpers");
+//const { mine, mineUpTo, takeSnapshot } = require("@nomicfoundation/hardhat-network-helpers");
+const hh_ntwrk_helpers = require("@nomicfoundation/hardhat-network-helpers");
+const { mine, mineUpTo } = hh_ntwrk_helpers;
 
 const { deployAndGetIStaking } = require("../Utils/initializer");
 
@@ -115,7 +117,10 @@ describe("StakingRewards - First Period", () => {
     });
 
     describe("Flow - StakingRewards", () => {
-        it.skip("should increaseTrueTimeAndBlocks correctly", async () => {
+        it("should increaseTrueTimeAndBlocks correctly", async () => {
+            // take a snapshot of the current state of the blockchain
+            const snapshot = await hh_ntwrk_helpers.takeSnapshot();
+
             //TODO: wrap into a fixture and reset after execution
             let blockNumBefore = await ethers.provider.getBlockNumber();
             let blockBefore = await ethers.provider.getBlock(blockNumBefore);
@@ -142,13 +147,14 @@ describe("StakingRewards - First Period", () => {
             expect(timestampAfter - timestampBefore).to.equal(TWO_WEEKS);
             //await ethers.provider.send("evm_mineBlockNumber", [-TWO_WEEKS / 30]);
             //await increaseTime(-TWO_WEEKS);
+            // after doing some changes, you can restore to the state of the snapshot
+            await snapshot.restore();
         });
 
         it("should revert if SOV Address is invalid", async () => {
-            await expectRevert(
-                stakingRewards.initialize(constants.ZERO_ADDRESS, staking.address),
-                "Invalid SOV Address."
-            );
+            await expect(
+                stakingRewards.initialize(constants.ZERO_ADDRESS, staking.address)
+            ).to.be.revertedWith("Invalid SOV Address.");
             // Staking Rewards Contract is loaded
             await SOV.transfer(stakingRewards.address, wei("1000000", "ether"));
             // Initialize

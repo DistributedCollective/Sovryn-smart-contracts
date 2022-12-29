@@ -10,6 +10,7 @@ require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("hardhat-deploy");
+require("@nomicfoundation/hardhat-chai-matchers");
 
 require("dotenv").config();
 
