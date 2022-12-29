@@ -91,7 +91,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
             stakeFor,
             delegatee,
             timeAdjusted,
-            true
+            true // transfer SOV
         );
     }
 
@@ -151,6 +151,15 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         //		(no delegation to another address).
         address previousDelegatee = delegates[stakeFor][until];
         if (previousDelegatee != delegatee) {
+            // @dev only the user that stakes for himself is allowed to delegate VP to another address
+            // which works with vesting stakes and prevents vulnerability of delegating VP to an arbitrary address from
+            // any address
+            if (delegatee != stakeFor)
+                require(
+                    stakeFor == sender,
+                    "Only stakeFor account is allowed to change delegatee"
+                );
+
             /// @dev Update delegatee.
             delegates[stakeFor][until] = delegatee;
 

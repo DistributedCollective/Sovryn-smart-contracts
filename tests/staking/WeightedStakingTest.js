@@ -8,10 +8,10 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
+const { waffle, ethers } = require("hardhat");
 const { loadFixture } = waffle;
 
-const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { BN } = require("@openzeppelin/test-helpers");
 
 const { mineBlock, setTime } = require("../Utils/Ethereum");
 const { deployAndGetIStaking } = require("../Utils/initializer");
@@ -27,6 +27,8 @@ const WEEK = new BN(24 * 60 * 60 * 7);
 const TWO_WEEKS = 1209600;
 const DELAY = TWO_WEEKS;
 
+const ZERO_ADDRESS = ethers.constants.AddressZero;
+
 contract("WeightedStaking", (accounts) => {
     const name = "Test token";
     const symbol = "TST";
@@ -34,6 +36,11 @@ contract("WeightedStaking", (accounts) => {
     let root, a1, a2, a3;
     let token, staking;
     let kickoffTS, inTwoWeeks, inOneYear, inTwoYears, inThreeYears;
+
+    async function fundAccountAndApproveForStaking(account, amount) {
+        await token.transfer(account, amount);
+        await token.approve(staking.address, amount, { from: account });
+    }
 
     async function deploymentAndInitFixture(_wallets, _provider) {
         token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
@@ -43,8 +50,9 @@ contract("WeightedStaking", (accounts) => {
         const stakingProxy = await StakingProxy.new(token.address);
         staking = await deployAndGetIStaking(stakingProxy.address);
 
-        await token.transfer(a2, "1000");
-        await token.approve(staking.address, "1000", { from: a2 });
+        //await token.transfer(a2, "1000");
+        //await token.approve(staking.address, "1000", { from: a2 });
+        await fundAccountAndApproveForStaking(a2, "1000");
 
         kickoffTS = await staking.kickoffTS.call();
         inTwoWeeks = kickoffTS.add(new BN(DELAY));
@@ -83,12 +91,13 @@ contract("WeightedStaking", (accounts) => {
                 parseInt(await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks))
             ).to.be.equal(0);
 
-            await staking.stake("100", inTwoWeeks, a1, a3, { from: a2 });
+            await fundAccountAndApproveForStaking(a1, "150");
+            await staking.stake("100", inTwoWeeks, a1, a3, { from: a1 });
             await expect(
                 parseInt(await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks))
             ).to.be.equal(1);
 
-            await expect(await staking.stake("50", inTwoWeeks, a1, a1, { from: a2 }));
+            await expect(await staking.stake("50", inTwoWeeks, a1, a1, { from: a1 }));
             await expect(
                 parseInt(await staking.numDelegateStakingCheckpoints.call(a3, inTwoWeeks))
             ).to.be.equal(2);
@@ -104,12 +113,13 @@ contract("WeightedStaking", (accounts) => {
                 parseInt(await staking.numTotalStakingCheckpoints.call(inTwoWeeks))
             ).to.be.equal(0);
 
-            await staking.stake("100", inTwoWeeks, a1, a3, { from: a2 });
+            await fundAccountAndApproveForStaking(a1, "150");
+            await staking.stake("100", inTwoWeeks, a1, a3, { from: a1 });
             await expect(
                 parseInt(await staking.numTotalStakingCheckpoints.call(inTwoWeeks))
             ).to.be.equal(1);
 
-            await expect(await staking.stake("50", inTwoWeeks, a1, a1, { from: a2 }));
+            await expect(await staking.stake("50", inTwoWeeks, a1, a1, { from: a1 }));
             await expect(
                 parseInt(await staking.numTotalStakingCheckpoints.call(inTwoWeeks))
             ).to.be.equal(2);
@@ -124,7 +134,8 @@ contract("WeightedStaking", (accounts) => {
     describe("checkpoints", () => {
         it("returns the correct checkpoint for an user", async () => {
             // shortest staking duration
-            let result = await staking.stake("100", inTwoWeeks, a1, a3, { from: a2 });
+            await fundAccountAndApproveForStaking(a1, "100");
+            let result = await staking.stake("100", inTwoWeeks, a1, a3, { from: a1 });
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal("100");
             let checkpoint = await staking.userStakingCheckpoints(a1, inTwoWeeks, 0);
 
@@ -139,7 +150,8 @@ contract("WeightedStaking", (accounts) => {
         });
 
         it("returns the correct checkpoint for a delegate", async () => {
-            let result = await staking.stake("100", inTwoWeeks, a1, a3, { from: a2 });
+            await fundAccountAndApproveForStaking(a1, "300");
+            let result = await staking.stake("100", inTwoWeeks, a1, a3, { from: a1 });
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal("100");
 
             let checkpoint = await staking.delegateStakingCheckpoints(a3, inTwoWeeks, 0);
@@ -147,7 +159,7 @@ contract("WeightedStaking", (accounts) => {
             await expect(checkpoint.stake.toString()).to.be.equal("100");
 
             // add stake and change delegate
-            result = await staking.stake("200", inTwoWeeks, a1, a2, { from: a2 });
+            result = await staking.stake("200", inTwoWeeks, a1, a2, { from: a1 });
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal("300");
 
             // old delegate
@@ -162,7 +174,8 @@ contract("WeightedStaking", (accounts) => {
         });
 
         it("returns the correct checkpoint for a total stakes", async () => {
-            let result = await staking.stake("100", inTwoWeeks, a1, a3, { from: a2 });
+            await fundAccountAndApproveForStaking(a1, "100");
+            let result = await staking.stake("100", inTwoWeeks, a1, a3, { from: a1 });
             await expect((await staking.balanceOf(a1)).toString()).to.be.equal("100");
             let checkpoint = await staking.totalStakingCheckpoints(inTwoWeeks, 0);
 
@@ -172,7 +185,8 @@ contract("WeightedStaking", (accounts) => {
 
         it("returns the correct checkpoint for vested stakes", async () => {
             //verify that regular staking does not create a vesting checkpoint
-            await staking.stake("100", inTwoWeeks, a1, a3, { from: a2 });
+            await fundAccountAndApproveForStaking(a1, "100");
+            await staking.stake("100", inTwoWeeks, a1, a3, { from: a1 });
             await expect(
                 (await staking.numVestingCheckpoints(kickoffTS.add(new BN(DELAY)))).toNumber()
             ).to.be.equal(0);
@@ -203,7 +217,8 @@ contract("WeightedStaking", (accounts) => {
 
     describe("total voting power computation", () => {
         it("should compute the expected voting power", async () => {
-            await staking.stake("100", inThreeYears, a1, a2, { from: a2 });
+            await fundAccountAndApproveForStaking(a1, "100");
+            await staking.stake("100", inThreeYears, a1, a2, { from: a1 });
             await staking.stake("100", inTwoYears, a2, a2, { from: a2 });
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
             await mineBlock();
@@ -273,18 +288,19 @@ contract("WeightedStaking", (accounts) => {
 
         it("should be unable to compute the total voting power for the current block", async () => {
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
-            await expectRevert(
-                staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS),
-                "not determined"
-            ); // WS08 : not determined
+            await expect(
+                staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS)
+            ).to.be.revertedWith("not determined");
         });
     });
 
     describe("delegated voting power computation", () => {
         it("should compute the expected voting power", async () => {
-            await staking.stake("100", inThreeYears, a1, a2, { from: a2 });
+            await fundAccountAndApproveForStaking(a1, "100");
+            await staking.stake("100", inThreeYears, a1, a2, { from: a1 });
             await staking.stake("100", inTwoYears, a2, a3, { from: a2 });
-            let result = await staking.stake("100", inOneYear, a3, a2, { from: a2 });
+            await fundAccountAndApproveForStaking(a3, "100");
+            let result = await staking.stake("100", inOneYear, a3, a2, { from: a3 });
             await mineBlock();
 
             let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();
@@ -340,10 +356,9 @@ contract("WeightedStaking", (accounts) => {
 
         it("should be unable to compute the voting power for the current block", async () => {
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
-            await expectRevert(
-                staking.getPriorVotes(a3, result.receipt.blockNumber, kickoffTS),
-                "not determined yet"
-            ); // WS11: not determined yet
+            await expect(
+                staking.getPriorVotes(a3, result.receipt.blockNumber, kickoffTS)
+            ).to.be.revertedWith("not determined yet");
         });
 
         it("should return the current votes", async () => {
@@ -369,7 +384,8 @@ contract("WeightedStaking", (accounts) => {
     describe("user weighted stake computation", () => {
         it("should compute the expected weighted stake", async () => {
             await staking.stake("100", inThreeYears, a2, a2, { from: a2 });
-            await staking.stake("100", inTwoYears, a1, a3, { from: a2 });
+            await fundAccountAndApproveForStaking(a1, "100");
+            await staking.stake("100", inTwoYears, a1, a3, { from: a1 });
             let result = await staking.stake("100", inThreeYears, a2, a2, { from: a2 });
             await mineBlock();
 
@@ -410,10 +426,9 @@ contract("WeightedStaking", (accounts) => {
 
         it("should be unable to compute the weighted stake for the current block", async () => {
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
-            await expectRevert(
-                staking.getPriorWeightedStake(a3, result.receipt.blockNumber, kickoffTS),
-                "not determined"
-            );
+            await expect(
+                staking.getPriorWeightedStake(a3, result.receipt.blockNumber, kickoffTS)
+            ).to.be.revertedWith("not determined");
         });
     });
 
@@ -529,6 +544,86 @@ contract("WeightedStaking", (accounts) => {
                 total += expectedWeight;
             }
             console.log(total / 39);
+        });
+    });
+
+    describe("security tests", () => {
+        it("should only allow to change delegatee by the stakeFor address to prevent stealing VP", async () => {
+            const staker = a2;
+            const attacker = a3;
+            const delegatee = a1;
+            //init attacker
+            await token.transfer(attacker, "10");
+            await token.approve(staking.address, "10", { from: attacker });
+
+            //1. stake by staker
+            const tx1 = await staking.stake("100", inThreeYears, staker, staker, { from: staker });
+            await mineBlock();
+            const stakerVP1 = await staking.getPriorVotes(
+                staker,
+                tx1.receipt.blockNumber,
+                kickoffTS
+            );
+
+            //2. stake any amount by the attacker for the staker with delegatee set to zero address should not change delagatee for the same until date as previous stake by the staker
+            const tx2 = await staking.stake("1", inThreeYears, staker, ZERO_ADDRESS, {
+                from: attacker,
+            });
+            mineBlock();
+            const attackerVP1 = await staking.getPriorVotes(
+                attacker,
+                tx2.receipt.blockNumber,
+                kickoffTS
+            );
+            const stakerVP2 = await staking.getPriorVotes(
+                staker,
+                tx2.receipt.blockNumber,
+                kickoffTS
+            );
+            expect(stakerVP2.toNumber()).to.eq(1010);
+            expect(attackerVP1.toNumber()).to.eq(0);
+
+            //3. staker can set delegatee - all VP is transferred to the delegatee
+            const tx3 = await staking.stake("1", inThreeYears, staker, delegatee, {
+                from: staker,
+            });
+            await mineBlock();
+            const stakerVP3 = await staking.getPriorVotes(
+                staker,
+                tx3.receipt.blockNumber,
+                kickoffTS
+            );
+            const delegateeVP1 = await staking.getPriorVotes(
+                delegatee,
+                tx3.receipt.blockNumber,
+                kickoffTS
+            );
+            expect(stakerVP3.toNumber()).eq(0);
+            expect(delegateeVP1.toNumber()).to.eq(1020);
+
+            //4. no delegatee changed when staking by the attacker to the staker's address -
+            const tx4 = await staking.stake("1", inThreeYears, staker, delegatee, {
+                from: attacker,
+            });
+            mineBlock();
+            const attackerVP2 = await staking.getPriorVotes(
+                attacker,
+                tx4.receipt.blockNumber,
+                kickoffTS
+            );
+            const delegateeVP2 = await staking.getPriorVotes(
+                delegatee,
+                tx4.receipt.blockNumber,
+                kickoffTS
+            );
+            expect(stakerVP3.toNumber()).eq(0);
+            expect(attackerVP2.toNumber()).to.eq(0);
+            expect(delegateeVP2.toNumber()).to.eq(1030);
+
+            //4. trying to change delegatee by an attacker (non-staker)
+            await expect(
+                staking.stake("1", inThreeYears, staker, attacker, { from: attacker })
+            ).to.be.revertedWith("Only stakeFor account is allowed to change delegatee");
         });
     });
 });
