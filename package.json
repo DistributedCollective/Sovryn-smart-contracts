@@ -75,7 +75,7 @@
 		"test": "npx hardhat test",
 		"uml": "npx sol2uml ./contracts -o UML.svg",
 		"generate-types": "npx typechain --target=ethers-v5 'abi/**/*.json'",
-		"postinstall": "npm run generate-types && npx patch-package",
+		"postinstall": "npm run generate-types && patch-package",
 		"compile": "npx hardhat compile",
 		"npm-publish": "npm run compile && npm publish",
 		"fees-withdraw": "brownie run rewards_cron",
