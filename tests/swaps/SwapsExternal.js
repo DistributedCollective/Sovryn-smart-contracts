@@ -16,8 +16,8 @@
  */
 
 const { expectRevert, expectEvent, BN, constants } = require("@openzeppelin/test-helpers");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const { deployAndGetIStaking } = require("../Utils/initializer");
 

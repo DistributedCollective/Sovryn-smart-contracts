@@ -12,8 +12,8 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
@@ -148,11 +148,11 @@ contract("LoanTokenAdministration", (accounts) => {
         });
 
         /*
-			1. pause a function
-			2. try to call the function - should fail
-			3. reactivate it
-			4. try to call the function - should succeed
-		*/
+            1. pause a function
+            2. try to call the function - should fail
+            3. reactivate it
+            4. try to call the function - should succeed
+        */
         it("Test toggle function pause", async () => {
             await lend_to_pool(loanToken, SUSD, owner);
             const functionSignature =

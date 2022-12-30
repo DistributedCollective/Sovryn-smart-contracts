@@ -9,7 +9,7 @@
 
 const { expect } = require("chai");
 const { waffle, ethers } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const { BN } = require("@openzeppelin/test-helpers");
 

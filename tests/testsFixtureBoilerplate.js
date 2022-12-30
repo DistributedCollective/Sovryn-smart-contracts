@@ -5,8 +5,7 @@
  * that do not require to preserve the flow from one test to another.
  */
 
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const {
     getSUSD,

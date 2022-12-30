@@ -11,8 +11,7 @@
  * Notes: Applied fixture to use snapshot beforeEach test.
  */
 
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { BN, expectRevert, constants } = require("@openzeppelin/test-helpers");
 
 const {
@@ -78,12 +77,12 @@ contract("LoanTokenTrading", (accounts) => {
 
     describe("test the loan token trading logic with wBTC as collateral token and the sUSD test token as underlying loan token. ", () => {
         /* tests margin trading sending loan tokens.
-		   process is handled by the shared function margin_trading_sending_loan_tokens
-			1. approve the transfer
-			2. send the margin trade tx
-			3. verify the trade event and balances are correct
-			4. retrieve the loan from the smart contract and make sure all values are set as expected
-		*/
+           process is handled by the shared function margin_trading_sending_loan_tokens
+            1. approve the transfer
+            2. send the margin trade tx
+            3. verify the trade event and balances are correct
+            4. retrieve the loan from the smart contract and make sure all values are set as expected
+        */
 
         it("Test margin trading sending loan tokens", async () => {
             await expectRevert(
@@ -217,14 +216,14 @@ contract("LoanTokenTrading", (accounts) => {
         });
 
         /* should completely close a position.
-		   first with returning loan tokens, then with returning collateral tokens to the sender.
-		   process is handled by the shared function close_complete_margin_trade
-			1. prepares the test by setting up the interest rates, lending to the pool and opening a position
-			2. travels in time, so interest needs to be paid
-			3. makes sure closing with an unauthorized caller fails (only the trader may close his position)
-			4. sends the closing tx from the trader
-			5. verifies the result
-		*/
+           first with returning loan tokens, then with returning collateral tokens to the sender.
+           process is handled by the shared function close_complete_margin_trade
+            1. prepares the test by setting up the interest rates, lending to the pool and opening a position
+            2. travels in time, so interest needs to be paid
+            3. makes sure closing with an unauthorized caller fails (only the trader may close his position)
+            4. sends the closing tx from the trader
+            5. verifies the result
+        */
 
         it("Test close complete margin trade", async () => {
             await close_complete_margin_trade(
@@ -256,14 +255,14 @@ contract("LoanTokenTrading", (accounts) => {
         });
 
         /* should partially close a position.
-		   first with returning loan tokens, then with returning collateral tokens to the sender.
-		   process is handled by the shared function close_partial_margin_trade
-			1. prepares the test by setting up the interest rates, lending to the pool and opening a position
-			2. travels in time, so interest needs to be paid
-			3. makes sure closing with an unauthorized caller fails (only the trader may close his position)
-			4. sends the closing tx from the trader
-			5. verifies the result
-		*/
+           first with returning loan tokens, then with returning collateral tokens to the sender.
+           process is handled by the shared function close_partial_margin_trade
+            1. prepares the test by setting up the interest rates, lending to the pool and opening a position
+            2. travels in time, so interest needs to be paid
+            3. makes sure closing with an unauthorized caller fails (only the trader may close his position)
+            4. sends the closing tx from the trader
+            5. verifies the result
+        */
 
         it("Test close partial margin trade", async () => {
             await close_partial_margin_trade(
