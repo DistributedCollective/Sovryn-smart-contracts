@@ -74,7 +74,7 @@
 		"prettier-check": "prettier --check .",
 		"test": "npx hardhat test",
 		"uml": "npx sol2uml ./contracts -o UML.svg",
-		"generate-types": "typechain --target=ethers-v5 'abi/**/*.json'",
+		"generate-types": "typechain --target=ethers-v5 './abi/**/*.json'",
 		"postinstall": "npm run generate-types && patch-package",
 		"compile": "npx hardhat compile",
 		"npm-publish": "npm run compile && npm publish",
