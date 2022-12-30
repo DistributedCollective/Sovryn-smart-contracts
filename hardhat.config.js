@@ -102,11 +102,9 @@ module.exports = {
         },
     },
     abiExporter: {
-        path: "./abi",
         clear: true,
-        flat: false,
-        only: [],
-        except: [],
+        runOnCompile: true,
+        flat: true,
         spacing: 4,
     },
     contractSizer: {
