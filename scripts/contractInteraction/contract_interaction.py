@@ -127,4 +127,4 @@ def main():
 
     # getLMInfo()
 
-    printLendingPoolsData()
+    # printLendingPoolsData()
