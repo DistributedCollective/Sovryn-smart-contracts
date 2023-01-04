@@ -687,6 +687,67 @@ contract("Staking", (accounts) => {
                 );
             }
         });
+
+        it("should set vesting stakes (using the last existing checkpoint blockNumber", async () => {
+            let guy = accounts[0];
+            let lockedDates = [
+                kickoffTS.add(new BN(TWO_WEEKS)),
+                kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2))),
+                kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4))),
+            ];
+            let values = [new BN(1000), new BN(30000000000), new BN(500000000000000)];
+            let totalStaked = (values[0].mul(new BN(2))).add(values[1]).add(values[2]);
+            await token.transfer(guy, totalStaked); // give an account a few tokens for readability
+            await token.approve(staking.address, totalStaked, { from: guy });
+
+            // stake for exact date
+            await Promise.all([
+                staking.stake(values[0], lockedDates[0], a1, a1, { from: guy }),
+                staking.stake(values[1], lockedDates[1], a1, a1, { from: guy }),
+                staking.stake(values[2], lockedDates[2], a1, a1, { from: guy }),
+            ]);
+
+            let tx = await staking.setVestingStakes(lockedDates, values);
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+
+            for (let i = 0; i < lockedDates.length; i++) {
+                let numCheckpoints = await staking.numVestingCheckpoints.call(lockedDates[i]);
+                expect(numCheckpoints).to.be.bignumber.equal(new BN(1));
+                let value = await staking.vestingCheckpoints.call(lockedDates[i], 0);
+                expect(value.stake).to.be.bignumber.equal(values[i]);
+                expect(value.fromBlock).to.be.bignumber.equal(txBlockNumber.sub(new BN(1)));
+
+                await expectEvent.inTransaction(
+                    tx.receipt.rawLogs[0].transactionHash,
+                    StakingVestingModule,
+                    "VestingStakeSet",
+                    {
+                        lockedTS: lockedDates[i],
+                        value: values[i],
+                    }
+                );
+            }
+
+            // set another vesting stakes
+            tx = await staking.setVestingStakes([lockedDates[0]], [values[0]]);
+            const previousVestingCheckpoint = await staking.vestingCheckpoints.call(lockedDates[0], 0);
+
+            numCheckpoints = await staking.numVestingCheckpoints.call(lockedDates[0]);
+            expect(numCheckpoints).to.be.bignumber.equal(new BN(2));
+            value = await staking.vestingCheckpoints.call(lockedDates[0], numCheckpoints-1);
+            expect(value.stake).to.be.bignumber.equal(values[0]);
+            expect(value.fromBlock).to.be.bignumber.equal(new BN(previousVestingCheckpoint.fromBlock).add(new BN(1)));
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingVestingModule,
+                "VestingStakeSet",
+                {
+                    lockedTS: lockedDates[0],
+                    value: values[0],
+                }
+            );
+        });
     });
 
     describe("maxWithdrawIterations", async () => {
