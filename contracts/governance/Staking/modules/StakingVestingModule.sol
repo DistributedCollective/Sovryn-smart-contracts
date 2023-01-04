@@ -49,16 +49,38 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * TODO: remove - it was designed as a disposable function to initialize vesting checkpoints
      */
     function _setVestingStake(uint256 lockedTS, uint96 value) internal {
-        //delete all checkpoints (shouldn't be any during the first initialization)
-        uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
-        for (uint32 i = 0; i < nCheckpoints; i++) {
-            delete vestingCheckpoints[lockedTS][i];
-        }
-        delete numVestingCheckpoints[lockedTS];
+        require(
+            lockedTS > kickoffTS,
+            "Invalid lock dates: must greater than contract creation timestamp"
+        );
 
-        //blockNumber should be in the past
-        nCheckpoints = 0;
-        uint32 blockNumber = 0;
+        // locked date must be multiples of 14 days
+        require(
+            (lockedTS - kickoffTS) % 14 days == 0,
+            "Invalid lock dates: not multiples of 14 days"
+        );
+
+        // locked date must not exceed the MAX_DURATION
+        require(
+            lockedTS - block.timestamp <= MAX_DURATION,
+            "Invalid lock dates: exceed max duration"
+        );
+
+        // the value must not exceed the total staked at the given locked date
+        uint32 nStakeCheckpoints = numTotalStakingCheckpoints[lockedTS];
+        uint96 totalStaked = totalStakingCheckpoints[lockedTS][nStakeCheckpoints - 1].stake;
+        require(
+            value <= totalStaked,
+            "Invalid stake amount: greater than the total staked for given date"
+        );
+
+        uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
+        uint32 blockNumber;
+
+        Checkpoint memory recentCP = vestingCheckpoints[lockedTS][nCheckpoints];
+        if (nCheckpoints == 0) blockNumber = uint32(block.number) - 1;
+        else blockNumber = recentCP.fromBlock + 1;
+
         vestingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, value);
         numVestingCheckpoints[lockedTS] = nCheckpoints + 1;
 

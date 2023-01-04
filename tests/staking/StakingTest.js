@@ -219,6 +219,49 @@ contract("Staking", (accounts) => {
             let values = [];
             await expectRevert(staking.setVestingStakes(lockedDates, values), "arrays mismatch"); // WS05 : arrays mismatch
         });
+
+        it("should fail if frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expectRevert(staking.setVestingStakes([], []), "paused"); // WS04 : frozen
+        });
+
+        it("should fail if the date is not multiples of 14 days", async () => {
+            let lockedDates = [
+                kickoffTS.add(new BN(1)),
+                kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2))),
+                kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4))),
+            ];
+            let values = [new BN(1000), new BN(30000000000), new BN(500000000000000)];
+
+            await expectRevert(
+                staking.setVestingStakes(lockedDates, values),
+                "Invalid lock dates: not multiples of 14 days"
+            );
+        });
+
+        it("should fail if the date less than the kickoff timestamp", async () => {
+            let lockedDates = [
+                new BN(0),
+                kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2))),
+                kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4))),
+            ];
+            let values = [new BN(1000), new BN(30000000000), new BN(500000000000000)];
+
+            await expectRevert(
+                staking.setVestingStakes(lockedDates, values),
+                "Invalid lock dates: must greater than contract creation timestamp"
+            );
+        });
+
+        it("should fail if the date duration exceeds the max_duration", async () => {
+            let lockedDates = [kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(100)))];
+            let values = [new BN(1000)];
+
+            await expectRevert(
+                staking.setVestingStakes(lockedDates, values),
+                "Invalid lock dates: exceed max duration"
+            );
+        });
     });
 
     describe("balanceOf", () => {
@@ -605,21 +648,33 @@ contract("Staking", (accounts) => {
 
     describe("vesting stakes", () => {
         it("should set vesting stakes", async () => {
+            let guy = accounts[0];
             let lockedDates = [
                 kickoffTS.add(new BN(TWO_WEEKS)),
                 kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2))),
                 kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4))),
             ];
             let values = [new BN(1000), new BN(30000000000), new BN(500000000000000)];
+            let totalStaked = values[0].add(values[1]).add(values[2]);
+            await token.transfer(guy, totalStaked); // give an account a few tokens for readability
+            await token.approve(staking.address, totalStaked, { from: guy });
+
+            // stake for exact date
+            await Promise.all([
+                staking.stake(values[0], lockedDates[0], a1, a1, { from: guy }),
+                staking.stake(values[1], lockedDates[1], a1, a1, { from: guy }),
+                staking.stake(values[2], lockedDates[2], a1, a1, { from: guy }),
+            ]);
 
             let tx = await staking.setVestingStakes(lockedDates, values);
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
 
             for (let i = 0; i < lockedDates.length; i++) {
                 let numCheckpoints = await staking.numVestingCheckpoints.call(lockedDates[i]);
                 expect(numCheckpoints).to.be.bignumber.equal(new BN(1));
                 let value = await staking.vestingCheckpoints.call(lockedDates[i], 0);
                 expect(value.stake).to.be.bignumber.equal(values[i]);
-                expect(value.fromBlock).to.be.bignumber.equal(new BN(0));
+                expect(value.fromBlock).to.be.bignumber.equal(txBlockNumber.sub(new BN(1)));
 
                 await expectEvent.inTransaction(
                     tx.receipt.rawLogs[0].transactionHash,
