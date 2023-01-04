@@ -77,7 +77,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         uint32 nCheckpoints = numVestingCheckpoints[lockedTS];
         uint32 blockNumber;
 
-        Checkpoint memory recentCP = vestingCheckpoints[lockedTS][nCheckpoints-1];
+        Checkpoint memory recentCP = vestingCheckpoints[lockedTS][nCheckpoints - 1];
         if (nCheckpoints == 0) blockNumber = uint32(block.number) - 1;
         else blockNumber = recentCP.fromBlock + 1;
 

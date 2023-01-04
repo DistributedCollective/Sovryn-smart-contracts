@@ -696,7 +696,7 @@ contract("Staking", (accounts) => {
                 kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4))),
             ];
             let values = [new BN(1000), new BN(30000000000), new BN(500000000000000)];
-            let totalStaked = (values[0].mul(new BN(2))).add(values[1]).add(values[2]);
+            let totalStaked = values[0].mul(new BN(2)).add(values[1]).add(values[2]);
             await token.transfer(guy, totalStaked); // give an account a few tokens for readability
             await token.approve(staking.address, totalStaked, { from: guy });
 
@@ -730,13 +730,18 @@ contract("Staking", (accounts) => {
 
             // set another vesting stakes
             tx = await staking.setVestingStakes([lockedDates[0]], [values[0]]);
-            const previousVestingCheckpoint = await staking.vestingCheckpoints.call(lockedDates[0], 0);
+            const previousVestingCheckpoint = await staking.vestingCheckpoints.call(
+                lockedDates[0],
+                0
+            );
 
             numCheckpoints = await staking.numVestingCheckpoints.call(lockedDates[0]);
             expect(numCheckpoints).to.be.bignumber.equal(new BN(2));
-            value = await staking.vestingCheckpoints.call(lockedDates[0], numCheckpoints-1);
+            value = await staking.vestingCheckpoints.call(lockedDates[0], numCheckpoints - 1);
             expect(value.stake).to.be.bignumber.equal(values[0]);
-            expect(value.fromBlock).to.be.bignumber.equal(new BN(previousVestingCheckpoint.fromBlock).add(new BN(1)));
+            expect(value.fromBlock).to.be.bignumber.equal(
+                new BN(previousVestingCheckpoint.fromBlock).add(new BN(1))
+            );
 
             await expectEvent.inTransaction(
                 tx.receipt.rawLogs[0].transactionHash,
