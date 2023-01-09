@@ -22,6 +22,7 @@ const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
 
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
+const Vesting = artifacts.require("Vesting");
 const VestingLogic = artifacts.require("VestingLogic");
 //Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
@@ -2075,6 +2076,198 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("getPriorVestingWeightedStake", () => {
+        it("returns the total weighted stake of vesting contracts at date and blockNumber", async () => {
+            // deploy vesting contracts
+            // cliff of 2 weeks will mean that the stake date will be timestampToLockDate(block.timestamp + 2 weeks),
+            // which in practice is 2 weeks after the kickoffTS
+            const vesting1 = await deployVestingContract({
+                cliff: TWO_WEEKS_BN,
+                duration: TWO_WEEKS_BN,
+                user: a1,
+            });
+            // This vesting has a cliff of 4 weeks, so the stake date will be 4 weeks after kickoffTS
+            // this is in a different lockdate bracket when compared to the first vesting
+            const vesting2 = await deployVestingContract({
+                cliff: TWO_WEEKS_BN.add(TWO_WEEKS_BN),
+                duration: TWO_WEEKS_BN.add(TWO_WEEKS_BN),
+                user: a2,
+            });
+
+            const amount1 = new BN("100");
+            const amount2 = new BN("50");
+
+            const stakeBlockNumber1 = await initializeStakeFromVestingContract(
+                vesting1,
+                amount1,
+                a1
+            );
+            const stakeBlockNumber2 = await initializeStakeFromVestingContract(
+                vesting2,
+                amount2,
+                a2
+            );
+
+            const stakeDate1 = kickoffTS.add(TWO_WEEKS_BN);
+            const stakeDate2 = stakeDate1.add(TWO_WEEKS_BN);
+
+            // case 1: latest block number, earliest date: both visible
+            let expected = getAmountWithWeight(amount1, stakeDate1, stakeDate1).add(
+                getAmountWithWeight(amount2, stakeDate2, stakeDate1)
+            );
+            let actual = await staking.getPriorVestingWeightedStake(stakeBlockNumber2, stakeDate1);
+            expect(actual).to.be.bignumber.eq(expected);
+            expect(actual).to.be.bignumber.gt("0");
+
+            // case 2: latest block number, latest date: only the latest visible
+            expected = getAmountWithWeight(amount2, stakeDate2, stakeDate2);
+            actual = await staking.getPriorVestingWeightedStake(stakeBlockNumber2, stakeDate2);
+            expect(actual).to.be.bignumber.eq(expected);
+            expect(actual).to.be.bignumber.gt("0");
+
+            // case 3: earliest block number, earliest date: only the earliest visible
+            expected = getAmountWithWeight(amount1, stakeDate1, stakeDate1);
+            actual = await staking.getPriorVestingWeightedStake(stakeBlockNumber1, stakeDate1);
+            expect(actual).to.be.bignumber.eq(expected);
+            expect(actual).to.be.bignumber.gt("0");
+
+            // case 4: earliest block number, latest date: none visible
+            expected = new BN(0);
+            actual = await staking.getPriorVestingWeightedStake(stakeBlockNumber1, stakeDate2);
+            expect(actual).to.be.bignumber.eq(expected);
+        });
+
+        it("non-vesting stakes are not counted towards the total", async () => {
+            // initialize a non-vesting stake
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN);
+            const amount1 = new BN("100");
+            const stakeBlockNumber1 = await initializeStake(stakeDate, amount1);
+
+            // verify that the stake is not part of the total
+            expect(
+                await staking.getPriorVestingWeightedStake(stakeBlockNumber1, stakeDate)
+            ).to.be.bignumber.eq("0");
+
+            // stake from a vesting contract
+            // cliff of 2 weeks will mean that the stake date will be timestampToLockDate(block.timestamp + 2 weeks),
+            // so staking from this should have the same stake date
+            const amount2 = new BN("50");
+            const vesting = await deployVestingContract({
+                cliff: TWO_WEEKS_BN,
+                duration: TWO_WEEKS_BN,
+            });
+            const stakeBlockNumber2 = await initializeStakeFromVestingContract(vesting, amount2);
+
+            // this stake is counted as part of the total, but the non-vesting stake is not
+            let expected = getAmountWithWeight(amount2, stakeDate, stakeDate);
+            let actual = await staking.getPriorVestingWeightedStake(stakeBlockNumber2, stakeDate);
+            expect(actual).to.be.bignumber.eq(expected);
+            expect(actual).to.be.bignumber.gt("0");
+
+            // the above cases also test:
+            // "if there is at least one vesting stake before date (or the lock date previous of it if it not exactly a
+            // lock date), it is not counted towards the total"
+        });
+
+        it("if date is not a valid lock date, the function will start calculating the voting power from the closest lock date prior to date", async () => {
+            // deploy and stake from a single vesting contract
+            const cliff = TWO_WEEKS_BN.mul(new BN(2));
+            const vesting = await deployVestingContract({
+                cliff,
+                duration: cliff,
+            });
+            const amount = new BN("100");
+            const stakeBlockNumber = await initializeStakeFromVestingContract(vesting, amount);
+            const stakeDate = kickoffTS.add(cliff);
+
+            // sanity check
+            expect(
+                await staking.getPriorVestingWeightedStake(stakeBlockNumber, stakeDate)
+            ).to.be.bignumber.equal(getAmountWithWeight(amount, stakeDate, stakeDate));
+
+            // these should adjust to the same lock date
+            expect(
+                await staking.getPriorVestingWeightedStake(
+                    stakeBlockNumber,
+                    stakeDate.add(new BN(1))
+                )
+            ).to.be.bignumber.equal(getAmountWithWeight(amount, stakeDate, stakeDate));
+            expect(
+                await staking.getPriorVestingWeightedStake(
+                    stakeBlockNumber,
+                    stakeDate.add(TWO_WEEKS_BN).sub(new BN(1))
+                )
+            ).to.be.bignumber.equal(getAmountWithWeight(amount, stakeDate, stakeDate));
+
+            // these should adjust to the previous lock date
+            expect(
+                await staking.getPriorVestingWeightedStake(
+                    stakeBlockNumber,
+                    stakeDate.sub(new BN(1))
+                )
+            ).to.be.bignumber.equal(
+                getAmountWithWeight(amount, stakeDate, stakeDate.sub(TWO_WEEKS_BN))
+            );
+            expect(
+                await staking.getPriorVestingWeightedStake(
+                    stakeBlockNumber,
+                    stakeDate.sub(TWO_WEEKS_BN).add(new BN(1))
+                )
+            ).to.be.bignumber.equal(
+                getAmountWithWeight(amount, stakeDate, stakeDate.sub(TWO_WEEKS_BN))
+            );
+
+            // this should be the next lock date, e.g. no stake visible
+            expect(
+                await staking.getPriorVestingWeightedStake(
+                    stakeBlockNumber,
+                    stakeDate.add(TWO_WEEKS_BN)
+                )
+            ).to.be.bignumber.equal("0");
+
+            // this should adjust to the lock date before the previous one
+            expect(
+                await staking.getPriorVestingWeightedStake(
+                    stakeBlockNumber,
+                    stakeDate.sub(TWO_WEEKS_BN).sub(new BN(1))
+                )
+            ).to.be.bignumber.equal(
+                getAmountWithWeight(
+                    amount,
+                    stakeDate,
+                    stakeDate.sub(TWO_WEEKS_BN).sub(TWO_WEEKS_BN)
+                )
+            );
+        });
+
+        it("the function reverts if blockNumber >= current block", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            await expect(
+                staking.getPriorVestingWeightedStake(currentBlockNumber, kickoffTS)
+            ).to.be.revertedWith("not determined");
+            await expect(
+                staking.getPriorVestingWeightedStake(currentBlockNumber + 1, kickoffTS)
+            ).to.be.revertedWith("not determined");
+        });
+
+        it("date may lie in the future", async () => {
+            const block = await web3.eth.getBlock("latest");
+            const currentTime = new BN(block.timestamp);
+            const futureTime = currentTime.add(TWO_WEEKS_BN);
+            expect(
+                await staking.getPriorVestingWeightedStake(block.number - 1, futureTime)
+            ).to.be.bignumber.eq(new BN(0));
+        });
+
+        it("if there are no vesting stakes at blockNumber or date, the function returns 0", async () => {
+            // this is tested more in detail in the above cases
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            expect(
+                await staking.getPriorVestingWeightedStake(currentBlockNumber - 1, kickoffTS)
+            ).to.be.bignumber.eq("0");
+        });
+    });
+
     async function initializeStake(date, amount, user) {
         // helper to grant tokens, stake, mine a block, and return the block number of the stake
 
@@ -2086,6 +2279,38 @@ contract("Staking", (accounts) => {
         await token.approve(staking.address, amount, { from: user });
 
         const stakeTx = await staking.stake(amount, date, user, user, { from: user });
+        const blockNumber = stakeTx.receipt.blockNumber;
+        await mineBlock();
+
+        return blockNumber;
+    }
+
+    async function deployVestingContract(opts = {}) {
+        const { user = a1, cliff, duration } = opts;
+        if (!cliff || !duration) {
+            throw new Error("cliff and duration are required");
+        }
+        let vestingInstance = await Vesting.new(
+            vestingLogic1.address,
+            token.address,
+            staking.address,
+            user,
+            cliff,
+            duration,
+            user
+        );
+        await staking.addContractCodeHash(await vestingInstance.address);
+        return await VestingLogic.at(vestingInstance.address);
+    }
+
+    async function initializeStakeFromVestingContract(vestingContract, amount, user) {
+        if (!user) {
+            user = a1;
+        }
+        await token.transfer(user, amount);
+        await token.approve(vestingContract.address, amount, { from: user });
+
+        const stakeTx = await vestingContract.stakeTokens(amount, { from: user });
         const blockNumber = stakeTx.receipt.blockNumber;
         await mineBlock();
 
