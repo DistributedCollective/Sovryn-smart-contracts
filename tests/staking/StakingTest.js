@@ -2432,6 +2432,72 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("getStakes", () => {
+        const toString = (x) => x.toString();
+
+        it("returns an array of lock dates and staking amounts for each lock date with a stake > 0 for account from the kickoff date until now + max duration", async () => {
+            const date1 = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date1, new BN("100"), a1);
+
+            let result = await staking.getStakes(a1);
+            expect(result.dates.map(toString)).to.deep.equal([date1.toString()]);
+            expect(result.stakes.map(toString)).to.deep.equal(["100"]);
+            // test that the order is dates, stakes
+            expect(result[0].map(toString)).to.deep.equal([date1.toString()]);
+            expect(result[1].map(toString)).to.deep.equal(["100"]);
+
+            // this should increase the amount of previous stake instead of showing up as a new stake
+            await initializeStake(date1, new BN("50"), a1);
+
+            result = await staking.getStakes(a1);
+            expect(result.dates.map(toString)).to.deep.equal([date1.toString()]);
+            expect(result.stakes.map(toString)).to.deep.equal(["150"]);
+
+            // this adds a new stake
+            const date2 = date1.add(TWO_WEEKS_BN.mul(new BN(2)));
+            await initializeStake(date2, new BN("25"), a1);
+
+            result = await staking.getStakes(a1);
+            expect(result.dates.map(toString)).to.deep.equal([date1.toString(), date2.toString()]);
+            expect(result.stakes.map(toString)).to.deep.equal(["150", "25"]);
+
+            // this adds a new stake in between date1 and date2
+            const date3 = date1.add(TWO_WEEKS_BN);
+            await initializeStake(date3, new BN("123"), a1);
+
+            result = await staking.getStakes(a1);
+            expect(result.dates.map(toString)).to.deep.equal([
+                date1.toString(),
+                date3.toString(),
+                date2.toString(),
+            ]);
+            expect(result.stakes.map(toString)).to.deep.equal(["150", "123", "25"]);
+
+            // test another user
+            await initializeStake(date3, new BN("456"), a2);
+
+            // old result still intact
+            result = await staking.getStakes(a1);
+            expect(result.dates.map(toString)).to.deep.equal([
+                date1.toString(),
+                date3.toString(),
+                date2.toString(),
+            ]);
+            expect(result.stakes.map(toString)).to.deep.equal(["150", "123", "25"]);
+
+            // stakes correctly returned for another user
+            result = await staking.getStakes(a2);
+            expect(result.dates.map(toString)).to.deep.equal([date3.toString()]);
+            expect(result.stakes.map(toString)).to.deep.equal(["456"]);
+        });
+
+        it("if account does not have any stake, empty arrays are returned", async () => {
+            const result = await staking.getStakes(a1);
+            expect(result.dates).to.be.empty;
+            expect(result.stakes).to.be.empty;
+        });
+    });
+
     async function initializeStake(date, amount, user) {
         // helper to grant tokens, stake, mine a block, and return the block number of the stake
 
