@@ -74,7 +74,7 @@ contract("Staking", (accounts) => {
         await staking.setVestingRegistry(vesting.address);
 
         MAX_VOTING_WEIGHT = await staking.getStorageMaxVotingWeight.call();
-        MAX_DURATION = await staking.MAX_DURATION();
+        MAX_DURATION = await staking.getStorageMaxDurationToStakeTokens();
         WEIGHT_FACTOR = await staking.getStorageWeightFactor();
 
         kickoffTS = await staking.kickoffTS.call();
@@ -1688,30 +1688,43 @@ contract("Staking", (accounts) => {
             );
         });
 
-        xit("if date is not a valid lock date, the function will return the weighted stake at the closest lock date prior to date", async () => {
-            // TODO: this is just an expected failure. The function does not work the way it's specified here, instead it will return 0
+        it("if date is not a valid lock date, the function will return the weighted stake at the closest lock date AFTER date", async () => {
             const startDate = kickoffTS.add(TWO_WEEKS_BN);
             const stakeDate = startDate.add(TWO_WEEKS_BN);
             const dateBefore = stakeDate.sub(new BN(1));
             const dateAfter = stakeDate.add(new BN(1));
             const blockNumber = await initializeStake(stakeDate, "10000");
 
+            // sanity check
             let weightedStake = await staking.weightedStakeByDate(
                 a1,
-                dateBefore,
-                startDate,
-                blockNumber
-            );
-            expect(weightedStake).to.be.bignumber.eq("0");
-            weightedStake = await staking.weightedStakeByDate(
-                a1,
-                dateAfter,
+                stakeDate,
                 startDate,
                 blockNumber
             );
             expect(weightedStake).to.be.bignumber.eq(
                 getAmountWithWeight("10000", stakeDate, startDate)
             );
+
+            // not a valid lock date but before, should fall back to stake AFTER the date e.g. the staking date
+            weightedStake = await staking.weightedStakeByDate(
+                a1,
+                dateBefore,
+                startDate,
+                blockNumber
+            );
+            expect(weightedStake).to.be.bignumber.eq(
+                getAmountWithWeight("10000", stakeDate, startDate)
+            );
+
+            // date after -> it will return the stake at the date after, which is 0 in this case
+            weightedStake = await staking.weightedStakeByDate(
+                a1,
+                dateAfter,
+                startDate,
+                blockNumber
+            );
+            expect(weightedStake).to.be.bignumber.eq("0");
         });
     });
 
