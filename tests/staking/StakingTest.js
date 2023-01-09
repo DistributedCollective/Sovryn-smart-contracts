@@ -271,7 +271,8 @@ contract("Staking", (accounts) => {
         });
     });
 
-    describe("balanceOf", () => {
+    describe("token balanceOf", () => {
+        // NOTE: these don't test the actual balanceOf function, but the balanceOf function of the token contract
         it("grants to initial account", async () => {
             expect((await token.balanceOf.call(root)).toString()).to.be.equal(TOTAL_SUPPLY);
         });
@@ -2396,6 +2397,38 @@ contract("Staking", (accounts) => {
             expect(
                 await staking.getPriorVestingWeightedStake(currentBlockNumber - 1, kickoffTS)
             ).to.be.bignumber.eq("0");
+        });
+    });
+
+    describe("balanceOf", () => {
+        it("returns the total staked balance of account from the kickoff date until now + max duration", async () => {
+            expect((await staking.balanceOf(a1)).toString()).to.be.bignumber.equal("0");
+
+            let date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+            expect((await staking.balanceOf(a1)).toString()).to.be.bignumber.equal("100");
+
+            date = date.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("50"), a1);
+            expect((await staking.balanceOf(a1)).toString()).to.be.bignumber.equal("150");
+
+            date = date.add(new BN(1));
+            await initializeStake(date, new BN("25"), a1);
+            expect((await staking.balanceOf(a1)).toString()).to.be.bignumber.equal("175");
+
+            // test another user
+            expect((await staking.balanceOf(a2)).toString()).to.be.bignumber.equal("0");
+
+            await initializeStake(date, new BN("123"), a2);
+            expect((await staking.balanceOf(a2)).toString()).to.be.bignumber.equal("123");
+            expect((await staking.balanceOf(a1)).toString()).to.be.bignumber.equal("175");
+
+            // staking before kickoff date or after now + max duration is not possible, so those edge cases are
+            // not tested here
+        });
+
+        it("if account does not have any stake, 0 is returned", async () => {
+            expect((await staking.balanceOf(a1)).toString()).to.be.bignumber.equal("0");
         });
     });
 
