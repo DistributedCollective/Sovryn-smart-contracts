@@ -2549,6 +2549,55 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("getCurrentStakedUntil", () => {
+        it("returns the current total stake for lockedTS", async () => {
+            const date1 = kickoffTS.add(TWO_WEEKS_BN);
+            expect(await staking.getCurrentStakedUntil(date1)).to.be.bignumber.equal("0");
+
+            const date2 = date1.add(TWO_WEEKS_BN);
+            const date3 = date2.add(TWO_WEEKS_BN);
+
+            await initializeStake(date1, new BN("100"), a1);
+            await initializeStake(date1, new BN("20"), a1);
+            await initializeStake(date1, new BN("75"), a2);
+
+            await initializeStake(date2, new BN("123"), a1);
+            await initializeStake(date2, new BN("456"), a2);
+
+            expect(await staking.getCurrentStakedUntil(date1)).to.be.bignumber.equal("195");
+            expect(await staking.getCurrentStakedUntil(date2)).to.be.bignumber.equal("579");
+            expect(await staking.getCurrentStakedUntil(date3)).to.be.bignumber.equal("0");
+        });
+
+        it("if lockedTS is not a valid lock date, 0 is returned", async () => {
+            const date1 = kickoffTS.add(TWO_WEEKS_BN);
+            const date2 = date1.add(TWO_WEEKS_BN);
+            await initializeStake(date1, new BN("100"), a1);
+            await initializeStake(date2, new BN("200"), a1);
+
+            // sanity checks
+            expect(await staking.getCurrentStakedUntil(date1)).to.be.bignumber.equal("100");
+            expect(await staking.getCurrentStakedUntil(date2)).to.be.bignumber.equal("200");
+
+            // invalid dates
+            expect(
+                await staking.getCurrentStakedUntil(date1.sub(new BN(1)))
+            ).to.be.bignumber.equal("0");
+            expect(
+                await staking.getCurrentStakedUntil(date1.add(new BN(1)))
+            ).to.be.bignumber.equal("0");
+            expect(
+                await staking.getCurrentStakedUntil(date2.sub(new BN(1)))
+            ).to.be.bignumber.equal("0");
+            expect(
+                await staking.getCurrentStakedUntil(date2.add(new BN(1)))
+            ).to.be.bignumber.equal("0");
+            expect(
+                await staking.getCurrentStakedUntil(date1.add(TWO_WEEKS_BN).sub(new BN(1)))
+            ).to.be.bignumber.equal("0");
+        });
+    });
+
     async function initializeStake(date, amount, user) {
         // helper to grant tokens, stake, mine a block, and return the block number of the stake
 
