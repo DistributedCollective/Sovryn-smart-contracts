@@ -13,7 +13,7 @@ const { loadFixture } = waffle;
 
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 
-const { address, mineBlock } = require("../Utils/Ethereum");
+const { address, mineBlock, setNextBlockTimestamp } = require("../Utils/Ethereum");
 const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const EIP712 = require("../Utils/EIP712");
@@ -485,7 +485,7 @@ contract("Staking", (accounts) => {
             expect((await staking.getPriorVotes.call(a1, 0, kickoffTS)).toString()).to.be.equal(
                 "0"
             );
-            // TODO: add more detailed tests
+            // This is tested with more detail in other tests.
         });
 
         it("returns the latest block if >= last checkpoint block", async () => {
@@ -2495,6 +2495,57 @@ contract("Staking", (accounts) => {
             const result = await staking.getStakes(a1);
             expect(result.dates).to.be.empty;
             expect(result.stakes).to.be.empty;
+        });
+    });
+
+    describe("getCurrentVotes", () => {
+        it("returns the current voting power of account", async () => {
+            expect(await staking.getCurrentVotes(a1)).to.be.bignumber.equal("0");
+
+            const stakeDate1 = kickoffTS.add(TWO_WEEKS_BN);
+            const amount1 = new BN("1000");
+            await initializeStake(stakeDate1, amount1, a1);
+
+            // block.timestamp will be rounded to kickoffTS, so the stake will "be there" for 2 weeks
+            let expected = getAmountWithWeight(amount1, stakeDate1, kickoffTS);
+            expect(await staking.getCurrentVotes(a1)).to.be.bignumber.equal(expected);
+
+            // stake for another user, doesn't affect the calculation
+            await initializeStake(stakeDate1, new BN("123"), a2);
+            expect(await staking.getCurrentVotes(a1)).to.be.bignumber.equal(expected);
+
+            // stake another time, it should be visible in the calculation
+            const stakeDate2 = stakeDate1.add(TWO_WEEKS_BN);
+            const amount2 = new BN("50");
+            await initializeStake(stakeDate2, amount2, a1);
+
+            expected = getAmountWithWeight(amount1, stakeDate1, kickoffTS).add(
+                getAmountWithWeight(amount2, stakeDate2, kickoffTS)
+            );
+            expect(await staking.getCurrentVotes(a1)).to.be.bignumber.equal(expected);
+        });
+
+        it("if account does not have any stake, 0 is returned", async () => {
+            expect(await staking.getCurrentVotes(a1)).to.be.bignumber.equal("0");
+        });
+
+        it("if account does not have any locked stake, 0 is returned (even if he has unlocked state)", async () => {
+            // sanity check 1
+            expect(await staking.getCurrentVotes(a1)).to.be.bignumber.equal("0");
+
+            const stakeDate1 = kickoffTS.add(TWO_WEEKS_BN);
+            const amount1 = new BN("1000");
+            await initializeStake(stakeDate1, amount1, a1);
+
+            // sanity check 2
+            expect(await staking.getCurrentVotes(a1)).to.be.bignumber.equal(
+                getAmountWithWeight(amount1, stakeDate1, kickoffTS)
+            );
+
+            // unlock the stake by traveling to the next lock date after the staked date
+            await setNextBlockTimestamp(stakeDate1.add(TWO_WEEKS_BN).toNumber());
+            await mineBlock();
+            expect(await staking.getCurrentVotes(a1)).to.be.bignumber.equal("0");
         });
     });
 
