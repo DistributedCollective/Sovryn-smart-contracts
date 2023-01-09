@@ -56,7 +56,7 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
         uint256 blockNumber
     ) internal view returns (uint96 power) {
         uint96 weight = _computeWeightByDate(date, startDate);
-        uint96 staked = getPriorTotalStakesForDate(date, blockNumber);
+        uint96 staked = _getPriorTotalStakesForDate(date, blockNumber);
         /// @dev weight is multiplied by some factor to allow decimals.
         power = mul96(staked, weight, "WS07") / WEIGHT_FACTOR; // mul overflow
     }
@@ -177,14 +177,29 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
      * @notice Determine the prior number of stake for an unlocking date as of a block number.
      * @dev Block number must be a finalized block or else this function will
      * revert to prevent misinformation.
-     * TODO: WeightedStaking::getPriorTotalStakesForDate should probably better
-     * be internal instead of a public function.
-     * @param date The date to check the stakes for.
+     * @param date The date to check the stakes for. Adjusted to the next valid lock date, as necessary
      * @param blockNumber The block number to get the vote balance at.
-     * @return The number of votes the account had as of the given block.
+     * @return The total number of votes as of the given block.
      * */
     function getPriorTotalStakesForDate(uint256 date, uint256 blockNumber)
         public
+        view
+        returns (uint96)
+    {
+        date = _adjustDateForOrigin(date);
+        return _getPriorTotalStakesForDate(date, blockNumber);
+    }
+
+    /**
+     * @notice Determine the prior number of stake for an unlocking date as of a block number.
+     * @dev Block number must be a finalized block or else this function will
+     * revert to prevent misinformation.
+     * @param date The date to check the stakes for.
+     * @param blockNumber The block number to get the vote balance at.
+     * @return The total number of votes as of the given block.
+     * */
+    function _getPriorTotalStakesForDate(uint256 date, uint256 blockNumber)
+        internal
         view
         returns (uint96)
     {

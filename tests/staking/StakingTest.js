@@ -1853,6 +1853,115 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("getPriorTotalStakesForDate", () => {
+        it("if date received multiple stakes at different block numbers from different addresses, the function returns the correct total stake for each block number", async () => {
+            // initialize two stakes from two addresses for the same date
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(2)));
+            const amount1 = new BN("100");
+            const amount2 = new BN("200");
+            const stakeBlockNumber1 = await initializeStake(stakeDate, amount1, a1);
+            const stakeBlockNumber2 = await initializeStake(stakeDate, amount2, a2);
+
+            await mineBlock();
+
+            expect(
+                await staking.getPriorTotalStakesForDate(stakeDate, stakeBlockNumber2)
+            ).to.be.bignumber.eq(amount1.add(amount2));
+            expect(
+                await staking.getPriorTotalStakesForDate(stakeDate, stakeBlockNumber1)
+            ).to.be.bignumber.eq(amount1);
+        });
+
+        it("if there is at least one stake on a different date, it is not counted towards the total stake of date", async () => {
+            // initialize two stakes from two addresses for the same date
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(2)));
+            const amount1 = new BN("100");
+            const amount2 = new BN("150");
+            await initializeStake(stakeDate, amount1, a1);
+            await initializeStake(stakeDate, amount2, a2);
+
+            // initialize stakes before and after
+            const dateBefore = stakeDate.sub(TWO_WEEKS_BN);
+            const amount3 = new BN("400");
+            await initializeStake(dateBefore, amount3, a2);
+            const dateAfter = stakeDate.add(TWO_WEEKS_BN);
+            const amount4 = new BN("300");
+            const latestStakeBlockNumber = await initializeStake(dateAfter, amount4, a1);
+
+            await mineBlock();
+
+            // Stakes on dates before and after are not counted in this
+            expect(
+                await staking.getPriorTotalStakesForDate(stakeDate, latestStakeBlockNumber)
+            ).to.be.bignumber.eq(amount1.add(amount2));
+
+            // These work as expected
+            expect(
+                await staking.getPriorTotalStakesForDate(dateBefore, latestStakeBlockNumber)
+            ).to.be.bignumber.eq(amount3);
+            expect(
+                await staking.getPriorTotalStakesForDate(dateAfter, latestStakeBlockNumber)
+            ).to.be.bignumber.eq(amount4);
+        });
+
+        it("if date is not a valid lock date, the function will return the total stake at the closest lock date AFTER date", async () => {
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(2)));
+            const amount = new BN("100");
+            const stakeBlockNumber = await initializeStake(stakeDate, amount);
+
+            // sanity check
+            expect(
+                await staking.getPriorTotalStakesForDate(stakeDate, stakeBlockNumber)
+            ).to.be.bignumber.eq(amount);
+
+            // this should adjust to the lock date which is the stake date
+            expect(
+                await staking.getPriorTotalStakesForDate(
+                    stakeDate.sub(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq(amount);
+
+            // this too
+            expect(
+                await staking.getPriorTotalStakesForDate(
+                    stakeDate.sub(TWO_WEEKS_BN).add(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq(amount);
+
+            // these should adjust to other periods
+            expect(
+                await staking.getPriorTotalStakesForDate(
+                    stakeDate.sub(TWO_WEEKS_BN),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+            expect(
+                await staking.getPriorTotalStakesForDate(
+                    stakeDate.add(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+        });
+
+        it("if there are no stakes at date, the function returns 0", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            const date = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(2)));
+            expect(
+                await staking.getPriorTotalStakesForDate(date, currentBlockNumber - 1)
+            ).to.be.bignumber.eq("0");
+        });
+
+        it("if blockNumber >= the current block number, the function reverts", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await expect(
+                staking.getPriorTotalStakesForDate(date, currentBlockNumber)
+            ).to.be.revertedWith("not determined");
+        });
+    });
+
     describe("getPriorTotalVotingPower", () => {
         it("if there are stakes at several dates, this function returns the past total voting power at all these dates for time and blockNumber", async () => {
             const stakeDate1 = kickoffTS.add(TWO_WEEKS_BN);
