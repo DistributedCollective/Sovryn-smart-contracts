@@ -2598,6 +2598,95 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("getWithdrawAmounts", () => {
+        it("the function reverts if amount is 0", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await expect(staking.getWithdrawAmounts(0, date)).to.be.revertedWith(
+                "Amount of tokens to withdraw must be > 0"
+            );
+        });
+
+        it("the function reverts if amount is higher than the msg.sender's staked balance for until", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+            await expect(staking.getWithdrawAmounts(new BN("101"), date), {
+                from: a1,
+            }).to.be.revertedWith("Staking::withdraw: not enough balance");
+        });
+
+        it("if until is not a valid lock date, the lock date NEXT to until is used for both the withdrawable amount and punishment", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+
+            // rounds to the current lock date -> should work
+            const result = await staking.getWithdrawAmounts(new BN("100"), date.sub(new BN(1)), {
+                from: a1,
+            });
+            expect(result).to.not.be.empty;
+            console.log(result[0].toString(), result[1].toString());
+
+            // rounds to the next lock date -> no stake available -> revert
+            await expect(
+                staking.getWithdrawAmounts(new BN("100"), date.add(new BN(1)), { from: a1 })
+            ).to.be.revertedWith("Staking::withdraw: not enough balance");
+        });
+
+        it("if until lies in the past, the function will revert", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+
+            // travel to the next lock date
+            await setNextBlockTimestamp(date.add(TWO_WEEKS_BN).toNumber());
+            await mineBlock();
+
+            await expect(
+                staking.getWithdrawAmounts(new BN("100"), date, { from: a1 })
+            ).to.be.revertedWith("date < startDate");
+        });
+
+        it("if until lies in the future, the function returns how many tokens the user receives if unstaking amount considering the penalty for early unstaking, and returns the withdrawable amount and the penalty", async () => {
+            // NOTE: it does NOT currently adjust the "until" timestamp
+            const weightScaling = await staking.weightScaling();
+
+            let date = kickoffTS.add(TWO_WEEKS_BN);
+            let amount = new BN("100");
+            await initializeStake(date, amount, a1);
+
+            let weight = getWeight(date, kickoffTS);
+            let expectedPunishedAmount = amount
+                .mul(weight)
+                .mul(weightScaling)
+                .div(WEIGHT_FACTOR)
+                .div(new BN("100"));
+            let result = await staking.getWithdrawAmounts(amount, date, { from: a1 });
+            expect(result[0]).to.be.bignumber.equal(amount.sub(expectedPunishedAmount));
+            expect(result[1]).to.be.bignumber.equal(expectedPunishedAmount);
+
+            date = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(3)));
+            amount = new BN("13371337");
+            await initializeStake(date, amount, a2);
+
+            weight = getWeight(date, kickoffTS);
+            expectedPunishedAmount = amount
+                .mul(weight)
+                .mul(weightScaling)
+                .div(WEIGHT_FACTOR)
+                .div(new BN("100"));
+            result = await staking.getWithdrawAmounts(amount, date, { from: a2 });
+            expect(result[0]).to.be.bignumber.equal(amount.sub(expectedPunishedAmount));
+            expect(result[1]).to.be.bignumber.equal(expectedPunishedAmount);
+        });
+
+        it("if until lies in the future, the withdrawable amount must be < amount and the penalty > 0", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+            const result = await staking.getWithdrawAmounts(new BN("100"), date, { from: a1 });
+            const [withdrawable, penalty] = [result[0], result[1]];
+            expect(withdrawable).to.be.bignumber.lt(new BN("100"));
+            expect(penalty).to.be.bignumber.gt(new BN("0"));
+        });
+    });
+
     async function initializeStake(date, amount, user) {
         // helper to grant tokens, stake, mine a block, and return the block number of the stake
 
