@@ -54,9 +54,9 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
             "Invalid lock dates: must greater than contract creation timestamp"
         );
 
-        // locked date must be multiples of 14 days
+        // locked date must be multiples of 14 days / TWO_WEEKS
         require(
-            (lockedTS - kickoffTS) % 14 days == 0,
+            (lockedTS - kickoffTS) % TWO_WEEKS == 0,
             "Invalid lock dates: not multiples of 14 days"
         );
 
