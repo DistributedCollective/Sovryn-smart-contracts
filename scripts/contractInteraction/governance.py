@@ -22,6 +22,15 @@ def executeProposal(id):
     tx = governor.execute(id)
     tx.info()
 
+def cancelProposal(type, proposalId): 
+    # type == 'GovernorOwner' or 'GovernorAdmin'; proposalId - proposal ordered number
+    governor = Contract.from_abi("GovernorAlpha", address=conf.contracts[type], abi=GovernorAlpha.abi, owner=conf.acct)
+    data = governor.cancel.encode_input(proposalId)
+    if governor.guardian() == conf.contracts['multisig']:
+        sendWithMultisig(conf.contracts['multisig'], governor.address, data, conf.acct)
+    else:
+        raise Exception("Guardian address is not multisig")
+
 def transferLockedSOVOwnershipToGovernance():
     print("Add LockedSOV admin for address: ", conf.contracts['TimelockAdmin'])
     lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts["LockedSOV"], abi=LockedSOV.abi, owner=conf.acct)

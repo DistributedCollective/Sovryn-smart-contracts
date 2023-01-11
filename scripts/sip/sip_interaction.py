@@ -8,6 +8,7 @@ from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
 import time
+from scripts.utils import * 
 #import scripts.contractInteraction.config as conf
 
 def main():
@@ -117,6 +118,15 @@ def createProposal(governorAddr, target, value, signature, data, description):
     # Create Proposal
     tx = governor.propose(target, value, signature, data, description)
     tx.info()
+
+def cancelProposal(type, proposalId): 
+    # type == 'GovernorOwner' or 'GovernorAdmin'; proposalId - proposal ordered number
+    governor = Contract.from_abi("GovernorAlpha", address=contracts[type], abi=GovernorAlpha.abi, owner=acct)
+    data = governor.cancel.encode_input(proposalId)
+    if governor.guardian() == contracts['multisig']:
+        sendWithMultisig(contracts['multisig'], governor.address, data, acct)
+    else:
+        raise Exception("Guardian address is not multisig")
 
 def createProposalSIP0005():
     dummyAddress = contracts['GovernorOwner']

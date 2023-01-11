@@ -9,6 +9,19 @@ def main():
     run from CLI:
     brownie run scripts/contractInteraction/contract_interaction.py --network testnet
     brownie run scripts/contractInteraction/contract_interaction.py --network rsk-mainnet
+    
+    #####################################################################################
+    
+    run on forked nets:
+    1) run a forked net at a block 
+    * if forking at the last block don't use --fork-block-number option
+    * use --no-deploy param to skip running hh deployment scripts by default
+
+    npx hardhat node --fork https://mainnet.sovryn.app/rpc --fork-block-number 4929553 --no-deploy
+
+    2) run the script:
+    export DEV_NET_NAME="testnet" && brownie run scripts/contractInteraction/contract_interaction.py --network development
+    export DEV_NET_NAME="mainnet" && brownie run scripts/contractInteraction/contract_interaction.py --network development
     '''
 
     # call the function you want here
@@ -16,9 +29,14 @@ def main():
     #used often:
 
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
+    
+    #print("fastBTC.balance()", loadBiDiFastBTC().balance()/1e18)
     #withdrawRBTCFromFastBTCBiDi(5e18, conf.contracts['Watcher'])
+    
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
     #bal = getBalance(conf.contracts['FastBTCBiDi'], conf.contracts['Watcher'])
+    #print(getContractBTCBalance(conf.contracts['multisig'])/1e18)
+    #print(getBalanceNoPrintOf(conf.contracts['WRBTC'], conf.contracts["Watcher"])/1e18)
     #withdrawTokensFromWatcher(conf.contracts['XUSD'], 750000e18, conf.contracts['multisig'])
     #withdrawTokensFromWatcher(conf.contracts['USDT'], 150000e18, conf.contracts['multisig'])
 
@@ -109,5 +127,4 @@ def main():
 
     # getLMInfo()
 
-    
-    
+    # printLendingPoolsData()

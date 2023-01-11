@@ -72,9 +72,13 @@ def sendMYNTFromMultisigToFeeSharingProxy(amount):
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['FeeSharingProxy'], data, conf.acct)
 
 def getBalanceOf(contractAddress, acct):
+    balance = getBalanceNoPrintOf(contractAddress, acct)
+    print(balance)
+    return balance
+
+def getBalanceNoPrintOf(contractAddress, acct):
     contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=conf.acct)
     balance = contract.balanceOf(acct)
-    print(balance)
     return balance
 
 def getTotalSupply(contractAddress):
@@ -85,3 +89,19 @@ def getTotalSupply(contractAddress):
 
 def deployTestTokenLimited(name, symbol):
     token = conf.acct.deploy(TestTokenLimited, name, symbol, 18, 100000e18)
+
+def printLendingPoolData(iTokenName, tokenName):
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts[iTokenName], abi=LoanTokenLogicStandard.abi, owner=conf.acct)    
+    print(iTokenName)
+    print("    - totalSupply():","   ", loanToken.totalSupply()/1e18)
+    print("    - marketLiquidity():", loanToken.marketLiquidity()/1e18)
+    print("    - tokenPrice():","    ", loanToken.tokenPrice()/1e18)
+    print("    - balance:","         ", getBalanceNoPrintOf(conf.contracts[tokenName], loanToken.address)/1e18, tokenName)
+
+
+def printLendingPoolsData():
+    printLendingPoolData("iRBTC", "WRBTC")
+    printLendingPoolData("iUSDT", "USDT")
+    printLendingPoolData("iXUSD", "XUSD")
+    printLendingPoolData("iBPro", "BPro")
+    printLendingPoolData("iDOC", "DoC")
