@@ -15,11 +15,15 @@ def main():
     run on forked nets:
     1) run a forked net at a block 
     * if forking at the last block don't use --fork-block-number option
-    * use --no-deploy param to skip running hh deployment scripts by default
-
+    * use --no-deploy param to skip running hh deployment scripts by default 
+    
+    mainnet: 
     npx hardhat node --fork https://mainnet.sovryn.app/rpc --fork-block-number 4929553 --no-deploy
+    
+    testnet:   
+    npx hardhat node --fork https://testnet.sovryn.app/rpc --fork-block-number 3495000 --no-deploy
 
-    2) run the script:
+    2) run the script respectively:
     export DEV_NET_NAME="testnet" && brownie run scripts/contractInteraction/contract_interaction.py --network development
     export DEV_NET_NAME="mainnet" && brownie run scripts/contractInteraction/contract_interaction.py --network development
     '''
