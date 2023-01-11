@@ -82,6 +82,11 @@ def main():
     print('list total stake by lock dates')
     print(json.dumps(totalStakeByLockDates, indent=2))
     for lockDate in totalStakeByLockDates:
+      # we only need to fix the old staking date which is only until 1748600895.
+      # locked date greater than this number can be considered as the extended staking one, and we don't want to process it.
+      if lockDate > 1748600895:
+        continue
+
       currentTotalVestingStake = 0;
       print(lockDate, ' -> ', totalStakeByLockDates[lockDate])
       print('set to vesting stake...')
