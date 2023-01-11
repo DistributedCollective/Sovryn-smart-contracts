@@ -13,8 +13,16 @@ const { loadFixture } = waffle;
 
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 
-const { address, mineBlock } = require("../Utils/Ethereum");
-const { deployAndGetIStaking } = require("../Utils/initializer");
+const { address, mineBlock, setNextBlockTimestamp } = require("../Utils/Ethereum");
+const {
+    deployAndGetIStaking,
+    getSUSD,
+    getRBTC,
+    getWRBTC,
+    getBZRX,
+    getPriceFeeds,
+    getSovryn,
+} = require("../Utils/initializer.js");
 
 const EIP712 = require("../Utils/EIP712");
 // const EIP712Ethers = require("../Utils/EIP712Ethers");
@@ -30,6 +38,9 @@ const StakingAdminModule = artifacts.require("StakingAdminModule");
 const StakingVestingModule = artifacts.require("StakingVestingModule");
 const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 
+const FeeSharingLogic = artifacts.require("FeeSharingLogic");
+const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
 const TWO_WEEKS = 86400 * 14;
@@ -40,7 +51,7 @@ contract("Staking", (accounts) => {
 
     let root, a1, a2, a3, chainId;
     let pA1;
-    let token, staking;
+    let token, staking, sovryn;
     let MAX_VOTING_WEIGHT;
 
     let kickoffTS, inThreeYears;
@@ -49,6 +60,15 @@ contract("Staking", (accounts) => {
     let vestingLogic1, vestingLogic2;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Deploying sovrynProtocol w/ generic function from initializer.js
+        SUSD = await getSUSD();
+        RBTC = await getRBTC();
+        WRBTC = await getWRBTC();
+        BZRX = await getBZRX();
+        priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
+        sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+        await sovryn.setSovrynProtocolAddress(sovryn.address);
+
         chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
         await web3.eth.net.getId();
         token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
@@ -63,6 +83,13 @@ contract("Staking", (accounts) => {
         vesting = await VestingRegistryProxy.new();
         await vesting.setImplementation(vestingRegistryLogic.address);
         vesting = await VestingRegistryLogic.at(vesting.address);
+
+        //FeeSharingProxy
+        let feeSharingLogic = await FeeSharingLogic.new();
+        feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
+        await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
+        feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
+        await staking.setFeeSharing(feeSharingProxy.address);
 
         await staking.setVestingRegistry(vesting.address);
 
@@ -752,6 +779,47 @@ contract("Staking", (accounts) => {
                     value: values[0],
                 }
             );
+        });
+
+        it("should revert to withdraw the staked by registered vesting contract before the vesting stake is set properly", async () => {
+            let guy = accounts[0];
+            let lockedDates = [kickoffTS.add(new BN(TWO_WEEKS))];
+            let values = [new BN(1000)];
+            let totalStaked = values[0].mul(new BN(2));
+            await token.transfer(guy, totalStaked); // give an account a few tokens for readability
+            await token.approve(staking.address, totalStaked, { from: guy });
+
+            // stake for exact date
+            await Promise.all([staking.stake(values[0], lockedDates[0], a1, a1, { from: guy })]);
+
+            await vesting.addFourYearVestings([token.address], [a1]);
+
+            setNextBlockTimestamp(lockedDates[0].toNumber());
+
+            await expectRevert(
+                staking.withdraw(values[0], lockedDates[0], root, { from: a1 }),
+                "CP02"
+            ); // underflow vesting stake
+        });
+
+        it("should succesfully withdraw the staked by registered vesting contract after the vesting stake is set properly", async () => {
+            let guy = accounts[0];
+            let lockedDates = [kickoffTS.add(new BN(TWO_WEEKS))];
+            let values = [new BN(1000)];
+            let totalStaked = values[0].mul(new BN(2));
+            await token.transfer(guy, totalStaked); // give an account a few tokens for readability
+            await token.approve(staking.address, totalStaked, { from: guy });
+
+            // stake for exact date
+            await Promise.all([staking.stake(values[0], lockedDates[0], a1, a1, { from: guy })]);
+
+            await vesting.addFourYearVestings([token.address], [a1]);
+
+            await staking.setVestingStakes(lockedDates, values);
+
+            setNextBlockTimestamp(lockedDates[0].toNumber());
+
+            await staking.withdraw(values[0], lockedDates[0], a1, { from: a1 });
         });
     });
 
