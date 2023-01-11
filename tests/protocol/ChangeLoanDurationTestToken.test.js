@@ -11,8 +11,8 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 const { increaseTime } = require("../Utils/Ethereum");
 
@@ -519,9 +519,9 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
     describe("Test extending and reducing loan durations.", () => {
         /*
-			At this moment the maxLoanTerm is always 28 because it is hardcoded in setupLoanParams.
-			So there are only fix-term loans.
-		*/
+            At this moment the maxLoanTerm is always 28 because it is hardcoded in setupLoanParams.
+            So there are only fix-term loans.
+        */
         it("Test extend fix term loan duration should fail", async () => {
             // prepare the test
             const [loan_id, trader, loan_token_sent] = await open_margin_trade_position(
@@ -541,9 +541,9 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
         });
 
         /*
-			Extend the loan duration and see if the new timestamp is the expected, the interest increase,
-			the borrower SUSD balance decrease and the sovryn SUSD balance increase
-		*/
+            Extend the loan duration and see if the new timestamp is the expected, the interest increase,
+            the borrower SUSD balance decrease and the sovryn SUSD balance increase
+        */
         it("Test extend loan duration", async () => {
             // prepare the test
             const [loan_id, borrower] = await borrow_indefinite_loan(
@@ -704,9 +704,9 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
         });
 
         /*
-			Extend the loan duration with collateral and see if the new timestamp is the expected, the interest increase,
-			the loan's collateral decrease, sovryn SUSD balance increase and RBTC decrease
-		*/
+            Extend the loan duration with collateral and see if the new timestamp is the expected, the interest increase,
+            the loan's collateral decrease, sovryn SUSD balance increase and RBTC decrease
+        */
         it("Test extend loan_duration with collateral", async () => {
             // prepare the test
             const [loan_id, borrower] = await borrow_indefinite_loan(
@@ -1167,9 +1167,9 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
         });
 
         /*
-			Reduce the loan duration and see if the new timestamp is the expected, the interest decrease,
-			the receiver SUSD balance increase and the sovryn SUSD balance decrease
-		*/
+            Reduce the loan duration and see if the new timestamp is the expected, the interest decrease,
+            the receiver SUSD balance increase and the sovryn SUSD balance decrease
+        */
         it("Test reduce loan duration", async () => {
             // prepare the test
             const [loan_id, borrower] = await borrow_indefinite_loan(

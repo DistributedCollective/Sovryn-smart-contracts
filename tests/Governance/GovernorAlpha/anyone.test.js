@@ -24,7 +24,7 @@
  */
 
 const { ethers, waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("Timelock");

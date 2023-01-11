@@ -16,8 +16,8 @@
 
 const { expect } = require("chai");
 const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const LoanMaintenanceEvents = artifacts.require("LoanMaintenanceEvents");
 const LoanMaintenance = artifacts.require("LoanMaintenance");

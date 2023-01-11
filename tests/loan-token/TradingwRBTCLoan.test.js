@@ -11,8 +11,7 @@
  * Notes: Applied fixture to use snapshot beforeEach test.
  */
 
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { BN } = require("@openzeppelin/test-helpers");
 
 const {
@@ -78,13 +77,13 @@ contract("LoanTokenTrading", (accounts) => {
 
     describe("test the loan token trading logic with SUSD test token as collateral token and the wBTC as underlying loan token. ", () => {
         /*
-		tests margin trading sending loan tokens.
-			process is handled by the shared function margin_trading_sending_loan_tokens
-			1. approve the transfer
-			2. send the margin trade tx
-			3. verify the trade event and balances are correct
-			4. retrieve the loan from the smart contract and make sure all values are set as expected
-    	*/
+        tests margin trading sending loan tokens.
+            process is handled by the shared function margin_trading_sending_loan_tokens
+            1. approve the transfer
+            2. send the margin trade tx
+            3. verify the trade event and balances are correct
+            4. retrieve the loan from the smart contract and make sure all values are set as expected
+        */
         it("Test margin trading sending loan tokens", async () => {
             await margin_trading_sending_loan_tokens(
                 accounts,

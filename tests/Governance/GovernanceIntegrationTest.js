@@ -14,8 +14,8 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
 const {
@@ -177,12 +177,12 @@ contract("GovernanceIntegration", (accounts) => {
                         ]
                     ),
                     /*encodeParameters(
-						["address[]", "uint256[]"],
-						[
-							[account1, account2],
-							[1111, 2222],
-						]
-					),*/
+                        ["address[]", "uint256[]"],
+                        [
+                            [account1, account2],
+                            [1111, 2222],
+                        ]
+                    ),*/
                 ],
                 description: "change settings",
             };

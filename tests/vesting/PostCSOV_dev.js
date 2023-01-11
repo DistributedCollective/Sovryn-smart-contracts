@@ -7,8 +7,7 @@
  * Notes: Applied fixture to use snapshot beforeEach test.
  */
 
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const PostCSOV = artifacts.require("VestingRegistry.sol");
 const TestToken = artifacts.require("TestToken.sol");

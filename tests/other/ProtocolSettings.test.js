@@ -14,8 +14,8 @@
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const MultiSigWallet = artifacts.require("MultiSigWallet");
 
@@ -217,13 +217,13 @@ contract("ProtocolSettings", (accounts) => {
         });
 
         /*
-			Should set and deposit the protocol token
-			1. deploy erc20
-			2. set address
-			3. approve token transfer
-			4. deposit tokens
-			5. verify balance
-		*/
+            Should set and deposit the protocol token
+            1. deploy erc20
+            2. set address
+            3. approve token transfer
+            4. deposit tokens
+            5. verify balance
+        */
         it("Test deposit protocol token", async () => {
             const dest = sovryn.address;
             const val = 0;

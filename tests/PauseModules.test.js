@@ -21,9 +21,8 @@
  *  Updated to use SUSD as underlying token.
  */
 
-const { waffle } = require("hardhat");
 const { assert, expect } = require("chai");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 

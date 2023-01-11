@@ -74,6 +74,7 @@ contract("governorAlpha#castVote/2", (accounts) => {
         signatures = ["getBalanceOf(address)"];
         callDatas = [encodeParameters(["address"], [a1])];
         await enfranchise(token, staking, root, QUORUM_VOTES);
+        await enfranchise(token, staking, accounts[5], QUORUM_VOTES);
         await gov.propose(targets, values, signatures, callDatas, "do nothing");
         proposalId = await gov.latestProposalIds.call(root);
     });
@@ -97,7 +98,6 @@ contract("governorAlpha#castVote/2", (accounts) => {
             );
         });
     });
-
     describe("Otherwise", () => {
         it("we add the sender to the proposal's voters set", async () => {
             await expect(
@@ -307,6 +307,38 @@ contract("governorAlpha#castVote/2", (accounts) => {
             let receipt = await gov.getReceipt.call(proposalId, actor);
             expect(receipt.votes.toString()).to.be.equal(expectedVotes.toString());
             // console.log("\n" + proposal.forVotes.toString());
+        });
+    });
+    describe("Check votes after proposal start:", () => {
+        it("delegated votes after the proposal start are not accounted for voting", async () => {
+            let staker = accounts[5];
+            let delegate = accounts[6];
+
+            await gov.castVote(proposalId, true, { from: staker });
+            const initialVotes = await gov.proposals(proposalId).forVotes;
+
+            let ts = (await staking.kickoffTS.call()).add(new BN(DELAY));
+            await staking.delegate(delegate, ts, { from: staker });
+            await gov.castVote(proposalId, true, { from: delegate });
+            const finalVotes = await gov.proposals(proposalId).forVotes;
+
+            expect(
+                initialVotes,
+                "ALERT! Voting is vulnerable: delegated voting power after the proposal started is accounted for voting"
+            ).eq(finalVotes);
+        });
+        it("votes received after the proposal start are not accounted for voting", async () => {
+            let staker = accounts[7];
+            await enfranchise(token, staking, staker, QUORUM_VOTES);
+
+            const initialVotes = await gov.proposals(proposalId).forVotes;
+            await gov.castVote(proposalId, true, { from: staker });
+            const finalVotes = await gov.proposals(proposalId).forVotes;
+
+            expect(
+                initialVotes,
+                "ALERT! Voting is vulnerable: voting power received after the proposal started is accounted for voting"
+            ).eq(finalVotes);
         });
     });
 });

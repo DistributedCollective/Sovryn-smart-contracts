@@ -17,6 +17,7 @@ const { expect } = require("chai");
 const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum");
 const { deployAndGetIStaking, getStakingModulesWithBlockMockup } = require("../Utils/initializer");
+const { takeSnapshot } = require("@nomicfoundation/hardhat-network-helpers");
 
 const SOV_ABI = artifacts.require("SOV");
 const StakingProxy = artifacts.require("StakingProxy");
@@ -39,8 +40,10 @@ contract("StakingRewards - First Period", (accounts) => {
     let root, a1, a2, a3, a4, a5;
     let SOV, staking, blockMockUp;
     let kickoffTS, inOneYear, inTwoYears, inThreeYears;
-
+    let snapshot;
     before(async () => {
+        // we need to take snapshot and then revert time travelling after these tests so that the next tests would work correctly
+        snapshot = await takeSnapshot();
         [root, a1, a2, a3, a4, a5, ...accounts] = accounts;
         SOV = await SOV_ABI.new(TOTAL_SUPPLY);
 
@@ -94,6 +97,11 @@ contract("StakingRewards - First Period", (accounts) => {
         stakingRewards.setAverageBlockTime(30);
         await stakingRewards.setBlockMockUpAddr(blockMockUp.address);
         await staking.setBlockMockUpAddr(blockMockUp.address);
+    });
+
+    after(async () => {
+        // we need to revert time travelling after these tests so that the next tests would work correctly
+        await snapshot.restore();
     });
 
     describe("Flow - StakingRewards", () => {

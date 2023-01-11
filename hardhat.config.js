@@ -1,17 +1,17 @@
-//const { ethers } = require('hardhat');
 const { task } = require("hardhat/config");
 
 require("@nomiclabs/hardhat-ganache");
 require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-ethers");
+require("hardhat-deploy-ethers");
 require("@nomiclabs/hardhat-web3");
 require("@nomiclabs/hardhat-waffle");
 require("hardhat-contract-sizer"); //yarn run hardhat size-contracts
 require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
 require("hardhat-abi-exporter");
-require("hardhat-deploy-ethers");
 require("hardhat-deploy");
+require("@nomicfoundation/hardhat-chai-matchers");
 
 require("dotenv").config();
 
@@ -102,11 +102,9 @@ module.exports = {
         },
     },
     abiExporter: {
-        path: "./abi",
         clear: true,
-        flat: false,
-        only: [],
-        except: [],
+        runOnCompile: true,
+        flat: true,
         spacing: 4,
     },
     contractSizer: {

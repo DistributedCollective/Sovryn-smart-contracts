@@ -10,8 +10,8 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { BN, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum.js");
 
@@ -148,15 +148,15 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
         });
 
         /*
-			Should successfully withdraw lending fees
-			1. Set demand curve (fixture) 
-			2. Lend to the pool (fixture)
-			3. Make a margin trade (fixture)
-			4. Set fees controller (address)
-			5. Read lending fees
-			6. Call withdraw lending fees
-			7. Verify the right amount was paid out and the lending fees reduced on the smart contract 
-		*/
+            Should successfully withdraw lending fees
+            1. Set demand curve (fixture) 
+            2. Lend to the pool (fixture)
+            3. Make a margin trade (fixture)
+            4. Set fees controller (address)
+            5. Read lending fees
+            6. Call withdraw lending fees
+            7. Verify the right amount was paid out and the lending fees reduced on the smart contract 
+        */
         it("Test withdraw lending fees", async () => {
             // prepare the test
             await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
@@ -230,15 +230,15 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
         });
 
         /*
-			Should successfully withdraw trading fees
-			1. Set demand curve (fixture) 
-			2. Lend to the pool (fixture)
-			3. Make a margin trade (fixture)
-			4. Set fees controller (address)
-			5. Read trading fees
-			6. Call withdraw trading fees
-			7. Verify the right amount was paid out and the trading fees reduced on the smart contract 
-		*/
+            Should successfully withdraw trading fees
+            1. Set demand curve (fixture) 
+            2. Lend to the pool (fixture)
+            3. Make a margin trade (fixture)
+            4. Set fees controller (address)
+            5. Read trading fees
+            6. Call withdraw trading fees
+            7. Verify the right amount was paid out and the trading fees reduced on the smart contract 
+        */
         it("Test withdraw trading fees", async () => {
             // prepare the test
             await open_margin_trade_position(loanToken, RBTC, WRBTC, SUSD, owner);
@@ -312,15 +312,15 @@ contract("ProtocolWithdrawFeeAndInterest", (accounts) => {
         });
 
         /*
-			Should successfully withdraw borrowing fees
-			1. Set demand curve (fixture) 
-			2. Lend to the pool (fixture)
-			3. Make a margin trade (fixture)
-			4. Set fees controller (address)
-			5. Read borrowing fees
-			6. Call withdraw borrowing fees
-			7. Verify the right amount was paid out and the borrowing fees reduced on the smart contract 
-		*/
+            Should successfully withdraw borrowing fees
+            1. Set demand curve (fixture) 
+            2. Lend to the pool (fixture)
+            3. Make a margin trade (fixture)
+            4. Set fees controller (address)
+            5. Read borrowing fees
+            6. Call withdraw borrowing fees
+            7. Verify the right amount was paid out and the borrowing fees reduced on the smart contract 
+        */
         /// @dev In this test borrowing fees are always 0
         ///   Borrowing fees are only accrued from torque loans
         ///   Added a new test on tests/other/LoanOpeningsBorrowOrTradeFromPool.test.js

@@ -37,7 +37,7 @@ const { deployAndGetIStaking } = require("../../Utils/initializer");
 
 const { assert } = require("chai");
 const { ethers, waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);
@@ -79,10 +79,10 @@ async function stake(tokenInstance, stakingInstance, stakeFor, delegatee, amount
  * @param {number} num The block number you want to reach.
  */
 /*async function advanceBlocks(num) {
-	let currentBlockNumber = await blockNumber();
-	for (let i = currentBlockNumber; i < num; i++) {
-		await mineBlock();
-	}
+    let currentBlockNumber = await blockNumber();
+    for (let i = currentBlockNumber; i < num; i++) {
+        await mineBlock();
+    }
 }*/
 
 contract("GovernorAlpha (Guardian Functions)", (accounts) => {
