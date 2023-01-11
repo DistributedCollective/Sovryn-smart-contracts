@@ -285,13 +285,14 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     /**
      * @notice Get available and punished amount for withdrawing.
      * @param amount The number of tokens to withdraw.
-     * @param until The date until which the tokens were staked.
+     * @param until The date until which the tokens were staked. Adjusted to the next valid lock date, if necessary.
      * */
     function getWithdrawAmounts(uint96 amount, uint256 until)
         external
         view
         returns (uint96, uint96)
     {
+        until = _adjustDateForOrigin(until);
         _validateWithdrawParams(msg.sender, amount, until);
         uint96 punishedAmount = _getPunishedAmount(amount, until);
         return (amount - punishedAmount, punishedAmount);

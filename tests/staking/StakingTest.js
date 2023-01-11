@@ -2623,7 +2623,6 @@ contract("Staking", (accounts) => {
                 from: a1,
             });
             expect(result).to.not.be.empty;
-            console.log(result[0].toString(), result[1].toString());
 
             // rounds to the next lock date -> no stake available -> revert
             await expect(
@@ -2645,7 +2644,6 @@ contract("Staking", (accounts) => {
         });
 
         it("if until lies in the future, the function returns how many tokens the user receives if unstaking amount considering the penalty for early unstaking, and returns the withdrawable amount and the penalty", async () => {
-            // NOTE: it does NOT currently adjust the "until" timestamp
             const weightScaling = await staking.weightScaling();
 
             let date = kickoffTS.add(TWO_WEEKS_BN);
@@ -2673,6 +2671,29 @@ contract("Staking", (accounts) => {
                 .div(WEIGHT_FACTOR)
                 .div(new BN("100"));
             result = await staking.getWithdrawAmounts(amount, date, { from: a2 });
+            expect(result[0]).to.be.bignumber.equal(amount.sub(expectedPunishedAmount));
+            expect(result[1]).to.be.bignumber.equal(expectedPunishedAmount);
+        });
+
+        it("if until is not a valid lock date, but the next valid lock date lies in the future, the function returns the withdrawable amount and penalty correctly, adjusting until to the next valid lock date", async () => {
+            const weightScaling = await staking.weightScaling();
+
+            let date = kickoffTS.add(TWO_WEEKS_BN); // date will adjust to this
+            let amount = new BN("1234567890");
+            await initializeStake(date, amount, a1);
+
+            let weight = getWeight(date, kickoffTS);
+            let expectedPunishedAmount = amount
+                .mul(weight)
+                .mul(weightScaling)
+                .div(WEIGHT_FACTOR)
+                .div(new BN("100"));
+
+            let until = kickoffTS.add(new BN(100)); // this is in the past, but it's also not a valid lock date
+            await setNextBlockTimestamp(until.toNumber() + 100);
+            await mineBlock();
+
+            let result = await staking.getWithdrawAmounts(amount, until, { from: a1 });
             expect(result[0]).to.be.bignumber.equal(amount.sub(expectedPunishedAmount));
             expect(result[1]).to.be.bignumber.equal(expectedPunishedAmount);
         });
