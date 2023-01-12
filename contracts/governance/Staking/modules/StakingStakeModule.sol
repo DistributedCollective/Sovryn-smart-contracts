@@ -41,7 +41,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 until,
         address stakeFor,
         address delegatee
-    ) external whenNotPaused {
+    ) external whenNotPaused whenNotFrozen {
         _notSameBlockAsStakingCheckpoint(until); // must wait a block before staking again for that same deadline
         _stake(msg.sender, amount, until, stakeFor, delegatee, false);
     }
@@ -133,6 +133,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         if (delegatee == address(0)) {
             delegatee = stakeFor;
         }
+        require(delegatee == stakeFor || stakeFor == sender, "Only sender can delegate");
 
         /// @dev Do not stake longer than the max duration.
         if (!timeAdjusted) {
