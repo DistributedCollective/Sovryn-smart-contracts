@@ -133,7 +133,6 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         if (delegatee == address(0)) {
             delegatee = stakeFor;
         }
-        require(delegatee == stakeFor || stakeFor == sender, "Only sender can delegate");
 
         /// @dev Do not stake longer than the max duration.
         if (!timeAdjusted) {
@@ -155,11 +154,12 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
             // @dev only the user that stakes for himself is allowed to delegate VP to another address
             // which works with vesting stakes and prevents vulnerability of delegating VP to an arbitrary address from
             // any address
-            if (delegatee != stakeFor)
+            if (delegatee != stakeFor) {
                 require(
                     stakeFor == sender,
                     "Only stakeFor account is allowed to change delegatee"
                 );
+            }
 
             /// @dev Update delegatee.
             delegates[stakeFor][until] = delegatee;
