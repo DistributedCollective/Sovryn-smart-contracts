@@ -8,6 +8,7 @@
  */
 
 const { expect } = require("chai");
+const { waffle, network } = require("hardhat");
 
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
@@ -37,6 +38,7 @@ const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const StakingAdminModule = artifacts.require("StakingAdminModule");
 const StakingVestingModule = artifacts.require("StakingVestingModule");
 const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
+const StakingStakeModule = artifacts.require("StakingStakeModule");
 
 const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
@@ -44,6 +46,8 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
 const TWO_WEEKS = 86400 * 14;
+
+const ZERO_ADDRESS = ethers.constants.AddressZero;
 
 contract("Staking", (accounts) => {
     const name = "Test token";
@@ -110,6 +114,12 @@ contract("Staking", (accounts) => {
 
     beforeEach(async () => {
         await loadFixture(deploymentAndInitFixture);
+    });
+
+    afterEach(async () => {
+        // Make sure we don't accidentally leave interval mining on after the tests
+        await network.provider.send("evm_setAutomine", [true]);
+        await network.provider.send("evm_setIntervalMining", [0]);
     });
 
     // describe("metadata", () => {
@@ -235,6 +245,266 @@ contract("Staking", (accounts) => {
     // 		expect(await staking.delegates.call(a1, inThreeYears)).to.be.equal(root);
     // 	});
     // });
+
+    describe("stake", () => {
+
+        it("should fail if amount is zero", async () => {
+            await expectRevert(staking.stake(0, 0, ZERO_ADDRESS, ZERO_ADDRESS), "amount needs to be bigger than 0");
+        });
+
+        it("should fail if until < block.timestamp", async () => {
+            await expectRevert(staking.stake(new BN(1000), kickoffTS.add(new BN(1)), ZERO_ADDRESS, ZERO_ADDRESS), "Staking::_timestampToLockDate: staking period too short");
+        });
+
+        // it("should fail if second stake in the same block", async () => {
+        //     let user = accounts[0];
+        //     let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+        //     let amount = new BN(1000);
+        //     await token.transfer(user, amount.mul(new BN(2)));
+        //     await token.approve(staking.address, amount.mul(new BN(2)), {from: user});
+        //
+        //     // stop mining
+        //     await network.provider.send("evm_setAutomine", [false]);
+        //     await network.provider.send("evm_setIntervalMining", [10000]);
+        //     await staking.stake(amount, lockedDate, user, user, {from: user});
+        //
+        //     await expectRevert(staking.stake(amount, lockedDate, user, user, {from: user}), "cannot be mined in the same block as last stake");
+        // });
+
+        it("should fail if paused", async () => {
+            await staking.freezeUnfreeze(true);
+            await expectRevert(staking.stake(0, 0, ZERO_ADDRESS, ZERO_ADDRESS), "paused");
+        });
+
+        it("should fail if frozen", async () => {
+            await staking.pauseUnpause(true);
+            await expectRevert(staking.stake(0, 0, ZERO_ADDRESS, ZERO_ADDRESS), "paused");
+        });
+
+        it("should change stakeFor and delegatee if zero addresses", async () => {
+            let user = accounts[0];
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let amount = new BN(1000);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, {from: user});
+
+            let tx = await staking.stake(amount, lockedDate, ZERO_ADDRESS, ZERO_ADDRESS, {from: user});
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensStaked",
+                {
+                    staker: user,
+                    amount: amount,
+                    lockedUntil: lockedDate,
+                    totalStaked: amount
+                }
+            );
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "DelegateChanged",
+                {
+                    delegator: user,
+                    lockedUntil: lockedDate,
+                    fromDelegate: ZERO_ADDRESS,
+                    toDelegate: user
+                }
+            );
+
+        });
+
+        it("should stake tokens for user without delegation", async () => {
+            let user = accounts[0];
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let amount = new BN(1000);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, {from: user});
+
+            let tx = await staking.stake(amount, lockedDate, user, user, {from: user});
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check delegatee
+            let userDelegatee = await staking.delegates(user, lockedDate);
+            expect(userDelegatee).to.be.equal(user);
+
+            //check getPriorTotalStakesForDate
+            let priorTotalStakeBefore = await staking.getPriorTotalStakesForDate(lockedDate, blockBefore);
+            let priorTotalStakeAfter = await staking.getPriorTotalStakesForDate(lockedDate, blockAfter);
+            expect(priorTotalStakeAfter.sub(priorTotalStakeBefore)).to.be.equal(amount);
+
+            //check getPriorUserStakeByDate
+            let priorUserStakeBefore = await staking.getPriorUserStakeByDate(user, lockedDate, blockBefore);
+            let priorUserStakeAfter = await staking.getPriorUserStakeByDate(user, lockedDate, blockAfter);
+            expect(priorUserStakeAfter.sub(priorUserStakeBefore)).to.be.equal(amount);
+
+            //check getPriorStakeByDateForDelegatee
+            let priorDelegateStakeBefore = await staking.getPriorStakeByDateForDelegatee(user, lockedDate, blockBefore);
+            let priorDelegateStakeAfter = await staking.getPriorStakeByDateForDelegatee(user, lockedDate, blockAfter);
+            expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(amount);
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensStaked",
+                {
+                    staker: user,
+                    amount: amount,
+                    lockedUntil: lockedDate,
+                    totalStaked: amount
+                }
+            );
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "DelegateChanged",
+                {
+                    delegator: user,
+                    lockedUntil: lockedDate,
+                    fromDelegate: ZERO_ADDRESS,
+                    toDelegate: user
+                }
+            );
+        });
+
+        it("should stake tokens for user with delegation", async () => {
+            let user = accounts[0];
+            let delegatee = accounts[1];
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let amount = new BN(1000);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, {from: user});
+
+            let tx = await staking.stake(amount, lockedDate, user, delegatee, {from: user});
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check delegatee
+            let userDelegatee = await staking.delegates(user, lockedDate);
+            expect(userDelegatee).to.be.equal(delegatee);
+
+            //check getPriorTotalStakesForDate
+            let priorTotalStakeBefore = await staking.getPriorTotalStakesForDate(lockedDate, blockBefore);
+            let priorTotalStakeAfter = await staking.getPriorTotalStakesForDate(lockedDate, blockAfter);
+            expect(priorTotalStakeAfter.sub(priorTotalStakeBefore)).to.be.equal(amount);
+
+            //check getPriorUserStakeByDate
+            let priorUserStakeBefore = await staking.getPriorUserStakeByDate(user, lockedDate, blockBefore);
+            let priorUserStakeAfter = await staking.getPriorUserStakeByDate(user, lockedDate, blockAfter);
+            expect(priorUserStakeAfter.sub(priorUserStakeBefore)).to.be.equal(amount);
+
+            //check getPriorStakeByDateForDelegatee
+            let priorDelegateStakeBefore = await staking.getPriorStakeByDateForDelegatee(delegatee, lockedDate, blockBefore);
+            let priorDelegateStakeAfter = await staking.getPriorStakeByDateForDelegatee(delegatee, lockedDate, blockAfter);
+            expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(amount);
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensStaked",
+                {
+                    staker: user,
+                    amount: amount,
+                    lockedUntil: lockedDate,
+                    totalStaked: amount
+                }
+            );
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "DelegateChanged",
+                {
+                    delegator: user,
+                    lockedUntil: lockedDate,
+                    fromDelegate: ZERO_ADDRESS,
+                    toDelegate: delegatee
+                }
+            );
+        });
+
+        it("should change delegatee", async () => {
+            let user = accounts[0];
+            let delegatee1 = accounts[1];
+            let delegatee2 = accounts[2];
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let amount1 = new BN(1000);
+            let amount2 = new BN(2000);
+            let totalAmount = amount1.add(amount2);
+            await token.transfer(user, totalAmount);
+            await token.approve(staking.address, totalAmount, {from: user});
+
+            await staking.stake(amount1, lockedDate, user, delegatee1, {from: user});
+            let tx = await staking.stake(amount2, lockedDate, user, delegatee2, {from: user});
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check getPriorStakeByDateForDelegatee - delegatee1
+            let priorDelegateStakeBefore = await staking.getPriorStakeByDateForDelegatee(delegatee1, lockedDate, blockBefore);
+            let priorDelegateStakeAfter = await staking.getPriorStakeByDateForDelegatee(delegatee1, lockedDate, blockAfter);
+            expect(priorDelegateStakeBefore.sub(priorDelegateStakeAfter)).to.be.equal(amount1);
+
+            //check getPriorStakeByDateForDelegatee - delegatee2
+            priorDelegateStakeBefore = await staking.getPriorStakeByDateForDelegatee(delegatee2, lockedDate, blockBefore);
+            priorDelegateStakeAfter = await staking.getPriorStakeByDateForDelegatee(delegatee2, lockedDate, blockAfter);
+            expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(amount1.add(amount2));
+        });
+
+        it("should update delegate stake after withdraw", async () => {
+            let user = accounts[0];
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let amount1 = new BN(1000);
+            let amount2 = new BN(2000);
+            let totalAmount = amount1.add(amount2);
+            await token.transfer(user, totalAmount);
+            await token.approve(staking.address, totalAmount, {from: user});
+
+            await staking.stake(amount1, lockedDate, user, user, {from: user});
+            await staking.withdraw(amount1, lockedDate, user, {from: user});
+
+            let tx = await staking.stake(amount2, lockedDate, user, user, {from: user});
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check getPriorStakeByDateForDelegatee - delegatee1
+            let priorDelegateStakeBefore = await staking.getPriorStakeByDateForDelegatee(user, lockedDate, blockBefore);
+            let priorDelegateStakeAfter = await staking.getPriorStakeByDateForDelegatee(user, lockedDate, blockAfter);
+            expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(amount2);
+        });
+
+        it("should update stake for vesting contracts", async () => {
+            let user = accounts[0];
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let amount = new BN(1000);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, {from: user});
+
+            await staking.addContractCodeHash(user);
+            let tx = await staking.stake(amount, lockedDate, user, user, {from: user});
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check getPriorVestingStakeByDate
+            let priorDelegateStakeBefore = await staking.getPriorVestingStakeByDate(lockedDate, blockBefore);
+            let priorDelegateStakeAfter = await staking.getPriorVestingStakeByDate(lockedDate, blockAfter);
+            expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(amount);
+        });
+
+    });
 
     describe("setVestingStakes", () => {
         it("should fail if unauthorized", async () => {
