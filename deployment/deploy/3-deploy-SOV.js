@@ -4,20 +4,18 @@ const { ethers } = require("hardhat");
 //const deploymentName = getContractNameFromScriptFileName(path.basename(__filename));
 const func = async function (hre) {
     const {
-        deployments: { deploy, get, log },
+        deployments: { deploy },
         getNamedAccounts,
-        //ethers,
     } = hre;
     const { deployer } = await getNamedAccounts(); //await ethers.getSigners();
     const sovTotalSupply = ethers.utils.parseEther("100000000");
 
-    await deploy("StakingProxy", {
+    await deploy("SOV", {
         from: deployer,
-        args: [(await get("SOV")).address],
+        args: [sovTotalSupply],
         log: true,
         skipIfAlreadyDeployed: true,
     });
 };
-func.tags = ["StakingProxy"];
-func.dependencies = ["SOV"];
+func.tags = ["SOV"];
 module.exports = func;

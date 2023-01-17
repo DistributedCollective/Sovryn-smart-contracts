@@ -12,6 +12,7 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
+const { signWithMultisig, multisigCheckTx } = require("./deployment/helpers/helpers");
 
 require("dotenv").config();
 
@@ -32,7 +33,7 @@ task("accounts", "Prints the list of accounts", async () => {
 });
 
 const testnetAccounts = process.env.TESTNET_DEPLOYER_PRIVATE_KEY
-    ? [process.env.TESTNET_DEPLOYER_PRIVATE_KEY]
+    ? [process.env.TESTNET_DEPLOYER_PRIVATE_KEY, process.env.TESTNET_SIGNER_PRIVATE_KEY]
     : [];
 const mainnetAccounts = process.env.MAINNET_DEPLOYER_PRIVATE_KEY
     ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY]
@@ -73,6 +74,21 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
     else console.log("Hardhat mainnet forking does NOT work properly!");
 });
 
+task("sign-tx", "Sign multisig tx")
+    .addParam("txId", "Multisig transaction to sign", undefined, types.string)
+    .setAction(async (taskArgs, hre) => {
+        const { signer } = await hre.getNamedAccounts();
+        const ms = await ethers.getContract("MultiSigWallet");
+        await signWithMultisig(ms.address, taskArgs.txId, signer);
+    });
+
+task("check-tx", "Check multisig tx")
+    .addParam("txId", "Multisig transaction to check", undefined, types.string)
+    .setAction(async (taskArgs, hre) => {
+        const ms = await ethers.getContract("MultiSigWallet");
+        await multisigCheckTx(taskArgs.txId, ms.address);
+    });
+
 /*task("accounts", "Prints accounts", async (_, { web3 }) => {
     console.log();
     console.log(await web3.eth.getAccounts());
@@ -112,18 +128,39 @@ module.exports = {
         runOnCompile: false,
         disambiguatePaths: false,
     },
+    namedAccounts: {
+        deployer: {
+            default: 0,
+        },
+        signer: {
+            default: 1,
+        },
+    },
     networks: {
         hardhat: {
+            chainId: 31337,
             allowUnlimitedContractSize: true,
             accounts: { mnemonic: "test test test test test test test test test test test junk" },
             initialBaseFeePerGas: 0,
+            port: 8505,
+            live: false,
         },
-        localhost: {
-            accounts: { mnemonic: "test test test test test test test test test test test junk" },
-            allowUnlimitedContractSize: true,
-            url: "http://127.0.0.1:8545/",
-            initialBaseFeePerGas: 0,
+        forkedTestnet: {
+            chainId: 31337,
+            accounts: testnetAccounts,
+            url: "http://127.0.0.1:8505/",
+            gas: 6800000,
             live: true,
+            tags: ["testnet"],
+            saveDeployments: true,
+        },
+        forkedMainnet: {
+            accounts: mainnetAccounts,
+            url: "http://127.0.0.1",
+            port: 8505,
+            gas: 6800000,
+            live: true,
+            tags: ["mainnet"],
             saveDeployments: true,
         },
         /*localhost: {
@@ -131,19 +168,21 @@ module.exports = {
             allowUnlimitedContractSize: true,
             initialBaseFeePerGas: 0,
         },*/
-        rskPublicTestnet: {
+        rskTestnet: {
             url: "https://public-node.testnet.rsk.co/",
             accounts: testnetAccounts,
             network_id: 31,
             confirmations: 4,
-            gasMultiplier: 1.25, //
+            gasMultiplier: 1.25,
+            tags: ["testnet"],
             //timeout: 20000, // increase if needed; 20000 is the default value
             //allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
         },
-        rskPublicMainnet: {
+        rskMainnet: {
             url: "https://public-node.rsk.co/",
             network_id: 30,
             accounts: mainnetAccounts,
+            tags: ["mainnet"],
             //timeout: 20000, // increase if needed; 20000 is the default value
         },
         rskSovrynTestnet: {
@@ -173,20 +212,35 @@ module.exports = {
     external: {
         contracts: [
             {
-                artifacts: "external-artifacts",
+                artifacts: "external/artifacts/*.sol/!(*.dbg.json)",
+                // deploy: "node_modules/@cartesi/arbitration/export/deploy",
             },
+            //{
+            //artifacts: "node_modules/someotherpackage/artifacts",
+            //},
         ],
+        deployments: {
+            rskSovrynTestnet: ["external/deployments/rskTestnet"],
+            rskTestnet: ["external/deployments/rskTestnet"],
+            forkedTestnet: [
+                "external/deployments/rskTestnet",
+                "deployment/deployments/rskSovrynTestnet",
+            ],
+            rskSovrynMainnet: ["external/deployments/rskMainnet"],
+            rskMainnet: ["external/deployments/rskMainnet"],
+            forkedMainnet: [
+                "external/deployments/rskMainnet",
+                "deployment/deployments/rskSovrynMainnet",
+            ],
+        },
     },
     typechain: {
         outDir: "types",
         target: "ethers-v5",
         alwaysGenerateOverloads: false, // should overloads with full signatures like deposit(uint256) be generated always, even if there are no overloads?
-        externalArtifacts: ["external-artifacts/*.sol/!(*.dbg.json)"], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
+        externalArtifacts: ["external/artifacts/*.sol/!(*.dbg.json)"], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
     },
     mocha: {
         timeout: 800000,
-    },
-    namedAccounts: {
-        deployer: 0,
     },
 };

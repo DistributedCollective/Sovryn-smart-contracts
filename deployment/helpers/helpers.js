@@ -1,9 +1,11 @@
-const hre = require("hardhat");
-const {
+//const hre = require("hardhat");
+/*const {
     deployments: { deploy, get, log },
     getNamedAccounts,
     ethers,
-} = hre;
+} = hre;*/
+
+///@dev This file requires HardhatRuntimeEnvironment `hre` variable in its parent context for functions using hre to work
 
 const getStakingModulesNames = () => {
     return {
@@ -23,7 +25,6 @@ const stakingRegisterModuleWithMultisig = () => {
 
 const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, value = 0) => {
     const { ethers } = hre;
-    console.log("Multisig tx data:", data);
     const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress);
     const signer = await ethers.getSigner(sender);
     receipt = await (
@@ -33,33 +34,48 @@ const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, 
     const abi = ["event Submission(uint256 indexed transactionId)"];
     let iface = new ethers.utils.Interface(abi);
     const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "Submission");
-    console.log("Multisig tx id:", parsedEvent.transactionId.value.toNumber());
+    await multisigCheckTx(parsedEvent.transactionId.value.toNumber(), multisig.address);
+};
+
+const signWithMultisig = async (multisigAddress, txId, sender) => {
+    const { ethers, getNamedAccounts } = hre;
+    console.log("Signing multisig txId:", txId);
+    const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress);
+    const signer = await ethers.getSigner(sender);
+    receipt = await (await multisig.connect(signer).confirmTransaction(txId)).wait();
+    // console.log("Required signatures:", await multisig.required());
+    console.log("Signed. Details:");
+    await multisigCheckTx(txId, multisig.address);
 };
 
 const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_ZERO) => {
-    const {
-        deployments: { get },
-        ethers,
-    } = hre;
+    const { ethers } = hre;
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
         multisigAddress == ethers.constants.ADDRESS_ZERO
             ? (
-                  await get("multisig")
+                  await get("MultiSigWallet")
               ).address
             : multisigAddress
     );
+    const transaction = await multisig.transactions(txId);
     console.log(
-        "TX ID: ",
+        "TX { ID: ",
         txId,
-        "confirmations: ",
+        ", Data: ",
+        transaction.data,
+        ", Value: ",
+        transaction.value.toString(),
+        ", Destination: ",
+        transaction.destination,
+        ", Confirmations: ",
         (await multisig.getConfirmationCount(txId)).toNumber(),
-        " Executed:",
-        (await multisig.transactions(txId))[3],
-        " Confirmed by: ",
-        await multisig.getConfirmations(txId)
+        ", Executed:",
+        transaction.executed,
+        ", Confirmed by:",
+        await multisig.getConfirmations(txId),
+        "}"
     );
-    console.log("TX Data:", (await multisig.transactions(txId))[2]);
 };
 
 const parseEthersLog = (parsed) => {
@@ -97,6 +113,7 @@ const getParsedEventLogFromReceipt = async (receipt, iface, eventName) => {
 };
 
 const getStakingModuleClashingContracts = async (newModuleAddress) => {
+    const { ethers } = hre;
     const clashing = await stakingModulesProxy.checkClashingFuncSelectors(newModuleAddress);
     if (
         clashing.clashingModules.length == 0 &&
@@ -144,6 +161,7 @@ const createProposal = async (
     datas,
     description
 ) => {
+    const { ethers } = hre;
     //governorDeployment = (await get("GovernorAlpha")).address;
     console.log(`=============================================================
     Governor Address:    ${governorAddress}
@@ -165,6 +183,7 @@ module.exports = {
     getEthersLog,
     getParsedEventLogFromReceipt,
     sendWithMultisig,
+    signWithMultisig,
     multisigCheckTx,
     createProposal,
 };
