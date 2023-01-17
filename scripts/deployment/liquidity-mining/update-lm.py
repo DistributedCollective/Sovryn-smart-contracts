@@ -113,7 +113,7 @@ def updateLMConfig():
     ALLOCATION_POINT_BTC_DLLR =  25000 # (WR)BTC/DLLR
 
     ALLOCATION_POINT_DEFAULT = 1 # 13 tokens with 1 alloc point to account: (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF | (WR)BTC/MYNT | (WR)BTC/BNB | (WR)BTC/ETH | iXUSD
-    ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV - ALLOCATION_POINT_BTC_XUSD \
+    ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV \
                                      - ALLOCATION_POINT_BTC_DLLR  - (ALLOCATION_POINT_DEFAULT * 13)
 
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
@@ -123,8 +123,8 @@ def updateLMConfig():
 
     # update this before executing
     data = lm.updateTokens.encode_input(
-        [contracts['(WR)BTC/DLLR'], contracts['LiquidityMiningConfigToken']],
-        [ALLOCATION_POINT_BTC_DLLR, ALLOCATION_POINT_CONFIG_TOKEN],
+        [contracts['(WR)BTC/XUSD'], contracts['(WR)BTC/DLLR'], contracts['LiquidityMiningConfigToken']],
+        [ALLOCATION_POINT_BTC_XUSD, ALLOCATION_POINT_BTC_DLLR, ALLOCATION_POINT_CONFIG_TOKEN],
         True
     )
     tx = multisig.submitTransaction(lm.address,0,data)
