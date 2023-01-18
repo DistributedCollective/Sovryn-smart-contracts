@@ -236,6 +236,63 @@ contract("Staking", (accounts) => {
     // 	});
     // });
 
+    describe("extendStakingDuration", () => {
+        // it("should fail if second stake in the same block", async () => {
+        //     let user = accounts[0];
+        //     let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+        //     let newLockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
+        //     let amount = new BN(1000);
+        //     await token.transfer(user, amount.mul(new BN(2)));
+        //     await token.approve(staking.address, amount.mul(new BN(2)), {from: user});
+        //
+        //     // stop mining
+        //     await network.provider.send("evm_setAutomine", [false]);
+        //     await network.provider.send("evm_setIntervalMining", [10000]);
+        //     await staking.stake(amount, lockedDate, user, user, {from: user});
+        //
+        //     await expectRevert(staking.extendStakingDuration(lockedDate, newLockedDate, {from: user}), "cannot be mined in the same block as last stake");
+        // });
+
+        it("should fail if paused", async () => {
+            await staking.freezeUnfreeze(true);
+            await expectRevert(staking.extendStakingDuration(0, 0), "paused");
+        });
+
+        it("should fail if frozen", async () => {
+            await staking.pauseUnpause(true);
+            await expectRevert(staking.extendStakingDuration(0, 0), "paused");
+        });
+
+        it("should fail if previous lock date has no stake", async () => {
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let newLockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
+            await expectRevert(staking.extendStakingDuration(lockedDate, newLockedDate), "no stakes till the prev lock date");
+        });
+
+        it("should if adjusted until < adjusted previousLock", async () => {
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let newLockedDate = lockedDate.sub(new BN(3600));
+            lockedDate = lockedDate.sub(new BN(7200));
+            await expectRevert(staking.extendStakingDuration(lockedDate, newLockedDate), "must increase staking duration");
+        });
+
+        // it("should if adjusted until < adjusted previousLock", async () => {
+        //     let user = accounts[0];
+        //     let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+        //     let newLockedDate = lockedDate.sub(new BN(3600));
+        //     lockedDate = lockedDate.sub(new BN(7200));
+        //     let amount = new BN(1000);
+        //     await token.transfer(user, amount);
+        //     await token.approve(staking.address, amount, { from: user });
+        //
+        //     let tx = await staking.stake(amount, lockedDate, ZERO_ADDRESS, ZERO_ADDRESS, {from: user});
+        //     await expectRevert(staking.extendStakingDuration(lockedDate, newLockedDate), "no stakes till the prev lock date");
+        //
+        //
+        // });
+
+    });
+
     describe("setVestingStakes", () => {
         it("should fail if unauthorized", async () => {
             await expectRevert(staking.setVestingStakes([], [], { from: a1 }), "unauthorized"); // WS01 : unauthorized
