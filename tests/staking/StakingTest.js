@@ -402,11 +402,11 @@ contract("Staking", (accounts) => {
             let amountOld = new BN(3000);
             let totalAmount = amountOld.add(amount);
             await token.transfer(user, totalAmount);
-            await token.approve(staking.address, totalAmount, {from: user});
+            await token.approve(staking.address, totalAmount, { from: user });
 
             await staking.addContractCodeHash(user);
-            await staking.stake(amountOld, lockedDateNew, user, user, {from: user});
-            await staking.stake(amount, lockedDateOld, user, user, {from: user});
+            await staking.stake(amountOld, lockedDateNew, user, user, { from: user });
+            await staking.stake(amount, lockedDateOld, user, user, { from: user });
 
             let tx = await staking.extendStakingDuration(lockedDateOld, lockedDateNew, {
                 from: user,
@@ -436,7 +436,6 @@ contract("Staking", (accounts) => {
                 blockAfter
             );
             expect(priorVestingStakeNewAfter.sub(priorVestingStakeNewBefore)).to.be.equal(amount);
-
         });
 
         it("should extend staking duration using old delegate", async () => {
@@ -446,9 +445,9 @@ contract("Staking", (accounts) => {
             let lockedDateNew = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
             let amount = new BN(5000);
             await token.transfer(user, amount);
-            await token.approve(staking.address, amount, {from: user});
+            await token.approve(staking.address, amount, { from: user });
 
-            await staking.stake(amount, lockedDateOld, user, delegateOld, {from: user});
+            await staking.stake(amount, lockedDateOld, user, delegateOld, { from: user });
 
             let tx = await staking.extendStakingDuration(lockedDateOld, lockedDateNew, {
                 from: user,
@@ -495,10 +494,10 @@ contract("Staking", (accounts) => {
             let amountOld = new BN(5000);
             let totalAmount = amountNew.add(amountOld);
             await token.transfer(user, totalAmount);
-            await token.approve(staking.address, totalAmount, {from: user});
+            await token.approve(staking.address, totalAmount, { from: user });
 
-            await staking.stake(amountOld, lockedDateOld, user, delegateOld, {from: user});
-            await staking.stake(amountNew, lockedDateNew, user, delegateNew, {from: user});
+            await staking.stake(amountOld, lockedDateOld, user, delegateOld, { from: user });
+            await staking.stake(amountNew, lockedDateNew, user, delegateNew, { from: user });
 
             let tx = await staking.extendStakingDuration(lockedDateOld, lockedDateNew, {
                 from: user,
@@ -534,9 +533,7 @@ contract("Staking", (accounts) => {
             );
             expect(priorDelegateStakeNewBefore).to.be.equal(amountNew);
             expect(priorDelegateStakeNewAfter).to.be.equal(amountNew.add(amountOld));
-
         });
-
     });
 
     describe("setVestingStakes", () => {
