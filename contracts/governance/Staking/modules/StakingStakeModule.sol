@@ -180,7 +180,11 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * @param previousLock The old unlocking timestamp.
      * @param until The new unlocking timestamp in seconds.
      * */
-    function extendStakingDuration(uint256 previousLock, uint256 until) external whenNotPaused whenNotFrozen {
+    function extendStakingDuration(uint256 previousLock, uint256 until)
+        external
+        whenNotPaused
+        whenNotFrozen
+    {
         previousLock = _timestampToLockDate(previousLock);
         until = _timestampToLockDate(until);
 

@@ -266,14 +266,20 @@ contract("Staking", (accounts) => {
         it("should fail if previous lock date has no stake", async () => {
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
             let newLockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
-            await expectRevert(staking.extendStakingDuration(lockedDate, newLockedDate), "no stakes till the prev lock date");
+            await expectRevert(
+                staking.extendStakingDuration(lockedDate, newLockedDate),
+                "no stakes till the prev lock date"
+            );
         });
 
         it("should if adjusted until < adjusted previousLock", async () => {
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
             let newLockedDate = lockedDate.sub(new BN(3600));
             lockedDate = lockedDate.sub(new BN(7200));
-            await expectRevert(staking.extendStakingDuration(lockedDate, newLockedDate), "must increase staking duration");
+            await expectRevert(
+                staking.extendStakingDuration(lockedDate, newLockedDate),
+                "must increase staking duration"
+            );
         });
 
         // it("should if adjusted until < adjusted previousLock", async () => {
@@ -290,7 +296,6 @@ contract("Staking", (accounts) => {
         //
         //
         // });
-
     });
 
     describe("setVestingStakes", () => {
