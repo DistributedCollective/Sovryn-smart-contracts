@@ -45,6 +45,7 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
 const TWO_WEEKS = 86400 * 14;
+const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
 const ZERO_ADDRESS = ethers.constants.AddressZero;
 
@@ -361,6 +362,181 @@ contract("Staking", (accounts) => {
                 }
             );
         });
+
+        it("should extend staking to max duration", async () => {
+            let user = accounts[0];
+            let lockedDateOld = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let lockedDateNew = kickoffTS.add(MAX_DURATION.mul(new BN(3)));
+            let amount = new BN(5000);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, { from: user });
+
+            await staking.stake(amount, lockedDateOld, user, user, { from: user });
+
+            let tx = await staking.extendStakingDuration(lockedDateOld, lockedDateNew, {
+                from: user,
+            });
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "ExtendedStakingDuration",
+                {
+                    staker: user,
+                    previousDate: lockedDateOld,
+                    newDate: kickoffTS.add(MAX_DURATION),
+                    amountStaked: amount,
+                }
+            );
+        });
+
+        it("should extend staking duration for vesting contract", async () => {
+            let user = accounts[0];
+            let lockedDateOld = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let lockedDateNew = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
+            let amount = new BN(5000);
+            let amountOld = new BN(3000);
+            let totalAmount = amountOld.add(amount);
+            await token.transfer(user, totalAmount);
+            await token.approve(staking.address, totalAmount, {from: user});
+
+            await staking.addContractCodeHash(user);
+            await staking.stake(amountOld, lockedDateNew, user, user, {from: user});
+            await staking.stake(amount, lockedDateOld, user, user, {from: user});
+
+            let tx = await staking.extendStakingDuration(lockedDateOld, lockedDateNew, {
+                from: user,
+            });
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check getPriorVestingStakeByDate
+            let priorVestingStakeOldBefore = await staking.getPriorVestingStakeByDate(
+                lockedDateOld,
+                blockBefore
+            );
+            let priorVestingStakeOldAfter = await staking.getPriorVestingStakeByDate(
+                lockedDateOld,
+                blockAfter
+            );
+            expect(priorVestingStakeOldBefore.sub(priorVestingStakeOldAfter)).to.be.equal(amount);
+
+            let priorVestingStakeNewBefore = await staking.getPriorVestingStakeByDate(
+                lockedDateNew,
+                blockBefore
+            );
+            let priorVestingStakeNewAfter = await staking.getPriorVestingStakeByDate(
+                lockedDateNew,
+                blockAfter
+            );
+            expect(priorVestingStakeNewAfter.sub(priorVestingStakeNewBefore)).to.be.equal(amount);
+
+        });
+
+        it("should extend staking duration using old delegate", async () => {
+            let user = accounts[0];
+            let delegateOld = accounts[1];
+            let lockedDateOld = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let lockedDateNew = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
+            let amount = new BN(5000);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, {from: user});
+
+            await staking.stake(amount, lockedDateOld, user, delegateOld, {from: user});
+
+            let tx = await staking.extendStakingDuration(lockedDateOld, lockedDateNew, {
+                from: user,
+            });
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check getPriorStakeByDateForDelegatee
+            let priorDelegateStakeOldBefore = await staking.getPriorStakeByDateForDelegatee(
+                delegateOld,
+                lockedDateOld,
+                blockBefore
+            );
+            let priorDelegateStakeOldAfter = await staking.getPriorStakeByDateForDelegatee(
+                delegateOld,
+                lockedDateOld,
+                blockAfter
+            );
+            let priorDelegateStakeNewBefore = await staking.getPriorStakeByDateForDelegatee(
+                delegateOld,
+                lockedDateNew,
+                blockBefore
+            );
+            let priorDelegateStakeNewAfter = await staking.getPriorStakeByDateForDelegatee(
+                delegateOld,
+                lockedDateNew,
+                blockAfter
+            );
+            expect(priorDelegateStakeOldBefore).to.be.equal(amount);
+            expect(priorDelegateStakeOldAfter).to.be.equal(0);
+            expect(priorDelegateStakeNewBefore).to.be.equal(0);
+            expect(priorDelegateStakeNewAfter).to.be.equal(amount);
+        });
+
+        it("should extend staking duration using delegate for new lock", async () => {
+            let user = accounts[0];
+            let delegateOld = accounts[1];
+            let delegateNew = accounts[2];
+            let lockedDateOld = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let lockedDateNew = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
+            let amountNew = new BN(1000);
+            let amountOld = new BN(5000);
+            let totalAmount = amountNew.add(amountOld);
+            await token.transfer(user, totalAmount);
+            await token.approve(staking.address, totalAmount, {from: user});
+
+            await staking.stake(amountOld, lockedDateOld, user, delegateOld, {from: user});
+            await staking.stake(amountNew, lockedDateNew, user, delegateNew, {from: user});
+
+            let tx = await staking.extendStakingDuration(lockedDateOld, lockedDateNew, {
+                from: user,
+            });
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check getPriorStakeByDateForDelegatee
+            let priorDelegateStakeOldBefore = await staking.getPriorStakeByDateForDelegatee(
+                delegateOld,
+                lockedDateOld,
+                blockBefore
+            );
+            let priorDelegateStakeOldAfter = await staking.getPriorStakeByDateForDelegatee(
+                delegateOld,
+                lockedDateOld,
+                blockAfter
+            );
+            expect(priorDelegateStakeOldBefore).to.be.equal(amountOld);
+            expect(priorDelegateStakeOldAfter).to.be.equal(new BN(0));
+
+            let priorDelegateStakeNewBefore = await staking.getPriorStakeByDateForDelegatee(
+                delegateNew,
+                lockedDateNew,
+                blockBefore
+            );
+            let priorDelegateStakeNewAfter = await staking.getPriorStakeByDateForDelegatee(
+                delegateNew,
+                lockedDateNew,
+                blockAfter
+            );
+            expect(priorDelegateStakeNewBefore).to.be.equal(amountNew);
+            expect(priorDelegateStakeNewAfter).to.be.equal(amountNew.add(amountOld));
+
+        });
+
     });
 
     describe("setVestingStakes", () => {
