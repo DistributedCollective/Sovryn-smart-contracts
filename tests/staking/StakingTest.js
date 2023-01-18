@@ -298,7 +298,9 @@ contract("Staking", (accounts) => {
             await staking.stake(amountOld, lockedDateNew, user, user, { from: user });
             await staking.stake(amount, lockedDateOld, user, user, { from: user });
 
-            let tx = await staking.extendStakingDuration(lockedDateOld, lockedDateNew, { from: user });
+            let tx = await staking.extendStakingDuration(lockedDateOld, lockedDateNew, {
+                from: user,
+            });
             let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
             await mineBlock();
             let blockBefore = txBlockNumber.sub(new BN(1));
@@ -359,8 +361,6 @@ contract("Staking", (accounts) => {
                 }
             );
         });
-
-
     });
 
     describe("setVestingStakes", () => {
