@@ -37,6 +37,7 @@ const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const StakingAdminModule = artifacts.require("StakingAdminModule");
 const StakingVestingModule = artifacts.require("StakingVestingModule");
 const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
+const StakingStakeModule = artifacts.require("StakingStakeModule");
 
 const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
@@ -44,6 +45,8 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
 const TWO_WEEKS = 86400 * 14;
+
+const ZERO_ADDRESS = ethers.constants.AddressZero;
 
 contract("Staking", (accounts) => {
     const name = "Test token";
@@ -265,37 +268,99 @@ contract("Staking", (accounts) => {
 
         it("should fail if previous lock date has no stake", async () => {
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
-            let newLockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
+            let lockedDateNew = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
             await expectRevert(
-                staking.extendStakingDuration(lockedDate, newLockedDate),
+                staking.extendStakingDuration(lockedDate, lockedDateNew),
                 "no stakes till the prev lock date"
             );
         });
 
         it("should if adjusted until < adjusted previousLock", async () => {
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
-            let newLockedDate = lockedDate.sub(new BN(3600));
+            let lockedDateNew = lockedDate.sub(new BN(3600));
             lockedDate = lockedDate.sub(new BN(7200));
             await expectRevert(
-                staking.extendStakingDuration(lockedDate, newLockedDate),
+                staking.extendStakingDuration(lockedDate, lockedDateNew),
                 "must increase staking duration"
             );
         });
 
-        // it("should if adjusted until < adjusted previousLock", async () => {
-        //     let user = accounts[0];
-        //     let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
-        //     let newLockedDate = lockedDate.sub(new BN(3600));
-        //     lockedDate = lockedDate.sub(new BN(7200));
-        //     let amount = new BN(1000);
-        //     await token.transfer(user, amount);
-        //     await token.approve(staking.address, amount, { from: user });
-        //
-        //     let tx = await staking.stake(amount, lockedDate, ZERO_ADDRESS, ZERO_ADDRESS, {from: user});
-        //     await expectRevert(staking.extendStakingDuration(lockedDate, newLockedDate), "no stakes till the prev lock date");
-        //
-        //
-        // });
+        it("should extend staking duration", async () => {
+            let user = accounts[0];
+            let lockedDateOld = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let lockedDateNew = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
+            let amount = new BN(5000);
+            let amountOld = new BN(3000);
+            let totalAmount = amountOld.add(amount);
+            await token.transfer(user, totalAmount);
+            await token.approve(staking.address, totalAmount, { from: user });
+
+            await staking.stake(amountOld, lockedDateNew, user, user, { from: user });
+            await staking.stake(amount, lockedDateOld, user, user, { from: user });
+
+            let tx = await staking.extendStakingDuration(lockedDateOld, lockedDateNew, { from: user });
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check getPriorUserStakeByDate
+            let priorUserStakeOld = await staking.getPriorUserStakeByDate(
+                user,
+                lockedDateOld,
+                blockAfter
+            );
+            expect(priorUserStakeOld).to.be.equal(new BN(0));
+
+            let priorUserStakeNew = await staking.getPriorUserStakeByDate(
+                user,
+                lockedDateNew,
+                blockAfter
+            );
+            expect(priorUserStakeNew).to.be.equal(totalAmount);
+
+            //check delegatee
+            let userDelegateeOld = await staking.delegates(user, lockedDateOld);
+            expect(userDelegateeOld).to.be.equal(ZERO_ADDRESS);
+
+            let userDelegateeNew = await staking.delegates(user, lockedDateNew);
+            expect(userDelegateeNew).to.be.equal(user);
+
+            //check getPriorTotalStakesForDate
+            let priorTotalStakeOldBefore = await staking.getPriorTotalStakesForDate(
+                lockedDateOld,
+                blockBefore
+            );
+            let priorTotalStakeOldAfter = await staking.getPriorTotalStakesForDate(
+                lockedDateOld,
+                blockAfter
+            );
+            expect(priorTotalStakeOldBefore.sub(priorTotalStakeOldAfter)).to.be.equal(amount);
+
+            let priorTotalStakeNewBefore = await staking.getPriorTotalStakesForDate(
+                lockedDateNew,
+                blockBefore
+            );
+            let priorTotalStakeNewAfter = await staking.getPriorTotalStakesForDate(
+                lockedDateNew,
+                blockAfter
+            );
+            expect(priorTotalStakeNewAfter.sub(priorTotalStakeNewBefore)).to.be.equal(amount);
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "ExtendedStakingDuration",
+                {
+                    staker: user,
+                    previousDate: lockedDateOld,
+                    newDate: lockedDateNew,
+                    amountStaked: amount,
+                }
+            );
+        });
+
+
     });
 
     describe("setVestingStakes", () => {
