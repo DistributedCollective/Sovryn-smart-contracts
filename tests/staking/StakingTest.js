@@ -48,6 +48,7 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
 const TWO_WEEKS = 86400 * 14;
+const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
 
 const ZERO_ADDRESS = ethers.constants.AddressZero;
 
@@ -250,10 +251,7 @@ contract("Staking", (accounts) => {
     // 	});
     // });
 
-    // if until is not a valid lock date, the lock date prior to until is used
-    // if until exceeds the maximum duration, the latest valid lock date is used
-    // if delegatee != stakeFor (or 0), stakeFor must be the msg.sender, otherwise the function reverts
-    // the SOV tokens are transferred from the msg.sender to the staking contract
+
     describe("stake", () => {
         it("should fail if amount is zero", async () => {
             await expectRevert(
@@ -266,6 +264,22 @@ contract("Staking", (accounts) => {
             await expectRevert(
                 staking.stake(new BN(1000), kickoffTS.add(new BN(1)), ZERO_ADDRESS, ZERO_ADDRESS),
                 "Staking::_timestampToLockDate: staking period too short"
+            );
+        });
+
+        // if delegatee != stakeFor (or 0), stakeFor must be the msg.sender, otherwise the function reverts
+        it("should fail if second stake in the same block", async () => {
+            let user = accounts[0];
+            let delegatee1 = accounts[1];
+            let delegatee2 = accounts[2];
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let amount = new BN(1000);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, { from: user });
+
+            await expectRevert(
+                staking.stake(amount, lockedDate, delegatee1, delegatee2, { from: user }),
+                "Only stakeFor account is allowed to change delegatee"
             );
         });
 
@@ -295,6 +309,66 @@ contract("Staking", (accounts) => {
         it("should fail if frozen", async () => {
             await staking.pauseUnpause(true);
             await expectRevert(staking.stake(0, 0, ZERO_ADDRESS, ZERO_ADDRESS), "paused");
+        });
+
+        // if until is not a valid lock date, the lock date prior to until is used
+        // the SOV tokens are transferred from the msg.sender to the staking contract
+        it("should adjust lock date", async () => {
+            let user = accounts[0];
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let invalidLockDate = lockedDate.add(new BN(3600));
+            let amount = new BN(1000);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, { from: user });
+
+            let userBalanceBefore = await token.balanceOf(user);
+            let stakingBalanceBefore = await token.balanceOf(staking.address);
+            let tx = await staking.stake(amount, invalidLockDate, ZERO_ADDRESS, ZERO_ADDRESS, {
+                from: user,
+            });
+            let userBalanceAfter = await token.balanceOf(user);
+            let stakingBalanceAfter = await token.balanceOf(staking.address);
+
+            expect(userBalanceBefore.sub(userBalanceAfter)).to.be.equal(amount);
+            expect(stakingBalanceAfter.sub(stakingBalanceBefore)).to.be.equal(amount);
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensStaked",
+                {
+                    staker: user,
+                    amount: amount,
+                    lockedUntil: lockedDate,
+                    totalStaked: amount,
+                }
+            );
+        });
+
+        // if until exceeds the maximum duration, the latest valid lock date is used
+        it("should use maximum duration", async () => {
+            let user = accounts[0];
+            let lockedDate = kickoffTS.add(MAX_DURATION);
+            let invalidLockDate = lockedDate.add(new BN(86400));
+            let amount = new BN(1000);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, { from: user });
+
+            let tx = await staking.stake(amount, invalidLockDate, ZERO_ADDRESS, ZERO_ADDRESS, {
+                from: user,
+            });
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingStakeModule,
+                "TokensStaked",
+                {
+                    staker: user,
+                    amount: amount,
+                    lockedUntil: lockedDate,
+                    totalStaked: amount,
+                }
+            );
         });
 
         // if stakeFor is the 0 address, the tokens are staked for the msg.sender
