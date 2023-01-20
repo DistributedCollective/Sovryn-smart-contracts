@@ -40,6 +40,8 @@ const StakingVestingModule = artifacts.require("StakingVestingModule");
 const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const StakingStakeModule = artifacts.require("StakingStakeModule");
 
+const StakingWrapperMockup = artifacts.require("StakingWrapperMockup");
+
 const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 
@@ -56,6 +58,7 @@ contract("Staking", (accounts) => {
     let root, a1, a2, a3, chainId;
     let pA1;
     let token, staking, sovryn;
+    let stakingWrapperMockup;
     let MAX_VOTING_WEIGHT;
 
     let kickoffTS, inThreeYears;
@@ -81,6 +84,7 @@ contract("Staking", (accounts) => {
         // Creating the Staking Instance (Staking Modules Interface).
         const stakingProxy = await StakingProxy.new(token.address);
         staking = await deployAndGetIStaking(stakingProxy.address);
+        stakingWrapperMockup = await StakingWrapperMockup.new(stakingProxy.address, token.address);
 
         //Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
@@ -266,25 +270,12 @@ contract("Staking", (accounts) => {
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
             let amount = new BN(1000);
             await token.transfer(user, amount.mul(new BN(2)));
-            await token.approve(staking.address, amount.mul(new BN(2)), { from: user });
+            await token.approve(stakingWrapperMockup.address, amount.mul(new BN(2)), { from: user });
 
-            // stop mining
-            await network.provider.send("evm_setAutomine", [false]);
-
-            const promises = [
-                staking.stake(amount, lockedDate, user, user, { from: user }),
-                staking.stake(amount, lockedDate, user, user, { from: user }),
-            ];
-
-            // mine all pending txs above (which are waiting in the mempool)
-            await network.provider.send("evm_setIntervalMining", [1000]);
-            let error = "";
-            try {
-                await Promise.all(promises);
-            } catch (e) {
-                error = e;
-            }
-            expect(error).not.to.equal("");
+            await expectRevert(
+                stakingWrapperMockup.stake2times(amount, lockedDate, user, user, { from: user }),
+                "cannot be mined in the same block as last stake"
+            );
         });
 
         it("should fail if paused", async () => {
