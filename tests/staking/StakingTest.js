@@ -261,20 +261,31 @@ contract("Staking", (accounts) => {
             );
         });
 
-        // it("should fail if second stake in the same block", async () => {
-        //     let user = accounts[0];
-        //     let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
-        //     let amount = new BN(1000);
-        //     await token.transfer(user, amount.mul(new BN(2)));
-        //     await token.approve(staking.address, amount.mul(new BN(2)), {from: user});
-        //
-        //     // stop mining
-        //     await network.provider.send("evm_setAutomine", [false]);
-        //     await network.provider.send("evm_setIntervalMining", [10000]);
-        //     await staking.stake(amount, lockedDate, user, user, {from: user});
-        //
-        //     await expectRevert(staking.stake(amount, lockedDate, user, user, {from: user}), "cannot be mined in the same block as last stake");
-        // });
+        it("should fail if second stake in the same block", async () => {
+            let user = accounts[0];
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let amount = new BN(1000);
+            await token.transfer(user, amount.mul(new BN(2)));
+            await token.approve(staking.address, amount.mul(new BN(2)), {from: user});
+
+            // stop mining
+            await network.provider.send("evm_setAutomine", [false]);
+
+            const promises = [
+                staking.stake(amount, lockedDate, user, user, {from: user}),
+                staking.stake(amount, lockedDate, user, user, {from: user}),
+            ];
+
+            // mine all pending txs above (which are waiting in the mempool)
+            await network.provider.send("evm_setIntervalMining", [1000]);
+            let error = "";
+            try {
+                await Promise.all(promises);
+            } catch (e) {
+                error = e;
+            }
+            expect(error).not.to.equal("");
+        });
 
         it("should fail if paused", async () => {
             await staking.freezeUnfreeze(true);
