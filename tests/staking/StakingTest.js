@@ -2897,6 +2897,34 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("migrateToNewStakingContract", () => {
+        it("the function reverts if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.migrateToNewStakingContract()).to.be.revertedWith("paused");
+        });
+
+        it("reverts if the new staking contract has not been set yet", async () => {
+            await expect(staking.migrateToNewStakingContract()).to.be.revertedWith(
+                "there is no new staking contract set"
+            );
+        });
+
+        it("does nothing", async () => {
+            await staking.setNewStakingContract(address(1337));
+            await expect(staking.migrateToNewStakingContract()).to.be.revertedWith(
+                "not implemented"
+            );
+        });
+
+        it("the function is executable if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await staking.setNewStakingContract(address(1337));
+            await expect(staking.migrateToNewStakingContract()).to.be.revertedWith(
+                "not implemented"
+            );
+        });
+    });
+
     async function initializeStake(date, amount, user) {
         // helper to grant tokens, stake, mine a block, and return the block number of the stake
 
