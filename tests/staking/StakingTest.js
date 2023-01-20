@@ -250,6 +250,10 @@ contract("Staking", (accounts) => {
     // 	});
     // });
 
+    // if until is not a valid lock date, the lock date prior to until is used
+    // if until exceeds the maximum duration, the latest valid lock date is used
+    // if delegatee != stakeFor (or 0), stakeFor must be the msg.sender, otherwise the function reverts
+    // the SOV tokens are transferred from the msg.sender to the staking contract
     describe("stake", () => {
         it("should fail if amount is zero", async () => {
             await expectRevert(
@@ -265,6 +269,7 @@ contract("Staking", (accounts) => {
             );
         });
 
+        //the function reverts if the stake of stakeFor at until was modified on the same block
         it("should fail if second stake in the same block", async () => {
             let user = accounts[0];
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
@@ -280,16 +285,20 @@ contract("Staking", (accounts) => {
             );
         });
 
+        //the function reverts if the contract is paused or frozen
         it("should fail if paused", async () => {
             await staking.freezeUnfreeze(true);
             await expectRevert(staking.stake(0, 0, ZERO_ADDRESS, ZERO_ADDRESS), "paused");
         });
 
+        //the function reverts if the contract is paused or frozen
         it("should fail if frozen", async () => {
             await staking.pauseUnpause(true);
             await expectRevert(staking.stake(0, 0, ZERO_ADDRESS, ZERO_ADDRESS), "paused");
         });
 
+        // if stakeFor is the 0 address, the tokens are staked for the msg.sender
+        // if delegatee is the 0 address, the voting power is delegated to stakeFor
         it("should change stakeFor and delegatee if zero addresses", async () => {
             let user = accounts[0];
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
@@ -326,6 +335,10 @@ contract("Staking", (accounts) => {
             );
         });
 
+        // after function execution getPriorTotalStakesForDate returns the updated total stake for until (prior stake + amount)
+        // after function execution the correct stake is returned for stakeFor and until by getPriorUserStakeByDate (increased by amount)
+        // after function execution the correct delegated stake is returned for delegatee and until by getPriorStakeByDateForDelegatee (increased by amount)
+        // after function execution, the delegate at until may not be the 0 address
         it("should stake tokens for user without delegation", async () => {
             let user = accounts[0];
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
@@ -485,6 +498,7 @@ contract("Staking", (accounts) => {
             );
         });
 
+        // if delegatee differs from the previous delegate of stakeFor, getPriorStakeByDateForDelegatee returns the reduced stake ( by the total stake of stakeFor  at until, not just amount) for the previous delegate and until
         it("should change delegatee", async () => {
             let user = accounts[0];
             let delegatee1 = accounts[1];
@@ -564,6 +578,7 @@ contract("Staking", (accounts) => {
             expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(amount2);
         });
 
+        // if stakeFor is a vesting contract, getPriorVestingStakeByDate returns the increased vesting stake for stakeFor and until
         it("should update stake for vesting contracts", async () => {
             let user = accounts[0];
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
