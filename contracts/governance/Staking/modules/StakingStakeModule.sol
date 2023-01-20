@@ -42,7 +42,6 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         address stakeFor,
         address delegatee
     ) external whenNotPaused whenNotFrozen {
-        _notSameBlockAsStakingCheckpoint(until); // must wait a block before staking again for that same deadline
         _stake(msg.sender, amount, until, stakeFor, delegatee, false);
     }
 
@@ -128,6 +127,8 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         if (stakeFor == address(0)) {
             stakeFor = sender;
         }
+        // must wait a block before staking again for that same deadline
+        _notSameBlockAsStakingCheckpoint(until, stakeFor);
 
         /// @dev Delegate for stakeFor if not specified otherwise.
         if (delegatee == address(0)) {

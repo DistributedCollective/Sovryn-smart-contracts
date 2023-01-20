@@ -7,7 +7,6 @@ import "../../interfaces/IERC20.sol";
 import "hardhat/console.sol";
 
 contract StakingWrapperMockup {
-
     IStaking staking;
     IERC20 token;
 
@@ -28,5 +27,4 @@ contract StakingWrapperMockup {
         staking.stake(amount, until, stakeFor, delegatee);
         staking.stake(amount, until, stakeFor, delegatee);
     }
-
 }

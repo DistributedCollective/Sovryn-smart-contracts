@@ -270,7 +270,9 @@ contract("Staking", (accounts) => {
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
             let amount = new BN(1000);
             await token.transfer(user, amount.mul(new BN(2)));
-            await token.approve(stakingWrapperMockup.address, amount.mul(new BN(2)), { from: user });
+            await token.approve(stakingWrapperMockup.address, amount.mul(new BN(2)), {
+                from: user,
+            });
 
             await expectRevert(
                 stakingWrapperMockup.stake2times(amount, lockedDate, user, user, { from: user }),
