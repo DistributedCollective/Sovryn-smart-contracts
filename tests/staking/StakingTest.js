@@ -266,14 +266,14 @@ contract("Staking", (accounts) => {
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
             let amount = new BN(1000);
             await token.transfer(user, amount.mul(new BN(2)));
-            await token.approve(staking.address, amount.mul(new BN(2)), {from: user});
+            await token.approve(staking.address, amount.mul(new BN(2)), { from: user });
 
             // stop mining
             await network.provider.send("evm_setAutomine", [false]);
 
             const promises = [
-                staking.stake(amount, lockedDate, user, user, {from: user}),
-                staking.stake(amount, lockedDate, user, user, {from: user}),
+                staking.stake(amount, lockedDate, user, user, { from: user }),
+                staking.stake(amount, lockedDate, user, user, { from: user }),
             ];
 
             // mine all pending txs above (which are waiting in the mempool)
