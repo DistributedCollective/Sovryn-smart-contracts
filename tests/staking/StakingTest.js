@@ -2925,6 +2925,37 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("unlockAllTokens", () => {
+        it("the function reverts if the sender is not the owner", async () => {
+            await expect(staking.unlockAllTokens({ from: a1 })).to.be.revertedWith("unauthorized");
+        });
+
+        it("the function reverts if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(staking.unlockAllTokens()).to.be.revertedWith("paused");
+        });
+
+        it("the function is executable if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await staking.unlockAllTokens();
+        });
+
+        it("after function execution, reading allUnlocked from the contract returns true", async () => {
+            expect(await staking.allUnlocked()).to.be.false;
+            await staking.unlockAllTokens();
+            expect(await staking.allUnlocked()).to.be.true;
+        });
+
+        it("emits the right event", async () => {
+            await token.mint(staking.address, new BN("100"));
+            const balance = await token.balanceOf(staking.address);
+            expect(balance).to.be.bignumber.gt("0");
+            expect(await staking.unlockAllTokens())
+                .to.emit(staking, "TokensUnlocked")
+                .withArgs(balance);
+        });
+    });
+
     async function initializeStake(date, amount, user) {
         // helper to grant tokens, stake, mine a block, and return the block number of the stake
 
