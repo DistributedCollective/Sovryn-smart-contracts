@@ -268,7 +268,7 @@ contract("Staking", (accounts) => {
         });
 
         // if delegatee != stakeFor (or 0), stakeFor must be the msg.sender, otherwise the function reverts
-        it("should fail if second stake in the same block", async () => {
+        it("should fail if not a message sender trying to delegate votes", async () => {
             let user = accounts[0];
             let delegatee1 = accounts[1];
             let delegatee2 = accounts[2];
@@ -326,11 +326,29 @@ contract("Staking", (accounts) => {
             let tx = await staking.stake(amount, invalidLockDate, ZERO_ADDRESS, ZERO_ADDRESS, {
                 from: user,
             });
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
             let userBalanceAfter = await token.balanceOf(user);
             let stakingBalanceAfter = await token.balanceOf(staking.address);
 
             expect(userBalanceBefore.sub(userBalanceAfter)).to.be.equal(amount);
             expect(stakingBalanceAfter.sub(stakingBalanceBefore)).to.be.equal(amount);
+
+            //check getPriorUserStakeByDate
+            let priorUserStakeBefore = await staking.getPriorUserStakeByDate(
+                user,
+                lockedDate,
+                blockBefore
+            );
+            let priorUserStakeAfter = await staking.getPriorUserStakeByDate(
+                user,
+                lockedDate,
+                blockAfter
+            );
+            expect(priorUserStakeAfter.sub(priorUserStakeBefore)).to.be.equal(amount);
 
             await expectEvent.inTransaction(
                 tx.receipt.rawLogs[0].transactionHash,
@@ -346,7 +364,7 @@ contract("Staking", (accounts) => {
         });
 
         // if until exceeds the maximum duration, the latest valid lock date is used
-        it("should use maximum duration", async () => {
+        it("should use maximum duration if 'until' exceeds it", async () => {
             let user = accounts[0];
             let lockedDate = kickoffTS.add(MAX_DURATION);
             let invalidLockDate = lockedDate.add(new BN(86400));
@@ -357,6 +375,23 @@ contract("Staking", (accounts) => {
             let tx = await staking.stake(amount, invalidLockDate, ZERO_ADDRESS, ZERO_ADDRESS, {
                 from: user,
             });
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check getPriorUserStakeByDate
+            let priorUserStakeBefore = await staking.getPriorUserStakeByDate(
+                user,
+                lockedDate,
+                blockBefore
+            );
+            let priorUserStakeAfter = await staking.getPriorUserStakeByDate(
+                user,
+                lockedDate,
+                blockAfter
+            );
+            expect(priorUserStakeAfter.sub(priorUserStakeBefore)).to.be.equal(amount);
 
             await expectEvent.inTransaction(
                 tx.receipt.rawLogs[0].transactionHash,
@@ -383,6 +418,23 @@ contract("Staking", (accounts) => {
             let tx = await staking.stake(amount, lockedDate, ZERO_ADDRESS, ZERO_ADDRESS, {
                 from: user,
             });
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            //check getPriorUserStakeByDate
+            let priorUserStakeBefore = await staking.getPriorUserStakeByDate(
+                user,
+                lockedDate,
+                blockBefore
+            );
+            let priorUserStakeAfter = await staking.getPriorUserStakeByDate(
+                user,
+                lockedDate,
+                blockAfter
+            );
+            expect(priorUserStakeAfter.sub(priorUserStakeBefore)).to.be.equal(amount);
 
             await expectEvent.inTransaction(
                 tx.receipt.rawLogs[0].transactionHash,
