@@ -251,7 +251,6 @@ contract("Staking", (accounts) => {
     // 	});
     // });
 
-
     describe("stake", () => {
         it("should fail if amount is zero", async () => {
             await expectRevert(
