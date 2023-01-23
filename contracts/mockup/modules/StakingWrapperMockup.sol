@@ -30,15 +30,11 @@ contract StakingWrapperMockup {
         staking.stake(amount, until, stakeFor, delegatee);
     }
 
-    function stakeAndExtend(
-        uint96 amount,
-        uint256 until
-    ) external {
+    function stakeAndExtend(uint96 amount, uint256 until) external {
         require(token.transferFrom(msg.sender, address(this), amount));
         token.approve(address(staking), amount);
 
         staking.stake(amount, until, address(this), address(this));
         staking.extendStakingDuration(until, until + TWO_WEEKS);
     }
-
 }

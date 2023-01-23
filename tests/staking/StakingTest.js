@@ -725,7 +725,6 @@ contract("Staking", (accounts) => {
     });
 
     describe("extendStakingDuration", () => {
-
         //the function reverts if the stake of stakeFor at until was modified on the same block
         it("should fail if extending stake in the same block when staked", async () => {
             let user = accounts[0];
