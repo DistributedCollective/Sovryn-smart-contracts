@@ -37,6 +37,9 @@ const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const StakingAdminModule = artifacts.require("StakingAdminModule");
 const StakingVestingModule = artifacts.require("StakingVestingModule");
 const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
+const StakingStakeModule = artifacts.require("StakingStakeModule");
+
+const StakingWrapperMockup = artifacts.require("StakingWrapperMockup");
 
 const FeeSharingLogic = artifacts.require("FeeSharingLogic");
 const FeeSharingProxy = artifacts.require("FeeSharingProxy");
@@ -44,6 +47,9 @@ const FeeSharingProxy = artifacts.require("FeeSharingProxy");
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
 const TWO_WEEKS = 86400 * 14;
+const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
+
+const ZERO_ADDRESS = ethers.constants.AddressZero;
 
 contract("Staking", (accounts) => {
     const name = "Test token";
@@ -52,6 +58,7 @@ contract("Staking", (accounts) => {
     let root, a1, a2, a3, chainId;
     let pA1;
     let token, staking, sovryn;
+    let stakingWrapperMockup;
     let MAX_VOTING_WEIGHT;
 
     let kickoffTS, inThreeYears;
@@ -77,6 +84,7 @@ contract("Staking", (accounts) => {
         // Creating the Staking Instance (Staking Modules Interface).
         const stakingProxy = await StakingProxy.new(token.address);
         staking = await deployAndGetIStaking(stakingProxy.address);
+        stakingWrapperMockup = await StakingWrapperMockup.new(stakingProxy.address, token.address);
 
         //Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
