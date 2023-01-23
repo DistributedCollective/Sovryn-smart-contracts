@@ -315,28 +315,6 @@ contract Staking is
     }
 
     /**
-     * @notice Withdraw the given amount of tokens.
-     * @param amount The number of tokens to withdraw.
-     * @param until The date until which the tokens were staked.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting
-     * */
-    function governanceWithdraw(
-        uint96 amount,
-        uint256 until,
-        address receiver
-    ) public whenNotFrozen {
-        require(vestingWhitelist[msg.sender], "S07"); // unauthorized
-
-        _notSameBlockAsStakingCheckpoint(until);
-
-        _withdraw(amount, until, receiver, true);
-        // @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
-        //		we don't need to check block.timestamp here
-        _withdrawNext(until, receiver, true);
-    }
-
-    /**
      * @notice Governance withdraw vesting directly through staking contract.
      * This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing.
      * This function only allows cancelling vesting contract of the TeamVesting type.
