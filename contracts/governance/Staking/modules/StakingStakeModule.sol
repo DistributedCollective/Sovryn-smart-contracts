@@ -41,8 +41,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 until,
         address stakeFor,
         address delegatee
-    ) external whenNotPaused {
-        _notSameBlockAsStakingCheckpoint(until); // must wait a block before staking again for that same deadline
+    ) external whenNotPaused whenNotFrozen {
         _stake(msg.sender, amount, until, stakeFor, delegatee, false);
     }
 
@@ -128,6 +127,8 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         if (stakeFor == address(0)) {
             stakeFor = sender;
         }
+        // must wait a block before staking again for that same deadline
+        _notSameBlockAsStakingCheckpoint(until, stakeFor);
 
         /// @dev Delegate for stakeFor if not specified otherwise.
         if (delegatee == address(0)) {
@@ -154,11 +155,12 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
             // @dev only the user that stakes for himself is allowed to delegate VP to another address
             // which works with vesting stakes and prevents vulnerability of delegating VP to an arbitrary address from
             // any address
-            if (delegatee != stakeFor)
+            if (delegatee != stakeFor) {
                 require(
                     stakeFor == sender,
                     "Only stakeFor account is allowed to change delegatee"
                 );
+            }
 
             /// @dev Update delegatee.
             delegates[stakeFor][until] = delegatee;
