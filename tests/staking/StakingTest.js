@@ -724,6 +724,7 @@ contract("Staking", (accounts) => {
         });
     });
 
+
     describe("extendStakingDuration", () => {
         //the function reverts if the stake of stakeFor at until was modified on the same block
         it("should fail if extending stake in the same block when staked", async () => {
@@ -741,16 +742,19 @@ contract("Staking", (accounts) => {
             );
         });
 
+        //the function reverts if the contract is paused or frozen
         it("should fail if paused", async () => {
             await staking.freezeUnfreeze(true);
             await expectRevert(staking.extendStakingDuration(0, 0), "paused");
         });
 
+        //the function reverts if the contract is paused or frozen
         it("should fail if frozen", async () => {
             await staking.pauseUnpause(true);
             await expectRevert(staking.extendStakingDuration(0, 0), "paused");
         });
 
+        //the function reverts if the stake of msg.sender at until is 0
         it("should fail if previous lock date has no stake", async () => {
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
             let lockedDateNew = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
@@ -760,7 +764,8 @@ contract("Staking", (accounts) => {
             );
         });
 
-        it("should if adjusted until < adjusted previousLock", async () => {
+        //the function reverts if adjusted until < adjusted previousLock
+        it("should fail if adjusted until < adjusted previousLock", async () => {
             let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
             let lockedDateNew = lockedDate.sub(new BN(3600));
             lockedDate = lockedDate.sub(new BN(7200));
@@ -770,6 +775,11 @@ contract("Staking", (accounts) => {
             );
         });
 
+        //after function execution getPriorUserStakeByDate returns 0 for msg.sender and previousLock
+        //after function execution getPriorUserStakeByDate returns the increased stake for msg.sender and until
+        //      (prior stake at until + prior stake at previousLock)
+        //after function execution getPriorTotalStakesForDate returns the updated total stake for previousLock and until
+        //after function execution, the delegate at until may not be the 0 address
         it("should extend staking duration", async () => {
             let user = accounts[0];
             let lockedDateOld = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
@@ -847,10 +857,12 @@ contract("Staking", (accounts) => {
             );
         });
 
+        //if until > now + max duration, the stake is extended until the max duration (except previousLock is already max duration)
         it("should extend staking to max duration", async () => {
             let user = accounts[0];
             let lockedDateOld = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
             let lockedDateNew = kickoffTS.add(MAX_DURATION.mul(new BN(3)));
+            let lockDateMaxDuration = kickoffTS.add(MAX_DURATION);
             let amount = new BN(5000);
             await token.transfer(user, amount);
             await token.approve(staking.address, amount, { from: user });
@@ -865,6 +877,17 @@ contract("Staking", (accounts) => {
             let blockBefore = txBlockNumber.sub(new BN(1));
             let blockAfter = txBlockNumber;
 
+            //check getPriorTotalStakesForDate
+            let priorTotalStakeBefore = await staking.getPriorTotalStakesForDate(
+                lockDateMaxDuration,
+                blockBefore
+            );
+            let priorTotalStakeAfter = await staking.getPriorTotalStakesForDate(
+                lockDateMaxDuration,
+                blockAfter
+            );
+            expect(priorTotalStakeAfter.sub(priorTotalStakeBefore)).to.be.equal(amount);
+
             await expectEvent.inTransaction(
                 tx.receipt.rawLogs[0].transactionHash,
                 StakingStakeModule,
@@ -872,12 +895,13 @@ contract("Staking", (accounts) => {
                 {
                     staker: user,
                     previousDate: lockedDateOld,
-                    newDate: kickoffTS.add(MAX_DURATION),
+                    newDate: lockDateMaxDuration,
                     amountStaked: amount,
                 }
             );
         });
 
+        //if msg.sender is a vesting contract, getPriorVestingStakeByDate returns the updated vesting stake for previousLock and until
         it("should extend staking duration for vesting contract", async () => {
             let user = accounts[0];
             let lockedDateOld = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
@@ -922,6 +946,9 @@ contract("Staking", (accounts) => {
             expect(priorVestingStakeNewAfter.sub(priorVestingStakeNewBefore)).to.be.equal(amount);
         });
 
+        //if msg.sender had a delegate for previousLock and no delegate for until, the new stake is delegated to the delegate
+        //      at previousLock. therefore getPriorStakeByDateForDelegatee returns the reduced stake for that delegate and
+        //      previousLock but increased for until
         it("should extend staking duration using old delegate", async () => {
             let user = accounts[0];
             let delegateOld = accounts[1];
@@ -968,6 +995,9 @@ contract("Staking", (accounts) => {
             expect(priorDelegateStakeNewAfter).to.be.equal(amount);
         });
 
+        //if msg.sender had a delegate for previousLock and a different delegate for until,
+        //      the delegate at until remains the delegate at until. therefore getPriorStakeByDateForDelegatee
+        //      returns the reduced stake for the old delegate at previousLock and an increased stake for the existing delegate at until
         it("should extend staking duration using delegate for new lock", async () => {
             let user = accounts[0];
             let delegateOld = accounts[1];
