@@ -7,6 +7,8 @@ import "../../interfaces/IERC20.sol";
 import "hardhat/console.sol";
 
 contract StakingWrapperMockup {
+    uint256 constant TWO_WEEKS = 1209600;
+
     IStaking staking;
     IERC20 token;
 
@@ -27,4 +29,16 @@ contract StakingWrapperMockup {
         staking.stake(amount, until, stakeFor, delegatee);
         staking.stake(amount, until, stakeFor, delegatee);
     }
+
+    function stakeAndExtend(
+        uint96 amount,
+        uint256 until
+    ) external {
+        require(token.transferFrom(msg.sender, address(this), amount));
+        token.approve(address(staking), amount);
+
+        staking.stake(amount, until, address(this), address(this));
+        staking.extendStakingDuration(until, until + TWO_WEEKS);
+    }
+
 }

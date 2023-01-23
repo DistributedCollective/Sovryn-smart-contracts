@@ -725,21 +725,22 @@ contract("Staking", (accounts) => {
     });
 
     describe("extendStakingDuration", () => {
-        // it("should fail if second stake in the same block", async () => {
-        //     let user = accounts[0];
-        //     let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
-        //     let newLockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
-        //     let amount = new BN(1000);
-        //     await token.transfer(user, amount.mul(new BN(2)));
-        //     await token.approve(staking.address, amount.mul(new BN(2)), {from: user});
-        //
-        //     // stop mining
-        //     await network.provider.send("evm_setAutomine", [false]);
-        //     await network.provider.send("evm_setIntervalMining", [10000]);
-        //     await staking.stake(amount, lockedDate, user, user, {from: user});
-        //
-        //     await expectRevert(staking.extendStakingDuration(lockedDate, newLockedDate, {from: user}), "cannot be mined in the same block as last stake");
-        // });
+
+        //the function reverts if the stake of stakeFor at until was modified on the same block
+        it("should fail if extending stake in the same block when staked", async () => {
+            let user = accounts[0];
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let amount = new BN(1000);
+            await token.transfer(user, amount);
+            await token.approve(stakingWrapperMockup.address, amount, {
+                from: user,
+            });
+
+            await expectRevert(
+                stakingWrapperMockup.stakeAndExtend(amount, lockedDate, { from: user }),
+                "cannot be mined in the same block as last stake"
+            );
+        });
 
         it("should fail if paused", async () => {
             await staking.freezeUnfreeze(true);

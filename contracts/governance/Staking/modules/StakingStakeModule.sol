@@ -190,7 +190,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         previousLock = _timestampToLockDate(previousLock);
         until = _timestampToLockDate(until);
 
-        _notSameBlockAsStakingCheckpoint(previousLock);
+        _notSameBlockAsStakingCheckpoint(previousLock, msg.sender);
 
         /// @dev Do not exceed the max duration, no overflow possible.
         uint256 latest = _timestampToLockDate(block.timestamp + MAX_DURATION);
