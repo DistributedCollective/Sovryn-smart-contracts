@@ -724,7 +724,6 @@ contract("Staking", (accounts) => {
         });
     });
 
-
     describe("extendStakingDuration", () => {
         //the function reverts if the stake of stakeFor at until was modified on the same block
         it("should fail if extending stake in the same block when staked", async () => {
@@ -752,6 +751,24 @@ contract("Staking", (accounts) => {
         it("should fail if frozen", async () => {
             await staking.pauseUnpause(true);
             await expectRevert(staking.extendStakingDuration(0, 0), "paused");
+        });
+
+        it("should fail if previous lock date is 0", async () => {
+            let lockedDate = 0;
+            let lockedDateNew = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4)));
+            await expectRevert(
+                staking.extendStakingDuration(lockedDate, lockedDateNew),
+                "timestamp < contract creation"
+            );
+        });
+
+        it("should fail if until is 0", async () => {
+            let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+            let lockedDateNew = 0;
+            await expectRevert(
+                staking.extendStakingDuration(lockedDate, lockedDateNew),
+                "timestamp < contract creation"
+            );
         });
 
         //the function reverts if the stake of msg.sender at until is 0
