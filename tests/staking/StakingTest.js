@@ -8,12 +8,19 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
+const { waffle, network } = require("hardhat");
 const { loadFixture } = waffle;
 
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 
-const { address, mineBlock, setNextBlockTimestamp } = require("../Utils/Ethereum");
+const {
+    address,
+    mineBlock,
+    setNextBlockTimestamp,
+    impersonateAccount,
+    stopImpersonatingAccount,
+    setBalance,
+} = require("../Utils/Ethereum");
 const {
     deployAndGetIStaking,
     getSUSD,
@@ -32,6 +39,7 @@ const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 const Vesting = artifacts.require("Vesting");
 const VestingLogic = artifacts.require("VestingLogic");
+const StakingTester = artifacts.require("StakingTester");
 //Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
@@ -2836,6 +2844,205 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("withdraw", () => {
+        it("the function reverts if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+
+            expect(
+                staking.withdraw(new BN("100"), kickoffTS.add(TWO_WEEKS_BN), a1)
+            ).to.be.revertedWith("paused");
+        });
+
+        it("the function is executable if the contract is paused", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+
+            await staking.pauseUnpause(true);
+            await staking.withdraw(new BN("1"), date, a1, { from: a1 });
+        });
+
+        it("the function reverts if the senders stake at until was modified on the same block", async () => {
+            // Could not figure out how to mine two transactions in the same block without a custom contract...
+            const stakingTester = await StakingTester.new(staking.address, token.address);
+            await expect(
+                stakingTester.stakeAndWithdraw(new BN("100"), kickoffTS.add(TWO_WEEKS_BN))
+            ).to.be.revertedWith("cannot be mined in the same block as last stake");
+        });
+
+        it("the function reverts if amount is 0", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await expect(staking.withdraw(new BN("0"), date, a1)).to.be.revertedWith(
+                "Amount of tokens to withdraw must be > 0"
+            );
+        });
+
+        it("if until is not a valid lock date, the lock date AFTER until is used", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+
+            await expect(staking.withdraw(new BN("100"), date.add(new BN("1")), a1, { from: a1 }))
+                .to.be.reverted;
+
+            await staking.withdraw(new BN("100"), date.sub(new BN("1")), a1, { from: a1 });
+            expect(await token.balanceOf(a1)).to.be.bignumber.gt("0");
+        });
+
+        it("the function reverts if amount exceeds the sender’s staked balance at (adjusted) until", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+
+            await expect(
+                staking.withdraw(new BN("101"), date.add(new BN("1")), a1, { from: a1 })
+            ).to.be.revertedWith("Staking::withdraw: not enough balance");
+        });
+
+        it("if (adjusted) until lies in the past, the complete amount is withdrawn to receiver", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+            expect(await token.balanceOf(a1)).to.be.bignumber.equal("0");
+            await setNextBlockTimestamp(date.add(TWO_WEEKS_BN).toNumber());
+            await staking.withdraw(new BN("100"), date, a1, { from: a1 });
+            expect(await token.balanceOf(a1)).to.be.bignumber.equal("100");
+        });
+
+        it("if (adjusted) until lies in the future and the sender is not the governance and unlockAllTokens has never been called, a reduced amount is withdrawn to receiver. the amount is to be expected to be the same as returned by getWithdrawAmounts", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+            expect(await token.balanceOf(a1)).to.be.bignumber.equal("0");
+
+            const result = await staking.getWithdrawAmounts(new BN("100"), date, { from: a1 });
+            const withdrawable = result[0];
+            expect(withdrawable).to.be.bignumber.lt("100");
+
+            await staking.withdraw(new BN("100"), date, a1, { from: a1 });
+            expect(await token.balanceOf(a1)).to.be.bignumber.equal(withdrawable);
+        });
+
+        //it("if (adjusted) until lies in the future and the sender is governance, the full amount is withdrawn without slashing", async () => {
+        // NOTE: this is not implemented as withdraw() cannot be used for governance withdrawals,
+        // and the governanceWithdraw function is deprecated
+        //});
+
+        it("if (adjusted) until lies in the future and all tokens were unlocked, the full amount is withdrawn without slashing", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            const account = a1;
+            const stakeAmount = new BN("100");
+
+            await initializeStake(date, stakeAmount, account);
+            const balanceBefore = await token.balanceOf(account);
+
+            await staking.unlockAllTokens();
+            const result = await staking.getWithdrawAmounts(stakeAmount, date, { from: account });
+            const withdrawable = result[0];
+            expect(withdrawable).to.be.bignumber.lt(stakeAmount);
+
+            await staking.withdraw(stakeAmount, date, account, { from: account });
+            expect(await token.balanceOf(account)).to.be.bignumber.equal(
+                balanceBefore.add(stakeAmount)
+            );
+        });
+
+        it("if receiver is the 0 address, the (potentially reduced) amount is withdrawn to the sender", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+            expect(await token.balanceOf(a1)).to.be.bignumber.equal("0");
+            await setNextBlockTimestamp(date.add(TWO_WEEKS_BN).toNumber());
+
+            await staking.withdraw(new BN("100"), date, address(0), { from: a1 });
+            expect(await token.balanceOf(a1)).to.be.bignumber.equal("100");
+        });
+
+        it("after function execution getPriorUserStakeByDate returns 0 for the sender and until", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("100"), a1);
+
+            await staking.withdraw(new BN("100"), date, address(0), { from: a1 });
+            await mineBlock();
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            expect(
+                await staking.getPriorUserStakeByDate(a1, date, currentBlockNumber - 1)
+            ).to.be.bignumber.equal("0");
+        });
+
+        it("after function execution getPriorStakeByDateForDelegatee is reduced by amount for the sender’s delegate at until. careful: full amount even if until lies in the future!", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            const stakeBlockNumber = await initializeStake(date, new BN("100"), a1);
+            const priorStake = await staking.getPriorStakeByDateForDelegatee(
+                a1,
+                date,
+                stakeBlockNumber
+            );
+            expect(priorStake).to.be.bignumber.equal("100");
+
+            await staking.withdraw(new BN("100"), date, address(0), { from: a1 });
+            await mineBlock();
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(a1, date, currentBlockNumber - 1)
+            ).to.be.bignumber.equal("0");
+        });
+
+        it("if the sender is a vesting contract, getPriorVestingStakeByDate returns the reduced vesting stake at until  (by the full amount)", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+
+            // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
+            // totalWeightedStake is 0
+            await initializeStake(date, new BN("1"), a2);
+
+            const account = await deployAndImpersonateVestingContract();
+            const stakeBlockNumber = await initializeStake(date, new BN("100"), account);
+            const priorStake = await staking.getPriorVestingStakeByDate(date, stakeBlockNumber);
+            expect(priorStake).to.be.bignumber.equal("100");
+
+            await staking.withdraw(new BN("100"), date, address(0), { from: account });
+            const blockNumber = await web3.eth.getBlockNumber();
+            await mineBlock();
+            expect(
+                await staking.getPriorVestingStakeByDate(date, blockNumber)
+            ).to.be.bignumber.equal("0");
+            await stopImpersonatingAccount(account);
+        });
+
+        it("after function execution getPriorTotalStakesForDate returns the reduced total stake for until (by the full amount)", async () => {
+            const date = kickoffTS.add(TWO_WEEKS_BN);
+            await initializeStake(date, new BN("50"), a2); // stake from another user
+            const stakeBlockNumber = await initializeStake(date, new BN("100"), a1);
+            const priorStake = await staking.getPriorTotalStakesForDate(date, stakeBlockNumber);
+            expect(priorStake).to.be.bignumber.equal("150");
+
+            await staking.withdraw(new BN("100"), date, address(0), { from: a1 });
+            await mineBlock();
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            expect(
+                await staking.getPriorTotalStakesForDate(date, currentBlockNumber - 1)
+            ).to.be.bignumber.equal("50");
+        });
+
+        it("if the sender is a vesting contract, not only the tokens for the (adjusted) until are withdrawn, but also the tokens staked until the next lock date if the next lock date after until lies in the past", async () => {
+            const date1 = kickoffTS.add(TWO_WEEKS_BN);
+            const date2 = date1.add(TWO_WEEKS_BN);
+
+            // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
+            // totalWeightedStake is 0
+            await initializeStake(date1, new BN("1"), a2);
+
+            const account = await deployAndImpersonateVestingContract();
+            await initializeStake(date1, new BN("100"), account);
+            await initializeStake(date2, new BN("50"), account);
+
+            // travel to the future, both dates are in the paste
+            await setNextBlockTimestamp(date2.add(TWO_WEEKS_BN).toNumber());
+
+            expect(await token.balanceOf(account)).to.be.bignumber.equal("0");
+
+            // withdraw until date1, should withdraw both
+            await staking.withdraw(new BN("100"), date1, address(0), { from: account });
+
+            // expect both stakes to be withdrawn
+            expect(await token.balanceOf(account)).to.be.bignumber.equal("150");
+        });
+    });
+
     async function initializeStake(date, amount, user) {
         // helper to grant tokens, stake, mine a block, and return the block number of the stake
 
@@ -2883,6 +3090,23 @@ contract("Staking", (accounts) => {
         await mineBlock();
 
         return blockNumber;
+    }
+
+    async function deployAndImpersonateVestingContract(vestingContractOpts = {}) {
+        // create a "vesting contract" and impersonate it, allowing sending transactions directly "from" the contract
+        // the opts of the vesting contract don't really matter much if sending transactions directly from it
+        // return the address of the contract
+        vestingContractOpts = {
+            user: a1,
+            cliff: TWO_WEEKS_BN,
+            duration: TWO_WEEKS_BN,
+            ...vestingContractOpts,
+        };
+        const vestingContract = await deployVestingContract(vestingContractOpts);
+        await impersonateAccount(vestingContract.address);
+        // it needs to have some balance for us to be able to send transactions from it
+        await setBalance(vestingContract.address, new BN("10").pow(new BN("18")));
+        return vestingContract.address;
     }
 
     function getAmountWithWeightMaxDuration(amount) {

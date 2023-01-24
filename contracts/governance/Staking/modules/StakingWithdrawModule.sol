@@ -47,6 +47,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @dev If until is not a valid lock date, the next lock date after until is used.
      * */
     function withdraw(
         uint96 amount,
