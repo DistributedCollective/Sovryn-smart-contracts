@@ -57,7 +57,10 @@ contract IModulesProxyRegistry {
     /// @notice Multiple modules verification if no functions from the modules already registered
     /// @param _implementations modules implementation addresses to verify
     /// @return True if all modules can be added, false otherwise
-    function canAddModules(address[] calldata _implementations) external view returns (bool);
+    function canNotAddModules(address[] calldata _implementations)
+        external
+        view
+        returns (address[] memory modules);
 
     /// @notice used externally to verify module being added for clashing
     /// @param _newModule module implementation which functions to verify

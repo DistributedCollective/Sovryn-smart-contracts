@@ -56,8 +56,10 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
             _implementationsFrom.length == _implementationsTo.length,
             "ModulesProxyRegistry::replaceModules: arrays sizes must be equal"
         ); //MR10
-        for (uint256 i = 0; i < _implementationsFrom.length; i++)
-            _replaceModule(_implementationsFrom[i], _implementationsTo[i]);
+
+        // because the order of addresses is arbitrary, all modules are removed first to avoid collisions
+        this.removeModules(_implementationsFrom);
+        this.addModules(_implementationsTo);
     }
 
     /// @notice To disable module - set all its functions implementation to address(0)
@@ -78,20 +80,6 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         return _getFuncImplementation(_sig);
     }
 
-    /// @notice Verifies if no functions from the module deployed already registered
-    /// @param _impl Module implementation address to verify
-    /// @return True if module can be added
-    function _canAddModule(address _impl) internal view returns (bool) {
-        require(
-            _impl.isContract(),
-            "ModulesProxyRegistry::_canAddModule: address is not a contract"
-        ); //MR06
-        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
-        for (uint256 i = 0; i < functions.length; i++)
-            if (_getFuncImplementation(functions[i]) != address(0)) return (false);
-        return true;
-    }
-
     /// @notice Verifies if no functions from the module already registered
     /// @param _impl Module implementation address to verify
     /// @return True if module can be added
@@ -99,14 +87,20 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         return _canAddModule(_impl);
     }
 
-    /// @notice Multiple modules verification if no functions from the modules already registered
+    /// @notice Multiple modules verification if there are functions from the modules already registered
     /// @param _implementations modules implementation addresses to verify
-    /// @return True if all modules can be added, false otherwise
-    function canAddModules(address[] calldata _implementations) external view returns (bool) {
+    /// @return addresses of registered modules
+    function canNotAddModules(address[] memory _implementations)
+        public
+        view
+        returns (address[] memory)
+    {
         for (uint256 i = 0; i < _implementations.length; i++) {
-            if (!_canAddModule(_implementations[i])) return false;
+            if (_canAddModule(_implementations[i])) {
+                delete _implementations[i];
+            }
         }
-        return true;
+        return _implementations;
     }
 
     /// @notice Used externally to verify module being added for clashing
@@ -247,6 +241,17 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         return false;
     }
 
+    function _canAddModule(address _impl) internal view returns (bool) {
+        require(
+            _impl.isContract(),
+            "ModulesProxyRegistry::_canAddModule: address is not a contract"
+        ); //MR06
+        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();
+        for (uint256 i = 0; i < functions.length; i++)
+            if (_getFuncImplementation(functions[i]) != address(0)) return (false);
+        return true;
+    }
+
     function _getFunctionsList() internal pure returns (bytes4[] memory) {
         bytes4[] memory functionList = new bytes4[](12);
         functionList[0] = this.getFuncImplementation.selector;
@@ -257,7 +262,7 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         functionList[5] = this.replaceModule.selector;
         functionList[6] = this.replaceModules.selector;
         functionList[7] = this.canAddModule.selector;
-        functionList[8] = this.canAddModules.selector;
+        functionList[8] = this.canNotAddModules.selector;
         functionList[9] = this.setProxyOwner.selector;
         functionList[10] = this.getProxyOwner.selector;
         functionList[11] = this.checkClashingFuncSelectors.selector;

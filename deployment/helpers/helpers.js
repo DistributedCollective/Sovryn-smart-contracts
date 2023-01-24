@@ -112,21 +112,34 @@ const getParsedEventLogFromReceipt = async (receipt, iface, eventName) => {
     return parseEthersLog(parsedLog);
 };
 
-const getStakingModuleClashingContracts = async (newModuleAddress) => {
+/* return values: 
+   - registered module contract address
+   - zero address (no registered module containing the new module's func sigs found)
+*/
+const getStakingModuleContractToReplace = async (newModuleAddress) => {
     const { ethers } = hre;
     const clashing = await stakingModulesProxy.checkClashingFuncSelectors(newModuleAddress);
     if (
+        clashing.clashingProxyRegistryFuncSelectors.length !== 0 &&
+        clashing.clashingProxyRegistryFuncSelectors[0] != "0x00000000"
+    ) {
+        throw `Clashing functions signatures of ${newModuleAddress} with StakingModulesProxy functions:\n ${clashing.clashingProxyRegistryFuncSelectors}`;
+    }
+
+    if (
         clashing.clashingModules.length == 0 &&
         clashing.clashingProxyRegistryFuncSelectors.length == 0
-    )
+    ) {
         return [ethers.constants.AddressZero];
+    }
 
     if (clashing.clashingModules.length != 0) {
         const clashingUnique = clashing.clashingModules.filter(arrayToUnique);
         if (clashingUnique.length == 1) {
             const addressModuleBeingReplaced = clashingUnique[0];
             if (addressModuleBeingReplaced != moduleAddressList[i]) {
-                log(`Replacing module ${moduleNames[i]}`);
+                return addressModuleBeingReplaced;
+                /* log(`Replacing module ${moduleNames[i]}`);
                 const receipt = await (
                     await stakingModulesProxy.replaceModule(
                         addressModuleBeingReplaced,
@@ -135,21 +148,20 @@ const getStakingModuleClashingContracts = async (newModuleAddress) => {
                 ).wait();
 
                 log(`cumulativeGasUsed: ${receipt.cumulativeGasUsed.toString()}`);
-                totalGas = totalGas.add(receipt.cumulativeGasUsed);
-            } else log(`Skipping module ${moduleNames[i]} replacement - the module is reused`);
+                totalGas = totalGas.add(receipt.cumulativeGasUsed);*/
+            } else {
+                console.log(
+                    `Skipping module ${newModuleAddress} replacement - the module is reused`
+                );
+                return false;
+            }
         } else {
-            log(`can't replace multiple modules at once:`);
+            console.log(`New module ${newModuleAddress} can't replace multiple modules at once:`);
             clashing.clashingModules.forEach((item, index, arr) => {
-                log(`${item[index]} - ${arr[1][index]}`);
+                console.log(`${item[index]} - ${arr[1][index]}`);
             });
+            throw new Error("Execution interrupted");
         }
-    }
-    if (
-        clashing.clashingProxyRegistryFuncSelectors.length !== 0 &&
-        clashing.clashingProxyRegistryFuncSelectors[0] != "0x00000000"
-    ) {
-        log("Clashing functions signatures with ModulesProxy functions:");
-        log(clashing.clashingProxyRegistryFuncSelectors);
     }
 };
 
@@ -185,5 +197,6 @@ module.exports = {
     sendWithMultisig,
     signWithMultisig,
     multisigCheckTx,
+    getStakingModuleContractToReplace,
     createProposal,
 };
