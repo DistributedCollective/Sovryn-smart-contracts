@@ -147,6 +147,23 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
     /**
      * @notice Compute the voting power for a specific date.
      * Power = stake * weight
+     * @param date The staking date to compute the power for. Adjusted to the next valid lock date, if necessary.
+     * @param startDate The date for which we need to know the power of the stake.
+     * @param blockNumber The block number, needed for checkpointing.
+     * @return The stacking power.
+     * */
+    function weightedVestingStakeByDate(
+        uint256 date,
+        uint256 startDate,
+        uint256 blockNumber
+    ) external view returns (uint96 power) {
+        date = _adjustDateForOrigin(date);
+        power = _weightedVestingStakeByDate(date, startDate, blockNumber);
+    }
+
+    /**
+     * @notice Compute the voting power for a specific date.
+     * Power = stake * weight
      * @param date The staking date to compute the power for.
      * @param startDate The date for which we need to know the power of the stake.
      * @param blockNumber The block number, needed for checkpointing.
@@ -282,7 +299,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](8);
+        bytes4[] memory functionsList = new bytes4[](9);
         functionsList[0] = this.setVestingRegistry.selector;
         functionsList[1] = this.setVestingStakes.selector;
         functionsList[2] = this.getPriorUserStakeByDate.selector;
@@ -291,6 +308,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         functionsList[5] = this.addContractCodeHash.selector;
         functionsList[6] = this.removeContractCodeHash.selector;
         functionsList[7] = this.isVestingContract.selector;
+        functionsList[8] = this.weightedVestingStakeByDate.selector;
         return functionsList;
     }
 }

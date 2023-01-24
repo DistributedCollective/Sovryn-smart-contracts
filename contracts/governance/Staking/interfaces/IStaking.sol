@@ -504,6 +504,20 @@ interface IStaking {
         returns (uint96);
 
     /**
+     * @notice Compute the voting power for a specific date.
+     * Power = stake * weight
+     * @param date The staking date to compute the power for. Adjusted to the next valid lock date, if necessary.
+     * @param startDate The date for which we need to know the power of the stake.
+     * @param blockNumber The block number, needed for checkpointing.
+     * @return The stacking power.
+     * */
+    function weightedVestingStakeByDate(
+        uint256 date,
+        uint256 startDate,
+        uint256 blockNumber
+    ) external view returns (uint96 power);
+
+    /**
      * @notice Determine the prior weighted vested amount for an account as of a block number.
      * Iterate through checkpoints adding up voting power.
      * @dev Block number must be a finalized block or else this function will
