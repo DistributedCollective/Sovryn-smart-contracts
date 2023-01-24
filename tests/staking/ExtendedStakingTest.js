@@ -530,10 +530,7 @@ contract("Staking", (accounts) => {
                 .stakeWithApproval(root, amount, lockedTS, root, root)
                 .encodeABI();
 
-            await expectRevert(
-                token.approveAndCall(staking.address, amount, data),
-                "paused"
-            );
+            await expectRevert(token.approveAndCall(staking.address, amount, data), "paused");
         });
 
         it("should fail if frozen", async () => {
@@ -546,10 +543,7 @@ contract("Staking", (accounts) => {
                 .stakeWithApproval(root, amount, lockedTS, root, root)
                 .encodeABI();
 
-            await expectRevert(
-                token.approveAndCall(staking.address, amount, data),
-                "paused"
-            );
+            await expectRevert(token.approveAndCall(staking.address, amount, data), "paused");
         });
 
         it("fails if invoked directly", async () => {
