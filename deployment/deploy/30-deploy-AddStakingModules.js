@@ -25,14 +25,14 @@ const func = async function () {
     const moduleNamesObject = getStakingModulesNames();
     let moduleDeployments = [];
     const moduleNames = Object.values(moduleNamesObject);
-    let moduleAddressList = [];
+    let modulesAddressList = [];
     let totalGas = ethers.BigNumber.from(0);
 
     const stakingProxyDeployment = await get("StakingProxy");
     const stakingModulesProxyDeployment = await get("StakingModulesProxy"); //await ethers.getContract("StakingModulesProxy");
     // @dev stakingModulesProxy@stakingProxy
     const stakingModulesProxy = await ethers.getContractAt(
-        "StakingModulesProxy",
+        stakingModulesProxyDeployment.abi,
         stakingProxyDeployment.address
     );
 
@@ -42,10 +42,10 @@ const func = async function () {
         const moduleDeployment = await get(moduleName);
         //const moduleImpl = await ethers.getContractAt(moduleDeployment.abi, moduleDeployment.address);
         moduleDeployments.push({ name: moduleName, address: moduleDeployment.address });
-        //moduleAddressList.push(moduleDeployment.address);
+        modulesAddressList.push(moduleDeployment.address);
     }
 
-    const modulesAddressList = Object.values(moduleDeployments);
+    // const modulesAddressList = Object.values(moduleDeployments);
 
     // use the list to exclude some staking modules from registering
     const dontAddModules = {
@@ -64,10 +64,10 @@ const func = async function () {
             ? modulesAddressList.filter((k) => {
                   dontAddModules.indexOf(k) == -1;
               })
-            : (modulesToAdd = Object.assign({}, modulesAddressList));
+            : modulesAddressList;
 
     const canNotAddModules = (
-        await stakingModulesProxy.canNotAddModules(moduleAddressList)
+        await stakingModulesProxy.canNotAddModules(modulesAddressList)
     ).filter((item, i, ar) => {
         item !== ethers.constants.AddressZero;
     });
@@ -83,11 +83,9 @@ const func = async function () {
         // @todo wrap into a helper multisig tx creation
         const multisigDeployment = await get("MultiSigWallet");
         let data = stakingModulesProxyInterface.encodeFunctionData("addModules", [modulesToAdd]);
-        console.log("Generating multisig transaction to register modules...");
+        log("Generating multisig transaction to register modules...");
         await sendWithMultisig(multisigDeployment.address, tx.address, data, deployer);
-        console.log(
-            "Done. Required to execute the generated multisig txs to complete registration."
-        );
+        log("Done. Required to execute the generated multisig txs to complete registration.");
     } else if (hre.network.tags["mainnet"]) {
         //owned by governance - need a SIP to register
         // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
@@ -100,6 +98,8 @@ const func = async function () {
         );
     } else {
         // hh ganache
+        log("Adding modules...");
+        log(modulesToAdd);
         await stakingModulesProxy.addModules(modulesToAdd);
     }
 
@@ -112,8 +112,8 @@ const func = async function () {
     //         if cannot, then log clashing
     //
     /*
-        for (let i = 0; i < moduleAddressList.length; i++) {
-            if (await stakingModulesProxy.canAddModule(moduleAddressList[i])) {
+        for (let i = 0; i < modulesAddressList.length; i++) {
+            if (await stakingModulesProxy.canAddModule(modulesAddressList[i])) {
                 moduleDepl;
                 const moduleImpl = await ethers.getContractAt();
             }
@@ -121,7 +121,7 @@ const func = async function () {
     
         if (stakingRegisterModuleWithMultisig() && hre.network.live) {
             const iStakingModulesProxy = new ethers.utils.Interface(stakingModulesProxyDeployment.abi);
-            const data = iStakingModulesProxy.encodeFunctionData("addModules", [moduleAddressList]);
+            const data = iStakingModulesProxy.encodeFunctionData("addModules", [modulesAddressList]);
             const multisigDeployment = await get("multisig");
             const { deployer } = await getNamedAccounts("deployer");
             await sendWithMultisig(
@@ -131,17 +131,17 @@ const func = async function () {
                 deployer
             );
         } else {
-            for (let i = 0; i < moduleAddressList.length; i++) {
-                if (await stakingModulesProxy.canAddModule(moduleAddressList[i])) {
+            for (let i = 0; i < modulesAddressList.length; i++) {
+                if (await stakingModulesProxy.canAddModule(modulesAddressList[i])) {
                     log(`Adding module ${moduleNames[i]}`);
                     const receipt = await (
-                        await stakingModulesProxy.addModule(moduleAddressList[i])
+                        await stakingModulesProxy.addModule(modulesAddressList[i])
                     ).wait();
                     log(`cumulativeGasUsed: ${receipt.cumulativeGasUsed.toString()}`);
                     totalGas = totalGas.add(receipt.cumulativeGasUsed);
                 } else {
                     const clashing = await stakingModulesProxy.checkClashingFuncSelectors(
-                        moduleAddressList[i]
+                        modulesAddressList[i]
                     );
                     if (
                         clashing.clashingModules.length == 0 &&
@@ -157,12 +157,12 @@ const func = async function () {
                         const clashingUnique = clashing.clashingModules.filter(arrayToUnique);
                         if (clashingUnique.length == 1) {
                             const addressModuleBeingReplaced = clashingUnique[0];
-                            if (addressModuleBeingReplaced != moduleAddressList[i]) {
+                            if (addressModuleBeingReplaced != modulesAddressList[i]) {
                                 log(`Replacing module ${moduleNames[i]}`);
                                 const receipt = await (
                                     await stakingModulesProxy.replaceModule(
                                         addressModuleBeingReplaced,
-                                        moduleAddressList[i]
+                                        modulesAddressList[i]
                                     )
                                 ).wait();
     

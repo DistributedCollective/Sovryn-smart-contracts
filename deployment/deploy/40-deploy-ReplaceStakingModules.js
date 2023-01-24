@@ -35,9 +35,21 @@ const func = async function () {
        */
     ];
 
+    if (
+        !(
+            modulesToReplaceAddressList.length != 0 &&
+            modulesToReplaceAddressList.length == Object.keys(newModulesObject).length
+        )
+    ) {
+        console.error(
+            "WARNING! No modules replacement! newModulesObject and modulesToReplaceAddressList arrays must be set and their size equal"
+        );
+        return;
+    }
+
     // PROCESS MODULES REPLACEMENT //
     const {
-        deployments: { deploy, get, log },
+        deployments: { get, log },
         getNamedAccounts,
         ethers,
     } = hre;
@@ -48,20 +60,11 @@ const func = async function () {
     const stakingModulesProxyDeployment = await get("StakingModulesProxy"); //await ethers.getContract("StakingModulesProxy");
     // @dev stakingModulesProxy@stakingProxy
     const stakingModulesProxy = await ethers.getContractAt(
-        "StakingModulesProxy",
+        stakingModulesProxyDeployment.abi,
         stakingProxyDeployment.address
     );
 
     const { deployer } = await getNamedAccounts();
-
-    if (
-        newModulesObject.length != 0 &&
-        modulesToReplaceAddressList.length == newModulesObject.length
-    ) {
-        throw new Error(
-            "newModulesObject and modulesToReplaceAddressList arrays must be set and their size equal"
-        );
-    }
 
     // get new modules addresses
     let newModulesDeployment = [];
@@ -76,7 +79,7 @@ const func = async function () {
         const module = await getStakingModuleContractToReplace(el);
         if (module == ethers.constants.AddressZero) {
             throw new Error(
-                `Module ${module} is not replacing as has no existing func sigs - must be added`
+                `Module ${module} is not replacing any registered module (no func sigs found in registered modules) - must be added instead`
             );
         }
         return module;
@@ -87,8 +90,8 @@ const func = async function () {
         JSON.stringify(computedModulesToBeReplaced.sort()).toLowerCase() !=
         JSON.stringify(modulesToReplaceAddressList.sort()).toLowerCase()
     ) {
-        console.log(`addresses computed: \n${computedModulesToBeReplaced.sort()}`);
-        console.log(`addresses provided: \n${modulesToReplaceAddressList.sort()}`);
+        log(`addresses computed: \n${computedModulesToBeReplaced.sort()}`);
+        log(`addresses provided: \n${modulesToReplaceAddressList.sort()}`);
         throw new Error("Addresses of modules to replace are invalid");
     }
 
@@ -102,11 +105,9 @@ const func = async function () {
             computedModulesToBeReplaced,
             newModulesAddressList,
         ]);
-        console.log("Generating multisig transaction to replace modules...");
+        log("Generating multisig transaction to replace modules...");
         await sendWithMultisig(multisigDeployment.address, tx.address, data, deployer);
-        console.log(
-            "Done. Required to execute the generated multisig txs to complete registration."
-        );
+        log("Done. Required to execute the generated multisig txs to complete registration.");
     } else if (hre.network.tags["mainnet"]) {
         //owned by governance - need a SIP to register
         // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
@@ -122,6 +123,6 @@ const func = async function () {
         );
     }
 };
-func.tags = ["RegisterStakingModules"]; // getContractNameFromScriptFileName(path.basename(__filename))
+func.tags = ["ReplaceStakingModules"]; // getContractNameFromScriptFileName(path.basename(__filename))
 func.dependencies = ["StakingModulesProxy", "StakingModules"];
 module.exports = func;

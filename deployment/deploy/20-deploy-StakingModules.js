@@ -30,8 +30,8 @@ const func = async function (hre) {
         (k) => !dontDeployModules.hasOwnProperty(k)
     );
 
-    for (let moduleName in stakinModuleNames) {
-        const tx = await deploy(moduleName, {
+    for (let i = 0; i < stakinModuleNames.length; i++) {
+        const tx = await deploy(stakinModuleNames[i], {
             from: deployer,
             args: [],
             log: true,
