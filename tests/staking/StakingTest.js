@@ -3540,28 +3540,78 @@ contract("Staking", (accounts) => {
             ).to.be.bignumber.equal("50");
         });
 
-        it("if the sender is a vesting contract, not only the tokens for the (adjusted) until are withdrawn, but also the tokens staked until the next lock date if the next lock date after until lies in the past", async () => {
-            const date1 = kickoffTS.add(TWO_WEEKS_BN);
-            const date2 = date1.add(TWO_WEEKS_BN);
+        describe("vesting contract multiple withdrawal cases", () => {
+            let date1;
+            let date2;
+            let account;
 
-            // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
-            // totalWeightedStake is 0
-            await initializeStake(date1, new BN("1"), a2);
+            beforeEach(async () => {
+                date1 = kickoffTS.add(TWO_WEEKS_BN);
+                date2 = date1.add(TWO_WEEKS_BN);
 
-            const account = await deployAndImpersonateVestingContract();
-            await initializeStake(date1, new BN("100"), account);
-            await initializeStake(date2, new BN("50"), account);
+                // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
+                // totalWeightedStake is 0
+                await initializeStake(date1, new BN("1"), a2);
 
-            // travel to the future, both dates are in the paste
-            await setNextBlockTimestamp(date2.add(TWO_WEEKS_BN).toNumber());
+                account = await deployAndImpersonateVestingContract();
+                await initializeStake(date1, new BN("1000"), account);
+                await initializeStake(date2, new BN("500"), account);
+            });
 
-            expect(await token.balanceOf(account)).to.be.bignumber.equal("0");
+            it("if the sender is a vesting contract, not only the tokens for the until are withdrawn, but also the tokens staked until the next lock date if the next lock date after until lies in the past", async () => {
+                // travel to the future, both dates are in the past
+                await setNextBlockTimestamp(date2.add(TWO_WEEKS_BN).toNumber());
 
-            // withdraw until date1, should withdraw both
-            await staking.withdraw(new BN("100"), date1, address(0), { from: account });
+                expect(await token.balanceOf(account)).to.be.bignumber.equal("0");
 
-            // expect both stakes to be withdrawn
-            expect(await token.balanceOf(account)).to.be.bignumber.equal("150");
+                // withdraw until date1, should withdraw both
+                await staking.withdraw(new BN("1000"), date1, address(0), { from: account });
+
+                // expect both stakes to be withdrawn
+                expect(await token.balanceOf(account)).to.be.bignumber.equal("1500");
+            });
+
+            it("if the sender is a vesting contract, not only the tokens for the ADJUSTED until are withdrawn, but also the tokens staked until the next lock date if the next lock date after until lies in the past", async () => {
+                // travel to the future, both dates are in the past
+                await setNextBlockTimestamp(date2.add(new BN("1")).toNumber());
+
+                expect(await token.balanceOf(account)).to.be.bignumber.equal("0");
+
+                // withdraw until an invalid lock date that should adjust to `date` and then withdraw both
+                const messedUpDate = date1.sub(TWO_WEEKS_BN).add(new BN("1"));
+                await staking.withdraw(new BN("1000"), messedUpDate, address(0), {
+                    from: account,
+                });
+
+                // expect both stakes to be withdrawn
+                expect(await token.balanceOf(account)).to.be.bignumber.equal("1500");
+            });
+
+            it("if the sender is a vesting contract, only the tokens for the ADJUSTED until are withdrawn, not staked until the next lock date, if the next lock date after until is in the FUTURE", async () => {
+                // travel to the future, only the first date lies in the past
+                await setNextBlockTimestamp(date1.add(ONE_DAY_BN.mul(new BN("10"))).toNumber());
+
+                expect(await token.balanceOf(account)).to.be.bignumber.equal("0");
+
+                // withdraw until date1 minus seven days
+                // this should adjust to date1, and then should not withdraw the next one because it's still in the future
+                const messedUpDate = date1.sub(ONE_DAY_BN.mul(new BN("7")));
+                await staking.withdraw(new BN("1000"), messedUpDate, address(0), {
+                    from: account,
+                });
+
+                const checkedBlockNumber = await web3.eth.getBlockNumber();
+                await mineBlock(); // must finalize it
+
+                // expect only the first stake to be withdrawn (it would otherwise result in slashing)
+                expect(await token.balanceOf(account)).to.be.bignumber.equal("1000");
+                expect(
+                    await staking.getPriorUserStakeByDate(account, date1, checkedBlockNumber)
+                ).to.be.bignumber.equal("0");
+                expect(
+                    await staking.getPriorUserStakeByDate(account, date2, checkedBlockNumber)
+                ).to.be.bignumber.equal("500");
+            });
         });
     });
 

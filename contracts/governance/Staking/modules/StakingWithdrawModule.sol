@@ -273,7 +273,10 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         bool isGovernance
     ) internal {
         if (_isVestingContract(msg.sender)) {
-            uint256 nextLock = until.add(TWO_WEEKS);
+            // adjust nextLock to the next valid lock date to make sure we don't accidentally
+            // withdraw stakes that are in the future and would get slashed (if until is not
+            // a valid lock date)
+            uint256 nextLock = _adjustDateForOrigin(until.add(TWO_WEEKS));
             if (isGovernance || block.timestamp >= nextLock) {
                 uint96 stakes = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
                 if (stakes > 0) {
