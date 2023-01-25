@@ -43,5 +43,4 @@ contract StakingWrapperMockup {
         staking.stake(amount, until, stakeFor, delegatee);
         staking.stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
     }
-
 }

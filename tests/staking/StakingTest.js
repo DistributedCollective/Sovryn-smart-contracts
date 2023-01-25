@@ -831,7 +831,16 @@ contract("Staking", (accounts) => {
             });
 
             await expectRevert(
-                stakingWrapperMockup.stakeAndStakeBySchedule(amount, lockedDate, cliff, duration, intervalLength, user, user, {from: user}),
+                stakingWrapperMockup.stakeAndStakeBySchedule(
+                    amount,
+                    lockedDate,
+                    cliff,
+                    duration,
+                    intervalLength,
+                    user,
+                    user,
+                    { from: user }
+                ),
                 "cannot be mined in the same block as last stake"
             );
         });
@@ -850,7 +859,16 @@ contract("Staking", (accounts) => {
             });
 
             await expectRevert(
-                stakingWrapperMockup.stakeAndStakeBySchedule(amount, lockedDate, cliff, duration, intervalLength, user, user, {from: user}),
+                stakingWrapperMockup.stakeAndStakeBySchedule(
+                    amount,
+                    lockedDate,
+                    cliff,
+                    duration,
+                    intervalLength,
+                    user,
+                    user,
+                    { from: user }
+                ),
                 "cannot be mined in the same block as last stake"
             );
         });
@@ -858,15 +876,20 @@ contract("Staking", (accounts) => {
         //the function reverts if the contract is paused or frozen
         it("should fail if paused", async () => {
             await staking.freezeUnfreeze(true);
-            await expectRevert(staking.stakeBySchedule(0, 0, 0, 0, ZERO_ADDRESS, ZERO_ADDRESS), "paused");
+            await expectRevert(
+                staking.stakeBySchedule(0, 0, 0, 0, ZERO_ADDRESS, ZERO_ADDRESS),
+                "paused"
+            );
         });
 
         //the function reverts if the contract is paused or frozen
         it("should fail if frozen", async () => {
             await staking.pauseUnpause(true);
-            await expectRevert(staking.stakeBySchedule(0, 0, 0, 0, ZERO_ADDRESS, ZERO_ADDRESS), "paused");
+            await expectRevert(
+                staking.stakeBySchedule(0, 0, 0, 0, ZERO_ADDRESS, ZERO_ADDRESS),
+                "paused"
+            );
         });
-
     });
 
     describe("balanceOf", () => {
