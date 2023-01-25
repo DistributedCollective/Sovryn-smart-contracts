@@ -786,6 +786,89 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("stakeBySchedule", () => {
+        // it("should fail if amount is zero", async () => {
+        //     await expectRevert(
+        //         staking.stake(0, 0, ZERO_ADDRESS, ZERO_ADDRESS),
+        //         "amount needs to be bigger than 0"
+        //     );
+        // });
+        //
+        // it("should fail if until < block.timestamp", async () => {
+        //     await expectRevert(
+        //         staking.stake(new BN(1000), kickoffTS.add(new BN(1)), ZERO_ADDRESS, ZERO_ADDRESS),
+        //         "Staking::_timestampToLockDate: staking period too short"
+        //     );
+        // });
+        //
+        // // if delegatee != stakeFor (or 0), stakeFor must be the msg.sender, otherwise the function reverts
+        // it("should fail if not a message sender trying to delegate votes", async () => {
+        //     let user = accounts[0];
+        //     let delegatee1 = accounts[1];
+        //     let delegatee2 = accounts[2];
+        //     let lockedDate = kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2)));
+        //     let amount = new BN(1000);
+        //     await token.transfer(user, amount);
+        //     await token.approve(staking.address, amount, {from: user});
+        //
+        //     await expectRevert(
+        //         staking.stake(amount, lockedDate, delegatee1, delegatee2, {from: user}),
+        //         "Only stakeFor account is allowed to change delegatee"
+        //     );
+        // });
+
+        // the function reverts if stakeFor previously staked for the first staking date in the same block
+        it("should fail if second stake in the same block (the first staking date)", async () => {
+            let user = accounts[0];
+            let cliff = new BN(TWO_WEEKS).mul(new BN(2));
+            let duration = new BN(TWO_WEEKS).mul(new BN(4));
+            let intervalLength = new BN(TWO_WEEKS).mul(new BN(2));
+            let lockedDate = kickoffTS.add(cliff); //the first staking date
+            let amount = new BN(1000);
+            await token.transfer(user, amount.mul(new BN(2)));
+            await token.approve(stakingWrapperMockup.address, amount.mul(new BN(2)), {
+                from: user,
+            });
+
+            await expectRevert(
+                stakingWrapperMockup.stakeAndStakeBySchedule(amount, lockedDate, cliff, duration, intervalLength, user, user, {from: user}),
+                "cannot be mined in the same block as last stake"
+            );
+        });
+
+        //the function reverts if stakeFor previously staked for any other staking date in the same block
+        it("should fail if second stake in the same block (other staking date)", async () => {
+            let user = accounts[0];
+            let cliff = new BN(TWO_WEEKS).mul(new BN(2));
+            let duration = new BN(TWO_WEEKS).mul(new BN(20));
+            let intervalLength = new BN(TWO_WEEKS).mul(new BN(2));
+            let lockedDate = kickoffTS.add(cliff.add(intervalLength.mul(new BN(3)))); //other staking date
+            let amount = new BN(1000);
+            await token.transfer(user, amount.mul(new BN(2)));
+            await token.approve(stakingWrapperMockup.address, amount.mul(new BN(2)), {
+                from: user,
+            });
+
+            await expectRevert(
+                stakingWrapperMockup.stakeAndStakeBySchedule(amount, lockedDate, cliff, duration, intervalLength, user, user, {from: user}),
+                "cannot be mined in the same block as last stake"
+            );
+        });
+
+        //the function reverts if the contract is paused or frozen
+        it("should fail if paused", async () => {
+            await staking.freezeUnfreeze(true);
+            await expectRevert(staking.stakeBySchedule(0, 0, 0, 0, ZERO_ADDRESS, ZERO_ADDRESS), "paused");
+        });
+
+        //the function reverts if the contract is paused or frozen
+        it("should fail if frozen", async () => {
+            await staking.pauseUnpause(true);
+            await expectRevert(staking.stakeBySchedule(0, 0, 0, 0, ZERO_ADDRESS, ZERO_ADDRESS), "paused");
+        });
+
+    });
+
     describe("balanceOf", () => {
         it("grants to initial account", async () => {
             expect((await token.balanceOf.call(root)).toString()).to.be.equal(TOTAL_SUPPLY);
