@@ -172,7 +172,6 @@ contract("GovernorAlpha#propose/5", (accounts) => {
                     await staking.stake(QUORUM_VOTES, stakingDate, accounts[4], accounts[4], {
                         from: accounts[4],
                     });
-                    await staking.delegate(accounts[4], stakingDate, { from: accounts[4] });
 
                     await gov.propose(targets, values, signatures, callDatas, "do nothing", {
                         from: accounts[4],
@@ -205,7 +204,6 @@ contract("GovernorAlpha#propose/5", (accounts) => {
             await staking.stake(QUORUM_VOTES, stakingDate, accounts[2], accounts[2], {
                 from: accounts[2],
             });
-            await staking.delegate(accounts[2], stakingDate, { from: accounts[2] });
 
             await mineBlock();
             let nextProposalId = await gov.propose.call(
@@ -229,7 +227,6 @@ contract("GovernorAlpha#propose/5", (accounts) => {
             await staking.stake(QUORUM_VOTES, stakingDate, accounts[3], accounts[3], {
                 from: accounts[3],
             });
-            await staking.delegate(accounts[3], stakingDate, { from: accounts[3] });
             await mineBlock();
 
             // await updateTime(comp);
