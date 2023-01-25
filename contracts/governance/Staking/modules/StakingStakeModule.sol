@@ -313,7 +313,10 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         require(intervalLength % TWO_WEEKS == 0, "Invalid interval length");
         require(duration <= MAX_DURATION, "Invalid duration");
         if (delegatee != stakeFor && delegatee != address(0)) {
-            require(stakeFor == msg.sender, "Only stakeFor account is allowed to change delegatee");
+            require(
+                stakeFor == msg.sender,
+                "Only stakeFor account is allowed to change delegatee"
+            );
         }
         /**
          * @dev Stake them until lock dates according to the vesting schedule.
