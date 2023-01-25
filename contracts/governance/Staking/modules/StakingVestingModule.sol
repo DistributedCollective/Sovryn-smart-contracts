@@ -188,7 +188,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * certain lock date as of a block number.
      * @dev Block number must be a finalized block or else this function
      * will revert to prevent misinformation.
-     * @param date The lock date.
+     * @param date The lock date. Adjusted to the next valid lock date, if necessary.
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
@@ -197,6 +197,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         view
         returns (uint96)
     {
+        date = _adjustDateForOrigin(date);
         return _getPriorVestingStakeByDate(date, blockNumber);
     }
 

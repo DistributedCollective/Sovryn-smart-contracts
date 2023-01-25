@@ -2285,6 +2285,174 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("getPriorVestingStakeByDate", () => {
+        it("if date received multiple stakes at different block numbers from different vesting addresses and non-vesting addresses, the function returns the correct total stake of all vesting addresses at blockNumber", async () => {
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN);
+
+            // these contracts will stake to `stakeDate`
+            const vesting1 = await deployVestingContract({
+                cliff: TWO_WEEKS_BN,
+                duration: TWO_WEEKS_BN,
+                user: a1,
+            });
+            const vesting2 = await deployVestingContract({
+                cliff: TWO_WEEKS_BN,
+                duration: TWO_WEEKS_BN,
+                user: a2,
+            });
+
+            // initialize a non-vesting stake for stakeDate
+            const nonVestingStakeBlockNumber = await initializeStake(stakeDate, "1000", a1);
+
+            // it should not be visible
+            expect(
+                await staking.getPriorVestingStakeByDate(stakeDate, nonVestingStakeBlockNumber)
+            ).to.be.bignumber.eq("0");
+
+            // initialize a vesting stake for stakeDate
+            const amount1 = new BN("100");
+            const stakeBlockNumber1 = await initializeStakeFromVestingContract(
+                vesting1,
+                amount1,
+                a1
+            );
+
+            // it should be visible
+            expect(
+                await staking.getPriorVestingStakeByDate(stakeDate, stakeBlockNumber1)
+            ).to.be.bignumber.eq(amount1);
+
+            // it should not be visible querying from an earlier block number
+            expect(
+                await staking.getPriorVestingStakeByDate(stakeDate, stakeBlockNumber1 - 1)
+            ).to.be.bignumber.eq("0");
+
+            // initialize another stake to the same date
+            const amount2 = new BN("200");
+            const stakeBlockNumber2 = await initializeStakeFromVestingContract(
+                vesting2,
+                amount2,
+                a2
+            );
+
+            // both should be visible when querying from the latest block number
+            expect(
+                await staking.getPriorVestingStakeByDate(stakeDate, stakeBlockNumber2)
+            ).to.be.bignumber.eq(amount1.add(amount2));
+
+            // only the first should be visible querying from the earlier block number
+            expect(
+                await staking.getPriorVestingStakeByDate(stakeDate, stakeBlockNumber1)
+            ).to.be.bignumber.eq(amount1);
+        });
+
+        it("if there is at least one vesting stake on a different date, it is not counted towards the total vesting stake of date", async () => {
+            const stakeDate1 = kickoffTS.add(TWO_WEEKS_BN);
+            const vesting1 = await deployVestingContract({
+                cliff: TWO_WEEKS_BN,
+                duration: TWO_WEEKS_BN,
+                user: a1,
+            });
+
+            const stakeDate2 = kickoffTS.add(TWO_WEEKS_BN.mul(new BN(2)));
+            const vesting2 = await deployVestingContract({
+                cliff: TWO_WEEKS_BN.mul(new BN(2)),
+                duration: TWO_WEEKS_BN.mul(new BN(2)),
+                user: a2,
+            });
+
+            const amount1 = new BN("100");
+            const amount2 = new BN("200");
+            await initializeStakeFromVestingContract(vesting1, amount1, a1);
+            const checkedBlockNumber = await initializeStakeFromVestingContract(
+                vesting2,
+                amount2,
+                a2
+            );
+
+            expect(
+                await staking.getPriorVestingStakeByDate(stakeDate1, checkedBlockNumber)
+            ).to.be.bignumber.eq(amount1);
+            expect(
+                await staking.getPriorVestingStakeByDate(stakeDate2, checkedBlockNumber)
+            ).to.be.bignumber.eq(amount2);
+        });
+
+        it("if date is not a valid lock date, the function will return the total stake at the closest lock date AFTER date", async () => {
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN);
+            const vesting = await deployVestingContract({
+                cliff: TWO_WEEKS_BN,
+                duration: TWO_WEEKS_BN,
+                user: a1,
+            });
+            const amount = new BN("100");
+            const checkedBlockNumber = await initializeStakeFromVestingContract(
+                vesting,
+                amount,
+                a1
+            );
+
+            // sanity check
+            expect(
+                await staking.getPriorVestingStakeByDate(stakeDate, checkedBlockNumber)
+            ).to.be.bignumber.eq(amount);
+
+            // these adjust to the same date
+            expect(
+                await staking.getPriorVestingStakeByDate(
+                    stakeDate.sub(new BN(1)),
+                    checkedBlockNumber
+                )
+            ).to.be.bignumber.eq(amount);
+            expect(
+                await staking.getPriorVestingStakeByDate(
+                    stakeDate.sub(TWO_WEEKS_BN).add(new BN(1)),
+                    checkedBlockNumber
+                )
+            ).to.be.bignumber.eq(amount);
+
+            // these adjust to different lock dates
+            expect(
+                await staking.getPriorVestingStakeByDate(
+                    stakeDate.add(new BN(1)),
+                    checkedBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+            expect(
+                await staking.getPriorVestingStakeByDate(
+                    stakeDate.sub(TWO_WEEKS_BN),
+                    checkedBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+        });
+
+        it("if there are no vesting stakes at date, the function returns 0", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            const checkedDate = kickoffTS.add(TWO_WEEKS_BN);
+            expect(
+                await staking.getPriorVestingStakeByDate(checkedDate, currentBlockNumber - 1)
+            ).to.be.bignumber.eq("0");
+
+            // initialize a vesting stake to a different date
+            // this will initialize the stake to kickoffTS + 4 weeks (different lock date)
+            const vesting = await deployVestingContract({
+                cliff: TWO_WEEKS_BN.mul(new BN(2)),
+                duration: TWO_WEEKS_BN.mul(new BN(2)),
+                user: a1,
+            });
+            const newBlockNumber = await initializeStakeFromVestingContract(
+                vesting,
+                new BN("100"),
+                a1
+            );
+
+            // it should not be visible when checking a different date
+            expect(
+                await staking.getPriorVestingStakeByDate(checkedDate, newBlockNumber)
+            ).to.be.bignumber.eq("0");
+        });
+    });
+
     describe("weightedVestingStakeByDate", () => {
         it("returns the stake of all vesting contracts at date multiplied with the weight derived from the difference between date and startDate at blockNumber", async () => {
             // deploy vesting contracts
