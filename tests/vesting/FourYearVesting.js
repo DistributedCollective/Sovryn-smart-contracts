@@ -817,13 +817,6 @@ contract("FourYearVesting", (accounts) => {
                 "unauthorized"
             );
         });
-
-        it("shouldn't be possible to use governanceWithdraw by user", async () => {
-            await expectRevert(
-                staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root),
-                "unauthorized"
-            );
-        });
     });
 
     describe("collectDividends", async () => {

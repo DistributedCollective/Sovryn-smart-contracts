@@ -62,7 +62,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 until,
         address stakeFor,
         address delegatee
-    ) external onlyThisContract whenNotPaused {
+    ) external onlyThisContract whenNotPaused whenNotFrozen {
         _stake(sender, amount, until, stakeFor, delegatee, false);
     }
 
@@ -182,10 +182,15 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * @param previousLock The old unlocking timestamp.
      * @param until The new unlocking timestamp in seconds.
      * */
-    function extendStakingDuration(uint256 previousLock, uint256 until) external whenNotPaused {
+    function extendStakingDuration(uint256 previousLock, uint256 until)
+        external
+        whenNotPaused
+        whenNotFrozen
+    {
+        previousLock = _timestampToLockDate(previousLock);
         until = _timestampToLockDate(until);
 
-        _notSameBlockAsStakingCheckpoint(previousLock);
+        _notSameBlockAsStakingCheckpoint(previousLock, msg.sender);
 
         /// @dev Do not exceed the max duration, no overflow possible.
         uint256 latest = _timestampToLockDate(block.timestamp + MAX_DURATION);
