@@ -268,7 +268,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 intervalLength,
         address stakeFor,
         address delegatee
-    ) external whenNotPaused {
+    ) external whenNotPaused whenNotFrozen {
         _stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
     }
 
@@ -288,7 +288,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 intervalLength,
         address stakeFor,
         address delegatee
-    ) external whenNotPaused {
+    ) external whenNotPaused whenNotFrozen {
         _stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
     }
 
