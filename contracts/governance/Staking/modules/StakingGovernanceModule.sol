@@ -120,8 +120,26 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
         uint256 blockNumber
     ) internal view returns (uint96 power) {
         uint96 weight = _computeWeightByDate(date, startDate);
-        uint96 staked = getPriorStakeByDateForDelegatee(account, date, blockNumber);
+        uint96 staked = _getPriorStakeByDateForDelegatee(account, date, blockNumber);
         power = mul96(staked, weight, "WS10") / WEIGHT_FACTOR; // overflow
+    }
+
+    /**
+     * @notice Determine the prior number of stake for an account as of a block number.
+     * @dev Block number must be a finalized block or else this function will
+     * revert to prevent misinformation.
+     * @param account The address of the account to check.
+     * @param date The staking date to compute the power for. Adjusted to the next valid lock date, if necessary.
+     * @param blockNumber The block number to get the vote balance at.
+     * @return The number of votes the account had as of the given block.
+     * */
+    function getPriorStakeByDateForDelegatee(
+        address account,
+        uint256 date,
+        uint256 blockNumber
+    ) external view returns (uint96) {
+        date = _adjustDateForOrigin(date);
+        return _getPriorStakeByDateForDelegatee(account, date, blockNumber);
     }
 
     /**
@@ -133,11 +151,11 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
-    function getPriorStakeByDateForDelegatee(
+    function _getPriorStakeByDateForDelegatee(
         address account,
         uint256 date,
         uint256 blockNumber
-    ) public view returns (uint96) {
+    ) internal view returns (uint96) {
         require(blockNumber < _getCurrentBlockNumber(), "not determined yet"); // WS11
 
         uint32 nCheckpoints = numDelegateStakingCheckpoints[account][date];

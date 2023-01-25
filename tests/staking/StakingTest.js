@@ -2715,6 +2715,122 @@ contract("Staking", (accounts) => {
         });
     });
 
+    describe("getPriorStakeByDateForDelegatee", () => {
+        it("returns how much stake is delegated to account at date and blockNumber (delegated by oneself and others)", async () => {
+            const amount1 = new BN("100");
+            const amount2 = new BN("200");
+
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN);
+            const stakeBlockNumber1 = await initializeStake(stakeDate, amount1, a1);
+            const stakeBlockNumber2 = await initializeStake(stakeDate, amount2, a2);
+
+            // quick check before any delegation
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(a1, stakeDate, stakeBlockNumber1)
+            ).to.be.bignumber.eq(amount1);
+
+            // delegate stake of a2 to a1
+            await staking.delegate(a1, stakeDate, { from: a2 });
+            const delegatedBlockNumber = await web3.eth.getBlockNumber();
+            await mineBlock(); // it will revert on blockNumber >= current
+
+            // check self-delegates with accounts (blockNumber < delegatedBlockNumber)
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(a1, stakeDate, stakeBlockNumber1)
+            ).to.be.bignumber.eq(amount1);
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(a1, stakeDate, stakeBlockNumber2)
+            ).to.be.bignumber.eq(amount1);
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(a2, stakeDate, stakeBlockNumber2)
+            ).to.be.bignumber.eq(amount2);
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(a2, stakeDate, stakeBlockNumber1)
+            ).to.be.bignumber.eq("0");
+
+            // check state after delegation
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(a1, stakeDate, delegatedBlockNumber)
+            ).to.be.bignumber.eq(amount1.add(amount2));
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(a2, stakeDate, delegatedBlockNumber)
+            ).to.be.bignumber.eq("0");
+        });
+
+        it("if date is not a valid lock date, the function will return the delegated stakes for account at the closest lock date AFTER date", async () => {
+            // initialize a single stake
+            const stakeDate = kickoffTS.add(TWO_WEEKS_BN);
+            const stakeBlockNumber = await initializeStake(stakeDate, new BN("100"), a1);
+
+            // sanity check
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(a1, stakeDate, stakeBlockNumber)
+            ).to.be.bignumber.eq("100");
+
+            // these adjust to the same date
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    a1,
+                    stakeDate.sub(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("100");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    a1,
+                    stakeDate.sub(TWO_WEEKS_BN).add(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("100");
+
+            // these adjust to other dates
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    a1,
+                    stakeDate.sub(TWO_WEEKS_BN),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    a1,
+                    stakeDate.add(new BN(1)),
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.eq("0");
+        });
+
+        it("if no one delegated to account at date and blockNumber, the function returns 0", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            const actual = await staking.getPriorStakeByDateForDelegatee(
+                a1,
+                kickoffTS.add(TWO_WEEKS_BN),
+                currentBlockNumber - 1
+            );
+            expect(actual).to.be.bignumber.eq("0");
+
+            // this is also tested in the other test cases
+        });
+
+        it("the function reverts if blockNumber >= current block", async () => {
+            const currentBlockNumber = await web3.eth.getBlockNumber();
+            await expect(
+                staking.getPriorStakeByDateForDelegatee(
+                    a1,
+                    kickoffTS.add(TWO_WEEKS_BN),
+                    currentBlockNumber
+                )
+            ).to.be.revertedWith("not determined");
+            await expect(
+                staking.getPriorStakeByDateForDelegatee(
+                    a1,
+                    kickoffTS.add(TWO_WEEKS_BN),
+                    currentBlockNumber + 1
+                )
+            ).to.be.revertedWith("not determined");
+        });
+    });
+
     describe("balanceOf", () => {
         it("returns the total staked balance of account from the kickoff date until now + max duration", async () => {
             expect((await staking.balanceOf(a1)).toString()).to.be.bignumber.equal("0");
