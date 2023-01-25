@@ -1127,17 +1127,20 @@ contract("Vesting", (accounts) => {
                 i += TWO_WEEKS
             ) {
                 let lockedTS = await staking.timestampToLockDate(i);
+                // caching the stakeByDateForDelegatee for each lock dates before cancellation
                 previousStakeByDelegatee[i] = await staking.getPriorStakeByDateForDelegatee(
                     root,
                     lockedTS,
                     currentBlockNumber - 1
                 );
 
+                // caching the totalStakesForDate for each lock dates before cancellation
                 previousTotalStakesForDate[i] = await staking.getPriorTotalStakesForDate(
                     lockedTS,
                     currentBlockNumber - 1
                 );
 
+                // caching the vestingStakeByDate for each lock dates before cancellation
                 previousVestingStakeByDate[i] = await staking.getPriorVestingStakeByDate(
                     lockedTS,
                     currentBlockNumber - 1
@@ -1183,34 +1186,40 @@ contract("Vesting", (accounts) => {
                     currentBlockNumber - 1
                 );
 
+                // caching the stakeByDateForDelegatee for each lock dates after cancellation
                 latestStakeByDelegatee[i] = await staking.getPriorStakeByDateForDelegatee(
                     root,
                     lockedTS,
                     currentBlockNumber - 1
                 );
 
+                // caching the totalStakesForDate for each lock dates after cancellation
                 latestTotalStakesForDate[i] = await staking.getPriorTotalStakesForDate(
                     lockedTS,
                     currentBlockNumber - 1
                 );
 
+                // caching the vestingStakeByDate for each lock dates after cancellation
                 latestVestingStakeByDate[i] = await staking.getPriorVestingStakeByDate(
                     lockedTS,
                     currentBlockNumber - 1
                 );
 
+                // the stakeByDateForDelegatee will be decreased after cancellation
                 if (latestStakeByDelegatee[i] > 0 && previousStakeByDelegatee[i] > 0) {
                     expect(latestStakeByDelegatee[i]).to.be.bignumber.lessThan(
                         previousStakeByDelegatee[i]
                     );
                 }
 
+                // the totalStakesForDate will be decreased after cancellation
                 if (latestTotalStakesForDate[i] > 0 && previousTotalStakesForDate[i] > 0) {
                     expect(latestTotalStakesForDate[i]).to.be.bignumber.lessThan(
                         previousTotalStakesForDate[i]
                     );
                 }
 
+                // the vestingStakeByDate will be decreased after cancellation
                 if (latestVestingStakeByDate[i] > 0 && previousVestingStakeByDate[i] > 0) {
                     expect(latestVestingStakeByDate[i]).to.be.bignumber.lessThan(
                         previousVestingStakeByDate[i]
