@@ -245,11 +245,8 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     ) internal {
         address vesting = vestingConfig.vestingAddress;
 
-        until = _adjustDateForOrigin(until);
+        until = _timestampToLockDate(until);
         _validateWithdrawParams(vesting, amount, until);
-
-        /// @dev Determine the receiver.
-        if (receiver == address(0)) receiver = msg.sender;
 
         /// @dev Update the checkpoints.
         _decreaseDailyStake(until, amount);
