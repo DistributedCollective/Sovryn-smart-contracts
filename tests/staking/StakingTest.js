@@ -1155,7 +1155,14 @@ contract("Staking", (accounts) => {
             let cliff = new BN(TWO_WEEKS);
             let intervalLength = 0;
             await expectRevert(
-                staking.stakeBySchedule(amount, cliff, intervalLength, 0, ZERO_ADDRESS, ZERO_ADDRESS),
+                staking.stakeBySchedule(
+                    amount,
+                    cliff,
+                    intervalLength,
+                    0,
+                    ZERO_ADDRESS,
+                    ZERO_ADDRESS
+                ),
                 "Invalid interval length"
             );
         });
@@ -1167,7 +1174,14 @@ contract("Staking", (accounts) => {
             let duration = MAX_DURATION;
             let intervalLength = new BN(TWO_WEEKS).add(new BN(86400));
             await expectRevert(
-                staking.stakeBySchedule(amount, cliff, duration, intervalLength, ZERO_ADDRESS, ZERO_ADDRESS),
+                staking.stakeBySchedule(
+                    amount,
+                    cliff,
+                    duration,
+                    intervalLength,
+                    ZERO_ADDRESS,
+                    ZERO_ADDRESS
+                ),
                 "Invalid interval length"
             );
         });
@@ -1179,7 +1193,14 @@ contract("Staking", (accounts) => {
             let duration = MAX_DURATION.mul(new BN(3));
             let intervalLength = new BN(TWO_WEEKS);
             await expectRevert(
-                staking.stakeBySchedule(amount, cliff, duration, intervalLength, ZERO_ADDRESS, ZERO_ADDRESS),
+                staking.stakeBySchedule(
+                    amount,
+                    cliff,
+                    duration,
+                    intervalLength,
+                    ZERO_ADDRESS,
+                    ZERO_ADDRESS
+                ),
                 "Invalid duration"
             );
         });
@@ -1195,10 +1216,18 @@ contract("Staking", (accounts) => {
             let duration = MAX_DURATION;
             let intervalLength = new BN(TWO_WEEKS);
             await token.transfer(user, amount);
-            await token.approve(staking.address, amount, {from: user});
+            await token.approve(staking.address, amount, { from: user });
 
             await expectRevert(
-                staking.stakeBySchedule(amount, cliff, duration, intervalLength, delegatee1, delegatee2, {from: user}),
+                staking.stakeBySchedule(
+                    amount,
+                    cliff,
+                    duration,
+                    intervalLength,
+                    delegatee1,
+                    delegatee2,
+                    { from: user }
+                ),
                 "Only stakeFor account is allowed to change delegatee"
             );
         });
@@ -1258,8 +1287,6 @@ contract("Staking", (accounts) => {
                 "cannot be mined in the same block as last stake"
             );
         });
-
-
     });
 
     describe("balanceOf", () => {
