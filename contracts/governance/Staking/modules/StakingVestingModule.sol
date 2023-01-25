@@ -147,8 +147,8 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
     /**
      * @notice Compute the voting power for a specific date.
      * Power = stake * weight
-     * @param date The staking date to compute the power for. Adjusted to the next valid lock date, if necessary.
-     * @param startDate The date for which we need to know the power of the stake.
+     * @param date The staking date to compute the power for. Adjusted to the previous valid lock date, if necessary.
+     * @param startDate The date for which we need to know the power of the stake. Adjusted to the previous valid lock date, if necessary.
      * @param blockNumber The block number, needed for checkpointing.
      * @return The stacking power.
      * */
@@ -157,7 +157,8 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         uint256 startDate,
         uint256 blockNumber
     ) external view returns (uint96 power) {
-        date = _adjustDateForOrigin(date);
+        date = _timestampToLockDate(date);
+        startDate = _timestampToLockDate(startDate);
         power = _weightedVestingStakeByDate(date, startDate, blockNumber);
     }
 

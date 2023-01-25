@@ -2637,7 +2637,7 @@ contract("Staking", (accounts) => {
             expect(actual).to.be.bignumber.eq(expected);
         });
 
-        it("if date is not a valid lock date, the function will return the total stake at the closest lock date AFTER date", async () => {
+        it("if date is not a valid lock date, the function will return the total stake at the closest lock date BEFORE date", async () => {
             // deploy a vesting contract and initialize a stake from it
             const vesting = await deployVestingContract({
                 cliff: TWO_WEEKS_BN,
@@ -2659,13 +2659,13 @@ contract("Staking", (accounts) => {
 
             // these adjust to the same lock date
             actual = await staking.weightedVestingStakeByDate(
-                stakeDate.sub(new BN("1")),
+                stakeDate.add(new BN("1")),
                 kickoffTS,
                 stakeBlockNumber
             );
             expect(actual).to.be.bignumber.eq(expected);
             actual = await staking.weightedVestingStakeByDate(
-                stakeDate.sub(TWO_WEEKS_BN).add(new BN("1")),
+                stakeDate.add(TWO_WEEKS_BN).sub(new BN("1")),
                 kickoffTS,
                 stakeBlockNumber
             );
@@ -2674,13 +2674,13 @@ contract("Staking", (accounts) => {
             // these adjust to previous and next lock date respectively
             expected = new BN("0");
             actual = await staking.weightedVestingStakeByDate(
-                stakeDate.sub(TWO_WEEKS_BN),
+                stakeDate.sub(new BN("1")),
                 kickoffTS,
                 stakeBlockNumber
             );
             expect(actual).to.be.bignumber.eq(expected);
             actual = await staking.weightedVestingStakeByDate(
-                stakeDate.add(new BN("1")),
+                stakeDate.sub(TWO_WEEKS_BN),
                 kickoffTS,
                 stakeBlockNumber
             );
