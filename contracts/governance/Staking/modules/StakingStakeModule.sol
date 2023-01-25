@@ -314,9 +314,10 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         address stakeFor,
         address delegatee
     ) internal {
+        require(amount > 0, "Invalid amount");
+        require(duration <= MAX_DURATION, "Invalid duration");
         require(intervalLength > 0, "Invalid interval length");
         require(intervalLength % TWO_WEEKS == 0, "Invalid interval length");
-        require(duration <= MAX_DURATION, "Invalid duration");
         if (delegatee != stakeFor && delegatee != address(0)) {
             require(
                 stakeFor == msg.sender,
@@ -330,9 +331,6 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
          * depending on the date of staking.
          * */
         uint256 start = _timestampToLockDate(block.timestamp + cliff);
-        if (duration > MAX_DURATION) {
-            duration = MAX_DURATION;
-        }
         uint256 end = _timestampToLockDate(block.timestamp + duration);
         uint256 numIntervals = (end - start) / intervalLength + 1;
         uint256 stakedPerInterval = amount / numIntervals;
