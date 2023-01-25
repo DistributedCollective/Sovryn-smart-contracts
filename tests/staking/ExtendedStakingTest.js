@@ -476,14 +476,11 @@ contract("Staking", (accounts) => {
 
             await token.approve(staking.address, 0);
 
-            await token.approve(staking.address, amount * 2, { from: account1 });
-
             let contract = new web3.eth.Contract(staking.abi, staking.address);
             let sender = root;
             let data = contract.methods
                 .stakeWithApproval(sender, amount, lockedTS, root, root)
                 .encodeABI();
-            // let data = contract.methods.stakeWithApproval(account1, amount * 2, lockedTS, root, root).encodeABI();
             let tx = await token.approveAndCall(staking.address, amount, data, {
                 from: sender,
             });
@@ -523,7 +520,32 @@ contract("Staking", (accounts) => {
             expect(checkpoint.stake.toString()).to.be.equal(amount);
         });
 
-        //TODO: resume when refactored to resolve EIP-170 contract size issue
+        it("should fail if paused", async () => {
+            await staking.freezeUnfreeze(true);
+
+            let amount = "100";
+            let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let data = contract.methods
+                .stakeWithApproval(root, amount, lockedTS, root, root)
+                .encodeABI();
+
+            await expectRevert(token.approveAndCall(staking.address, amount, data), "paused");
+        });
+
+        it("should fail if frozen", async () => {
+            await staking.pauseUnpause(true);
+
+            let amount = "100";
+            let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let data = contract.methods
+                .stakeWithApproval(root, amount, lockedTS, root, root)
+                .encodeABI();
+
+            await expectRevert(token.approveAndCall(staking.address, amount, data), "paused");
+        });
+
         it("fails if invoked directly", async () => {
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
             await expectRevert(
@@ -531,7 +553,7 @@ contract("Staking", (accounts) => {
                 "unauthorized"
             );
         });
-        //TODO: resume when refactored to resolve EIP-170 contract size issue
+
         it("fails if wrong method passed in data", async () => {
             let amount = "100";
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
@@ -543,19 +565,18 @@ contract("Staking", (accounts) => {
                 "method is not allowed"
             );
         });
+
         it("fails if wrong sender passed in data", async () => {
             let amount = "100";
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
             let contract = new web3.eth.Contract(staking.abi, staking.address);
 
-            await token.approve(staking.address, amount * 2, { from: account1 });
-            let sender = root;
             let data = contract.methods
                 .stakeWithApproval(account1, amount, lockedTS, root, root)
                 .encodeABI();
 
             await expectRevert(
-                token.approveAndCall(staking.address, amount, data, { from: sender }),
+                token.approveAndCall(staking.address, amount, data, { from: root }),
                 "sender mismatch"
             );
         });
@@ -565,14 +586,12 @@ contract("Staking", (accounts) => {
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
             let contract = new web3.eth.Contract(staking.abi, staking.address);
 
-            await token.approve(staking.address, amount * 2, { from: account1 });
-            let sender = root;
             let data = contract.methods
-                .stakeWithApproval(sender, amount, lockedTS, root, root)
+                .stakeWithApproval(account1, amount, lockedTS, root, root)
                 .encodeABI();
 
             await expectRevert(
-                token.approveAndCall(staking.address, amount * 2, data, { from: sender }),
+                token.approveAndCall(staking.address, amount * 2, data, { from: account1 }),
                 "amount mismatch"
             );
         });

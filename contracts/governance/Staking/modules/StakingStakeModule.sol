@@ -62,7 +62,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 until,
         address stakeFor,
         address delegatee
-    ) external onlyThisContract whenNotPaused {
+    ) external onlyThisContract whenNotPaused whenNotFrozen {
         _stake(sender, amount, until, stakeFor, delegatee, false);
     }
 
