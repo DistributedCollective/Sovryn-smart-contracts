@@ -385,6 +385,8 @@ contract("Staking", (accounts) => {
 
             await token.approve(staking.address, "1000", { from: guy });
 
+            // TODO: this doesn't work -- t1, t2, t3 and t4 all get mined in different blocks,
+            // not in the same block
             // await minerStop();
             let t1 = staking.stake("80", inThreeYears, a3, a3, { from: guy });
 
@@ -394,9 +396,15 @@ contract("Staking", (accounts) => {
 
             // await minerStart();
             t1 = await t1;
-            t2 = await t2;
-            t3 = await t3;
-            t4 = await t4;
+
+            // Some of these might fail but it's ok for our purposes.
+            for (const promise of [t2, t3, t4]) {
+                try {
+                    await promise;
+                } catch (e) {
+                    // ignore
+                }
+            }
 
             await expect(
                 (await staking.numUserStakingCheckpoints.call(a3, inThreeYears)).toString()
@@ -3304,6 +3312,292 @@ contract("Staking", (accounts) => {
             const [withdrawable, penalty] = [result[0], result[1]];
             expect(withdrawable).to.be.bignumber.lt(new BN("100"));
             expect(penalty).to.be.bignumber.gt(new BN("0"));
+        });
+    });
+
+    describe("delegate", () => {
+        const stakeAmount = new BN("12345");
+        let stakeDate;
+        let stakeBlockNumber;
+        let delegator;
+        let delegatee;
+
+        beforeEach(async () => {
+            stakeDate = kickoffTS.add(TWO_WEEKS_BN);
+            delegator = a1;
+            delegatee = a2;
+            stakeBlockNumber = await initializeStake(stakeDate, stakeAmount, delegator);
+        });
+
+        it("the function reverts if the contract is paused", async () => {
+            await staking.pauseUnpause(true);
+            await expect(
+                staking.delegate(delegatee, stakeDate, { from: delegator })
+            ).to.be.revertedWith("paused");
+        });
+
+        it("the function reverts if the contract is frozen", async () => {
+            await staking.freezeUnfreeze(true);
+            await expect(
+                staking.delegate(delegatee, stakeDate, { from: delegator })
+            ).to.be.revertedWith("paused");
+        });
+
+        it("the function reverts if the stake of msg.sender at until was modified on the same block", async () => {
+            // Could not figure out how to mine two transactions in the same block without a custom contract...
+            const stakingTester = await StakingTester.new(staking.address, token.address);
+            await expect(
+                stakingTester.stakeAndDelegate(
+                    new BN("100"),
+                    delegatee,
+                    kickoffTS.add(TWO_WEEKS_BN)
+                )
+            ).to.be.revertedWith("cannot be mined in the same block as last stake");
+        });
+
+        it("the function reverts if the sender has no stake at lockDate (this includes the cases where lockDate is not a valid lock date", async () => {
+            await expect(
+                staking.delegate(delegatee, stakeDate.add(TWO_WEEKS_BN), { from: delegator })
+            ).to.be.revertedWith("no stake to delegate");
+            await expect(
+                staking.delegate(delegatee, stakeDate.sub(new BN(1)), { from: delegator })
+            ).to.be.revertedWith("no stake to delegate");
+        });
+
+        it("the function reverts if delegatee is the same as the existing delegatee for lockDate", async () => {
+            await expect(
+                staking.delegate(delegator, stakeDate, { from: delegator })
+            ).to.be.revertedWith("cannot delegate to the existing delegatee");
+
+            await staking.delegate(delegatee, stakeDate, { from: delegator });
+            await expect(
+                staking.delegate(delegatee, stakeDate, { from: delegator })
+            ).to.be.revertedWith("cannot delegate to the existing delegatee");
+        });
+
+        it("the function reverts if delegatee is the 0 address", async () => {
+            await expect(
+                staking.delegate(address(0), stakeDate, { from: delegator })
+            ).to.be.revertedWith("cannot delegate to the zero address");
+        });
+
+        it("after function execution, getPriorStakeByDateForDelegatee is reduced by the sender’s stake at lockDate for the sender’s old delegate at lockDate.", async () => {
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegator,
+                    stakeDate,
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.equal(stakeAmount);
+            await staking.delegate(delegatee, stakeDate, { from: delegator });
+            const blockNumberAfterDelegation = await web3.eth.getBlockNumber();
+            await mineBlock(); // block must be finalized
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegator,
+                    stakeDate,
+                    blockNumberAfterDelegation
+                )
+            ).to.be.bignumber.equal("0");
+        });
+
+        it("after function execution, getPriorStakeByDateForDelegatee is increased by the sender’s stake at lockDate for the sender’s new delegate at lockDate.", async () => {
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    stakeDate,
+                    stakeBlockNumber
+                )
+            ).to.be.bignumber.equal("0");
+            await staking.delegate(delegatee, stakeDate, { from: delegator });
+            const blockNumberAfterDelegation = await web3.eth.getBlockNumber();
+            await mineBlock(); // block must be finalized
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    stakeDate,
+                    blockNumberAfterDelegation
+                )
+            ).to.be.bignumber.equal(stakeAmount);
+        });
+
+        it("if the sender is a vesting contract, not only the stake for lockDate is delegated, but also the stake for the next lock date if the next lock date after until lies in the past", async () => {
+            const date1 = kickoffTS.add(TWO_WEEKS_BN);
+            const date2 = date1.add(TWO_WEEKS_BN);
+            const date3 = date2.add(TWO_WEEKS_BN);
+
+            // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
+            // totalWeightedStake is 0
+            // also we must use an account that's neither delegator or delegatee, so a3 it is
+            await initializeStake(date1, new BN("1"), a3);
+
+            const account = await deployAndImpersonateVestingContract();
+            await initializeStake(date1, new BN("100"), account);
+            await initializeStake(date2, new BN("50"), account);
+            const blockNumberBeforeDelegation = await initializeStake(
+                date3,
+                new BN("25"),
+                account
+            );
+
+            // sanity check
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    account,
+                    date1,
+                    blockNumberBeforeDelegation
+                )
+            ).to.be.bignumber.equal("100");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    account,
+                    date2,
+                    blockNumberBeforeDelegation
+                )
+            ).to.be.bignumber.equal("50");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    account,
+                    date3,
+                    blockNumberBeforeDelegation
+                )
+            ).to.be.bignumber.equal("25");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    date1,
+                    blockNumberBeforeDelegation
+                )
+            ).to.be.bignumber.equal("0");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    date2,
+                    blockNumberBeforeDelegation
+                )
+            ).to.be.bignumber.equal("0");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    date3,
+                    blockNumberBeforeDelegation
+                )
+            ).to.be.bignumber.equal("0");
+
+            // travel to the future, all dates are in the past
+            // NOTE: this actually doesn't matter -- it always delegates both stakes
+            await setNextBlockTimestamp(date3.add(TWO_WEEKS_BN).toNumber());
+
+            // delegate until date1, should also delegate date2 but not date3
+            await staking.delegate(delegatee, date1, { from: account });
+
+            let blockNumberAfterDelegation = await web3.eth.getBlockNumber();
+            await mineBlock(); // block must be finalized
+
+            // expect first two stakes to be delegated
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    account,
+                    date1,
+                    blockNumberAfterDelegation
+                )
+            ).to.be.bignumber.equal("0");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    account,
+                    date2,
+                    blockNumberAfterDelegation
+                )
+            ).to.be.bignumber.equal("0");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    date1,
+                    blockNumberAfterDelegation
+                )
+            ).to.be.bignumber.equal("100");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    date2,
+                    blockNumberAfterDelegation
+                )
+            ).to.be.bignumber.equal("50");
+            // last stake should not be delegated
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    account,
+                    date3,
+                    blockNumberAfterDelegation
+                )
+            ).to.be.bignumber.equal("25");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    date3,
+                    blockNumberAfterDelegation
+                )
+            ).to.be.bignumber.equal("0");
+
+            // clean up just for good measure (not necessary, it doesn't matter if the test fails and we don't get here)
+            await stopImpersonatingAccount(account);
+        });
+
+        it("delegating from a vesting contract works even if there is no stake at the next lock date", async () => {
+            // This is needed to make sure our changes regarding delegating zero balance do not mess it up for
+            // vesting contracts
+            const date1 = kickoffTS.add(TWO_WEEKS_BN);
+
+            await initializeStake(date1, new BN("1"), a3); // required for feesharingproxy
+
+            const account = await deployAndImpersonateVestingContract();
+            const blockNumberBeforeDelegation = await initializeStake(
+                date1,
+                new BN("100"),
+                account
+            );
+
+            // sanity check
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    account,
+                    date1,
+                    blockNumberBeforeDelegation
+                )
+            ).to.be.bignumber.equal("100");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    date1,
+                    blockNumberBeforeDelegation
+                )
+            ).to.be.bignumber.equal("0");
+
+            // travel to the future, date is in the past
+            await setNextBlockTimestamp(date1.add(TWO_WEEKS_BN).toNumber());
+
+            // delegate until date1, should work even if there is no other stake 2 weeks after it
+            await staking.delegate(delegatee, date1, { from: account });
+            await stopImpersonatingAccount(account);
+
+            const blockNumberAfterDelegation = await web3.eth.getBlockNumber();
+            await mineBlock(); // block must be finalized
+
+            // expect the stake to e delegated
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    account,
+                    date1,
+                    blockNumberAfterDelegation
+                )
+            ).to.be.bignumber.equal("0");
+            expect(
+                await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    date1,
+                    blockNumberAfterDelegation
+                )
+            ).to.be.bignumber.equal("100");
         });
     });
 

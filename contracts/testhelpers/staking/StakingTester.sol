@@ -18,4 +18,15 @@ contract StakingTester {
         staking.stake(_amount, _until, address(this), address(this));
         staking.withdraw(_amount, _until, address(this));
     }
+
+    function stakeAndDelegate(
+        uint96 _amount,
+        address _delegatee,
+        uint256 _lockDate
+    ) public {
+        token.mint(address(this), _amount);
+        token.approve(address(staking), _amount);
+        staking.stake(_amount, _lockDate, address(this), address(this));
+        staking.delegate(_delegatee, _lockDate);
+    }
 }

@@ -260,14 +260,23 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
      * @param delegator The user address to move stake balance from its current delegatee.
      * @param delegatee The new delegatee. The address to move stake balance to.
      * @param lockedTS The lock date.
+     * @param check Revert if delegator balance or delegatee is not valid.
      * */
     function _delegate(
         address delegator,
         address delegatee,
-        uint256 lockedTS
+        uint256 lockedTS,
+        bool check
     ) internal {
         address currentDelegate = delegates[delegator][lockedTS];
         uint96 delegatorBalance = _currentBalance(delegator, lockedTS);
+
+        if (check) {
+            require(delegatee != address(0), "cannot delegate to the zero address");
+            require(delegatorBalance > 0, "no stake to delegate");
+            require(currentDelegate != delegatee, "cannot delegate to the existing delegatee");
+        }
+
         delegates[delegator][lockedTS] = delegatee;
 
         emit DelegateChanged(delegator, lockedTS, currentDelegate, delegatee);
@@ -286,7 +295,7 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
             uint256 nextLock = lockedTS.add(TWO_WEEKS);
             address currentDelegate = delegates[delegator][nextLock];
             if (currentDelegate != delegatee) {
-                _delegate(delegator, delegatee, nextLock);
+                _delegate(delegator, delegatee, nextLock, false);
             }
 
             // @dev workaround for the issue with a delegation of the latest stake
@@ -295,7 +304,7 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
             if (nextLock == endDate) {
                 currentDelegate = delegates[delegator][nextLock];
                 if (currentDelegate != delegatee) {
-                    _delegate(delegator, delegatee, nextLock);
+                    _delegate(delegator, delegatee, nextLock, false);
                 }
             }
         }
@@ -352,7 +361,7 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
     function delegate(address delegatee, uint256 lockDate) external whenNotPaused {
         _notSameBlockAsStakingCheckpoint(lockDate);
 
-        _delegate(msg.sender, delegatee, lockDate);
+        _delegate(msg.sender, delegatee, lockDate, true);
         // @dev delegates tokens for lock date 2 weeks later than given lock date
         //		if message sender is a contract
         _delegateNext(msg.sender, delegatee, lockDate);
