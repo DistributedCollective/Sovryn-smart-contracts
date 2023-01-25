@@ -4,8 +4,6 @@ pragma experimental ABIEncoderV2;
 import "../../governance/Staking/interfaces/IStaking.sol";
 import "../../interfaces/IERC20.sol";
 
-import "hardhat/console.sol";
-
 contract StakingWrapperMockup {
     uint256 constant TWO_WEEKS = 1209600;
 

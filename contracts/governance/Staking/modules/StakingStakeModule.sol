@@ -357,7 +357,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         /// @dev Stake the rest in 4 week intervals.
         for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
             /// @dev Stakes for itself, delegates to the owner.
-            _notSameBlockAsStakingCheckpoint(i); // must wait a block before staking again for that same deadline
+            _notSameBlockAsStakingCheckpoint(i, stakeFor); // must wait a block before staking again for that same deadline
             _stakeOptionalTokenTransfer(
                 msg.sender,
                 uint96(stakedPerInterval),

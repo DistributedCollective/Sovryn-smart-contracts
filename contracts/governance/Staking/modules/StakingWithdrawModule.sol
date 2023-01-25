@@ -53,7 +53,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         uint256 until,
         address receiver
     ) external whenNotFrozen {
-        _notSameBlockAsStakingCheckpoint(until);
+        _notSameBlockAsStakingCheckpoint(until, msg.sender);
 
         _withdraw(amount, until, receiver, false);
         // @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
