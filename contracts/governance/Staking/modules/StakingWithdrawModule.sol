@@ -62,28 +62,6 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     }
 
     /**
-     * @notice Withdraw the given amount of tokens.
-     * @param amount The number of tokens to withdraw.
-     * @param until The date until which the tokens were staked.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting
-     * */
-    function governanceWithdraw(
-        uint96 amount,
-        uint256 until,
-        address receiver
-    ) external whenNotFrozen {
-        require(vestingWhitelist[msg.sender], "unauthorized"); // S07
-
-        _notSameBlockAsStakingCheckpoint(until);
-
-        _withdraw(amount, until, receiver, true);
-        // @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
-        //		we don't need to check block.timestamp here
-        _withdrawNext(until, receiver, true);
-    }
-
-    /**
      * @notice Governance withdraw vesting directly through staking contract.
      * This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing.
      * This function only allows cancelling vesting contract of the TeamVesting type.
@@ -350,13 +328,12 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](6);
+        bytes4[] memory functionsList = new bytes4[](5);
         functionsList[0] = this.withdraw.selector;
-        functionsList[1] = this.governanceWithdraw.selector;
-        functionsList[2] = this.cancelTeamVesting.selector;
-        functionsList[3] = this.getWithdrawAmounts.selector;
-        functionsList[4] = this.unlockAllTokens.selector;
-        functionsList[5] = this.setMaxVestingWithdrawIterations.selector;
+        functionsList[1] = this.cancelTeamVesting.selector;
+        functionsList[2] = this.getWithdrawAmounts.selector;
+        functionsList[3] = this.unlockAllTokens.selector;
+        functionsList[4] = this.setMaxVestingWithdrawIterations.selector;
         return functionsList;
     }
 }
