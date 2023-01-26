@@ -1122,7 +1122,7 @@ contract("Staking", (accounts) => {
         });
     });
 
-    //TODO: stakeWithApproval?
+
     describe("stakeBySchedule", () => {
         //the function reverts if the contract is paused or frozen
         it("should fail if paused", async () => {
@@ -1289,6 +1289,9 @@ contract("Staking", (accounts) => {
             );
         });
 
+        //the amount staked per interval is determined by amount / number of intervals
+        //the number of intervals to stake for is determined as (a - b) / c, where b is the time between the lock date prior to
+        //      or equal to block.timestamp + cliff, a is b + duration and c is intervalLength
         //after function execution, the delegate may nor be the 0 address for any lock date with a positive stake
         //after function execution the correct stake per lock date is returned for stakeFor by getPriorUserStakeByDate
         //after function execution the correct delegated stake is returned for delegatee by getPriorStakeByDateForDelegatee
@@ -1396,6 +1399,115 @@ contract("Staking", (accounts) => {
                         toDelegate: delegatee,
                     }
                 );
+            }
+        });
+
+        //if delegatee is the 0 address, the stake is delegated to stakeFor
+        //if stakeFor is a vesting contract, getPriorVestingStakeByDate
+        //      returns the increased vesting stake for stakeFor per lock date
+        it("should stake tokens for user with delegation using a schedule", async () => {
+            let user = accounts[0];
+            let delegatee = accounts[1];
+            let intervalAmount = new BN(1000);
+            let intervalCount = new BN(7);
+            let amount = intervalAmount.mul(intervalCount);
+            let cliff = new BN(TWO_WEEKS);
+            let intervalLength = new BN(TWO_WEEKS);
+            let duration = intervalLength.mul(intervalCount);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, { from: user });
+
+            await staking.addContractCodeHash(user);
+            let tx = await staking.stakeBySchedule(
+                amount,
+                cliff,
+                duration,
+                intervalLength,
+                user,
+                ZERO_ADDRESS,
+                { from: user }
+            );
+
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            let startDate = kickoffTS.add(cliff);
+            let endDate = kickoffTS.add(duration);
+            for (
+                let lockedDate = startDate;
+                lockedDate <= endDate;
+                lockedDate = lockedDate.add(intervalLength)
+            ) {
+                //check delegatee
+                let userDelegatee = await staking.delegates(user, lockedDate);
+                expect(userDelegatee).to.be.equal(user);
+
+                //check getPriorVestingStakeByDate
+                let priorDelegateStakeBefore = await staking.getPriorVestingStakeByDate(
+                    lockedDate,
+                    blockBefore
+                );
+                let priorDelegateStakeAfter = await staking.getPriorVestingStakeByDate(
+                    lockedDate,
+                    blockAfter
+                );
+                expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(intervalAmount);
+            }
+        });
+
+        //if stakeFor is the 0 address, the function stakes for the msg.sender
+        it("should stake tokens for user with delegation using a schedule", async () => {
+            let user = accounts[0];
+            let delegatee = accounts[1];
+            let intervalAmount = new BN(1000);
+            let intervalCount = new BN(7);
+            let amount = intervalAmount.mul(intervalCount);
+            let cliff = new BN(TWO_WEEKS);
+            let intervalLength = new BN(TWO_WEEKS);
+            let duration = intervalLength.mul(intervalCount);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, { from: user });
+
+            let tx = await staking.stakeBySchedule(
+                amount,
+                cliff,
+                duration,
+                intervalLength,
+                ZERO_ADDRESS,
+                ZERO_ADDRESS,
+                { from: user }
+            );
+
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            let startDate = kickoffTS.add(cliff);
+            let endDate = kickoffTS.add(duration);
+            for (
+                let lockedDate = startDate;
+                lockedDate <= endDate;
+                lockedDate = lockedDate.add(intervalLength)
+            ) {
+                //check delegatee
+                let userDelegatee = await staking.delegates(user, lockedDate);
+                expect(userDelegatee).to.be.equal(user);
+
+                //check getPriorUserStakeByDate
+                let priorUserStakeBefore = await staking.getPriorUserStakeByDate(
+                    user,
+                    lockedDate,
+                    blockBefore
+                );
+                let priorUserStakeAfter = await staking.getPriorUserStakeByDate(
+                    user,
+                    lockedDate,
+                    blockAfter
+                );
+                expect(priorUserStakeAfter.sub(priorUserStakeBefore)).to.be.equal(intervalAmount);
             }
         });
     });
