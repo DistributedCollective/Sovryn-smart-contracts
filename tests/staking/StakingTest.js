@@ -1307,13 +1307,13 @@ contract("Staking", (accounts) => {
             await token.approve(staking.address, amount, { from: user });
 
             let tx = await staking.stakeBySchedule(
-                    amount,
-                    cliff,
-                    duration,
-                    intervalLength,
-                    user,
-                    delegatee,
-                    { from: user }
+                amount,
+                cliff,
+                duration,
+                intervalLength,
+                user,
+                delegatee,
+                { from: user }
             );
 
             let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
@@ -1323,7 +1323,11 @@ contract("Staking", (accounts) => {
 
             let startDate = kickoffTS.add(cliff);
             let endDate = kickoffTS.add(duration);
-            for (let lockedDate = startDate; lockedDate <= endDate; lockedDate = lockedDate.add(intervalLength)) {
+            for (
+                let lockedDate = startDate;
+                lockedDate <= endDate;
+                lockedDate = lockedDate.add(intervalLength)
+            ) {
                 //check delegatee
                 let userDelegatee = await staking.delegates(user, lockedDate);
                 expect(userDelegatee).to.be.equal(delegatee);
@@ -1337,7 +1341,9 @@ contract("Staking", (accounts) => {
                     lockedDate,
                     blockAfter
                 );
-                expect(priorTotalStakeAfter.sub(priorTotalStakeBefore)).to.be.equal(intervalAmount);
+                expect(priorTotalStakeAfter.sub(priorTotalStakeBefore)).to.be.equal(
+                    intervalAmount
+                );
 
                 //check getPriorUserStakeByDate
                 let priorUserStakeBefore = await staking.getPriorUserStakeByDate(
@@ -1363,7 +1369,9 @@ contract("Staking", (accounts) => {
                     lockedDate,
                     blockAfter
                 );
-                expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(intervalAmount);
+                expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(
+                    intervalAmount
+                );
 
                 await expectEvent.inTransaction(
                     tx.receipt.rawLogs[0].transactionHash,
@@ -1390,7 +1398,6 @@ contract("Staking", (accounts) => {
                 );
             }
         });
-
     });
 
     describe("balanceOf", () => {
