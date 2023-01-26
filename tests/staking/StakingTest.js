@@ -1122,6 +1122,7 @@ contract("Staking", (accounts) => {
         });
     });
 
+    //TODO: stakeWithApproval?
     describe("stakeBySchedule", () => {
         //the function reverts if the contract is paused or frozen
         it("should fail if paused", async () => {
@@ -1287,6 +1288,109 @@ contract("Staking", (accounts) => {
                 "cannot be mined in the same block as last stake"
             );
         });
+
+        //after function execution, the delegate may nor be the 0 address for any lock date with a positive stake
+        //after function execution the correct stake per lock date is returned for stakeFor by getPriorUserStakeByDate
+        //after function execution the correct delegated stake is returned for delegatee by getPriorStakeByDateForDelegatee
+        //after function execution getPriorTotalStakesForDate returns the updated total stake for each date
+        //      (prior stake +  amount staked per interval)
+        it("should stake tokens for user using a schedule", async () => {
+            let user = accounts[0];
+            let delegatee = accounts[1];
+            let intervalAmount = new BN(1000);
+            let intervalCount = new BN(7);
+            let amount = intervalAmount.mul(intervalCount);
+            let cliff = new BN(TWO_WEEKS);
+            let intervalLength = new BN(TWO_WEEKS);
+            let duration = intervalLength.mul(intervalCount);
+            await token.transfer(user, amount);
+            await token.approve(staking.address, amount, { from: user });
+
+            let tx = await staking.stakeBySchedule(
+                    amount,
+                    cliff,
+                    duration,
+                    intervalLength,
+                    user,
+                    delegatee,
+                    { from: user }
+            );
+
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+            await mineBlock();
+            let blockBefore = txBlockNumber.sub(new BN(1));
+            let blockAfter = txBlockNumber;
+
+            let startDate = kickoffTS.add(cliff);
+            let endDate = kickoffTS.add(duration);
+            for (let lockedDate = startDate; lockedDate <= endDate; lockedDate = lockedDate.add(intervalLength)) {
+                //check delegatee
+                let userDelegatee = await staking.delegates(user, lockedDate);
+                expect(userDelegatee).to.be.equal(delegatee);
+
+                //check getPriorTotalStakesForDate
+                let priorTotalStakeBefore = await staking.getPriorTotalStakesForDate(
+                    lockedDate,
+                    blockBefore
+                );
+                let priorTotalStakeAfter = await staking.getPriorTotalStakesForDate(
+                    lockedDate,
+                    blockAfter
+                );
+                expect(priorTotalStakeAfter.sub(priorTotalStakeBefore)).to.be.equal(intervalAmount);
+
+                //check getPriorUserStakeByDate
+                let priorUserStakeBefore = await staking.getPriorUserStakeByDate(
+                    user,
+                    lockedDate,
+                    blockBefore
+                );
+                let priorUserStakeAfter = await staking.getPriorUserStakeByDate(
+                    user,
+                    lockedDate,
+                    blockAfter
+                );
+                expect(priorUserStakeAfter.sub(priorUserStakeBefore)).to.be.equal(intervalAmount);
+
+                //check getPriorStakeByDateForDelegatee
+                let priorDelegateStakeBefore = await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    lockedDate,
+                    blockBefore
+                );
+                let priorDelegateStakeAfter = await staking.getPriorStakeByDateForDelegatee(
+                    delegatee,
+                    lockedDate,
+                    blockAfter
+                );
+                expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(intervalAmount);
+
+                await expectEvent.inTransaction(
+                    tx.receipt.rawLogs[0].transactionHash,
+                    StakingStakeModule,
+                    "TokensStaked",
+                    {
+                        staker: user,
+                        amount: intervalAmount,
+                        lockedUntil: lockedDate,
+                        totalStaked: intervalAmount,
+                    }
+                );
+
+                await expectEvent.inTransaction(
+                    tx.receipt.rawLogs[0].transactionHash,
+                    StakingStakeModule,
+                    "DelegateChanged",
+                    {
+                        delegator: user,
+                        lockedUntil: lockedDate,
+                        fromDelegate: ZERO_ADDRESS,
+                        toDelegate: delegatee,
+                    }
+                );
+            }
+        });
+
     });
 
     describe("balanceOf", () => {
