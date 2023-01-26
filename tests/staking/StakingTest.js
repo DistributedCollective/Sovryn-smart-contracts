@@ -1122,7 +1122,6 @@ contract("Staking", (accounts) => {
         });
     });
 
-
     describe("stakeBySchedule", () => {
         //the function reverts if the contract is paused or frozen
         it("should fail if paused", async () => {
@@ -1453,7 +1452,9 @@ contract("Staking", (accounts) => {
                     lockedDate,
                     blockAfter
                 );
-                expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(intervalAmount);
+                expect(priorDelegateStakeAfter.sub(priorDelegateStakeBefore)).to.be.equal(
+                    intervalAmount
+                );
             }
         });
 
