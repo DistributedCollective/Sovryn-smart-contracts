@@ -47,8 +47,8 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
     using SafeERC20 for IERC20;
 
     address constant ZERO_ADDRESS = address(0);
-    address public constant CHECKPOINT_RBTC_ADDRESS =
-        address(uint160(uint256(keccak256("CHECKPOINT_RBTC_ADDRESS"))));
+    address public constant RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT =
+        address(uint160(uint256(keccak256("RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT"))));
 
     /* Events */
 
@@ -90,9 +90,8 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 
     /// @dev fallback function to support rbtc transfer when unwrap the wrbtc.
     function() external payable {
-        IWrbtcERC20 wRBTCToken = protocol.wrbtcToken();
         require(
-            msg.sender == address(wRBTCToken),
+            msg.sender == address(protocol.wrbtcToken()),
             "FeeSharingProxy::fallback: only allowed wrbtc"
         );
     }
@@ -128,7 +127,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
                     "FeeSharingProxy::withdrawFees: wrbtc token amount exceeds 96 bits"
                 );
 
-            _addCheckpoint(CHECKPOINT_RBTC_ADDRESS, amount96);
+            _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
         }
 
         emit FeeWithdrawn(msg.sender, ZERO_ADDRESS, wrbtcAmountWithdrawn);
@@ -174,7 +173,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         }
 
         if (totalPoolTokenAmount > 0) {
-            _addCheckpoint(CHECKPOINT_RBTC_ADDRESS, totalPoolTokenAmount);
+            _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, totalPoolTokenAmount);
         }
     }
 
@@ -189,16 +188,15 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         require(_token != ZERO_ADDRESS, "FeeSharingProxy::transferTokens: invalid address");
         require(_amount > 0, "FeeSharingProxy::transferTokens: invalid amount");
 
+        /// @notice Transfer tokens from msg.sender
+        bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
+        require(success, "Staking::transferTokens: token transfer failed");
+
         // if _token is wrbtc, need to unwrap it to rbtc
         IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
         if (_token == address(wrbtcToken)) {
             wrbtcToken.withdraw(_amount);
-            _token = CHECKPOINT_RBTC_ADDRESS;
-        } else {
-            /// @notice Transfer tokens from msg.sender
-            bool success =
-                IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
-            require(success, "Staking::transferTokens: token transfer failed");
+            _token = RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT;
         }
 
         _addCheckpoint(_token, _amount);
@@ -215,7 +213,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         uint96 _amount = uint96(msg.value);
         require(_amount > 0, "FeeSharingProxy::transferRBTC: invalid value");
 
-        _addCheckpoint(CHECKPOINT_RBTC_ADDRESS, _amount);
+        _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, _amount);
 
         emit TokensTransferred(msg.sender, ZERO_ADDRESS, _amount);
     }
@@ -336,7 +334,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             _maxCheckpoints
         );
 
-        processedCheckpoints[user][CHECKPOINT_RBTC_ADDRESS] = endRBTC;
+        processedCheckpoints[user][RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT] = endRBTC;
         processedCheckpoints[user][address(wrbtcToken)] = endWRBTC;
         processedCheckpoints[user][loanPoolTokenWRBTC] = endIWRBTC;
 
@@ -407,20 +405,20 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             return (0, 0);
         }
 
-        uint256 start = processedCheckpoints[_user][_loanPoolToken];
+        uint256 processedCheckpoints = processedCheckpoints[_user][_loanPoolToken];
         uint256 end;
 
         /// @dev Additional bool param can't be used because of stack too deep error.
         if (_maxCheckpoints > 0) {
-            if (start >= numTokenCheckpoints[_loanPoolToken]) {
+            if (processedCheckpoints >= numTokenCheckpoints[_loanPoolToken]) {
                 return (0, 0);
             }
             /// @dev withdraw -> _getAccumulatedFees
-            end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
+            end = _getEndOfRange(processedCheckpoints, _loanPoolToken, _maxCheckpoints);
         } else {
             /// @dev getAccumulatedFees -> _getAccumulatedFees
             /// Don't throw error for getter invocation outside of transaction.
-            if (start >= numTokenCheckpoints[_loanPoolToken]) {
+            if (processedCheckpoints >= numTokenCheckpoints[_loanPoolToken]) {
                 return (0, numTokenCheckpoints[_loanPoolToken]);
             }
             end = numTokenCheckpoints[_loanPoolToken];
@@ -429,7 +427,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         uint256 amount = 0;
         uint256 cachedLockDate = 0;
         uint96 cachedWeightedStake = 0;
-        for (uint256 i = start; i < end; i++) {
+        for (uint256 i = processedCheckpoints; i < end; i++) {
             Checkpoint storage checkpoint = tokenCheckpoints[_loanPoolToken][i];
             uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
             uint96 weightedStake;
@@ -650,7 +648,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 
         (_rbtcAmount, _endRBTC) = _getAccumulatedFees(
             _user,
-            CHECKPOINT_RBTC_ADDRESS,
+            RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
             _maxCheckpoints
         );
         (_wrbtcAmount, _endWRBTC) = _getAccumulatedFees(

@@ -109,7 +109,7 @@ contract("FeeSharingProxy:", (accounts) => {
     const name = "Test SOVToken";
     const symbol = "TST";
 
-    let CHECKPOINT_RBTC_ADDRESS;
+    let RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT;
     let root, account1, account2, account3, account4;
     let SOVToken, SUSD, WRBTC, sovryn, staking;
     let loanTokenSettings, loanTokenLogic, loanToken;
@@ -259,7 +259,8 @@ contract("FeeSharingProxy:", (accounts) => {
         const maxDisagreement = new BN(wei("5", "ether"));
         await sovryn.setMaxDisagreement(maxDisagreement);
 
-        CHECKPOINT_RBTC_ADDRESS = await feeSharingProxy.CHECKPOINT_RBTC_ADDRESS();
+        RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT =
+            await feeSharingProxy.RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT();
 
         return sovryn;
     }
@@ -473,11 +474,11 @@ contract("FeeSharingProxy:", (accounts) => {
 
             //checkpoints
             let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
             let checkpoint = await feeSharingProxy.tokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
@@ -487,7 +488,7 @@ contract("FeeSharingProxy:", (accounts) => {
             expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
             // check lastFeeWithdrawalTime
             let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
@@ -549,11 +550,11 @@ contract("FeeSharingProxy:", (accounts) => {
 
             //checkpoints
             let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
             let checkpoint = await feeSharingProxy.tokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
@@ -564,7 +565,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
             //check lastFeeWithdrawalTime
             let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
@@ -696,11 +697,11 @@ contract("FeeSharingProxy:", (accounts) => {
 
             // checkpoints
             let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
             let checkpoint = await feeSharingProxy.tokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
@@ -711,7 +712,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
             // check lastFeeWithdrawalTime
             let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
@@ -787,10 +788,13 @@ contract("FeeSharingProxy:", (accounts) => {
 
             // checkpoints
             numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(numTokenCheckpoints.toNumber()).to.be.equal(2);
-            checkpoint = await feeSharingProxy.tokenCheckpoints.call(CHECKPOINT_RBTC_ADDRESS, 1);
+            checkpoint = await feeSharingProxy.tokenCheckpoints.call(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                1
+            );
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(
                 totalStake * MAX_VOTING_WEIGHT
@@ -801,7 +805,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
             // check lastFeeWithdrawalTime
             lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
@@ -992,7 +996,10 @@ contract("FeeSharingProxy:", (accounts) => {
 
             await feeSharingProxy.withdrawFees([SUSD.address]);
 
-            let fees = await feeSharingProxy.getAccumulatedFees(account1, CHECKPOINT_RBTC_ADDRESS);
+            let fees = await feeSharingProxy.getAccumulatedFees(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
             expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
 
             let tx = await feeSharingProxy.withdrawRBTC(1000, account2, {
@@ -1002,7 +1009,10 @@ contract("FeeSharingProxy:", (accounts) => {
             // processedCheckpoints
             let [processedCheckpointsRBTC, processedCheckpointsWRBTC, processedCheckpointsIWRBTC] =
                 await Promise.all([
-                    feeSharingProxy.processedCheckpoints.call(account1, CHECKPOINT_RBTC_ADDRESS),
+                    feeSharingProxy.processedCheckpoints.call(
+                        account1,
+                        RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+                    ),
                     feeSharingProxy.processedCheckpoints.call(account1, WRBTC.address),
                     feeSharingProxy.processedCheckpoints.call(account1, loanTokenWrbtc.address),
                 ]);
@@ -1104,7 +1114,10 @@ contract("FeeSharingProxy:", (accounts) => {
 
             await feeSharingProxy.withdrawFees([SUSD.address]);
 
-            let fees = await feeSharingProxy.getAccumulatedFees(account1, CHECKPOINT_RBTC_ADDRESS);
+            let fees = await feeSharingProxy.getAccumulatedFees(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
             expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
 
             let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
@@ -1146,7 +1159,7 @@ contract("FeeSharingProxy:", (accounts) => {
             // processedCheckpoints
             let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(
                 account1,
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(1);
 
@@ -1351,7 +1364,7 @@ contract("FeeSharingProxy:", (accounts) => {
             // processedCheckpoints
             let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(
                 account1,
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(1);
 
@@ -1418,7 +1431,7 @@ contract("FeeSharingProxy:", (accounts) => {
             // processedCheckpoints
             processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(
                 account1,
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(3);
 
@@ -1460,7 +1473,7 @@ contract("FeeSharingProxy:", (accounts) => {
             // processedCheckpoints
             let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(
                 account1,
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(10);
         });
@@ -1488,7 +1501,7 @@ contract("FeeSharingProxy:", (accounts) => {
             // processedCheckpoints
             let processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(
                 account1,
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(5);
 
@@ -1499,7 +1512,7 @@ contract("FeeSharingProxy:", (accounts) => {
             // processedCheckpoints
             processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(
                 account1,
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(8);
 
@@ -1510,7 +1523,7 @@ contract("FeeSharingProxy:", (accounts) => {
             // processedCheckpoints
             processedCheckpoints = await feeSharingProxy.processedCheckpoints.call(
                 account1,
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(10);
         });
@@ -1688,7 +1701,7 @@ contract("FeeSharingProxy:", (accounts) => {
             let feesWithdrawn = tx.logs[1].args.amount;
             let userFees = await feeSharingProxy.getAccumulatedFees(
                 account1,
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
 
             // 100% of the fees should go to the user -> vesting contract not considered
@@ -1827,11 +1840,11 @@ contract("FeeSharingProxy:", (accounts) => {
 
             //checkpoints
             let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
             let checkpoint = await feeSharingProxy.tokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
@@ -1842,7 +1855,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
             //check lastFeeWithdrawalTime
             let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
@@ -1909,11 +1922,11 @@ contract("FeeSharingProxy:", (accounts) => {
 
             //checkpoints
             let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
             let checkpoint = await feeSharingProxy.tokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
@@ -1924,7 +1937,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
             //check lastFeeWithdrawalTime
             let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
@@ -2159,7 +2172,7 @@ contract("FeeSharingProxy:", (accounts) => {
             );
             expect(totalAccumulatedRBTCFee.toNumber()).to.equal(0);
             expect(
-                await feeSharingProxy.unprocessedAmount.call(CHECKPOINT_RBTC_ADDRESS)
+                await feeSharingProxy.unprocessedAmount.call(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
             ).to.be.bignumber.equal(new BN(0));
         });
 
@@ -2178,7 +2191,7 @@ contract("FeeSharingProxy:", (accounts) => {
             expect(totalAccumulatedRBTCFee.toString()).to.equal(new BN(amount).toString());
 
             expect(
-                await feeSharingProxy.unprocessedAmount.call(CHECKPOINT_RBTC_ADDRESS)
+                await feeSharingProxy.unprocessedAmount.call(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
             ).to.be.bignumber.equal(new BN(0));
 
             expectEvent(tx, "TokensTransferred", {
@@ -2189,11 +2202,11 @@ contract("FeeSharingProxy:", (accounts) => {
 
             // checkpoints
             let numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
             let checkpoint = await feeSharingProxy.tokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
@@ -2204,14 +2217,14 @@ contract("FeeSharingProxy:", (accounts) => {
 
             // check lastFeeWithdrawalTime
             let lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
 
             expectEvent(tx, "CheckpointAdded", {
                 sender: root,
-                token: CHECKPOINT_RBTC_ADDRESS,
+                token: RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 amount: new BN(amount),
             });
 
@@ -2223,7 +2236,7 @@ contract("FeeSharingProxy:", (accounts) => {
             expect(totalAccumulatedRBTCFee.toString()).to.equal(new BN(amount).toString());
 
             expect(
-                await feeSharingProxy.unprocessedAmount.call(CHECKPOINT_RBTC_ADDRESS)
+                await feeSharingProxy.unprocessedAmount.call(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
             ).to.be.bignumber.equal(new BN(amount * 2));
 
             expectEvent(tx, "TokensTransferred", {
@@ -2242,15 +2255,18 @@ contract("FeeSharingProxy:", (accounts) => {
             expect(totalAccumulatedRBTCFee.toString()).to.equal(new BN(amount * 7).toString());
 
             expect(
-                await feeSharingProxy.unprocessedAmount.call(CHECKPOINT_RBTC_ADDRESS)
+                await feeSharingProxy.unprocessedAmount.call(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
             ).to.be.bignumber.equal(new BN(0));
 
             // checkpoints
             numTokenCheckpoints = await feeSharingProxy.numTokenCheckpoints.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(numTokenCheckpoints.toNumber()).to.be.equal(2);
-            checkpoint = await feeSharingProxy.tokenCheckpoints.call(CHECKPOINT_RBTC_ADDRESS, 1);
+            checkpoint = await feeSharingProxy.tokenCheckpoints.call(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                1
+            );
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(
                 totalStake * MAX_VOTING_WEIGHT
@@ -2259,7 +2275,7 @@ contract("FeeSharingProxy:", (accounts) => {
 
             // check lastFeeWithdrawalTime
             lastFeeWithdrawalTime = await feeSharingProxy.lastFeeWithdrawalTime.call(
-                CHECKPOINT_RBTC_ADDRESS
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
