@@ -31,7 +31,7 @@ const func = async function (hre) {
             //@todo wrap getting ms tx data into a helper
             let stakingProxyInterface = new ethers.utils.Interface(stakingProxyDeployment.abi);
             let data = stakingProxyInterface.encodeFunctionData("setImplementation", [tx.address]);
-            const { deployer } = await getNamedAccounts("deployer");
+            const { deployer } = await getNamedAccounts();
             ///@todo check if the deployer is one of ms owners
             log(
                 `Creating multisig tx to set StakingModulesProxy(${tx.address}) as implementation for StakingProxy(${stakingProxyDeployment.address}...`

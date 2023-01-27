@@ -170,7 +170,7 @@ const createProposal = async (
     targets,
     values,
     signatures,
-    datas,
+    callDatas,
     description
 ) => {
     const { ethers } = hre;
@@ -180,12 +180,14 @@ const createProposal = async (
     Target:              ${targets}
     Values:              ${values}
     Signature:           ${signatures}
-    Data:                ${datas}
+    Data:                ${callDatas}
     Description:         ${description}
     =============================================================`);
     const gov = await ethers.getContractAt("GovernorAlpha", governorAddress);
-    const tx = await gov.propose(targets, values, signatures, callDatas, description);
-    console.log(tx.info());
+    const tx = await (
+        await gov.propose(targets, values, signatures, callDatas, description)
+    ).wait();
+    console.log(tx.receipt);
 };
 
 module.exports = {
