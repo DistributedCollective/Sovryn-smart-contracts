@@ -299,9 +299,8 @@ contract("FeeSharingProxy:", (accounts) => {
         it("Withdraw zero amount will success with the proper emitted event", async () => {
             await protocolDeploymentFixture();
             const tx = await feeSharingProxy.withdrawFees([SUSD.address]);
-            expectEvent(tx, "FeeWithdrawn", {
+            expectEvent(tx, "FeeWithdrawnInRBTC", {
                 sender: root,
-                token: ZERO_ADDRESS,
                 amount: new BN(0),
             });
         });
@@ -493,9 +492,8 @@ contract("FeeSharingProxy:", (accounts) => {
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
 
-            expectEvent(tx, "FeeWithdrawn", {
+            expectEvent(tx, "FeeWithdrawnInRBTC", {
                 sender: root,
-                token: ZERO_ADDRESS,
                 amount: feeAmount,
             });
         });
@@ -570,9 +568,8 @@ contract("FeeSharingProxy:", (accounts) => {
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
 
-            expectEvent(tx, "FeeWithdrawn", {
+            expectEvent(tx, "FeeWithdrawnInRBTC", {
                 sender: root,
-                token: ZERO_ADDRESS,
                 amount: feeAmount,
             });
         });

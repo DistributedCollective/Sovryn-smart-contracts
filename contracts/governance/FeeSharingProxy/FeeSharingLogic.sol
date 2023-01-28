@@ -52,8 +52,9 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
 
     /* Events */
 
-    /// @notice An event emitted when fee get withdrawn.
-    event FeeWithdrawn(address indexed sender, address indexed token, uint256 amount);
+    /// @notice Deprecated event after the unification between wrbtc & rbtc
+    // event FeeWithdrawn(address indexed sender, address indexed token, uint256 amount);
+    event FeeWithdrawnInRBTC(address indexed sender, uint256 amount);
 
     /// @notice An event emitted when tokens transferred.
     event TokensTransferred(address indexed sender, address indexed token, uint256 amount);
@@ -130,7 +131,11 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
         }
 
-        emit FeeWithdrawn(msg.sender, ZERO_ADDRESS, wrbtcAmountWithdrawn);
+        // note deprecated event since we unify the wrbtc & rbtc
+        // emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
+
+        // note new emitted event
+        emit FeeWithdrawnInRBTC(msg.sender, wrbtcAmountWithdrawn);
     }
 
     /**
@@ -405,20 +410,20 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             return (0, 0);
         }
 
-        uint256 processedCheckpoints = processedCheckpoints[_user][_loanPoolToken];
+        uint256 processedUserCheckpoints = processedCheckpoints[_user][_loanPoolToken];
         uint256 end;
 
         /// @dev Additional bool param can't be used because of stack too deep error.
         if (_maxCheckpoints > 0) {
-            if (processedCheckpoints >= numTokenCheckpoints[_loanPoolToken]) {
+            if (processedUserCheckpoints >= numTokenCheckpoints[_loanPoolToken]) {
                 return (0, 0);
             }
             /// @dev withdraw -> _getAccumulatedFees
-            end = _getEndOfRange(processedCheckpoints, _loanPoolToken, _maxCheckpoints);
+            end = _getEndOfRange(processedUserCheckpoints, _loanPoolToken, _maxCheckpoints);
         } else {
             /// @dev getAccumulatedFees -> _getAccumulatedFees
             /// Don't throw error for getter invocation outside of transaction.
-            if (processedCheckpoints >= numTokenCheckpoints[_loanPoolToken]) {
+            if (processedUserCheckpoints >= numTokenCheckpoints[_loanPoolToken]) {
                 return (0, numTokenCheckpoints[_loanPoolToken]);
             }
             end = numTokenCheckpoints[_loanPoolToken];
@@ -427,7 +432,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         uint256 amount = 0;
         uint256 cachedLockDate = 0;
         uint96 cachedWeightedStake = 0;
-        for (uint256 i = processedCheckpoints; i < end; i++) {
+        for (uint256 i = processedUserCheckpoints; i < end; i++) {
             Checkpoint storage checkpoint = tokenCheckpoints[_loanPoolToken][i];
             uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
             uint96 weightedStake;
