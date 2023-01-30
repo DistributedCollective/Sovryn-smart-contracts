@@ -273,7 +273,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 intervalLength,
         address stakeFor,
         address delegatee
-    ) external whenNotPaused {
+    ) external whenNotPaused whenNotFrozen {
         _stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
     }
 
@@ -293,7 +293,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 intervalLength,
         address stakeFor,
         address delegatee
-    ) external whenNotPaused {
+    ) external whenNotPaused whenNotFrozen {
         _stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
     }
 
@@ -314,6 +314,16 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         address stakeFor,
         address delegatee
     ) internal {
+        require(amount > 0, "Invalid amount");
+        require(duration <= MAX_DURATION, "Invalid duration");
+        require(intervalLength > 0, "Invalid interval length");
+        require(intervalLength % TWO_WEEKS == 0, "Invalid interval length");
+        if (delegatee != stakeFor && delegatee != address(0)) {
+            require(
+                stakeFor == msg.sender,
+                "Only stakeFor account is allowed to change delegatee"
+            );
+        }
         /**
          * @dev Stake them until lock dates according to the vesting schedule.
          * Note: because staking is only possible in periods of 2 weeks,
@@ -321,9 +331,6 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
          * depending on the date of staking.
          * */
         uint256 start = _timestampToLockDate(block.timestamp + cliff);
-        if (duration > MAX_DURATION) {
-            duration = MAX_DURATION;
-        }
         uint256 end = _timestampToLockDate(block.timestamp + duration);
         uint256 numIntervals = (end - start) / intervalLength + 1;
         uint256 stakedPerInterval = amount / numIntervals;
@@ -348,7 +355,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         /// @dev Stake the rest in 4 week intervals.
         for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
             /// @dev Stakes for itself, delegates to the owner.
-            _notSameBlockAsStakingCheckpoint(i); // must wait a block before staking again for that same deadline
+            _notSameBlockAsStakingCheckpoint(i, stakeFor); // must wait a block before staking again for that same deadline
             _stakeOptionalTokenTransfer(
                 msg.sender,
                 uint96(stakedPerInterval),

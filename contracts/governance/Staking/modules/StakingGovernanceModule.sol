@@ -317,7 +317,7 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
      * @param lockDate the date if the position to delegate.
      * */
     function delegate(address delegatee, uint256 lockDate) external whenNotPaused {
-        _notSameBlockAsStakingCheckpoint(lockDate);
+        _notSameBlockAsStakingCheckpoint(lockDate, msg.sender);
 
         _delegate(msg.sender, delegatee, lockDate);
         // @dev delegates tokens for lock date 2 weeks later than given lock date
@@ -364,8 +364,6 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
         bytes32 r,
         bytes32 s
     ) external whenNotPaused {
-        _notSameBlockAsStakingCheckpoint(lockDate);
-
         /**
          * @dev The DOMAIN_SEPARATOR is a hash that uniquely identifies a
          * smart contract. It is built from a string denoting it as an
@@ -392,6 +390,9 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
         ); // S13
         require(nonce == nonces[signatory]++, "Staking::delegateBySig: invalid nonce"); // S14
         require(now <= expiry, "Staking::delegateBySig: signature expired"); // S15
+
+        _notSameBlockAsStakingCheckpoint(lockDate, signatory);
+
         _delegate(signatory, delegatee, lockDate);
         // @dev delegates tokens for lock date 2 weeks later than given lock date
         //		if message sender is a contract
