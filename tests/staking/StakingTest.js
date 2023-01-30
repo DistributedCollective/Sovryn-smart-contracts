@@ -3053,9 +3053,14 @@ contract("Staking", (accounts) => {
         });
 
         it("if date - startDate > max duration, the function reverts", async () => {
-            // This must not be further away than MAX_DURATION or `stake` will adjust the locked ts
-            const date = kickoffTS.add(MAX_DURATION);
-            const startDate = kickoffTS.sub(new BN(1));
+            const currentDate = kickoffTS.add(TWO_WEEKS_BN);
+            await setNextBlockTimestamp(currentDate.toNumber()); // startDate cannot be before kickoffTS
+
+            // This must not be further away from current time than MAX_DURATION or `stake` will adjust the locked ts
+            const date = currentDate.add(MAX_DURATION);
+
+            // more than MAX_DURATION away from currentDate
+            const startDate = kickoffTS;
 
             // TODO: should not require stake
             const blockNumber = await initializeStake(date, "1000");
@@ -3125,7 +3130,7 @@ contract("Staking", (accounts) => {
             );
         });
 
-        it("if date is not a valid lock date, the function will return the weighted stake at the closest lock date AFTER date", async () => {
+        it("if date is not a valid lock date, the function will return the weighted stake at the closest lock date BEFORE date", async () => {
             const startDate = kickoffTS.add(TWO_WEEKS_BN);
             const stakeDate = startDate.add(TWO_WEEKS_BN);
             const dateBefore = stakeDate.sub(new BN(1));
@@ -3143,10 +3148,10 @@ contract("Staking", (accounts) => {
                 getAmountWithWeight("10000", stakeDate, startDate)
             );
 
-            // not a valid lock date but before, should fall back to stake AFTER the date e.g. the staking date
+            // not a valid lock date but after, should get adjusted to the stake date
             weightedStake = await staking.weightedStakeByDate(
                 a1,
-                dateBefore,
+                dateAfter,
                 startDate,
                 blockNumber
             );
@@ -3154,14 +3159,55 @@ contract("Staking", (accounts) => {
                 getAmountWithWeight("10000", stakeDate, startDate)
             );
 
-            // date after -> it will return the stake at the date after, which is 0 in this case
+            // date before -> gets adjusted to the previous lock date (with 0 stake)
             weightedStake = await staking.weightedStakeByDate(
                 a1,
-                dateAfter,
+                dateBefore,
                 startDate,
                 blockNumber
             );
             expect(weightedStake).to.be.bignumber.eq("0");
+        });
+
+        it("if startDate is not a valid lock date, the function will return the weighted stake at the closest lock date BEFORE startDate", async () => {
+            const startDate = kickoffTS.add(TWO_WEEKS_BN);
+            const stakeDate = startDate.add(TWO_WEEKS_BN);
+            const startDateBefore = startDate.sub(new BN(1));
+            const startDateAfter = startDate.add(new BN(1));
+            const blockNumber = await initializeStake(stakeDate, "10000");
+
+            // sanity check
+            let weightedStake = await staking.weightedStakeByDate(
+                a1,
+                stakeDate,
+                startDate,
+                blockNumber
+            );
+            expect(weightedStake).to.be.bignumber.eq(
+                getAmountWithWeight("10000", stakeDate, startDate)
+            );
+
+            // not a valid lock date but after, should get adjusted to the start date
+            weightedStake = await staking.weightedStakeByDate(
+                a1,
+                stakeDate,
+                startDateAfter,
+                blockNumber
+            );
+            expect(weightedStake).to.be.bignumber.eq(
+                getAmountWithWeight("10000", stakeDate, startDate)
+            );
+
+            // date before -> gets adjusted to the previous lock date (higher weighted amount)
+            weightedStake = await staking.weightedStakeByDate(
+                a1,
+                stakeDate,
+                startDateBefore,
+                blockNumber
+            );
+            expect(weightedStake).to.be.bignumber.eq(
+                getAmountWithWeight("10000", stakeDate, startDate.sub(TWO_WEEKS_BN))
+            );
         });
     });
 
