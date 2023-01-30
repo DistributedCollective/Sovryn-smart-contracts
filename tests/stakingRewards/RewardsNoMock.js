@@ -10,8 +10,8 @@
 
 const { expect } = require("chai");
 const { BigNumber } = require("@ethersproject/bignumber");
-const { expectRevert, BN, constants } = require("@openzeppelin/test-helpers");
-const { mine, mineUpTo } = require("@nomicfoundation/hardhat-network-helpers");
+const { BN, constants } = require("@openzeppelin/test-helpers");
+const { mine, mineUpTo, takeSnapshot } = require("@nomicfoundation/hardhat-network-helpers");
 
 const { deployAndGetIStaking } = require("../Utils/initializer");
 
@@ -20,19 +20,11 @@ const TWO_WEEKS = 1209600;
 const DELAY = TWO_WEEKS;
 
 const {
-    MockContractFactory,
-    MockContract,
-    FakeContract,
-    smock,
-} = require("@defi-wonderland/smock");
-const {
     ethers,
     deployments: { deploy, get, log },
     getNamedAccounts,
 } = require("hardhat");
-//chai.use(smock.matchers);
 
-//const wei = web3.utils.toWei;
 const wei = (amount, from = "ethers") => {
     return ethers.utils.parseUnits(amount, from);
 };
@@ -100,7 +92,6 @@ describe("StakingRewards - First Period", () => {
             .stake(wei("10000", "ether"), inThreeYears, a3.address, a3.address);
 
         // Staking Reward Program is deployed
-        //let stakingRewardsLogic = await (await smock.mock("StakingRewards")).deploy();
 
         let stakingRewardsLogic = await (
             await ethers.getContractFactory("StakingRewards")
@@ -115,7 +106,10 @@ describe("StakingRewards - First Period", () => {
     });
 
     describe("Flow - StakingRewards", () => {
-        it.skip("should increaseTrueTimeAndBlocks correctly", async () => {
+        it("should increaseTrueTimeAndBlocks correctly", async () => {
+            // take a snapshot of the current state of the blockchain
+            const snapshot = await takeSnapshot();
+
             //TODO: wrap into a fixture and reset after execution
             let blockNumBefore = await ethers.provider.getBlockNumber();
             let blockBefore = await ethers.provider.getBlock(blockNumBefore);
@@ -142,13 +136,14 @@ describe("StakingRewards - First Period", () => {
             expect(timestampAfter - timestampBefore).to.equal(TWO_WEEKS);
             //await ethers.provider.send("evm_mineBlockNumber", [-TWO_WEEKS / 30]);
             //await increaseTime(-TWO_WEEKS);
+
+            await snapshot.restore();
         });
 
         it("should revert if SOV Address is invalid", async () => {
-            await expectRevert(
-                stakingRewards.initialize(constants.ZERO_ADDRESS, staking.address),
-                "Invalid SOV Address."
-            );
+            await expect(
+                stakingRewards.initialize(constants.ZERO_ADDRESS, staking.address)
+            ).to.be.revertedWith("Invalid SOV Address.");
             // Staking Rewards Contract is loaded
             await SOV.transfer(stakingRewards.address, wei("1000000", "ether"));
             // Initialize

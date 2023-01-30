@@ -17,7 +17,8 @@
 const { expect } = require("chai");
 const { constants, expectRevert } = require("@openzeppelin/test-helpers");
 const { waffle } = require("hardhat");
-const { deployMockContract, loadFixture } = waffle;
+const { deployMockContract } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const PriceFeeds = artifacts.require("PriceFeeds");
 const PriceFeedV1PoolOracle = artifacts.require("PriceFeedV1PoolOracle");

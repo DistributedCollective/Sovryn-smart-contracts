@@ -14,8 +14,7 @@
  *
  */
 
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const EscrowReward = artifacts.require("EscrowReward");

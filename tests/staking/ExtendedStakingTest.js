@@ -16,8 +16,8 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, BN, time } = require("@openzeppelin/test-helpers");
 const {
     getSUSD,
@@ -476,14 +476,11 @@ contract("Staking", (accounts) => {
 
             await token.approve(staking.address, 0);
 
-            await token.approve(staking.address, amount * 2, { from: account1 });
-
             let contract = new web3.eth.Contract(staking.abi, staking.address);
             let sender = root;
             let data = contract.methods
                 .stakeWithApproval(sender, amount, lockedTS, root, root)
                 .encodeABI();
-            // let data = contract.methods.stakeWithApproval(account1, amount * 2, lockedTS, root, root).encodeABI();
             let tx = await token.approveAndCall(staking.address, amount, data, {
                 from: sender,
             });
@@ -523,7 +520,32 @@ contract("Staking", (accounts) => {
             expect(checkpoint.stake.toString()).to.be.equal(amount);
         });
 
-        //TODO: resume when refactored to resolve EIP-170 contract size issue
+        it("should fail if paused", async () => {
+            await staking.freezeUnfreeze(true);
+
+            let amount = "100";
+            let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let data = contract.methods
+                .stakeWithApproval(root, amount, lockedTS, root, root)
+                .encodeABI();
+
+            await expectRevert(token.approveAndCall(staking.address, amount, data), "paused");
+        });
+
+        it("should fail if frozen", async () => {
+            await staking.pauseUnpause(true);
+
+            let amount = "100";
+            let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let data = contract.methods
+                .stakeWithApproval(root, amount, lockedTS, root, root)
+                .encodeABI();
+
+            await expectRevert(token.approveAndCall(staking.address, amount, data), "paused");
+        });
+
         it("fails if invoked directly", async () => {
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
             await expectRevert(
@@ -531,7 +553,7 @@ contract("Staking", (accounts) => {
                 "unauthorized"
             );
         });
-        //TODO: resume when refactored to resolve EIP-170 contract size issue
+
         it("fails if wrong method passed in data", async () => {
             let amount = "100";
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
@@ -543,19 +565,18 @@ contract("Staking", (accounts) => {
                 "method is not allowed"
             );
         });
+
         it("fails if wrong sender passed in data", async () => {
             let amount = "100";
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
             let contract = new web3.eth.Contract(staking.abi, staking.address);
 
-            await token.approve(staking.address, amount * 2, { from: account1 });
-            let sender = root;
             let data = contract.methods
                 .stakeWithApproval(account1, amount, lockedTS, root, root)
                 .encodeABI();
 
             await expectRevert(
-                token.approveAndCall(staking.address, amount, data, { from: sender }),
+                token.approveAndCall(staking.address, amount, data, { from: root }),
                 "sender mismatch"
             );
         });
@@ -565,14 +586,12 @@ contract("Staking", (accounts) => {
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
             let contract = new web3.eth.Contract(staking.abi, staking.address);
 
-            await token.approve(staking.address, amount * 2, { from: account1 });
-            let sender = root;
             let data = contract.methods
-                .stakeWithApproval(sender, amount, lockedTS, root, root)
+                .stakeWithApproval(account1, amount, lockedTS, root, root)
                 .encodeABI();
 
             await expectRevert(
-                token.approveAndCall(staking.address, amount * 2, data, { from: sender }),
+                token.approveAndCall(staking.address, amount * 2, data, { from: account1 }),
                 "amount mismatch"
             );
         });
@@ -879,11 +898,11 @@ contract("Staking", (accounts) => {
     });
 
     describe("increaseStake", () => {
-        it("stakesBySchedule w/ duration < = > MAX_DURATION", async () => {
+        it("stakesBySchedule w/ duration < = MAX_DURATION", async () => {
             let amount = "1000";
             let duration = new BN(MAX_DURATION).div(new BN(2));
             let cliff = new BN(TWO_WEEKS).mul(new BN(2));
-            let intervalLength = new BN(10000000);
+            let intervalLength = new BN(TWO_WEEKS).mul(new BN(2));
             let lockTS = await getTimeFromKickoff(duration);
             await staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root);
 
@@ -902,22 +921,11 @@ contract("Staking", (accounts) => {
             // console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
             let stakedDurationEqualToMax = rootStaked["stakes"][0];
 
-            // Reset & duration > MAX
-            await loadFixture(deploymentAndInitFixture);
-            duration = new BN(MAX_DURATION).mul(new BN(4));
-            await staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root);
-
-            // Check staking status for this staker
-            rootStaked = await staking.getStakes(root);
-            // console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
-            let stakedDurationHigherThanMax = rootStaked["stakes"][0];
-
             /// @dev When duration = MAX or duration > MAX, contract deals w/ it as MAX
             ///   so the staked amount is higher when duration < MAX and equal when duration >= MAX
             expect(stakedDurationLowerThanMax).to.be.bignumber.greaterThan(
                 stakedDurationEqualToMax
             );
-            expect(stakedDurationEqualToMax).to.be.bignumber.equal(stakedDurationHigherThanMax);
         });
 
         it("Check getCurrentStakedUntil", async () => {

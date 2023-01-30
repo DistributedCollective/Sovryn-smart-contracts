@@ -364,7 +364,7 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
      * */
     function delegate(address delegatee, uint256 lockDate) external whenNotPaused {
         require(delegatee != address(0), "cannot delegate to the zero address");
-        _notSameBlockAsStakingCheckpoint(lockDate);
+        _notSameBlockAsStakingCheckpoint(lockDate, msg.sender);
 
         _delegate(msg.sender, delegatee, lockDate);
         // @dev delegates tokens for lock date 2 weeks later than given lock date

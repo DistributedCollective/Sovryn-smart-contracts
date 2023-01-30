@@ -40,8 +40,8 @@ def mintAggregatedToken(aggregatorAddress, tokenAddress, amount):
 def mintAggregatedTokenWithMS(aggregatorAddress, tokenAddress, amount):
     aggregator = loadAggregator(aggregatorAddress)
     token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
-    if(token.allowance(conf.acct, aggregatorAddress) < amount):
-        data = token.approve(aggregatorAddress, amount)
+    if(token.allowance(conf.contracts['multisig'], aggregatorAddress) < amount):
+        data = token.approve.encode_input(aggregatorAddress, amount)
         sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
     data = aggregator.mint.encode_input(tokenAddress, amount)
     sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
@@ -168,3 +168,9 @@ def setNewContractGuardian(newGuardian):
     #protocol
 
     #staking
+
+def openTrove(_maxFeePercentage, _ZUSDAmount, _upperHint, _lowerHint, coll):
+    abiFile =  open('./scripts/contractInteraction/ABIs/BorrowerOperations.json')
+    abi = json.load(abiFile)
+    borrowerOperations = Contract.from_abi("bo", address=conf.contracts['borrowerOperations'], abi=abi, owner=conf.acct)
+    borrowerOperations.openTrove(_maxFeePercentage, _ZUSDAmount, _upperHint, _lowerHint, {'value':coll})

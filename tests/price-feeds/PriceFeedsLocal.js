@@ -4,7 +4,7 @@
 
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect, waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const TestToken = artifacts.require("TestToken");
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");

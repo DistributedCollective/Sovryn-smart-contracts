@@ -14,8 +14,8 @@
  */
 
 const { assert } = require("chai");
-const { expect, waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { expect } = require("hardhat");
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 // const hre = require("hardhat"); access to the hardhat engine if needed
 // const { encodeParameters, etherMantissa, mineBlock, increaseTime, blockNumber, sendFallback } = require("./utilities/ethereum"); useful utilities
 
@@ -49,6 +49,8 @@ const {
     expectRevert,
 } = require("@openzeppelin/test-helpers");
 
+const mutexUtils = require("./reentrancy/utils");
+
 contract("Margin Trading with Affiliates boilerplate", (accounts) => {
     let loanTokenLogic;
     let WRBTC;
@@ -58,6 +60,8 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
     let wei = web3.utils.toWei;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();
@@ -108,17 +112,17 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
 
         {
             /**
-			struct LoanParams {
-				bytes32 id; // id of loan params object
-				bool active; // if false, this object has been disabled by the owner and can't be used for future loans
-				address owner; // owner of this object
-				address loanToken; // the token being loaned
-				address collateralToken; // the required collateral token
-				uint256 minInitialMargin; // the minimum allowed initial margin
-				uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
-				uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
-			}
-		*/
+            struct LoanParams {
+                bytes32 id; // id of loan params object
+                bool active; // if false, this object has been disabled by the owner and can't be used for future loans
+                address owner; // owner of this object
+                address loanToken; // the token being loaned
+                address collateralToken; // the required collateral token
+                uint256 minInitialMargin; // the minimum allowed initial margin
+                uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
+                uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
+            }
+        */
         }
         params = [
             "0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object

@@ -19,8 +19,8 @@ const {
 } = require("@openzeppelin/test-helpers");
 
 const { assert } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 // Some constants we would be using in the contract.
 let zero = new BN(0);

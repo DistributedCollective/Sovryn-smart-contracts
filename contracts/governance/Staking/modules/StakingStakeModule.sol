@@ -41,8 +41,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 until,
         address stakeFor,
         address delegatee
-    ) external whenNotPaused {
-        _notSameBlockAsStakingCheckpoint(until); // must wait a block before staking again for that same deadline
+    ) external whenNotPaused whenNotFrozen {
         _stake(msg.sender, amount, until, stakeFor, delegatee, false);
     }
 
@@ -63,7 +62,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 until,
         address stakeFor,
         address delegatee
-    ) external onlyThisContract whenNotPaused {
+    ) external onlyThisContract whenNotPaused whenNotFrozen {
         _stake(sender, amount, until, stakeFor, delegatee, false);
     }
 
@@ -91,7 +90,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
             stakeFor,
             delegatee,
             timeAdjusted,
-            true
+            true // transfer SOV
         );
     }
 
@@ -128,6 +127,8 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         if (stakeFor == address(0)) {
             stakeFor = sender;
         }
+        // must wait a block before staking again for that same deadline
+        _notSameBlockAsStakingCheckpoint(until, stakeFor);
 
         /// @dev Delegate for stakeFor if not specified otherwise.
         if (delegatee == address(0)) {
@@ -151,6 +152,16 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         //		(no delegation to another address).
         address previousDelegatee = delegates[stakeFor][until];
         if (previousDelegatee != delegatee) {
+            // @dev only the user that stakes for himself is allowed to delegate VP to another address
+            // which works with vesting stakes and prevents vulnerability of delegating VP to an arbitrary address from
+            // any address
+            if (delegatee != stakeFor) {
+                require(
+                    stakeFor == sender,
+                    "Only stakeFor account is allowed to change delegatee"
+                );
+            }
+
             /// @dev Update delegatee.
             delegates[stakeFor][until] = delegatee;
 
@@ -171,10 +182,15 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * @param previousLock The old unlocking timestamp.
      * @param until The new unlocking timestamp in seconds.
      * */
-    function extendStakingDuration(uint256 previousLock, uint256 until) external whenNotPaused {
+    function extendStakingDuration(uint256 previousLock, uint256 until)
+        external
+        whenNotPaused
+        whenNotFrozen
+    {
+        previousLock = _timestampToLockDate(previousLock);
         until = _timestampToLockDate(until);
 
-        _notSameBlockAsStakingCheckpoint(previousLock);
+        _notSameBlockAsStakingCheckpoint(previousLock, msg.sender);
 
         /// @dev Do not exceed the max duration, no overflow possible.
         uint256 latest = _timestampToLockDate(block.timestamp + MAX_DURATION);
@@ -257,7 +273,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 intervalLength,
         address stakeFor,
         address delegatee
-    ) external whenNotPaused {
+    ) external whenNotPaused whenNotFrozen {
         _stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
     }
 
@@ -277,7 +293,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         uint256 intervalLength,
         address stakeFor,
         address delegatee
-    ) external whenNotPaused {
+    ) external whenNotPaused whenNotFrozen {
         _stakeBySchedule(amount, cliff, duration, intervalLength, stakeFor, delegatee);
     }
 
@@ -298,6 +314,16 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         address stakeFor,
         address delegatee
     ) internal {
+        require(amount > 0, "Invalid amount");
+        require(duration <= MAX_DURATION, "Invalid duration");
+        require(intervalLength > 0, "Invalid interval length");
+        require(intervalLength % TWO_WEEKS == 0, "Invalid interval length");
+        if (delegatee != stakeFor && delegatee != address(0)) {
+            require(
+                stakeFor == msg.sender,
+                "Only stakeFor account is allowed to change delegatee"
+            );
+        }
         /**
          * @dev Stake them until lock dates according to the vesting schedule.
          * Note: because staking is only possible in periods of 2 weeks,
@@ -305,9 +331,6 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
          * depending on the date of staking.
          * */
         uint256 start = _timestampToLockDate(block.timestamp + cliff);
-        if (duration > MAX_DURATION) {
-            duration = MAX_DURATION;
-        }
         uint256 end = _timestampToLockDate(block.timestamp + duration);
         uint256 numIntervals = (end - start) / intervalLength + 1;
         uint256 stakedPerInterval = amount / numIntervals;
@@ -332,7 +355,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         /// @dev Stake the rest in 4 week intervals.
         for (uint256 i = start + intervalLength; i <= end; i += intervalLength) {
             /// @dev Stakes for itself, delegates to the owner.
-            _notSameBlockAsStakingCheckpoint(i); // must wait a block before staking again for that same deadline
+            _notSameBlockAsStakingCheckpoint(i, stakeFor); // must wait a block before staking again for that same deadline
             _stakeOptionalTokenTransfer(
                 msg.sender,
                 uint96(stakedPerInterval),

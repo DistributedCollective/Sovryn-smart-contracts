@@ -70,11 +70,10 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
         // abstract
     }
 
-    function _notSameBlockAsStakingCheckpoint(uint256 lockDate) internal view {
-        uint32 nCheckpoints = numUserStakingCheckpoints[msg.sender][lockDate];
+    function _notSameBlockAsStakingCheckpoint(uint256 lockDate, address stakeFor) internal view {
+        uint32 nCheckpoints = numUserStakingCheckpoints[stakeFor][lockDate];
         bool notSameBlock =
-            userStakingCheckpoints[msg.sender][lockDate][nCheckpoints - 1].fromBlock !=
-                block.number;
+            userStakingCheckpoints[stakeFor][lockDate][nCheckpoints - 1].fromBlock != block.number;
         require(notSameBlock, "cannot be mined in the same block as last stake"); // S20
     }
 

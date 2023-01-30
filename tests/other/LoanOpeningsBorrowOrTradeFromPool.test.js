@@ -12,8 +12,8 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { constants, BN, expectRevert } = require("@openzeppelin/test-helpers");
 const LoanSettingsEvents = artifacts.require("LoanSettingsEvents");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
@@ -99,9 +99,9 @@ contract("LoanOpeningsBorrowOrTradeFromPool", (accounts) => {
 
     describe("Tests loan opening isolated. does not work together with the other tests. needs to be run separately.", () => {
         /*
-			At this moment the maxLoanTerm is always 28 because it is hardcoded in setupLoanParams.
-			So there are only fix-term loans.
-		*/
+            At this moment the maxLoanTerm is always 28 because it is hardcoded in setupLoanParams.
+            So there are only fix-term loans.
+        */
         it("Test marginTradeFromPool sim", async () => {
             const loanTokenSent = hunEth;
             const sovrynSwap = await sovryn.sovrynSwapContractRegistryAddress();
