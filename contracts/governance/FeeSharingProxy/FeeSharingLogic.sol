@@ -339,20 +339,25 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             _maxCheckpoints
         );
 
-        processedCheckpoints[user][RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT] = endRBTC;
-        processedCheckpoints[user][address(wrbtcToken)] = endWRBTC;
-        processedCheckpoints[user][loanPoolTokenWRBTC] = endIWRBTC;
+        if (rbtcAmount > 0) {
+            processedCheckpoints[user][RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT] = endRBTC;
+        }
 
         // unwrap the wrbtc
-        if (wrbtcAmount > 0) wrbtcToken.withdraw(wrbtcAmount);
+        if (wrbtcAmount > 0) {
+            processedCheckpoints[user][address(wrbtcToken)] = endWRBTC;
+            wrbtcToken.withdraw(wrbtcAmount);
+        }
 
         // pull out the iWRBTC to rbtc to this feeSharingProxy contract
-        if (iWrbtcAmount > 0)
+        if (iWrbtcAmount > 0) {
+            processedCheckpoints[user][loanPoolTokenWRBTC] = endIWRBTC;
             iWRBTCloanAmountPaid = ILoanTokenWRBTC(loanPoolTokenWRBTC).burnToBTC(
                 address(this),
                 iWrbtcAmount,
                 false
             );
+        }
 
         uint256 totalAmount = rbtcAmount.add(wrbtcAmount).add(iWRBTCloanAmountPaid);
         require(totalAmount > 0, "FeeSharingProxy::withdrawFees: no rbtc for a withdrawal");
