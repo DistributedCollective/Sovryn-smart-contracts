@@ -132,7 +132,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         }
 
         // note deprecated event since we unify the wrbtc & rbtc
-        // emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
+        // emit FeeWithdrawn(msg.sender, RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, poolTokenAmount);
 
         // note new emitted event
         emit FeeWithdrawnInRBTC(msg.sender, wrbtcAmountWithdrawn);
@@ -316,7 +316,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
      * - iwrbtc balance which will be unwrapped to rbtc
      *
      */
-    function withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external {
+    function withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonReentrant {
         uint256 wrbtcAmount;
         uint256 rbtcAmount;
         uint256 iWrbtcAmount;
