@@ -39,6 +39,7 @@ const ONE_MILLON = "1000000000000000000000000";
 const TWO_WEEKS = 1209600;
 
 const hre = require("hardhat");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { ethers } = hre;
 
 const increaseTimeEthers = async (time) => {
@@ -910,6 +911,31 @@ contract("Vesting", (accounts) => {
             await vesting.withdrawTokens(root, { from: a1 });
         });
 
+        it("cancelTeamVesting should fail if recipient is zero address", async () => {
+            let toStake = ONE_MILLON;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                26 * WEEK,
+                142 * WEEK,
+                feeSharingProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+            await vestingReg.setTeamVesting(vesting.address, 0);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await expectRevert(
+                staking.cancelTeamVesting(vesting.address, ZERO_ADDRESS, 0),
+                "receiver address invalid"
+            );
+        });
+
         it("cancelTeamVesting should emit incompletion event if greater the max iterations (with 0 starting iteration)", async () => {
             let toStake = ONE_MILLON;
 
@@ -1090,8 +1116,43 @@ contract("Vesting", (accounts) => {
 
             expect(previousStake).to.be.bignumber.to.greaterThan(new BN(1));
 
+            const previousReceiverBalance = await token.balanceOf(root);
+            const previousTotalStakesForDate = [];
+            const previousVestingStakeByDate = [];
+            const previousStakeByDelegatee = [];
+
+            for (
+                let i = skippedIterations.toNumber();
+                i < skippedIterations.add(maxIterations.mul(new BN(TWO_WEEKS))).toNumber();
+                i += TWO_WEEKS
+            ) {
+                let lockedTS = await staking.timestampToLockDate(i);
+                // caching the stakeByDateForDelegatee for each lock dates before cancellation
+                previousStakeByDelegatee[i] = await staking.getPriorStakeByDateForDelegatee(
+                    root,
+                    lockedTS,
+                    currentBlockNumber - 1
+                );
+
+                // caching the totalStakesForDate for each lock dates before cancellation
+                previousTotalStakesForDate[i] = await staking.getPriorTotalStakesForDate(
+                    lockedTS,
+                    currentBlockNumber - 1
+                );
+
+                // caching the vestingStakeByDate for each lock dates before cancellation
+                previousVestingStakeByDate[i] = await staking.getPriorVestingStakeByDate(
+                    lockedTS,
+                    currentBlockNumber - 1
+                );
+            }
+
             const tx2 = await staking.cancelTeamVesting(vesting.address, root, skippedIterations);
             await increaseTimeEthers(1000);
+
+            const latestReceiverBalance = await token.balanceOf(root);
+
+            expect(latestReceiverBalance).to.be.bignumber.greaterThan(previousReceiverBalance);
 
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
@@ -1108,17 +1169,62 @@ contract("Vesting", (accounts) => {
 
             block = await ethers.provider.getBlock("latest");
             currentBlockNumber = block.number;
+            const latestTotalStakesForDate = [];
+            const latestVestingStakeByDate = [];
+            const latestStakeByDelegatee = [];
 
             for (
                 let i = skippedIterations.toNumber();
                 i < skippedIterations.add(maxIterations.mul(new BN(TWO_WEEKS))).toNumber();
                 i += TWO_WEEKS
             ) {
+                let lockedTS = await staking.timestampToLockDate(i);
+
                 const latestStake = await staking.getPriorUserStakeByDate(
                     vesting.address,
                     i,
                     currentBlockNumber - 1
                 );
+
+                // caching the stakeByDateForDelegatee for each lock dates after cancellation
+                latestStakeByDelegatee[i] = await staking.getPriorStakeByDateForDelegatee(
+                    root,
+                    lockedTS,
+                    currentBlockNumber - 1
+                );
+
+                // caching the totalStakesForDate for each lock dates after cancellation
+                latestTotalStakesForDate[i] = await staking.getPriorTotalStakesForDate(
+                    lockedTS,
+                    currentBlockNumber - 1
+                );
+
+                // caching the vestingStakeByDate for each lock dates after cancellation
+                latestVestingStakeByDate[i] = await staking.getPriorVestingStakeByDate(
+                    lockedTS,
+                    currentBlockNumber - 1
+                );
+
+                // the stakeByDateForDelegatee will be decreased after cancellation
+                if (latestStakeByDelegatee[i] > 0 && previousStakeByDelegatee[i] > 0) {
+                    expect(latestStakeByDelegatee[i]).to.be.bignumber.lessThan(
+                        previousStakeByDelegatee[i]
+                    );
+                }
+
+                // the totalStakesForDate will be decreased after cancellation
+                if (latestTotalStakesForDate[i] > 0 && previousTotalStakesForDate[i] > 0) {
+                    expect(latestTotalStakesForDate[i]).to.be.bignumber.lessThan(
+                        previousTotalStakesForDate[i]
+                    );
+                }
+
+                // the vestingStakeByDate will be decreased after cancellation
+                if (latestVestingStakeByDate[i] > 0 && previousVestingStakeByDate[i] > 0) {
+                    expect(latestVestingStakeByDate[i]).to.be.bignumber.lessThan(
+                        previousVestingStakeByDate[i]
+                    );
+                }
 
                 expect(latestStake.toString()).to.equal("1");
             }
