@@ -150,7 +150,8 @@ contract("SwapsExternal", (accounts) => {
         const loanTokenAddressWrbtc = await loanTokenWrbtc.loanTokenAddress();
         await sovryn.setLoanPool([loanTokenWrbtc.address], [loanTokenAddressWrbtc]);
 
-        await WRBTC.mint(sovryn.address, wei("500", "ether"));
+        await WRBTC.deposit({ value: wei("500", "ether") });
+        await WRBTC.transfer(sovryn.address, wei("500", "ether"));
 
         // Creating the Vesting Instance.
         vestingLogic = await VestingLogic.new();
@@ -481,9 +482,8 @@ contract("SwapsExternal", (accounts) => {
             // need to sub by swap fee because at this point, protocol will received the trading fee again.
             loanTokenWRBTCBalanceShouldBe = amount.mul(new BN(1)).sub(swapFee);
 
-            expectEvent(tx, "FeeWithdrawn", {
+            expectEvent(tx, "FeeWithdrawnInRBTC", {
                 sender: lender,
-                token: loanTokenWrbtc.address,
                 amount: loanTokenWRBTCBalanceShouldBe,
             });
         });

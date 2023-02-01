@@ -6,6 +6,7 @@ import "../../interfaces/IERC20.sol";
 import "../IFeeSharingCollectorProxy.sol";
 import "../Staking/interfaces/IStaking.sol";
 import "../../mixins/EnumerableAddressSet.sol";
+import "../../interfaces/IWrbtcERC20.sol";
 
 /**
  * @title FeeSharingCollectorProxy Storage contact.
@@ -103,9 +104,9 @@ interface IProtocol {
         external
         returns (uint256 totalWRBTCWithdrawn);
 
-    function underlyingToLoanPool(address token) external returns (address);
+    function underlyingToLoanPool(address token) external view returns (address);
 
-    function wrbtcToken() external returns (address);
+    function wrbtcToken() external view returns (IWrbtcERC20);
 
     function getSovTokenAddress() external view returns (address);
 }
