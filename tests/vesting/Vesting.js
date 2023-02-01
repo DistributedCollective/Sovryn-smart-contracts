@@ -24,7 +24,7 @@ const StakingProxy = artifacts.require("StakingProxy");
 const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const SOV = artifacts.require("SOV");
 const TestWrbtc = artifacts.require("TestWrbtc");
-const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
 //Upgradable Vesting Registry
@@ -53,7 +53,7 @@ contract("Vesting", (accounts) => {
     const maxWithdrawIterations = 10;
 
     let root, a1, a2, a3;
-    let token, staking, stakingProxy, feeSharingProxy;
+    let token, staking, stakingProxy, feeSharingCollectorProxy;
     let vestingLogic;
     let kickoffTS;
 
@@ -67,7 +67,7 @@ contract("Vesting", (accounts) => {
 
         vestingLogic = await VestingLogic.new();
 
-        feeSharingProxy = await FeeSharingProxy.new(
+        feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
             constants.ZERO_ADDRESS,
             constants.ZERO_ADDRESS
         );
@@ -100,7 +100,7 @@ contract("Vesting", (accounts) => {
                 root,
                 cliff,
                 duration,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vestingInstance = await VestingLogic.at(vestingInstance.address);
 
@@ -110,14 +110,14 @@ contract("Vesting", (accounts) => {
             let _tokenOwner = await vestingInstance.tokenOwner();
             let _cliff = await vestingInstance.cliff();
             let _duration = await vestingInstance.duration();
-            let _feeSharingProxy = await vestingInstance.feeSharingProxy();
+            let _feeSharingCollectorProxy = await vestingInstance.feeSharingCollectorProxy();
 
             assert.equal(_sov, token.address);
             assert.equal(_stackingAddress, staking.address);
             assert.equal(_tokenOwner, root);
             assert.equal(_cliff.toString(), cliff);
             assert.equal(_duration.toString(), duration);
-            assert.equal(_feeSharingProxy, feeSharingProxy.address);
+            assert.equal(_feeSharingCollectorProxy, feeSharingCollectorProxy.address);
         });
 
         it("fails if the 0 address is passed as SOV address", async () => {
@@ -129,7 +129,7 @@ contract("Vesting", (accounts) => {
                     root,
                     cliff,
                     duration,
-                    feeSharingProxy.address
+                    feeSharingCollectorProxy.address
                 ),
 
                 "SOV address invalid"
@@ -145,7 +145,7 @@ contract("Vesting", (accounts) => {
                     constants.ZERO_ADDRESS,
                     cliff,
                     duration,
-                    feeSharingProxy.address
+                    feeSharingCollectorProxy.address
                 ),
                 "token owner address invalid"
             );
@@ -160,7 +160,7 @@ contract("Vesting", (accounts) => {
                     root,
                     cliff,
                     duration,
-                    feeSharingProxy.address
+                    feeSharingCollectorProxy.address
                 ),
                 "staking address invalid"
             );
@@ -175,7 +175,7 @@ contract("Vesting", (accounts) => {
                     root,
                     cliff,
                     MAX_DURATION.add(new BN(1)),
-                    feeSharingProxy.address
+                    feeSharingCollectorProxy.address
                 ),
                 "duration may not exceed the max duration"
             );
@@ -190,13 +190,13 @@ contract("Vesting", (accounts) => {
                     root,
                     100,
                     99,
-                    feeSharingProxy.address
+                    feeSharingCollectorProxy.address
                 ),
                 "duration must be bigger than or equal to the cliff"
             );
         });
 
-        it("fails if the 0 address is passed as feeSharingProxy address", async () => {
+        it("fails if the 0 address is passed as feeSharingCollectorProxy address", async () => {
             await expectRevert(
                 Vesting.new(
                     vestingLogic.address,
@@ -207,7 +207,7 @@ contract("Vesting", (accounts) => {
                     duration,
                     constants.ZERO_ADDRESS
                 ),
-                "feeSharingProxy address invalid"
+                "feeSharingCollectorProxy address invalid"
             );
         });
     });
@@ -223,7 +223,7 @@ contract("Vesting", (accounts) => {
                 a2,
                 16 * WEEK,
                 26 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -268,7 +268,7 @@ contract("Vesting", (accounts) => {
                 a2,
                 16 * WEEK,
                 26 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -320,7 +320,7 @@ contract("Vesting", (accounts) => {
                 root,
                 26 * WEEK,
                 104 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             await token.approve(vesting.address, ONE_MILLON);
@@ -420,7 +420,7 @@ contract("Vesting", (accounts) => {
                 root,
                 cliff,
                 duration,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -479,7 +479,7 @@ contract("Vesting", (accounts) => {
                 root,
                 cliff,
                 duration,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -537,7 +537,7 @@ contract("Vesting", (accounts) => {
                 root,
                 cliff,
                 duration,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             await expectRevert(vesting.stakeTokensWithApproval(root, amount), "unauthorized");
@@ -554,7 +554,7 @@ contract("Vesting", (accounts) => {
                 root,
                 cliff,
                 duration,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -579,7 +579,7 @@ contract("Vesting", (accounts) => {
                 root,
                 cliff,
                 duration,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -643,7 +643,7 @@ contract("Vesting", (accounts) => {
                 root,
                 3 * WEEK,
                 3 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -689,7 +689,7 @@ contract("Vesting", (accounts) => {
                 root,
                 26 * WEEK,
                 104 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -733,7 +733,7 @@ contract("Vesting", (accounts) => {
                 root,
                 16 * WEEK,
                 34 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -782,7 +782,7 @@ contract("Vesting", (accounts) => {
                 root,
                 4 * WEEK,
                 20 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -833,7 +833,7 @@ contract("Vesting", (accounts) => {
                 root,
                 4 * WEEK,
                 20 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -877,7 +877,7 @@ contract("Vesting", (accounts) => {
                 a1,
                 26 * WEEK,
                 104 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -922,7 +922,7 @@ contract("Vesting", (accounts) => {
                 root,
                 26 * WEEK,
                 142 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             await vestingReg.setTeamVesting(vesting.address, 0);
@@ -947,7 +947,7 @@ contract("Vesting", (accounts) => {
                 root,
                 26 * WEEK,
                 142 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             await vestingReg.setTeamVesting(vesting.address, 0);
@@ -994,7 +994,7 @@ contract("Vesting", (accounts) => {
                 root,
                 26 * WEEK,
                 142 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             await vestingReg.setTeamVesting(vesting.address, 0);
@@ -1060,7 +1060,7 @@ contract("Vesting", (accounts) => {
                 root,
                 26 * WEEK,
                 142 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             await vestingReg.setTeamVesting(vesting.address, 0);
@@ -1245,7 +1245,7 @@ contract("Vesting", (accounts) => {
                 root,
                 16 * WEEK,
                 38 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -1274,7 +1274,7 @@ contract("Vesting", (accounts) => {
                 root,
                 26 * WEEK,
                 104 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
@@ -1299,7 +1299,7 @@ contract("Vesting", (accounts) => {
                 root,
                 16 * WEEK,
                 38 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             await vestingReg.setTeamVesting(vesting.address, 0);
@@ -1389,7 +1389,7 @@ contract("Vesting", (accounts) => {
                 root,
                 16 * WEEK,
                 38 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             await vestingReg.setTeamVesting(vesting.address, 0);
@@ -1410,7 +1410,7 @@ contract("Vesting", (accounts) => {
                 a1,
                 26 * WEEK,
                 104 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             await expectRevert(
@@ -1431,14 +1431,14 @@ contract("Vesting", (accounts) => {
                 a1,
                 26 * WEEK,
                 104 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 
             let maxCheckpoints = new BN(10);
             let tx = await vesting.collectDividends(a1, maxCheckpoints, a2);
 
-            let testData = await feeSharingProxy.testData.call();
+            let testData = await feeSharingCollectorProxy.testData.call();
             expect(testData.loanPoolToken).to.be.equal(a1);
             expect(testData.maxCheckpoints).to.be.bignumber.equal(maxCheckpoints);
             expect(testData.receiver).to.be.equal(a2);
@@ -1462,7 +1462,7 @@ contract("Vesting", (accounts) => {
                 a1,
                 26 * WEEK,
                 104 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             // 1. set new staking contract address on staking contract
@@ -1496,7 +1496,7 @@ contract("Vesting", (accounts) => {
                 a1,
                 26 * WEEK,
                 104 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
             await expectRevert(
@@ -1518,7 +1518,7 @@ contract("Vesting", (accounts) => {
                 a1,
                 26 * WEEK,
                 104 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
 

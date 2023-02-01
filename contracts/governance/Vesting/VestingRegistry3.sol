@@ -3,7 +3,7 @@ pragma solidity ^0.5.17;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../Staking/interfaces/IStaking.sol";
-import "../IFeeSharingProxy.sol";
+import "../IFeeSharingCollectorProxy.sol";
 import "./IVestingFactory.sol";
 import "./IVesting.sol";
 import "./ITeamVesting.sol";
@@ -20,7 +20,7 @@ contract VestingRegistry3 is Ownable {
     ///@notice the staking contract address
     address public staking;
     //@notice fee sharing proxy
-    address public feeSharingProxy;
+    address public feeSharingCollectorProxy;
     //@notice the vesting owner (e.g. governance timelock address)
     address public vestingOwner;
 
@@ -59,19 +59,22 @@ contract VestingRegistry3 is Ownable {
         address _vestingFactory,
         address _SOV,
         address _staking,
-        address _feeSharingProxy,
+        address _feeSharingCollectorProxy,
         address _vestingOwner
     ) public {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
-        require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+        require(
+            _feeSharingCollectorProxy != address(0),
+            "feeSharingCollectorProxy address invalid"
+        );
         require(_vestingOwner != address(0), "vestingOwner address invalid");
 
         _setVestingFactory(_vestingFactory);
 
         SOV = _SOV;
         staking = _staking;
-        feeSharingProxy = _feeSharingProxy;
+        feeSharingCollectorProxy = _feeSharingCollectorProxy;
         vestingOwner = _vestingOwner;
     }
 
@@ -198,7 +201,7 @@ contract VestingRegistry3 is Ownable {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollectorProxy,
                     _tokenOwner
                 );
             vestingContracts[_tokenOwner][type_] = vesting;
@@ -220,7 +223,7 @@ contract VestingRegistry3 is Ownable {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollectorProxy,
                     vestingOwner
                 );
             vestingContracts[_tokenOwner][type_] = vesting;

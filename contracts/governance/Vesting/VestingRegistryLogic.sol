@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../interfaces/IERC20.sol";
-import "../IFeeSharingProxy.sol";
+import "../IFeeSharingCollectorProxy.sol";
 import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "./VestingRegistryStorage.sol";
@@ -39,21 +39,24 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         address _vestingFactory,
         address _SOV,
         address _staking,
-        address _feeSharingProxy,
+        address _feeSharingCollectorProxy,
         address _vestingOwner,
         address _lockedSOV,
         address[] calldata _vestingRegistries
     ) external onlyOwner initializer {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
-        require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+        require(
+            _feeSharingCollectorProxy != address(0),
+            "feeSharingCollectorProxy address invalid"
+        );
         require(_vestingOwner != address(0), "vestingOwner address invalid");
         require(_lockedSOV != address(0), "LockedSOV address invalid");
 
         _setVestingFactory(_vestingFactory);
         SOV = _SOV;
         staking = _staking;
-        feeSharingProxy = _feeSharingProxy;
+        feeSharingCollectorProxy = _feeSharingCollectorProxy;
         vestingOwner = _vestingOwner;
         lockedSOV = LockedSOV(_lockedSOV);
         for (uint256 i = 0; i < _vestingRegistries.length; i++) {
@@ -365,7 +368,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollectorProxy,
                     _tokenOwner
                 );
             } else {
@@ -375,7 +378,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollectorProxy,
                     vestingOwner
                 );
             }

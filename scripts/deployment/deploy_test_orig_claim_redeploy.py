@@ -63,7 +63,7 @@ def main():
     staking = Contract.from_abi("Staking", address=staking.address, abi=interface.IStaking.abi, owner=acct)
 
      #deploy fee sharing contract
-    feeSharing = acct.deploy(FeeSharingProxy, contracts["sovrynProtocol"], staking.address)
+    feeSharing = acct.deploy(FeeSharingCollectorProxy, contracts["sovrynProtocol"], staking.address)
 
     # set fee sharing
     staking.setFeeSharing(feeSharing.address)

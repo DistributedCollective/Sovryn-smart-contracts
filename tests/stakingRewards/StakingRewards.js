@@ -19,8 +19,8 @@ const StakingProxy = artifacts.require("StakingProxy");
 
 const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
-const FeeSharingLogic = artifacts.require("FeeSharingLogic");
-const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingCollector = artifacts.require("FeeSharingCollector");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
 // Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
@@ -70,12 +70,17 @@ contract("StakingRewards", (accounts) => {
         // Deployed Staking Functionality
         staking = await initStakingModules();
 
-        // FeeSharingProxy
-        let feeSharingLogic = await FeeSharingLogic.new();
-        feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
-        await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
-        feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
-        await staking.setFeeSharing(feeSharingProxy.address);
+        // FeeSharingCollectorProxy
+        let feeSharingCollector = await FeeSharingCollector.new();
+        feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
+            sovryn.address,
+            staking.address
+        );
+        await feeSharingCollectorProxyObj.setImplementation(feeSharingCollector.address);
+        feeSharingCollectorProxy = await FeeSharingCollector.at(
+            feeSharingCollectorProxyObj.address
+        );
+        await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
         //Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
@@ -224,7 +229,10 @@ contract("StakingRewards", (accounts) => {
 
         it("should compute and send rewards to the staker after recalculating withdrawn stake", async () => {
             await increaseTimeAndBlocks(32659200); // More than a year - first stake expires
-            feeSharingProxy = await FeeSharingProxy.new(sovryn.address, staking.address);
+            feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
+                sovryn.address,
+                staking.address
+            );
             await staking.withdraw(wei("1000", "ether"), inTwoYears, a2, { from: a2 }); // Withdraw first stake
             await increaseTimeAndBlocks(3600);
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 }); // For entire duration

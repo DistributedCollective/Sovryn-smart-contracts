@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 //import "../Staking/interfaces/IStaking.sol";
-import "../IFeeSharingProxy.sol";
+import "../IFeeSharingCollectorProxy.sol";
 import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
 import "./VestingStorage.sol";
@@ -35,13 +35,16 @@ contract TeamVesting is VestingStorage, Proxy {
         address _tokenOwner,
         uint256 _cliff,
         uint256 _duration,
-        address _feeSharingProxy
+        address _feeSharingCollectorProxy
     ) public {
         require(_SOV != address(0), "SOV address invalid");
         require(_stakingAddress != address(0), "staking address invalid");
         require(_tokenOwner != address(0), "token owner address invalid");
         require(_duration >= _cliff, "duration must be bigger than or equal to the cliff");
-        require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+        require(
+            _feeSharingCollectorProxy != address(0),
+            "feeSharingCollectorProxy address invalid"
+        );
 
         _setImplementation(_logic);
         SOV = IERC20(_SOV);
@@ -50,6 +53,6 @@ contract TeamVesting is VestingStorage, Proxy {
         tokenOwner = _tokenOwner;
         cliff = _cliff;
         duration = _duration;
-        feeSharingProxy = IFeeSharingProxy(_feeSharingProxy);
+        feeSharingCollectorProxy = IFeeSharingCollectorProxy(_feeSharingCollectorProxy);
     }
 }

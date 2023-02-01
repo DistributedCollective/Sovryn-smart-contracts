@@ -49,7 +49,7 @@ interface IStakingModuleBlockMockup {
     /**
      * @notice Allows the owner to set a fee sharing proxy contract.
      * We need it for unstaking with slashing.
-     * @param _feeSharing The address of FeeSharingProxy contract.
+     * @param _feeSharing The address of FeeSharingCollectorProxy contract.
      * */
     function setFeeSharing(address _feeSharing) external;
 
@@ -414,7 +414,7 @@ interface IStakingModuleBlockMockup {
 
     /// SLASHING ///
 
-    /// @notice the address of FeeSharingProxy contract, we need it for unstaking with slashing.
+    /// @notice the address of FeeSharingCollectorProxy contract, we need it for unstaking with slashing.
     function feeSharing() external view returns (address);
 
     /// @notice used for weight scaling when unstaking with slashing.

@@ -13,7 +13,7 @@ import "../mixins/ProtocolTokenUser.sol";
 import "../modules/interfaces/ProtocolSwapExternalInterface.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
 import "../swaps/ISwapsImpl.sol";
-import "../governance/IFeeSharingProxy.sol";
+import "../governance/IFeeSharingCollectorProxy.sol";
 import "../feeds/IPriceFeeds.sol";
 
 /**
@@ -397,7 +397,7 @@ contract ProtocolSettings is
      * @notice The feesController calls this function to withdraw fees
      * from three sources: lending, trading and borrowing.
      * The fees (except SOV) will be converted to wRBTC.
-     * For SOV, it will be deposited directly to feeSharingProxy from the protocol.
+     * For SOV, it will be deposited directly to feeSharingCollectorProxy from the protocol.
      *
      * @param tokens The array of address of the token instance.
      * @param receiver The address of the withdrawal recipient.
@@ -445,7 +445,7 @@ contract ProtocolSettings is
             uint256 amountConvertedToWRBTC;
             if (tokens[i] == address(sovTokenAddress)) {
                 IERC20(tokens[i]).approve(feesController, tempAmount);
-                IFeeSharingProxy(feesController).transferTokens(
+                IFeeSharingCollectorProxy(feesController).transferTokens(
                     address(sovTokenAddress),
                     uint96(tempAmount)
                 );
@@ -462,7 +462,7 @@ contract ProtocolSettings is
                         .swapExternal(
                         tokens[i], // source token address
                         address(wrbtcToken), // dest token address
-                        feesController, // set feeSharingProxy as receiver
+                        feesController, // set feeSharingCollectorProxy as receiver
                         protocolAddress, // protocol as the sender
                         tempAmount, // source token amount
                         0, // reqDestToken

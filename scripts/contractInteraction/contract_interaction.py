@@ -51,7 +51,7 @@ def main():
     #sendFromMultisig(conf.contracts['Watcher'], 5e18)
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
-    #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
+    #sendMYNTFromMultisigToFeeSharingCollectorProxy(36632.144056847e18)
     #confirmWithBFMS(8)
     #checkTxOnBF(8)
     
@@ -75,7 +75,7 @@ def main():
 
     #withdrawFees()
     #readFeesController()
-    #setFeesController(conf.contracts['FeeSharingProxy1DayStaking'])
+    #setFeesController(conf.contracts['FeeSharingCollectorProxy1DayStaking'])
 
     #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
     #print('FastBTC offramp balance:', bal/10**18)

@@ -792,11 +792,11 @@ contract Staking is
     /**
      * @notice Allow the owner to set a fee sharing proxy contract.
      * We need it for unstaking with slashing.
-     * @param _feeSharing The address of FeeSharingProxy contract.
+     * @param _feeSharing The address of FeeSharingCollectorProxy contract.
      * */
     function setFeeSharing(address _feeSharing) public onlyOwner whenNotFrozen {
         require(_feeSharing != address(0), "S17"); // FeeSharing address shouldn't be 0
-        feeSharing = IFeeSharingProxy(_feeSharing);
+        feeSharing = IFeeSharingCollectorProxy(_feeSharing);
     }
 
     /**

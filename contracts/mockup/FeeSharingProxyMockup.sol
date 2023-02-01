@@ -1,8 +1,8 @@
 pragma solidity ^0.5.17;
 
-import "../governance/FeeSharingProxy/FeeSharingLogic.sol";
+import "../governance/FeeSharingCollectorProxy/FeeSharingCollector.sol";
 
-contract FeeSharingProxyMockup is FeeSharingLogic {
+contract FeeSharingCollectorProxyMockup is FeeSharingCollector {
     struct TestData {
         address loanPoolToken;
         uint32 maxCheckpoints;
@@ -36,7 +36,7 @@ contract FeeSharingProxyMockup is FeeSharingLogic {
         uint96 amount96 =
             safe96(
                 poolTokenAmount,
-                "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits"
+                "FeeSharingCollectorProxy::withdrawFees: pool token amount exceeds 96 bits"
             );
         _addCheckpoint(loanPoolToken, amount96);
     }

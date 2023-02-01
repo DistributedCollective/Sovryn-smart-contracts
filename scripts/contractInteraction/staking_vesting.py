@@ -371,8 +371,8 @@ def updateAddresses():
     print(stakingRewardsProxy)
 
     # Get the fee sharing proxy contract instance
-    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
-    print(feeSharingProxy)
+    feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollectorProxy", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
+    print(feeSharingCollectorProxy)
 
     #Link Staking with Vesting
     data = staking.setVestingRegistry.encode_input(vestingRegistryProxy)
@@ -385,7 +385,7 @@ def updateAddresses():
     # sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
     #Link Staking with Fee Sharing
-    data = staking.setFeeSharing.encode_input(feeSharingProxy)
+    data = staking.setFeeSharing.encode_input(feeSharingCollectorProxy)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
