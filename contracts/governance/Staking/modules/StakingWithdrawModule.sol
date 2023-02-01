@@ -54,6 +54,10 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         uint256 until,
         address receiver
     ) external whenNotFrozen {
+        // adjust until here to avoid adjusting multiple times, and to make sure an adjusted date is passed to
+        // _notSameBlockAsStakingCheckpoint
+        until = _adjustDateForOrigin(until);
+
         _notSameBlockAsStakingCheckpoint(until, msg.sender);
 
         _withdraw(amount, until, receiver, false);
@@ -150,6 +154,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      *
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
+     * Needs to be adjusted to the next valid lock date before calling this function.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
      * @param isGovernance Whether all tokens (true)
      * or just unlocked tokens (false).
@@ -165,7 +170,6 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         if (amount == 1 && _isVestingContract(msg.sender)) {
             return;
         }
-        until = _adjustDateForOrigin(until);
         _validateWithdrawParams(msg.sender, amount, until);
 
         /// @dev Determine the receiver.
@@ -251,10 +255,10 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         bool isGovernance
     ) internal {
         if (_isVestingContract(msg.sender)) {
-            // adjust nextLock to the next valid lock date to make sure we don't accidentally
+            // nextLock needs to be adjusted to the next valid lock date to make sure we don't accidentally
             // withdraw stakes that are in the future and would get slashed (if until is not
-            // a valid lock date)
-            uint256 nextLock = _adjustDateForOrigin(until.add(TWO_WEEKS));
+            // a valid lock date). but until is already handled in the withdraw function
+            uint256 nextLock = until.add(TWO_WEEKS);
             if (isGovernance || block.timestamp >= nextLock) {
                 uint96 stakes = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
                 if (stakes > 0) {
