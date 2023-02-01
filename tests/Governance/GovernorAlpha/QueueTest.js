@@ -45,8 +45,6 @@ async function enfranchise(token, staking, actor, amount) {
 
     await staking.setVestingRegistry(vesting.address);
     await staking.stake(amount, stakingDate, actor, actor, { from: actor });
-
-    await staking.delegate(actor, stakingDate, { from: actor });
 }
 
 contract("GovernorAlpha#queue/1", (accounts) => {

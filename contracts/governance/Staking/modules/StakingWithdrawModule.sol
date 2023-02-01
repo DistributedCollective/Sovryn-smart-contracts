@@ -47,12 +47,17 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @dev If until is not a valid lock date, the next lock date after until is used.
      * */
     function withdraw(
         uint96 amount,
         uint256 until,
         address receiver
     ) external whenNotFrozen {
+        // adjust until here to avoid adjusting multiple times, and to make sure an adjusted date is passed to
+        // _notSameBlockAsStakingCheckpoint
+        until = _adjustDateForOrigin(until);
+
         _notSameBlockAsStakingCheckpoint(until, msg.sender);
 
         _withdraw(amount, until, receiver, false);
@@ -149,6 +154,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      *
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
+     * Needs to be adjusted to the next valid lock date before calling this function.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
      * @param isGovernance Whether all tokens (true)
      * or just unlocked tokens (false).
@@ -164,7 +170,6 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         if (amount == 1 && _isVestingContract(msg.sender)) {
             return;
         }
-        until = _adjustDateForOrigin(until);
         _validateWithdrawParams(msg.sender, amount, until);
 
         /// @dev Determine the receiver.
@@ -247,6 +252,9 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         bool isGovernance
     ) internal {
         if (_isVestingContract(msg.sender)) {
+            // nextLock needs to be adjusted to the next valid lock date to make sure we don't accidentally
+            // withdraw stakes that are in the future and would get slashed (if until is not
+            // a valid lock date). but until is already handled in the withdraw function
             uint256 nextLock = until.add(TWO_WEEKS);
             if (isGovernance || block.timestamp >= nextLock) {
                 uint96 stakes = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
@@ -260,13 +268,14 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     /**
      * @notice Get available and punished amount for withdrawing.
      * @param amount The number of tokens to withdraw.
-     * @param until The date until which the tokens were staked.
+     * @param until The date until which the tokens were staked. Adjusted to the next valid lock date, if necessary.
      * */
     function getWithdrawAmounts(uint96 amount, uint256 until)
         external
         view
         returns (uint96, uint96)
     {
+        until = _adjustDateForOrigin(until);
         _validateWithdrawParams(msg.sender, amount, until);
         uint96 punishedAmount = _getPunishedAmount(amount, until);
         return (amount - punishedAmount, punishedAmount);
@@ -318,7 +327,11 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      *
      * @param newMaxIterations new max iterations value.
      */
-    function setMaxVestingWithdrawIterations(uint256 newMaxIterations) external onlyAuthorized {
+    function setMaxVestingWithdrawIterations(uint256 newMaxIterations)
+        external
+        onlyAuthorized
+        whenNotFrozen
+    {
         require(newMaxIterations > 0, "Invalid max iterations");
         emit MaxVestingWithdrawIterationsUpdated(maxVestingWithdrawIterations, newMaxIterations);
         maxVestingWithdrawIterations = newMaxIterations;
