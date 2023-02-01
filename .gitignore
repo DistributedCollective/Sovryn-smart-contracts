@@ -44,6 +44,6 @@ types/
 typechain/
 !.github/
 */deployments/localhost
-*/deployments/forked*
+*/deployments/*forked*
 venv/
 !/external/artifacts/

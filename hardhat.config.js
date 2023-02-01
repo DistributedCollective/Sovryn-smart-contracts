@@ -145,19 +145,19 @@ module.exports = {
             port: 8505,
             live: false,
         },
-        forkedTestnet: {
+        rskForkedTestnet: {
             chainId: 31337,
             accounts: testnetAccounts,
-            url: "http://127.0.0.1:8505/",
+            url: "http://127.0.0.1:8545/",
             gas: 6800000,
             live: true,
             tags: ["testnet"],
             saveDeployments: true,
         },
-        forkedMainnet: {
+        rskForkedMainnet: {
+            chainId: 30,
             accounts: mainnetAccounts,
-            url: "http://127.0.0.1",
-            port: 8505,
+            url: "http://127.0.0.1:8545",
             gas: 6800000,
             live: true,
             tags: ["mainnet"],
@@ -171,7 +171,7 @@ module.exports = {
         rskTestnet: {
             url: "https://public-node.testnet.rsk.co/",
             accounts: testnetAccounts,
-            network_id: 31,
+            chainId: 31,
             confirmations: 4,
             gasMultiplier: 1.25,
             tags: ["testnet"],
@@ -180,7 +180,7 @@ module.exports = {
         },
         rskMainnet: {
             url: "https://public-node.rsk.co/",
-            network_id: 30,
+            chainId: 30,
             accounts: mainnetAccounts,
             tags: ["mainnet"],
             //timeout: 20000, // increase if needed; 20000 is the default value
@@ -188,7 +188,7 @@ module.exports = {
         rskSovrynTestnet: {
             url: "https://testnet.sovryn.app/rpc",
             accounts: testnetAccounts,
-            network_id: 31,
+            chainId: 31,
             confirmations: 4,
             gasMultiplier: 1.25,
             tags: ["testnet"],
@@ -197,7 +197,7 @@ module.exports = {
         },
         rskSovrynMainnet: {
             url: "https://mainnet.sovryn.app/rpc",
-            network_id: 30,
+            chainId: 30,
             accounts: mainnetAccounts,
             tags: ["mainnet"],
             //timeout: 20000, // increase if needed; 20000 is the default value
@@ -220,16 +220,16 @@ module.exports = {
             //},
         ],
         deployments: {
-            rskSovrynTestnet: ["external/deployments/rskTestnet"],
-            rskTestnet: ["external/deployments/rskTestnet"],
-            forkedTestnet: [
-                "external/deployments/rskTestnet",
+            rskSovrynTestnet: ["external/deployments/rskSovrynTestnet"],
+            rskTestnet: ["external/deployments/rskSovrynTestnet"],
+            rskForkedTestnet: [
+                "external/deployments/rskSovrynTestnet",
                 "deployment/deployments/rskSovrynTestnet",
             ],
-            rskSovrynMainnet: ["external/deployments/rskMainnet"],
-            rskMainnet: ["external/deployments/rskMainnet"],
-            forkedMainnet: [
-                "external/deployments/rskMainnet",
+            rskSovrynMainnet: ["external/deployments/rskSovrynMainnet"],
+            rskMainnet: ["external/deployments/rskSovrynMainnet"],
+            rskForkedMainnet: [
+                "external/deployments/rskSovrynMainnet",
                 "deployment/deployments/rskSovrynMainnet",
             ],
         },
