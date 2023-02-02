@@ -51,9 +51,24 @@ def main():
     #sendFromMultisig(conf.contracts['Watcher'], 5e18)
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
+    
     #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
-    #confirmWithBFMS(8)
-    #checkTxOnBF(8)
+    
+    ### BF ###
+    #confirmWithAnyMS(8, conf.contracts["BFMultisigOrigins"])
+    #checkTxOnAny(8, conf.contracts["BFMultisigOrigins"])
+    
+    #confirmWithAnyMS(8, conf.contracts["BFMultisigToken"])
+    #checkTxOnAny(8, conf.contracts["BFMultisigToken"])
+    
+    #confirmWithAnyMS(8, conf.contracts["BFMultisigDeposit"])
+    #checkTxOnAny(8, conf.contracts["BFMultisigDeposit"])
+    
+    #confirmWithAnyMS(8, conf.contracts["BFmultisig"])
+    #checkTxOnAny(8, conf.contracts["BFmultisig"])
+
+    #confirmWithBFMS(8) # "BFmultisig"
+    #checkTxOnBF(29)   # "BFmultisig"
     
     #executeOnMultisig(1071)
    
