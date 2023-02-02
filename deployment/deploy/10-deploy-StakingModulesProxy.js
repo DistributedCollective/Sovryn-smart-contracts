@@ -21,7 +21,7 @@ const func = async function (hre) {
 
     const stakingProxy = await ethers.getContract("StakingProxy");
     const stakingProxyImpl = await stakingProxy.getImplementation();
-    log("Current satakinProxy.getImplementation()", stakingProxyImpl);
+    log("Current stakinProxy.getImplementation():", stakingProxyImpl);
 
     if (tx.newlyDeployed || tx.address != stakingProxyImpl) {
         const stakingProxyDeployment = await get("StakingProxy");
@@ -42,7 +42,7 @@ const func = async function (hre) {
                 data,
                 deployer
             );
-            log(`Done. Requires Multisig (${multisigDeployment.address}) signing`);
+            log(`>>> DONE. Requires Multisig (${multisigDeployment.address}) signing <<<`);
         } else if (hre.network.tags["mainnet"]) {
             //governance is the owner - need a SIP to register
             // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal

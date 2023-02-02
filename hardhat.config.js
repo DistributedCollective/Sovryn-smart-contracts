@@ -76,10 +76,10 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
 
 task("sign-tx", "Sign multisig tx")
     .addParam("txId", "Multisig transaction to sign", undefined, types.string)
-    .setAction(async (taskArgs, hre) => {
+    .setAction(async ({ txId }, hre) => {
         const { signer } = await hre.getNamedAccounts();
         const ms = await ethers.getContract("MultiSigWallet");
-        await signWithMultisig(ms.address, taskArgs.txId, signer);
+        await signWithMultisig(ms.address, txId, signer);
     });
 
 task("check-tx", "Check multisig tx")
@@ -145,6 +145,9 @@ module.exports = {
             port: 8505,
             live: false,
         },
+        localhost: {
+            timeout: 100000,
+        },
         rskForkedTestnet: {
             chainId: 31337,
             accounts: testnetAccounts,
@@ -153,6 +156,7 @@ module.exports = {
             live: true,
             tags: ["testnet"],
             saveDeployments: true,
+            timeout: 100000,
         },
         rskForkedMainnet: {
             chainId: 30,

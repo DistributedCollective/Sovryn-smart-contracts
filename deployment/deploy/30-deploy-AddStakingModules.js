@@ -84,8 +84,13 @@ const func = async function () {
         const multisigDeployment = await get("MultiSigWallet");
         let data = stakingModulesProxyInterface.encodeFunctionData("addModules", [modulesToAdd]);
         log("Generating multisig transaction to register modules...");
-        await sendWithMultisig(multisigDeployment.address, tx.address, data, deployer);
-        log("Done. Required to execute the generated multisig txs to complete registration.");
+        await sendWithMultisig(
+            multisigDeployment.address,
+            stakingProxyDeployment.address,
+            data,
+            deployer
+        );
+        log(`>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures <<<`);
     } else if (hre.network.tags["mainnet"]) {
         //owned by governance - need a SIP to register
         // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
