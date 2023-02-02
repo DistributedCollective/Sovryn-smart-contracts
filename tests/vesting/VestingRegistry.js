@@ -96,7 +96,7 @@ contract("VestingRegistry", (accounts) => {
             let _CSOV1 = await vestingRegistry.CSOVtokens(0);
             let _CSOV2 = await vestingRegistry.CSOVtokens(1);
             let _stacking = await vestingRegistry.staking();
-            let _feeSharingCollectorProxy = await vestingRegistry.feeSharingCollectorProxy();
+            let _feeSharingCollectorProxy = await vestingRegistry.feeSharingCollector();
             let _vestingOwner = await vestingRegistry.vestingOwner();
 
             expect(_sov).equal(SOV.address);
@@ -178,7 +178,7 @@ contract("VestingRegistry", (accounts) => {
                     ZERO_ADDRESS,
                     account1
                 ),
-                "feeSharingCollectorProxy address invalid"
+                "feeSharingCollector address invalid"
             );
         });
 

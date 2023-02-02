@@ -152,7 +152,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     lockedSOV.address,
                     [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
                 ),
-                "feeSharingCollectorProxy address invalid"
+                "feeSharingCollector address invalid"
             );
         });
 
@@ -244,7 +244,7 @@ contract("VestingRegistryLogic", (accounts) => {
 
             let _sov = await vesting.SOV();
             let _staking = await vesting.staking();
-            let _feeSharingCollectorProxy = await vesting.feeSharingCollectorProxy();
+            let _feeSharingCollectorProxy = await vesting.feeSharingCollector();
             let _vestingOwner = await vesting.vestingOwner();
 
             expect(_sov).equal(SOV.address);

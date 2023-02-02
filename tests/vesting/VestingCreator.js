@@ -987,7 +987,7 @@ contract("VestingCreator", (accounts) => {
                     ZERO_ADDRESS,
                     account1
                 ),
-                "feeSharingCollectorProxy address invalid"
+                "feeSharingCollector address invalid"
             );
 
             await expectRevert(

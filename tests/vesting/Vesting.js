@@ -110,7 +110,7 @@ contract("Vesting", (accounts) => {
             let _tokenOwner = await vestingInstance.tokenOwner();
             let _cliff = await vestingInstance.cliff();
             let _duration = await vestingInstance.duration();
-            let _feeSharingCollectorProxy = await vestingInstance.feeSharingCollectorProxy();
+            let _feeSharingCollectorProxy = await vestingInstance.feeSharingCollector();
 
             assert.equal(_sov, token.address);
             assert.equal(_stackingAddress, staking.address);
@@ -207,7 +207,7 @@ contract("Vesting", (accounts) => {
                     duration,
                     constants.ZERO_ADDRESS
                 ),
-                "feeSharingCollectorProxy address invalid"
+                "feeSharingCollector address invalid"
             );
         });
     });

@@ -92,7 +92,7 @@ contract("FourYearVesting", (accounts) => {
             let _tokenOwner = await vestingInstance.tokenOwner();
             let _cliff = await vestingInstance.cliff();
             let _duration = await vestingInstance.duration();
-            let _feeSharingCollectorProxy = await vestingInstance.feeSharingCollectorProxy();
+            let _feeSharingCollectorProxy = await vestingInstance.feeSharingCollector();
             let _extendDurationFor = await vestingInstance.extendDurationFor();
 
             assert.equal(_sov, token.address);
@@ -123,7 +123,7 @@ contract("FourYearVesting", (accounts) => {
             let _tokenOwner = await vestingInstance.tokenOwner();
             let _cliff = await vestingInstance.cliff();
             let _duration = await vestingInstance.duration();
-            let _feeSharingCollectorProxy = await vestingInstance.feeSharingCollectorProxy();
+            let _feeSharingCollectorProxy = await vestingInstance.feeSharingCollector();
             let _extendDurationFor = await vestingInstance.extendDurationFor();
 
             assert.equal(_sov, token.address);
@@ -187,7 +187,7 @@ contract("FourYearVesting", (accounts) => {
                     constants.ZERO_ADDRESS,
                     52 * WEEK
                 ),
-                "feeSharingCollectorProxy address invalid"
+                "feeSharingCollector address invalid"
             );
         });
 
@@ -243,7 +243,7 @@ contract("FourYearVesting", (accounts) => {
                     a1,
                     52 * WEEK
                 ),
-                "_feeSharingCollectorProxy not a contract"
+                "_feeSharingCollector not a contract"
             );
         });
 
