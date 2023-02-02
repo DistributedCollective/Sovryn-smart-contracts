@@ -796,7 +796,7 @@ contract Staking is
      * */
     function setFeeSharing(address _feeSharing) public onlyOwner whenNotFrozen {
         require(_feeSharing != address(0), "S17"); // FeeSharing address shouldn't be 0
-        feeSharing = IFeeSharingCollectorProxy(_feeSharing);
+        feeSharing = IFeeSharingCollector(_feeSharing);
     }
 
     /**

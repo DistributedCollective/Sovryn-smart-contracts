@@ -3,7 +3,7 @@ pragma solidity ^0.5.17;
 import "../../../openzeppelin/Ownable.sol";
 import "../../../interfaces/IERC20.sol";
 import "../../Staking/interfaces/IStaking.sol";
-import "../../IFeeSharingCollectorProxy.sol";
+import "../../IFeeSharingCollector.sol";
 
 /**
  * @title Four Year Vesting Storage Contract.
@@ -24,7 +24,7 @@ contract FourYearVestingStorage is Ownable {
     address public tokenOwner;
 
     /// @notice Fee sharing Proxy.
-    IFeeSharingCollectorProxy public feeSharingCollectorProxy;
+    IFeeSharingCollector public feeSharingCollectorProxy;
 
     // Used lower case for cliff and duration to maintain consistency with normal vesting
     /// @notice The cliff. After this time period the tokens begin to unlock.

@@ -3,7 +3,7 @@ pragma solidity ^0.5.17;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../Staking/interfaces/IStaking.sol";
-import "../IFeeSharingCollectorProxy.sol";
+import "../IFeeSharingCollector.sol";
 import "./IVestingFactory.sol";
 import "./IVesting.sol";
 import "./ITeamVesting.sol";

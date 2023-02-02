@@ -13,7 +13,7 @@ import "../mixins/ProtocolTokenUser.sol";
 import "../modules/interfaces/ProtocolSwapExternalInterface.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
 import "../swaps/ISwapsImpl.sol";
-import "../governance/IFeeSharingCollectorProxy.sol";
+import "../governance/IFeeSharingCollector.sol";
 import "../feeds/IPriceFeeds.sol";
 
 /**
@@ -445,7 +445,7 @@ contract ProtocolSettings is
             uint256 amountConvertedToWRBTC;
             if (tokens[i] == address(sovTokenAddress)) {
                 IERC20(tokens[i]).approve(feesController, tempAmount);
-                IFeeSharingCollectorProxy(feesController).transferTokens(
+                IFeeSharingCollector(feesController).transferTokens(
                     address(sovTokenAddress),
                     uint96(tempAmount)
                 );

@@ -93,7 +93,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * */
     function setFeeSharing(address _feeSharing) external onlyOwner whenNotFrozen {
         require(_feeSharing != address(0), "FeeSharing address shouldn't be 0"); // S17
-        feeSharing = IFeeSharingCollectorProxy(_feeSharing);
+        feeSharing = IFeeSharingCollector(_feeSharing);
     }
 
     /**

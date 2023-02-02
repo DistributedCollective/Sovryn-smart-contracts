@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 //import "../Staking/interfaces/IStaking.sol";
-import "../IFeeSharingCollectorProxy.sol";
+import "../IFeeSharingCollector.sol";
 import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
 import "./VestingStorage.sol";
@@ -53,6 +53,6 @@ contract TeamVesting is VestingStorage, Proxy {
         tokenOwner = _tokenOwner;
         cliff = _cliff;
         duration = _duration;
-        feeSharingCollectorProxy = IFeeSharingCollectorProxy(_feeSharingCollectorProxy);
+        feeSharingCollectorProxy = IFeeSharingCollector(_feeSharingCollectorProxy);
     }
 }

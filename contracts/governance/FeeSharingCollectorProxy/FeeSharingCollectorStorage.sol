@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
-import "../IFeeSharingCollectorProxy.sol";
+import "../IFeeSharingCollector.sol";
 import "../Staking/interfaces/IStaking.sol";
 import "../../mixins/EnumerableAddressSet.sol";
 import "../../interfaces/IWrbtcERC20.sol";
@@ -15,7 +15,7 @@ import "../../interfaces/IWrbtcERC20.sol";
  * Used by FeeSharingCollectorProxy, and the implementation logic of FeeSharingCollectorProxy (FeeSharingCollector)
  *
  * */
-contract FeeSharingCollectorProxyStorage is Ownable {
+contract FeeSharingCollectorStorage is Ownable {
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
     /// @dev TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
     uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;

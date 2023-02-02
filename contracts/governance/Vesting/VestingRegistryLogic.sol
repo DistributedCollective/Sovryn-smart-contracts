@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../interfaces/IERC20.sol";
-import "../IFeeSharingCollectorProxy.sol";
+import "../IFeeSharingCollector.sol";
 import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "./VestingRegistryStorage.sol";

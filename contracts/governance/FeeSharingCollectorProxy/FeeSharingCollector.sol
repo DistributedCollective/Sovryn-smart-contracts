@@ -4,9 +4,9 @@ import "../Staking/SafeMath96.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../openzeppelin/SafeERC20.sol";
 import "../../openzeppelin/Ownable.sol";
-import "../IFeeSharingCollectorProxy.sol";
+import "../IFeeSharingCollector.sol";
 import "../../openzeppelin/Address.sol";
-import "./FeeSharingCollectorProxyStorage.sol";
+import "./FeeSharingCollectorStorage.sol";
 import "../../interfaces/IConverterAMM.sol";
 
 /**
@@ -44,9 +44,9 @@ import "../../interfaces/IConverterAMM.sol";
  * */
 contract FeeSharingCollector is
     SafeMath96,
-    IFeeSharingCollectorProxy,
+    IFeeSharingCollector,
     Ownable,
-    FeeSharingCollectorProxyStorage
+    FeeSharingCollectorStorage
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
