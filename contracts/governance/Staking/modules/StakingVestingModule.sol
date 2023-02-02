@@ -93,7 +93,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * @dev Block number must be a finalized block or else this function
      * will revert to prevent misinformation.
      * @param account The address of the account to check.
-     * @param date The lock date.
+     * @param date The lock date. Adjusted to the next valid lock date, if necessary.
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
@@ -147,6 +147,24 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
     /**
      * @notice Compute the voting power for a specific date.
      * Power = stake * weight
+     * @param date The staking date to compute the power for. Adjusted to the previous valid lock date, if necessary.
+     * @param startDate The date for which we need to know the power of the stake. Adjusted to the previous valid lock date, if necessary.
+     * @param blockNumber The block number, needed for checkpointing.
+     * @return The stacking power.
+     * */
+    function weightedVestingStakeByDate(
+        uint256 date,
+        uint256 startDate,
+        uint256 blockNumber
+    ) external view returns (uint96 power) {
+        date = _timestampToLockDate(date);
+        startDate = _timestampToLockDate(startDate);
+        power = _weightedVestingStakeByDate(date, startDate, blockNumber);
+    }
+
+    /**
+     * @notice Compute the voting power for a specific date.
+     * Power = stake * weight
      * @param date The staking date to compute the power for.
      * @param startDate The date for which we need to know the power of the stake.
      * @param blockNumber The block number, needed for checkpointing.
@@ -171,7 +189,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * certain lock date as of a block number.
      * @dev Block number must be a finalized block or else this function
      * will revert to prevent misinformation.
-     * @param date The lock date.
+     * @param date The lock date. Adjusted to the next valid lock date, if necessary.
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
@@ -180,6 +198,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         view
         returns (uint96)
     {
+        date = _adjustDateForOrigin(date);
         return _getPriorVestingStakeByDate(date, blockNumber);
     }
 
@@ -249,6 +268,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      */
     function removeContractCodeHash(address vesting) external onlyAuthorized whenNotFrozen {
         bytes32 codeHash = _getCodeHash(vesting);
+        require(vestingCodeHashes[codeHash], "not a registered vesting code hash");
         vestingCodeHashes[codeHash] = false;
         emit ContractCodeHashRemoved(codeHash);
     }
@@ -281,7 +301,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](8);
+        bytes4[] memory functionsList = new bytes4[](9);
         functionsList[0] = this.setVestingRegistry.selector;
         functionsList[1] = this.setVestingStakes.selector;
         functionsList[2] = this.getPriorUserStakeByDate.selector;
@@ -290,6 +310,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         functionsList[5] = this.addContractCodeHash.selector;
         functionsList[6] = this.removeContractCodeHash.selector;
         functionsList[7] = this.isVestingContract.selector;
+        functionsList[8] = this.weightedVestingStakeByDate.selector;
         return functionsList;
     }
 }

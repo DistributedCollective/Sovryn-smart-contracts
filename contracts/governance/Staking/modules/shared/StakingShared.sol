@@ -85,14 +85,16 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
      * @return The actual unlocking date (might be up to 2 weeks shorter than intended).
      * */
     function _timestampToLockDate(uint256 timestamp) internal view returns (uint256 lockDate) {
-        require(timestamp >= kickoffTS, "timestamp < contract creation"); // WS23
+        // Optimize gas costs by reading kickoffTS from storage only once.
+        uint256 start = kickoffTS;
+        require(timestamp >= start, "timestamp < contract creation"); // WS23
         /**
          * @dev If staking timestamp does not match any of the unstaking dates
          * , set the lockDate to the closest one before the timestamp.
          * E.g. Passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks.
          * */
-        uint256 periodFromKickoff = (timestamp - kickoffTS) / TWO_WEEKS;
-        lockDate = periodFromKickoff * TWO_WEEKS + kickoffTS;
+        uint256 periodFromKickoff = (timestamp - start) / TWO_WEEKS;
+        lockDate = periodFromKickoff * TWO_WEEKS + start;
     }
 
     /**
@@ -111,7 +113,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
      * 		we need to modify public function in order to workaround issue with Vesting.withdrawTokens:
      * return 1 instead of 0 if message sender is a contract.
      * @param account The address of the account to check.
-     * @param date The lock date.
+     * @param date The lock date. Adjusted to the next valid lock date, if necessary.
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
@@ -183,7 +185,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
     {
         require(date >= startDate, "date < startDate"); // WS18
         uint256 remainingTime = (date - startDate);
-        require(MAX_DURATION >= remainingTime, "remaining time < max duration"); // WS19
+        require(MAX_DURATION >= remainingTime, "remaining time > max duration"); // WS19
         /// @dev x = max days - remaining days
         uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);
         /// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)

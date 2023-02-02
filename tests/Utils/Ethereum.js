@@ -152,6 +152,18 @@ async function minerStop() {
     return rpc({ method: "miner_stop" });
 }
 
+async function impersonateAccount(account) {
+    await rpc({ method: "hardhat_impersonateAccount", params: [account] });
+}
+
+async function stopImpersonatingAccount(account) {
+    await rpc({ method: "hardhat_stopImpersonatingAccount", params: [account] });
+}
+
+async function setBalance(account, balance) {
+    await rpc({ method: "hardhat_setBalance", params: [account, `0x${balance.toString(16)}`] });
+}
+
 // adapted to work in both truffle and hardhat
 async function rpc(request) {
     try {
@@ -210,4 +222,7 @@ module.exports = {
     UInt256Max,
     getBlock,
     getLastBlockNumber,
+    impersonateAccount,
+    stopImpersonatingAccount,
+    setBalance,
 };

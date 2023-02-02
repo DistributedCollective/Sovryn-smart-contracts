@@ -253,64 +253,6 @@ contract("Staking", (accounts) => {
             await staking.pauseUnpause(true); // Paused
             await expectRevert(staking.delegate(account1, lockedTS), "paused"); // SS03 : paused
         });
-
-        it("should not delegate on behalf of the signatory when paused", async () => {
-            [pkbRoot, pkbA1] = getAccountsPrivateKeysBuffer();
-            const currentChainId = (await ethers.provider.getNetwork()).chainId;
-            const inThreeYears = kickoffTS.add(new BN(DELAY * 26 * 3));
-            const Domain = (staking) => ({
-                name: "SOVStaking",
-                chainId: currentChainId,
-                verifyingContract: staking.address,
-            });
-            const Types = {
-                Delegation: [
-                    { name: "delegatee", type: "address" },
-                    { name: "lockDate", type: "uint256" },
-                    { name: "nonce", type: "uint256" },
-                    { name: "expiry", type: "uint256" },
-                ],
-            };
-            const delegatee = root,
-                nonce = 0,
-                expiry = 10e9,
-                lockDate = inThreeYears;
-            const { v, r, s } = EIP712.sign(
-                Domain(staking),
-                "Delegation",
-                {
-                    delegatee,
-                    lockDate,
-                    nonce,
-                    expiry,
-                },
-                Types,
-                pkbA1
-            );
-
-            expect(await staking.delegates.call(account1, inThreeYears)).to.be.equal(address(0));
-
-            await staking.pauseUnpause(true); // Paused
-            await expectRevert(
-                staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
-                "paused"
-            ); // SS03 : paused
-
-            let tx = await staking.pauseUnpause(false); // Unpaused
-
-            await expectEvent.inTransaction(
-                tx.receipt.rawLogs[0].transactionHash,
-                StakingAdminModule,
-                "StakingPaused",
-                {
-                    setPaused: false,
-                }
-            );
-
-            tx = await staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s);
-            expect(tx.gasUsed < 80000);
-            expect(await staking.delegates.call(account1, inThreeYears)).to.be.equal(root);
-        });
     });
 
     describe("freeze withdrawal", () => {

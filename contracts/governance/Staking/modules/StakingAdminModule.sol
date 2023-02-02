@@ -34,6 +34,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _admin The addresses of the account to grant permissions.
      * */
     function addAdmin(address _admin) external onlyOwner whenNotFrozen {
+        require(_admin != address(0), "cannot add the zero address as an admin");
         admins[_admin] = true;
         emit AdminAdded(_admin);
     }
@@ -43,6 +44,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _admin The addresses of the account to revoke permissions.
      * */
     function removeAdmin(address _admin) external onlyOwner whenNotFrozen {
+        require(admins[_admin], "address is not an admin");
         admins[_admin] = false;
         emit AdminRemoved(_admin);
     }
@@ -52,6 +54,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _pauser The address to grant pauser permissions.
      * */
     function addPauser(address _pauser) external onlyOwner whenNotFrozen {
+        require(_pauser != address(0), "cannot add the zero address as a pauser");
         pausers[_pauser] = true;
         emit PauserAddedOrRemoved(_pauser, true);
     }
@@ -61,6 +64,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
      * @param _pauser The address to grant pauser permissions.
      * */
     function removePauser(address _pauser) external onlyOwner whenNotFrozen {
+        require(pausers[_pauser], "address is not a pauser");
         delete pausers[_pauser];
         emit PauserAddedOrRemoved(_pauser, false);
     }

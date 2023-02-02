@@ -764,7 +764,10 @@ contract("Staking", (accounts) => {
                     staking.extendStakingDuration(until, newTime),
                     "must increase staking duration"
                 ); // S04 : cannot reduce or have the same staking duration
-                await staking.delegate(root, until);
+                await expectRevert(
+                    staking.delegate(root, until),
+                    "cannot delegate to the existing delegatee"
+                );
             }
             const endVotes = await staking.getCurrentVotes(root);
             expect(
@@ -881,7 +884,10 @@ contract("Staking", (accounts) => {
                     staking.extendStakingDuration(until, newTime),
                     "must increase staking duration"
                 ); // S04 : cannot reduce or have the same staking duration
-                await staking.delegate(root, until);
+                await expectRevert(
+                    staking.delegate(root, until),
+                    "cannot delegate to the existing delegatee"
+                );
             }
             const endVotes = await staking.getCurrentVotes(root);
             expect(
