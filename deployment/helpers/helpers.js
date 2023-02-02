@@ -6,6 +6,7 @@
 } = hre;*/
 
 ///@dev This file requires HardhatRuntimeEnvironment `hre` variable in its parent context for functions using hre to work
+const { arrayToUnique } = require("../helpers/utils");
 
 const getStakingModulesNames = () => {
     return {
@@ -78,6 +79,29 @@ const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_
     );
 };
 
+const multisigRevokeConfirmation = async (
+    txId,
+    sender,
+    multisigAddress = ethers.constants.ADDRESS_ZERO
+) => {
+    const { ethers } = hre;
+    const multisig = await ethers.getContractAt(
+        "MultiSigWallet",
+        multisigAddress == ethers.constants.ADDRESS_ZERO
+            ? (
+                  await get("MultiSigWallet")
+              ).address
+            : multisigAddress
+    );
+    console.log("Revoking confirmation of txId", txId, "...");
+    const signer = await ethers.getSigner(sender);
+    receipt = await (await multisig.connect(signer).revokeConfirmation(txId)).wait();
+    // console.log("Required signatures:", await multisig.required());
+    console.log(`Confirmation of txId ${txId} revoked.`);
+    console.log("Details:");
+    await multisigCheckTx(txId, multisig.address);
+};
+
 const parseEthersLog = (parsed) => {
     let parsedEvent = {};
     for (let i = 0; i < parsed.args.length; i++) {
@@ -116,7 +140,7 @@ const getParsedEventLogFromReceipt = async (receipt, iface, eventName) => {
    - registered module contract address
    - zero address (no registered module containing the new module's func sigs found)
 */
-const getStakingModuleContractToReplace = async (newModuleAddress) => {
+const getStakingModuleContractToReplace = async (stakingModulesProxy, newModuleAddress) => {
     const { ethers } = hre;
     const clashing = await stakingModulesProxy.checkClashingFuncSelectors(newModuleAddress);
     if (
@@ -137,18 +161,8 @@ const getStakingModuleContractToReplace = async (newModuleAddress) => {
         const clashingUnique = clashing.clashingModules.filter(arrayToUnique);
         if (clashingUnique.length == 1) {
             const addressModuleBeingReplaced = clashingUnique[0];
-            if (addressModuleBeingReplaced != moduleAddressList[i]) {
+            if (addressModuleBeingReplaced != newModuleAddress) {
                 return addressModuleBeingReplaced;
-                /* log(`Replacing module ${moduleNames[i]}`);
-                const receipt = await (
-                    await stakingModulesProxy.replaceModule(
-                        addressModuleBeingReplaced,
-                        moduleAddressList[i]
-                    )
-                ).wait();
-
-                log(`cumulativeGasUsed: ${receipt.cumulativeGasUsed.toString()}`);
-                totalGas = totalGas.add(receipt.cumulativeGasUsed);*/
             } else {
                 console.log(
                     `Skipping module ${newModuleAddress} replacement - the module is reused`

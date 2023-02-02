@@ -42,7 +42,9 @@ const func = async function (hre) {
                 data,
                 deployer
             );
-            log(`>>> DONE. Requires Multisig (${multisigDeployment.address}) signing <<<`);
+            log(
+                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
+            );
         } else if (hre.network.tags["mainnet"]) {
             //governance is the owner - need a SIP to register
             // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
