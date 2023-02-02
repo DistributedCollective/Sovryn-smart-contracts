@@ -155,7 +155,6 @@ module.exports = {
             gas: 6800000,
             live: true,
             tags: ["testnet"],
-            saveDeployments: true,
             timeout: 100000,
         },
         rskForkedMainnet: {
@@ -165,7 +164,6 @@ module.exports = {
             gas: 6800000,
             live: true,
             tags: ["mainnet"],
-            saveDeployments: true,
         },
         /*localhost: {
             url: "http://127.0.0.1:8545/",
