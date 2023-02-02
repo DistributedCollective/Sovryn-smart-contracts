@@ -35,7 +35,7 @@ contract StakingStorageModule is IFunctionsList, StakingStorageShared {
         return uint256(DEFAULT_WEIGHT_SCALING);
     }
 
-    function getStorageRangeForWeighScaling()
+    function getStorageRangeForWeightScaling()
         external
         pure
         returns (uint256 minWeightScaling, uint256 maxWeightScaling)
@@ -72,7 +72,7 @@ contract StakingStorageModule is IFunctionsList, StakingStorageShared {
         functionsList[1] = this.getStorageMaxVotingWeight.selector;
         functionsList[2] = this.getStorageWeightFactor.selector;
         functionsList[3] = this.getStorageDefaulWeightScaling.selector;
-        functionsList[4] = this.getStorageRangeForWeighScaling.selector;
+        functionsList[4] = this.getStorageRangeForWeightScaling.selector;
         functionsList[5] = this.getStorageDomainTypehash.selector;
         functionsList[6] = this.getStorageDelegationTypehash.selector;
         functionsList[7] = this.getStorageName.selector;

@@ -155,46 +155,6 @@ interface IStakingModuleBlockMockup {
      * */
     function delegate(address delegatee, uint256 lockDate) external;
 
-    /**
-     * @notice Delegates votes from signatory to a delegatee account.
-     * Voting with EIP-712 Signatures.
-     *
-     * Voting power can be delegated to any address, and then can be used to
-     * vote on proposals. A key benefit to users of by-signature functionality
-     * is that they can create a signed vote transaction for free, and have a
-     * trusted third-party spend rBTC(or ETH) on gas fees and write it to the
-     * blockchain for them.
-     *
-     * The third party in this scenario, submitting the SOV-holder’s signed
-     * transaction holds a voting power that is for only a single proposal.
-     * The signatory still holds the power to vote on their own behalf in
-     * the proposal if the third party has not yet published the signed
-     * transaction that was given to them.
-     *
-     * @dev The signature needs to be broken up into 3 parameters, known as
-     * v, r and s:
-     * const r = '0x' + sig.substring(2).substring(0, 64);
-     * const s = '0x' + sig.substring(2).substring(64, 128);
-     * const v = '0x' + sig.substring(2).substring(128, 130);
-     *
-     * @param delegatee The address to delegate votes to.
-     * @param lockDate The date until which the position is locked.
-     * @param nonce The contract state required to match the signature.
-     * @param expiry The time at which to expire the signature.
-     * @param v The recovery byte of the signature.
-     * @param r Half of the ECDSA signature pair.
-     * @param s Half of the ECDSA signature pair.
-     * */
-    function delegateBySig(
-        address delegatee,
-        uint256 lockDate,
-        uint256 nonce,
-        uint256 expiry,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
-
     /*************************** StakingStakeModule ***************************/
 
     /**
@@ -319,7 +279,7 @@ interface IStakingModuleBlockMockup {
     function getStorageDefaultWeightScaling() external pure returns (uint256);
 
     /// @notice return (uint256(MIN_WEIGHT_SCALING), uint256(MAX_WEIGHT_SCALING))
-    function getStorageRangeForWeighScaling()
+    function getStorageRangeForWeightScaling()
         external
         pure
         returns (uint256 minWeightScaling, uint256 maxWeightScaling);
@@ -556,25 +516,19 @@ interface IStakingModuleBlockMockup {
     ) external;
 
     /**
-     * @notice Withdraw the given amount of tokens.
-     * @param amount The number of tokens to withdraw.
-     * @param until The date until which the tokens were staked.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting
-     * */
-    function governanceWithdraw(
-        uint96 amount,
-        uint256 until,
-        address receiver
+     * @notice Governance withdraw vesting directly through staking contract.
+     * This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing.
+     * This function only allows cancelling vesting contract of the TeamVesting type.
+     *
+     * @param vesting The vesting address.
+     * @param receiver The receiving address.
+     * @param startFrom The start value for the iterations.
+     */
+    function cancelTeamVesting(
+        address vesting,
+        address receiver,
+        uint256 startFrom
     ) external;
-
-    /**
-     * @notice Withdraw tokens for vesting contract.
-     * @param vesting The address of Vesting contract.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
-     * */
-    function governanceWithdrawVesting(address vesting, address receiver) external;
 
     /**
      * @notice Get available and punished amount for withdrawing.

@@ -330,7 +330,7 @@ interface IStaking {
     function getStorageDefaultWeightScaling() external pure returns (uint256);
 
     /// @notice return (uint256(MIN_WEIGHT_SCALING), uint256(MAX_WEIGHT_SCALING))
-    function getStorageRangeForWeighScaling()
+    function getStorageRangeForWeightScaling()
         external
         pure
         returns (uint256 minWeightScaling, uint256 maxWeightScaling);
@@ -504,6 +504,20 @@ interface IStaking {
         returns (uint96);
 
     /**
+     * @notice Compute the voting power for a specific date.
+     * Power = stake * weight
+     * @param date The staking date to compute the power for. Adjusted to the next valid lock date, if necessary.
+     * @param startDate The date for which we need to know the power of the stake.
+     * @param blockNumber The block number, needed for checkpointing.
+     * @return The stacking power.
+     * */
+    function weightedVestingStakeByDate(
+        uint256 date,
+        uint256 startDate,
+        uint256 blockNumber
+    ) external view returns (uint96 power);
+
+    /**
      * @notice Determine the prior weighted vested amount for an account as of a block number.
      * Iterate through checkpoints adding up voting power.
      * @dev Block number must be a finalized block or else this function will
@@ -561,19 +575,6 @@ interface IStaking {
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
      * */
     function withdraw(
-        uint96 amount,
-        uint256 until,
-        address receiver
-    ) external;
-
-    /**
-     * @notice Withdraw the given amount of tokens.
-     * @param amount The number of tokens to withdraw.
-     * @param until The date until which the tokens were staked.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting
-     * */
-    function governanceWithdraw(
         uint96 amount,
         uint256 until,
         address receiver
