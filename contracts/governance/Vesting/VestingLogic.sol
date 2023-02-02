@@ -182,7 +182,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         require(_receiver != address(0), "receiver address invalid");
 
         /// @dev Invokes the fee sharing proxy.
-        feeSharingCollectorProxy.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
+        feeSharingCollector.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
 
         emit DividendsCollected(msg.sender, _loanPoolToken, _receiver, _maxCheckpoints);
     }

@@ -52,7 +52,7 @@ contract VestingRegistry is Ownable {
     address public staking;
 
     /// @notice Fee sharing proxy.
-    address public feeSharingCollectorProxy;
+    address public feeSharingCollector;
 
     /// @notice The vesting owner (e.g. governance timelock address).
     address public vestingOwner;
@@ -116,7 +116,7 @@ contract VestingRegistry is Ownable {
      * @param _CSOVtokens The array of cSOV tokens.
      * @param _priceSats The price of cSOV tokens in satoshis.
      * @param _staking The address of staking contract.
-     * @param _feeSharingCollectorProxy The address of fee sharing proxy contract.
+     * @param _feeSharingCollector The address of fee sharing collector proxy contract.
      * @param _vestingOwner The address of an owner of vesting contract.
      * @dev On Sovryn the vesting owner is Exchequer Multisig.
      * According to SIP-0007 The Exchequer Multisig is designated to hold
@@ -132,15 +132,12 @@ contract VestingRegistry is Ownable {
         address[] memory _CSOVtokens,
         uint256 _priceSats,
         address _staking,
-        address _feeSharingCollectorProxy,
+        address _feeSharingCollector,
         address _vestingOwner
     ) public {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
-        require(
-            _feeSharingCollectorProxy != address(0),
-            "feeSharingCollectorProxy address invalid"
-        );
+        require(_feeSharingCollector != address(0), "feeSharingCollector address invalid");
         require(_vestingOwner != address(0), "vestingOwner address invalid");
 
         _setVestingFactory(_vestingFactory);
@@ -149,7 +146,7 @@ contract VestingRegistry is Ownable {
         SOV = _SOV;
         priceSats = _priceSats;
         staking = _staking;
-        feeSharingCollectorProxy = _feeSharingCollectorProxy;
+        feeSharingCollector = _feeSharingCollector;
         vestingOwner = _vestingOwner;
     }
 
@@ -470,7 +467,7 @@ contract VestingRegistry is Ownable {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingCollectorProxy,
+                    feeSharingCollector,
                     _tokenOwner
                 );
             vestingContracts[_tokenOwner][type_] = vesting;
@@ -500,7 +497,7 @@ contract VestingRegistry is Ownable {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingCollectorProxy,
+                    feeSharingCollector,
                     vestingOwner
                 );
             vestingContracts[_tokenOwner][type_] = vesting;

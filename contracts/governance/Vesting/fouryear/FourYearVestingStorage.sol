@@ -24,7 +24,7 @@ contract FourYearVestingStorage is Ownable {
     address public tokenOwner;
 
     /// @notice Fee sharing Proxy.
-    IFeeSharingCollector public feeSharingCollectorProxy;
+    IFeeSharingCollector public feeSharingCollector;
 
     // Used lower case for cliff and duration to maintain consistency with normal vesting
     /// @notice The cliff. After this time period the tokens begin to unlock.

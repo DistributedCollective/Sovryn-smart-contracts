@@ -397,7 +397,7 @@ contract ProtocolSettings is
      * @notice The feesController calls this function to withdraw fees
      * from three sources: lending, trading and borrowing.
      * The fees (except SOV) will be converted to wRBTC.
-     * For SOV, it will be deposited directly to feeSharingCollectorProxy from the protocol.
+     * For SOV, it will be deposited directly to feeSharingCollector from the protocol.
      *
      * @param tokens The array of address of the token instance.
      * @param receiver The address of the withdrawal recipient.
@@ -462,7 +462,7 @@ contract ProtocolSettings is
                         .swapExternal(
                         tokens[i], // source token address
                         address(wrbtcToken), // dest token address
-                        feesController, // set feeSharingCollectorProxy as receiver
+                        feesController, // set feeSharingCollector as receiver
                         protocolAddress, // protocol as the sender
                         tempAmount, // source token amount
                         0, // reqDestToken

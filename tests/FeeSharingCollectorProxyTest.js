@@ -323,7 +323,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollectorProxy.withdrawFees([ZERO_ADDRESS]),
-                "FeeSharingCollectorProxy::withdrawFees: token is not a contract"
+                "FeeSharingCollector::withdrawFees: token is not a contract"
             );
         });
 
@@ -874,7 +874,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollectorProxy.transferTokens(ZERO_ADDRESS, 1000),
-                "FeeSharingCollectorProxy::transferTokens: invalid address"
+                "FeeSharingCollector::transferTokens: invalid address"
             );
         });
 
@@ -882,7 +882,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollectorProxy.transferTokens(SOVToken.address, 0),
-                "FeeSharingCollectorProxy::transferTokens: invalid amount"
+                "FeeSharingCollector::transferTokens: invalid amount"
             );
         });
 
@@ -992,7 +992,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 feeSharingCollectorProxy.withdraw(loanToken.address, 0, account2, {
                     from: account1,
                 }),
-                "FeeSharingCollectorProxy::withdraw: _maxCheckpoints should be positive"
+                "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
             );
         });
 
@@ -1002,7 +1002,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 feeSharingCollectorProxy.withdraw(loanTokenWrbtc.address, 0, account2, {
                     from: account1,
                 }),
-                "FeeSharingCollectorProxy::withdraw: _maxCheckpoints should be positive"
+                "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
             );
         });
 
@@ -1018,7 +1018,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 feeSharingCollectorProxy.withdraw(loanToken.address, 10, ZERO_ADDRESS, {
                     from: account1,
                 }),
-                "FeeSharingCollectorProxy::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollector::withdrawFees: no tokens for a withdrawal"
             );
         });
 
@@ -1034,7 +1034,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 feeSharingCollectorProxy.withdraw(loanTokenWrbtc.address, 10, ZERO_ADDRESS, {
                     from: account1,
                 }),
-                "FeeSharingCollectorProxy::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollector::withdrawFees: no tokens for a withdrawal"
             );
         });
 
@@ -1777,7 +1777,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
             await expectRevert(
                 vestingInstance.collectDividends(loanToken.address, 5, root),
-                "FeeSharingCollectorProxy::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollector::withdrawFees: no tokens for a withdrawal"
             );
         });
 
@@ -2321,7 +2321,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             await expectRevert(
                 feeSharingCollectorProxy.transferRBTC({ from: root, value: 0 }),
-                "FeeSharingCollectorProxy::transferRBTC: invalid value"
+                "FeeSharingCollector::transferRBTC: invalid value"
             );
             const totalAccumulatedRBTCFee =
                 await feeSharingCollectorProxy.getAccumulatedRBTCFeeBalances(root);

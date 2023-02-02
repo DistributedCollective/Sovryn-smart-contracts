@@ -24,7 +24,7 @@ contract VestingStorage is Ownable {
     address public tokenOwner;
 
     /// @notice Fee sharing Proxy.
-    IFeeSharingCollector public feeSharingCollectorProxy;
+    IFeeSharingCollector public feeSharingCollector;
 
     /// @notice The cliff. After this time period the tokens begin to unlock.
     uint256 public cliff;

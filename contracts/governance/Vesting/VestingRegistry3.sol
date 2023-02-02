@@ -20,7 +20,7 @@ contract VestingRegistry3 is Ownable {
     ///@notice the staking contract address
     address public staking;
     //@notice fee sharing proxy
-    address public feeSharingCollectorProxy;
+    address public feeSharingCollector;
     //@notice the vesting owner (e.g. governance timelock address)
     address public vestingOwner;
 
@@ -59,22 +59,19 @@ contract VestingRegistry3 is Ownable {
         address _vestingFactory,
         address _SOV,
         address _staking,
-        address _feeSharingCollectorProxy,
+        address _feeSharingCollector,
         address _vestingOwner
     ) public {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
-        require(
-            _feeSharingCollectorProxy != address(0),
-            "feeSharingCollectorProxy address invalid"
-        );
+        require(_feeSharingCollector != address(0), "feeSharingCollector address invalid");
         require(_vestingOwner != address(0), "vestingOwner address invalid");
 
         _setVestingFactory(_vestingFactory);
 
         SOV = _SOV;
         staking = _staking;
-        feeSharingCollectorProxy = _feeSharingCollectorProxy;
+        feeSharingCollector = _feeSharingCollector;
         vestingOwner = _vestingOwner;
     }
 
@@ -201,7 +198,7 @@ contract VestingRegistry3 is Ownable {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingCollectorProxy,
+                    feeSharingCollector,
                     _tokenOwner
                 );
             vestingContracts[_tokenOwner][type_] = vesting;
@@ -223,7 +220,7 @@ contract VestingRegistry3 is Ownable {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingCollectorProxy,
+                    feeSharingCollector,
                     vestingOwner
                 );
             vestingContracts[_tokenOwner][type_] = vesting;

@@ -98,7 +98,7 @@ contract FeeSharingCollector is
     function() external payable {
         require(
             msg.sender == address(protocol.wrbtcToken()),
-            "FeeSharingCollectorProxy::fallback: only allowed wrbtc"
+            "FeeSharingCollector::fallback: only allowed wrbtc"
         );
     }
 
@@ -106,7 +106,7 @@ contract FeeSharingCollector is
      * @notice Withdraw fees for the given token:
      * lendingFee + tradingFee + borrowingFee
      * the fees (except SOV) will be converted in wRBTC form, and then will be transferred to wRBTC loan pool.
-     * For SOV, it will be directly deposited into the feeSharingCollectorProxy from the protocol.
+     * For SOV, it will be directly deposited into the feeSharingCollector from the protocol.
      *
      * @param _tokens array address of the token
      * */
@@ -114,7 +114,7 @@ contract FeeSharingCollector is
         for (uint256 i = 0; i < _tokens.length; i++) {
             require(
                 Address.isContract(_tokens[i]),
-                "FeeSharingCollectorProxy::withdrawFees: token is not a contract"
+                "FeeSharingCollector::withdrawFees: token is not a contract"
             );
         }
 
@@ -130,7 +130,7 @@ contract FeeSharingCollector is
             uint96 amount96 =
                 safe96(
                     wrbtcAmountWithdrawn,
-                    "FeeSharingCollectorProxy::withdrawFees: wrbtc token amount exceeds 96 bits"
+                    "FeeSharingCollector::withdrawFees: wrbtc token amount exceeds 96 bits"
                 );
 
             _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
@@ -169,13 +169,13 @@ contract FeeSharingCollector is
                 uint96 amount96 =
                     safe96(
                         wrbtcAmountWithdrawn,
-                        "FeeSharingCollectorProxy::withdrawFeesAMM: wrbtc token amount exceeds 96 bits"
+                        "FeeSharingCollector::withdrawFeesAMM: wrbtc token amount exceeds 96 bits"
                     );
 
                 totalPoolTokenAmount = add96(
                     totalPoolTokenAmount,
                     amount96,
-                    "FeeSharingCollectorProxy::withdrawFeesAMM: total wrbtc token amount exceeds 96 bits"
+                    "FeeSharingCollector::withdrawFeesAMM: total wrbtc token amount exceeds 96 bits"
                 );
 
                 emit FeeAMMWithdrawn(msg.sender, _converters[i], wrbtcAmountWithdrawn);
@@ -195,11 +195,8 @@ contract FeeSharingCollector is
      * @param _amount Amount to be transferred.
      * */
     function transferTokens(address _token, uint96 _amount) public {
-        require(
-            _token != ZERO_ADDRESS,
-            "FeeSharingCollectorProxy::transferTokens: invalid address"
-        );
-        require(_amount > 0, "FeeSharingCollectorProxy::transferTokens: invalid amount");
+        require(_token != ZERO_ADDRESS, "FeeSharingCollector::transferTokens: invalid address");
+        require(_amount > 0, "FeeSharingCollector::transferTokens: invalid amount");
 
         /// @notice Transfer tokens from msg.sender
         bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
@@ -224,7 +221,7 @@ contract FeeSharingCollector is
      * */
     function transferRBTC() external payable {
         uint96 _amount = uint96(msg.value);
-        require(_amount > 0, "FeeSharingCollectorProxy::transferRBTC: invalid value");
+        require(_amount > 0, "FeeSharingCollector::transferRBTC: invalid value");
 
         _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, _amount);
 
@@ -242,7 +239,7 @@ contract FeeSharingCollector is
                 add96(
                     unprocessedAmount[_token],
                     _amount,
-                    "FeeSharingCollectorProxy::_addCheckpoint: amount exceeds 96 bits"
+                    "FeeSharingCollector::_addCheckpoint: amount exceeds 96 bits"
                 );
 
             /// @notice Reset unprocessed amount of tokens to zero.
@@ -254,7 +251,7 @@ contract FeeSharingCollector is
             unprocessedAmount[_token] = add96(
                 unprocessedAmount[_token],
                 _amount,
-                "FeeSharingCollectorProxy::_addCheckpoint: unprocessedAmount exceeds 96 bits"
+                "FeeSharingCollector::_addCheckpoint: unprocessedAmount exceeds 96 bits"
             );
         }
     }
@@ -282,7 +279,7 @@ contract FeeSharingCollector is
         /// @dev Prevents processing / checkpoints because of block gas limit.
         require(
             _maxCheckpoints > 0,
-            "FeeSharingCollectorProxy::withdraw: _maxCheckpoints should be positive"
+            "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
         );
 
         address wRBTCAddress = address(protocol.wrbtcToken());
@@ -296,19 +293,19 @@ contract FeeSharingCollector is
         uint256 amount;
         uint256 end;
         (amount, end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
-        require(amount > 0, "FeeSharingCollectorProxy::withdrawFees: no tokens for a withdrawal");
+        require(amount > 0, "FeeSharingCollector::withdrawFees: no tokens for a withdrawal");
 
         processedCheckpoints[user][_loanPoolToken] = end;
 
         if (loanPoolTokenWRBTC == _loanPoolToken) {
-            // We will change, so that feeSharingCollectorProxy will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
+            // We will change, so that feeSharingCollector will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
             uint256 loanAmountPaid =
                 ILoanTokenWRBTC(_loanPoolToken).burnToBTC(_receiver, amount, false);
         } else {
             // Previously it directly send the loanToken to the user
             require(
                 IERC20(_loanPoolToken).transfer(_receiver, amount),
-                "FeeSharingCollectorProxy::withdraw: withdrawal failed"
+                "FeeSharingCollector::withdraw: withdrawal failed"
             );
         }
 
@@ -357,7 +354,7 @@ contract FeeSharingCollector is
             wrbtcToken.withdraw(wrbtcAmount);
         }
 
-        // pull out the iWRBTC to rbtc to this feeSharingCollectorProxy contract
+        // pull out the iWRBTC to rbtc to this feeSharingCollector contract
         if (iWrbtcAmount > 0) {
             processedCheckpoints[user][loanPoolTokenWRBTC] = endIWRBTC;
             iWRBTCloanAmountPaid = ILoanTokenWRBTC(loanPoolTokenWRBTC).burnToBTC(
@@ -368,14 +365,11 @@ contract FeeSharingCollector is
         }
 
         uint256 totalAmount = rbtcAmount.add(wrbtcAmount).add(iWRBTCloanAmountPaid);
-        require(
-            totalAmount > 0,
-            "FeeSharingCollectorProxy::withdrawFees: no rbtc for a withdrawal"
-        );
+        require(totalAmount > 0, "FeeSharingCollector::withdrawFees: no rbtc for a withdrawal");
 
         // withdraw everything
         (bool success, ) = _receiver.call.value(totalAmount)("");
-        require(success, "FeeSharingCollectorProxy::withdrawRBTC: Withdrawal failed");
+        require(success, "FeeSharingCollector::withdrawRBTC: Withdrawal failed");
 
         emit RBTCWithdrawn(user, _receiver, totalAmount);
     }
@@ -499,7 +493,7 @@ contract FeeSharingCollector is
             }
             end = safe32(
                 start + _maxCheckpoints,
-                "FeeSharingCollectorProxy::withdraw: checkpoint index exceeds 32 bits"
+                "FeeSharingCollector::withdraw: checkpoint index exceeds 32 bits"
             );
             if (end > nCheckpoints) {
                 end = nCheckpoints;
@@ -524,12 +518,12 @@ contract FeeSharingCollector is
         uint32 blockNumber =
             safe32(
                 block.number,
-                "FeeSharingCollectorProxy::_writeCheckpoint: block number exceeds 32 bits"
+                "FeeSharingCollector::_writeCheckpoint: block number exceeds 32 bits"
             );
         uint32 blockTimestamp =
             safe32(
                 block.timestamp,
-                "FeeSharingCollectorProxy::_writeCheckpoint: block timestamp exceeds 32 bits"
+                "FeeSharingCollector::_writeCheckpoint: block timestamp exceeds 32 bits"
             );
         uint256 nCheckpoints = numTokenCheckpoints[_token];
 
@@ -568,7 +562,7 @@ contract FeeSharingCollector is
         totalWeightedStake = sub96(
             totalWeightedStake,
             vestingWeightedStake,
-            "FeeSharingCollectorProxy::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
+            "FeeSharingCollector::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
         );
     }
 
@@ -700,7 +694,7 @@ contract FeeSharingCollector is
         address loanPoolTokenWRBTC = protocol.underlyingToLoanPool(_wRBTCAddress);
         require(
             loanPoolTokenWRBTC != ZERO_ADDRESS,
-            "FeeSharingCollectorProxy::withdraw: loan wRBTC not found"
+            "FeeSharingCollector::withdraw: loan wRBTC not found"
         );
 
         return loanPoolTokenWRBTC;

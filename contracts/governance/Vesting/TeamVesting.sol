@@ -35,16 +35,13 @@ contract TeamVesting is VestingStorage, Proxy {
         address _tokenOwner,
         uint256 _cliff,
         uint256 _duration,
-        address _feeSharingCollectorProxy
+        address _feeSharingCollector
     ) public {
         require(_SOV != address(0), "SOV address invalid");
         require(_stakingAddress != address(0), "staking address invalid");
         require(_tokenOwner != address(0), "token owner address invalid");
         require(_duration >= _cliff, "duration must be bigger than or equal to the cliff");
-        require(
-            _feeSharingCollectorProxy != address(0),
-            "feeSharingCollectorProxy address invalid"
-        );
+        require(_feeSharingCollector != address(0), "feeSharingCollector address invalid");
 
         _setImplementation(_logic);
         SOV = IERC20(_SOV);
@@ -53,6 +50,6 @@ contract TeamVesting is VestingStorage, Proxy {
         tokenOwner = _tokenOwner;
         cliff = _cliff;
         duration = _duration;
-        feeSharingCollectorProxy = IFeeSharingCollector(_feeSharingCollectorProxy);
+        feeSharingCollector = IFeeSharingCollector(_feeSharingCollector);
     }
 }
