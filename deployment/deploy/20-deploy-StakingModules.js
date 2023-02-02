@@ -10,8 +10,28 @@ const func = async function (hre) {
     } = hre;
     const { deployer } = await getNamedAccounts(); //await ethers.getSigners(); //
     let totalGas = ethers.BigNumber.from(0);
-    for (let moduleName in getStakingModulesNames()) {
-        const tx = await deploy(moduleName, {
+
+    // @dev use to narrow down module contracts to redeploy
+    // e.g. you have three contracts modified but want to deploy only one
+    // then add the modules not ready for deployment to `dontDeployModules`
+    const dontDeployModules = {
+        /*
+        StakingAdminModule: "StakingAdminModule",
+        StakingGovernanceModule: "StakingGovernanceModule",
+        StakingStakeModule: "StakingStakeModule",
+        StakingStorageModule: "StakingStorageModule",
+        StakingVestingModule: "StakingVestingModule",
+        StakingWithdrawModule: "StakingWithdrawModule",
+        WeightedStakingModule: "WeightedStakingModule",
+        */
+    };
+    const modulesList = getStakingModulesNames();
+    const stakinModuleNames = Object.keys(modulesList).filter(
+        (k) => !dontDeployModules.hasOwnProperty(k)
+    );
+
+    for (let i = 0; i < stakinModuleNames.length; i++) {
+        const tx = await deploy(stakinModuleNames[i], {
             from: deployer,
             args: [],
             log: true,

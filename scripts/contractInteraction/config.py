@@ -23,6 +23,10 @@ def loadConfig():
         acct = accounts.load("rskdeployerdev")
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-shared":
+        acct = accounts.load("rskdeployershared")
+        configFile = open(
+            './scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet-ws":
         acct = accounts.load("rskdeployer")
         configFile = open(
