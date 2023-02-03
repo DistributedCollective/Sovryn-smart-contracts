@@ -4818,7 +4818,7 @@ contract("Staking", (accounts) => {
             // vesting contracts
             const date1 = kickoffTS.add(TWO_WEEKS_BN);
 
-            await initializeStake(date1, new BN("1"), a3); // required for feesharingproxy
+            await initializeStake(date1, new BN("1"), a3); // required for feeSharingCollector
 
             const account = await deployAndImpersonateVestingContract();
             const blockNumberBeforeDelegation = await initializeStake(
