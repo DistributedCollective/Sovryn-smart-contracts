@@ -163,25 +163,16 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         }
     }
 
-    /// Verifies if the address is a registered module contract
+    /// Verifies the deployed contract address is a registered module contract
     /// @param _impl deployment address to verify
     /// @return true if _impl address is a registered module
     function isModuleRegistered(address _impl) external view returns (bool) {
-        return _getRegisteredModuleAddress(_impl) == _impl;
-    }
-
-    /// @notice Finds respective registered module address by getting the _impl
-    ///         functions signatures implementation. Stops at the first match.
-    ///         Useful when replacing modules
-    /// @param _impl Given an implementation address
-    /// @return Corresponding registered module address or null address if
-    function getRegisteredModuleAddress(address _impl) external view returns (address) {
-        return _getRegisteredModuleAddress(_impl);
+        return _getFirstRegisteredModuleAddress(_impl) == _impl;
     }
 
     /****************** INTERNAL FUNCTIONS ******************/
 
-    function _getRegisteredModuleAddress(address _impl) internal view returns (address) {
+    function _getFirstRegisteredModuleAddress(address _impl) internal view returns (address) {
         require(
             _impl.isContract(),
             "ModulesProxyRegistry::_getRegisteredModuleAddress: address is not a contract"
@@ -296,7 +287,7 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     }
 
     function _getFunctionsList() internal pure returns (bytes4[] memory) {
-        bytes4[] memory functionList = new bytes4[](14);
+        bytes4[] memory functionList = new bytes4[](13);
         functionList[0] = this.getFuncImplementation.selector;
         functionList[1] = this.addModule.selector;
         functionList[2] = this.addModules.selector;
@@ -310,7 +301,6 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
         functionList[10] = this.getProxyOwner.selector;
         functionList[11] = this.checkClashingFuncSelectors.selector;
         functionList[12] = this.isModuleRegistered.selector;
-        functionList[13] = this.getRegisteredModuleAddress.selector;
         return functionList;
     }
 }
