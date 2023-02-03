@@ -93,11 +93,11 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
     /**
      * @notice Allow the owner to set a fee sharing proxy contract.
      * We need it for unstaking with slashing.
-     * @param _feeSharing The address of FeeSharingProxy contract.
+     * @param _feeSharing The address of FeeSharingCollectorProxy contract.
      * */
     function setFeeSharing(address _feeSharing) external onlyOwner whenNotFrozen {
         require(_feeSharing != address(0), "FeeSharing address shouldn't be 0"); // S17
-        feeSharing = IFeeSharingProxy(_feeSharing);
+        feeSharing = IFeeSharingCollector(_feeSharing);
     }
 
     /**

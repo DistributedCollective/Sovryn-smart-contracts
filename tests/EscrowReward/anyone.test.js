@@ -8,7 +8,7 @@ const LockedSOV = artifacts.require("LockedSOV"); // Ideally should be using act
 
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("TestToken");
-const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
@@ -82,7 +82,10 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
         staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Creating the FeeSharing Instance.
-        feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);
+        feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
+            constants.ZERO_ADDRESS,
+            staking.address
+        );
 
         // Creating the Vesting Instance.
         vestingLogic = await VestingLogic.new();
@@ -91,7 +94,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
             vestingFactory.address,
             sov.address,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             creator // This should be Governance Timelock Contract.
         );
         vestingFactory.transferOwnership(vestingRegistry.address);

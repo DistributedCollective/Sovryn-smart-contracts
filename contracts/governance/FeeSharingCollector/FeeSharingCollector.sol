@@ -4,17 +4,17 @@ import "../Staking/SafeMath96.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../openzeppelin/SafeERC20.sol";
 import "../../openzeppelin/Ownable.sol";
-import "../IFeeSharingProxy.sol";
+import "../IFeeSharingCollector.sol";
 import "../../openzeppelin/Address.sol";
-import "./FeeSharingProxyStorage.sol";
+import "./FeeSharingCollectorStorage.sol";
 import "../../interfaces/IConverterAMM.sol";
 
 /**
- * @title The FeeSharingLogic contract.
+ * @title The FeeSharingCollector contract.
  * @notice This contract withdraws fees to be paid to SOV Stakers from the protocol.
  * Stakers call withdraw() to get their share of the fees.
  *
- * Staking is not only granting voting rights, but also access to fee
+ * @notice Staking is not only granting voting rights, but also access to fee
  * sharing according to the own voting power in relation to the total. Whenever
  * somebody decides to collect the fees from the protocol, they get transferred
  * to a proxy contract which invests the funds in the lending pool and keeps
@@ -40,12 +40,17 @@ import "../../interfaces/IConverterAMM.sol";
  * rewards in proportion to the user’s weighted stake since the last withdrawal.
  *
  * The protocol initially collects fees in all tokens.
- * Then the FeeSharingProxy wihtdraws fees from the protocol.
+ * Then the FeeSharingCollector wihtdraws fees from the protocol.
  * When the fees are withdrawn all the tokens except SOV will be converted to wRBTC
  * and then transferred to wRBTC loan pool.
- * For SOV, it will be directly deposited into the feeSharingProxy from the protocol.
+ * For SOV, it will be directly deposited into the feeSharingCollector from the protocol.
  * */
-contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingProxyStorage {
+contract FeeSharingCollector is
+    SafeMath96,
+    IFeeSharingCollector,
+    Ownable,
+    FeeSharingCollectorStorage
+{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -96,7 +101,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
     function() external payable {
         require(
             msg.sender == address(protocol.wrbtcToken()),
-            "FeeSharingProxy::fallback: only allowed wrbtc"
+            "FeeSharingCollector::fallback: only wRBTC token calls allowed"
         );
     }
 
@@ -104,7 +109,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
      * @notice Withdraw fees for the given token:
      * lendingFee + tradingFee + borrowingFee
      * the fees (except SOV) will be converted in wRBTC form, and then will be transferred to wRBTC loan pool.
-     * For SOV, it will be directly deposited into the feeSharingProxy from the protocol.
+     * For SOV, it will be directly deposited into the feeSharingCollector from the protocol.
      *
      * @param _tokens array address of the token
      * */
@@ -112,7 +117,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         for (uint256 i = 0; i < _tokens.length; i++) {
             require(
                 Address.isContract(_tokens[i]),
-                "FeeSharingProxy::withdrawFees: token is not a contract"
+                "FeeSharingCollector::withdrawFees: token is not a contract"
             );
         }
 
@@ -128,7 +133,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             uint96 amount96 =
                 safe96(
                     wrbtcAmountWithdrawn,
-                    "FeeSharingProxy::withdrawFees: wrbtc token amount exceeds 96 bits"
+                    "FeeSharingCollector::withdrawFees: wrbtc token amount exceeds 96 bits"
                 );
 
             _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
@@ -167,13 +172,13 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
                 uint96 amount96 =
                     safe96(
                         wrbtcAmountWithdrawn,
-                        "FeeSharingProxy::withdrawFeesAMM: wrbtc token amount exceeds 96 bits"
+                        "FeeSharingCollector::withdrawFeesAMM: wrbtc token amount exceeds 96 bits"
                     );
 
                 totalPoolTokenAmount = add96(
                     totalPoolTokenAmount,
                     amount96,
-                    "FeeSharingProxy::withdrawFeesAMM: total wrbtc token amount exceeds 96 bits"
+                    "FeeSharingCollector::withdrawFeesAMM: total wrbtc token amount exceeds 96 bits"
                 );
 
                 emit FeeAMMWithdrawn(msg.sender, _converters[i], wrbtcAmountWithdrawn);
@@ -193,8 +198,8 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
      * @param _amount Amount to be transferred.
      * */
     function transferTokens(address _token, uint96 _amount) public {
-        require(_token != ZERO_ADDRESS, "FeeSharingProxy::transferTokens: invalid address");
-        require(_amount > 0, "FeeSharingProxy::transferTokens: invalid amount");
+        require(_token != ZERO_ADDRESS, "FeeSharingCollector::transferTokens: invalid address");
+        require(_amount > 0, "FeeSharingCollector::transferTokens: invalid amount");
 
         /// @notice Transfer tokens from msg.sender
         bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
@@ -219,7 +224,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
      * */
     function transferRBTC() external payable {
         uint96 _amount = uint96(msg.value);
-        require(_amount > 0, "FeeSharingProxy::transferRBTC: invalid value");
+        require(_amount > 0, "FeeSharingCollector::transferRBTC: invalid value");
 
         _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, _amount);
 
@@ -237,7 +242,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
                 add96(
                     unprocessedAmount[_token],
                     _amount,
-                    "FeeSharingProxy::_addCheckpoint: amount exceeds 96 bits"
+                    "FeeSharingCollector::_addCheckpoint: amount exceeds 96 bits"
                 );
 
             /// @notice Reset unprocessed amount of tokens to zero.
@@ -249,7 +254,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             unprocessedAmount[_token] = add96(
                 unprocessedAmount[_token],
                 _amount,
-                "FeeSharingProxy::_addCheckpoint: unprocessedAmount exceeds 96 bits"
+                "FeeSharingCollector::_addCheckpoint: unprocessedAmount exceeds 96 bits"
             );
         }
     }
@@ -277,7 +282,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         /// @dev Prevents processing / checkpoints because of block gas limit.
         require(
             _maxCheckpoints > 0,
-            "FeeSharingProxy::withdraw: _maxCheckpoints should be positive"
+            "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
         );
 
         address wRBTCAddress = address(protocol.wrbtcToken());
@@ -291,19 +296,19 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         uint256 amount;
         uint256 end;
         (amount, end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
-        require(amount > 0, "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
+        require(amount > 0, "FeeSharingCollector::withdrawFees: no tokens for a withdrawal");
 
         processedCheckpoints[user][_loanPoolToken] = end;
 
         if (loanPoolTokenWRBTC == _loanPoolToken) {
-            // We will change, so that feeSharingProxy will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
+            // We will change, so that feeSharingCollector will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
             uint256 loanAmountPaid =
                 ILoanTokenWRBTC(_loanPoolToken).burnToBTC(_receiver, amount, false);
         } else {
             // Previously it directly send the loanToken to the user
             require(
                 IERC20(_loanPoolToken).transfer(_receiver, amount),
-                "FeeSharingProxy::withdraw: withdrawal failed"
+                "FeeSharingCollector::withdraw: withdrawal failed"
             );
         }
 
@@ -352,7 +357,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             wrbtcToken.withdraw(wrbtcAmount);
         }
 
-        // pull out the iWRBTC to rbtc to this feeSharingProxy contract
+        // pull out the iWRBTC to rbtc to this feeSharingCollector contract
         if (iWrbtcAmount > 0) {
             processedCheckpoints[user][loanPoolTokenWRBTC] = endIWRBTC;
             iWRBTCloanAmountPaid = ILoanTokenWRBTC(loanPoolTokenWRBTC).burnToBTC(
@@ -363,11 +368,11 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         }
 
         uint256 totalAmount = rbtcAmount.add(wrbtcAmount).add(iWRBTCloanAmountPaid);
-        require(totalAmount > 0, "FeeSharingProxy::withdrawFees: no rbtc for a withdrawal");
+        require(totalAmount > 0, "FeeSharingCollector::withdrawFees: no rbtc for a withdrawal");
 
         // withdraw everything
         (bool success, ) = _receiver.call.value(totalAmount)("");
-        require(success, "FeeSharingProxy::withdrawRBTC: Withdrawal failed");
+        require(success, "FeeSharingCollector::withdrawRBTC: Withdrawal failed");
 
         emit RBTCWithdrawn(user, _receiver, totalAmount);
     }
@@ -491,7 +496,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
             }
             end = safe32(
                 start + _maxCheckpoints,
-                "FeeSharingProxy::withdraw: checkpoint index exceeds 32 bits"
+                "FeeSharingCollector::withdraw: checkpoint index exceeds 32 bits"
             );
             if (end > nCheckpoints) {
                 end = nCheckpoints;
@@ -516,12 +521,12 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         uint32 blockNumber =
             safe32(
                 block.number,
-                "FeeSharingProxy::_writeCheckpoint: block number exceeds 32 bits"
+                "FeeSharingCollector::_writeCheckpoint: block number exceeds 32 bits"
             );
         uint32 blockTimestamp =
             safe32(
                 block.timestamp,
-                "FeeSharingProxy::_writeCheckpoint: block timestamp exceeds 32 bits"
+                "FeeSharingCollector::_writeCheckpoint: block timestamp exceeds 32 bits"
             );
         uint256 nCheckpoints = numTokenCheckpoints[_token];
 
@@ -560,7 +565,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         totalWeightedStake = sub96(
             totalWeightedStake,
             vestingWeightedStake,
-            "FeeSharingProxy::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
+            "FeeSharingCollector::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
         );
     }
 
@@ -692,7 +697,7 @@ contract FeeSharingLogic is SafeMath96, IFeeSharingProxy, Ownable, FeeSharingPro
         address loanPoolTokenWRBTC = protocol.underlyingToLoanPool(_wRBTCAddress);
         require(
             loanPoolTokenWRBTC != ZERO_ADDRESS,
-            "FeeSharingProxy::withdraw: loan wRBTC not found"
+            "FeeSharingCollector::withdraw: loan wRBTC not found"
         );
 
         return loanPoolTokenWRBTC;

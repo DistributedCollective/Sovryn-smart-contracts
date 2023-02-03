@@ -32,8 +32,8 @@ const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
-const FeeSharingLogic = artifacts.require("FeeSharingLogic");
-const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingCollector = artifacts.require("FeeSharingCollector");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
 // Upgradable Vesting Registry
 // const VestingRegistryLogic = artifacts.require("VestingRegistryLogicMockup");
@@ -64,7 +64,7 @@ contract("Staking", (accounts) => {
     let token, SUSD, WRBTC, staking;
     let sovryn;
     let loanTokenLogic, loanToken;
-    let feeSharingProxy;
+    let feeSharingCollectorProxy;
     let kickoffTS;
     let iWeightedStakingModuleMockup;
 
@@ -123,13 +123,18 @@ contract("Staking", (accounts) => {
 
         await sovryn.setLoanPool([loanToken.address], [SUSD.address]);
 
-        //FeeSharingProxy
-        let feeSharingLogic = await FeeSharingLogic.new();
-        feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
-        await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
-        feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
-        await sovryn.setFeesController(feeSharingProxy.address);
-        await staking.setFeeSharing(feeSharingProxy.address);
+        //FeeSharingCollectorProxy
+        let feeSharingCollector = await FeeSharingCollector.new();
+        feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
+            sovryn.address,
+            staking.address
+        );
+        await feeSharingCollectorProxyObj.setImplementation(feeSharingCollector.address);
+        feeSharingCollectorProxy = await FeeSharingCollector.at(
+            feeSharingCollectorProxyObj.address
+        );
+        await sovryn.setFeesController(feeSharingCollectorProxy.address);
+        await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
         await token.transfer(account1, 1000);
         await token.approve(staking.address, TOTAL_SUPPLY);
@@ -370,7 +375,7 @@ contract("Staking", (accounts) => {
                 root,
                 16 * WEEK,
                 38 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
 
             const sampleVesting = vesting.address;

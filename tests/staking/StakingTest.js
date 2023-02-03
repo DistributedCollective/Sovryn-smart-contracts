@@ -50,8 +50,8 @@ const StakingStakeModule = artifacts.require("StakingStakeModule");
 
 const StakingWrapperMockup = artifacts.require("StakingWrapperMockup");
 
-const FeeSharingLogic = artifacts.require("FeeSharingLogic");
-const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingCollector = artifacts.require("FeeSharingCollector");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
@@ -105,12 +105,17 @@ contract("Staking", (accounts) => {
         await vesting.setImplementation(vestingRegistryLogic.address);
         vesting = await VestingRegistryLogic.at(vesting.address);
 
-        //FeeSharingProxy
-        let feeSharingLogic = await FeeSharingLogic.new();
-        feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
-        await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
-        feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
-        await staking.setFeeSharing(feeSharingProxy.address);
+        //FeeSharingCollectorProxy
+        let feeSharingCollector = await FeeSharingCollector.new();
+        feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
+            sovryn.address,
+            staking.address
+        );
+        await feeSharingCollectorProxyObj.setImplementation(feeSharingCollector.address);
+        feeSharingCollectorProxy = await FeeSharingCollector.at(
+            feeSharingCollectorProxyObj.address
+        );
+        await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
         await staking.setVestingRegistry(vesting.address);
 
@@ -4691,7 +4696,7 @@ contract("Staking", (accounts) => {
             const date2 = date1.add(TWO_WEEKS_BN);
             const date3 = date2.add(TWO_WEEKS_BN);
 
-            // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
+            // NOTE: this is needed or feeSharingCollector throws a fit ("Invalid totalWeightedStake") because
             // totalWeightedStake is 0
             // also we must use an account that's neither delegator or delegatee, so a3 it is
             await initializeStake(date1, new BN("1"), a3);
@@ -4813,7 +4818,7 @@ contract("Staking", (accounts) => {
             // vesting contracts
             const date1 = kickoffTS.add(TWO_WEEKS_BN);
 
-            await initializeStake(date1, new BN("1"), a3); // required for feesharingproxy
+            await initializeStake(date1, new BN("1"), a3); // required for feeSharingCollector
 
             const account = await deployAndImpersonateVestingContract();
             const blockNumberBeforeDelegation = await initializeStake(
@@ -5066,7 +5071,7 @@ contract("Staking", (accounts) => {
         it("if the sender is a vesting contract, getPriorVestingStakeByDate returns the reduced vesting stake at until  (by the full amount)", async () => {
             const date = kickoffTS.add(TWO_WEEKS_BN);
 
-            // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
+            // NOTE: this is needed or feeSharingCollector throws a fit ("Invalid totalWeightedStake") because
             // totalWeightedStake is 0
             await initializeStake(date, new BN("1"), a2);
 
@@ -5108,7 +5113,7 @@ contract("Staking", (accounts) => {
                 date1 = kickoffTS.add(TWO_WEEKS_BN);
                 date2 = date1.add(TWO_WEEKS_BN);
 
-                // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
+                // NOTE: this is needed or feeSharingCollector throws a fit ("Invalid totalWeightedStake") because
                 // totalWeightedStake is 0
                 await initializeStake(date1, new BN("1"), a2);
 

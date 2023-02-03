@@ -137,14 +137,14 @@ def depositToLockedSOV(amount, recipient):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
     
-def deployFeeSharingLogic():
-    # Redeploy feeSharingLogic
-    feeSharing = conf.acct.deploy(FeeSharingLogic)
-    print("Fee sharing logic redeployed at: ", feeSharing.address)
-    print("Setting implementation for FeeSharingProxy")
-    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
-    data = feeSharingProxy.setImplementation.encode_input(feeSharing.address)
-    sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+def deployFeeSharingCollector():
+    # Redeploy feeSharingCollector
+    feeSharingCollector = conf.acct.deploy(FeeSharingCollector)
+    print("Fee sharing collector redeployed at: ", feeSharingCollector.address)
+    print("Setting implementation for FeeSharingCollectorProxy")
+    feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollectorProxy", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
+    data = feeSharingCollectorProxy.setImplementation.encode_input(feeSharingCollector.address)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollectorProxy.address, data, conf.acct)
 
 def replaceTx(txStr, newGas):
     txReceipt = chain.get_transaction(txStr)
@@ -152,7 +152,7 @@ def replaceTx(txStr, newGas):
 
 #gets the logic contract for a proxy
 def getImplementation(proxyContract):
-    proxy = Contract.from_abi("FeeSharingProxy", address=proxyContract, abi=FeeSharingProxy.abi, owner=conf.acct)
+    proxy = Contract.from_abi("FeeSharingCollectorProxy", address=proxyContract, abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
     print(proxy.getImplementation())
     
 def setNewContractGuardian(newGuardian):

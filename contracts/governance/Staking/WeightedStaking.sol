@@ -8,13 +8,13 @@ import "../../openzeppelin/Address.sol";
 
 /**
  * @title Weighted Staking contract.
- * @notice Computation of power and votes used by FeeSharingProxy and
+ * @notice Computation of power and votes used by FeeSharingCollectorProxy and
  * GovernorAlpha and Staking contracts w/ mainly 3 public functions:
  *   + getPriorTotalVotingPower => Total voting power.
  *   + getPriorVotes  => Delegatee voting power.
  *   + getPriorWeightedStake  => User Weighted Stake.
  * Staking contract inherits WeightedStaking.
- * FeeSharingProxy and GovernorAlpha invoke Staking instance functions.
+ * FeeSharingCollectorProxy and GovernorAlpha invoke Staking instance functions.
  * */
 contract WeightedStaking is Checkpoints {
     using Address for address payable;

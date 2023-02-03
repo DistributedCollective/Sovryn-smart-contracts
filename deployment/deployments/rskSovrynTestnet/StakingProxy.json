@@ -250,7 +250,7 @@
             "name": "feeSharing",
             "outputs": [
                 {
-                    "internalType": "contract IFeeSharingProxy",
+                    "internalType": "contract IFeeSharingCollector",
                     "name": "",
                     "type": "address"
                 }

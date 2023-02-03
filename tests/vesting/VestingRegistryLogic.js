@@ -6,7 +6,7 @@ const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
-const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
@@ -28,7 +28,7 @@ const pricsSats = "2500";
 contract("VestingRegistryLogic", (accounts) => {
     let root, account1, account2, account3, account4;
     let SOV, lockedSOV;
-    let staking, feeSharingProxy;
+    let staking, feeSharingCollectorProxy;
     let vesting, vestingFactory, vestingLogic, vestingRegistryLogic;
     let vestingRegistry, vestingRegistry2, vestingRegistry3;
 
@@ -49,7 +49,10 @@ contract("VestingRegistryLogic", (accounts) => {
         const stakingProxy = await StakingProxy.new(SOV.address);
         staking = await deployAndGetIStaking(stakingProxy.address);
 
-        feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
+        feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
+            ZERO_ADDRESS,
+            staking.address
+        );
 
         vestingLogic = await VestingLogic.new();
         vestingFactory = await VestingFactory.new(vestingLogic.address);
@@ -69,7 +72,7 @@ contract("VestingRegistryLogic", (accounts) => {
             [cSOV1.address, cSOV2.address],
             pricsSats,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             account1
         );
 
@@ -79,7 +82,7 @@ contract("VestingRegistryLogic", (accounts) => {
             [cSOV1.address, cSOV2.address],
             pricsSats,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             account1
         );
 
@@ -87,7 +90,7 @@ contract("VestingRegistryLogic", (accounts) => {
             vestingFactory.address,
             SOV.address,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             account1
         );
     });
@@ -99,7 +102,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     ZERO_ADDRESS,
                     SOV.address,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1,
                     lockedSOV.address,
                     [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -114,7 +117,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     vestingFactory.address,
                     ZERO_ADDRESS,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1,
                     lockedSOV.address,
                     [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -129,7 +132,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     vestingFactory.address,
                     SOV.address,
                     ZERO_ADDRESS,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1,
                     lockedSOV.address,
                     [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -138,7 +141,7 @@ contract("VestingRegistryLogic", (accounts) => {
             );
         });
 
-        it("fails if the 0 address is passed as feeSharingProxy address", async () => {
+        it("fails if the 0 address is passed as feeSharingCollectorProxy address", async () => {
             await expectRevert(
                 vesting.initialize(
                     vestingFactory.address,
@@ -149,7 +152,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     lockedSOV.address,
                     [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
                 ),
-                "feeSharingProxy address invalid"
+                "feeSharingCollector address invalid"
             );
         });
 
@@ -159,7 +162,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     vestingFactory.address,
                     SOV.address,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     ZERO_ADDRESS,
                     lockedSOV.address,
                     [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -174,7 +177,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     vestingFactory.address,
                     SOV.address,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1,
                     ZERO_ADDRESS,
                     [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -189,7 +192,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     vestingFactory.address,
                     SOV.address,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1,
                     lockedSOV.address,
                     [ZERO_ADDRESS, vestingRegistry2.address, vestingRegistry3.address]
@@ -204,7 +207,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     vestingFactory.address,
                     SOV.address,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1,
                     lockedSOV.address,
                     [vestingRegistry.address, ZERO_ADDRESS, vestingRegistry3.address]
@@ -219,7 +222,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     vestingFactory.address,
                     SOV.address,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1,
                     lockedSOV.address,
                     [vestingRegistry.address, vestingRegistry2.address, ZERO_ADDRESS]
@@ -233,7 +236,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -241,12 +244,12 @@ contract("VestingRegistryLogic", (accounts) => {
 
             let _sov = await vesting.SOV();
             let _staking = await vesting.staking();
-            let _feeSharingProxy = await vesting.feeSharingProxy();
+            let _feeSharingCollectorProxy = await vesting.feeSharingCollector();
             let _vestingOwner = await vesting.vestingOwner();
 
             expect(_sov).equal(SOV.address);
             expect(_staking).equal(staking.address);
-            expect(_feeSharingProxy).equal(feeSharingProxy.address);
+            expect(_feeSharingCollectorProxy).equal(feeSharingCollectorProxy.address);
             expect(_vestingOwner).equal(account1);
         });
 
@@ -255,7 +258,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -265,7 +268,7 @@ contract("VestingRegistryLogic", (accounts) => {
                     vestingFactory.address,
                     SOV.address,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1,
                     lockedSOV.address,
                     [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -339,7 +342,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -383,7 +386,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -447,7 +450,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -499,7 +502,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -529,7 +532,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -560,7 +563,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -594,7 +597,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -658,7 +661,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -688,7 +691,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -730,7 +733,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -766,7 +769,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -806,7 +809,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
@@ -831,7 +834,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 vestingFactory.address,
                 SOV.address,
                 staking.address,
-                feeSharingProxy.address,
+                feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
                 [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]

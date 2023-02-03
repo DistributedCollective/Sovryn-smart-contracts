@@ -27,7 +27,7 @@ const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
-const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry2"); // removed some methods from VestingRegistry to prevent double spendings
@@ -56,7 +56,7 @@ const priceSats = "2500";
 contract("OriginInvestorsClaim", (accounts) => {
     let root, initializer, account1, investor1, investor2, investor3, investor4;
     let SOV, kickoffTS;
-    let staking, feeSharingProxy;
+    let staking, feeSharingCollectorProxy;
     let vestingFactory, vestingLogic, vestingRegistry;
     let investors;
     let amounts, amount1, amount2, amount3, amount4;
@@ -165,7 +165,10 @@ contract("OriginInvestorsClaim", (accounts) => {
 
         iWeightedStakingModuleMockup = await IWeightedStakingModuleMockup.at(staking.address);
 
-        feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
+        feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
+            ZERO_ADDRESS,
+            staking.address
+        );
 
         vestingLogic = await VestingLogic.new();
         vestingFactory = await VestingFactory.new(vestingLogic.address);
@@ -175,7 +178,7 @@ contract("OriginInvestorsClaim", (accounts) => {
             [cSOV1.address, cSOV2.address],
             priceSats,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             account1
         );
         await vestingFactory.transferOwnership(vestingRegistry.address);
