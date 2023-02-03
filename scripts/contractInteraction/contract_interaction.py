@@ -55,7 +55,7 @@ def main():
     #confirmWithBFMS(8)
     #checkTxOnBF(8)
     
-    #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
+    #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
     
     ### BF ###
     #confirmWithAnyMS(8, conf.contracts["BFMultisigOrigins"])

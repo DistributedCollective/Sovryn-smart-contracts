@@ -40,10 +40,10 @@ import "../../interfaces/IConverterAMM.sol";
  * rewards in proportion to the user’s weighted stake since the last withdrawal.
  *
  * The protocol initially collects fees in all tokens.
- * Then the FeeSharingProxy wihtdraws fees from the protocol.
+ * Then the FeeSharingCollector wihtdraws fees from the protocol.
  * When the fees are withdrawn all the tokens except SOV will be converted to wRBTC
  * and then transferred to wRBTC loan pool.
- * For SOV, it will be directly deposited into the feeSharingProxy from the protocol.
+ * For SOV, it will be directly deposited into the feeSharingCollector from the protocol.
  * */
 contract FeeSharingCollector is
     SafeMath96,
