@@ -5,9 +5,6 @@ const {
     getStakingModulesNames,
     stakingRegisterModuleWithMultisig,
     sendWithMultisig,
-    createProposal,
-    multisigCheckTx,
-    getStakingModuleContractToReplace,
 } = require("../helpers/helpers");
 
 const { arrayToUnique } = require("../helpers/utils");
@@ -90,7 +87,9 @@ const func = async function () {
             data,
             deployer
         );
-        log(`>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures <<<`);
+        log(
+            `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
+        );
     } else if (hre.network.tags["mainnet"]) {
         //owned by governance - need a SIP to register
         // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
