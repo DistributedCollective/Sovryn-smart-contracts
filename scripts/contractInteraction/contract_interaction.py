@@ -76,7 +76,7 @@ def main():
     #executeOnMultisig(1071)
    
     #confirmWithMS(1064)
-    checkTx(1297)
+    #checkTx(1297)
     
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
     #confirmMultipleTxsWithMS(960, 963)
