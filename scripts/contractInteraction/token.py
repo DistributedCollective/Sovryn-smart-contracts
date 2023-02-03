@@ -56,7 +56,7 @@ def increaseAllowanceFromMS(tokenContractAddress, receiver, amount):
     data = token.increaseAllowance.encode_input(receiver, amount)
     sendWithMultisig(conf.contracts['multisig'], tokenContractAddress, data, conf.acct)
 
-def sendMYNTFromMultisigToFeeSharingCollectorProxy(amount):
+def sendMYNTFromMultisigToFeeSharingCollector(amount):
     feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     token = Contract.from_abi("MYNT", address=conf.contracts['MYNT'], abi=ERC20.abi, owner=conf.acct)

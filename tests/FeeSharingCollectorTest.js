@@ -316,6 +316,15 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             expect(newImplementation).to.be.equal(newFeeSharingCollector.address);
         });
+
+        it("fallback function will revert if called by non-wrbtc contract", async () => {
+            const newFeeSharingCollector = await FeeSharingCollector.new();
+            await feeSharingCollectorProxyObj.setImplementation(newFeeSharingCollector.address);
+            await expectRevert(
+                feeSharingCollectorProxyObj.send(wei("0.0000000000000001", "ether")),
+                "FeeSharingCollector::fallback: only wRBTC token calls allowed"
+            );
+        });
     });
 
     describe("withdrawFees", () => {
