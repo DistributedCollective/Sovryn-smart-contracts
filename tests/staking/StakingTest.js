@@ -4696,7 +4696,7 @@ contract("Staking", (accounts) => {
             const date2 = date1.add(TWO_WEEKS_BN);
             const date3 = date2.add(TWO_WEEKS_BN);
 
-            // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
+            // NOTE: this is needed or feeSharingCollector throws a fit ("Invalid totalWeightedStake") because
             // totalWeightedStake is 0
             // also we must use an account that's neither delegator or delegatee, so a3 it is
             await initializeStake(date1, new BN("1"), a3);
@@ -5071,7 +5071,7 @@ contract("Staking", (accounts) => {
         it("if the sender is a vesting contract, getPriorVestingStakeByDate returns the reduced vesting stake at until  (by the full amount)", async () => {
             const date = kickoffTS.add(TWO_WEEKS_BN);
 
-            // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
+            // NOTE: this is needed or feeSharingCollector throws a fit ("Invalid totalWeightedStake") because
             // totalWeightedStake is 0
             await initializeStake(date, new BN("1"), a2);
 
@@ -5113,7 +5113,7 @@ contract("Staking", (accounts) => {
                 date1 = kickoffTS.add(TWO_WEEKS_BN);
                 date2 = date1.add(TWO_WEEKS_BN);
 
-                // NOTE: this is needed or feeSharingProxy throws a fit ("Invalid totalWeightedStake") because
+                // NOTE: this is needed or feeSharingCollector throws a fit ("Invalid totalWeightedStake") because
                 // totalWeightedStake is 0
                 await initializeStake(date1, new BN("1"), a2);
 
