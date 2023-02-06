@@ -220,32 +220,32 @@ contract("VestingRegistryMigrations", (accounts) => {
             console.log("gasUsed = " + tx.receipt.gasUsed);
 
             newVestingAddress = await vesting.getVestingAddr(account1, cliff, duration, 1);
-            expect(await vesting.isVestingAdress(newVestingAddress)).equal(true);
+            expect(await vesting.isVestingAddress(newVestingAddress)).equal(true);
             newVestingAddress2 = await vesting.getVestingAddr(account2, cliff, duration, 2);
-            expect(await vesting.isVestingAdress(newVestingAddress2)).equal(true);
+            expect(await vesting.isVestingAddress(newVestingAddress2)).equal(true);
             newVestingAddress3 = await vesting.getVestingAddr(account3, cliff, duration, 3);
-            expect(await vesting.isVestingAdress(newVestingAddress3)).equal(true);
+            expect(await vesting.isVestingAddress(newVestingAddress3)).equal(true);
             newTeamVestingAddress = await vesting.getTeamVesting(
                 account1,
                 teamCliff,
                 teamDuration,
                 1
             );
-            expect(await vesting.isVestingAdress(newTeamVestingAddress)).equal(true);
+            expect(await vesting.isVestingAddress(newTeamVestingAddress)).equal(true);
             newTeamVestingAddress2 = await vesting.getTeamVesting(
                 account2,
                 teamCliff,
                 teamDuration,
                 2
             );
-            expect(await vesting.isVestingAdress(newTeamVestingAddress2)).equal(true);
+            expect(await vesting.isVestingAddress(newTeamVestingAddress2)).equal(true);
             newTeamVestingAddress3 = await vesting.getTeamVesting(
                 account3,
                 teamCliff,
                 teamDuration,
                 3
             );
-            expect(await vesting.isVestingAdress(newTeamVestingAddress3)).equal(true);
+            expect(await vesting.isVestingAddress(newTeamVestingAddress3)).equal(true);
 
             expect(vestingAddress).equal(newVestingAddress);
             expect(vestingAddress2).equal(newVestingAddress2);
@@ -312,7 +312,7 @@ contract("VestingRegistryMigrations", (accounts) => {
             let duration = FOUR_WEEKS.mul(new BN(39));
             let newVestingAddress = await vesting.getVestingAddr(account4, cliff, duration, 4);
             expect(fourYearVesting.address).equal(newVestingAddress);
-            expect(await vesting.isVestingAdress(newVestingAddress)).equal(true);
+            expect(await vesting.isVestingAddress(newVestingAddress)).equal(true);
 
             let vestingAddresses = await vesting.getVestingsOf(account4);
             assert.equal(vestingAddresses.length.toString(), "1");

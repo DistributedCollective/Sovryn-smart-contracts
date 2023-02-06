@@ -412,7 +412,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 duration,
                 vestingCreationType
             );
-            expect(await vesting.isVestingAdress(vestingAddress)).equal(true);
+            expect(await vesting.isVestingAddress(vestingAddress)).equal(true);
 
             let vestingCreationAndType = await vesting.vestingCreationAndTypes(vestingAddress);
             expect(await vestingCreationAndType["isSet"]).to.equal(true);
@@ -475,7 +475,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 duration,
                 vestingType
             );
-            expect(await vesting.isVestingAdress(vestingAddress)).equal(true);
+            expect(await vesting.isVestingAddress(vestingAddress)).equal(true);
             await vesting.stakeTokens(vestingAddress, amount);
 
             expectEvent(tx, "VestingCreated", {
@@ -586,7 +586,7 @@ contract("VestingRegistryLogic", (accounts) => {
             );
             expect(await vesting.isTeamVesting(vestingAddr)).to.equal(false);
 
-            expect(await vesting.isVestingAdress(vestingAddr)).equal(true);
+            expect(await vesting.isVestingAddress(vestingAddr)).equal(true);
             assert.notEqual(vestingAddr, ZERO_ADDRESS, "Vesting Address should not be zero.");
         });
     });
@@ -625,7 +625,7 @@ contract("VestingRegistryLogic", (accounts) => {
             );
             let vestingCreationAndType = await vesting.vestingCreationAndTypes(vestingAddress);
             expect(await vestingCreationAndType["isSet"]).to.equal(true);
-            expect(await vesting.isVestingAdress(vestingAddress)).equal(true);
+            expect(await vesting.isVestingAddress(vestingAddress)).equal(true);
             expect(await vestingCreationAndType["vestingType"].toString()).to.equal(
                 vestingType.toString()
             );
@@ -866,9 +866,9 @@ contract("VestingRegistryLogic", (accounts) => {
         });
     });
 
-    describe("isVestingAdress", () => {
+    describe("isVestingAddress", () => {
         it("should return false if the address isn't a vesting address", async () => {
-            expect(await vesting.isVestingAdress(account1)).equal(false);
+            expect(await vesting.isVestingAddress(account1)).equal(false);
         });
     });
 

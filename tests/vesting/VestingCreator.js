@@ -735,7 +735,7 @@ contract("VestingCreator", (accounts) => {
                 let tx = await vestingCreator.processVestingCreation();
                 console.log("gasUsed = " + tx.receipt.gasUsed);
                 let vestingAddr = await vestingCreator.getVestingAddress();
-                expect(await vesting.isVestingAdress(vestingAddr)).equal(true);
+                expect(await vesting.isVestingAddress(vestingAddr)).equal(true);
                 tx = await vestingCreator.processStaking();
                 console.log("gasUsed = " + tx.receipt.gasUsed);
 
