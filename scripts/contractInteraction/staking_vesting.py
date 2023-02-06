@@ -325,7 +325,7 @@ def canAddStakingModule(stakingModuleAddress):
 
 # Upgrade Vesting Registry
 
-def upgradeVesting():
+def upgradeVestingRegistry():
     print('Deploying account:', conf.acct.address)
     print("Upgrading vesting registry")
 
