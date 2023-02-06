@@ -141,7 +141,7 @@
     "StakingRewardsProxy": "0x18eF0ff12f1b4D30104B4680D485D026C26D164D",
     "StakingRewards": "0x2e49E13640d7039B1fE638E2B911653A550B6d14",
     "VestingRegistryProxy": "0x09e8659B6d204C6b1bED2BFF8E3F43F834A5Bbc4",
-    "VestingRegistryLogic": "0xbee9Bdc7f8F18315fFd549f76E6D1AE22BC886E3",
+    "VestingRegistryLogic": "0xa9944ccB78f47221a3e458589efD4FF89dd9737E",
     "SovrynSwapFormula": "0x7FF1C363b5600834bce7c514B01109eF1c103507",
     "activePool": "0xd7d6cF12FEb339Dc99a6d5b7a54bDD37953fc937",
     "borrowerOperations": "0x135A1545fa1B2989251921737CD7862c98244FbF",
