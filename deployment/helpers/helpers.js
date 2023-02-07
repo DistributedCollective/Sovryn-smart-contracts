@@ -188,8 +188,9 @@ const createProposal = async (
     description
 ) => {
     const { ethers } = hre;
-    //governorDeployment = (await get("GovernorAlpha")).address;
+    const { deployer } = await getNamedAccounts();
     console.log(`=============================================================
+    Proposal creator:    ${deployer}
     Governor Address:    ${governorAddress}
     Target:              ${targets}
     Values:              ${values}
@@ -197,11 +198,13 @@ const createProposal = async (
     Data:                ${callDatas}
     Description:         ${description}
     =============================================================`);
+    const signer = await ethers.getSigner(deployer);
     const gov = await ethers.getContractAt("GovernorAlpha", governorAddress);
-    const tx = await (
-        await gov.propose(targets, values, signatures, callDatas, description)
+    const receipt = await (
+        await gov.connect(signer).propose(targets, values, signatures, callDatas, description)
     ).wait();
-    console.log(tx.receipt);
+    console.log(receipt.events);
+    // @todo Add a decoded event logging: e.g. https://github.com/ethers-io/ethers.js/issues/487#issuecomment-1101937446
 };
 
 module.exports = {
