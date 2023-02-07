@@ -13,6 +13,7 @@ def loadConfig():
             configPath = "./scripts/contractInteraction/" + netName + "_contracts.json"
             configFile = open(configPath)
         else:
+            acct = accounts.load("rskdeployer")
             configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet":
