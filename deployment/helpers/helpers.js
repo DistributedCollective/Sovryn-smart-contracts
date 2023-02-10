@@ -84,7 +84,10 @@ const multisigRevokeConfirmation = async (
     sender,
     multisigAddress = ethers.constants.ADDRESS_ZERO
 ) => {
-    const { ethers } = hre;
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
         multisigAddress == ethers.constants.ADDRESS_ZERO
@@ -99,6 +102,31 @@ const multisigRevokeConfirmation = async (
     // console.log("Required signatures:", await multisig.required());
     console.log(`Confirmation of txId ${txId} revoked.`);
     console.log("Details:");
+    await multisigCheckTx(txId, multisig.address);
+};
+
+const multisigExecuteTx = async (
+    txId,
+    sender,
+    multisigAddress = ethers.constants.ADDRESS_ZERO
+) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const multisig = await ethers.getContractAt(
+        "MultiSigWallet",
+        multisigAddress == ethers.constants.ADDRESS_ZERO
+            ? (
+                  await get("MultiSigWallet")
+              ).address
+            : multisigAddress
+    );
+    console.log("Executing multisig txId", txId, "...");
+    const signer = await ethers.getSigner(sender);
+    receipt = await (await multisig.connect(signer).execute(txId)).wait();
+    // console.log("Required signatures:", await multisig.required());
+    console.log("DONE. Details:");
     await multisigCheckTx(txId, multisig.address);
 };
 
@@ -204,6 +232,7 @@ const createProposal = async (
         await gov.connect(signer).propose(targets, values, signatures, callDatas, description)
     ).wait();
     console.log(receipt.events);
+    return receipt;
     // @todo Add a decoded event logging: e.g. https://github.com/ethers-io/ethers.js/issues/487#issuecomment-1101937446
 };
 
@@ -216,6 +245,8 @@ module.exports = {
     sendWithMultisig,
     signWithMultisig,
     multisigCheckTx,
+    multisigRevokeConfirmation,
+    multisigExecuteTx,
     getStakingModuleContractToReplace,
     createProposal,
 };
