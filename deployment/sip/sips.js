@@ -28,8 +28,7 @@ const createSIP0049 = async () => {
     const stakingModules = await ethers.getContractAt("ModulesProxy", stakingProxy.address);
     const stakingModulesProxy = await ethers.getContract("StakingModulesProxy");
     const stakingProxyAddress = stakingProxy.address;
-    const isNewModulesProxy =
-        (await stakingProxy.getImplementation()) != stakingModulesProxy.address;
+    const isNewModulesProxy = true; // (await stakingProxy.getImplementation()) != stakingModulesProxy.address;
 
     const moduleNamesObject = getStakingModulesNames();
     const moduleNames = Object.values(moduleNamesObject);
@@ -120,19 +119,12 @@ const createSIP0049 = async () => {
     console.log("datas:", datas);
     console.log("description:", description);
 
-    await createProposal(governorAddress, targets, values, signatures, datas, description);
+    return await createProposal(governorAddress, targets, values, signatures, datas, description);
 };
 
-async function main() {
-    await createSIP0049();
-}
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-});
+module.exports = {
+    createSIP0049,
+};
 
 /*
 def createProposalSIP0049():
