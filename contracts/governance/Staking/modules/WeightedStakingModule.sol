@@ -45,7 +45,11 @@ contract WeightedStakingModule is IFunctionsList, StakingShared, CheckpointsShar
         for (uint256 i = start; i <= end; i += TWO_WEEKS) {
             uint96 weightedStake = _weightedStakeByDate(account, i, start, blockNumber);
             if (weightedStake > 0) {
-                priorWeightedStake = add96(priorWeightedStake, weightedStake, "WS12"); // overflow on total weight
+                priorWeightedStake = add96(
+                    priorWeightedStake,
+                    weightedStake,
+                    "overflow on total weight calc"
+                ); // WS12
             }
         }
     }
@@ -88,7 +92,7 @@ contract WeightedStakingModule is IFunctionsList, StakingShared, CheckpointsShar
         uint96 staked = _getPriorUserStakeByDate(account, date, blockNumber);
         if (staked > 0) {
             uint96 weight = _computeWeightByDate(date, startDate);
-            power = mul96(staked, weight, "WS13") / WEIGHT_FACTOR; // overflow
+            power = mul96(staked, weight, "mul overflow") / WEIGHT_FACTOR; // WS13
         } else {
             power = 0;
         }

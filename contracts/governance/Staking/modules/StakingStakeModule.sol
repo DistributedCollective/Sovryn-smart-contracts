@@ -169,7 +169,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
             _decreaseDelegateStake(previousDelegatee, until, previousBalance);
 
             /// @dev Add previousBalance to amount.
-            amount = add96(previousBalance, amount, "S03");
+            amount = add96(previousBalance, amount, "add amounts failed");
         }
 
         /// @dev Increase stake.
@@ -251,7 +251,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
 
         /// @dev Increase staked balance.
         uint96 balance = _currentBalance(stakeFor, until);
-        balance = add96(balance, amount, "IS20"); // increaseStake: overflow
+        balance = add96(balance, amount, "increaseStake: overflow"); // IS20
 
         /// @dev Update checkpoints.
         _increaseDailyStake(until, amount);
@@ -376,7 +376,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * */
     function balanceOf(address account) external view returns (uint96 balance) {
         for (uint256 i = kickoffTS; i <= block.timestamp + MAX_DURATION; i += TWO_WEEKS) {
-            balance = add96(balance, _currentBalance(account, i), "S12"); // Staking::balanceOf: overflow
+            balance = add96(balance, _currentBalance(account, i), "Staking::balanceOf: overflow"); // S12
         }
     }
 

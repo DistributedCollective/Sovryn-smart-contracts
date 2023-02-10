@@ -139,7 +139,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         for (uint256 i = start; i <= end; i += TWO_WEEKS) {
             uint96 weightedStake = _weightedVestingStakeByDate(i, start, blockNumber);
             if (weightedStake > 0) {
-                votes = add96(votes, weightedStake, "WS15"); // overflow on total weight
+                votes = add96(votes, weightedStake, "overflow on total weight"); // WS15
             }
         }
     }
@@ -178,7 +178,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         uint96 staked = _getPriorVestingStakeByDate(date, blockNumber);
         if (staked > 0) {
             uint96 weight = _computeWeightByDate(date, startDate);
-            power = mul96(staked, weight, "WS16") / WEIGHT_FACTOR; // multiplication overflow
+            power = mul96(staked, weight, "mul oveflow") / WEIGHT_FACTOR; // WS16
         } else {
             power = 0;
         }
