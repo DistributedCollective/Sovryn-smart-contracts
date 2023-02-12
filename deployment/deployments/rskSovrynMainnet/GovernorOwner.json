@@ -2,7 +2,7 @@
     "_format": "hh-sol-artifact-1",
     "contractName": "GovernorAlpha",
     "sourceName": "contracts/governance/GovernorAlpha.sol",
-    "address": "0x6496DF39D000478a7A7352C01E0E713835051CcD",
+    "address": "0x6496df39d000478a7a7352c01e0e713835051ccd",
     "abi": [
         {
             "inputs": [
