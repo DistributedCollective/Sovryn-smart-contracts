@@ -112,58 +112,17 @@ const createSIP0049 = async () => {
         "SIP-0049: Staking contract refactoring to resolve EIP-170 size limit, Details: <TODO: commit link>, sha256: <TODO: SIP file sha256>";
 
     const governorAddress = (await get("GovernorOwner")).address;
-    console.log("governor:", governorAddress);
+    /* console.log("governor:", governorAddress);
     console.log("targets:", targets);
     console.log("values:", values);
     console.log("signatures:", signatures);
     console.log("datas:", datas);
     console.log("description:", description);
+    */
 
-    return await createProposal(governorAddress, targets, values, signatures, datas, description);
+    await createProposal(governorAddress, targets, values, signatures, datas, description);
 };
 
 module.exports = {
     createSIP0049,
 };
-
-/*
-def createProposalSIP0049():
-
-    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=contracts['Staking'], abi=ModulesProxy.abi, owner=acct)
-
-    #TODO: set modules addresses in the addresses .json
-    moduleAddresses = { 
-        'StakingAdminModule': contracts['StakingAdminModule'],
-        'StakingGovernanceModule': contracts['StakingGovernanceModule'],
-        'StakingStakeModule': contracts['StakingStakeModule'],
-        'StakingStorageModule': contracts['StakingStorageModule'],
-        'StakingVestingModule': contracts['StakingVestingModule'],
-        'StakingWithdrawModule': contracts['StakingWithdrawModule'],
-        'WeightedStakingModule': contracts['WeightedStakingModule']
-    }
-    invalidModules = {}
-    for module in moduleAddresses:
-        if not stakingModulesProxy.canAddModule(moduleAddresses[module]):
-            invalidModules.append({module: moduleAddresses[module]})
-    
-    if invalidModules != {}:
-         raise Exception('Invalid modules:: ' + invalidModules)
-
-    # Action
-    targets = [contracts['Staking'], contracts['Staking']]
-    values = [0, 0]
-    signatures = ["setImplementation(address)", "addModules(address[])"]
-    data1 = stakingProxy.setImplementation.encode_input(contracts['StakingModulesProxy'])
-    data2 = stakingModulesProxy.addModules.encode_input(moduleAddresses)
-    datas = ["0x" + data1[10:], "0x" + data2[10:]]
-
-    description = "SIP-0049: Staking contract refactoring to resolve EIP-170 size limit, Details: <TODO: commit link>, sha256: <TODO: SIP file sha256>"
-
-    # Create Proposal
-    print(signatures)
-    print(datas)
-    print(description)
-    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
-
-*/

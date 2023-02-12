@@ -217,6 +217,7 @@ const createProposal = async (
 ) => {
     const { ethers } = hre;
     const { deployer } = await getNamedAccounts();
+    /* console.log("CREATING PROPOSAL:");
     console.log(`=============================================================
     Proposal creator:    ${deployer}
     Governor Address:    ${governorAddress}
@@ -226,13 +227,44 @@ const createProposal = async (
     Data:                ${callDatas}
     Description:         ${description}
     =============================================================`);
+    */
     const signer = await ethers.getSigner(deployer);
     const gov = await ethers.getContractAt("GovernorAlpha", governorAddress);
     const receipt = await (
         await gov.connect(signer).propose(targets, values, signatures, callDatas, description)
     ).wait();
-    console.log(receipt.events);
-    return receipt;
+
+    const abi = [
+        `
+            event ProposalCreated(
+            uint256 id,
+            address proposer,
+            address[] targets,
+            uint256[] values,
+            string[] signatures,
+            bytes[] calldatas,
+            uint256 startBlock,
+            uint256 endBlock,
+            string description)
+        `,
+    ];
+    let iface = new ethers.utils.Interface(abi);
+    const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "ProposalCreated");
+    // const { id, proposer, targets, values, signatures, calldatas, startBlock, endBlock } =
+    console.log("PROPOSAL CREATED:");
+    console.log(`=============================================================
+    Contract:            GovernorAlpha @ ${governorAddress}
+    Proposal Id:         ${parsedEvent.id.value.toString()}
+    Proposer:            ${parsedEvent.proposer.value}
+    Targets:             ${parsedEvent.targets.value}
+    Values:              ${parsedEvent.values.value.map(toString)}
+    Signature:           ${parsedEvent.signatures.value}
+    Data:                ${parsedEvent.calldatas.value}
+    StartBlock:          ${parsedEvent.startBlock.value.toString()}
+    EndBlock:            ${parsedEvent.endBlock.value.toString()}
+    Description:         ${parsedEvent.description.value}
+    =============================================================`);
+    // return receipt;
     // @todo Add a decoded event logging: e.g. https://github.com/ethers-io/ethers.js/issues/487#issuecomment-1101937446
 };
 
