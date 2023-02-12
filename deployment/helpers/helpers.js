@@ -84,7 +84,10 @@ const multisigRevokeConfirmation = async (
     sender,
     multisigAddress = ethers.constants.ADDRESS_ZERO
 ) => {
-    const { ethers } = hre;
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
         multisigAddress == ethers.constants.ADDRESS_ZERO
@@ -99,6 +102,31 @@ const multisigRevokeConfirmation = async (
     // console.log("Required signatures:", await multisig.required());
     console.log(`Confirmation of txId ${txId} revoked.`);
     console.log("Details:");
+    await multisigCheckTx(txId, multisig.address);
+};
+
+const multisigExecuteTx = async (
+    txId,
+    sender,
+    multisigAddress = ethers.constants.ADDRESS_ZERO
+) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const multisig = await ethers.getContractAt(
+        "MultiSigWallet",
+        multisigAddress == ethers.constants.ADDRESS_ZERO
+            ? (
+                  await get("MultiSigWallet")
+              ).address
+            : multisigAddress
+    );
+    console.log("Executing multisig txId", txId, "...");
+    const signer = await ethers.getSigner(sender);
+    receipt = await (await multisig.connect(signer).execute(txId)).wait();
+    // console.log("Required signatures:", await multisig.required());
+    console.log("DONE. Details:");
     await multisigCheckTx(txId, multisig.address);
 };
 
@@ -188,8 +216,10 @@ const createProposal = async (
     description
 ) => {
     const { ethers } = hre;
-    //governorDeployment = (await get("GovernorAlpha")).address;
+    const { deployer } = await getNamedAccounts();
+    /* console.log("CREATING PROPOSAL:");
     console.log(`=============================================================
+    Proposal creator:    ${deployer}
     Governor Address:    ${governorAddress}
     Target:              ${targets}
     Values:              ${values}
@@ -197,11 +227,45 @@ const createProposal = async (
     Data:                ${callDatas}
     Description:         ${description}
     =============================================================`);
+    */
+    const signer = await ethers.getSigner(deployer);
     const gov = await ethers.getContractAt("GovernorAlpha", governorAddress);
-    const tx = await (
-        await gov.propose(targets, values, signatures, callDatas, description)
+    const receipt = await (
+        await gov.connect(signer).propose(targets, values, signatures, callDatas, description)
     ).wait();
-    console.log(tx.receipt);
+
+    const abi = [
+        `
+            event ProposalCreated(
+            uint256 id,
+            address proposer,
+            address[] targets,
+            uint256[] values,
+            string[] signatures,
+            bytes[] calldatas,
+            uint256 startBlock,
+            uint256 endBlock,
+            string description)
+        `,
+    ];
+    let iface = new ethers.utils.Interface(abi);
+    const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "ProposalCreated");
+    // const { id, proposer, targets, values, signatures, calldatas, startBlock, endBlock } =
+    console.log("PROPOSAL CREATED:");
+    console.log(`=============================================================
+    Contract:            GovernorAlpha @ ${governorAddress}
+    Proposal Id:         ${parsedEvent.id.value.toString()}
+    Proposer:            ${parsedEvent.proposer.value}
+    Targets:             ${parsedEvent.targets.value}
+    Values:              ${parsedEvent.values.value.map(toString)}
+    Signature:           ${parsedEvent.signatures.value}
+    Data:                ${parsedEvent.calldatas.value}
+    StartBlock:          ${parsedEvent.startBlock.value.toString()}
+    EndBlock:            ${parsedEvent.endBlock.value.toString()}
+    Description:         ${parsedEvent.description.value}
+    =============================================================`);
+    // return receipt;
+    // @todo Add a decoded event logging: e.g. https://github.com/ethers-io/ethers.js/issues/487#issuecomment-1101937446
 };
 
 module.exports = {
@@ -213,6 +277,8 @@ module.exports = {
     sendWithMultisig,
     signWithMultisig,
     multisigCheckTx,
+    multisigRevokeConfirmation,
+    multisigExecuteTx,
     getStakingModuleContractToReplace,
     createProposal,
 };

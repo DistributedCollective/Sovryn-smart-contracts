@@ -8,6 +8,11 @@ def loadConfig():
     thisNetwork = network.show_active()
     if thisNetwork == "development":
         acct = accounts[0]
+        devAcc = environ.get('ACC_NAME')
+        if(devAcc != None):
+            acct = accounts.load(devAcc)
+        else: 
+            acct = accounts.load("rskdeployer")
         netName = environ.get('DEV_NET_NAME')
         if(netName != None): 
             configPath = "./scripts/contractInteraction/" + netName + "_contracts.json"

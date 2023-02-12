@@ -441,6 +441,18 @@ def createProposalSIP0049():
         'StakingWithdrawModule': contracts['StakingWithdrawModule'],
         'WeightedStakingModule': contracts['WeightedStakingModule']
     }
+
+    moduleAddresses = [ 
+        contracts['StakingAdminModule'],
+        contracts['StakingGovernanceModule'],
+        contracts['StakingStakeModule'],
+        contracts['StakingStorageModule'],
+        contracts['StakingVestingModule'],
+        contracts['StakingWithdrawModule'],
+        contracts['WeightedStakingModule']
+    ]
+    
+    '''
     invalidModules = {}
     for module in moduleAddresses:
         if not stakingModulesProxy.canAddModule(moduleAddresses[module]):
@@ -448,6 +460,7 @@ def createProposalSIP0049():
     
     if invalidModules != {}:
          raise Exception('Invalid modules:: ' + invalidModules)
+    '''
 
     # Action
     targets = [contracts['Staking'], contracts['Staking']]

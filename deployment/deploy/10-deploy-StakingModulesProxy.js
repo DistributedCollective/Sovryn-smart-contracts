@@ -21,9 +21,10 @@ const func = async function (hre) {
 
     const stakingProxy = await ethers.getContract("StakingProxy");
     const stakingProxyImpl = await stakingProxy.getImplementation();
-    log("Current stakinProxy.getImplementation():", stakingProxyImpl);
+    log("Current stakingProxy.getImplementation():", stakingProxyImpl);
 
     if (tx.newlyDeployed || tx.address != stakingProxyImpl) {
+        log("New Staking Implementation (StakingModulesProxy):", tx.address);
         const stakingProxyDeployment = await get("StakingProxy");
         if (hre.network.tags["testnet"]) {
             //multisig is the owner
@@ -46,7 +47,8 @@ const func = async function (hre) {
                 `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
             );
         } else if (hre.network.tags["mainnet"]) {
-            //governance is the owner - need a SIP to register
+            log(">>> Create a Bitocracy proposal via SIP <<<");
+            // governance is the owner - need a SIP to register
             // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
         } else {
             const stakingProxy = await ethers.getContractAt(

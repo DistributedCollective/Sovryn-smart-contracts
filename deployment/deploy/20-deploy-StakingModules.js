@@ -26,12 +26,12 @@ const func = async function (hre) {
         */
     };
     const modulesList = getStakingModulesNames();
-    const stakinModuleNames = Object.keys(modulesList).filter(
+    const stakingModuleNames = Object.keys(modulesList).filter(
         (k) => !dontDeployModules.hasOwnProperty(k)
     );
 
-    for (let i = 0; i < stakinModuleNames.length; i++) {
-        const tx = await deploy(stakinModuleNames[i], {
+    for (let i = 0; i < stakingModuleNames.length; i++) {
+        const tx = await deploy(stakingModuleNames[i], {
             from: deployer,
             args: [],
             log: true,

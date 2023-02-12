@@ -226,11 +226,17 @@ def upgradeStakingModulesProxy():
     stakingModulesProxy = conf.acct.deploy(ModulesProxy)
     print("New StakingModuleProxy address:", stakingModulesProxy.address)
     
+    setStakingModulesProxy(stakingModulesProxy.address)
+
+def setStakingModulesProxy(stakingModulesProxyAddress):
+    print('Deploying account:', conf.acct.address)
+    print("Setting Staking Modules Proxy address as implementation for StakingProxy")
+
     # Get the proxy contract instance
     stakingProxy = Contract.from_abi("StakingProxy", address=conf.contracts['Staking'], abi=StakingProxy.abi, owner=conf.acct)
 
     # Register logic in Proxy
-    data = stakingProxy.setImplementation.encode_input(stakingModulesProxy.address)
+    data = stakingProxy.setImplementation.encode_input(stakingModulesProxyAddress)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
 # deployStakingModulesProxy
