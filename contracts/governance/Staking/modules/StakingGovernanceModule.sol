@@ -37,8 +37,8 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
             totalVotingPower = add96(
                 totalVotingPower,
                 _totalPowerByDate(i, start, blockNumber),
-                "WS06"
-            ); // arrays mismatch
+                "arrays mismatch"
+            ); // WS06
         }
     }
 
@@ -58,7 +58,7 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
         uint96 weight = _computeWeightByDate(date, startDate);
         uint96 staked = _getPriorTotalStakesForDate(date, blockNumber);
         /// @dev weight is multiplied by some factor to allow decimals.
-        power = mul96(staked, weight, "WS07") / WEIGHT_FACTOR; // mul overflow
+        power = mul96(staked, weight, "mul overflow") / WEIGHT_FACTOR; // WS07
     }
 
     /****************************** DELEGATED VOTING POWER COMPUTATION ************************/
@@ -99,8 +99,8 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
             votes = add96(
                 votes,
                 _totalPowerByDateForDelegatee(account, i, start, blockNumber),
-                "WS09"
-            ); // overflow - total VP
+                "overflow - total VP"
+            ); // WS09
         }
     }
 
@@ -121,7 +121,7 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
     ) internal view returns (uint96 power) {
         uint96 weight = _computeWeightByDate(date, startDate);
         uint96 staked = _getPriorStakeByDateForDelegatee(account, date, blockNumber);
-        power = mul96(staked, weight, "WS10") / WEIGHT_FACTOR; // overflow
+        power = mul96(staked, weight, "mul overflow") / WEIGHT_FACTOR; // WS10
     }
 
     /**

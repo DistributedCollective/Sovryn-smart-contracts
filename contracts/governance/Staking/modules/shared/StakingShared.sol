@@ -196,11 +196,11 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
                 sub96(
                     MAX_DURATION_POW_2,
                     x * x,
-                    "WS20" /* weight underflow */
+                    "weight underflow" // WS20
                 ),
-                "WS21" /* weight mul overflow */
+                "weight mul overflow" // WS21
             ) / MAX_DURATION_POW_2,
-            "WS22" /* overflow on weight */
+            "overflow on weight" // WS22
         );
     }
 

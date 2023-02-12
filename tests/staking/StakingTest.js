@@ -2499,8 +2499,8 @@ contract("Staking", (accounts) => {
 
         it("it is not allowed to set the scaling weight lower than MIN_WEIGHT_SCALING", async () => {
             await expect(staking.setWeightScaling(MIN_WEIGHT_SCALING - 1)).to.be.revertedWith(
-                "S18"
-            );
+                "scaling doesn't belong to range [1, 9]"
+            ); //S18
             // test boundary
             await staking.setWeightScaling(MIN_WEIGHT_SCALING);
             expect(await staking.weightScaling()).to.bignumber.equal(
@@ -2510,8 +2510,8 @@ contract("Staking", (accounts) => {
 
         it("it is not allowed to set the scaling weight higher than MAX_WEIGHT_SCALING", async () => {
             await expect(staking.setWeightScaling(MAX_WEIGHT_SCALING + 1)).to.be.revertedWith(
-                "S18"
-            );
+                "scaling doesn't belong to range [1, 9]"
+            ); //S18
             // test boundary
             await staking.setWeightScaling(MAX_WEIGHT_SCALING);
             expect(await staking.weightScaling()).to.bignumber.equal(

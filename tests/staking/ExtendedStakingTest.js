@@ -985,8 +985,8 @@ contract("Staking", (accounts) => {
             let maxValue = new BN(2).pow(new BN(96)).sub(new BN(1));
             await expectRevert(
                 staking.stake(maxValue.sub(new BN(100)), lockTS, root, root),
-                "IS20"
-            ); // S06 : overflow
+                "increaseStake: overflow"
+            ); // IS20
         });
 
         it("Should be able to increase stake", async () => {
@@ -1102,11 +1102,17 @@ contract("Staking", (accounts) => {
 
     describe("setWeightScaling", () => {
         it("Shouldn't be able to weight scaling less than min value", async () => {
-            await expectRevert(staking.setWeightScaling(0), "S18"); // S18 : revert wrong weight scaling
+            await expectRevert(
+                staking.setWeightScaling(0),
+                "scaling doesn't belong to range [1, 9]"
+            ); // S18
         });
 
         it("Shouldn't be able to weight scaling more than max value", async () => {
-            await expectRevert(staking.setWeightScaling(10), "S18"); // S18 : revert wrong weight scaling
+            await expectRevert(
+                staking.setWeightScaling(10),
+                "scaling doesn't belong to range [1, 9]"
+            ); // S18
         });
 
         it("Only owner should be able to weight scaling", async () => {

@@ -108,7 +108,7 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
     function setWeightScaling(uint96 _weightScaling) external onlyOwner whenNotFrozen {
         require(
             MIN_WEIGHT_SCALING <= _weightScaling && _weightScaling <= MAX_WEIGHT_SCALING,
-            "S18" /* scaling doesn't belong to range [1, 9] */
+            "scaling doesn't belong to range [1, 9]" // S18
         );
         weightScaling = _weightScaling;
     }

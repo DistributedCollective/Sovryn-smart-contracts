@@ -101,7 +101,7 @@ def main():
 
       vestingStakeAmount = totalStakeByLockDates[lockDate]+currentTotalVestingStake
       print('new vesting stake amount: ', vestingStakeAmount)
-      data = staking.setVestingStakes.encode_input(lockDate, vestingStakeAmount)
+      data = staking.setVestingStakes.encode_input([lockDate], [vestingStakeAmount])
       multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
       tx = multisig.submitTransaction(staking.address,0,data)
       txId = tx.events["Submission"]["transactionId"]
