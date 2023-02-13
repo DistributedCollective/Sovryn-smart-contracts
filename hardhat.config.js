@@ -12,7 +12,12 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
-const { signWithMultisig, multisigCheckTx } = require("./deployment/helpers/helpers");
+const {
+    signWithMultisig,
+    multisigCheckTx,
+    multisigRevokeConfirmation,
+    multisigExecuteTx,
+} = require("./deployment/helpers/helpers");
 
 require("dotenv").config();
 
@@ -74,7 +79,7 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
     else console.log("Hardhat mainnet forking does NOT work properly!");
 });
 
-task("sign-tx", "Sign multisig tx")
+task("multisig:sign-tx", "Sign multisig tx")
     .addParam("txId", "Multisig transaction to sign", undefined, types.string)
     .setAction(async ({ txId }, hre) => {
         const { signer } = await hre.getNamedAccounts();
@@ -82,11 +87,27 @@ task("sign-tx", "Sign multisig tx")
         await signWithMultisig(ms.address, txId, signer);
     });
 
-task("check-tx", "Check multisig tx")
+task("multisig:execute-tx", "Execute multisig tx by one of tx signers")
+    .addParam("txId", "Multisig transaction to sign", undefined, types.string)
+    .addParam("signer", "Multisig transaction to check", undefined, types.string, true)
+    .setAction(async ({ txId, signer }, hre) => {
+        await multisigExecuteTx(txId, signer ? signer : (await hre.getNamedAccounts()).signer);
+    });
+
+task("multisig:check-tx", "Check multisig tx")
     .addParam("txId", "Multisig transaction to check", undefined, types.string)
     .setAction(async (taskArgs, hre) => {
-        const ms = await ethers.getContract("MultiSigWallet");
-        await multisigCheckTx(taskArgs.txId, ms.address);
+        await multisigCheckTx(taskArgs.txId);
+    });
+
+task("multisig:revoke-confirmation", "Revoke multisig tx confirmation")
+    .addParam("txId", "Multisig transaction to check", undefined, types.string)
+    .addParam("signer", "Multisig transaction to check", undefined, types.string, true)
+    .setAction(async ({ txId, signer }, hre) => {
+        await multisigRevokeConfirmation(
+            txId,
+            signer ? signer : (await hre.getNamedAccounts()).signer
+        );
     });
 
 /*task("accounts", "Prints accounts", async (_, { web3 }) => {
@@ -154,16 +175,26 @@ module.exports = {
             url: "http://127.0.0.1:8545/",
             gas: 6800000,
             live: true,
-            tags: ["testnet"],
+            tags: ["testnet", "forked"],
+            timeout: 100000,
+        },
+        rskForkedTestnetFlashback: {
+            chainId: 31337,
+            accounts: testnetAccounts,
+            url: "http://127.0.0.1:8545/",
+            gas: 6800000,
+            live: true,
+            tags: ["testnet", "forked"],
             timeout: 100000,
         },
         rskForkedMainnet: {
-            chainId: 30,
+            chainId: 31337,
             accounts: mainnetAccounts,
             url: "http://127.0.0.1:8545",
             gas: 6800000,
             live: true,
-            tags: ["mainnet"],
+            tags: ["mainnet", "forked"],
+            timeout: 100000,
         },
         /*localhost: {
             url: "http://127.0.0.1:8545/",
@@ -186,6 +217,7 @@ module.exports = {
             accounts: mainnetAccounts,
             tags: ["mainnet"],
             //timeout: 20000, // increase if needed; 20000 is the default value
+            timeout: 100000,
         },
         rskSovrynTestnet: {
             url: "https://testnet.sovryn.app/rpc",
@@ -202,6 +234,7 @@ module.exports = {
             chainId: 30,
             accounts: mainnetAccounts,
             tags: ["mainnet"],
+            timeout: 100000,
             //timeout: 20000, // increase if needed; 20000 is the default value
         },
     },
@@ -231,6 +264,7 @@ module.exports = {
                 "external/deployments/rskSovrynTestnet",
                 "deployment/deployments/rskSovrynTestnet",
             ],
+            rskForkedTestnetFlashback: ["external/deployments/rskSovrynTestnet"],
             rskSovrynMainnet: ["external/deployments/rskSovrynMainnet"],
             rskMainnet: ["external/deployments/rskSovrynMainnet"],
             rskForkedMainnet: [

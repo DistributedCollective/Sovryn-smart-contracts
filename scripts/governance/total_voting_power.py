@@ -15,9 +15,9 @@ def main():
 def loadConfig():
     global contracts, acct, values
     this_network = network.show_active()
-    if this_network == "rsk-mainnet":
+    if this_network == "rsk-mainnet" or this_network == "development":
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
-    if this_network == "rsk-mainnet-websocket":
+    elif this_network == "rsk-mainnet-websocket":
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif this_network == "rsk-testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
