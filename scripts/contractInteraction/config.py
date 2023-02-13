@@ -7,16 +7,19 @@ def loadConfig():
     global contracts, acct
     thisNetwork = network.show_active()
     if thisNetwork == "development":
-        acct = accounts[0]
-        netName = environ.get('DEV_NET_NAME')
-        if(netName != None): 
-            configPath = "./scripts/contractInteraction/" + netName + "_contracts.json"
-            configFile = open(configPath)
-        else:
-            configFile = open(
+        # acct = accounts.load("santosovryn")
+        acct = accounts[len(accounts)-1]
+        configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
+        # netName = environ.get('DEV_NET_NAME')
+        # if(netName != None): 
+        #     configPath = "./scripts/contractInteraction/" + netName + "_contracts.json"
+        #     configFile = open(configPath)
+        # else:
+        #     configFile = open(
+        #     './scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet":
-        acct = accounts.load("rskdeployer")
+        acct = accounts.load("santosovryn")
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet-dev":

@@ -19,11 +19,13 @@ networks:
     cmd_settings:
       port: 8545
       gas_limit: 6800000
-      accounts: 10
+      accounts: 50
       evm_version: istanbul
       mnemonic: brownie
       block_time: 0
       default_balance: 1000000
+      unlock:
+        - 0x189ecD23E9e34CFC07bFC3b7f5711A23F43F8a57
       #time: 2020-05-08T14:54:08+0000
   live:
     cmd_settings:

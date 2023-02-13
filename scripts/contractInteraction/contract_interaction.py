@@ -75,8 +75,8 @@ def main():
     
     #executeOnMultisig(1071)
    
-    confirmWithMS(1110)
-    #checkTx(1297)
+    #confirmWithMS(1064)
+    # checkTx(1297)
     
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
     #confirmMultipleTxsWithMS(960, 963)
@@ -150,5 +150,10 @@ def main():
     # getLMInfo()
 
     # printLendingPoolsData()
-    #upgradeVestingRegistry()
-    #printMultisigOwners()
+    # readAllVestingContractsForAddress("0x9E0816a71B53ca67201a5088df960fE90910DE55")
+
+    # testA()
+    # testB()
+    # testStakingAdmin()
+    # testSetVestingStakes()
+    testStake()

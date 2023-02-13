@@ -82,7 +82,8 @@
 		"set-block": "brownie run setBlock_cron",
 		"fork:rsk-mainnet": "hardhat node --fork https://mainnet.sovryn.app/rpc",
 		"fork:rsk-mainnet-at-block": "cross-env IS_FORKED=1 && hardhat node --fork https://mainnet.sovryn.app/rpc --fork-block-number 4690000",
-		"fork:rsk-testnet": "hardhat node --fork https://testnet.sovryn.app/rpc",
+		"fork:rsk-testnet": "hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy",
+		"fork:rsk-testnet-before-staking-upgrade": "hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy --fork-block-number 3547916",
 		"deploy:staking-modules": "hardhat deploy --tags StakingModules"
 	},
 	"husky": {

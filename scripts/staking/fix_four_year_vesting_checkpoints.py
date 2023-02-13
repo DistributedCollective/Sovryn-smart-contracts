@@ -13,8 +13,10 @@ def main():
 
     # == Load config =======================================================================================================================
     if thisNetwork == "development":
-        acct = accounts[0]
-        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+        # acct = accounts[len(accounts)-1]
+        print(len(accounts))
+        acct = accounts.at('0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711', force=True)
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')

@@ -701,4 +701,12 @@ interface IStaking {
      * @param maxIterations new max iterations value.
      */
     function setMaxVestingWithdrawIterations(uint256 maxIterations) external;
+
+    function MAX_VOTING_WEIGHT() external view returns(uint256);
+
+    function WEIGHT_FACTOR() external view returns(uint256);
+
+    function DOMAIN_TYPEHASH() external view returns(bytes32);
+
+    function DELEGATION_TYPEHASH() external view returns(bytes32);
 }

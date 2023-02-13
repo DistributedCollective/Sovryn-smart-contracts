@@ -711,3 +711,283 @@ def readFeesController():
     feesController = sovryn.feesController()
     print(feesController)
     return feesController
+
+def testA():
+    # before deployment
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+    checkDate = staking.timestampToLockDate(web3.eth.getBlock('latest').timestamp)
+    print(staking.MAX_VOTING_WEIGHT())
+    print(staking.WEIGHT_FACTOR())
+    print(staking.MAX_DURATION())
+    print(staking.kickoffTS())
+    print(staking.SOVToken())
+    print(staking.delegates(conf.contracts['sovrynProtocol'], 0))
+    print(staking.allUnlocked())
+    print(staking.DOMAIN_TYPEHASH())
+    print(staking.DELEGATION_TYPEHASH())
+    print(staking.newStakingContract())
+    print(staking.totalStakingCheckpoints(checkDate,1))
+    print(staking.numTotalStakingCheckpoints(1))
+    print(staking.delegateStakingCheckpoints(conf.contracts['sovrynProtocol'], checkDate, 1))
+    print(staking.numDelegateStakingCheckpoints(conf.contracts['sovrynProtocol'], checkDate))
+    print(staking.userStakingCheckpoints(conf.contracts['sovrynProtocol'], checkDate,1 ))
+    print(staking.numUserStakingCheckpoints(conf.contracts['sovrynProtocol'], checkDate))
+    print(staking.nonces(conf.contracts['sovrynProtocol']))
+    print(staking.feeSharing())
+    print(staking.weightScaling())
+    print(staking.vestingWhitelist(conf.contracts['sovrynProtocol']))
+    print(staking.admins(conf.contracts['sovrynProtocol']))
+    print(staking.vestingCheckpoints(checkDate,1))
+    print(staking.numVestingCheckpoints(checkDate))
+    print(staking.vestingRegistryLogic())
+    print(staking.pausers(conf.contracts['sovrynProtocol']))
+    print(staking.paused())
+    print(staking.frozen())
+    print(staking.owner())
+
+
+def testB():
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+    checkDate = staking.timestampToLockDate(web3.eth.getBlock('latest').timestamp)
+
+    # After deployment
+    print(staking.getStorageMaxVotingWeight())
+    print(staking.getStorageWeightFactor())
+    print(staking.getStorageMaxDurationToStakeTokens())
+    print(staking.kickoffTS())
+    print(staking.SOVToken())
+    print(staking.delegates(conf.contracts['sovrynProtocol'], 0))
+    print(staking.allUnlocked())
+    print(staking.getStorageDomainTypehash())
+    print(staking.getStorageDelegationTypehash())
+    print(staking.newStakingContract())
+    print(staking.totalStakingCheckpoints(checkDate,1))
+    print(staking.numTotalStakingCheckpoints(checkDate))
+    print(staking.delegateStakingCheckpoints(conf.contracts['sovrynProtocol'], checkDate, 1))
+    print(staking.numDelegateStakingCheckpoints(conf.contracts['sovrynProtocol'], checkDate))
+    print(staking.userStakingCheckpoints(conf.contracts['sovrynProtocol'], checkDate, 1 ))
+    print(staking.numUserStakingCheckpoints(conf.contracts['sovrynProtocol'], checkDate))
+    print(staking.nonces(conf.contracts['sovrynProtocol']))
+    print(staking.feeSharing())
+    print(staking.weightScaling())
+    print(staking.vestingWhitelist(conf.contracts['sovrynProtocol']))
+    print(staking.admins(conf.contracts['sovrynProtocol']))
+    print(staking.vestingCheckpoints(checkDate,1))
+    print(staking.numVestingCheckpoints(checkDate))
+    print(staking.vestingRegistryLogic())
+    print(staking.pausers(conf.contracts['sovrynProtocol']))
+    print(staking.paused())
+    print(staking.frozen())
+    print(staking.owner())
+    # print(staking.getPriorTotalVotingPower())
+
+def testSetVestingStakes():
+    # vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    # firstVesting = vestingRegistry.vestings(1);
+    # print(firstVesting)
+
+    # send multisig (sender) some rbtc
+    # accounts[0].transfer(conf.acct, "10 ether")
+
+    DAY = 24 * 60 * 60
+    FOUR_WEEKS = 4 * 7 * DAY
+
+    vestingAddress = "0xB0A9a94f41A0113AF99Ce6adcf5376A924BA9544" # avaialble on testnet
+    fourYearVestingLogic = Contract.from_abi("FourYearVestingLogic", address="0xB0A9a94f41A0113AF99Ce6adcf5376A924BA9544", abi=FourYearVestingLogic.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+
+
+    startDate = fourYearVestingLogic.startDate()
+    endDate = fourYearVestingLogic.endDate()
+    totalStakeByLockDates = {}
+
+    for lockDate in range(startDate, endDate+1, FOUR_WEEKS):
+        numVestingStakeCheckpoints = staking.numUserStakingCheckpoints(vestingAddress,lockDate)
+        if numVestingStakeCheckpoints > 0:
+            vestingStakeCheckpoints = staking.userStakingCheckpoints(vestingAddress,lockDate,0)
+            totalStake = vestingStakeCheckpoints[1]
+
+            if lockDate not in totalStakeByLockDates:
+                totalStakeByLockDates[lockDate] = totalStake
+            else:
+                totalStakeByLockDates[lockDate] += totalStake
+    
+    print('list total stake by lock dates')
+    print(json.dumps(totalStakeByLockDates, indent=2))
+
+    for lockDate in totalStakeByLockDates:
+        currentTotalVestingStake = 0;
+        print(lockDate, ' -> ', totalStakeByLockDates[lockDate])
+        print('set to vesting stake...')
+        currentNumVestingStakeCheckpoints = staking.numVestingCheckpoints(lockDate)
+
+        # If vesting stake for this lock date exist, we need to add it.
+        if currentNumVestingStakeCheckpoints > 0:
+            currentVestingStakeCheckpoints = staking.vestingCheckpoints(lockDate, currentNumVestingStakeCheckpoints-1)
+            currentTotalVestingStake = currentVestingStakeCheckpoints[1]
+
+        print('current total vesting stake for date: ', lockDate, ':', currentTotalVestingStake)
+
+        previousNCheckpoint = staking.numVestingCheckpoints(lockDate)
+        previousVestingCheckpoint = staking.vestingCheckpoints(lockDate, previousNCheckpoint)
+
+        print("previous nCheckpoint: ", previousNCheckpoint)
+        print("previous vestingCheckpoint: ", previousVestingCheckpoint)
+
+        # if currentTotalVestingStake == 0:
+        #     # if no vesting stake, just manipulate it for test purpose
+        #     currentTotalVestingStake = totalStakeByLockDates[lockDate];
+        vestingStakeAmount = totalStakeByLockDates[lockDate]+currentTotalVestingStake
+        print('new vesting stake amount: ', vestingStakeAmount)
+
+        maxDuration = staking.getStorageMaxDurationToStakeTokens()
+        latestBlockTs = web3.eth.getBlock('latest').timestamp
+
+        if(lockDate < latestBlockTs):
+            continue
+
+        staking.setVestingStakes([lockDate], [vestingStakeAmount])
+
+        latestNCheckpoint = staking.numVestingCheckpoints(lockDate)
+        latestVestingCheckpoint = staking.vestingCheckpoints(lockDate, previousNCheckpoint)
+
+        print("latest nCheckpoint: ", latestNCheckpoint)
+        print("latest vestingCheckpoint: ", latestVestingCheckpoint)
+
+        assert previousNCheckpoint + 1 == latestNCheckpoint, "Invalid nCheckpoint condition"
+        assert previousVestingCheckpoint[1] + vestingStakeAmount == latestVestingCheckpoint[1], "Invalid vesting stake amount condition"
+
+    # # setVestingStakes
+
+def testStake():
+    sov = Contract.from_abi("TestToken", address=conf.contracts['SOV'], abi=TestToken.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+
+    stakeAmount = 100000000000000000000
+    until = web3.eth.getBlock('latest').timestamp + 15552000 # 6 months
+    stakeFor = conf.acct
+    delegatee = "0x0000000000000000000000000000000000000000"
+
+    lockDateFromUntil = staking.timestampToLockDate(until)
+
+    previousNCheckpoints = staking.numTotalStakingCheckpoints(lockDateFromUntil)
+    previousNCheckpoints = int(str(previousNCheckpoints), 16)
+    tempPreviousNCheckpoints = previousNCheckpoints
+    print("previous nCheckpoints: ", previousNCheckpoints)
+
+    previousNumUserStakingCheckpoints = staking.numUserStakingCheckpoints(conf.acct, lockDateFromUntil)
+    previousNumUserStakingCheckpoints = int(str(previousNumUserStakingCheckpoints), 16)
+    tempPreviousNumUserStakingCheckpoints = previousNumUserStakingCheckpoints
+    print("previous nUserCheckpoints: ", previousNumUserStakingCheckpoints)
+    
+    if previousNCheckpoints > 0:
+        previousNCheckpoints = previousNCheckpoints - 1;
+
+    if previousNumUserStakingCheckpoints > 0:
+        previousNumUserStakingCheckpoints = previousNumUserStakingCheckpoints - 1;
+
+    previousTotalStakingCheckpoints = staking.totalStakingCheckpoints(lockDateFromUntil, previousNCheckpoints)
+    previousUserStakingCheckpoints = staking.userStakingCheckpoints(conf.acct, lockDateFromUntil, previousNumUserStakingCheckpoints)
+    previousPriorWeightedStake = staking.getPriorWeightedStake(conf.acct, web3.eth.getBlock('latest').number-1, lockDateFromUntil)
+    previousSOVBalance = sov.balanceOf(conf.acct)
+
+    # governance
+    previousPriorTotalVotingPower = staking.getPriorTotalVotingPower(web3.eth.getBlock('latest').number-1, lockDateFromUntil)
+    previousCurrentVotes = staking.getCurrentVotes(conf.acct)
+    previousPriorVotes = staking.getPriorVotes(conf.acct, web3.eth.getBlock('latest').number-1, lockDateFromUntil)
+    
+    print("previous stakingCheckpoints: ", previousTotalStakingCheckpoints[1])
+    print("previous userStakingCheckpoints: ", previousUserStakingCheckpoints[1])
+    print("previous PriorWeightedStake: ", previousPriorWeightedStake)
+    print("previous sovBalance: ", previousSOVBalance)
+
+    print("previous PriorTotalVotingPower: ", previousPriorTotalVotingPower)
+    print("previous CurrentVotes: ", previousCurrentVotes)
+    print("previous PriorVotes: ", previousPriorVotes)
+
+    sov.approve(staking.address, stakeAmount)
+    staking.stake(stakeAmount, until, stakeFor, delegatee)
+
+    latestNCheckpoints = staking.numTotalStakingCheckpoints(lockDateFromUntil)
+    latestNCheckpoints = int(str(latestNCheckpoints), 16)
+    tempLatestNCheckpoints = latestNCheckpoints
+    print("latest nCheckpoints: ", latestNCheckpoints)
+
+    latestNumUserStakingCheckpoints = staking.numUserStakingCheckpoints(conf.acct, lockDateFromUntil)
+    latestNumUserStakingCheckpoints = int(str(latestNumUserStakingCheckpoints), 16)
+    tempLatestNumUserStakingCheckpoints = latestNumUserStakingCheckpoints
+    print("latest nUserCheckpoints: ", latestNumUserStakingCheckpoints)
+
+    if latestNCheckpoints > 0:
+        latestNCheckpoints = latestNCheckpoints - 1;
+    
+    if latestNumUserStakingCheckpoints > 0:
+        latestNumUserStakingCheckpoints = latestNumUserStakingCheckpoints - 1;
+
+    latestTotalStakingCheckpoints = staking.totalStakingCheckpoints(lockDateFromUntil, latestNCheckpoints)
+    latestUserStakingCheckpoints = staking.userStakingCheckpoints(conf.acct, lockDateFromUntil, latestNumUserStakingCheckpoints)
+    latestPriorWeightedStake = staking.getPriorWeightedStake(conf.acct, web3.eth.getBlock('latest').number-1, lockDateFromUntil)
+    latestSOVBalance = sov.balanceOf(conf.acct)
+
+    # governance
+    latestPriorTotalVotingPower = staking.getPriorTotalVotingPower(web3.eth.getBlock('latest').number-1, lockDateFromUntil)
+    latestCurrentVotes = staking.getCurrentVotes(conf.acct)
+    latestPriorVotes = staking.getPriorVotes(conf.acct, web3.eth.getBlock('latest').number-1, lockDateFromUntil)
+
+    print("latest stakingCheckpoints: ", latestTotalStakingCheckpoints[1])
+    print("latest userStakingCheckpoints: ", latestUserStakingCheckpoints[1])
+    print("latest PriorWeightedStake: ", latestPriorWeightedStake)
+    print("latest sovBalance: ", latestSOVBalance)
+
+    print("latest latestPriorTotalVotingPower: ", latestPriorTotalVotingPower)
+    print("latest latestCurrentVotes: ", latestCurrentVotes)
+    print("latest latestPriorVotes: ", latestPriorVotes)
+
+    assert(previousTotalStakingCheckpoints[1] + stakeAmount == latestTotalStakingCheckpoints[1])
+    assert(previousUserStakingCheckpoints[1] + stakeAmount == latestUserStakingCheckpoints[1])
+    assert(previousSOVBalance - stakeAmount == latestSOVBalance)
+
+    assert(tempPreviousNCheckpoints + 1 == tempLatestNCheckpoints)
+    assert(tempPreviousNumUserStakingCheckpoints + 1 == tempLatestNumUserStakingCheckpoints)
+
+    if(latestPriorWeightedStake != 0):
+        assert(previousPriorWeightedStake + stakeAmount == latestPriorWeightedStake)
+
+    # governance check
+    if(latestPriorTotalVotingPower - previousPriorTotalVotingPower != 0):
+        assert(previousPriorTotalVotingPower + stakeAmount == latestPriorTotalVotingPower)
+
+    if(latestPriorVotes != 0):
+        assert(previousPriorVotes + stakeAmount == latestPriorVotes)
+
+    if(previousCurrentVotes != 0):
+        assert(latestCurrentVotes > previousCurrentVotes)
+
+def testStakingAdmin():
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+    newAdmin = accounts[0]
+    newPauser = accounts[1]
+
+    staking.addAdmin(newAdmin)
+    assert(staking.admins(newAdmin) == True)
+
+    staking.removeAdmin(newAdmin)
+    assert(staking.admins(newAdmin) == False)
+
+    staking.addPauser(newPauser)
+    assert(staking.pausers(newPauser) == True)
+
+    staking.removePauser(newPauser)
+    assert(staking.pausers(newPauser) == False)
+
+    staking.pauseUnpause(True)
+    assert(staking.paused() == True)
+
+    staking.pauseUnpause(False)
+    assert(staking.paused() == False)
+
+    staking.freezeUnfreeze(True)
+    assert(staking.frozen() == True)
+    
+    staking.freezeUnfreeze(False)
+    assert(staking.frozen() == False)
