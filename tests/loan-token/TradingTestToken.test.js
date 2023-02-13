@@ -14,8 +14,8 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
 const {
@@ -97,13 +97,13 @@ contract("LoanTokenTrading", (accounts) => {
         });
 
         /*
-		  tests margin trading sending loan tokens.
-		  process is handled by the shared function margin_trading_sending_loan_tokens
-		  1. approve the transfer
-		  2. send the margin trade tx
-		  3. verify the trade event and balances are correct
-		  4. retrieve the loan from the smart contract and make sure all values are set as expected
-		*/
+          tests margin trading sending loan tokens.
+          process is handled by the shared function margin_trading_sending_loan_tokens
+          1. approve the transfer
+          2. send the margin trade tx
+          3. verify the trade event and balances are correct
+          4. retrieve the loan from the smart contract and make sure all values are set as expected
+        */
         it("Test margin trading sending loan tokens", async () => {
             await expectRevert(
                 loanToken.marginTrade(
@@ -178,11 +178,11 @@ contract("LoanTokenTrading", (accounts) => {
         });
 
         /*
-		  tests margin trading sending collateral tokens as collateral.
-		  process:
-		  1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
-		  2. TODO verify the trade event and balances are correct
-		*/
+          tests margin trading sending collateral tokens as collateral.
+          process:
+          1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
+          2. TODO verify the trade event and balances are correct
+        */
         it("Test margin trading sending collateral tokens", async () => {
             const loanSize = new BN(10000).mul(oneEth);
             await SUSD.mint(loanToken.address, loanSize.mul(new BN(12)));
@@ -231,11 +231,11 @@ contract("LoanTokenTrading", (accounts) => {
         });
 
         /*
-		  tests margin trading sending collateral tokens as collateral.
-		  process:
-		  1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
-		  2. TODO verify the trade event and balances are correct
-		*/
+          tests margin trading sending collateral tokens as collateral.
+          process:
+          1. send the margin trade tx with the passed parameter (NOTE: the token transfer needs to be approved already)
+          2. TODO verify the trade event and balances are correct
+        */
         it("Test margin trading sending collateral tokens with special rebates", async () => {
             const loanSize = new BN(10000).mul(oneEth);
             await SUSD.mint(loanToken.address, loanSize.mul(new BN(12)));
@@ -284,15 +284,15 @@ contract("LoanTokenTrading", (accounts) => {
             );
         });
         /*
-		  should completely close a position.
-		  first with returning loan tokens, then with returning collateral tokens to the sender.
-		  process is handled by the shared function close_complete_margin_trade
-		  1. prepares the test by setting up the interest rates, lending to the pool and opening a position
-		  2. travels in time, so interest needs to be paid
-		  3. makes sure closing with an unauthorized caller fails (only the trader may close his position)
-		  4. sends the closing tx from the trader
-		  5. verifies the result
-		*/
+          should completely close a position.
+          first with returning loan tokens, then with returning collateral tokens to the sender.
+          process is handled by the shared function close_complete_margin_trade
+          1. prepares the test by setting up the interest rates, lending to the pool and opening a position
+          2. travels in time, so interest needs to be paid
+          3. makes sure closing with an unauthorized caller fails (only the trader may close his position)
+          4. sends the closing tx from the trader
+          5. verifies the result
+        */
         it("Test close complete margin trade", async () => {
             await close_complete_margin_trade(
                 sovryn,

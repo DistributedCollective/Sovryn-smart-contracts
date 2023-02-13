@@ -24,7 +24,7 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
     vestingRegistry = Contract.from_abi("VestingRegistry2", address=contracts['VestingRegistry2'], abi=VestingRegistry2.abi, owner=acct)
 
     DAY = 24 * 60 * 60

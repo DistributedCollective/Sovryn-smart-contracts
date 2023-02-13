@@ -18,8 +18,8 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 const { etherMantissa, mineBlock, advanceBlocks } = require("../Utils/Ethereum");
 
@@ -2005,7 +2005,7 @@ contract("LiquidityMining", (accounts) => {
             expect(await liquidityMining.BONUS_BLOCK_MULTIPLIER()).bignumber.equal("10");
         });
 
-        it("SVR", async () => {
+        it("SOV token address set correctly", async () => {
             expect(await liquidityMining.SOV()).equal(SOVToken.address);
         });
 

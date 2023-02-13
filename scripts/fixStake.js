@@ -83,7 +83,7 @@ async function stake(accountAddress) {
         "Staker rewards: ",
         (await stakingReward.getStakerCurrentReward(true, 0))[1].toString()
     );
-    const staking = await ethers.getContractAt("Staking", stakingAddress, account);
+    const staking = await ethers.getContractAt("IStaking", stakingAddress, account);
     const kickoffTS = await staking.kickoffTS();
     const inOneYear = new BN(kickoffTS.toString()).add(new BN(1209600).mul(new BN(260)));
     await staking.stake(wei("1", "ether"), inOneYear.toString(), accountAddress, accountAddress);
@@ -142,9 +142,7 @@ async function main() {
     const hexStrBlocksIn2Weeks = BigNumber.from(1209600 / 30).toHexString(); // count avg 30 sec as in the contract
     const hexStr30Seconds = BigNumber.from(30).toHexString();
     const hexStr1Hour = BigNumber.from(3600).toHexString();
-    const hexStrBlocksIn1Hour = BigNumber.from(3600 / 30).toHexString(); // count avg 30 sec as in the contract
-
-    stakingReward;
+    const hexStrBlocksIn1Hour = BigNumber.from(3600 / 30).toHexString(); // count avg 30 sec as in the contract stakingReward;
     console.log("Moving 2 weeks & 1 hour forward");
     await hre.network.provider.send("hardhat_mine", [hexStrBlocksIn2Weeks, hexStr30Seconds]);
     await hre.network.provider.send("hardhat_mine", [hexStrBlocksIn1Hour, hexStr30Seconds]);

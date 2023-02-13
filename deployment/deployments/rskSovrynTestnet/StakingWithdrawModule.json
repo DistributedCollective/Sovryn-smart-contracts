@@ -1,0 +1,1584 @@
+{
+    "address": "0x6687333050f96CE2b456c77307406d9D73df6e54",
+    "abi": [
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "admin",
+                    "type": "address"
+                }
+            ],
+            "name": "AdminAdded",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "admin",
+                    "type": "address"
+                }
+            ],
+            "name": "AdminRemoved",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "bytes32",
+                    "name": "hash",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "ContractCodeHashAdded",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "bytes32",
+                    "name": "hash",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "ContractCodeHashRemoved",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "delegator",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "lockedUntil",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "fromDelegate",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "toDelegate",
+                    "type": "address"
+                }
+            ],
+            "name": "DelegateChanged",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "delegate",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "lockedUntil",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "previousBalance",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "newBalance",
+                    "type": "uint256"
+                }
+            ],
+            "name": "DelegateStakeChanged",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "staker",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "previousDate",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "newDate",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "amountStaked",
+                    "type": "uint256"
+                }
+            ],
+            "name": "ExtendedStakingDuration",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "oldMaxIterations",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "newMaxIterations",
+                    "type": "uint256"
+                }
+            ],
+            "name": "MaxVestingWithdrawIterationsUpdated",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "previousOwner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnershipTransferred",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "pauser",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "bool",
+                    "name": "added",
+                    "type": "bool"
+                }
+            ],
+            "name": "PauserAddedOrRemoved",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bool",
+                    "name": "setFrozen",
+                    "type": "bool"
+                }
+            ],
+            "name": "StakingFrozen",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bool",
+                    "name": "setPaused",
+                    "type": "bool"
+                }
+            ],
+            "name": "StakingPaused",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "staker",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "until",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "receiver",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "bool",
+                    "name": "isGovernance",
+                    "type": "bool"
+                }
+            ],
+            "name": "StakingWithdrawn",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "caller",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "receiver",
+                    "type": "address"
+                }
+            ],
+            "name": "TeamVestingCancelled",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "caller",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "receiver",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "lastProcessedDate",
+                    "type": "uint256"
+                }
+            ],
+            "name": "TeamVestingPartiallyCancelled",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "staker",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "lockedUntil",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "totalStaked",
+                    "type": "uint256"
+                }
+            ],
+            "name": "TokensStaked",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "TokensUnlocked",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "lockedTS",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint96",
+                    "name": "value",
+                    "type": "uint96"
+                }
+            ],
+            "name": "VestingStakeSet",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "vesting",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "receiver",
+                    "type": "address"
+                }
+            ],
+            "name": "VestingTokensWithdrawn",
+            "type": "event"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "DELEGATION_TYPEHASH",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "DOMAIN_TYPEHASH",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "MAX_DURATION",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "MAX_VOTING_WEIGHT",
+            "outputs": [
+                {
+                    "internalType": "uint96",
+                    "name": "",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "SOVToken",
+            "outputs": [
+                {
+                    "internalType": "contract IERC20",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "WEIGHT_FACTOR",
+            "outputs": [
+                {
+                    "internalType": "uint96",
+                    "name": "",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "admins",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "allUnlocked",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "vesting",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "receiver",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "startFrom",
+                    "type": "uint256"
+                }
+            ],
+            "name": "cancelTeamVesting",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "name": "delegateStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "fromBlock",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "uint96",
+                    "name": "stake",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "delegates",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "feeSharing",
+            "outputs": [
+                {
+                    "internalType": "contract IFeeSharingCollector",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "frozen",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "getFunctionsList",
+            "outputs": [
+                {
+                    "internalType": "bytes4[]",
+                    "name": "",
+                    "type": "bytes4[]"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "pure",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint96",
+                    "name": "amount",
+                    "type": "uint96"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "until",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getWithdrawAmounts",
+            "outputs": [
+                {
+                    "internalType": "uint96",
+                    "name": "",
+                    "type": "uint96"
+                },
+                {
+                    "internalType": "uint96",
+                    "name": "",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "isOwner",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "kickoffTS",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "newStakingContract",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "nonces",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "numDelegateStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "numTotalStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "numUserStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "numVestingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "paused",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "pausers",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "newMaxIterations",
+                    "type": "uint256"
+                }
+            ],
+            "name": "setMaxVestingWithdrawIterations",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "name": "totalStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "fromBlock",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "uint96",
+                    "name": "stake",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "transferOwnership",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [],
+            "name": "unlockAllTokens",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "name": "userStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "fromBlock",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "uint96",
+                    "name": "stake",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "name": "vestingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "fromBlock",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "uint96",
+                    "name": "stake",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "vestingCodeHashes",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "vestingRegistryLogic",
+            "outputs": [
+                {
+                    "internalType": "contract IVestingRegistry",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "vestingWhitelist",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "weightScaling",
+            "outputs": [
+                {
+                    "internalType": "uint96",
+                    "name": "",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "uint96",
+                    "name": "amount",
+                    "type": "uint96"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "until",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "receiver",
+                    "type": "address"
+                }
+            ],
+            "name": "withdraw",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ],
+    "transactionHash": "0xb74a0011e2cce5e6d155df3956fb014203d9adcc8f9f05ff37fd275c673e46f2",
+    "receipt": {
+        "to": null,
+        "from": "0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b",
+        "contractAddress": "0x6687333050f96CE2b456c77307406d9D73df6e54",
+        "transactionIndex": 2,
+        "gasUsed": "3421151",
+        "logsBloom": "0x00000000000000000000000000000000000000001000000000800000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000020000000000000000000800000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400020000000000000000000000010000000000000000000000000000000000080000000",
+        "blockHash": "0x62098252b8b88d6d62d2bbf256880853195fc6ba698f387585fa4e9e3e5f0595",
+        "transactionHash": "0xb74a0011e2cce5e6d155df3956fb014203d9adcc8f9f05ff37fd275c673e46f2",
+        "logs": [
+            {
+                "transactionIndex": 2,
+                "blockNumber": 3556943,
+                "transactionHash": "0xb74a0011e2cce5e6d155df3956fb014203d9adcc8f9f05ff37fd275c673e46f2",
+                "address": "0x6687333050f96CE2b456c77307406d9D73df6e54",
+                "topics": [
+                    "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "0x0000000000000000000000008c9143221f2b72fcef391893c3a02cf0fe84f50b"
+                ],
+                "data": "0x",
+                "logIndex": 0,
+                "blockHash": "0x62098252b8b88d6d62d2bbf256880853195fc6ba698f387585fa4e9e3e5f0595"
+            }
+        ],
+        "blockNumber": 3556943,
+        "cumulativeGasUsed": "3482327",
+        "status": 1,
+        "byzantium": true
+    },
+    "args": [],
+    "numDeployments": 1,
+    "solcInputHash": "015b019a6db9133c2258981a8efcf2d8",
+    "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"ContractCodeHashAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"}],\"name\":\"ContractCodeHashRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"delegator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"lockedUntil\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"fromDelegate\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"toDelegate\",\"type\":\"address\"}],\"name\":\"DelegateChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"delegate\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"lockedUntil\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"previousBalance\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newBalance\",\"type\":\"uint256\"}],\"name\":\"DelegateStakeChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"previousDate\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newDate\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amountStaked\",\"type\":\"uint256\"}],\"name\":\"ExtendedStakingDuration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldMaxIterations\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newMaxIterations\",\"type\":\"uint256\"}],\"name\":\"MaxVestingWithdrawIterationsUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"pauser\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bool\",\"name\":\"added\",\"type\":\"bool\"}],\"name\":\"PauserAddedOrRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bool\",\"name\":\"setFrozen\",\"type\":\"bool\"}],\"name\":\"StakingFrozen\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bool\",\"name\":\"setPaused\",\"type\":\"bool\"}],\"name\":\"StakingPaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"until\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"isGovernance\",\"type\":\"bool\"}],\"name\":\"StakingWithdrawn\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"}],\"name\":\"TeamVestingCancelled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"lastProcessedDate\",\"type\":\"uint256\"}],\"name\":\"TeamVestingPartiallyCancelled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"staker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"lockedUntil\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"totalStaked\",\"type\":\"uint256\"}],\"name\":\"TokensStaked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensUnlocked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"lockedTS\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint96\",\"name\":\"value\",\"type\":\"uint96\"}],\"name\":\"VestingStakeSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"vesting\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"}],\"name\":\"VestingTokensWithdrawn\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"DELEGATION_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"DOMAIN_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"MAX_DURATION\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"MAX_VOTING_WEIGHT\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOVToken\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"WEIGHT_FACTOR\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"admins\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"allUnlocked\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"vesting\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"startFrom\",\"type\":\"uint256\"}],\"name\":\"cancelTeamVesting\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"delegateStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"delegates\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"feeSharing\",\"outputs\":[{\"internalType\":\"contract IFeeSharingCollector\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"frozen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getFunctionsList\",\"outputs\":[{\"internalType\":\"bytes4[]\",\"name\":\"\",\"type\":\"bytes4[]\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint96\",\"name\":\"amount\",\"type\":\"uint96\"},{\"internalType\":\"uint256\",\"name\":\"until\",\"type\":\"uint256\"}],\"name\":\"getWithdrawAmounts\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"},{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"kickoffTS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"newStakingContract\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numDelegateStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numTotalStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numUserStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numVestingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"pausers\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"newMaxIterations\",\"type\":\"uint256\"}],\"name\":\"setMaxVestingWithdrawIterations\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"totalStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"unlockAllTokens\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"userStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"vestingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"vestingCodeHashes\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"vestingRegistryLogic\",\"outputs\":[{\"internalType\":\"contract IVestingRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"vestingWhitelist\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"weightScaling\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint96\",\"name\":\"amount\",\"type\":\"uint96\"},{\"internalType\":\"uint256\",\"name\":\"until\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"}],\"name\":\"withdraw\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"cancelTeamVesting(address,address,uint256)\":{\"params\":{\"receiver\":\"The receiving address.\",\"startFrom\":\"The start value for the iterations.\",\"vesting\":\"The vesting address.\"}},\"getWithdrawAmounts(uint96,uint256)\":{\"params\":{\"amount\":\"The number of tokens to withdraw.\",\"until\":\"The date until which the tokens were staked. Adjusted to the next valid lock date, if necessary.\"}},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"setMaxVestingWithdrawIterations(uint256)\":{\"details\":\"set max withdraw iterations.\",\"params\":{\"newMaxIterations\":\"new max iterations value.\"}},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"},\"unlockAllTokens()\":{\"details\":\"Last resort.\"},\"withdraw(uint96,uint256,address)\":{\"details\":\"If until is not a valid lock date, the next lock date after until is used.\",\"params\":{\"amount\":\"The number of tokens to withdraw.\",\"receiver\":\"The receiver of the tokens. If not specified, send to the msg.sender\",\"until\":\"The date until which the tokens were staked.\"}}},\"title\":\"Staking withdrawal functionality module*\"},\"userdoc\":{\"methods\":{\"cancelTeamVesting(address,address,uint256)\":{\"notice\":\"Governance withdraw vesting directly through staking contract. This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing. This function only allows cancelling vesting contract of the TeamVesting type.\"},\"getWithdrawAmounts(uint96,uint256)\":{\"notice\":\"Get available and punished amount for withdrawing.\"},\"unlockAllTokens()\":{\"notice\":\"Allow the owner to unlock all tokens in case the staking contract is going to be replaced Note: Not reversible on purpose. once unlocked, everything is unlocked. The owner should not be able to just quickly unlock to withdraw his own tokens and lock again.\"},\"withdraw(uint96,uint256,address)\":{\"notice\":\"Withdraw the given amount of tokens if they are unlocked.\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Staking/modules/StakingWithdrawModule.sol\":\"StakingWithdrawModule\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/governance/IFeeSharingCollector.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/**\\n * @title Interface for contract governance/FeeSharingCollector/FeeSharingCollector.sol\\n * @dev Interfaces are used to cast a contract address into a callable instance.\\n * */\\ninterface IFeeSharingCollector {\\n    function withdrawFees(address[] calldata _token) external;\\n\\n    function transferTokens(address _token, uint96 _amount) external;\\n\\n    function withdraw(\\n        address _loanPoolToken,\\n        uint32 _maxCheckpoints,\\n        address _receiver\\n    ) external;\\n}\\n\",\"keccak256\":\"0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40\"},\"contracts/governance/Staking/SafeMath96.sol\":{\"content\":\"pragma solidity ^0.5.17;\\npragma experimental ABIEncoderV2;\\n\\n/**\\n * @title SafeMath96 contract.\\n * @notice Improved Solidity's arithmetic operations with added overflow checks.\\n * @dev SafeMath96 uses uint96, unsigned integers of 96 bits length, so every\\n * integer from 0 to 2^96-1 can be operated.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * SafeMath restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this contract instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n * */\\ncontract SafeMath96 {\\n    function safe32(uint256 n, string memory errorMessage) internal pure returns (uint32) {\\n        require(n < 2**32, errorMessage);\\n        return uint32(n);\\n    }\\n\\n    function safe64(uint256 n, string memory errorMessage) internal pure returns (uint64) {\\n        require(n < 2**64, errorMessage);\\n        return uint64(n);\\n    }\\n\\n    function safe96(uint256 n, string memory errorMessage) internal pure returns (uint96) {\\n        require(n < 2**96, errorMessage);\\n        return uint96(n);\\n    }\\n\\n    /**\\n     * @notice Adds two unsigned integers, reverting on overflow.\\n     * @dev Counterpart to Solidity's `+` operator.\\n     * @param a First integer.\\n     * @param b Second integer.\\n     * @param errorMessage The revert message on overflow.\\n     * @return The safe addition a+b.\\n     * */\\n    function add96(\\n        uint96 a,\\n        uint96 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint96) {\\n        uint96 c = a + b;\\n        require(c >= a, errorMessage);\\n        return c;\\n    }\\n\\n    /**\\n     * @notice Substracts two unsigned integers, reverting on underflow.\\n     * @dev Counterpart to Solidity's `-` operator.\\n     * @param a First integer.\\n     * @param b Second integer.\\n     * @param errorMessage The revert message on underflow.\\n     * @return The safe substraction a-b.\\n     * */\\n    function sub96(\\n        uint96 a,\\n        uint96 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint96) {\\n        require(b <= a, errorMessage);\\n        return a - b;\\n    }\\n\\n    /**\\n     * @notice Multiplies two unsigned integers, reverting on overflow.\\n     * @dev Counterpart to Solidity's `*` operator.\\n     * @param a First integer.\\n     * @param b Second integer.\\n     * @param errorMessage The revert message on overflow.\\n     * @return The safe product a*b.\\n     * */\\n    function mul96(\\n        uint96 a,\\n        uint96 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint96) {\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint96 c = a * b;\\n        require(c / a == b, errorMessage);\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @notice Divides two unsigned integers, reverting on overflow.\\n     * @dev Counterpart to Solidity's `/` operator.\\n     * @param a First integer.\\n     * @param b Second integer.\\n     * @param errorMessage The revert message on overflow.\\n     * @return The safe division a/b.\\n     * */\\n    function div96(\\n        uint96 a,\\n        uint96 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint96) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b > 0, errorMessage);\\n        uint96 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n}\\n\",\"keccak256\":\"0xc37b24a41212f26435849813104568112c9e151a60018f53d76c7d06e74782ce\"},\"contracts/governance/Staking/modules/StakingWithdrawModule.sol\":{\"content\":\"pragma solidity ^0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"../../../proxy/modules/interfaces/IFunctionsList.sol\\\";\\n\\nimport \\\"./shared/CheckpointsShared.sol\\\";\\nimport \\\"../../../rsk/RSKAddrValidator.sol\\\";\\nimport \\\"../../Vesting/ITeamVesting.sol\\\";\\nimport \\\"../../Vesting/IVesting.sol\\\";\\nimport \\\"./shared/StakingShared.sol\\\";\\n\\n/**\\n * @title Staking withdrawal functionality module\\n **/\\ncontract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShared {\\n    using SafeMath for uint256;\\n\\n    event MaxVestingWithdrawIterationsUpdated(uint256 oldMaxIterations, uint256 newMaxIterations);\\n\\n    /// @dev Struct for direct withdraw function -- to avoid stack too deep issue\\n    struct VestingConfig {\\n        address vestingAddress;\\n        uint256 startDate;\\n        uint256 endDate;\\n        uint256 cliff;\\n        uint256 duration;\\n        address tokenOwner;\\n    }\\n\\n    /// @notice An event emitted when staked tokens get withdrawn.\\n    event StakingWithdrawn(\\n        address indexed staker,\\n        uint256 amount,\\n        uint256 until,\\n        address indexed receiver,\\n        bool isGovernance\\n    );\\n\\n    /// @notice An event emitted when vesting tokens get withdrawn.\\n    event VestingTokensWithdrawn(address vesting, address receiver);\\n\\n    /// @notice An event emitted when the owner unlocks all tokens.\\n    event TokensUnlocked(uint256 amount);\\n\\n    /**\\n     * @notice Withdraw the given amount of tokens if they are unlocked.\\n     * @param amount The number of tokens to withdraw.\\n     * @param until The date until which the tokens were staked.\\n     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender\\n     * @dev If until is not a valid lock date, the next lock date after until is used.\\n     * */\\n    function withdraw(\\n        uint96 amount,\\n        uint256 until,\\n        address receiver\\n    ) external whenNotFrozen {\\n        // adjust until here to avoid adjusting multiple times, and to make sure an adjusted date is passed to\\n        // _notSameBlockAsStakingCheckpoint\\n        until = _adjustDateForOrigin(until);\\n\\n        _notSameBlockAsStakingCheckpoint(until, msg.sender);\\n\\n        _withdraw(amount, until, receiver, false);\\n        // @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract\\n        //\\t\\twe need to check block.timestamp here\\n        _withdrawNext(until, receiver, false);\\n    }\\n\\n    /**\\n     * @notice Governance withdraw vesting directly through staking contract.\\n     * This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing.\\n     * This function only allows cancelling vesting contract of the TeamVesting type.\\n     *\\n     * @param vesting The vesting address.\\n     * @param receiver The receiving address.\\n     * @param startFrom The start value for the iterations.\\n     */\\n    function cancelTeamVesting(\\n        address vesting,\\n        address receiver,\\n        uint256 startFrom\\n    ) external onlyAuthorized whenNotFrozen {\\n        /// require the caller only for team vesting contract.\\n        require(vestingRegistryLogic.isTeamVesting(vesting), \\\"Only team vesting allowed\\\");\\n\\n        _cancelTeamVesting(vesting, receiver, startFrom);\\n    }\\n\\n    /**\\n     * @notice Withdraws tokens from the staking contract and forwards them\\n     * to an address specified by the token owner. Low level function.\\n     * @dev Once here the caller permission is taken for granted.\\n     * @param _vesting The vesting address.\\n     * @param _receiver The receiving address.\\n     * @param _startFrom The start value for the iterations.\\n     * or just unlocked tokens (false).\\n     * */\\n    function _cancelTeamVesting(\\n        address _vesting,\\n        address _receiver,\\n        uint256 _startFrom\\n    ) private {\\n        require(_receiver != address(0), \\\"receiver address invalid\\\");\\n\\n        ITeamVesting teamVesting = ITeamVesting(_vesting);\\n\\n        VestingConfig memory vestingConfig =\\n            VestingConfig(\\n                _vesting,\\n                teamVesting.startDate(),\\n                teamVesting.endDate(),\\n                teamVesting.cliff(),\\n                teamVesting.duration(),\\n                teamVesting.tokenOwner()\\n            );\\n\\n        /// @dev In the unlikely case that all tokens have been unlocked early,\\n        /// allow to withdraw all of them, as long as the itrations less than maxVestingWithdrawIterations.\\n        uint256 end = vestingConfig.endDate;\\n\\n        uint256 defaultStart = vestingConfig.startDate + vestingConfig.cliff;\\n\\n        _startFrom = _startFrom >= defaultStart ? _startFrom : defaultStart;\\n\\n        /// @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1\\n        uint256 totalIterationValue =\\n            (_startFrom + (TWO_WEEKS * (maxVestingWithdrawIterations - 1)));\\n        uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;\\n\\n        /// @dev Withdraw for each unlocked position.\\n        for (uint256 i = _startFrom; i <= adjustedEnd; i += TWO_WEEKS) {\\n            /// @dev Read amount to withdraw.\\n            uint96 tempStake = _getPriorUserStakeByDate(_vesting, i, block.number - 1);\\n\\n            if (tempStake > 0) {\\n                /// @dev do governance direct withdraw for team vesting\\n                _withdrawFromTeamVesting(tempStake, i, _receiver, vestingConfig);\\n            }\\n        }\\n\\n        if (adjustedEnd < end) {\\n            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd);\\n        } else {\\n            emit TeamVestingCancelled(msg.sender, _receiver);\\n        }\\n    }\\n\\n    /**\\n     * @notice Send user' staked tokens to a receiver taking into account punishments.\\n     * Sovryn encourages long-term commitment and thinking. When/if you unstake before\\n     * the end of the staking period, a percentage of the original staking amount will\\n     * be slashed. This amount is also added to the reward pool and is distributed\\n     * between all other stakers.\\n     *\\n     * @param amount The number of tokens to withdraw.\\n     * @param until The date until which the tokens were staked.\\n     * Needs to be adjusted to the next valid lock date before calling this function.\\n     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender\\n     * @param isGovernance Whether all tokens (true)\\n     * or just unlocked tokens (false).\\n     * */\\n    function _withdraw(\\n        uint96 amount,\\n        uint256 until,\\n        address receiver,\\n        bool isGovernance\\n    ) internal {\\n        // @dev it's very unlikely some one will have 1/10**18 SOV staked in Vesting contract\\n        //\\t\\tthis check is a part of workaround for Vesting.withdrawTokens issue\\n        if (amount == 1 && _isVestingContract(msg.sender)) {\\n            return;\\n        }\\n        _validateWithdrawParams(msg.sender, amount, until);\\n\\n        /// @dev Determine the receiver.\\n        if (receiver == address(0)) receiver = msg.sender;\\n\\n        /// @dev Update the checkpoints.\\n        _decreaseDailyStake(until, amount);\\n        _decreaseUserStake(msg.sender, until, amount);\\n        if (_isVestingContract(msg.sender)) _decreaseVestingStake(until, amount);\\n        _decreaseDelegateStake(delegates[msg.sender][until], until, amount);\\n\\n        /// @dev Early unstaking should be punished.\\n        if (block.timestamp < until && !allUnlocked && !isGovernance) {\\n            uint96 punishedAmount = _getPunishedAmount(amount, until);\\n            amount -= punishedAmount;\\n\\n            /// @dev punishedAmount can be 0 if block.timestamp are very close to 'until'\\n            if (punishedAmount > 0) {\\n                require(address(feeSharing) != address(0), \\\"FeeSharing address wasn't set\\\"); // S08\\n                /// @dev Move punished amount to fee sharing.\\n                /// @dev Approve transfer here and let feeSharing do transfer and write checkpoint.\\n                SOVToken.approve(address(feeSharing), punishedAmount);\\n                feeSharing.transferTokens(address(SOVToken), punishedAmount);\\n            }\\n        }\\n\\n        /// @dev transferFrom\\n        bool success = SOVToken.transfer(receiver, amount);\\n        require(success, \\\"Token transfer failed\\\"); // S09\\n\\n        emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);\\n    }\\n\\n    /**\\n     * @notice Send user' staked tokens to a receiver.\\n     * This function is dedicated only for direct withdrawal from staking contract.\\n     * Currently only being used by cancelTeamVesting()\\n     *\\n     * @param amount The number of tokens to withdraw.\\n     * @param until The date until which the tokens were staked.\\n     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender.\\n     * @param vestingConfig The vesting config.\\n     * @dev VestingConfig struct intended to avoid stack too deep issue, and it contains this properties:\\n        address vestingAddress; // vesting contract address\\n        uint256 startDate; //start date of vesting\\n        uint256 endDate; // end date of vesting\\n        uint256 cliff; // after this time period the tokens begin to unlock\\n        uint256 duration; // after this period all the tokens will be unlocked\\n        address tokenOwner; // owner of the vested tokens\\n     * */\\n    function _withdrawFromTeamVesting(\\n        uint96 amount,\\n        uint256 until,\\n        address receiver,\\n        VestingConfig memory vestingConfig\\n    ) internal {\\n        address vesting = vestingConfig.vestingAddress;\\n\\n        until = _timestampToLockDate(until);\\n        _validateWithdrawParams(vesting, amount, until);\\n\\n        /// @dev Update the checkpoints.\\n        _decreaseDailyStake(until, amount);\\n        _decreaseUserStake(vesting, until, amount);\\n\\n        _decreaseVestingStake(until, amount);\\n        _decreaseDelegateStake(delegates[vesting][until], until, amount);\\n\\n        /// @dev transferFrom\\n        bool success = SOVToken.transfer(receiver, amount);\\n        require(success, \\\"Token transfer failed\\\"); // S09\\n\\n        emit StakingWithdrawn(vesting, amount, until, receiver, true);\\n    }\\n\\n    // @dev withdraws tokens for lock date 2 weeks later than given lock date\\n    function _withdrawNext(\\n        uint256 until,\\n        address receiver,\\n        bool isGovernance\\n    ) internal {\\n        if (_isVestingContract(msg.sender)) {\\n            // nextLock needs to be adjusted to the next valid lock date to make sure we don't accidentally\\n            // withdraw stakes that are in the future and would get slashed (if until is not\\n            // a valid lock date). but until is already handled in the withdraw function\\n            uint256 nextLock = until.add(TWO_WEEKS);\\n            if (isGovernance || block.timestamp >= nextLock) {\\n                uint96 stakes = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);\\n                if (stakes > 0) {\\n                    _withdraw(stakes, nextLock, receiver, isGovernance);\\n                }\\n            }\\n        }\\n    }\\n\\n    /**\\n     * @notice Get available and punished amount for withdrawing.\\n     * @param amount The number of tokens to withdraw.\\n     * @param until The date until which the tokens were staked. Adjusted to the next valid lock date, if necessary.\\n     * */\\n    function getWithdrawAmounts(uint96 amount, uint256 until)\\n        external\\n        view\\n        returns (uint96, uint96)\\n    {\\n        until = _adjustDateForOrigin(until);\\n        _validateWithdrawParams(msg.sender, amount, until);\\n        uint96 punishedAmount = _getPunishedAmount(amount, until);\\n        return (amount - punishedAmount, punishedAmount);\\n    }\\n\\n    /**\\n     * @notice Get punished amount for withdrawing.\\n     * @param amount The number of tokens to withdraw.\\n     * @param until The date until which the tokens were staked.\\n     * */\\n    function _getPunishedAmount(uint96 amount, uint256 until) internal view returns (uint96) {\\n        uint256 date = _timestampToLockDate(block.timestamp);\\n        uint96 weight = _computeWeightByDate(until, date); /// @dev (10 - 1) * WEIGHT_FACTOR\\n        weight = weight * weightScaling;\\n        return (amount * weight) / WEIGHT_FACTOR / 100;\\n    }\\n\\n    /**\\n     * @notice Validate withdraw parameters.\\n     * @param account Address to be validated.\\n     * @param amount The number of tokens to withdraw.\\n     * @param until The date until which the tokens were staked.\\n     * */\\n    function _validateWithdrawParams(\\n        address account,\\n        uint96 amount,\\n        uint256 until\\n    ) internal view {\\n        require(amount > 0, \\\"Amount of tokens to withdraw must be > 0\\\"); // S10\\n        uint96 balance = _getPriorUserStakeByDate(account, until, block.number - 1);\\n        require(amount <= balance, \\\"Staking::withdraw: not enough balance\\\"); // S11\\n    }\\n\\n    /**\\n     * @notice Allow the owner to unlock all tokens in case the staking contract\\n     * is going to be replaced\\n     * Note: Not reversible on purpose. once unlocked, everything is unlocked.\\n     * The owner should not be able to just quickly unlock to withdraw his own\\n     * tokens and lock again.\\n     * @dev Last resort.\\n     * */\\n    function unlockAllTokens() external onlyOwner whenNotFrozen {\\n        allUnlocked = true;\\n        emit TokensUnlocked(SOVToken.balanceOf(address(this)));\\n    }\\n\\n    /**\\n     * @dev set max withdraw iterations.\\n     *\\n     * @param newMaxIterations new max iterations value.\\n     */\\n    function setMaxVestingWithdrawIterations(uint256 newMaxIterations)\\n        external\\n        onlyAuthorized\\n        whenNotFrozen\\n    {\\n        require(newMaxIterations > 0, \\\"Invalid max iterations\\\");\\n        emit MaxVestingWithdrawIterationsUpdated(maxVestingWithdrawIterations, newMaxIterations);\\n        maxVestingWithdrawIterations = newMaxIterations;\\n    }\\n\\n    function getFunctionsList() external pure returns (bytes4[] memory) {\\n        bytes4[] memory functionsList = new bytes4[](5);\\n        functionsList[0] = this.withdraw.selector;\\n        functionsList[1] = this.cancelTeamVesting.selector;\\n        functionsList[2] = this.getWithdrawAmounts.selector;\\n        functionsList[3] = this.unlockAllTokens.selector;\\n        functionsList[4] = this.setMaxVestingWithdrawIterations.selector;\\n        return functionsList;\\n    }\\n}\\n\",\"keccak256\":\"0xbb4ec9baa2fa82ad0e5ca1e87a484321e92239f2f96cc05b72ee524f5e8137bb\"},\"contracts/governance/Staking/modules/shared/CheckpointsShared.sol\":{\"content\":\"pragma solidity ^0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"./StakingStorageShared.sol\\\";\\nimport \\\"../../SafeMath96.sol\\\";\\n\\n/**\\n * @title Checkpoints contract.\\n * @notice Increases and decreases storage values for users, delegatees and\\n * total daily stake.\\n * */\\ncontract CheckpointsShared is StakingStorageShared, SafeMath96 {\\n    /// @notice An event emitted when an account changes its delegate.\\n    event DelegateChanged(\\n        address indexed delegator,\\n        uint256 lockedUntil,\\n        address indexed fromDelegate,\\n        address indexed toDelegate\\n    );\\n\\n    /// @notice An event emitted when a delegate account's stake balance changes.\\n    event DelegateStakeChanged(\\n        address indexed delegate,\\n        uint256 lockedUntil,\\n        uint256 previousBalance,\\n        uint256 newBalance\\n    );\\n\\n    /// @notice An event emitted when tokens get staked.\\n    event TokensStaked(\\n        address indexed staker,\\n        uint256 amount,\\n        uint256 lockedUntil,\\n        uint256 totalStaked\\n    );\\n\\n    /// @notice An event emitted when staked tokens get withdrawn.\\n    event StakingWithdrawn(\\n        address indexed staker,\\n        uint256 amount,\\n        uint256 until,\\n        address indexed receiver,\\n        bool isGovernance\\n    );\\n\\n    /// @notice An event emitted when vesting tokens get withdrawn.\\n    event VestingTokensWithdrawn(address vesting, address receiver);\\n\\n    /// @notice An event emitted when the owner unlocks all tokens.\\n    event TokensUnlocked(uint256 amount);\\n\\n    /// @notice An event emitted when a staking period gets extended.\\n    event ExtendedStakingDuration(\\n        address indexed staker,\\n        uint256 previousDate,\\n        uint256 newDate,\\n        uint256 amountStaked\\n    );\\n\\n    event AdminAdded(address admin);\\n\\n    event AdminRemoved(address admin);\\n\\n    /// @param pauser address to grant power to pause the contract\\n    /// @param added true - added, false - removed\\n    event PauserAddedOrRemoved(address indexed pauser, bool indexed added);\\n\\n    /// @notice An event emitted when a staking is paused or unpaused\\n    /// @param setPaused true - pause, false - unpause\\n    event StakingPaused(bool indexed setPaused);\\n\\n    /// @notice An event emitted when a staking is frozen or unfrozen\\n    /// @param setFrozen true - freeze, false - unfreeze\\n    event StakingFrozen(bool indexed setFrozen);\\n\\n    event ContractCodeHashAdded(bytes32 hash);\\n\\n    event ContractCodeHashRemoved(bytes32 hash);\\n\\n    event VestingStakeSet(uint256 lockedTS, uint96 value);\\n\\n    event TeamVestingCancelled(address indexed caller, address receiver);\\n\\n    event TeamVestingPartiallyCancelled(\\n        address indexed caller,\\n        address receiver,\\n        uint256 lastProcessedDate\\n    );\\n\\n    constructor() internal {\\n        // abstract\\n    }\\n\\n    /**\\n     * @notice Increases the user's vesting stake for a giving lock date and writes a checkpoint.\\n     * @param lockedTS The lock date.\\n     * @param value The value to add to the staked balance.\\n     * */\\n    function _increaseVestingStake(uint256 lockedTS, uint96 value) internal {\\n        uint32 nCheckpoints = numVestingCheckpoints[lockedTS];\\n        uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;\\n        uint96 newVest = add96(vested, value, \\\"CP01\\\"); // vested overflow\\n        _writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);\\n    }\\n\\n    /**\\n     * @notice Decreases the user's vesting stake for a giving lock date and writes a checkpoint.\\n     * @param lockedTS The lock date.\\n     * @param value The value to substract to the staked balance.\\n     * */\\n    function _decreaseVestingStake(uint256 lockedTS, uint96 value) internal {\\n        uint32 nCheckpoints = numVestingCheckpoints[lockedTS];\\n        uint96 vested = vestingCheckpoints[lockedTS][nCheckpoints - 1].stake;\\n        uint96 newVest = sub96(vested, value, \\\"CP02\\\"); // vested underflow\\n        _writeVestingCheckpoint(lockedTS, nCheckpoints, newVest);\\n    }\\n\\n    /**\\n     * @notice Writes on storage the user vested amount.\\n     * @param lockedTS The lock date.\\n     * @param nCheckpoints The number of checkpoints, to find out the last one index.\\n     * @param newVest The new vest balance.\\n     * */\\n    function _writeVestingCheckpoint(\\n        uint256 lockedTS,\\n        uint32 nCheckpoints,\\n        uint96 newVest\\n    ) internal {\\n        uint32 blockNumber = safe32(block.number, \\\"CP03\\\"); // block num > 32 bits\\n\\n        if (\\n            nCheckpoints > 0 &&\\n            vestingCheckpoints[lockedTS][nCheckpoints - 1].fromBlock == blockNumber\\n        ) {\\n            vestingCheckpoints[lockedTS][nCheckpoints - 1].stake = newVest;\\n        } else {\\n            vestingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, newVest);\\n            numVestingCheckpoints[lockedTS] = nCheckpoints + 1;\\n        }\\n    }\\n\\n    /**\\n     * @notice Increases the user's stake for a giving lock date and writes a checkpoint.\\n     * @param account The user address.\\n     * @param lockedTS The lock date.\\n     * @param value The value to add to the staked balance.\\n     * */\\n    function _increaseUserStake(\\n        address account,\\n        uint256 lockedTS,\\n        uint96 value\\n    ) internal {\\n        uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];\\n        uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;\\n        uint96 newStake = add96(staked, value, \\\"CP04\\\"); // staked overflow\\n        _writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);\\n    }\\n\\n    /**\\n     * @notice Decreases the user's stake for a giving lock date and writes a checkpoint.\\n     * @param account The user address.\\n     * @param lockedTS The lock date.\\n     * @param value The value to substract to the staked balance.\\n     * */\\n    function _decreaseUserStake(\\n        address account,\\n        uint256 lockedTS,\\n        uint96 value\\n    ) internal {\\n        uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];\\n        uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;\\n        uint96 newStake = sub96(staked, value, \\\"CP05\\\"); // staked underflow\\n        _writeUserCheckpoint(account, lockedTS, nCheckpoints, newStake);\\n    }\\n\\n    /**\\n     * @notice Writes on storage the user stake.\\n     * @param account The user address.\\n     * @param lockedTS The lock date.\\n     * @param nCheckpoints The number of checkpoints, to find out the last one index.\\n     * @param newStake The new staked balance.\\n     * */\\n    function _writeUserCheckpoint(\\n        address account,\\n        uint256 lockedTS,\\n        uint32 nCheckpoints,\\n        uint96 newStake\\n    ) internal {\\n        uint32 blockNumber = safe32(block.number, \\\"CP06\\\"); // block number > 32 bits\\n\\n        if (\\n            nCheckpoints > 0 &&\\n            userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].fromBlock == blockNumber\\n        ) {\\n            userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake = newStake;\\n        } else {\\n            userStakingCheckpoints[account][lockedTS][nCheckpoints] = Checkpoint(\\n                blockNumber,\\n                newStake\\n            );\\n            numUserStakingCheckpoints[account][lockedTS] = nCheckpoints + 1;\\n        }\\n    }\\n\\n    /**\\n     * @notice Increases the delegatee's stake for a giving lock date and writes a checkpoint.\\n     * @param delegatee The delegatee address.\\n     * @param lockedTS The lock date.\\n     * @param value The value to add to the staked balance.\\n     * */\\n    function _increaseDelegateStake(\\n        address delegatee,\\n        uint256 lockedTS,\\n        uint96 value\\n    ) internal {\\n        uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];\\n        uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;\\n        uint96 newStake = add96(staked, value, \\\"CP07\\\"); // block number > 32 bits\\n        _writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);\\n    }\\n\\n    /**\\n     * @notice Decreases the delegatee's stake for a giving lock date and writes a checkpoint.\\n     * @param delegatee The delegatee address.\\n     * @param lockedTS The lock date.\\n     * @param value The value to substract to the staked balance.\\n     * */\\n    function _decreaseDelegateStake(\\n        address delegatee,\\n        uint256 lockedTS,\\n        uint96 value\\n    ) internal {\\n        uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];\\n        uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;\\n        uint96 newStake = 0;\\n        // @dev We need to check delegate checkpoint value here,\\n        //\\t\\tbecause we had an issue in `stake` function:\\n        //\\t\\tdelegate checkpoint wasn't updating for the second and next stakes for the same date\\n        //\\t\\tif first stake was withdrawn completely and stake was delegated to the staker\\n        //\\t\\t(no delegation to another address).\\n        // @dev It can be greater than 0, but inconsistent after 3 transactions\\n        if (staked > value) {\\n            newStake = sub96(staked, value, \\\"CP08\\\"); // staked underflow\\n        }\\n        _writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, newStake);\\n    }\\n\\n    /**\\n     * @notice Writes on storage the delegate stake.\\n     * @param delegatee The delegate address.\\n     * @param lockedTS The lock date.\\n     * @param nCheckpoints The number of checkpoints, to find out the last one index.\\n     * @param newStake The new staked balance.\\n     * */\\n    function _writeDelegateCheckpoint(\\n        address delegatee,\\n        uint256 lockedTS,\\n        uint32 nCheckpoints,\\n        uint96 newStake\\n    ) internal {\\n        uint32 blockNumber = safe32(block.number, \\\"CP09\\\"); // block numb > 32 bits\\n        uint96 oldStake = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;\\n\\n        if (\\n            nCheckpoints > 0 &&\\n            delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].fromBlock ==\\n            blockNumber\\n        ) {\\n            delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake = newStake;\\n        } else {\\n            delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints] = Checkpoint(\\n                blockNumber,\\n                newStake\\n            );\\n            numDelegateStakingCheckpoints[delegatee][lockedTS] = nCheckpoints + 1;\\n        }\\n        emit DelegateStakeChanged(delegatee, lockedTS, oldStake, newStake);\\n    }\\n\\n    /**\\n     * @notice Increases the total stake for a giving lock date and writes a checkpoint.\\n     * @param lockedTS The lock date.\\n     * @param value The value to add to the staked balance.\\n     * */\\n    function _increaseDailyStake(uint256 lockedTS, uint96 value) internal {\\n        uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];\\n        uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;\\n        uint96 newStake = add96(staked, value, \\\"CP10\\\"); // staked overflow\\n        _writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);\\n    }\\n\\n    /**\\n     * @notice Decreases the total stake for a giving lock date and writes a checkpoint.\\n     * @param lockedTS The lock date.\\n     * @param value The value to substract to the staked balance.\\n     * */\\n    function _decreaseDailyStake(uint256 lockedTS, uint96 value) internal {\\n        uint32 nCheckpoints = numTotalStakingCheckpoints[lockedTS];\\n        uint96 staked = totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake;\\n        uint96 newStake = sub96(staked, value, \\\"CP11\\\"); // staked underflow\\n        _writeStakingCheckpoint(lockedTS, nCheckpoints, newStake);\\n    }\\n\\n    /**\\n     * @notice Writes on storage the total stake.\\n     * @param lockedTS The lock date.\\n     * @param nCheckpoints The number of checkpoints, to find out the last one index.\\n     * @param newStake The new staked balance.\\n     * */\\n    function _writeStakingCheckpoint(\\n        uint256 lockedTS,\\n        uint32 nCheckpoints,\\n        uint96 newStake\\n    ) internal {\\n        uint32 blockNumber = safe32(block.number, \\\"CP12\\\"); // block num > 32 bits\\n\\n        if (\\n            nCheckpoints > 0 &&\\n            totalStakingCheckpoints[lockedTS][nCheckpoints - 1].fromBlock == blockNumber\\n        ) {\\n            totalStakingCheckpoints[lockedTS][nCheckpoints - 1].stake = newStake;\\n        } else {\\n            totalStakingCheckpoints[lockedTS][nCheckpoints] = Checkpoint(blockNumber, newStake);\\n            numTotalStakingCheckpoints[lockedTS] = nCheckpoints + 1;\\n        }\\n    }\\n\\n    /**\\n     * @notice Get the current balance of an account locked until a certain date.\\n     * @param account The user address.\\n     * @param lockDate The lock date.\\n     * @return The stake amount.\\n     * */\\n    function _currentBalance(address account, uint256 lockDate) internal view returns (uint96) {\\n        uint32 _numUnserStakingCheckpoints = numUserStakingCheckpoints[account][lockDate] - 1;\\n        return userStakingCheckpoints[account][lockDate][_numUnserStakingCheckpoints].stake;\\n    }\\n}\\n\",\"keccak256\":\"0x0008c67cca18adda882118e4543045905e7e75d8536034ffcc97526065784036\"},\"contracts/governance/Staking/modules/shared/StakingShared.sol\":{\"content\":\"pragma solidity ^0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"./StakingStorageShared.sol\\\";\\nimport \\\"../../SafeMath96.sol\\\";\\nimport \\\"../../../../openzeppelin/SafeMath.sol\\\";\\nimport \\\"../../../../openzeppelin/Ownable.sol\\\";\\n\\n/**\\n * @title Staking modules shared functionality\\n */\\ncontract StakingShared is StakingStorageShared, SafeMath96 {\\n    using SafeMath for uint256;\\n\\n    uint256 internal constant FOUR_WEEKS = 4 weeks;\\n\\n    /**\\n     * @dev Throws if paused.\\n     */\\n    modifier whenNotPaused() {\\n        require(!paused, \\\"paused\\\"); // SS03\\n        _;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner or admin.\\n     */\\n    modifier onlyAuthorized() {\\n        require(isOwner() || admins[msg.sender], \\\"unauthorized\\\"); // SS01\\n        _;\\n    }\\n\\n    /**\\n\\t * @dev Throws if called by any account other than the owner or admin or pauser.\\n\\t \\n\\tmodifier onlyAuthorizedOrPauser() {\\n\\t\\trequire(isOwner() || admins[msg.sender] || pausers[msg.sender], \\\"unauthorized\\\"); // WS02\\n\\t\\t_;\\n\\t}\\n\\t*/\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner or pauser.\\n     */\\n    modifier onlyPauserOrOwner() {\\n        require(isOwner() || pausers[msg.sender], \\\"unauthorized\\\"); // SS02\\n        _;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than pauser.\\n     * @notice Uncomment when needed\\n     */\\n    /*\\n\\tmodifier onlyPauser() {\\n\\t\\trequire(pausers[msg.sender], \\\"Not pauser\\\");\\n\\t\\t_;\\n\\t}\\n\\t*/\\n\\n    /**\\n     * @dev Throws if frozen.\\n     */\\n    modifier whenNotFrozen() {\\n        require(!frozen, \\\"paused\\\"); // SS04\\n        _;\\n    }\\n\\n    constructor() internal {\\n        // abstract\\n    }\\n\\n    function _notSameBlockAsStakingCheckpoint(uint256 lockDate, address stakeFor) internal view {\\n        uint32 nCheckpoints = numUserStakingCheckpoints[stakeFor][lockDate];\\n        bool notSameBlock =\\n            userStakingCheckpoints[stakeFor][lockDate][nCheckpoints - 1].fromBlock != block.number;\\n        require(notSameBlock, \\\"cannot be mined in the same block as last stake\\\"); // S20\\n    }\\n\\n    /**\\n     * @notice Unstaking is possible every 2 weeks only. This means, to\\n     * calculate the key value for the staking checkpoints, we need to\\n     * map the intended timestamp to the closest available date.\\n     * @param timestamp The unlocking timestamp.\\n     * @return The actual unlocking date (might be up to 2 weeks shorter than intended).\\n     * */\\n    function _timestampToLockDate(uint256 timestamp) internal view returns (uint256 lockDate) {\\n        // Optimize gas costs by reading kickoffTS from storage only once.\\n        uint256 start = kickoffTS;\\n        require(timestamp >= start, \\\"timestamp < contract creation\\\"); // WS23\\n        /**\\n         * @dev If staking timestamp does not match any of the unstaking dates\\n         * , set the lockDate to the closest one before the timestamp.\\n         * E.g. Passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks.\\n         * */\\n        uint256 periodFromKickoff = (timestamp - start) / TWO_WEEKS;\\n        lockDate = periodFromKickoff * TWO_WEEKS + start;\\n    }\\n\\n    /**\\n     * @notice Determine the current Block Number\\n     * @dev This is segregated from the _getPriorUserStakeByDate function to better test\\n     * advancing blocks functionality using Mock Contracts\\n     * */\\n    function _getCurrentBlockNumber() internal view returns (uint256) {\\n        return block.number;\\n    }\\n\\n    /**\\n     * @notice Determine the prior number of stake for an account until a\\n     * \\t\\tcertain lock date as of a block number.\\n     * @dev All functions of Staking contract use this internal version,\\n     * \\t\\twe need to modify public function in order to workaround issue with Vesting.withdrawTokens:\\n     * return 1 instead of 0 if message sender is a contract.\\n     * @param account The address of the account to check.\\n     * @param date The lock date. Adjusted to the next valid lock date, if necessary.\\n     * @param blockNumber The block number to get the vote balance at.\\n     * @return The number of votes the account had as of the given block.\\n     * */\\n    function _getPriorUserStakeByDate(\\n        address account,\\n        uint256 date,\\n        uint256 blockNumber\\n    ) internal view returns (uint96) {\\n        require(blockNumber < _getCurrentBlockNumber(), \\\"not determined\\\"); // WS14\\n\\n        date = _adjustDateForOrigin(date);\\n        uint32 nCheckpoints = numUserStakingCheckpoints[account][date];\\n        if (nCheckpoints == 0) {\\n            return 0;\\n        }\\n\\n        /// @dev First check most recent balance.\\n        if (userStakingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber) {\\n            return userStakingCheckpoints[account][date][nCheckpoints - 1].stake;\\n        }\\n\\n        /// @dev Next check implicit zero balance.\\n        if (userStakingCheckpoints[account][date][0].fromBlock > blockNumber) {\\n            return 0;\\n        }\\n\\n        uint32 lower = 0;\\n        uint32 upper = nCheckpoints - 1;\\n        while (upper > lower) {\\n            uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.\\n            Checkpoint memory cp = userStakingCheckpoints[account][date][center];\\n            if (cp.fromBlock == blockNumber) {\\n                return cp.stake;\\n            } else if (cp.fromBlock < blockNumber) {\\n                lower = center;\\n            } else {\\n                upper = center - 1;\\n            }\\n        }\\n        return userStakingCheckpoints[account][date][lower].stake;\\n    }\\n\\n    /**\\n     * @dev origin vesting contracts have different dates\\n     * we need to add 2 weeks to get end of period (by default, it's start)\\n     * @param date The staking date to compute the power for.\\n     * @return unlocking date.\\n     */\\n    function _adjustDateForOrigin(uint256 date) internal view returns (uint256) {\\n        uint256 adjustedDate = _timestampToLockDate(date);\\n        //origin vesting contracts have different dates\\n        //we need to add 2 weeks to get end of period (by default, it's start)\\n        if (adjustedDate != date) {\\n            date = adjustedDate + TWO_WEEKS;\\n        }\\n        return date;\\n    }\\n\\n    /**\\n     * @notice Compute the weight for a specific date.\\n     * @param date The unlocking date.\\n     * @param startDate We compute the weight for the tokens staked until 'date' on 'startDate'.\\n     * @return The weighted stake the account had as of the given block.\\n     * */\\n    function _computeWeightByDate(uint256 date, uint256 startDate)\\n        internal\\n        pure\\n        returns (uint96 weight)\\n    {\\n        require(date >= startDate, \\\"date < startDate\\\"); // WS18\\n        uint256 remainingTime = (date - startDate);\\n        require(MAX_DURATION >= remainingTime, \\\"remaining time > max duration\\\"); // WS19\\n        /// @dev x = max days - remaining days\\n        uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);\\n        /// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)\\n        weight = add96(\\n            WEIGHT_FACTOR,\\n            mul96(\\n                MAX_VOTING_WEIGHT * WEIGHT_FACTOR,\\n                sub96(\\n                    MAX_DURATION_POW_2,\\n                    x * x,\\n                    \\\"WS20\\\" /* weight underflow */\\n                ),\\n                \\\"WS21\\\" /* weight mul overflow */\\n            ) / MAX_DURATION_POW_2,\\n            \\\"WS22\\\" /* overflow on weight */\\n        );\\n    }\\n\\n    /**\\n     * @notice Return flag whether the given address is a registered vesting contract.\\n     * @param stakerAddress the address to check\\n     */\\n    function _isVestingContract(address stakerAddress) internal view returns (bool) {\\n        bool isVesting;\\n        bytes32 codeHash;\\n\\n        assembly {\\n            codeHash := extcodehash(stakerAddress)\\n        }\\n        if (address(vestingRegistryLogic) != address(0)) {\\n            isVesting = vestingRegistryLogic.isVestingAddress(stakerAddress);\\n        }\\n\\n        if (isVesting) return true;\\n        if (vestingCodeHashes[codeHash]) return true;\\n        return false;\\n    }\\n}\\n\",\"keccak256\":\"0x9604726ff96bc87aa63c050abe7e7c7221459f73942ec2127a4b732908704753\"},\"contracts/governance/Staking/modules/shared/StakingStorageShared.sol\":{\"content\":\"pragma solidity ^0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"../../../../openzeppelin/Ownable.sol\\\";\\nimport \\\"../../../../interfaces/IERC20.sol\\\";\\nimport \\\"../../../IFeeSharingCollector.sol\\\";\\nimport \\\"../../../Vesting/IVestingRegistry.sol\\\";\\n\\n/**\\n * @title StakingStorageShared contract is inherited by Staking modules.\\n * @notice Just the storage part of stacking contract, no functions,\\n * only constant, variables and required structures (mappings).\\n * Used by StackingProxy and Checkpoints contracts.\\n *\\n * What is SOV staking?\\n * The purpose of the SOV token is to provide a pseudonymous,\\n * censorship-resistant mechanism for governing the parameters of the Sovryn\\n * protocol, while aligning the incentives of protocol governors with the\\n * long-term success of the protocol. Any SOV token holder can choose to\\n * stake (lock up) their tokens for a fixed period of time in return for\\n * voting rights in the Bitocracy. Stakers are further incentivised through\\n * fee and slashing rewards.\\n * */\\ncontract StakingStorageShared is Ownable {\\n    /// @notice 2 weeks in seconds.\\n    uint256 constant TWO_WEEKS = 1209600;\\n\\n    /// @notice The maximum possible voting weight before adding +1 (actually 10, but need 9 for computation).\\n    uint96 public constant MAX_VOTING_WEIGHT = 9;\\n\\n    /// @notice weight is multiplied with this factor (for allowing decimals, like 1.2x).\\n    /// @dev MAX_VOTING_WEIGHT * WEIGHT_FACTOR needs to be < 792, because there are 100,000,000 SOV with 18 decimals\\n    uint96 public constant WEIGHT_FACTOR = 10;\\n\\n    /// @notice The maximum duration to stake tokens for.\\n    uint256 public constant MAX_DURATION = 1092 days;\\n\\n    /// @notice The maximum duration ^2\\n    uint96 constant MAX_DURATION_POW_2 = 1092 * 1092;\\n\\n    /// @notice Default weight scaling.\\n    uint96 constant DEFAULT_WEIGHT_SCALING = 3;\\n\\n    /// @notice Range for weight scaling.\\n    uint96 constant MIN_WEIGHT_SCALING = 1;\\n    uint96 constant MAX_WEIGHT_SCALING = 9;\\n\\n    /// @notice The timestamp of contract creation. Base for the staking period calculation.\\n    uint256 public kickoffTS;\\n\\n    string name = \\\"SOVStaking\\\";\\n\\n    /// @notice The token to be staked.\\n    IERC20 public SOVToken;\\n\\n    /// @notice A record of each accounts delegate.\\n    mapping(address => mapping(uint256 => address)) public delegates;\\n\\n    /// @notice If this flag is set to true, all tokens are unlocked immediately.\\n    bool public allUnlocked = false;\\n\\n    /// @notice The EIP-712 typehash for the contract's domain.\\n    bytes32 public constant DOMAIN_TYPEHASH =\\n        keccak256(\\\"EIP712Domain(string name,uint256 chainId,address verifyingContract)\\\");\\n\\n    /// @notice The EIP-712 typehash for the delegation struct used by the contract.\\n    bytes32 public constant DELEGATION_TYPEHASH =\\n        keccak256(\\\"Delegation(address delegatee,uint256 lockDate,uint256 nonce,uint256 expiry)\\\");\\n\\n    /// @notice Used for stake migrations to a new staking contract with a different storage structure.\\n    address public newStakingContract;\\n\\n    /*************************** Checkpoints *******************************/\\n\\n    /// @notice A checkpoint for marking the stakes from a given block\\n    struct Checkpoint {\\n        uint32 fromBlock;\\n        uint96 stake;\\n    }\\n\\n    /// @notice A record of tokens to be unstaked at a given time in total.\\n    /// For total voting power computation. Voting weights get adjusted bi-weekly.\\n    /// @dev totalStakingCheckpoints[date][index] is a checkpoint.\\n    mapping(uint256 => mapping(uint32 => Checkpoint)) public totalStakingCheckpoints;\\n\\n    /// @notice The number of total staking checkpoints for each date.\\n    /// @dev numTotalStakingCheckpoints[date] is a number.\\n    mapping(uint256 => uint32) public numTotalStakingCheckpoints;\\n\\n    /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address.\\n    /// For delegatee voting power computation. Voting weights get adjusted bi-weekly.\\n    /// @dev delegateStakingCheckpoints[delegatee][date][index] is a checkpoint.\\n    mapping(address => mapping(uint256 => mapping(uint32 => Checkpoint)))\\n        public delegateStakingCheckpoints;\\n\\n    /// @notice The number of total staking checkpoints for each date per delegate.\\n    /// @dev numDelegateStakingCheckpoints[delegatee][date] is a number.\\n    mapping(address => mapping(uint256 => uint32)) public numDelegateStakingCheckpoints;\\n\\n    /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)\\n    /// @dev userStakingCheckpoints[user][date][index] is a checkpoint.\\n    mapping(address => mapping(uint256 => mapping(uint32 => Checkpoint)))\\n        public userStakingCheckpoints;\\n\\n    /// @notice The number of total staking checkpoints for each date per user.\\n    /// @dev numUserStakingCheckpoints[user][date] is a number.\\n    mapping(address => mapping(uint256 => uint32)) public numUserStakingCheckpoints;\\n\\n    /// @notice A record of states for signing / validating signatures\\n    /// @dev nonces[user] is a number.\\n    mapping(address => uint256) public nonces;\\n\\n    /*************************** Slashing *******************************/\\n\\n    /// @notice the address of FeeSharingCollectorProxy contract, we need it for unstaking with slashing.\\n    IFeeSharingCollector public feeSharing;\\n\\n    /// @notice used for weight scaling when unstaking with slashing.\\n    uint96 public weightScaling = DEFAULT_WEIGHT_SCALING;\\n\\n    /// @notice List of vesting contracts, tokens for these contracts won't be slashed if unstaked by governance.\\n    /// @dev vestingWhitelist[contract] is true/false.\\n    mapping(address => bool) public vestingWhitelist;\\n\\n    /// @dev user => flag whether user has admin role.\\n    /// @dev multisig should be an admin, admin can invoke only governanceWithdrawVesting function,\\n    /// \\tthis function works only with Team Vesting contracts\\n    mapping(address => bool) public admins;\\n\\n    /// @dev vesting contract code hash => flag whether it's registered code hash\\n    mapping(bytes32 => bool) public vestingCodeHashes;\\n\\n    /// @notice A record of tokens to be unstaked from vesting contract at a given time (lockDate -> vest checkpoint)\\n    /// @dev vestingCheckpoints[date][index] is a checkpoint.\\n    mapping(uint256 => mapping(uint32 => Checkpoint)) public vestingCheckpoints;\\n\\n    /// @notice The number of total vesting checkpoints for each date.\\n    /// @dev numVestingCheckpoints[date] is a number.\\n    mapping(uint256 => uint32) public numVestingCheckpoints;\\n\\n    ///@notice vesting registry contract\\n    IVestingRegistry public vestingRegistryLogic;\\n\\n    /// @dev user => flag whether user has pauser role.\\n    mapping(address => bool) public pausers;\\n\\n    /// @dev Staking contract is paused\\n    bool public paused;\\n\\n    /// @dev Staking contract is frozen\\n    bool public frozen;\\n\\n    /// @dev max iterations that can be supported in 1 tx for the withdrawal\\n    uint256 internal maxVestingWithdrawIterations;\\n\\n    constructor() internal {\\n        //abstract\\n    }\\n}\\n\",\"keccak256\":\"0xf83eb462825c77f9c0629d15a52c8248cd1e9ce1e947c6ea93102d952790dca4\"},\"contracts/governance/Vesting/ITeamVesting.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/**\\n * @title Interface for TeamVesting contract.\\n * @dev Interfaces are used to cast a contract address into a callable instance.\\n * This interface is used by Staking contract to call governanceWithdrawTokens\\n * function having the vesting contract instance address.\\n */\\ninterface ITeamVesting {\\n    function startDate() external view returns (uint256);\\n\\n    function cliff() external view returns (uint256);\\n\\n    function endDate() external view returns (uint256);\\n\\n    function duration() external view returns (uint256);\\n\\n    function tokenOwner() external view returns (address);\\n\\n    function governanceWithdrawTokens(address receiver) external;\\n}\\n\",\"keccak256\":\"0xeb926db5c0681a7bdbc70c3d25df2551a6124e191654b3b8a0f810b0d03ec66f\"},\"contracts/governance/Vesting/IVesting.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/**\\n * @title Interface for Vesting contract.\\n * @dev Interfaces are used to cast a contract address into a callable instance.\\n * This interface is used by VestingLogic contract to implement stakeTokens function\\n * and on VestingRegistry contract to call IVesting(vesting).stakeTokens function\\n * at a vesting instance.\\n */\\ninterface IVesting {\\n    function duration() external returns (uint256);\\n\\n    function endDate() external returns (uint256);\\n\\n    function stakeTokens(uint256 amount) external;\\n}\\n\",\"keccak256\":\"0x373d8b2669d69d57ed11f1caf345e3a818f5c60019b3fff91acb01d323c0600c\"},\"contracts/governance/Vesting/IVestingRegistry.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/**\\n * @title Interface for upgradable Vesting Registry contract.\\n * @dev Interfaces are used to cast a contract address into a callable instance.\\n */\\ninterface IVestingRegistry {\\n    function getVesting(address _tokenOwner) external view returns (address);\\n\\n    function getTeamVesting(address _tokenOwner) external view returns (address);\\n\\n    function setVestingRegistry(address _vestingRegistryProxy) external;\\n\\n    function isVestingAdress(address _vestingAddress) external view returns (bool); //name typo. to be deprecated.\\n\\n    function isVestingAddress(address _vestingAddress) external view returns (bool);\\n\\n    function isTeamVesting(address _vestingAddress) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x9f972c6eff9310beed9807757744bbaa0901c34df1cfff1eb5f58cf47b25904d\"},\"contracts/interfaces/IERC20.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ncontract IERC20 {\\n    string public name;\\n    uint8 public decimals;\\n    string public symbol;\\n\\n    function totalSupply() public view returns (uint256);\\n\\n    function balanceOf(address _who) public view returns (uint256);\\n\\n    function allowance(address _owner, address _spender) public view returns (uint256);\\n\\n    function approve(address _spender, uint256 _value) public returns (bool);\\n\\n    function transfer(address _to, uint256 _value) public returns (bool);\\n\\n    function transferFrom(\\n        address _from,\\n        address _to,\\n        uint256 _value\\n    ) public returns (bool);\\n\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\"},\"contracts/openzeppelin/Context.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\ncontract Context {\\n    // Empty internal constructor, to prevent people from mistakenly deploying\\n    // an instance of this contract, which should be used via inheritance.\\n    constructor() internal {}\\n\\n    // solhint-disable-previous-line no-empty-blocks\\n\\n    function _msgSender() internal view returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\"},\"contracts/openzeppelin/Ownable.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\ncontract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() internal {\\n        address msgSender = _msgSender();\\n        _owner = msgSender;\\n        emit OwnershipTransferred(address(0), msgSender);\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(isOwner(), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns true if the caller is the current owner.\\n     */\\n    function isOwner() public view returns (bool) {\\n        return _msgSender() == _owner;\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public onlyOwner {\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     */\\n    function _transferOwnership(address newOwner) internal {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        emit OwnershipTransferred(_owner, newOwner);\\n        _owner = newOwner;\\n    }\\n}\\n\",\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\"},\"contracts/openzeppelin/SafeMath.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev Wrappers over Solidity's arithmetic operations with added overflow\\n * checks.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * `SafeMath` restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this library instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n */\\nlibrary SafeMath {\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\\n        uint256 c = a + b;\\n        require(c >= a, \\\"SafeMath: addition overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return sub(a, b, \\\"SafeMath: subtraction overflow\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot overflow.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function sub(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        require(b <= a, errorMessage);\\n        uint256 c = a - b;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint256 c = a * b;\\n        require(c / a == b, \\\"SafeMath: multiplication overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return div(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function div(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b != 0, errorMessage);\\n        uint256 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Integer division of two numbers, rounding up and truncating the quotient\\n     */\\n    function divCeil(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return divCeil(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Integer division of two numbers, rounding up and truncating the quotient\\n     */\\n    function divCeil(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b != 0, errorMessage);\\n\\n        if (a == 0) {\\n            return 0;\\n        }\\n        uint256 c = ((a - 1) / b) + 1;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return mod(a, b, \\\"SafeMath: modulo by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts with custom message when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function mod(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        require(b != 0, errorMessage);\\n        return a % b;\\n    }\\n\\n    function min256(uint256 _a, uint256 _b) internal pure returns (uint256) {\\n        return _a < _b ? _a : _b;\\n    }\\n}\\n\",\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\"},\"contracts/proxy/modules/interfaces/IFunctionsList.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.5.17;\\n\\ninterface IFunctionsList {\\n    function getFunctionsList() external pure returns (bytes4[] memory functionSignatures);\\n}\\n\",\"keccak256\":\"0x38fb0166042329bc9ffcab69742f215efd135cdcf2d48b2202cb7f1546709101\"},\"contracts/rsk/RSKAddrValidator.sol\":{\"content\":\"// SPDX-License-Identifier:MIT\\npragma solidity ^0.5.17;\\n\\nlibrary RSKAddrValidator {\\n    /*\\n     * @param addr it is an address to check that it does not originates from\\n     * signing with PK = ZERO. RSK has a small difference in which @ZERO_PK_ADDR is\\n     * also an address from PK = ZERO. So we check for both of them.\\n     * */\\n    function checkPKNotZero(address addr) internal pure returns (bool) {\\n        return (addr != 0xdcc703c0E500B653Ca82273B7BFAd8045D85a470 && addr != address(0));\\n    }\\n\\n    /*\\n     * Safely compares two addresses, checking they do not originate from\\n     * a zero private key.\\n     * */\\n    function safeEquals(address addr1, address addr2) internal pure returns (bool) {\\n        return (addr1 == addr2 &&\\n            addr1 != 0xdcc703c0E500B653Ca82273B7BFAd8045D85a470 &&\\n            addr1 != address(0));\\n    }\\n}\\n\",\"keccak256\":\"0xf25255f771a734eef130f68e899d00a71e2bcab4e6b109e06f61cff93ab58d74\"}},\"version\":1}",
+    "bytecode": "0x60c0604052600a608081905269534f565374616b696e6760b01b60a09081526200002d9160029190620000ae565b506005805460ff19169055600d80546001600160a01b0316600360a01b179055600062000059620000a9565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a35062000150565b335b90565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f10620000f157805160ff191683800117855562000121565b8280016001018555821562000121579182015b828111156200012157825182559160200191906001019062000104565b506200012f92915062000133565b5090565b620000ab91905b808211156200012f57600081556001016200013a565b61300180620001606000396000f3fe608060405234801561001057600080fd5b50600436106102265760003560e01c80638f32d59b11610130578063bb533cf2116100b8578063db27ec181161007c578063db27ec1814610452578063dfb267c214610465578063e7a324dc14610478578063f2fde38b14610480578063f3f197311461049357610226565b8063bb533cf214610407578063bf626ec11461041a578063d27569e714610422578063d8ad326d1461042a578063dab6ca441461043f57610226565b80639929e886116100ff5780639929e886146103d4578063a58848c5146103dc578063adae9002146103e4578063ae81dfe4146103f7578063b1724b46146103ff57610226565b80638f32d59b146103785780639436e7d41461038057806394c2ce58146103a057806396a590c1146103b357610226565b80635b66a324116101b35780636b6fde0e116101825780636b6fde0e14610324578063765dade9146103375780637ecebe001461034a57806380f51c121461035d5780638da5cb5b1461037057610226565b80635b66a324146102de5780635c975abb146102f35780635e0be607146102fb57806368cefccc1461030357610226565b8063104932cf116101fa578063104932cf1461028657806317748adc1461028e57806320606b70146102a357806327dd1b00146102ab578063429b62e5146102cb57610226565b8062073f991461022b57806303a18fa314610249578063054f7d9c1461025e57806307392cc014610273575b600080fd5b6102336104a6565b6040516102409190612d23565b60405180910390f35b6102516104ac565b6040516102409190612d31565b6102666104bb565b6040516102409190612d15565b61026661028136600461266d565b6104c9565b6102516104de565b6102966104ed565b6040516102409190612ea2565b6102336104f2565b6102be6102b93660046125d2565b610509565b6040516102409190612ca5565b6102666102d9366004612541565b61052f565b6102f16102ec36600461266d565b610544565b005b610266610613565b6102f161061c565b61031661031136600461260c565b61072c565b604051610240929190612e94565b61031661033236600461260c565b610767565b6102f1610345366004612585565b6107a2565b610233610358366004612541565b6108b4565b61026661036b366004612541565b6108c6565b6102be6108db565b6102666108ea565b61039361038e36600461266d565b61090e565b6040516102409190612e86565b6103936103ae3660046125d2565b610926565b6103c66103c13660046126d9565b610949565b604051610240929190612ed8565b61026661097a565b610251610983565b6102666103f2366004612541565b610992565b6102be6109a7565b6102336109bb565b61039361041536600461266d565b6109c3565b6102966109db565b6102966109f1565b6104326109f6565b6040516102409190612d04565b6102f161044d3660046126f8565b610b13565b6103936104603660046125d2565b610b69565b6103166104733660046126a9565b610b8c565b610233610bc1565b6102f161048e366004612541565b610bcd565b6103166104a13660046126a9565b610bfd565b60015481565b600d546001600160a01b031681565b601554610100900460ff1681565b60106020526000908152604090205460ff1681565b6013546001600160a01b031681565b600981565b6040516104fe90612c8f565b604051809103902081565b60046020908152600092835260408084209091529082529020546001600160a01b031681565b600f6020526000908152604090205460ff1681565b61054c6108ea565b806105665750336000908152600f602052604090205460ff165b61058b5760405162461bcd60e51b815260040161058290612dc0565b60405180910390fd5b601554610100900460ff16156105b35760405162461bcd60e51b815260040161058290612e30565b600081116105d35760405162461bcd60e51b815260040161058290612d90565b7f22eba8caa37576c2c857166fc151e8b5bb22942eaef5638da0e96d6156333bee60165482604051610606929190612e50565b60405180910390a1601655565b60155460ff1681565b6106246108ea565b6106405760405162461bcd60e51b815260040161058290612dc0565b601554610100900460ff16156106685760405162461bcd60e51b815260040161058290612e30565b6005805460ff191660011790556003546040516370a0823160e01b81527fd8cc4e8d808fe950b07bfffcd83eebf1190cd35ea77fe0c8a7d75a6e9b90e5c1916001600160a01b0316906370a08231906106c5903090600401612ca5565b60206040518083038186803b1580156106dd57600080fd5b505afa1580156106f1573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610715919081019061268b565b6040516107229190612d23565b60405180910390a1565b600a60209081526000938452604080852082529284528284209052825290205463ffffffff811690600160201b90046001600160601b031682565b600860209081526000938452604080852082529284528284209052825290205463ffffffff811690600160201b90046001600160601b031682565b6107aa6108ea565b806107c45750336000908152600f602052604090205460ff165b6107e05760405162461bcd60e51b815260040161058290612dc0565b601554610100900460ff16156108085760405162461bcd60e51b815260040161058290612e30565b601354604051637a10f6bf60e11b81526001600160a01b039091169063f421ed7e90610838908690600401612ca5565b60206040518083038186803b15801561085057600080fd5b505afa158015610864573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610888919081019061264f565b6108a45760405162461bcd60e51b815260040161058290612e20565b6108af838383610c32565b505050565b600c6020526000908152604090205481565b60146020526000908152604090205460ff1681565b6000546001600160a01b031690565b600080546001600160a01b03166108ff610ff9565b6001600160a01b031614905090565b60076020526000908152604090205463ffffffff1681565b600960209081526000928352604080842090915290825290205463ffffffff1681565b60008061095583610ffd565b9250610962338585611025565b600061096e8585611098565b94859003959350505050565b60055460ff1681565b6003546001600160a01b031681565b600e6020526000908152604090205460ff1681565b60055461010090046001600160a01b031681565b63059fa60081565b60126020526000908152604090205463ffffffff1681565b600d54600160a01b90046001600160601b031681565b600a81565b60408051600580825260c082019092526060918291906020820160a08038833901905050905063dab6ca4460e01b81600081518110610a3157fe5b6001600160e01b031990921660209283029190910190910152805163765dade960e01b9082906001908110610a6257fe5b6001600160e01b03199092166020928302919091019091015280516396a590c160e01b9082906002908110610a9357fe5b6001600160e01b0319909216602092830291909101909101528051635e0be60760e01b9082906003908110610ac457fe5b6001600160e01b03199092166020928302919091019091015280516316d9a8c960e21b9082906004908110610af557fe5b6001600160e01b031990921660209283029190910190910152905090565b601554610100900460ff1615610b3b5760405162461bcd60e51b815260040161058290612e30565b610b4482610ffd565b9150610b5082336110e4565b610b5d8383836000611155565b6108af8282600061144e565b600b60209081526000928352604080842090915290825290205463ffffffff1681565b600660209081526000928352604080842090915290825290205463ffffffff811690600160201b90046001600160601b031682565b6040516104fe90612c9a565b610bd56108ea565b610bf15760405162461bcd60e51b815260040161058290612dc0565b610bfa816114b8565b50565b601160209081526000928352604080842090915290825290205463ffffffff811690600160201b90046001600160601b031682565b6001600160a01b038216610c585760405162461bcd60e51b815260040161058290612e10565b82610c61612495565b6040518060c00160405280866001600160a01b03168152602001836001600160a01b0316630b97bc866040518163ffffffff1660e01b815260040160206040518083038186803b158015610cb457600080fd5b505afa158015610cc8573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610cec919081019061268b565b8152602001836001600160a01b031663c24a0f8b6040518163ffffffff1660e01b815260040160206040518083038186803b158015610d2a57600080fd5b505afa158015610d3e573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610d62919081019061268b565b8152602001836001600160a01b03166313d033c06040518163ffffffff1660e01b815260040160206040518083038186803b158015610da057600080fd5b505afa158015610db4573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610dd8919081019061268b565b8152602001836001600160a01b0316630fb5a6b46040518163ffffffff1660e01b815260040160206040518083038186803b158015610e1657600080fd5b505afa158015610e2a573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610e4e919081019061268b565b8152602001836001600160a01b031663a3e676106040518163ffffffff1660e01b815260040160206040518083038186803b158015610e8c57600080fd5b505afa158015610ea0573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610ec49190810190612567565b6001600160a01b0316905260408101516060820151602083015192935090910180851015610ef25780610ef4565b845b945060006001601654036212750002860190506000818410610f165781610f18565b835b9050865b818111610f5b576000610f338b8360014303611539565b90506001600160601b03811615610f5057610f5081838c8a61178f565b506212750001610f1c565b5083811015610fac57336001600160a01b03167ff1cfeb0937231950f2400ba429108263d3af23c90f72599bf13148e6332fe06d8983604051610f9f929190612cb3565b60405180910390a2610fee565b336001600160a01b03167f9436f4ed1fe17491f53c6d68a08b946bc9884039fccd83e8190203e15eff55bf89604051610fe59190612ca5565b60405180910390a25b505050505050505050565b3390565b600080611009836118f3565b905082811461101b5762127500810192505b829150505b919050565b6000826001600160601b03161161104e5760405162461bcd60e51b815260040161058290612db0565b600061105e848360014303611539565b9050806001600160601b0316836001600160601b031611156110925760405162461bcd60e51b815260040161058290612d70565b50505050565b6000806110a4426118f3565b905060006110b28483611933565b600d546064600a6001600160601b03600160a01b90930483169390930288028216929092041604925050505b92915050565b6001600160a01b0381166000818152600b60209081526040808320868452825280832054938352600a8252808320868452825280832060001963ffffffff95861690810186168552925290912054909116431415806110925760405162461bcd60e51b815260040161058290612e00565b836001600160601b03166001148015611172575061117233611a40565b1561117c57611092565b611187338585611025565b6001600160a01b038216611199573391505b6111a38385611b19565b6111ae338486611b93565b6111b733611a40565b156111c6576111c68385611c32565b3360009081526004602090815260408083208684529091529020546111f5906001600160a01b03168486611cac565b8242108015611207575060055460ff16155b8015611211575080155b156113545760006112228585611098565b948590039490506001600160601b0381161561135257600d546001600160a01b03166112605760405162461bcd60e51b815260040161058290612e40565b600354600d5460405163095ea7b360e01b81526001600160a01b039283169263095ea7b392611296929116908590600401612cce565b602060405180830381600087803b1580156112b057600080fd5b505af11580156112c4573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052506112e8919081019061264f565b50600d5460035460405163abe979e160e01b81526001600160a01b039283169263abe979e19261131f929116908590600401612ce9565b600060405180830381600087803b15801561133957600080fd5b505af115801561134d573d6000803e3d6000fd5b505050505b505b60035460405163a9059cbb60e01b81526000916001600160a01b03169063a9059cbb906113879086908990600401612cce565b602060405180830381600087803b1580156113a157600080fd5b505af11580156113b5573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052506113d9919081019061264f565b9050806113f85760405162461bcd60e51b815260040161058290612da0565b826001600160a01b0316336001600160a01b03167f667b6c8ed8622dae7927a8b0837455098e32037a0181f9a2e21b9b72fead6cc787878660405161143f93929190612eb0565b60405180910390a35050505050565b61145733611a40565b156108af576000611471846212750063ffffffff611d4d16565b9050818061147f5750804210155b15611092576000611494338360014303611539565b90506001600160601b038116156114b1576114b181838686611155565b5050505050565b6001600160a01b0381166114de5760405162461bcd60e51b815260040161058290612d60565b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b6000611543611d72565b82106115615760405162461bcd60e51b815260040161058290612de0565b61156a83610ffd565b6001600160a01b0385166000908152600b6020908152604080832084845290915290205490935063ffffffff16806115a6576000915050611788565b6001600160a01b0385166000908152600a60209081526040808320878452825280832063ffffffff600019860181168552925290912054168310611632576001600160a01b0385166000908152600a6020908152604080832087845282528083206000199490940163ffffffff1683529290522054600160201b90046001600160601b03169050611788565b6001600160a01b0385166000908152600a60209081526040808320878452825280832083805290915290205463ffffffff16831015611675576000915050611788565b600060001982015b8163ffffffff168163ffffffff16111561174057600282820363ffffffff160481036116a76124dd565b506001600160a01b0388166000908152600a602090815260408083208a8452825280832063ffffffff858116855290835292819020815180830190925254928316808252600160201b9093046001600160601b0316918101919091529087141561171b576020015194506117889350505050565b805163ffffffff1687111561173257819350611739565b6001820392505b505061167d565b506001600160a01b0386166000908152600a60209081526040808320888452825280832063ffffffff909416835292905220546001600160601b03600160201b909104169150505b9392505050565b805161179a846118f3565b93506117a7818686611025565b6117b18486611b19565b6117bc818587611b93565b6117c68486611c32565b6001600160a01b0380821660009081526004602090815260408083208884529091529020546117f791168587611cac565b60035460405163a9059cbb60e01b81526000916001600160a01b03169063a9059cbb9061182a9087908a90600401612cce565b602060405180830381600087803b15801561184457600080fd5b505af1158015611858573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525061187c919081019061264f565b90508061189b5760405162461bcd60e51b815260040161058290612da0565b836001600160a01b0316826001600160a01b03167f667b6c8ed8622dae7927a8b0837455098e32037a0181f9a2e21b9b72fead6cc7888860016040516118e393929190612eb0565b60405180910390a3505050505050565b600154600090808310156119195760405162461bcd60e51b815260040161058290612d50565b600062127500828503046212750002919091019392505050565b6000818310156119555760405162461bcd60e51b815260040161058290612dd0565b81830363059fa60081111561197c5760405162461bcd60e51b815260040161058290612df0565b6000620151808263059fa600036001600160601b03168161199957fe5b049050611a37600a621232106001600160601b0316611a04600a6009026119e262123210878802604051806040016040528060048152602001630575332360e41b815250611d76565b604051806040016040528060048152602001635753323160e01b815250611db5565b6001600160601b031681611a1457fe5b04604051806040016040528060048152602001632ba9991960e11b815250611e1c565b95945050505050565b6013546000908190833f906001600160a01b031615611adc57601354604051633288436360e21b81526001600160a01b039091169063ca210d8c90611a89908790600401612ca5565b60206040518083038186803b158015611aa157600080fd5b505afa158015611ab5573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250611ad9919081019061264f565b91505b8115611aed57600192505050611020565b60008181526010602052604090205460ff1615611b0f57600192505050611020565b5060009392505050565b6000828152600760209081526040808320546006835281842063ffffffff91821660001981019092168552835281842054825180840190935260048352634350313160e01b9383019390935292600160201b9092046001600160601b03169190611b869083908690611d76565b90506114b1858483611e4f565b6001600160a01b0383166000818152600b60209081526040808320868452825280832054938352600a8252808320868452825280832063ffffffff94851660001981019095168452825280832054815180830190925260048252634350303560e01b92820192909252600160201b9091046001600160601b03169190611c1c9083908690611d76565b9050611c2a86868584611f8f565b505050505050565b6000828152601260209081526040808320546011835281842063ffffffff918216600019810190921685528352818420548251808401909352600483526321a8181960e11b9383019390935292600160201b9092046001600160601b03169190611c9f9083908690611d76565b90506114b1858483612111565b6001600160a01b038316600081815260096020908152604080832086845282528083205493835260088252808320868452825280832063ffffffff94851660001981019095168452909152812054600160201b90046001600160601b0390811691908416821115611d4157611d3e828560405180604001604052806004815260200163086a060760e31b815250611d76565b90505b611c2a86868584612251565b6000828201838110156117885760405162461bcd60e51b815260040161058290612d80565b4390565b6000836001600160601b0316836001600160601b031611158290611dad5760405162461bcd60e51b81526004016105829190612d3f565b505050900390565b60006001600160601b038416611dcd57506000611788565b8383026001600160601b038085169080871690831681611de957fe5b046001600160601b0316148390611e135760405162461bcd60e51b81526004016105829190612d3f565b50949350505050565b6000838301826001600160601b038087169083161015611e135760405162461bcd60e51b81526004016105829190612d3f565b6000611e77436040518060400160405280600481526020016321a8189960e11b815250612466565b905060008363ffffffff16118015611eb65750600084815260066020908152604080832063ffffffff6000198801811685529252909120548282169116145b15611f05576000848152600660209081526040808320600019870163ffffffff16845290915290208054600160201b600160801b031916600160201b6001600160601b03851602179055611092565b60408051808201825263ffffffff92831681526001600160601b0393841660208083019182526000888152600682528481208887168252825284812093518454935163ffffffff1994851691881691909117600160201b600160801b031916600160201b919098160296909617909255958452600790529091208054909316600190920116179055565b6000611fb7436040518060400160405280600481526020016321a8181b60e11b815250612466565b905060008363ffffffff1611801561200857506001600160a01b0385166000908152600a60209081526040808320878452825280832063ffffffff6000198801811685529252909120548282169116145b15612069576001600160a01b0385166000908152600a602090815260408083208784528252808320600019870163ffffffff16845290915290208054600160201b600160801b031916600160201b6001600160601b038516021790556114b1565b60408051808201825263ffffffff92831681526001600160601b0393841660208083019182526001600160a01b03989098166000818152600a8a528481208982528a5284812088871682528a52848120935184549351909716600160201b02600160201b600160801b031997871663ffffffff19948516179790971696909617909255908452600b875281842095845294909552939020805460019092019093169116179055565b600061213943604051806040016040528060048152602001634350303360e01b815250612466565b905060008363ffffffff161180156121785750600084815260116020908152604080832063ffffffff6000198801811685529252909120548282169116145b156121c7576000848152601160209081526040808320600019870163ffffffff16845290915290208054600160201b600160801b031916600160201b6001600160601b03851602179055611092565b60408051808201825263ffffffff92831681526001600160601b0393841660208083019182526000888152601182528481208887168252825284812093518454935163ffffffff1994851691881691909117600160201b600160801b031916600160201b919098160296909617909255958452601290529091208054909316600190920116179055565b600061227943604051806040016040528060048152602001634350303960e01b815250612466565b6001600160a01b03861660009081526008602090815260408083208884528252808320600019880163ffffffff9081168552925290912054919250600160201b9091046001600160601b03169084161580159061230f57506001600160a01b0386166000908152600860209081526040808320888452825280832063ffffffff6000198901811685529252909120548382169116145b15612370576001600160a01b03861660009081526008602090815260408083208884528252808320600019880163ffffffff16845290915290208054600160201b600160801b031916600160201b6001600160601b03861602179055612419565b60408051808201825263ffffffff80851682526001600160601b0380871660208085019182526001600160a01b038c166000818152600883528781208d825283528781208c871682528352878120965187549451909516600160201b02600160201b600160801b031995871663ffffffff19958616179590951694909417909555938252600984528482208a835290935292909220805460018801909316929091169190911790555b856001600160a01b03167fc7b38fb25352e6f351f57e2c922f84db5c97e09a6246bbe1d2eedfcdb01c4c6286838660405161245693929190612e5e565b60405180910390a2505050505050565b600081600160201b841061248d5760405162461bcd60e51b81526004016105829190612d3f565b509192915050565b6040518060c0016040528060006001600160a01b031681526020016000815260200160008152602001600081526020016000815260200160006001600160a01b031681525090565b604080518082019091526000808252602082015290565b80356110de81612f86565b80516110de81612f86565b80516110de81612f9a565b80356110de81612fa3565b80516110de81612fa3565b80356110de81612fac565b80356110de81612fb5565b60006020828403121561255357600080fd5b600061255f84846124f4565b949350505050565b60006020828403121561257957600080fd5b600061255f84846124ff565b60008060006060848603121561259a57600080fd5b60006125a686866124f4565b93505060206125b7868287016124f4565b92505060406125c886828701612515565b9150509250925092565b600080604083850312156125e557600080fd5b60006125f185856124f4565b925050602061260285828601612515565b9150509250929050565b60008060006060848603121561262157600080fd5b600061262d86866124f4565b935050602061263e86828701612515565b92505060406125c88682870161252b565b60006020828403121561266157600080fd5b600061255f848461250a565b60006020828403121561267f57600080fd5b600061255f8484612515565b60006020828403121561269d57600080fd5b600061255f8484612520565b600080604083850312156126bc57600080fd5b60006126c88585612515565b92505060206126028582860161252b565b600080604083850312156126ec57600080fd5b60006125f18585612536565b60008060006060848603121561270d57600080fd5b60006127198686612536565b935050602061272a86828701612515565b92505060406125c8868287016124f4565b600061274783836127c9565b505060200190565b61275881612ef9565b82525050565b600061276982612eec565b6127738185612ef0565b935061277e83612ee6565b8060005b838110156127ac578151612796888261273b565b97506127a183612ee6565b925050600101612782565b509495945050505050565b61275881612f04565b61275881612f09565b61275881612f0c565b61275881612f3a565b60006127e682612eec565b6127f08185612ef0565b9350612800818560208601612f50565b61280981612f7c565b9093019392505050565b6000612820601d83612ef0565b7f74696d657374616d70203c20636f6e7472616374206372656174696f6e000000815260200192915050565b6000612859602683612ef0565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b60006128a1602583612ef0565b7f5374616b696e673a3a77697468647261773a206e6f7420656e6f7567682062618152646c616e636560d81b602082015260400192915050565b60006128e8601b83612ef0565b7f536166654d6174683a206164646974696f6e206f766572666c6f770000000000815260200192915050565b6000612921601683612ef0565b75496e76616c6964206d617820697465726174696f6e7360501b815260200192915050565b6000612953601583612ef0565b74151bdad95b881d1c985b9cd9995c8819985a5b1959605a1b815260200192915050565b6000612984602883612ef0565b7f416d6f756e74206f6620746f6b656e7320746f207769746864726177206d7573815267074206265203e20360c41b602082015260400192915050565b60006129ce604383611020565b7f454950373132446f6d61696e28737472696e67206e616d652c75696e7432353681527f20636861696e49642c6164647265737320766572696679696e67436f6e74726160208201526263742960e81b604082015260430192915050565b6000612a39600c83612ef0565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b6000612a61601083612ef0565b6f64617465203c2073746172744461746560801b815260200192915050565b6000612a8d600e83612ef0565b6d1b9bdd0819195d195c9b5a5b995960921b815260200192915050565b6000612ab7601d83612ef0565b7f72656d61696e696e672074696d65203e206d6178206475726174696f6e000000815260200192915050565b6000612af0602f83612ef0565b7f63616e6e6f74206265206d696e656420696e207468652073616d6520626c6f6381526e6b206173206c617374207374616b6560881b602082015260400192915050565b6000612b41601883612ef0565b7f7265636569766572206164647265737320696e76616c69640000000000000000815260200192915050565b6000612b7a601983612ef0565b7f4f6e6c79207465616d2076657374696e6720616c6c6f77656400000000000000815260200192915050565b6000612bb3604b83611020565b7f44656c65676174696f6e28616464726573732064656c6567617465652c75696e81527f74323536206c6f636b446174652c75696e74323536206e6f6e63652c75696e7460208201526a323536206578706972792960a81b6040820152604b0192915050565b6000612c26600683612ef0565b651c185d5cd95960d21b815260200192915050565b6000612c48601d83612ef0565b7f46656553686172696e672061646472657373207761736e277420736574000000815260200192915050565b61275881612f25565b61275881612f45565b61275881612f2e565b60006110de826129c1565b60006110de82612ba6565b602081016110de828461274f565b60408101612cc1828561274f565b61178860208301846127c0565b60408101612cdc828561274f565b6117886020830184612c7d565b60408101612cf7828561274f565b6117886020830184612c86565b60208082528101611788818461275e565b602081016110de82846127b7565b602081016110de82846127c0565b602081016110de82846127d2565b6020808252810161178881846127db565b602080825281016110de81612813565b602080825281016110de8161284c565b602080825281016110de81612894565b602080825281016110de816128db565b602080825281016110de81612914565b602080825281016110de81612946565b602080825281016110de81612977565b602080825281016110de81612a2c565b602080825281016110de81612a54565b602080825281016110de81612a80565b602080825281016110de81612aaa565b602080825281016110de81612ae3565b602080825281016110de81612b34565b602080825281016110de81612b6d565b602080825281016110de81612c19565b602080825281016110de81612c3b565b60408101612cc182856127c0565b60608101612e6c82866127c0565b612e796020830185612c7d565b61255f6040830184612c7d565b602081016110de8284612c74565b60408101612cf78285612c74565b602081016110de8284612c86565b60608101612ebe8286612c7d565b612ecb60208301856127c0565b61255f60408301846127b7565b60408101612cf78285612c86565b60200190565b5190565b90815260200190565b60006110de82612f19565b151590565b90565b6001600160e01b03191690565b6001600160a01b031690565b63ffffffff1690565b6001600160601b031690565b60006110de82612ef9565b60006110de82612f2e565b60005b83811015612f6b578181015183820152602001612f53565b838111156110925750506000910152565b601f01601f191690565b612f8f81612ef9565b8114610bfa57600080fd5b612f8f81612f04565b612f8f81612f09565b612f8f81612f25565b612f8f81612f2e56fea365627a7a723158205f6c685daa8fc39776a4e7491eb5e838af43f10385c71c638c4de6c13958baf56c6578706572696d656e74616cf564736f6c63430005110040",
+    "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106102265760003560e01c80638f32d59b11610130578063bb533cf2116100b8578063db27ec181161007c578063db27ec1814610452578063dfb267c214610465578063e7a324dc14610478578063f2fde38b14610480578063f3f197311461049357610226565b8063bb533cf214610407578063bf626ec11461041a578063d27569e714610422578063d8ad326d1461042a578063dab6ca441461043f57610226565b80639929e886116100ff5780639929e886146103d4578063a58848c5146103dc578063adae9002146103e4578063ae81dfe4146103f7578063b1724b46146103ff57610226565b80638f32d59b146103785780639436e7d41461038057806394c2ce58146103a057806396a590c1146103b357610226565b80635b66a324116101b35780636b6fde0e116101825780636b6fde0e14610324578063765dade9146103375780637ecebe001461034a57806380f51c121461035d5780638da5cb5b1461037057610226565b80635b66a324146102de5780635c975abb146102f35780635e0be607146102fb57806368cefccc1461030357610226565b8063104932cf116101fa578063104932cf1461028657806317748adc1461028e57806320606b70146102a357806327dd1b00146102ab578063429b62e5146102cb57610226565b8062073f991461022b57806303a18fa314610249578063054f7d9c1461025e57806307392cc014610273575b600080fd5b6102336104a6565b6040516102409190612d23565b60405180910390f35b6102516104ac565b6040516102409190612d31565b6102666104bb565b6040516102409190612d15565b61026661028136600461266d565b6104c9565b6102516104de565b6102966104ed565b6040516102409190612ea2565b6102336104f2565b6102be6102b93660046125d2565b610509565b6040516102409190612ca5565b6102666102d9366004612541565b61052f565b6102f16102ec36600461266d565b610544565b005b610266610613565b6102f161061c565b61031661031136600461260c565b61072c565b604051610240929190612e94565b61031661033236600461260c565b610767565b6102f1610345366004612585565b6107a2565b610233610358366004612541565b6108b4565b61026661036b366004612541565b6108c6565b6102be6108db565b6102666108ea565b61039361038e36600461266d565b61090e565b6040516102409190612e86565b6103936103ae3660046125d2565b610926565b6103c66103c13660046126d9565b610949565b604051610240929190612ed8565b61026661097a565b610251610983565b6102666103f2366004612541565b610992565b6102be6109a7565b6102336109bb565b61039361041536600461266d565b6109c3565b6102966109db565b6102966109f1565b6104326109f6565b6040516102409190612d04565b6102f161044d3660046126f8565b610b13565b6103936104603660046125d2565b610b69565b6103166104733660046126a9565b610b8c565b610233610bc1565b6102f161048e366004612541565b610bcd565b6103166104a13660046126a9565b610bfd565b60015481565b600d546001600160a01b031681565b601554610100900460ff1681565b60106020526000908152604090205460ff1681565b6013546001600160a01b031681565b600981565b6040516104fe90612c8f565b604051809103902081565b60046020908152600092835260408084209091529082529020546001600160a01b031681565b600f6020526000908152604090205460ff1681565b61054c6108ea565b806105665750336000908152600f602052604090205460ff165b61058b5760405162461bcd60e51b815260040161058290612dc0565b60405180910390fd5b601554610100900460ff16156105b35760405162461bcd60e51b815260040161058290612e30565b600081116105d35760405162461bcd60e51b815260040161058290612d90565b7f22eba8caa37576c2c857166fc151e8b5bb22942eaef5638da0e96d6156333bee60165482604051610606929190612e50565b60405180910390a1601655565b60155460ff1681565b6106246108ea565b6106405760405162461bcd60e51b815260040161058290612dc0565b601554610100900460ff16156106685760405162461bcd60e51b815260040161058290612e30565b6005805460ff191660011790556003546040516370a0823160e01b81527fd8cc4e8d808fe950b07bfffcd83eebf1190cd35ea77fe0c8a7d75a6e9b90e5c1916001600160a01b0316906370a08231906106c5903090600401612ca5565b60206040518083038186803b1580156106dd57600080fd5b505afa1580156106f1573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610715919081019061268b565b6040516107229190612d23565b60405180910390a1565b600a60209081526000938452604080852082529284528284209052825290205463ffffffff811690600160201b90046001600160601b031682565b600860209081526000938452604080852082529284528284209052825290205463ffffffff811690600160201b90046001600160601b031682565b6107aa6108ea565b806107c45750336000908152600f602052604090205460ff165b6107e05760405162461bcd60e51b815260040161058290612dc0565b601554610100900460ff16156108085760405162461bcd60e51b815260040161058290612e30565b601354604051637a10f6bf60e11b81526001600160a01b039091169063f421ed7e90610838908690600401612ca5565b60206040518083038186803b15801561085057600080fd5b505afa158015610864573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610888919081019061264f565b6108a45760405162461bcd60e51b815260040161058290612e20565b6108af838383610c32565b505050565b600c6020526000908152604090205481565b60146020526000908152604090205460ff1681565b6000546001600160a01b031690565b600080546001600160a01b03166108ff610ff9565b6001600160a01b031614905090565b60076020526000908152604090205463ffffffff1681565b600960209081526000928352604080842090915290825290205463ffffffff1681565b60008061095583610ffd565b9250610962338585611025565b600061096e8585611098565b94859003959350505050565b60055460ff1681565b6003546001600160a01b031681565b600e6020526000908152604090205460ff1681565b60055461010090046001600160a01b031681565b63059fa60081565b60126020526000908152604090205463ffffffff1681565b600d54600160a01b90046001600160601b031681565b600a81565b60408051600580825260c082019092526060918291906020820160a08038833901905050905063dab6ca4460e01b81600081518110610a3157fe5b6001600160e01b031990921660209283029190910190910152805163765dade960e01b9082906001908110610a6257fe5b6001600160e01b03199092166020928302919091019091015280516396a590c160e01b9082906002908110610a9357fe5b6001600160e01b0319909216602092830291909101909101528051635e0be60760e01b9082906003908110610ac457fe5b6001600160e01b03199092166020928302919091019091015280516316d9a8c960e21b9082906004908110610af557fe5b6001600160e01b031990921660209283029190910190910152905090565b601554610100900460ff1615610b3b5760405162461bcd60e51b815260040161058290612e30565b610b4482610ffd565b9150610b5082336110e4565b610b5d8383836000611155565b6108af8282600061144e565b600b60209081526000928352604080842090915290825290205463ffffffff1681565b600660209081526000928352604080842090915290825290205463ffffffff811690600160201b90046001600160601b031682565b6040516104fe90612c9a565b610bd56108ea565b610bf15760405162461bcd60e51b815260040161058290612dc0565b610bfa816114b8565b50565b601160209081526000928352604080842090915290825290205463ffffffff811690600160201b90046001600160601b031682565b6001600160a01b038216610c585760405162461bcd60e51b815260040161058290612e10565b82610c61612495565b6040518060c00160405280866001600160a01b03168152602001836001600160a01b0316630b97bc866040518163ffffffff1660e01b815260040160206040518083038186803b158015610cb457600080fd5b505afa158015610cc8573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610cec919081019061268b565b8152602001836001600160a01b031663c24a0f8b6040518163ffffffff1660e01b815260040160206040518083038186803b158015610d2a57600080fd5b505afa158015610d3e573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610d62919081019061268b565b8152602001836001600160a01b03166313d033c06040518163ffffffff1660e01b815260040160206040518083038186803b158015610da057600080fd5b505afa158015610db4573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610dd8919081019061268b565b8152602001836001600160a01b0316630fb5a6b46040518163ffffffff1660e01b815260040160206040518083038186803b158015610e1657600080fd5b505afa158015610e2a573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610e4e919081019061268b565b8152602001836001600160a01b031663a3e676106040518163ffffffff1660e01b815260040160206040518083038186803b158015610e8c57600080fd5b505afa158015610ea0573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250610ec49190810190612567565b6001600160a01b0316905260408101516060820151602083015192935090910180851015610ef25780610ef4565b845b945060006001601654036212750002860190506000818410610f165781610f18565b835b9050865b818111610f5b576000610f338b8360014303611539565b90506001600160601b03811615610f5057610f5081838c8a61178f565b506212750001610f1c565b5083811015610fac57336001600160a01b03167ff1cfeb0937231950f2400ba429108263d3af23c90f72599bf13148e6332fe06d8983604051610f9f929190612cb3565b60405180910390a2610fee565b336001600160a01b03167f9436f4ed1fe17491f53c6d68a08b946bc9884039fccd83e8190203e15eff55bf89604051610fe59190612ca5565b60405180910390a25b505050505050505050565b3390565b600080611009836118f3565b905082811461101b5762127500810192505b829150505b919050565b6000826001600160601b03161161104e5760405162461bcd60e51b815260040161058290612db0565b600061105e848360014303611539565b9050806001600160601b0316836001600160601b031611156110925760405162461bcd60e51b815260040161058290612d70565b50505050565b6000806110a4426118f3565b905060006110b28483611933565b600d546064600a6001600160601b03600160a01b90930483169390930288028216929092041604925050505b92915050565b6001600160a01b0381166000818152600b60209081526040808320868452825280832054938352600a8252808320868452825280832060001963ffffffff95861690810186168552925290912054909116431415806110925760405162461bcd60e51b815260040161058290612e00565b836001600160601b03166001148015611172575061117233611a40565b1561117c57611092565b611187338585611025565b6001600160a01b038216611199573391505b6111a38385611b19565b6111ae338486611b93565b6111b733611a40565b156111c6576111c68385611c32565b3360009081526004602090815260408083208684529091529020546111f5906001600160a01b03168486611cac565b8242108015611207575060055460ff16155b8015611211575080155b156113545760006112228585611098565b948590039490506001600160601b0381161561135257600d546001600160a01b03166112605760405162461bcd60e51b815260040161058290612e40565b600354600d5460405163095ea7b360e01b81526001600160a01b039283169263095ea7b392611296929116908590600401612cce565b602060405180830381600087803b1580156112b057600080fd5b505af11580156112c4573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052506112e8919081019061264f565b50600d5460035460405163abe979e160e01b81526001600160a01b039283169263abe979e19261131f929116908590600401612ce9565b600060405180830381600087803b15801561133957600080fd5b505af115801561134d573d6000803e3d6000fd5b505050505b505b60035460405163a9059cbb60e01b81526000916001600160a01b03169063a9059cbb906113879086908990600401612cce565b602060405180830381600087803b1580156113a157600080fd5b505af11580156113b5573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052506113d9919081019061264f565b9050806113f85760405162461bcd60e51b815260040161058290612da0565b826001600160a01b0316336001600160a01b03167f667b6c8ed8622dae7927a8b0837455098e32037a0181f9a2e21b9b72fead6cc787878660405161143f93929190612eb0565b60405180910390a35050505050565b61145733611a40565b156108af576000611471846212750063ffffffff611d4d16565b9050818061147f5750804210155b15611092576000611494338360014303611539565b90506001600160601b038116156114b1576114b181838686611155565b5050505050565b6001600160a01b0381166114de5760405162461bcd60e51b815260040161058290612d60565b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b6000611543611d72565b82106115615760405162461bcd60e51b815260040161058290612de0565b61156a83610ffd565b6001600160a01b0385166000908152600b6020908152604080832084845290915290205490935063ffffffff16806115a6576000915050611788565b6001600160a01b0385166000908152600a60209081526040808320878452825280832063ffffffff600019860181168552925290912054168310611632576001600160a01b0385166000908152600a6020908152604080832087845282528083206000199490940163ffffffff1683529290522054600160201b90046001600160601b03169050611788565b6001600160a01b0385166000908152600a60209081526040808320878452825280832083805290915290205463ffffffff16831015611675576000915050611788565b600060001982015b8163ffffffff168163ffffffff16111561174057600282820363ffffffff160481036116a76124dd565b506001600160a01b0388166000908152600a602090815260408083208a8452825280832063ffffffff858116855290835292819020815180830190925254928316808252600160201b9093046001600160601b0316918101919091529087141561171b576020015194506117889350505050565b805163ffffffff1687111561173257819350611739565b6001820392505b505061167d565b506001600160a01b0386166000908152600a60209081526040808320888452825280832063ffffffff909416835292905220546001600160601b03600160201b909104169150505b9392505050565b805161179a846118f3565b93506117a7818686611025565b6117b18486611b19565b6117bc818587611b93565b6117c68486611c32565b6001600160a01b0380821660009081526004602090815260408083208884529091529020546117f791168587611cac565b60035460405163a9059cbb60e01b81526000916001600160a01b03169063a9059cbb9061182a9087908a90600401612cce565b602060405180830381600087803b15801561184457600080fd5b505af1158015611858573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525061187c919081019061264f565b90508061189b5760405162461bcd60e51b815260040161058290612da0565b836001600160a01b0316826001600160a01b03167f667b6c8ed8622dae7927a8b0837455098e32037a0181f9a2e21b9b72fead6cc7888860016040516118e393929190612eb0565b60405180910390a3505050505050565b600154600090808310156119195760405162461bcd60e51b815260040161058290612d50565b600062127500828503046212750002919091019392505050565b6000818310156119555760405162461bcd60e51b815260040161058290612dd0565b81830363059fa60081111561197c5760405162461bcd60e51b815260040161058290612df0565b6000620151808263059fa600036001600160601b03168161199957fe5b049050611a37600a621232106001600160601b0316611a04600a6009026119e262123210878802604051806040016040528060048152602001630575332360e41b815250611d76565b604051806040016040528060048152602001635753323160e01b815250611db5565b6001600160601b031681611a1457fe5b04604051806040016040528060048152602001632ba9991960e11b815250611e1c565b95945050505050565b6013546000908190833f906001600160a01b031615611adc57601354604051633288436360e21b81526001600160a01b039091169063ca210d8c90611a89908790600401612ca5565b60206040518083038186803b158015611aa157600080fd5b505afa158015611ab5573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250611ad9919081019061264f565b91505b8115611aed57600192505050611020565b60008181526010602052604090205460ff1615611b0f57600192505050611020565b5060009392505050565b6000828152600760209081526040808320546006835281842063ffffffff91821660001981019092168552835281842054825180840190935260048352634350313160e01b9383019390935292600160201b9092046001600160601b03169190611b869083908690611d76565b90506114b1858483611e4f565b6001600160a01b0383166000818152600b60209081526040808320868452825280832054938352600a8252808320868452825280832063ffffffff94851660001981019095168452825280832054815180830190925260048252634350303560e01b92820192909252600160201b9091046001600160601b03169190611c1c9083908690611d76565b9050611c2a86868584611f8f565b505050505050565b6000828152601260209081526040808320546011835281842063ffffffff918216600019810190921685528352818420548251808401909352600483526321a8181960e11b9383019390935292600160201b9092046001600160601b03169190611c9f9083908690611d76565b90506114b1858483612111565b6001600160a01b038316600081815260096020908152604080832086845282528083205493835260088252808320868452825280832063ffffffff94851660001981019095168452909152812054600160201b90046001600160601b0390811691908416821115611d4157611d3e828560405180604001604052806004815260200163086a060760e31b815250611d76565b90505b611c2a86868584612251565b6000828201838110156117885760405162461bcd60e51b815260040161058290612d80565b4390565b6000836001600160601b0316836001600160601b031611158290611dad5760405162461bcd60e51b81526004016105829190612d3f565b505050900390565b60006001600160601b038416611dcd57506000611788565b8383026001600160601b038085169080871690831681611de957fe5b046001600160601b0316148390611e135760405162461bcd60e51b81526004016105829190612d3f565b50949350505050565b6000838301826001600160601b038087169083161015611e135760405162461bcd60e51b81526004016105829190612d3f565b6000611e77436040518060400160405280600481526020016321a8189960e11b815250612466565b905060008363ffffffff16118015611eb65750600084815260066020908152604080832063ffffffff6000198801811685529252909120548282169116145b15611f05576000848152600660209081526040808320600019870163ffffffff16845290915290208054600160201b600160801b031916600160201b6001600160601b03851602179055611092565b60408051808201825263ffffffff92831681526001600160601b0393841660208083019182526000888152600682528481208887168252825284812093518454935163ffffffff1994851691881691909117600160201b600160801b031916600160201b919098160296909617909255958452600790529091208054909316600190920116179055565b6000611fb7436040518060400160405280600481526020016321a8181b60e11b815250612466565b905060008363ffffffff1611801561200857506001600160a01b0385166000908152600a60209081526040808320878452825280832063ffffffff6000198801811685529252909120548282169116145b15612069576001600160a01b0385166000908152600a602090815260408083208784528252808320600019870163ffffffff16845290915290208054600160201b600160801b031916600160201b6001600160601b038516021790556114b1565b60408051808201825263ffffffff92831681526001600160601b0393841660208083019182526001600160a01b03989098166000818152600a8a528481208982528a5284812088871682528a52848120935184549351909716600160201b02600160201b600160801b031997871663ffffffff19948516179790971696909617909255908452600b875281842095845294909552939020805460019092019093169116179055565b600061213943604051806040016040528060048152602001634350303360e01b815250612466565b905060008363ffffffff161180156121785750600084815260116020908152604080832063ffffffff6000198801811685529252909120548282169116145b156121c7576000848152601160209081526040808320600019870163ffffffff16845290915290208054600160201b600160801b031916600160201b6001600160601b03851602179055611092565b60408051808201825263ffffffff92831681526001600160601b0393841660208083019182526000888152601182528481208887168252825284812093518454935163ffffffff1994851691881691909117600160201b600160801b031916600160201b919098160296909617909255958452601290529091208054909316600190920116179055565b600061227943604051806040016040528060048152602001634350303960e01b815250612466565b6001600160a01b03861660009081526008602090815260408083208884528252808320600019880163ffffffff9081168552925290912054919250600160201b9091046001600160601b03169084161580159061230f57506001600160a01b0386166000908152600860209081526040808320888452825280832063ffffffff6000198901811685529252909120548382169116145b15612370576001600160a01b03861660009081526008602090815260408083208884528252808320600019880163ffffffff16845290915290208054600160201b600160801b031916600160201b6001600160601b03861602179055612419565b60408051808201825263ffffffff80851682526001600160601b0380871660208085019182526001600160a01b038c166000818152600883528781208d825283528781208c871682528352878120965187549451909516600160201b02600160201b600160801b031995871663ffffffff19958616179590951694909417909555938252600984528482208a835290935292909220805460018801909316929091169190911790555b856001600160a01b03167fc7b38fb25352e6f351f57e2c922f84db5c97e09a6246bbe1d2eedfcdb01c4c6286838660405161245693929190612e5e565b60405180910390a2505050505050565b600081600160201b841061248d5760405162461bcd60e51b81526004016105829190612d3f565b509192915050565b6040518060c0016040528060006001600160a01b031681526020016000815260200160008152602001600081526020016000815260200160006001600160a01b031681525090565b604080518082019091526000808252602082015290565b80356110de81612f86565b80516110de81612f86565b80516110de81612f9a565b80356110de81612fa3565b80516110de81612fa3565b80356110de81612fac565b80356110de81612fb5565b60006020828403121561255357600080fd5b600061255f84846124f4565b949350505050565b60006020828403121561257957600080fd5b600061255f84846124ff565b60008060006060848603121561259a57600080fd5b60006125a686866124f4565b93505060206125b7868287016124f4565b92505060406125c886828701612515565b9150509250925092565b600080604083850312156125e557600080fd5b60006125f185856124f4565b925050602061260285828601612515565b9150509250929050565b60008060006060848603121561262157600080fd5b600061262d86866124f4565b935050602061263e86828701612515565b92505060406125c88682870161252b565b60006020828403121561266157600080fd5b600061255f848461250a565b60006020828403121561267f57600080fd5b600061255f8484612515565b60006020828403121561269d57600080fd5b600061255f8484612520565b600080604083850312156126bc57600080fd5b60006126c88585612515565b92505060206126028582860161252b565b600080604083850312156126ec57600080fd5b60006125f18585612536565b60008060006060848603121561270d57600080fd5b60006127198686612536565b935050602061272a86828701612515565b92505060406125c8868287016124f4565b600061274783836127c9565b505060200190565b61275881612ef9565b82525050565b600061276982612eec565b6127738185612ef0565b935061277e83612ee6565b8060005b838110156127ac578151612796888261273b565b97506127a183612ee6565b925050600101612782565b509495945050505050565b61275881612f04565b61275881612f09565b61275881612f0c565b61275881612f3a565b60006127e682612eec565b6127f08185612ef0565b9350612800818560208601612f50565b61280981612f7c565b9093019392505050565b6000612820601d83612ef0565b7f74696d657374616d70203c20636f6e7472616374206372656174696f6e000000815260200192915050565b6000612859602683612ef0565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b60006128a1602583612ef0565b7f5374616b696e673a3a77697468647261773a206e6f7420656e6f7567682062618152646c616e636560d81b602082015260400192915050565b60006128e8601b83612ef0565b7f536166654d6174683a206164646974696f6e206f766572666c6f770000000000815260200192915050565b6000612921601683612ef0565b75496e76616c6964206d617820697465726174696f6e7360501b815260200192915050565b6000612953601583612ef0565b74151bdad95b881d1c985b9cd9995c8819985a5b1959605a1b815260200192915050565b6000612984602883612ef0565b7f416d6f756e74206f6620746f6b656e7320746f207769746864726177206d7573815267074206265203e20360c41b602082015260400192915050565b60006129ce604383611020565b7f454950373132446f6d61696e28737472696e67206e616d652c75696e7432353681527f20636861696e49642c6164647265737320766572696679696e67436f6e74726160208201526263742960e81b604082015260430192915050565b6000612a39600c83612ef0565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b6000612a61601083612ef0565b6f64617465203c2073746172744461746560801b815260200192915050565b6000612a8d600e83612ef0565b6d1b9bdd0819195d195c9b5a5b995960921b815260200192915050565b6000612ab7601d83612ef0565b7f72656d61696e696e672074696d65203e206d6178206475726174696f6e000000815260200192915050565b6000612af0602f83612ef0565b7f63616e6e6f74206265206d696e656420696e207468652073616d6520626c6f6381526e6b206173206c617374207374616b6560881b602082015260400192915050565b6000612b41601883612ef0565b7f7265636569766572206164647265737320696e76616c69640000000000000000815260200192915050565b6000612b7a601983612ef0565b7f4f6e6c79207465616d2076657374696e6720616c6c6f77656400000000000000815260200192915050565b6000612bb3604b83611020565b7f44656c65676174696f6e28616464726573732064656c6567617465652c75696e81527f74323536206c6f636b446174652c75696e74323536206e6f6e63652c75696e7460208201526a323536206578706972792960a81b6040820152604b0192915050565b6000612c26600683612ef0565b651c185d5cd95960d21b815260200192915050565b6000612c48601d83612ef0565b7f46656553686172696e672061646472657373207761736e277420736574000000815260200192915050565b61275881612f25565b61275881612f45565b61275881612f2e565b60006110de826129c1565b60006110de82612ba6565b602081016110de828461274f565b60408101612cc1828561274f565b61178860208301846127c0565b60408101612cdc828561274f565b6117886020830184612c7d565b60408101612cf7828561274f565b6117886020830184612c86565b60208082528101611788818461275e565b602081016110de82846127b7565b602081016110de82846127c0565b602081016110de82846127d2565b6020808252810161178881846127db565b602080825281016110de81612813565b602080825281016110de8161284c565b602080825281016110de81612894565b602080825281016110de816128db565b602080825281016110de81612914565b602080825281016110de81612946565b602080825281016110de81612977565b602080825281016110de81612a2c565b602080825281016110de81612a54565b602080825281016110de81612a80565b602080825281016110de81612aaa565b602080825281016110de81612ae3565b602080825281016110de81612b34565b602080825281016110de81612b6d565b602080825281016110de81612c19565b602080825281016110de81612c3b565b60408101612cc182856127c0565b60608101612e6c82866127c0565b612e796020830185612c7d565b61255f6040830184612c7d565b602081016110de8284612c74565b60408101612cf78285612c74565b602081016110de8284612c86565b60608101612ebe8286612c7d565b612ecb60208301856127c0565b61255f60408301846127b7565b60408101612cf78285612c86565b60200190565b5190565b90815260200190565b60006110de82612f19565b151590565b90565b6001600160e01b03191690565b6001600160a01b031690565b63ffffffff1690565b6001600160601b031690565b60006110de82612ef9565b60006110de82612f2e565b60005b83811015612f6b578181015183820152602001612f53565b838111156110925750506000910152565b601f01601f191690565b612f8f81612ef9565b8114610bfa57600080fd5b612f8f81612f04565b612f8f81612f09565b612f8f81612f25565b612f8f81612f2e56fea365627a7a723158205f6c685daa8fc39776a4e7491eb5e838af43f10385c71c638c4de6c13958baf56c6578706572696d656e74616cf564736f6c63430005110040",
+    "devdoc": {
+        "methods": {
+            "cancelTeamVesting(address,address,uint256)": {
+                "params": {
+                    "receiver": "The receiving address.",
+                    "startFrom": "The start value for the iterations.",
+                    "vesting": "The vesting address."
+                }
+            },
+            "getWithdrawAmounts(uint96,uint256)": {
+                "params": {
+                    "amount": "The number of tokens to withdraw.",
+                    "until": "The date until which the tokens were staked. Adjusted to the next valid lock date, if necessary."
+                }
+            },
+            "isOwner()": {
+                "details": "Returns true if the caller is the current owner."
+            },
+            "owner()": {
+                "details": "Returns the address of the current owner."
+            },
+            "setMaxVestingWithdrawIterations(uint256)": {
+                "details": "set max withdraw iterations.",
+                "params": {
+                    "newMaxIterations": "new max iterations value."
+                }
+            },
+            "transferOwnership(address)": {
+                "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+            },
+            "unlockAllTokens()": {
+                "details": "Last resort."
+            },
+            "withdraw(uint96,uint256,address)": {
+                "details": "If until is not a valid lock date, the next lock date after until is used.",
+                "params": {
+                    "amount": "The number of tokens to withdraw.",
+                    "receiver": "The receiver of the tokens. If not specified, send to the msg.sender",
+                    "until": "The date until which the tokens were staked."
+                }
+            }
+        },
+        "title": "Staking withdrawal functionality module*"
+    },
+    "userdoc": {
+        "methods": {
+            "cancelTeamVesting(address,address,uint256)": {
+                "notice": "Governance withdraw vesting directly through staking contract. This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing. This function only allows cancelling vesting contract of the TeamVesting type."
+            },
+            "getWithdrawAmounts(uint96,uint256)": {
+                "notice": "Get available and punished amount for withdrawing."
+            },
+            "unlockAllTokens()": {
+                "notice": "Allow the owner to unlock all tokens in case the staking contract is going to be replaced Note: Not reversible on purpose. once unlocked, everything is unlocked. The owner should not be able to just quickly unlock to withdraw his own tokens and lock again."
+            },
+            "withdraw(uint96,uint256,address)": {
+                "notice": "Withdraw the given amount of tokens if they are unlocked."
+            }
+        }
+    },
+    "storageLayout": {
+        "storage": [
+            {
+                "astId": 56900,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "_owner",
+                "offset": 0,
+                "slot": "0",
+                "type": "t_address"
+            },
+            {
+                "astId": 26435,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "kickoffTS",
+                "offset": 0,
+                "slot": "1",
+                "type": "t_uint256"
+            },
+            {
+                "astId": 26438,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "name",
+                "offset": 0,
+                "slot": "2",
+                "type": "t_string_storage"
+            },
+            {
+                "astId": 26440,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "SOVToken",
+                "offset": 0,
+                "slot": "3",
+                "type": "t_contract(IERC20)35959"
+            },
+            {
+                "astId": 26446,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "delegates",
+                "offset": 0,
+                "slot": "4",
+                "type": "t_mapping(t_address,t_mapping(t_uint256,t_address))"
+            },
+            {
+                "astId": 26449,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "allUnlocked",
+                "offset": 0,
+                "slot": "5",
+                "type": "t_bool"
+            },
+            {
+                "astId": 26461,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "newStakingContract",
+                "offset": 1,
+                "slot": "5",
+                "type": "t_address"
+            },
+            {
+                "astId": 26472,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "totalStakingCheckpoints",
+                "offset": 0,
+                "slot": "6",
+                "type": "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)26466_storage))"
+            },
+            {
+                "astId": 26476,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "numTotalStakingCheckpoints",
+                "offset": 0,
+                "slot": "7",
+                "type": "t_mapping(t_uint256,t_uint32)"
+            },
+            {
+                "astId": 26484,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "delegateStakingCheckpoints",
+                "offset": 0,
+                "slot": "8",
+                "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)26466_storage)))"
+            },
+            {
+                "astId": 26490,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "numDelegateStakingCheckpoints",
+                "offset": 0,
+                "slot": "9",
+                "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint32))"
+            },
+            {
+                "astId": 26498,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "userStakingCheckpoints",
+                "offset": 0,
+                "slot": "10",
+                "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)26466_storage)))"
+            },
+            {
+                "astId": 26504,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "numUserStakingCheckpoints",
+                "offset": 0,
+                "slot": "11",
+                "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint32))"
+            },
+            {
+                "astId": 26508,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "nonces",
+                "offset": 0,
+                "slot": "12",
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "astId": 26510,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "feeSharing",
+                "offset": 0,
+                "slot": "13",
+                "type": "t_contract(IFeeSharingCollector)15409"
+            },
+            {
+                "astId": 26513,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "weightScaling",
+                "offset": 20,
+                "slot": "13",
+                "type": "t_uint96"
+            },
+            {
+                "astId": 26517,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "vestingWhitelist",
+                "offset": 0,
+                "slot": "14",
+                "type": "t_mapping(t_address,t_bool)"
+            },
+            {
+                "astId": 26521,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "admins",
+                "offset": 0,
+                "slot": "15",
+                "type": "t_mapping(t_address,t_bool)"
+            },
+            {
+                "astId": 26525,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "vestingCodeHashes",
+                "offset": 0,
+                "slot": "16",
+                "type": "t_mapping(t_bytes32,t_bool)"
+            },
+            {
+                "astId": 26531,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "vestingCheckpoints",
+                "offset": 0,
+                "slot": "17",
+                "type": "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)26466_storage))"
+            },
+            {
+                "astId": 26535,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "numVestingCheckpoints",
+                "offset": 0,
+                "slot": "18",
+                "type": "t_mapping(t_uint256,t_uint32)"
+            },
+            {
+                "astId": 26537,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "vestingRegistryLogic",
+                "offset": 0,
+                "slot": "19",
+                "type": "t_contract(IVestingRegistry)28814"
+            },
+            {
+                "astId": 26541,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "pausers",
+                "offset": 0,
+                "slot": "20",
+                "type": "t_mapping(t_address,t_bool)"
+            },
+            {
+                "astId": 26543,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "paused",
+                "offset": 0,
+                "slot": "21",
+                "type": "t_bool"
+            },
+            {
+                "astId": 26545,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "frozen",
+                "offset": 1,
+                "slot": "21",
+                "type": "t_bool"
+            },
+            {
+                "astId": 26547,
+                "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                "label": "maxVestingWithdrawIterations",
+                "offset": 0,
+                "slot": "22",
+                "type": "t_uint256"
+            }
+        ],
+        "types": {
+            "t_address": {
+                "encoding": "inplace",
+                "label": "address",
+                "numberOfBytes": "20"
+            },
+            "t_bool": {
+                "encoding": "inplace",
+                "label": "bool",
+                "numberOfBytes": "1"
+            },
+            "t_bytes32": {
+                "encoding": "inplace",
+                "label": "bytes32",
+                "numberOfBytes": "32"
+            },
+            "t_contract(IERC20)35959": {
+                "encoding": "inplace",
+                "label": "contract IERC20",
+                "numberOfBytes": "20"
+            },
+            "t_contract(IFeeSharingCollector)15409": {
+                "encoding": "inplace",
+                "label": "contract IFeeSharingCollector",
+                "numberOfBytes": "20"
+            },
+            "t_contract(IVestingRegistry)28814": {
+                "encoding": "inplace",
+                "label": "contract IVestingRegistry",
+                "numberOfBytes": "20"
+            },
+            "t_mapping(t_address,t_bool)": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => bool)",
+                "numberOfBytes": "32",
+                "value": "t_bool"
+            },
+            "t_mapping(t_address,t_mapping(t_uint256,t_address))": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => mapping(uint256 => address))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_uint256,t_address)"
+            },
+            "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)26466_storage)))": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => mapping(uint256 => mapping(uint32 => struct StakingStorageShared.Checkpoint)))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)26466_storage))"
+            },
+            "t_mapping(t_address,t_mapping(t_uint256,t_uint32))": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => mapping(uint256 => uint32))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_uint256,t_uint32)"
+            },
+            "t_mapping(t_address,t_uint256)": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => uint256)",
+                "numberOfBytes": "32",
+                "value": "t_uint256"
+            },
+            "t_mapping(t_bytes32,t_bool)": {
+                "encoding": "mapping",
+                "key": "t_bytes32",
+                "label": "mapping(bytes32 => bool)",
+                "numberOfBytes": "32",
+                "value": "t_bool"
+            },
+            "t_mapping(t_uint256,t_address)": {
+                "encoding": "mapping",
+                "key": "t_uint256",
+                "label": "mapping(uint256 => address)",
+                "numberOfBytes": "32",
+                "value": "t_address"
+            },
+            "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)26466_storage))": {
+                "encoding": "mapping",
+                "key": "t_uint256",
+                "label": "mapping(uint256 => mapping(uint32 => struct StakingStorageShared.Checkpoint))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_uint32,t_struct(Checkpoint)26466_storage)"
+            },
+            "t_mapping(t_uint256,t_uint32)": {
+                "encoding": "mapping",
+                "key": "t_uint256",
+                "label": "mapping(uint256 => uint32)",
+                "numberOfBytes": "32",
+                "value": "t_uint32"
+            },
+            "t_mapping(t_uint32,t_struct(Checkpoint)26466_storage)": {
+                "encoding": "mapping",
+                "key": "t_uint32",
+                "label": "mapping(uint32 => struct StakingStorageShared.Checkpoint)",
+                "numberOfBytes": "32",
+                "value": "t_struct(Checkpoint)26466_storage"
+            },
+            "t_string_storage": {
+                "encoding": "bytes",
+                "label": "string",
+                "numberOfBytes": "32"
+            },
+            "t_struct(Checkpoint)26466_storage": {
+                "encoding": "inplace",
+                "label": "struct StakingStorageShared.Checkpoint",
+                "members": [
+                    {
+                        "astId": 26463,
+                        "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                        "label": "fromBlock",
+                        "offset": 0,
+                        "slot": "0",
+                        "type": "t_uint32"
+                    },
+                    {
+                        "astId": 26465,
+                        "contract": "contracts/governance/Staking/modules/StakingWithdrawModule.sol:StakingWithdrawModule",
+                        "label": "stake",
+                        "offset": 4,
+                        "slot": "0",
+                        "type": "t_uint96"
+                    }
+                ],
+                "numberOfBytes": "32"
+            },
+            "t_uint256": {
+                "encoding": "inplace",
+                "label": "uint256",
+                "numberOfBytes": "32"
+            },
+            "t_uint32": {
+                "encoding": "inplace",
+                "label": "uint32",
+                "numberOfBytes": "4"
+            },
+            "t_uint96": {
+                "encoding": "inplace",
+                "label": "uint96",
+                "numberOfBytes": "12"
+            }
+        }
+    }
+}

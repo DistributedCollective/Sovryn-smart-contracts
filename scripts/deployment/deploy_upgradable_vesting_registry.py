@@ -34,7 +34,7 @@ def main():
     teamVestingOwner = multisig
     SOVAddress = contracts['SOV']
     stakingAddress = contracts['Staking']
-    feeSharingAddress = contracts['FeeSharingProxy']
+    feeSharingAddress = contracts['FeeSharingCollectorProxy']
     lockedSOVAddress = contracts['LockedSOV']
     vestingRegistryAddress = contracts['VestingRegistry']
     vestingRegistry2Address = contracts['VestingRegistry2']

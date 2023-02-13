@@ -10,8 +10,8 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 const { increaseTime, blockNumber } = require("../Utils/Ethereum");
 
@@ -257,12 +257,12 @@ contract("ProtocolCloseDeposit", (accounts) => {
 
     describe("Tests the close with deposit. ", () => {
         /*
-			Test CloseWithDeposit event parameters
-			Test refund collateral to receiver
-			Test refund interest to receiver
-			Test loan update
-			Test returning principal to lender with deposit	
-		*/
+            Test CloseWithDeposit event parameters
+            Test refund collateral to receiver
+            Test refund interest to receiver
+            Test loan update
+            Test returning principal to lender with deposit	
+        */
         it("Test full close with deposit", async () => {
             // Prepare the test
             const borrower = accounts[3];

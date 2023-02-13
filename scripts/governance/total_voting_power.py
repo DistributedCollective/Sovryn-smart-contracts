@@ -15,9 +15,9 @@ def main():
 def loadConfig():
     global contracts, acct, values
     this_network = network.show_active()
-    if this_network == "rsk-mainnet":
+    if this_network == "rsk-mainnet" or this_network == "development":
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
-    if this_network == "rsk-mainnet-websocket":
+    elif this_network == "rsk-mainnet-websocket":
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif this_network == "rsk-testnet":
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
@@ -28,7 +28,7 @@ def loadConfig():
 
 def totalVotingPower():
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
     #len(chain) returns latest block + 1
     lastBlock = len(chain) - 2
     votingPower = staking.getPriorTotalVotingPower(lastBlock, time.time())

@@ -1,8 +1,9 @@
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 const {
+    decodeLogs,
     getSUSD,
     getRBTC,
     getWRBTC,
@@ -13,9 +14,17 @@ const {
 const { address, setNextBlockTimestamp, mineBlock, increaseTime } = require("../Utils/Ethereum");
 const EIP712 = require("../Utils/EIP712");
 const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
+const {
+    deployAndGetIStaking,
+    getStakingModulesObject,
+    getStakingModulesAddressList,
+    replaceStakingModule,
+} = require("../Utils/initializer");
+
+const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
+const IWeightedStakingModuleMockup = artifacts.require("IWeightedStakingModuleMockup");
 
 const StakingProxy = artifacts.require("StakingProxy");
-const StakingMockup = artifacts.require("StakingMockup");
 
 const SOV = artifacts.require("SOV");
 
@@ -23,15 +32,20 @@ const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
-const FeeSharingLogic = artifacts.require("FeeSharingLogic");
-const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingCollector = artifacts.require("FeeSharingCollector");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
 // Upgradable Vesting Registry
+// const VestingRegistryLogic = artifacts.require("VestingRegistryLogicMockup");
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const Vesting = artifacts.require("TeamVesting");
 const VestingLogic = artifacts.require("VestingLogicMockup");
+
+const StakingAdminModule = artifacts.require("StakingAdminModule");
+const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
+const StakingStakeModule = artifacts.require("StakingWithdrawModule");
 
 const TOTAL_SUPPLY = "100000000000000000000000000000";
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -43,13 +57,16 @@ const DELAY = DAY * 14;
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
+const maxWithdrawIterations = 10;
+
 contract("Staking", (accounts) => {
     let root, account1;
     let token, SUSD, WRBTC, staking;
     let sovryn;
     let loanTokenLogic, loanToken;
-    let feeSharingProxy;
-    let kickoffTS, inOneWeek;
+    let feeSharingCollectorProxy;
+    let kickoffTS;
+    let iWeightedStakingModuleMockup;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
         // Deploying sovrynProtocol w/ generic function from initializer.js
@@ -68,10 +85,20 @@ contract("Staking", (accounts) => {
         token = await SOV.new(TOTAL_SUPPLY);
 
         // Staking
-        let stakingLogic = await StakingMockup.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingMockup.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(token.address);
+        const modulesObject = await getStakingModulesObject();
+        staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+        const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
+        const modulesAddressList = getStakingModulesAddressList(modulesObject);
+        //console.log(modulesAddressList);
+        await replaceStakingModule(
+            stakingProxy.address,
+            modulesAddressList["WeightedStakingModule"],
+            weightedStakingModuleMockup.address
+        );
+        iWeightedStakingModuleMockup = await IWeightedStakingModuleMockup.at(staking.address);
 
         // Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
@@ -80,6 +107,7 @@ contract("Staking", (accounts) => {
         vesting = await VestingRegistryLogic.at(vesting.address);
 
         await staking.setVestingRegistry(vesting.address);
+        await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
         // Loan token
         loanTokenSettings = await LoanTokenSettings.new();
@@ -95,13 +123,18 @@ contract("Staking", (accounts) => {
 
         await sovryn.setLoanPool([loanToken.address], [SUSD.address]);
 
-        //FeeSharingProxy
-        let feeSharingLogic = await FeeSharingLogic.new();
-        feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
-        await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
-        feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
-        await sovryn.setFeesController(feeSharingProxy.address);
-        await staking.setFeeSharing(feeSharingProxy.address);
+        //FeeSharingCollectorProxy
+        let feeSharingCollector = await FeeSharingCollector.new();
+        feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
+            sovryn.address,
+            staking.address
+        );
+        await feeSharingCollectorProxyObj.setImplementation(feeSharingCollector.address);
+        feeSharingCollectorProxy = await FeeSharingCollector.at(
+            feeSharingCollectorProxyObj.address
+        );
+        await sovryn.setFeesController(feeSharingCollectorProxy.address);
+        await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
         await token.transfer(account1, 1000);
         await token.approve(staking.address, TOTAL_SUPPLY);
@@ -120,24 +153,29 @@ contract("Staking", (accounts) => {
     describe("pause staking", () => {
         it("should pause staking activities", async () => {
             let tx = await staking.pauseUnpause(true); // Paused
-            expectEvent(tx, "StakingPaused", {
-                setPaused: true,
-            });
-            expect(await staking.frozen()).to.be.equal(false); // Must not be freezed when paused
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "StakingPaused",
+                {
+                    setPaused: true,
+                }
+            );
+            expect(await staking.frozen()).to.be.equal(false); // Must not be frozen when paused
         });
 
         it("should not pause/unpause when frozen", async () => {
             await staking.freezeUnfreeze(true); // Freezed
-            await expectRevert(staking.pauseUnpause(true), "WS04");
+            await expectRevert(staking.pauseUnpause(true), "paused");
         });
 
         it("fails pausing if sender isn't an owner/pauser", async () => {
-            await expectRevert(staking.pauseUnpause(true, { from: account1 }), "WS02"); // WS02 : unauthorized
+            await expectRevert(staking.pauseUnpause(true, { from: account1 }), "unauthorized"); // SS02 : unauthorized
         });
 
         it("fails pausing if sender is an admin", async () => {
             await staking.addAdmin(account1);
-            await expectRevert(staking.pauseUnpause(true, { from: account1 }), "WS02"); // WS02 : unauthorized
+            await expectRevert(staking.pauseUnpause(true, { from: account1 }), "unauthorized"); // SS02 : unauthorized
         });
 
         it("should not allow staking when paused", async () => {
@@ -146,28 +184,33 @@ contract("Staking", (accounts) => {
             let lockedTS = await getTimeFromKickoff(MAX_DURATION);
             await expectRevert(
                 staking.stake(amount, lockedTS, ZERO_ADDRESS, ZERO_ADDRESS),
-                "WS03"
-            ); // WS03 : paused
+                "paused"
+            ); // SS03 : paused
         });
 
         //TODO: resume when refactored to resolve EIP-170 contract size issue
-        /*it("should not allow to stakeWithApproval when paused", async () => {
-			await staking.pauseUnpause(true); // Paused
-			let amount = "100";
-			let duration = TWO_WEEKS;
-			let lockedTS = await getTimeFromKickoff(duration);
+        it("should not allow to stakeWithApproval when paused", async () => {
+            await staking.pauseUnpause(true); // Paused
+            let amount = "100";
+            let duration = TWO_WEEKS;
+            let lockedTS = await getTimeFromKickoff(duration);
 
-			let stakingBalance = await token.balanceOf.call(staking.address);
-			expect(stakingBalance.toNumber()).to.be.equal(0);
+            let stakingBalance = await token.balanceOf.call(staking.address);
+            expect(stakingBalance.toNumber()).to.be.equal(0);
 
-			await token.approve(staking.address, 0);
-			await token.approve(staking.address, amount * 2, { from: account1 });
+            await token.approve(staking.address, 0);
+            await token.approve(staking.address, amount * 2, { from: account1 });
 
-			let contract = new web3.eth.Contract(staking.abi, staking.address);
-			let sender = root;
-			let data = contract.methods.stakeWithApproval(sender, amount, lockedTS, root, root).encodeABI();
-			await expectRevert(token.approveAndCall(staking.address, amount, data, { from: sender }), "WS03"); // WS03 : paused
-		});*/
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let sender = root;
+            let data = contract.methods
+                .stakeWithApproval(sender, amount, lockedTS, root, root)
+                .encodeABI();
+            await expectRevert(
+                token.approveAndCall(staking.address, amount, data, { from: sender }),
+                "paused"
+            ); // SS03 : paused
+        });
 
         it("should not allow to extend staking duration when paused", async () => {
             let amount = "1000";
@@ -176,12 +219,12 @@ contract("Staking", (accounts) => {
 
             let stakingBalance = await token.balanceOf.call(staking.address);
             expect(stakingBalance.toString()).to.be.equal(amount);
-
-            expect(tx1.logs[2].args.lockedUntil.toNumber()).to.be.equal(lockedTS.toNumber());
+            decode = decodeLogs(tx1.receipt.rawLogs, StakingStakeModule, "DelegateChanged")[0];
+            expect(parseInt(decode.args.lockedUntil)).to.be.equal(lockedTS.toNumber());
 
             let newLockedTS = await getTimeFromKickoff(TWO_WEEKS * 2);
             await staking.pauseUnpause(true); // Paused
-            await expectRevert(staking.extendStakingDuration(lockedTS, newLockedTS), "WS03"); // WS03 : paused
+            await expectRevert(staking.extendStakingDuration(lockedTS, newLockedTS), "paused"); // SS03 : paused
         });
 
         it("should not allow stakesBySchedule when paused", async () => {
@@ -192,8 +235,8 @@ contract("Staking", (accounts) => {
             let intervalLength = new BN(10000000);
             await expectRevert(
                 staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root),
-                "WS03"
-            ); // WS03 : paused
+                "paused"
+            ); // SS03 : paused
         });
 
         it("should not allow delegating stakes when paused", async () => {
@@ -205,83 +248,36 @@ contract("Staking", (accounts) => {
             await staking.withdraw(amount, lockedTS, root);
 
             await staking.stake(amount, lockedTS, root, root);
-            await staking.setDelegateStake(root, lockedTS, 0);
+            await iWeightedStakingModuleMockup.setDelegateStake(root, lockedTS, 0); // <=== MOCK!!!
 
             await staking.pauseUnpause(true); // Paused
-            await expectRevert(staking.delegate(account1, lockedTS), "WS03"); // WS03 : paused
-        });
-
-        it("should not delegate on behalf of the signatory when paused", async () => {
-            [pkbRoot, pkbA1] = getAccountsPrivateKeysBuffer();
-            const currentChainId = (await ethers.provider.getNetwork()).chainId;
-            const inThreeYears = kickoffTS.add(new BN(DELAY * 26 * 3));
-            const Domain = (staking) => ({
-                name: "SOVStaking",
-                chainId: currentChainId,
-                verifyingContract: staking.address,
-            });
-            const Types = {
-                Delegation: [
-                    { name: "delegatee", type: "address" },
-                    { name: "lockDate", type: "uint256" },
-                    { name: "nonce", type: "uint256" },
-                    { name: "expiry", type: "uint256" },
-                ],
-            };
-            const delegatee = root,
-                nonce = 0,
-                expiry = 10e9,
-                lockDate = inThreeYears;
-            const { v, r, s } = EIP712.sign(
-                Domain(staking),
-                "Delegation",
-                {
-                    delegatee,
-                    lockDate,
-                    nonce,
-                    expiry,
-                },
-                Types,
-                pkbA1
-            );
-
-            expect(await staking.delegates.call(account1, inThreeYears)).to.be.equal(address(0));
-
-            await staking.pauseUnpause(true); // Paused
-            await expectRevert(
-                staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
-                "WS03"
-            ); // WS03 : paused
-
-            let tx = await staking.pauseUnpause(false); // Unpaused
-            expectEvent(tx, "StakingPaused", {
-                setPaused: false,
-            });
-
-            tx = await staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s);
-            expect(tx.gasUsed < 80000);
-            expect(await staking.delegates.call(account1, inThreeYears)).to.be.equal(root);
+            await expectRevert(staking.delegate(account1, lockedTS), "paused"); // SS03 : paused
         });
     });
 
     describe("freeze withdrawal", () => {
         it("should freeze withdrawal", async () => {
             let tx = await staking.freezeUnfreeze(true); // Freeze
-            expectEvent(tx, "StakingFrozen", {
-                setFrozen: true,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "StakingFrozen",
+                {
+                    setFrozen: true,
+                }
+            );
             expect(await staking.paused()).to.be.equal(true); // Must also pause when freezed
             await staking.freezeUnfreeze(false); // Unfreeze
             expect(await staking.paused()).to.be.equal(true); // Must still be paused when unfreezed
         });
 
         it("fails freezing if sender isn't an owner/pauser", async () => {
-            await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "WS02"); // WS02 : unauthorized
+            await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "unauthorized"); // SS02 : unauthorized
         });
 
         it("fails freezing if sender is an admin", async () => {
             await staking.addAdmin(account1);
-            await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "WS02"); // WS02 : unauthorized
+            await expectRevert(staking.freezeUnfreeze(true, { from: account1 }), "unauthorized"); // SS02 : unauthorized
         });
 
         it("should not allow withdrawal when frozen", async () => {
@@ -299,7 +295,7 @@ contract("Staking", (accounts) => {
             let beforeBalance = await token.balanceOf.call(root);
 
             await staking.freezeUnfreeze(true); // Freeze
-            await expectRevert(staking.withdraw(amount / 2, lockedTS, root), "WS04"); // WS04 : frozen
+            await expectRevert(staking.withdraw(amount / 2, lockedTS, root), "paused"); // SS04 : frozen
 
             await staking.freezeUnfreeze(false); // Unfreeze
             let tx2 = await staking.withdraw(amount / 2, lockedTS, root);
@@ -313,23 +309,23 @@ contract("Staking", (accounts) => {
             let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
                 lockedTS
             );
-            expect(numTotalStakingCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(2);
             let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 1);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount / 2);
 
             // _writeUserCheckpoint
             let numUserCheckpoints = await staking.numUserStakingCheckpoints.call(root, lockedTS);
             expect(numUserCheckpoints.toNumber()).to.be.equal(2);
             checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 0);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx1.receipt.blockNumber);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
             expect(checkpoint.stake.toString()).to.be.equal(amount);
             checkpoint = await staking.userStakingCheckpoints.call(root, lockedTS, 1);
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount / 2);
 
             // _decreaseDelegateStake
             let numDelegateStakingCheckpoints = await staking.numDelegateStakingCheckpoints.call(
@@ -341,22 +337,35 @@ contract("Staking", (accounts) => {
                 lockedTS,
                 numDelegateStakingCheckpoints - 1
             );
-            expect(checkpoint.fromBlock.toNumber()).to.be.equal(tx2.receipt.blockNumber);
-            expect(checkpoint.stake.toNumber()).to.be.equal(amount / 2);
-            expect(numDelegateStakingCheckpoints.toNumber()).to.be.equal(2);
+            expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
+            expect(parseInt(checkpoint.stake)).to.be.equal(amount / 2);
+            expect(parseInt(numDelegateStakingCheckpoints)).to.be.equal(2);
 
-            expectEvent(tx2, "StakingWithdrawn", {
-                staker: root,
-                amount: new BN(amount / 2),
-            });
+            await expectEvent.inTransaction(
+                tx2.receipt.rawLogs[0].transactionHash,
+                StakingWithdrawModule,
+                "StakingWithdrawn",
+                {
+                    staker: root,
+                    amount: new BN(amount / 2),
+                }
+            );
         });
 
-        it("should not allow governanceWithdrawTokens when frozen", async () => {
+        it("should not allow cancelTeamVesting when frozen, and able to continue after unfrozen", async () => {
             const WEEK = new BN(7 * 24 * 60 * 60);
             let vestingLogic = await VestingLogic.new();
             const ONE_MILLON = "1000000000000000000000000";
             let previousAmount = await token.balanceOf(root);
             let toStake = ONE_MILLON;
+
+            // Upgradable Vesting Registry
+            vestingRegistryLogic = await VestingRegistryLogic.new();
+            vestingRegistry = await VestingRegistryProxy.new();
+            await vestingRegistry.setImplementation(vestingRegistryLogic.address);
+            vestingRegistry = await VestingRegistryLogic.at(vestingRegistry.address);
+
+            await staking.setVestingRegistry(vestingRegistry.address);
 
             // Stake
             vesting = await Vesting.new(
@@ -365,15 +374,31 @@ contract("Staking", (accounts) => {
                 staking.address,
                 root,
                 16 * WEEK,
-                36 * WEEK,
-                feeSharingProxy.address
+                38 * WEEK,
+                feeSharingCollectorProxy.address
             );
+
+            const sampleVesting = vesting.address;
+            const vestingType = new BN(0); // TeamVesting
+            const vestingCreationType = new BN(3);
+            const vestingCreationAndTypes = {
+                isSet: true,
+                vestingType: vestingType.toString(),
+                vestingCreationType: vestingCreationType.toString(),
+            };
+
+            await vestingRegistry.registerVestingToVestingCreationAndTypes(
+                [sampleVesting],
+                [vestingCreationAndTypes]
+            );
+
             vesting = await VestingLogic.at(vesting.address);
+            await staking.addContractCodeHash(vesting.address);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
-            await increaseTime(20 * WEEK);
+            await increaseTime(10 * WEEK);
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
 
@@ -383,20 +408,47 @@ contract("Staking", (accounts) => {
 
             await staking.freezeUnfreeze(true); // Freeze
             await expectRevert(
-                staking.governanceWithdrawVesting(vesting.address, root, { from: account1 }),
-                "WS04"
+                staking.cancelTeamVesting(vesting.address, root, 0, {
+                    from: account1,
+                }),
+                "paused"
             ); // WS04 : frozen
 
             await staking.freezeUnfreeze(false); // Unfreeze
             // governance withdraw until duration must withdraw all staked tokens without fees
-            let tx = await staking.governanceWithdrawVesting(vesting.address, root, {
+            let tx = await staking.cancelTeamVesting(vesting.address, root, 0, {
                 from: account1,
             });
 
-            expectEvent(tx, "VestingTokensWithdrawn", {
-                vesting: vesting.address,
-                receiver: root,
-            });
+            const getStartDate = vesting.startDate();
+            const getCliff = vesting.cliff();
+            const getMaxIterations = staking.getMaxVestingWithdrawIterations();
+
+            const [startDate, cliff, maxIterations] = await Promise.all([
+                getStartDate,
+                getCliff,
+                getMaxIterations,
+            ]);
+            const startIteration = startDate.add(cliff);
+
+            const decodedIncompleteEvent = decodeLogs(
+                tx.receipt.rawLogs,
+                StakingWithdrawModule,
+                "TeamVestingPartiallyCancelled"
+            )[0].args;
+            // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
+            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+                startIteration
+                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
+                    .toString()
+            );
+
+            // Withdraw another iteration
+            await staking.cancelTeamVesting(
+                vesting.address,
+                root,
+                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(TWO_WEEKS))
+            );
 
             // verify amount
             let amount = await token.balanceOf(root);
@@ -409,6 +461,24 @@ contract("Staking", (accounts) => {
 
             let vestingBalance = await staking.balanceOf(vesting.address);
             expect(vestingBalance).to.be.bignumber.equal(new BN(0));
+
+            /// should emit token withdrawn event for complete withdrawal
+            const end = vesting.endDate();
+            tx = await staking.cancelTeamVesting(
+                vesting.address,
+                root,
+                new BN(end.toString()).add(new BN(TWO_WEEKS))
+            );
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingWithdrawModule,
+                "TeamVestingCancelled",
+                {
+                    caller: root,
+                    receiver: root,
+                }
+            );
         });
     });
 
@@ -416,10 +486,15 @@ contract("Staking", (accounts) => {
         it("adds pauser", async () => {
             let tx = await staking.addPauser(account1);
 
-            expectEvent(tx, "PauserAddedOrRemoved", {
-                pauser: account1,
-                added: true,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "PauserAddedOrRemoved",
+                {
+                    pauser: account1,
+                    added: true,
+                }
+            );
 
             let isPauser = await staking.pausers(account1);
             expect(isPauser).equal(true);
@@ -434,11 +509,15 @@ contract("Staking", (accounts) => {
         it("removes pauser", async () => {
             await staking.addPauser(account1);
             let tx = await staking.removePauser(account1);
-
-            expectEvent(tx, "PauserAddedOrRemoved", {
-                pauser: account1,
-                added: false,
-            });
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingAdminModule,
+                "PauserAddedOrRemoved",
+                {
+                    pauser: account1,
+                    added: false,
+                }
+            );
 
             let isPauser = await staking.pausers(account1);
             expect(isPauser).equal(false);

@@ -3,8 +3,8 @@ pragma experimental ABIEncoderV2;
 
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
-import "../Staking/IStaking.sol";
-import "../IFeeSharingProxy.sol";
+import "../Staking/interfaces/IStaking.sol";
+import "../IFeeSharingCollector.sol";
 import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
 import "./VestingStorage.sol";
@@ -87,7 +87,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         /// @dev Allow the staking contract to access them.
         SOV.approve(address(staking), _amount);
 
-        staking.stakesBySchedule(_amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
+        staking.stakeBySchedule(_amount, cliff, duration, FOUR_WEEKS, address(this), tokenOwner);
 
         emit TokensStaked(_sender, _amount);
     }
@@ -116,9 +116,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @dev Can be called only by owner.
      * */
     function governanceWithdrawTokens(address receiver) public {
-        require(msg.sender == address(staking), "unauthorized");
-
-        _withdrawTokens(receiver, true);
+        revert("deprecated, use cancelTeamVesting from the staking contract");
     }
 
     /**
@@ -163,11 +161,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
-                if (isGovernance) {
-                    staking.governanceWithdraw(stake, i, receiver);
-                } else {
-                    staking.withdraw(stake, i, receiver);
-                }
+                staking.withdraw(stake, i, receiver);
             }
         }
 
@@ -188,7 +182,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         require(_receiver != address(0), "receiver address invalid");
 
         /// @dev Invokes the fee sharing proxy.
-        feeSharingProxy.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
+        feeSharingCollector.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
 
         emit DividendsCollected(msg.sender, _loanPoolToken, _receiver, _maxCheckpoints);
     }
@@ -217,7 +211,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * register stakeTokensWithApproval selector on this contract.
      * @return The array of registered selectors on this contract.
      * */
-    function _getSelectors() internal view returns (bytes4[] memory) {
+    function _getSelectors() internal pure returns (bytes4[] memory) {
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = this.stakeTokensWithApproval.selector;
         return selectors;

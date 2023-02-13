@@ -15,11 +15,15 @@ def main():
     run on forked nets:
     1) run a forked net at a block 
     * if forking at the last block don't use --fork-block-number option
-    * use --no-deploy param to skip running hh deployment scripts by default
-
+    * use --no-deploy param to skip running hh deployment scripts by default 
+    
+    mainnet: 
     npx hardhat node --fork https://mainnet.sovryn.app/rpc --fork-block-number 4929553 --no-deploy
+    
+    testnet:   
+    npx hardhat node --fork https://testnet.sovryn.app/rpc --fork-block-number 3495000 --no-deploy
 
-    2) run the script:
+    2) run the script respectively:
     export DEV_NET_NAME="testnet" && brownie run scripts/contractInteraction/contract_interaction.py --network development
     export DEV_NET_NAME="mainnet" && brownie run scripts/contractInteraction/contract_interaction.py --network development
     '''
@@ -47,8 +51,11 @@ def main():
     #sendFromMultisig(conf.contracts['Watcher'], 5e18)
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
+    #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
+    #confirmWithBFMS(8)
+    #checkTxOnBF(8)
     
-    #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
+    #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
     
     ### BF ###
     #confirmWithAnyMS(8, conf.contracts["BFMultisigOrigins"])
@@ -68,8 +75,8 @@ def main():
     
     #executeOnMultisig(1071)
    
-    #confirmWithMS(1064)
-    #checkTx(1077)
+    #confirmWithMS(1299)
+    #checkTx(1299)
     
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
     #confirmMultipleTxsWithMS(960, 963)
@@ -86,7 +93,7 @@ def main():
 
     #withdrawFees()
     #readFeesController()
-    #setFeesController(conf.contracts['FeeSharingProxy1DayStaking'])
+    #setFeesController(conf.contracts['FeeSharingCollectorProxy1DayStaking'])
 
     #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
     #print('FastBTC offramp balance:', bal/10**18)
@@ -107,7 +114,7 @@ def main():
 
     #readAllVestingContractsForAddress('0xA6575f1D5Bd6545fBd34BE05259D9d6ae60641f2')
     #getStakes('0x750C49DD9928061Df2224AA81E08Bc4a3c334874')
-    #governanceWithdrawVesting('0x750C49DD9928061Df2224AA81E08Bc4a3c334874', conf.contracts['multisig'])
+    #governanceDirectWithdrawVesting('0x750C49DD9928061Df2224AA81E08Bc4a3c334874', conf.contracts['multisig'], 0) // last params is for startFrom arguments
 
     #addOwnerToMultisig('0x832E1bd30d037d0327F2A0447eD44FB952A9a043')
     #removeOwnerFromMultisig('0x832E1bd30d037d0327F2A0447eD44FB952A9a043')
@@ -143,3 +150,5 @@ def main():
     # getLMInfo()
 
     # printLendingPoolsData()
+    #upgradeVestingRegistry()
+    #printMultisigOwners()

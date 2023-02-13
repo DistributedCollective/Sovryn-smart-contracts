@@ -3,6 +3,7 @@
 This script serves the purpose of interacting with governance (SIP) on the testnet or mainnet.
 '''
 
+from curses import keyname
 from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
@@ -22,6 +23,7 @@ def main():
 
     # Call the function you want here
 
+    createProposalSIP0049()
     #createProposalSIP0050()
 
     balanceAfter = acct.balance()
@@ -76,7 +78,7 @@ def checkIfUserHasToken(tokenAddr, user):
 
 def currentVotingPower(acctAddress):
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acctAddress)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acctAddress)
     governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acctAddress)
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acctAddress)
     balance = SOVtoken.balanceOf(acctAddress)
@@ -241,7 +243,7 @@ def createProposalSIP0019():
 def createProposalSIP0020():
 
     staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingLogic = Contract.from_abi("StakingLogic3", address=contracts['StakingLogic3'], abi=Staking.abi, owner=acct)
+    stakingLogic = Contract.from_abi("StakingLogic3", address=contracts['StakingLogic3'], abi=interface.IStaking.abi, owner=acct)
 
     # Action
     targets = [contracts['Staking'], contracts['Staking']]
@@ -268,18 +270,18 @@ def createProposalSIP0024():
 
 def createProposalSIP0030():
     # TODO StakingLogic4 should be deployed
-    # TODO FeeSharingProxy2 should be deployed
+    # TODO FeeSharingCollectorProxy2 should be deployed
     # TODO VestingRegistryProxy should be deployed
 
     stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingImpl = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    stakingImpl = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
 
     # Action
     targets = [contracts['Staking'], contracts['Staking'], contracts['Staking']]
     values = [0, 0, 0]
     signatures = ["setImplementation(address)", "setFeeSharing(address)", "setVestingRegistry(address)"]
     data1 = stakingProxy.setImplementation.encode_input(contracts['StakingLogic4'])
-    data2 = stakingImpl.setFeeSharing.encode_input(contracts['FeeSharingProxy'])
+    data2 = stakingImpl.setFeeSharing.encode_input(contracts['FeeSharingCollectorProxy'])
     data3 = stakingImpl.setVestingRegistry.encode_input(contracts['VestingRegistryProxy'])
     datas = ["0x" + data1[10:], "0x" + data2[10:], "0x" + data3[10:]]
     description = "SIP-30: Concentrating staking revenues, Details: https://github.com/DistributedCollective/SIPS/blob/12bdd48/SIP-30.md, sha256: 8f7f95545d968dc4d9a37b9cad4228b562c76b7617c2740b221b1f70eb367620"
@@ -360,7 +362,7 @@ def createProposalSIP0041():
 def createProposalSIP0042():
 
     staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingLogic = Contract.from_abi("StakingLogic5", address=contracts['StakingLogic5'], abi=Staking.abi, owner=acct)
+    stakingLogic = Contract.from_abi("StakingLogic5", address=contracts['StakingLogic5'], abi=interface.IStaking.abi, owner=acct)
 
     # Action
     targets = [contracts['Staking'], contracts['Staking']]
@@ -424,8 +426,61 @@ def createProposalSIP0048():
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
 
-def createProposalSIP0050():
+def createProposalSIP0049():
 
+    stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=contracts['Staking'], abi=ModulesProxy.abi, owner=acct)
+
+    #TODO: set modules addresses in the addresses .json
+    moduleAddresses = { 
+        'StakingAdminModule': contracts['StakingAdminModule'],
+        'StakingGovernanceModule': contracts['StakingGovernanceModule'],
+        'StakingStakeModule': contracts['StakingStakeModule'],
+        'StakingStorageModule': contracts['StakingStorageModule'],
+        'StakingVestingModule': contracts['StakingVestingModule'],
+        'StakingWithdrawModule': contracts['StakingWithdrawModule'],
+        'WeightedStakingModule': contracts['WeightedStakingModule']
+    }
+
+    moduleAddresses = [ 
+        contracts['StakingAdminModule'],
+        contracts['StakingGovernanceModule'],
+        contracts['StakingStakeModule'],
+        contracts['StakingStorageModule'],
+        contracts['StakingVestingModule'],
+        contracts['StakingWithdrawModule'],
+        contracts['WeightedStakingModule']
+    ]
+    
+    '''
+    invalidModules = {}
+    for module in moduleAddresses:
+        if not stakingModulesProxy.canAddModule(moduleAddresses[module]):
+            invalidModules.append({module: moduleAddresses[module]})
+    
+    if invalidModules != {}:
+         raise Exception('Invalid modules:: ' + invalidModules)
+    '''
+
+    # Action
+    targets = [contracts['Staking'], contracts['Staking']]
+    values = [0, 0]
+    signatures = ["setImplementation(address)", "addModules(address[])"]
+    data1 = stakingProxy.setImplementation.encode_input(contracts['StakingModulesProxy'])
+    #TODO: moduleAddresses should be array of addresses, not object
+    data2 = stakingModulesProxy.addModules.encode_input(moduleAddresses) 
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
+
+    description = "SIP-0049: Staking contract refactoring to resolve EIP-170 size limit, Details: <TODO: commit link>, sha256: <TODO: SIP file sha256>"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+
+def createProposalSIP0050():    
     staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
 
     # Action
@@ -442,4 +497,25 @@ def createProposalSIP0050():
     print(signatures)
     print(datas)
     print(description)
+    #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+# SIP to set the max vesting withdraw iterations in staking contract
+def createProposalSIP005x():
+    maxWithdrawIterations = 50 # need to be changed by referring to the SIP-050
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0]
+    signatures = ["setMaxVestingWithdrawIterations(uint256)"]
+    data = staking.setMaxVestingWithdrawIterations.encode_input(maxWithdrawIterations)
+    datas = ["0x" + data[10:]]
+    # TODO finalize the details with github link & checksum
+    description = "SIP-005x: Set max vesting withdraw iterations"
+
+     # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+
     #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)

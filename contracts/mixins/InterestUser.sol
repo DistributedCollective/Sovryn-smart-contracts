@@ -12,8 +12,6 @@ import "./FeesHelper.sol";
 
 /**
  * @title The Interest User contract.
- * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
- * trading and lending https://bzx.network similar to the dYdX protocol.
  *
  * This contract pays loan interests.
  * */

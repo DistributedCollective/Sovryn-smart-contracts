@@ -4,6 +4,14 @@ const BigNumber = require("bignumber.js");
 //const ethers = require("ethers");
 const { ethers } = require("hardhat");
 
+async function getBlock(block) {
+    return await ethers.provider.getBlock(block);
+}
+
+async function getLastBlockNumber(block) {
+    return await ethers.provider.getBlock(block).number;
+}
+
 function UInt256Max() {
     return ethers.constants.MaxUint256;
 }
@@ -144,6 +152,18 @@ async function minerStop() {
     return rpc({ method: "miner_stop" });
 }
 
+async function impersonateAccount(account) {
+    await rpc({ method: "hardhat_impersonateAccount", params: [account] });
+}
+
+async function stopImpersonatingAccount(account) {
+    await rpc({ method: "hardhat_stopImpersonatingAccount", params: [account] });
+}
+
+async function setBalance(account, balance) {
+    await rpc({ method: "hardhat_setBalance", params: [account, `0x${balance.toString(16)}`] });
+}
+
 // adapted to work in both truffle and hardhat
 async function rpc(request) {
     try {
@@ -200,4 +220,9 @@ module.exports = {
     both,
     sendFallback,
     UInt256Max,
+    getBlock,
+    getLastBlockNumber,
+    impersonateAccount,
+    stopImpersonatingAccount,
+    setBalance,
 };

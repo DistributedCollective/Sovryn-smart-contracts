@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../interfaces/IERC20.sol";
-import "../IFeeSharingProxy.sol";
+import "../IFeeSharingCollector.sol";
 import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "./VestingRegistryStorage.sol";
@@ -26,6 +26,10 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 vestingCreationType
     );
     event TokensStaked(address indexed vesting, uint256 amount);
+    event VestingCreationAndTypesSet(
+        address indexed vesting,
+        VestingCreationAndTypeDetails vestingCreationAndType
+    );
 
     /**
      * @notice Replace constructor with initialize function for Upgradable Contracts
@@ -35,21 +39,21 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         address _vestingFactory,
         address _SOV,
         address _staking,
-        address _feeSharingProxy,
+        address _feeSharingCollector,
         address _vestingOwner,
         address _lockedSOV,
         address[] calldata _vestingRegistries
     ) external onlyOwner initializer {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
-        require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+        require(_feeSharingCollector != address(0), "feeSharingCollector address invalid");
         require(_vestingOwner != address(0), "vestingOwner address invalid");
         require(_lockedSOV != address(0), "LockedSOV address invalid");
 
         _setVestingFactory(_vestingFactory);
         SOV = _SOV;
         staking = _staking;
-        feeSharingProxy = _feeSharingProxy;
+        feeSharingCollector = _feeSharingCollector;
         vestingOwner = _vestingOwner;
         lockedSOV = LockedSOV(_lockedSOV);
         for (uint256 i = 0; i < _vestingRegistries.length; i++) {
@@ -182,6 +186,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                 uint256(VestingType.Vesting),
                 _vestingCreationType
             );
+
         emit VestingCreated(
             _tokenOwner,
             vesting,
@@ -215,6 +220,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                 uint256(VestingType.TeamVesting),
                 _vestingCreationType
             );
+
         emit TeamVestingCreated(
             _tokenOwner,
             vesting,
@@ -290,6 +296,46 @@ contract VestingRegistryLogic is VestingRegistryStorage {
     }
 
     /**
+     * @dev check if the specific vesting address is team vesting or not
+     * @dev read the vestingType from vestingCreationAndTypes storage
+     *
+     * @param _vestingAddress address of vesting contract
+     *
+     * @return true for teamVesting, false for normal vesting
+     */
+    function isTeamVesting(address _vestingAddress) external view returns (bool) {
+        return (vestingCreationAndTypes[_vestingAddress].isSet &&
+            vestingCreationAndTypes[_vestingAddress].vestingType ==
+            uint32(VestingType.TeamVesting));
+    }
+
+    /**
+     * @dev setter function to register existing vesting contract to vestingCreationAndTypes storage
+     * @dev need to set the function visilibty to public to support VestingCreationAndTypeDetails struct as parameter
+     *
+     * @param _vestingAddresses array of vesting address
+     * @param _vestingCreationAndTypes array for VestingCreationAndTypeDetails struct
+     */
+    function registerVestingToVestingCreationAndTypes(
+        address[] memory _vestingAddresses,
+        VestingCreationAndTypeDetails[] memory _vestingCreationAndTypes
+    ) public onlyAuthorized {
+        require(_vestingAddresses.length == _vestingCreationAndTypes.length, "Unmatched length");
+        for (uint256 i = 0; i < _vestingCreationAndTypes.length; i++) {
+            VestingCreationAndTypeDetails memory _vestingCreationAndType =
+                _vestingCreationAndTypes[i];
+            address _vestingAddress = _vestingAddresses[i];
+
+            vestingCreationAndTypes[_vestingAddress] = _vestingCreationAndType;
+
+            emit VestingCreationAndTypesSet(
+                _vestingAddress,
+                vestingCreationAndTypes[_vestingAddress]
+            );
+        }
+    }
+
+    /**
      * @notice Internal function to deploy Vesting/Team Vesting contract
      * @param _tokenOwner the owner of the tokens
      * @param _cliff the cliff in seconds
@@ -319,7 +365,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollector,
                     _tokenOwner
                 );
             } else {
@@ -329,13 +375,21 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollector,
                     vestingOwner
                 );
             }
             vestings[uid] = Vesting(_type, _vestingCreationType, vesting);
             vestingsOf[_tokenOwner].push(uid);
             isVesting[vesting] = true;
+
+            vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetails({
+                isSet: true,
+                vestingType: uint32(_type),
+                vestingCreationType: uint128(_vestingCreationType)
+            });
+
+            emit VestingCreationAndTypesSet(vesting, vestingCreationAndTypes[vesting]);
         }
         return vestings[uid].vestingAddress;
     }
@@ -421,8 +475,16 @@ contract VestingRegistryLogic is VestingRegistryStorage {
 
     /**
      * @notice returns if the address is a vesting address
+     * @dev will be deprecated due to wrong spelling. use isVestingAddress(address _vestingAddress).
      */
     function isVestingAdress(address _vestingAddress) external view returns (bool isVestingAddr) {
+        return isVesting[_vestingAddress];
+    }
+
+    /**
+     * @notice returns if the address is a vesting address
+     */
+    function isVestingAddress(address _vestingAddress) external view returns (bool isVestingAddr) {
         return isVesting[_vestingAddress];
     }
 }

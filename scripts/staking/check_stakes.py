@@ -26,7 +26,7 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
 
     ts = calendar.timegm(time.gmtime())
     lockedTS = staking.timestampToLockDate(ts)
