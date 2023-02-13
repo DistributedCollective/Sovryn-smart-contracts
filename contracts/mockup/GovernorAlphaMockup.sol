@@ -21,8 +21,4 @@ contract GovernorAlphaMockup is GovernorAlpha {
             queue(proposalIds[i]);
         }
     }
-
-    function queueProposal(uint256 _proposalId) external {
-        queue(_proposalId);
-    }
 }
