@@ -1361,15 +1361,9 @@ contract("Staking", (accounts) => {
             });
 
             await expectRevert(
-                staking.stakeBySchedule(
-                    amount,
-                    cliff,
-                    duration,
-                    intervalLength,
-                    user,
-                    user,
-                    { from: user }
-                ),
+                staking.stakeBySchedule(amount, cliff, duration, intervalLength, user, user, {
+                    from: user,
+                }),
                 "Invalid schedule"
             );
         });
