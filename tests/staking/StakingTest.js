@@ -1348,6 +1348,32 @@ contract("Staking", (accounts) => {
             );
         });
 
+        it("should fail if start >= end", async () => {
+            let user = accounts[0];
+            let cliff = new BN(TWO_WEEKS * 100); //200 weeks
+            let duration = new BN(TWO_WEEKS).mul(new BN(20));
+            let intervalLength = new BN(TWO_WEEKS).mul(new BN(2));
+            let lockedDate = kickoffTS.add(cliff.add(intervalLength.mul(new BN(3)))); //other staking date
+            let amount = new BN(1000);
+            await token.transfer(user, amount.mul(new BN(2)));
+            await token.approve(stakingWrapperMockup.address, amount.mul(new BN(2)), {
+                from: user,
+            });
+
+            await expectRevert(
+                staking.stakeBySchedule(
+                    amount,
+                    cliff,
+                    duration,
+                    intervalLength,
+                    user,
+                    user,
+                    { from: user }
+                ),
+                "Invalid schedule"
+            );
+        });
+
         //the amount staked per interval is determined by amount / number of intervals
         //the number of intervals to stake for is determined as (a - b) / c, where b is the time between the lock date prior to
         //      or equal to block.timestamp + cliff, a is b + duration and c is intervalLength
