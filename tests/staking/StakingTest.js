@@ -1348,7 +1348,7 @@ contract("Staking", (accounts) => {
             );
         });
 
-        it("should fail if start >= end", async () => {
+        it("should fail if start > end", async () => {
             let user = accounts[0];
             let cliff = new BN(TWO_WEEKS * 100); //200 weeks
             let duration = new BN(TWO_WEEKS).mul(new BN(20));
