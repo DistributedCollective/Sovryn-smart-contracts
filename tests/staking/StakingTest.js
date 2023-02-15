@@ -1356,7 +1356,7 @@ contract("Staking", (accounts) => {
             let lockedDate = kickoffTS.add(cliff.add(intervalLength.mul(new BN(3)))); //other staking date
             let amount = new BN(1000);
             await token.transfer(user, amount.mul(new BN(2)));
-            await token.approve(stakingWrapperMockup.address, amount.mul(new BN(2)), {
+            await token.approve(staking.address, amount.mul(new BN(2)), {
                 from: user,
             });
 
