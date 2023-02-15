@@ -911,6 +911,30 @@ contract("Vesting", (accounts) => {
             await vesting.withdrawTokens(root, { from: a1 });
         });
 
+        it("Shouldn't be possible to use governanceWithdrawVesting by not owner", async () => {
+            let toStake = ONE_MILLON;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                26 * WEEK,
+                104 * WEEK,
+                feeSharingCollectorProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await expectRevert(
+                staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }),
+                "unauthorized"
+            );
+        });
+
         it("cancelTeamVesting should fail if recipient is zero address", async () => {
             let toStake = ONE_MILLON;
 

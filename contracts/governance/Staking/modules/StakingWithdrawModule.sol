@@ -378,13 +378,14 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](6);
+        bytes4[] memory functionsList = new bytes4[](7);
         functionsList[0] = this.withdraw.selector;
         functionsList[1] = this.cancelTeamVesting.selector;
         functionsList[2] = this.getWithdrawAmounts.selector;
         functionsList[3] = this.unlockAllTokens.selector;
         functionsList[4] = this.setMaxVestingWithdrawIterations.selector;
         functionsList[5] = this.governanceWithdraw.selector;
+        functionsList[6] = this.governanceWithdrawVesting.selector;
         return functionsList;
     }
 }

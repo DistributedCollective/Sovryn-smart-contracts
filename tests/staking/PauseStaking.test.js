@@ -480,6 +480,71 @@ contract("Staking", (accounts) => {
                 }
             );
         });
+
+        it("should not allow governanceWithdrawTokens when frozen", async () => {
+            const WEEK = new BN(7 * 24 * 60 * 60);
+            let vestingLogic = await VestingLogic.new();
+            const ONE_MILLON = "1000000000000000000000000";
+            let previousAmount = await token.balanceOf(root);
+            let toStake = ONE_MILLON;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                16 * WEEK,
+                36 * WEEK,
+                feeSharingCollectorProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await increaseTime(20 * WEEK);
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            let amountAfterStake = await token.balanceOf(root);
+
+            await staking.addAdmin(account1);
+
+            await staking.freezeUnfreeze(true); // Freeze
+            await expectRevert(
+                staking.governanceWithdrawVesting(vesting.address, root, { from: account1 }),
+                "paused"
+            ); // WS04 : frozen
+
+            await staking.freezeUnfreeze(false); // Unfreeze
+            // governance withdraw until duration must withdraw all staked tokens without fees
+            let tx = await staking.governanceWithdrawVesting(vesting.address, root, {
+                from: account1,
+            });
+
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                StakingWithdrawModule,
+                "VestingTokensWithdrawn",
+                {
+                    vesting: vesting.address,
+                    receiver: root,
+                }
+            );
+
+            // verify amount
+            let amount = await token.balanceOf(root);
+
+            assert.equal(
+                previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(),
+                amountAfterStake.toString()
+            );
+            assert.equal(previousAmount.toString(), amount.toString());
+
+            let vestingBalance = await staking.balanceOf(vesting.address);
+            expect(vestingBalance).to.be.bignumber.equal(new BN(0));
+        });
     });
 
     describe("add pauser", () => {
