@@ -332,8 +332,13 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
          * */
         uint256 start = _timestampToLockDate(block.timestamp + cliff);
         uint256 end = _timestampToLockDate(block.timestamp + duration);
-        require(start < end, "Invalid schedule");
-        uint256 numIntervals = (end - start) / intervalLength + 1;
+        require(start <= end, "Invalid schedule");
+        uint256 numIntervals;
+        if (start < end) {
+            numIntervals = (end - start) / intervalLength + 1;
+        } else {
+            numIntervals = 1;
+        }
         uint256 stakedPerInterval = amount / numIntervals;
 
         /// @dev transferring total SOV amount before staking
