@@ -338,6 +338,24 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     }
 
     /**
+     * @notice Withdraw tokens for vesting contract.
+     * @param vesting The address of Vesting contract.
+     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
+     * */
+    function governanceWithdrawVesting(address vesting, address receiver)
+        public
+        onlyAuthorized
+        whenNotFrozen
+    {
+        vestingWhitelist[vesting] = true;
+        ITeamVesting(vesting).governanceWithdrawTokens(receiver);
+        vestingWhitelist[vesting] = false;
+
+        emit VestingTokensWithdrawn(vesting, receiver);
+    }
+
+    /**
      * @notice Withdraw the given amount of tokens.
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
