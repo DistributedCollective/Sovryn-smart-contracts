@@ -116,7 +116,9 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @dev Can be called only by owner.
      * */
     function governanceWithdrawTokens(address receiver) public {
-        revert("deprecated, use cancelTeamVesting from the staking contract");
+        require(msg.sender == address(staking), "unauthorized");
+
+        _withdrawTokens(receiver, true);
     }
 
     /**
@@ -161,7 +163,11 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
-                staking.withdraw(stake, i, receiver);
+                if (isGovernance) {
+                    staking.governanceWithdraw(stake, i, receiver);
+                } else {
+                    staking.withdraw(stake, i, receiver);
+                }
             }
         }
 

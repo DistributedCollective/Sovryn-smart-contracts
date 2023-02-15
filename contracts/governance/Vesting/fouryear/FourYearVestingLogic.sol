@@ -328,7 +328,11 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
-                staking.withdraw(stake, i, receiver);
+                if (isGovernance) {
+                    staking.governanceWithdraw(stake, i, receiver);
+                } else {
+                    staking.withdraw(stake, i, receiver);
+                }
             }
         }
 
