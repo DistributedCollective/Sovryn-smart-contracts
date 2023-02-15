@@ -342,6 +342,9 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param vesting The address of Vesting contract.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
      * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
+     * @dev This function is dedicated only to support backward compatibility for sovryn ecosystem that has been implementing this staking contract.
+     * @dev Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.
+     * https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/4bbfe5bd0311ca71e4ef0e3af810d3791d8e4061/contracts/governance/Staking/modules/StakingWithdrawModule.sol#L78
      * */
     function governanceWithdrawVesting(address vesting, address receiver)
         public
