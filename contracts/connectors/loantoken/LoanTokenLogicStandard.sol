@@ -50,10 +50,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     using SafeMath for uint256;
     using SignedSafeMath for int256;
 
-    /* Events */
-
-    event WithdrawRBTCTo(address indexed to, uint256 amount);
-
     /// DON'T ADD VARIABLES HERE, PLEASE
 
     /* Public functions */
@@ -76,6 +72,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     function mint(address receiver, uint256 depositAmount)
         external
         nonReentrant
+        globallyNonReentrant
         returns (uint256 mintAmount)
     {
         return _mintToken(receiver, depositAmount);
@@ -96,6 +93,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     function burn(address receiver, uint256 burnAmount)
         external
         nonReentrant
+        globallyNonReentrant
         returns (uint256 loanAmountPaid)
     {
         loanAmountPaid = _burnToken(burnAmount);
@@ -119,6 +117,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         external
         payable
         nonReentrant
+        globallyNonReentrant
         pausable(msg.sig)
         returns (bytes memory)
     {
@@ -203,6 +202,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         public
         payable
         nonReentrant /// Note: needs to be removed to allow flashloan use cases.
+        globallyNonReentrant
         returns (
             uint256,
             uint256 /// Returns new principal and new collateral added to loan.
@@ -243,25 +243,29 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
         _settleInterest();
 
-        address[4] memory sentAddresses;
-        uint256[5] memory sentAmounts;
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses;
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts;
 
-        sentAddresses[0] = address(this); /// The lender.
-        sentAddresses[1] = borrower;
-        sentAddresses[2] = receiver;
-        /// sentAddresses[3] = address(0); /// The manager.
+        sentAddresses.lender = address(this); /// The lender.
+        sentAddresses.borrower = borrower;
+        sentAddresses.receiver = receiver;
+        /// sentAddresses.manager = address(0); /// The manager.
 
-        sentAmounts[1] = withdrawAmount;
+        sentAmounts.newPrincipal = withdrawAmount;
 
         /// interestRate, interestInitialAmount, borrowAmount (newBorrowAmount).
-        (sentAmounts[0], sentAmounts[2], sentAmounts[1]) = _getInterestRateAndBorrowAmount(
-            sentAmounts[1],
+        (
+            sentAmounts.interestRate,
+            sentAmounts.interestInitialAmount,
+            sentAmounts.newPrincipal
+        ) = _getInterestRateAndBorrowAmount(
+            sentAmounts.newPrincipal,
             _totalAssetSupply(0), /// Interest is settled above.
             initialLoanDuration
         );
 
-        /// sentAmounts[3] = 0; /// loanTokenSent
-        sentAmounts[4] = collateralTokenSent;
+        /// sentAmounts.loanTokenSent = 0; /// loanTokenSent
+        sentAmounts.collateralTokenSent = collateralTokenSent;
 
         return
             _borrowOrTrade(
@@ -329,6 +333,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         public
         payable
         nonReentrant /// Note: needs to be removed to allow flashloan use cases.
+        globallyNonReentrant
         returns (
             uint256,
             uint256 /// Returns new principal and new collateral added to trade.
@@ -358,39 +363,35 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
             _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
         require(totalDeposit != 0, "12");
 
-        address[4] memory sentAddresses;
-        uint256[5] memory sentAmounts;
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses;
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts;
 
-        sentAddresses[0] = address(this); /// The lender.
-        sentAddresses[1] = trader;
-        sentAddresses[2] = trader;
-        /// sentAddresses[3] = address(0); /// The manager.
+        sentAddresses.lender = address(this);
+        sentAddresses.borrower = trader;
+        sentAddresses.receiver = trader;
+        /// sentAddresses.manager = address(0); /// The manager.
 
-        /// sentAmounts[0] = 0; /// interestRate (found later).
-        sentAmounts[1] = totalDeposit; /// Total amount of deposit.
-        /// sentAmounts[2] = 0; /// interestInitialAmount (interest is calculated based on fixed-term loan).
-        sentAmounts[3] = loanTokenSent;
-        sentAmounts[4] = collateralTokenSent;
+        /// sentAmounts.interestRate = 0; /// interestRate (found later).
+        sentAmounts.newPrincipal = totalDeposit;
+        /// sentAmounts.interestInitialAmount = 0; /// interestInitialAmount (interest is calculated based on fixed-term loan).
+        sentAmounts.loanTokenSent = loanTokenSent;
+        sentAmounts.collateralTokenSent = collateralTokenSent;
 
         _settleInterest();
 
-        (sentAmounts[1], sentAmounts[0]) = _getMarginBorrowAmountAndRate( /// borrowAmount, interestRate
+        (sentAmounts.newPrincipal, sentAmounts.interestRate) = _getMarginBorrowAmountAndRate( /// borrowAmount, interestRate
             leverageAmount,
-            sentAmounts[1] /// depositAmount
+            sentAmounts.newPrincipal /// depositAmount
         );
 
-        checkPriceDivergence(
-            loanTokenSent.add(sentAmounts[1]),
-            collateralTokenAddress,
-            minEntryPrice
-        );
         require(
-            _getAmountInRbtc(loanTokenAddress, sentAmounts[1]) > TINY_AMOUNT,
+            _getAmountInRbtc(loanTokenAddress, sentAmounts.newPrincipal) > TINY_AMOUNT,
             "principal too small"
         );
 
         /// @dev Converting to initialMargin
         leverageAmount = SafeMath.div(10**38, leverageAmount);
+        sentAmounts.minEntryPrice = minEntryPrice;
         return
             _borrowOrTrade(
                 loanId,
@@ -453,19 +454,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
                 minEntryPrice,
                 loanDataBytes
             );
-    }
-
-    /**
-     * @notice Withdraws RBTC from the contract by Multisig.
-     * @param _receiverAddress The address where the rBTC has to be transferred.
-     * @param _amount The amount of rBTC to be transferred.
-     */
-    function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external onlyOwner {
-        require(_receiverAddress != address(0), "receiver address invalid");
-        require(_amount > 0, "non-zero withdraw amount expected");
-        require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
-        _receiverAddress.transfer(_amount);
-        emit WithdrawRBTCTo(_receiverAddress, _amount);
     }
 
     /**
@@ -1199,19 +1187,19 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         uint256 withdrawAmount,
         uint256 initialMargin,
         address collateralTokenAddress,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentAmounts,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
         bytes memory loanDataBytes
     ) internal returns (uint256, uint256) {
         _checkPause();
         require(
-            sentAmounts[1] <= _underlyingBalance() && /// newPrincipal (borrowed amount + fees)
-                sentAddresses[1] != address(0), /// The borrower.
+            sentAmounts.newPrincipal <= _underlyingBalance() && /// newPrincipal (borrowed amount + fees)
+                sentAddresses.borrower != address(0), /// The borrower.
             "24"
         );
 
-        if (sentAddresses[2] == address(0)) {
-            sentAddresses[2] = sentAddresses[1]; /// The receiver = the borrower.
+        if (sentAddresses.receiver == address(0)) {
+            sentAddresses.receiver = sentAddresses.borrower; /// The receiver = the borrower.
         }
 
         /// @dev Handle transfers prior to adding newPrincipal to loanTokenSent
@@ -1222,11 +1210,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
          * @dev Adding the loan token portion from the lender to loanTokenSent
          * (add the loan to the loan tokens sent from the user).
          * */
-        sentAmounts[3] = sentAmounts[3].add(sentAmounts[1]); /// newPrincipal
+        sentAmounts.loanTokenSent = sentAmounts.loanTokenSent.add(sentAmounts.newPrincipal); /// newPrincipal
 
         if (withdrawAmount != 0) {
             /// @dev withdrawAmount already sent to the borrower, so we aren't sending it to the protocol.
-            sentAmounts[3] = sentAmounts[3].sub(withdrawAmount);
+            sentAmounts.loanTokenSent = sentAmounts.loanTokenSent.sub(withdrawAmount);
         }
 
         bool withdrawAmountExist = false; /// Default is false, but added just as to make sure.
@@ -1240,9 +1228,11 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
                 uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))
             ];
 
-        (sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress)
+        (sentAmounts.newPrincipal, sentAmounts.collateralTokenSent) = ProtocolLike(
+            sovrynContractAddress
+        )
             .borrowOrTradeFromPool
-            .value(msgValue)( /// newPrincipal, newCollateral
+            .value(msgValue)(
             loanParamsId,
             loanId,
             withdrawAmountExist,
@@ -1250,27 +1240,18 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
             sentAddresses,
             sentAmounts,
             loanDataBytes
-        );
-        require(sentAmounts[1] != 0, "25");
+        ); /// newPrincipal, newCollateral
+        require(sentAmounts.newPrincipal != 0, "25");
 
         /// @dev Setting not-first-trade flag to prevent binding to an affiliate existing users post factum.
         /// @dev REFACTOR: move to a general interface: ProtocolSettingsLike?
         ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(
-            sentAddresses[1]
+            sentAddresses.borrower
         );
 
-        return (sentAmounts[1], sentAmounts[4]); // newPrincipal, newCollateral
+        return (sentAmounts.newPrincipal, sentAmounts.collateralTokenSent); // newPrincipal, newCollateral
     }
 
-    /// sentAddresses[0]: lender
-    /// sentAddresses[1]: borrower
-    /// sentAddresses[2]: receiver
-    /// sentAddresses[3]: manager
-    /// sentAmounts[0]: interestRate
-    /// sentAmounts[1]: newPrincipal
-    /// sentAmounts[2]: interestInitialAmount
-    /// sentAmounts[3]: loanTokenSent
-    /// sentAmounts[4]: collateralTokenSent
     /**
      * @notice .
      *
@@ -1285,16 +1266,15 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
      * */
     function _verifyTransfers(
         address collateralTokenAddress,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentAmounts,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
         uint256 withdrawalAmount
     ) internal returns (uint256 msgValue) {
         address _wrbtcToken = wrbtcTokenAddress;
         address _loanTokenAddress = loanTokenAddress;
-        address receiver = sentAddresses[2];
-        uint256 newPrincipal = sentAmounts[1];
-        uint256 loanTokenSent = sentAmounts[3];
-        uint256 collateralTokenSent = sentAmounts[4];
+        uint256 newPrincipal = sentAmounts.newPrincipal;
+        uint256 loanTokenSent = sentAmounts.loanTokenSent;
+        uint256 collateralTokenSent = sentAmounts.collateralTokenSent;
 
         require(_loanTokenAddress != collateralTokenAddress, "26");
 
@@ -1302,7 +1282,7 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
 
         if (withdrawalAmount != 0) {
             /// withdrawOnOpen == true
-            _safeTransfer(_loanTokenAddress, receiver, withdrawalAmount, "");
+            _safeTransfer(_loanTokenAddress, sentAddresses.receiver, withdrawalAmount, "");
             if (newPrincipal > withdrawalAmount) {
                 _safeTransfer(
                     _loanTokenAddress,
@@ -1644,31 +1624,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     }
 
     /**
-     * @notice Check whether a function is paused.
-     *
-     * @dev Used to read externally from the smart contract to see if a
-     *   function is paused.
-     *
-     * @param funcId The function ID, the selector.
-     *
-     * @return isPaused Whether the function is paused: true or false.
-     * */
-    function checkPause(string memory funcId) public view returns (bool isPaused) {
-        bytes4 sig = bytes4(keccak256(abi.encodePacked(funcId)));
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    sig,
-                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-                )
-            );
-        assembly {
-            isPaused := sload(slot)
-        }
-        return isPaused;
-    }
-
-    /**
      * @notice Make sure call is not paused.
      * @dev Used for internal verification if the called function is paused.
      *   It throws an exception in case it's not.
@@ -1722,24 +1677,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
             /// U = total_borrow / total_supply
             return assetBorrow.mul(10**20).div(assetSupply);
         }
-    }
-
-    /**
-     * @notice sets the liquidity mining contract address
-     * @param LMAddress the address of the liquidity mining contract
-     */
-    function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
-        liquidityMiningAddress = LMAddress;
-    }
-
-    /**
-	 * @notice We need separate getter for newly added storage variable
-	 * @notice Getter for liquidityMiningAddress
-
-	 * @return liquidityMiningAddress
-	 */
-    function getLiquidityMiningAddress() public view returns (address) {
-        return liquidityMiningAddress;
     }
 
     function _mintWithLM(address receiver, uint256 depositAmount)

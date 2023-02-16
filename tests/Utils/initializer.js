@@ -1,9 +1,12 @@
-const { BN } = require("@openzeppelin/test-helpers");
+const { BN, singletons } = require("@openzeppelin/test-helpers");
 const constants = require("@openzeppelin/test-helpers/src/constants");
+require("@openzeppelin/test-helpers/configure");
 const { expect } = require("chai");
+const { artifacts } = require("hardhat");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
+const TestERC777 = artifacts.require("TestTokenERC777");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const ProtocolSettings = artifacts.require("ProtocolSettings");
@@ -35,6 +38,138 @@ const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
+// >------------------- STAKING -------------------<//
+
+const StakingAdminModule = artifacts.require("StakingAdminModule");
+const StakingGovernanceModule = artifacts.require("StakingGovernanceModule");
+const StakingStakeModule = artifacts.require("StakingStakeModule");
+const StakingStorageModule = artifacts.require("StakingStorageModule");
+const StakingVestingModule = artifacts.require("StakingVestingModule");
+const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
+const WeightedStakingModule = artifacts.require("WeightedStakingModule");
+const StakingModuleBlockMockup = artifacts.require("StakingModuleBlockMockup");
+const StakingProxy = artifacts.require("StakingProxy");
+
+const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
+const IWeightedStakingModuleMockup = artifacts.require("IWeightedStakingModuleMockup");
+
+const IStaking = artifacts.require("IStaking");
+const StakingModulesProxy = artifacts.require("ModulesProxy");
+
+let modulesAddress;
+
+const getStakingModules = async () => {
+    return [
+        await StakingAdminModule.new(),
+        await StakingGovernanceModule.new(),
+        await StakingStakeModule.new(),
+        await StakingStorageModule.new(),
+        await StakingVestingModule.new(),
+        await StakingWithdrawModule.new(),
+        await WeightedStakingModule.new(),
+    ];
+};
+
+const getStakingModulesObject = async () => {
+    return {
+        StakingAdminModule: await StakingAdminModule.new(),
+        StakingGovernanceModule: await StakingGovernanceModule.new(),
+        StakingStakeModule: await StakingStakeModule.new(),
+        StakingStorageModule: await StakingStorageModule.new(),
+        StakingVestingModule: await StakingVestingModule.new(),
+        StakingWithdrawModule: await StakingWithdrawModule.new(),
+        WeightedStakingModule: await WeightedStakingModule.new(),
+    };
+};
+
+const getStakingModulesWithBlockMockup = async () => {
+    // commented modules are aggregated into StakingModuleBlockMockup
+    return {
+        StakingAdminModule: await StakingAdminModule.new(),
+        // StakingGovernanceModule: await StakingGovernanceModule.new(),
+        // StakingStakeModule: await StakingStakeModule.new(),
+        StakingStorageModule: await StakingStorageModule.new(),
+        // StakingVestingModule: await StakingVestingModule.new(),
+        StakingWithdrawModule: await StakingWithdrawModule.new(),
+        //WeightedStakingModule: await WeightedStakingModule.new(),
+        StakingModuleBlockMockup: await StakingModuleBlockMockup.new(), // aggregating mockup module
+    };
+};
+
+const initWeightedStakingModulesMockup = async (tokenAddress) => {
+    const stakingProxy = await StakingProxy.new(tokenAddress);
+    const modulesObject = await getStakingModulesObject();
+    const staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+    const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
+    const modulesAddressList = getStakingModulesAddressList(modulesObject);
+    await replaceStakingModule(
+        stakingProxy.address,
+        modulesAddressList["WeightedStakingModule"],
+        weightedStakingModuleMockup.address
+    );
+    const iWeightedStakingModuleMockup = await IWeightedStakingModuleMockup.at(staking.address);
+    return { staking: staking, iWeightedStakingModuleMockup: iWeightedStakingModuleMockup };
+};
+
+const getStakingModulesAddressList = (modulesObject) => {
+    let newObject = {};
+    Object.keys(modulesObject).map((key, index) => {
+        newObject[key] = modulesObject[key].address;
+    });
+    return newObject;
+};
+
+const deployAndGetStakingModulesProxyAtStakingProxy = async (
+    stakingProxyAddress,
+    modulesObject = undefined
+) => {
+    const modules = modulesObject ? modulesObject : await getStakingModulesObject();
+    const stakingProxy = await StakingProxy.at(stakingProxyAddress);
+    let stakingModulesProxy = await StakingModulesProxy.new();
+    await stakingProxy.setImplementation(stakingModulesProxy.address);
+    stakingModulesProxy = await StakingModulesProxy.at(stakingProxyAddress);
+    //let i = 0;
+    for (let moduleName in modules) {
+        //console.log(++i);
+        await stakingModulesProxy.addModule(modules[moduleName].address);
+        // console.log(`module ${moduleName}:`);
+        // console.log(await modules[moduleName].getFunctionsList());
+    }
+    return stakingModulesProxy;
+};
+
+const initializeStakingModulesAt = async (address) => {
+    const modules = await getStakingModules();
+    const stakingModulesProxy = await StakingModulesProxy.at(address);
+    for (module of modules) {
+        await stakingModulesProxy.addModule(module.address);
+    }
+};
+
+const deployAndGetIStaking = async (stakingProxyAddress, modulesObject = undefined) => {
+    const stakingModulesProxy = await deployAndGetStakingModulesProxyAtStakingProxy(
+        stakingProxyAddress,
+        modulesObject
+    );
+    return await getIStaking(stakingModulesProxy.address);
+};
+
+const getIStaking = async (stakingProxyAddress) => {
+    return await IStaking.at(stakingProxyAddress);
+};
+
+const getStakingModulesProxyAt = async (address) => {
+    return await StakingModulesProxy.at(address);
+};
+
+/// @dev intended for mocking modules
+const replaceStakingModule = async (stakingProxyAddress, moduleFromAddress, moduleToAddress) => {
+    const stakingProxy = await StakingModulesProxy.at(stakingProxyAddress);
+    await stakingProxy.replaceModule(moduleFromAddress, moduleToAddress);
+};
+
+// <------------------- STAKING -------------------> //
+
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
@@ -50,6 +185,12 @@ const CONSTANTS = {
 const getSUSD = async () => {
     const susd = await TestToken.new("SUSD", "SUSD", 18, totalSupply);
     return susd;
+};
+
+const getERC777 = async (deployer) => {
+    await singletons.ERC1820Registry(deployer);
+    const testERC777 = await TestERC777.new("Test Token", "TEST", totalSupply, 18, []);
+    return testERC777;
 };
 
 const getRBTC = async () => {
@@ -170,7 +311,7 @@ const getLoanTokenLogic = async (isMockLoanToken = false) => {
 
     return [loanTokenLogicProxy, loanTokenLogicBeacon];
 };
-const getLoanTokenLogicWrbtc = async () => {
+const getLoanTokenLogicWrbtc = async (isMockLoanToken = false) => {
     /** Deploy LoanTokenLogicBeacon */
     const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
 
@@ -180,8 +321,13 @@ const getLoanTokenLogicWrbtc = async () => {
     /** Register Loan Token Modules to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
 
-    /** Deploy LoanTokenLogicLM */
-    const loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+    /** Deploy LoanTokenLogicWRBTC */
+    let loanTokenLogicLM;
+    if (isMockLoanToken) {
+        loanTokenLogicWrbtc = await MockLoanTokenLogic.new();
+    } else {
+        loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+    }
 
     /** Register Loan Token Logic LM to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicWrbtc.address);
@@ -510,6 +656,7 @@ const verify_sov_reward_payment = async (
 module.exports = {
     getSUSD,
     getRBTC,
+    getERC777,
     getWRBTC,
     getBZRX,
     getSOV,
@@ -517,6 +664,19 @@ module.exports = {
     getLoanTokenLogicWrbtc,
     getLoanToken,
     getLoanTokenWRBTC,
+
+    // staking
+    deployAndGetStakingModulesProxyAtStakingProxy,
+    deployAndGetIStaking,
+    getIStaking,
+    replaceStakingModule,
+    getStakingModulesProxyAt,
+    initializeStakingModulesAt,
+    getStakingModulesObject,
+    getStakingModulesAddressList,
+    initWeightedStakingModulesMockup,
+    getStakingModulesWithBlockMockup,
+
     loan_pool_setup,
     lend_to_pool,
     set_demand_curve,

@@ -1,0 +1,7 @@
+{
+    "SEPUSD": "0x7f357b8D3293CD631907d33a500f2C9Ce7f9B90D",
+    "bridge": "0xe7d8ed038deb475b3705c67934d0bcfc2d462ba3",
+    "federation": "0x71a4df7326925ca068ade61ea85ba9997c11102b",
+    "multiSig": "0x0f73c31b831e644699744972d10b173610b742dc",
+    "allowTokens": "0x66717faab22639f21ea5a726a40c287f616346c2"
+}

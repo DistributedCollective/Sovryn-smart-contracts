@@ -24,7 +24,7 @@ def loadConfig():
 
 def calculateVotingPower(sovAmount, stakeTime):
 
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
     
     weight = staking.computeWeightByDate(stakeTime, 0)
     votingPower = int(sovAmount) * weight

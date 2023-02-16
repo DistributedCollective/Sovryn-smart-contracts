@@ -1,7 +1,7 @@
 pragma solidity ^0.5.17;
 
 import "../../interfaces/IERC20.sol";
-import "../Staking/IStaking.sol";
+import "../Staking/interfaces/IStaking.sol";
 import "../../openzeppelin/Ownable.sol";
 
 /**

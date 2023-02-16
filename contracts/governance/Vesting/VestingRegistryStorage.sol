@@ -21,7 +21,7 @@ contract VestingRegistryStorage is Initializable, AdminRole {
     IVestingFactory public vestingFactory;
 
     ///@notice the Locked SOV contract
-    LockedSOV public lockedSOV;
+    ILockedSOV public lockedSOV;
 
     ///@notice the list of vesting registries
     IVestingRegistry[] public vestingRegistries;
@@ -33,7 +33,7 @@ contract VestingRegistryStorage is Initializable, AdminRole {
     address public staking;
 
     ///@notice fee sharing proxy
-    address public feeSharingProxy;
+    address public feeSharingCollector;
 
     ///@notice the vesting owner (e.g. governance timelock address)
     address public vestingOwner;
@@ -61,4 +61,17 @@ contract VestingRegistryStorage is Initializable, AdminRole {
     ///@notice A record of all vesting addresses
     ///@dev isVesting[address] returns if the address is a vesting address
     mapping(address => bool) public isVesting;
+
+    /// @notice Store vesting creation type & vesting type information
+    /// @dev it is packed into 1 single storage slot for cheaper gas usage
+    struct VestingCreationAndTypeDetails {
+        bool isSet;
+        uint32 vestingType;
+        uint128 vestingCreationType;
+    }
+
+    ///@notice A record of all vesting addresses with the detail
+    ///@dev vestingDetail[vestingAddress] returns Vesting struct data
+    ///@dev can be used to easily check the vesting type / creation type based on the vesting address itself
+    mapping(address => VestingCreationAndTypeDetails) public vestingCreationAndTypes;
 }

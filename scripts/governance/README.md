@@ -22,13 +22,16 @@ pip3 install -r requirements.txt
 brownie accounts new rskdeployer
 ```
 
-2. Add network rsk-testnet
+2. Add network rsk-testnet and rsk-mainnet
 
 ```
 brownie networks add rsk rsk-testnet host=https://testnet.sovryn.app/rpc chainid=31
 ```
+```
+brownie networks add rsk rsk-mainnet host=https://mainnet.sovryn.app/rpc chainid=30
+```
 
-3. Interacting with Governance Contracts
+1. Interacting with Governance Contracts
 
 There are 5 different functions:
 
@@ -49,11 +52,17 @@ To run:
 ```
 brownie run scripts/governance/calculate_voting_power.py --network rsk-testnet
 ```
+```
+brownie run scripts/governance/calculate_voting_power.py --network rsk-mainnet
+```
 
 - Stake Tokens
 
 ```
 brownie run scripts/governance/stake_tokens.py --network rsk-testnet
+```
+```
+brownie run scripts/governance/stake_tokens.py --network rsk-mainnet
 ```
 
 - Current Voting Power
@@ -61,17 +70,26 @@ brownie run scripts/governance/stake_tokens.py --network rsk-testnet
 ```
 brownie run scripts/governance/current_voting_power.py --network rsk-testnet
 ```
+```
+brownie run scripts/governance/current_voting_power.py --network rsk-mainnet
+```
 
 - Create Proposal
 
 ```
 brownie run scripts/governance/create_proposal.py --network rsk-testnet
 ```
+```
+brownie run scripts/governance/create_proposal.py --network rsk-mainnet
+```
 
 - Last Proposal Created
 
 ```
 brownie run scripts/governance/last_proposal_created.py --network rsk-testnet
+```
+```
+brownie run scripts/governance/last_proposal_created.py --network rsk-mainnet
 ```
 
 ## Values.json

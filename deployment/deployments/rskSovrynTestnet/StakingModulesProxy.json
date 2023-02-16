@@ -1,0 +1,500 @@
+{
+    "address": "0xa001490d250213dAe42eF7F4942aE5c7526239e9",
+    "abi": [
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "moduleAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "AddModule",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "previousOwner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "ProxyOwnershipTransferred",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "moduleAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "RemoveModule",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "oldAddress",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "newAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "ReplaceModule",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes4",
+                    "name": "_funcSig",
+                    "type": "bytes4"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "_oldImplementation",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "_newImplementation",
+                    "type": "address"
+                }
+            ],
+            "name": "SetModuleFuncImplementation",
+            "type": "event"
+        },
+        {
+            "payable": true,
+            "stateMutability": "payable",
+            "type": "fallback"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_impl",
+                    "type": "address"
+                }
+            ],
+            "name": "addModule",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address[]",
+                    "name": "_implementations",
+                    "type": "address[]"
+                }
+            ],
+            "name": "addModules",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_impl",
+                    "type": "address"
+                }
+            ],
+            "name": "canAddModule",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address[]",
+                    "name": "_implementations",
+                    "type": "address[]"
+                }
+            ],
+            "name": "canNotAddModules",
+            "outputs": [
+                {
+                    "internalType": "address[]",
+                    "name": "",
+                    "type": "address[]"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_newModule",
+                    "type": "address"
+                }
+            ],
+            "name": "checkClashingFuncSelectors",
+            "outputs": [
+                {
+                    "internalType": "address[]",
+                    "name": "clashingModules",
+                    "type": "address[]"
+                },
+                {
+                    "internalType": "bytes4[]",
+                    "name": "clashingModulesFuncSelectors",
+                    "type": "bytes4[]"
+                },
+                {
+                    "internalType": "bytes4[]",
+                    "name": "clashingProxyRegistryFuncSelectors",
+                    "type": "bytes4[]"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "bytes4",
+                    "name": "_sig",
+                    "type": "bytes4"
+                }
+            ],
+            "name": "getFuncImplementation",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "getProxyOwner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "_owner",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_impl",
+                    "type": "address"
+                }
+            ],
+            "name": "isModuleRegistered",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_impl",
+                    "type": "address"
+                }
+            ],
+            "name": "removeModule",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address[]",
+                    "name": "_implementations",
+                    "type": "address[]"
+                }
+            ],
+            "name": "removeModules",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_oldModuleImpl",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_newModuleImpl",
+                    "type": "address"
+                }
+            ],
+            "name": "replaceModule",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address[]",
+                    "name": "_implementationsFrom",
+                    "type": "address[]"
+                },
+                {
+                    "internalType": "address[]",
+                    "name": "_implementationsTo",
+                    "type": "address[]"
+                }
+            ],
+            "name": "replaceModules",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_owner",
+                    "type": "address"
+                }
+            ],
+            "name": "setProxyOwner",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ],
+    "transactionHash": "0x62ce9e04fd5d1686d419984f598fa4b8bb069c3401f5b18ee64e3460e80d7ff2",
+    "receipt": {
+        "to": null,
+        "from": "0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b",
+        "contractAddress": "0xa001490d250213dAe42eF7F4942aE5c7526239e9",
+        "transactionIndex": 0,
+        "gasUsed": "2396317",
+        "logsBloom": "0x00000000000800000000000000000000000000001000000000000000000000000020000000000000000000000000000080000000000000000000000000000000000000000000000000000040000000000008000000000000000000000000000000000000020000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000400020000000000000000000000000000000000000000000000000000000000000000000",
+        "blockHash": "0x30333b01adc428bb43ce3ff119af586fa26bac49fcf62b5e978659fff708054f",
+        "transactionHash": "0x62ce9e04fd5d1686d419984f598fa4b8bb069c3401f5b18ee64e3460e80d7ff2",
+        "logs": [
+            {
+                "transactionIndex": 0,
+                "blockNumber": 3556922,
+                "transactionHash": "0x62ce9e04fd5d1686d419984f598fa4b8bb069c3401f5b18ee64e3460e80d7ff2",
+                "address": "0xa001490d250213dAe42eF7F4942aE5c7526239e9",
+                "topics": [
+                    "0x5a3e66efaa1e445ebd894728a69d6959842ea1e97bd79b892797106e270efcd9",
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "0x0000000000000000000000008c9143221f2b72fcef391893c3a02cf0fe84f50b"
+                ],
+                "data": "0x",
+                "logIndex": 0,
+                "blockHash": "0x30333b01adc428bb43ce3ff119af586fa26bac49fcf62b5e978659fff708054f"
+            }
+        ],
+        "blockNumber": 3556922,
+        "cumulativeGasUsed": "2396317",
+        "status": 1,
+        "byzantium": true
+    },
+    "args": [],
+    "numDeployments": 1,
+    "solcInputHash": "015b019a6db9133c2258981a8efcf2d8",
+    "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"moduleAddress\",\"type\":\"address\"}],\"name\":\"AddModule\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"ProxyOwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"moduleAddress\",\"type\":\"address\"}],\"name\":\"RemoveModule\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"oldAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"name\":\"ReplaceModule\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes4\",\"name\":\"_funcSig\",\"type\":\"bytes4\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldImplementation\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newImplementation\",\"type\":\"address\"}],\"name\":\"SetModuleFuncImplementation\",\"type\":\"event\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_impl\",\"type\":\"address\"}],\"name\":\"addModule\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementations\",\"type\":\"address[]\"}],\"name\":\"addModules\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_impl\",\"type\":\"address\"}],\"name\":\"canAddModule\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementations\",\"type\":\"address[]\"}],\"name\":\"canNotAddModules\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_newModule\",\"type\":\"address\"}],\"name\":\"checkClashingFuncSelectors\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"clashingModules\",\"type\":\"address[]\"},{\"internalType\":\"bytes4[]\",\"name\":\"clashingModulesFuncSelectors\",\"type\":\"bytes4[]\"},{\"internalType\":\"bytes4[]\",\"name\":\"clashingProxyRegistryFuncSelectors\",\"type\":\"bytes4[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"_sig\",\"type\":\"bytes4\"}],\"name\":\"getFuncImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getProxyOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_impl\",\"type\":\"address\"}],\"name\":\"isModuleRegistered\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_impl\",\"type\":\"address\"}],\"name\":\"removeModule\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementations\",\"type\":\"address[]\"}],\"name\":\"removeModules\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_oldModuleImpl\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_newModuleImpl\",\"type\":\"address\"}],\"name\":\"replaceModule\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementationsFrom\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"_implementationsTo\",\"type\":\"address[]\"}],\"name\":\"replaceModules\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"setProxyOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"addModule(address)\":{\"params\":{\"_impl\":\"Module implementation address\"}},\"addModules(address[])\":{\"params\":{\"_implementations\":\"Modules implementation addresses\"}},\"canAddModule(address)\":{\"params\":{\"_impl\":\"Module implementation address to verify\"},\"return\":\"True if module can be added\"},\"canNotAddModules(address[])\":{\"params\":{\"_implementations\":\"modules implementation addresses to verify\"},\"return\":\"addresses of registered modules\"},\"checkClashingFuncSelectors(address)\":{\"params\":{\"_newModule\":\"module implementation which functions to verify\"},\"return\":\"Clashing functions signatures and corresponding modules (contracts) addresses\"},\"getFuncImplementation(bytes4)\":{\"params\":{\"_sig\":\"Function signature to get impmementation address for\"},\"return\":\"Function's contract implelementation address\"},\"getProxyOwner()\":{\"return\":\"_owner Address of the owner.\"},\"isModuleRegistered(address)\":{\"params\":{\"_impl\":\"deployment address to verify\"},\"return\":\"true if _impl address is a registered module\"},\"removeModule(address)\":{\"params\":{\"_impl\":\"implementation address\"}},\"removeModules(address[])\":{\"params\":{\"_implementations\":\"Modules implementation addresses\"}},\"replaceModule(address,address)\":{\"params\":{\"_newModuleImpl\":\"Module implementation address to add\",\"_oldModuleImpl\":\"Module implementation address to remove\"}},\"replaceModules(address[],address[])\":{\"params\":{\"_implementationsFrom\":\"Modules to replace\",\"_implementationsTo\":\"Replacing modules\"}},\"setProxyOwner(address)\":{\"params\":{\"_owner\":\"Address of the owner.\"}}}},\"userdoc\":{\"methods\":{\"addModule(address)\":{\"notice\":\"Add module functions. Overriding functions is not allowed. To replace modules use replaceModule function.\"},\"addModules(address[])\":{\"notice\":\"Add modules functions.\"},\"canAddModule(address)\":{\"notice\":\"Verifies if no functions from the module already registered\"},\"canNotAddModules(address[])\":{\"notice\":\"Multiple modules verification if there are functions from the modules already registered\"},\"checkClashingFuncSelectors(address)\":{\"notice\":\"Used externally to verify module being added for clashing\"},\"getProxyOwner()\":{\"notice\":\"Return address of the owner.\"},\"isModuleRegistered(address)\":{\"notice\":\"Verifies the deployed contract address is a registered module contract\"},\"removeModule(address)\":{\"notice\":\"To disable module - set all its functions implementation to address(0)\"},\"removeModules(address[])\":{\"notice\":\"Add modules functions.\"},\"replaceModule(address,address)\":{\"notice\":\"Replace module - remove the previous, add the new one\"},\"replaceModules(address[],address[])\":{\"notice\":\"Add modules functions.\"},\"setProxyOwner(address)\":{\"notice\":\"Set address of the owner (only owner can call this function)\"}},\"notice\":\"ModulesProxy serves as a storage processed by a set of logic contracts - modules Modules functions are registered in the contract's slots generated per func sig All the function calls except for own Proxy functions are delegated to the registered functions The ModulesProxy is designed as a universal solution for refactorig contracts reaching a 24K size limit (EIP-170) * Upgradability is implemented at a module level to provide consistency It does not allow to replace separate functions - only the whole module meaning that if a module being registered contains other modules function signatures then these modulea should be replaced completely - all the functions should be removed to avoid leftovers or accidental replacements and therefore functional inconsistency. * A module is either a new non-overlapping with registered modules or a complete replacement of another registered module in which case all the old module functions are unregistered and then the new module functions are registered There is also a separate function to unregister a module which unregisters all the functions There is no option to unregister a subset of module functions - one should use pausable functionality to achieve this\"}},\"settings\":{\"compilationTarget\":{\"contracts/proxy/modules/ModulesProxy.sol\":\"ModulesProxy\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/openzeppelin/Address.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev Collection of functions related to the address type\\n */\\nlibrary Address {\\n    /**\\n     * @dev Returns true if `account` is a contract.\\n     *\\n     * [IMPORTANT]\\n     * ====\\n     * It is unsafe to assume that an address for which this function returns\\n     * false is an externally-owned account (EOA) and not a contract.\\n     *\\n     * Among others, `isContract` will return false for the following\\n     * types of addresses:\\n     *\\n     *  - an externally-owned account\\n     *  - a contract in construction\\n     *  - an address where a contract will be created\\n     *  - an address where a contract lived, but was destroyed\\n     * ====\\n     */\\n    function isContract(address account) internal view returns (bool) {\\n        // According to EIP-1052, 0x0 is the value returned for not-yet created accounts\\n        // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned\\n        // for accounts without code, i.e. `keccak256('')`\\n        bytes32 codehash;\\n        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;\\n        // solhint-disable-next-line no-inline-assembly\\n        assembly {\\n            codehash := extcodehash(account)\\n        }\\n        return (codehash != accountHash && codehash != 0x0);\\n    }\\n\\n    /**\\n     * @dev Converts an `address` into `address payable`. Note that this is\\n     * simply a type cast: the actual underlying value is not changed.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function toPayable(address account) internal pure returns (address payable) {\\n        return address(uint160(account));\\n    }\\n\\n    /**\\n     * @dev Replacement for Solidity's `transfer`: sends `amount` wei to\\n     * `recipient`, forwarding all available gas and reverting on errors.\\n     *\\n     * https://eips.ethereum.org/EIPS/eip-1884[EIP1884] increases the gas cost\\n     * of certain opcodes, possibly making contracts go over the 2300 gas limit\\n     * imposed by `transfer`, making them unable to receive funds via\\n     * `transfer`. {sendValue} removes this limitation.\\n     *\\n     * https://diligence.consensys.net/posts/2019/09/stop-using-soliditys-transfer-now/[Learn more].\\n     *\\n     * IMPORTANT: because control is transferred to `recipient`, care must be\\n     * taken to not create reentrancy vulnerabilities. Consider using\\n     * {ReentrancyGuard} or the\\n     * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html\\n     *   #use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function sendValue(address recipient, uint256 amount) internal {\\n        require(address(this).balance >= amount, \\\"Address: insufficient balance\\\");\\n\\n        // solhint-disable-next-line avoid-call-value\\n        (bool success, ) = recipient.call.value(amount)(\\\"\\\");\\n        require(success, \\\"Address: unable to send value, recipient may have reverted\\\");\\n    }\\n}\\n\",\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\"},\"contracts/proxy/modules/ModulesProxy.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.5.17;\\n\\nimport \\\"./ModulesProxyRegistry.sol\\\";\\n\\n/**\\n * ModulesProxy serves as a storage processed by a set of logic contracts - modules\\n * Modules functions are registered in the contract's slots generated per func sig\\n * All the function calls except for own Proxy functions are delegated to\\n * the registered functions\\n * The ModulesProxy is designed as a universal solution for refactorig contracts\\n * reaching a 24K size limit (EIP-170)\\n *\\n * Upgradability is implemented at a module level to provide consistency\\n * It does not allow to replace separate functions - only the whole module\\n * meaning that if a module being registered contains other modules function signatures\\n * then these modulea should be replaced completely - all the functions should be removed\\n * to avoid leftovers or accidental replacements and therefore functional inconsistency.\\n *\\n * A module is either a new non-overlapping with registered modules\\n * or a complete replacement of another registered module\\n * in which case all the old module functions are unregistered and then\\n * the new module functions are registered\\n * There is also a separate function to unregister a module which unregisters all the functions\\n * There is no option to unregister a subset of module functions - one should use pausable functionality\\n * to achieve this\\n */\\n\\ncontract ModulesProxy is ModulesProxyRegistry {\\n    // Uncomment for using beforeFallback() hook\\n    /*\\n    bytes private constant BEFORE_FALLBACK_SIG = abi.encodeWithSignature(\\\"beforeFallback()\\\");\\n    bytes4 private constant BEFORE_FALLBACK_SIG_BYTES4 = bytes4(keccak256(abi.encodePacked(\\\"beforeFallback()\\\")));\\n    */\\n\\n    /**\\n     * @notice Fallback function delegates calls to modules.\\n     * Returns whatever the implementation call returns.\\n     * Has a hook to execute before delegating calls\\n     * To activate register a module with beforeFallback() function\\n     */\\n    function() external payable {\\n        /*\\n        // Commented to safe gas by default\\n        // Uncomment for using beforeFallback() hook \\n        // Implement and register beforeFallback() function in a module\\n        address beforeFallback = _getFuncImplementation(BEFORE_FALLBACK_SIG_BYTES4);\\n        if (beforeFallback != address(0)) {\\n            (bool success, ) = beforeFallback.delegatecall(bytes(0x39b0111a)); // abi.encodeWithSignature(\\\"beforeFallback()\\\")\\n            require(success, \\\"ModulesProxy::fallback: beforeFallback() fail\\\"); //MP02\\n        }\\n        */\\n\\n        address target = _getFuncImplementation(msg.sig);\\n        require(target != address(0), \\\"ModulesProxy:target module not registered\\\"); // MP03\\n\\n        bytes memory data = msg.data;\\n        assembly {\\n            let result := delegatecall(gas, target, add(data, 0x20), mload(data), 0, 0)\\n            let size := returndatasize\\n            let ptr := mload(0x40)\\n            returndatacopy(ptr, 0, size)\\n            switch result\\n                case 0 {\\n                    revert(ptr, size)\\n                }\\n                default {\\n                    return(ptr, size)\\n                }\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x0c3a6aa5ec5c4aebae3e3325d93f00eeb6bf071ad7b139b6dc9634f7efc6342a\"},\"contracts/proxy/modules/ModulesProxyRegistry.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.5.17;\\n\\nimport \\\"../../utils/Utils.sol\\\";\\nimport \\\"../../utils/ProxyOwnable.sol\\\";\\nimport \\\"../modules/interfaces/IFunctionsList.sol\\\";\\nimport \\\"../modules/interfaces/IModulesProxyRegistry.sol\\\";\\nimport \\\"../../openzeppelin/Address.sol\\\";\\n\\n/**\\n * ModulesProxyRegistry provides modules registration/removing/replacing functionality to ModulesProxy\\n * Designed to be inherited\\n */\\n\\ncontract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {\\n    using Address for address;\\n\\n    bytes32 internal constant KEY_IMPLEMENTATION = keccak256(\\\"key.implementation\\\");\\n\\n    ///@notice Constructor is internal to make contract abstract\\n    constructor() internal {\\n        // abstract\\n    }\\n\\n    /// @notice Add module functions.\\n    /// Overriding functions is not allowed. To replace modules use replaceModule function.\\n    /// @param _impl Module implementation address\\n    function addModule(address _impl) external onlyProxyOwner {\\n        _addModule(_impl);\\n    }\\n\\n    /// @notice Add modules functions.\\n    /// @param _implementations Modules implementation addresses\\n    function addModules(address[] calldata _implementations) external onlyProxyOwner {\\n        _addModules(_implementations);\\n    }\\n\\n    /// @notice Replace module - remove the previous, add the new one\\n    /// @param _oldModuleImpl Module implementation address to remove\\n    /// @param _newModuleImpl Module implementation address to add\\n    function replaceModule(address _oldModuleImpl, address _newModuleImpl)\\n        external\\n        onlyProxyOwner\\n    {\\n        _replaceModule(_oldModuleImpl, _newModuleImpl);\\n    }\\n\\n    /// @notice Add modules functions.\\n    /// @param _implementationsFrom Modules to replace\\n    /// @param _implementationsTo Replacing modules\\n    function replaceModules(\\n        address[] calldata _implementationsFrom,\\n        address[] calldata _implementationsTo\\n    ) external onlyProxyOwner {\\n        require(\\n            _implementationsFrom.length == _implementationsTo.length,\\n            \\\"ModulesProxyRegistry::replaceModules: arrays sizes must be equal\\\"\\n        ); //MR10\\n\\n        // because the order of addresses is arbitrary, all modules are removed first to avoid collisions\\n        _removeModules(_implementationsFrom);\\n        _addModules(_implementationsTo);\\n    }\\n\\n    /// @notice To disable module - set all its functions implementation to address(0)\\n    /// @param _impl implementation address\\n    function removeModule(address _impl) external onlyProxyOwner {\\n        _removeModule(_impl);\\n    }\\n\\n    /// @notice Add modules functions.\\n    /// @param _implementations Modules implementation addresses\\n    function removeModules(address[] calldata _implementations) external onlyProxyOwner {\\n        _removeModules(_implementations);\\n    }\\n\\n    /// @param _sig Function signature to get impmementation address for\\n    /// @return Function's contract implelementation address\\n    function getFuncImplementation(bytes4 _sig) external view returns (address) {\\n        return _getFuncImplementation(_sig);\\n    }\\n\\n    /// @notice Verifies if no functions from the module already registered\\n    /// @param _impl Module implementation address to verify\\n    /// @return True if module can be added\\n    function canAddModule(address _impl) external view returns (bool) {\\n        return _canAddModule(_impl);\\n    }\\n\\n    /// @notice Multiple modules verification if there are functions from the modules already registered\\n    /// @param _implementations modules implementation addresses to verify\\n    /// @return addresses of registered modules\\n    function canNotAddModules(address[] memory _implementations)\\n        public\\n        view\\n        returns (address[] memory)\\n    {\\n        for (uint256 i = 0; i < _implementations.length; i++) {\\n            if (_canAddModule(_implementations[i])) {\\n                delete _implementations[i];\\n            }\\n        }\\n        return _implementations;\\n    }\\n\\n    /// @notice Used externally to verify module being added for clashing\\n    /// @param _newModule module implementation which functions to verify\\n    /// @return Clashing functions signatures and corresponding modules (contracts) addresses\\n    function checkClashingFuncSelectors(address _newModule)\\n        external\\n        view\\n        returns (\\n            address[] memory clashingModules,\\n            bytes4[] memory clashingModulesFuncSelectors,\\n            bytes4[] memory clashingProxyRegistryFuncSelectors\\n        )\\n    {\\n        require(\\n            _newModule.isContract(),\\n            \\\"ModulesProxyRegistry::checkClashingFuncSelectors: address is not a contract\\\"\\n        ); //MR06\\n        bytes4[] memory newModuleFunctions = IFunctionsList(_newModule).getFunctionsList();\\n        bytes4[] memory proxyRegistryFunctions = _getFunctionsList(); //registry functions list\\n        uint256 clashingProxyRegistryFuncsSize;\\n        uint256 clashingArraySize;\\n        uint256 clashingArrayIndex;\\n        uint256 clashingRegistryArrayIndex;\\n\\n        for (uint256 i = 0; i < newModuleFunctions.length; i++) {\\n            address funcImpl = _getFuncImplementation(newModuleFunctions[i]);\\n            if (funcImpl != address(0) && funcImpl != _newModule) {\\n                clashingArraySize++;\\n            } else if (_isFuncClashingWithProxyFunctions(newModuleFunctions[i]))\\n                clashingProxyRegistryFuncsSize++;\\n        }\\n        clashingModules = new address[](clashingArraySize);\\n        clashingModulesFuncSelectors = new bytes4[](clashingArraySize);\\n        clashingProxyRegistryFuncSelectors = new bytes4[](clashingProxyRegistryFuncsSize);\\n\\n        if (clashingArraySize == 0 && clashingProxyRegistryFuncsSize == 0)\\n            //return empty arrays\\n            return (\\n                clashingModules,\\n                clashingModulesFuncSelectors,\\n                clashingProxyRegistryFuncSelectors\\n            );\\n        for (uint256 i = 0; i < newModuleFunctions.length; i++) {\\n            address funcImpl = _getFuncImplementation(newModuleFunctions[i]);\\n            if (funcImpl != address(0)) {\\n                clashingModules[clashingArrayIndex] = funcImpl;\\n                clashingModulesFuncSelectors[clashingArrayIndex] = newModuleFunctions[i];\\n                clashingArrayIndex++;\\n            }\\n            for (uint256 j = 0; j < proxyRegistryFunctions.length; j++) {\\n                //ModulesProxyRegistry has a clashing function selector\\n                if (proxyRegistryFunctions[j] == newModuleFunctions[i]) {\\n                    clashingProxyRegistryFuncSelectors[\\n                        clashingRegistryArrayIndex\\n                    ] = proxyRegistryFunctions[j];\\n                    clashingRegistryArrayIndex++;\\n                }\\n            }\\n        }\\n    }\\n\\n    /// Verifies the deployed contract address is a registered module contract\\n    /// @param _impl deployment address to verify\\n    /// @return true if _impl address is a registered module\\n    function isModuleRegistered(address _impl) external view returns (bool) {\\n        return _getFirstRegisteredModuleAddress(_impl) == _impl;\\n    }\\n\\n    /****************** INTERNAL FUNCTIONS ******************/\\n\\n    function _getFirstRegisteredModuleAddress(address _impl) internal view returns (address) {\\n        require(\\n            _impl.isContract(),\\n            \\\"ModulesProxyRegistry::_getRegisteredModuleAddress: address is not a contract\\\"\\n        );\\n        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();\\n        for (uint256 i = 0; i < functions.length; i++) {\\n            address _moduleImpl = _getFuncImplementation(functions[i]);\\n            if (_moduleImpl != address(0)) {\\n                return (_moduleImpl);\\n            }\\n        }\\n        return address(0);\\n    }\\n\\n    function _getFuncImplementation(bytes4 _sig) internal view returns (address) {\\n        //TODO: add querying Registry for logic address and then delegate call to it OR use proxy memory slots like this:\\n        bytes32 key = keccak256(abi.encode(_sig, KEY_IMPLEMENTATION));\\n        address implementation;\\n        assembly {\\n            implementation := sload(key)\\n        }\\n        return implementation;\\n    }\\n\\n    function _addModule(address _impl) internal {\\n        require(_impl.isContract(), \\\"ModulesProxyRegistry::_addModule: address is not a contract\\\"); //MR01\\n        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();\\n        for (uint256 i = 0; i < functions.length; i++) {\\n            require(\\n                _getFuncImplementation(functions[i]) == address(0),\\n                \\\"ModulesProxyRegistry::_addModule: function already registered - use replaceModule function\\\"\\n            ); //MR02\\n            require(functions[i] != bytes4(0), \\\"does not allow empty function id\\\"); // MR03\\n            require(\\n                !_isFuncClashingWithProxyFunctions(functions[i]),\\n                \\\"ModulesProxyRegistry::_addModule: has a function with the same signature\\\"\\n            ); //MR09\\n            _setModuleFuncImplementation(functions[i], _impl);\\n        }\\n        emit AddModule(_impl);\\n    }\\n\\n    function _addModules(address[] memory _implementations) internal {\\n        for (uint256 i = 0; i < _implementations.length; i++) {\\n            _addModule(_implementations[i]);\\n        }\\n    }\\n\\n    function _removeModule(address _impl) internal onlyProxyOwner {\\n        require(\\n            _impl.isContract(),\\n            \\\"ModulesProxyRegistry::_removeModule: address is not a contract\\\"\\n        ); //MR07\\n        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();\\n        for (uint256 i = 0; i < functions.length; i++)\\n            _setModuleFuncImplementation(functions[i], address(0));\\n\\n        emit RemoveModule(_impl);\\n    }\\n\\n    function _removeModules(address[] memory _implementations) internal {\\n        for (uint256 i = 0; i < _implementations.length; i++) {\\n            _removeModule(_implementations[i]);\\n        }\\n    }\\n\\n    function _replaceModule(address _oldModuleImpl, address _newModuleImpl) internal {\\n        if (_oldModuleImpl != _newModuleImpl) {\\n            require(\\n                _newModuleImpl.isContract(),\\n                \\\"ModulesProxyRegistry::_replaceModule - _newModuleImpl is not a contract\\\"\\n            ); //MR03\\n            require(\\n                _oldModuleImpl.isContract(),\\n                \\\"ModulesProxyRegistry::_replaceModule - _oldModuleImpl is not a contract\\\"\\n            ); //MR04\\n            _removeModule(_oldModuleImpl);\\n            _addModule(_newModuleImpl);\\n\\n            emit ReplaceModule(_oldModuleImpl, _newModuleImpl);\\n        }\\n    }\\n\\n    function _setModuleFuncImplementation(bytes4 _sig, address _impl) internal {\\n        emit SetModuleFuncImplementation(_sig, _getFuncImplementation(_sig), _impl);\\n\\n        bytes32 key = keccak256(abi.encode(_sig, KEY_IMPLEMENTATION));\\n        assembly {\\n            sstore(key, _impl)\\n        }\\n    }\\n\\n    function _isFuncClashingWithProxyFunctions(bytes4 _sig) internal pure returns (bool) {\\n        bytes4[] memory functionList = _getFunctionsList();\\n        for (uint256 i = 0; i < functionList.length; i++) {\\n            if (_sig == functionList[i])\\n                //ModulesProxyRegistry has function with the same id\\n                return true;\\n        }\\n        return false;\\n    }\\n\\n    function _canAddModule(address _impl) internal view returns (bool) {\\n        require(\\n            _impl.isContract(),\\n            \\\"ModulesProxyRegistry::_canAddModule: address is not a contract\\\"\\n        ); //MR06\\n        bytes4[] memory functions = IFunctionsList(_impl).getFunctionsList();\\n        for (uint256 i = 0; i < functions.length; i++)\\n            if (_getFuncImplementation(functions[i]) != address(0)) return (false);\\n        return true;\\n    }\\n\\n    function _getFunctionsList() internal pure returns (bytes4[] memory) {\\n        bytes4[] memory functionList = new bytes4[](13);\\n        functionList[0] = this.getFuncImplementation.selector;\\n        functionList[1] = this.addModule.selector;\\n        functionList[2] = this.addModules.selector;\\n        functionList[3] = this.removeModule.selector;\\n        functionList[4] = this.removeModules.selector;\\n        functionList[5] = this.replaceModule.selector;\\n        functionList[6] = this.replaceModules.selector;\\n        functionList[7] = this.canAddModule.selector;\\n        functionList[8] = this.canNotAddModules.selector;\\n        functionList[9] = this.setProxyOwner.selector;\\n        functionList[10] = this.getProxyOwner.selector;\\n        functionList[11] = this.checkClashingFuncSelectors.selector;\\n        functionList[12] = this.isModuleRegistered.selector;\\n        return functionList;\\n    }\\n}\\n\",\"keccak256\":\"0x677f768c990de11f277ee125746520f7a43fdfb723850e4ff5f96d076549b8ea\"},\"contracts/proxy/modules/interfaces/IFunctionsList.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.5.17;\\n\\ninterface IFunctionsList {\\n    function getFunctionsList() external pure returns (bytes4[] memory functionSignatures);\\n}\\n\",\"keccak256\":\"0x38fb0166042329bc9ffcab69742f215efd135cdcf2d48b2202cb7f1546709101\"},\"contracts/proxy/modules/interfaces/IModulesProxyRegistry.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.5.17;\\n\\n/**\\n * ModulesProxyRegistry Interface\\n */\\n\\ncontract IModulesProxyRegistry {\\n    event AddModule(address indexed moduleAddress);\\n    event ReplaceModule(address indexed oldAddress, address indexed newAddress);\\n    event RemoveModule(address indexed moduleAddress);\\n    event SetModuleFuncImplementation(\\n        bytes4 indexed _funcSig,\\n        address indexed _oldImplementation,\\n        address indexed _newImplementation\\n    );\\n\\n    /// @notice Add module functions.\\n    /// Overriding functions is not allowed. To replace modules use ReplaceModule function.\\n    /// @param _impl Module implementation address\\n    function addModule(address _impl) external;\\n\\n    /// @notice Add modules functions.\\n    /// @param _implementations Modules implementation addresses\\n    function addModules(address[] calldata _implementations) external;\\n\\n    /// @notice Replace module - remove the previous, add the new one\\n    /// @param _oldModuleImpl Module implementation address to remove\\n    /// @param _newModuleImpl Module implementation address to add\\n    function replaceModule(address _oldModuleImpl, address _newModuleImpl) external;\\n\\n    /// @notice Add modules functions.\\n    /// @param _implementationsFrom Modules to replace\\n    /// @param _implementationsTo Replacing modules\\n    function replaceModules(\\n        address[] calldata _implementationsFrom,\\n        address[] calldata _implementationsTo\\n    ) external;\\n\\n    /// @notice to disable module - set all its functions implementation to address(0)\\n    /// @param _impl implementation address\\n    function removeModule(address _impl) external;\\n\\n    /// @notice Add modules functions.\\n    /// @param _implementations Modules implementation addresses\\n    function removeModules(address[] calldata _implementations) external;\\n\\n    /// @param _sig function signature to get impmementation address for\\n    /// @return function's contract implelementation address\\n    function getFuncImplementation(bytes4 _sig) external view returns (address);\\n\\n    /// @notice verifies if no functions from the module deployed already registered\\n    /// @param _impl module implementation address to verify\\n    /// @return true if module can be added\\n    function canAddModule(address _impl) external view returns (bool);\\n\\n    /// @notice Multiple modules verification if no functions from the modules already registered\\n    /// @param _implementations modules implementation addresses to verify\\n    /// @return True if all modules can be added, false otherwise\\n    function canNotAddModules(address[] calldata _implementations)\\n        external\\n        view\\n        returns (address[] memory modules);\\n\\n    /// @notice used externally to verify module being added for clashing\\n    /// @param _newModule module implementation which functions to verify\\n    /// @return clashing functions signatures and corresponding modules (contracts) addresses\\n    function checkClashingFuncSelectors(address _newModule)\\n        external\\n        view\\n        returns (\\n            address[] memory clashingModules,\\n            bytes4[] memory clashingModulesFuncSelectors,\\n            bytes4[] memory clashingProxyRegistryFuncSelectors\\n        );\\n}\\n\",\"keccak256\":\"0xad25d2ce678fbd44d5358480a22d37a6747da3af5375d7d764e5487c9ff6f69e\"},\"contracts/utils/ProxyOwnable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.5.17;\\n\\n/**\\n * Based on OpenZeppelin's Ownable contract:\\n * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol\\n *\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\ncontract ProxyOwnable {\\n    bytes32 private constant KEY_OWNER = keccak256(\\\"key.proxy.owner\\\");\\n\\n    event ProxyOwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() internal {\\n        _setProxyOwner(msg.sender);\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyProxyOwner() {\\n        require(msg.sender == getProxyOwner(), \\\"Ownable:: access denied\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @notice Set address of the owner.\\n     * @param _owner Address of the owner.\\n     * */\\n    function _setProxyOwner(address _owner) internal {\\n        require(_owner != address(0), \\\"ProxyOwnable::setProxyOwner: invalid address\\\");\\n        emit ProxyOwnershipTransferred(getProxyOwner(), _owner);\\n\\n        bytes32 key = KEY_OWNER;\\n        assembly {\\n            sstore(key, _owner)\\n        }\\n    }\\n\\n    /**\\n     * @notice Set address of the owner (only owner can call this function)\\n     * @param _owner Address of the owner.\\n     * */\\n    function setProxyOwner(address _owner) public onlyProxyOwner {\\n        _setProxyOwner(_owner);\\n    }\\n\\n    /**\\n     * @notice Return address of the owner.\\n     * @return _owner Address of the owner.\\n     * */\\n    function getProxyOwner() public view returns (address _owner) {\\n        bytes32 key = KEY_OWNER;\\n        assembly {\\n            _owner := sload(key)\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xa687861c8492a71ec32adabc6c9e79bd9eeb085547586b76ed338744a93d9294\"},\"contracts/utils/Utils.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.5.17;\\n\\nlibrary Utils {\\n    function stringToBytes32(string memory source) internal pure returns (bytes32 result) {\\n        bytes memory tempEmptyStringTest = bytes(source);\\n        if (tempEmptyStringTest.length == 0) {\\n            return 0x0;\\n        }\\n\\n        assembly {\\n            result := mload(add(source, 32))\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x09d21ebf5fc4898a227da10ab3ca676422da78fd1b1187d2106ec0d7bc13c739\"}},\"version\":1}",
+    "bytecode": "0x6080604052610016336001600160e01b0361001b16565b610100565b6001600160a01b0381166100615760405162461bcd60e51b815260040180806020018281038252602c815260200180620022b9602c913960400191505060405180910390fd5b6001600160a01b03811661007c6001600160e01b036100d816565b6001600160a01b03167f5a3e66efaa1e445ebd894728a69d6959842ea1e97bd79b892797106e270efcd960405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6121a980620001106000396000f3fe6080604052600436106100c15760003560e01c806368d463531161007f578063caaee91c11610059578063caaee91c1461048d578063ddd4f52c146104c0578063e11abe96146105be578063fdbc959e14610689576100c1565b806368d46353146103f35780636fc8b30d14610427578063a06324611461045a576100c1565b80621afd151461017f57806304c81644146102905780631694ef261461030d5780631ab7710d146103485780631c5ebe2f146103795780631ed86f19146103c0575b60006100d86000356001600160e01b031916610704565b90506001600160a01b03811661011f5760405162461bcd60e51b81526004018080602001828103825260298152602001806120266029913960400191505060405180910390fd5b60606000368080601f016020809104026020016040519081016040528093929190818152602001838380828437600092018290525084519495509384935091505060208401855af43d604051816000823e82801561017b578282f35b8282fd5b34801561018b57600080fd5b506101b2600480360360208110156101a257600080fd5b50356001600160a01b0316610763565b60405180806020018060200180602001848103845287818151815260200191508051906020019060200280838360005b838110156101fa5781810151838201526020016101e2565b50505050905001848103835286818151815260200191508051906020019060200280838360005b83811015610239578181015183820152602001610221565b50505050905001848103825285818151815260200191508051906020019060200280838360005b83811015610278578181015183820152602001610260565b50505050905001965050505050505060405180910390f35b34801561029c57600080fd5b5061030b600480360360208110156102b357600080fd5b810190602081018135600160201b8111156102cd57600080fd5b8201836020820111156102df57600080fd5b803590602001918460208302840111600160201b8311171561030057600080fd5b509092509050610b4f565b005b34801561031957600080fd5b5061030b6004803603604081101561033057600080fd5b506001600160a01b0381358116916020013516610bea565b34801561035457600080fd5b5061035d610c4f565b604080516001600160a01b039092168252519081900360200190f35b34801561038557600080fd5b506103ac6004803603602081101561039c57600080fd5b50356001600160a01b0316610c77565b604080519115158252519081900360200190f35b3480156103cc57600080fd5b5061030b600480360360208110156103e357600080fd5b50356001600160a01b0316610c9c565b3480156103ff57600080fd5b5061035d6004803603602081101561041657600080fd5b50356001600160e01b031916610d03565b34801561043357600080fd5b506103ac6004803603602081101561044a57600080fd5b50356001600160a01b0316610d14565b34801561046657600080fd5b5061030b6004803603602081101561047d57600080fd5b50356001600160a01b0316610d1f565b34801561049957600080fd5b5061030b600480360360208110156104b057600080fd5b50356001600160a01b0316610d83565b3480156104cc57600080fd5b5061056e600480360360208110156104e357600080fd5b810190602081018135600160201b8111156104fd57600080fd5b82018360208201111561050f57600080fd5b803590602001918460208302840111600160201b8311171561053057600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929550610de7945050505050565b60408051602080825283518183015283519192839290830191858101910280838360005b838110156105aa578181015183820152602001610592565b505050509050019250505060405180910390f35b3480156105ca57600080fd5b5061030b600480360360408110156105e157600080fd5b810190602081018135600160201b8111156105fb57600080fd5b82018360208201111561060d57600080fd5b803590602001918460208302840111600160201b8311171561062e57600080fd5b919390929091602081019035600160201b81111561064b57600080fd5b82018360208201111561065d57600080fd5b803590602001918460208302840111600160201b8311171561067e57600080fd5b509092509050610e47565b34801561069557600080fd5b5061030b600480360360208110156106ac57600080fd5b810190602081018135600160201b8111156106c657600080fd5b8201836020820111156106d857600080fd5b803590602001918460208302840111600160201b831117156106f957600080fd5b509092509050610f5e565b604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815281519081900360120181206001600160e01b031984166020808401919091528284019190915282518083038401815260609092019092528051910120545b919050565b606080606061077a846001600160a01b0316610ff5565b6107b55760405162461bcd60e51b815260040180806020018281038252604b8152602001806120e3604b913960600191505060405180910390fd5b6060846001600160a01b031663d8ad326d6040518163ffffffff1660e01b815260040160006040518083038186803b1580156107f057600080fd5b505afa158015610804573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f19168201604052602081101561082d57600080fd5b8101908080516040519392919084600160201b82111561084c57600080fd5b90830190602082018581111561086157600080fd5b82518660208202830111600160201b8211171561087d57600080fd5b82525081516020918201928201910280838360005b838110156108aa578181015183820152602001610892565b50505050905001604052505050905060606108c3611031565b90506000808080805b86518110156109605760006108f38883815181106108e657fe5b6020026020010151610704565b90506001600160a01b0381161580159061091f57508b6001600160a01b0316816001600160a01b031614155b1561092f57600190940193610957565b61094b88838151811061093e57fe5b60200260200101516112d7565b15610957576001909501945b506001016108cc565b508260405190808252806020026020018201604052801561098b578160200160208202803883390190505b509850826040519080825280602002602001820160405280156109b8578160200160208202803883390190505b509750836040519080825280602002602001820160405280156109e5578160200160208202803883390190505b509650821580156109f4575083155b15610a055750610b48945050505050565b60005b8651811015610b40576000610a228883815181106108e657fe5b90506001600160a01b03811615610aa057808b8581518110610a4057fe5b60200260200101906001600160a01b031690816001600160a01b031681525050878281518110610a6c57fe5b60200260200101518a8581518110610a8057fe5b6001600160e01b0319909216602092830291909101909101526001909301925b60005b8751811015610b3657888381518110610ab857fe5b60200260200101516001600160e01b031916888281518110610ad657fe5b60200260200101516001600160e01b0319161415610b2e57878181518110610afa57fe5b60200260200101518a8581518110610b0e57fe5b6001600160e01b0319909216602092830291909101909101526001909301925b600101610aa3565b5050600101610a08565b505050505050505b9193909250565b610b57610c4f565b6001600160a01b0316336001600160a01b031614610baa576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610be682828080602002602001604051908101604052809392919081815260200183836020028082843760009201919091525061133d92505050565b5050565b610bf2610c4f565b6001600160a01b0316336001600160a01b031614610c45576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610be6828261136d565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6000816001600160a01b0316610c8c83611476565b6001600160a01b03161492915050565b610ca4610c4f565b6001600160a01b0316336001600160a01b031614610cf7576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610d008161160d565b50565b6000610d0e82610704565b92915050565b6000610d0e826118eb565b610d27610c4f565b6001600160a01b0316336001600160a01b031614610d7a576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610d0081611a92565b610d8b610c4f565b6001600160a01b0316336001600160a01b031614610dde576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610d0081611cac565b606060005b8251811015610e4057610e11838281518110610e0457fe5b60200260200101516118eb565b15610e3857828181518110610e2257fe5b6020026020010160006001600160a01b03168152505b600101610dec565b5090919050565b610e4f610c4f565b6001600160a01b0316336001600160a01b031614610ea2576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b828114610ee05760405162461bcd60e51b8152600401808060200182810382526040815260200180611f5c6040913960400191505060405180910390fd5b610f1c848480806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250611d5f92505050565b610f5882828080602002602001604051908101604052809392919081815260200183836020028082843760009201919091525061133d92505050565b50505050565b610f66610c4f565b6001600160a01b0316336001600160a01b031614610fb9576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610be6828280806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250611d5f92505050565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a47081811480159061102957508115155b949350505050565b60408051600d8082526101c08201909252606091829190602082016101a0803883390190505090506368d4635360e01b8160008151811061106e57fe5b6001600160e01b0319909216602092830291909101909101528051631ed86f1960e01b908290600190811061109f57fe5b6001600160e01b0319909216602092830291909101909101528051630132059160e21b90829060029081106110d057fe5b6001600160e01b031990921660209283029190910190910152805163a063246160e01b908290600390811061110157fe5b6001600160e01b0319909216602092830291909101909101528051637ede4acf60e11b908290600490811061113257fe5b6001600160e01b0319909216602092830291909101909101528051630b4a779360e11b908290600590811061116357fe5b6001600160e01b031990921660209283029190910190910152805163708d5f4b60e11b908290600690811061119457fe5b6001600160e01b0319909216602092830291909101909101528051636fc8b30d60e01b90829060079081106111c557fe5b6001600160e01b03199092166020928302919091019091015280516337753d4b60e21b90829060089081106111f657fe5b6001600160e01b03199092166020928302919091019091015280516332abba4760e21b908290600990811061122757fe5b6001600160e01b0319909216602092830291909101909101528051631ab7710d60e01b908290600a90811061125857fe5b6001600160e01b0319909216602092830291909101909101528051621afd1560e01b908290600b90811061128857fe5b6001600160e01b0319909216602092830291909101909101528051631c5ebe2f60e01b908290600c9081106112b957fe5b6001600160e01b031990921660209283029190910190910152905090565b600060606112e3611031565b905060005b8151811015611333578181815181106112fd57fe5b60200260200101516001600160e01b031916846001600160e01b031916141561132b5760019250505061075e565b6001016112e8565b5060009392505050565b60005b8151811015610be65761136582828151811061135857fe5b602002602001015161160d565b600101611340565b806001600160a01b0316826001600160a01b031614610be657611398816001600160a01b0316610ff5565b6113d35760405162461bcd60e51b8152600401808060200182810382526047815260200180611ebb6047913960600191505060405180910390fd5b6113e5826001600160a01b0316610ff5565b6114205760405162461bcd60e51b815260040180806020018281038252604781526020018061212e6047913960600191505060405180910390fd5b61142982611a92565b6114328161160d565b806001600160a01b0316826001600160a01b03167f604776a8e689ec10f8bd0af8caa234d56abd3ec92fbb13833c4bff96ff7a096a60405160405180910390a35050565b600061148a826001600160a01b0316610ff5565b6114c55760405162461bcd60e51b815260040180806020018281038252604c815260200180612097604c913960600191505060405180910390fd5b6060826001600160a01b031663d8ad326d6040518163ffffffff1660e01b815260040160006040518083038186803b15801561150057600080fd5b505afa158015611514573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f19168201604052602081101561153d57600080fd5b8101908080516040519392919084600160201b82111561155c57600080fd5b90830190602082018581111561157157600080fd5b82518660208202830111600160201b8211171561158d57600080fd5b82525081516020918201928201910280838360005b838110156115ba5781810151838201526020016115a2565b50505050905001604052505050905060008090505b81518110156113335760006115e98383815181106108e657fe5b90506001600160a01b0381161561160457925061075e915050565b506001016115cf565b61161f816001600160a01b0316610ff5565b61165a5760405162461bcd60e51b815260040180806020018281038252603b815260200180611e42603b913960400191505060405180910390fd5b6060816001600160a01b031663d8ad326d6040518163ffffffff1660e01b815260040160006040518083038186803b15801561169557600080fd5b505afa1580156116a9573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f1916820160405260208110156116d257600080fd5b8101908080516040519392919084600160201b8211156116f157600080fd5b90830190602082018581111561170657600080fd5b82518660208202830111600160201b8211171561172257600080fd5b82525081516020918201928201910280838360005b8381101561174f578181015183820152602001611737565b50505050905001604052505050905060008090505b81518110156118b25760006001600160a01b03166117878383815181106108e657fe5b6001600160a01b0316146117cc5760405162461bcd60e51b815260040180806020018281038252605a815260200180611f02605a913960600191505060405180910390fd5b81516000908390839081106117dd57fe5b60200260200101516001600160e01b0319161415611842576040805162461bcd60e51b815260206004820181905260248201527f646f6573206e6f7420616c6c6f7720656d7074792066756e6374696f6e206964604482015290519081900360640190fd5b61185182828151811061093e57fe5b1561188d5760405162461bcd60e51b815260040180806020018281038252604881526020018061204f6048913960600191505060405180910390fd5b6118aa82828151811061189c57fe5b602002602001015184611d8f565b600101611764565b506040516001600160a01b038316907f0e8ab0265c955b9584b70d255e316c63717f1fb52ba0acfff63bca74ca2e8fad90600090a25050565b60006118ff826001600160a01b0316610ff5565b61193a5760405162461bcd60e51b815260040180806020018281038252603e815260200180611fe8603e913960400191505060405180910390fd5b6060826001600160a01b031663d8ad326d6040518163ffffffff1660e01b815260040160006040518083038186803b15801561197557600080fd5b505afa158015611989573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f1916820160405260208110156119b257600080fd5b8101908080516040519392919084600160201b8211156119d157600080fd5b9083019060208201858111156119e657600080fd5b82518660208202830111600160201b82111715611a0257600080fd5b82525081516020918201928201910280838360005b83811015611a2f578181015183820152602001611a17565b50505050905001604052505050905060008090505b8151811015611a885760006001600160a01b0316611a678383815181106108e657fe5b6001600160a01b031614611a805760009250505061075e565b600101611a44565b5060019392505050565b611a9a610c4f565b6001600160a01b0316336001600160a01b031614611aed576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b611aff816001600160a01b0316610ff5565b611b3a5760405162461bcd60e51b815260040180806020018281038252603e815260200180611e7d603e913960400191505060405180910390fd5b6060816001600160a01b031663d8ad326d6040518163ffffffff1660e01b815260040160006040518083038186803b158015611b7557600080fd5b505afa158015611b89573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526020811015611bb257600080fd5b8101908080516040519392919084600160201b821115611bd157600080fd5b908301906020820185811115611be657600080fd5b82518660208202830111600160201b82111715611c0257600080fd5b82525081516020918201928201910280838360005b83811015611c2f578181015183820152602001611c17565b50505050905001604052505050905060008090505b8151811015611c7357611c6b828281518110611c5c57fe5b60200260200101516000611d8f565b600101611c44565b506040516001600160a01b038316907f75f4e5771d2cdd015405ae76feb37f5792736e71ff18f8a9dd690772a48111a390600090a25050565b6001600160a01b038116611cf15760405162461bcd60e51b815260040180806020018281038252602c815260200180611fbc602c913960400191505060405180910390fd5b806001600160a01b0316611d03610c4f565b6001600160a01b03167f5a3e66efaa1e445ebd894728a69d6959842ea1e97bd79b892797106e270efcd960405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b60005b8151811015610be657611d87828281518110611d7a57fe5b6020026020010151611a92565b600101611d62565b806001600160a01b0316611da283610704565b6001600160a01b0316836001600160e01b0319167ff6614290ded30fe1ee19a73a2b3b13ad1e931b421546145bf7c4e98f35cba55660405160405180910390a4604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815281519081900360120181206001600160e01b031990941660208083019190915281830194909452815180820383018152606090910190915280519201919091205556fe4d6f64756c657350726f787952656769737472793a3a5f6164644d6f64756c653a2061646472657373206973206e6f74206120636f6e74726163744d6f64756c657350726f787952656769737472793a3a5f72656d6f76654d6f64756c653a2061646472657373206973206e6f74206120636f6e74726163744d6f64756c657350726f787952656769737472793a3a5f7265706c6163654d6f64756c65202d205f6e65774d6f64756c65496d706c206973206e6f74206120636f6e74726163744d6f64756c657350726f787952656769737472793a3a5f6164644d6f64756c653a2066756e6374696f6e20616c72656164792072656769737465726564202d20757365207265706c6163654d6f64756c652066756e6374696f6e4d6f64756c657350726f787952656769737472793a3a7265706c6163654d6f64756c65733a206172726179732073697a6573206d75737420626520657175616c4f776e61626c653a3a206163636573732064656e69656400000000000000000050726f78794f776e61626c653a3a73657450726f78794f776e65723a20696e76616c696420616464726573734d6f64756c657350726f787952656769737472793a3a5f63616e4164644d6f64756c653a2061646472657373206973206e6f74206120636f6e74726163744d6f64756c657350726f78793a746172676574206d6f64756c65206e6f7420726567697374657265644d6f64756c657350726f787952656769737472793a3a5f6164644d6f64756c653a2068617320612066756e6374696f6e2077697468207468652073616d65207369676e61747572654d6f64756c657350726f787952656769737472793a3a5f676574526567697374657265644d6f64756c65416464726573733a2061646472657373206973206e6f74206120636f6e74726163744d6f64756c657350726f787952656769737472793a3a636865636b436c617368696e6746756e6353656c6563746f72733a2061646472657373206973206e6f74206120636f6e74726163744d6f64756c657350726f787952656769737472793a3a5f7265706c6163654d6f64756c65202d205f6f6c644d6f64756c65496d706c206973206e6f74206120636f6e7472616374a265627a7a72315820b12b171dc36bcfcfd17969254d7b1580373152ef66f13c84f5035f6f0e23e9c164736f6c6343000511003250726f78794f776e61626c653a3a73657450726f78794f776e65723a20696e76616c69642061646472657373",
+    "deployedBytecode": "0x6080604052600436106100c15760003560e01c806368d463531161007f578063caaee91c11610059578063caaee91c1461048d578063ddd4f52c146104c0578063e11abe96146105be578063fdbc959e14610689576100c1565b806368d46353146103f35780636fc8b30d14610427578063a06324611461045a576100c1565b80621afd151461017f57806304c81644146102905780631694ef261461030d5780631ab7710d146103485780631c5ebe2f146103795780631ed86f19146103c0575b60006100d86000356001600160e01b031916610704565b90506001600160a01b03811661011f5760405162461bcd60e51b81526004018080602001828103825260298152602001806120266029913960400191505060405180910390fd5b60606000368080601f016020809104026020016040519081016040528093929190818152602001838380828437600092018290525084519495509384935091505060208401855af43d604051816000823e82801561017b578282f35b8282fd5b34801561018b57600080fd5b506101b2600480360360208110156101a257600080fd5b50356001600160a01b0316610763565b60405180806020018060200180602001848103845287818151815260200191508051906020019060200280838360005b838110156101fa5781810151838201526020016101e2565b50505050905001848103835286818151815260200191508051906020019060200280838360005b83811015610239578181015183820152602001610221565b50505050905001848103825285818151815260200191508051906020019060200280838360005b83811015610278578181015183820152602001610260565b50505050905001965050505050505060405180910390f35b34801561029c57600080fd5b5061030b600480360360208110156102b357600080fd5b810190602081018135600160201b8111156102cd57600080fd5b8201836020820111156102df57600080fd5b803590602001918460208302840111600160201b8311171561030057600080fd5b509092509050610b4f565b005b34801561031957600080fd5b5061030b6004803603604081101561033057600080fd5b506001600160a01b0381358116916020013516610bea565b34801561035457600080fd5b5061035d610c4f565b604080516001600160a01b039092168252519081900360200190f35b34801561038557600080fd5b506103ac6004803603602081101561039c57600080fd5b50356001600160a01b0316610c77565b604080519115158252519081900360200190f35b3480156103cc57600080fd5b5061030b600480360360208110156103e357600080fd5b50356001600160a01b0316610c9c565b3480156103ff57600080fd5b5061035d6004803603602081101561041657600080fd5b50356001600160e01b031916610d03565b34801561043357600080fd5b506103ac6004803603602081101561044a57600080fd5b50356001600160a01b0316610d14565b34801561046657600080fd5b5061030b6004803603602081101561047d57600080fd5b50356001600160a01b0316610d1f565b34801561049957600080fd5b5061030b600480360360208110156104b057600080fd5b50356001600160a01b0316610d83565b3480156104cc57600080fd5b5061056e600480360360208110156104e357600080fd5b810190602081018135600160201b8111156104fd57600080fd5b82018360208201111561050f57600080fd5b803590602001918460208302840111600160201b8311171561053057600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929550610de7945050505050565b60408051602080825283518183015283519192839290830191858101910280838360005b838110156105aa578181015183820152602001610592565b505050509050019250505060405180910390f35b3480156105ca57600080fd5b5061030b600480360360408110156105e157600080fd5b810190602081018135600160201b8111156105fb57600080fd5b82018360208201111561060d57600080fd5b803590602001918460208302840111600160201b8311171561062e57600080fd5b919390929091602081019035600160201b81111561064b57600080fd5b82018360208201111561065d57600080fd5b803590602001918460208302840111600160201b8311171561067e57600080fd5b509092509050610e47565b34801561069557600080fd5b5061030b600480360360208110156106ac57600080fd5b810190602081018135600160201b8111156106c657600080fd5b8201836020820111156106d857600080fd5b803590602001918460208302840111600160201b831117156106f957600080fd5b509092509050610f5e565b604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815281519081900360120181206001600160e01b031984166020808401919091528284019190915282518083038401815260609092019092528051910120545b919050565b606080606061077a846001600160a01b0316610ff5565b6107b55760405162461bcd60e51b815260040180806020018281038252604b8152602001806120e3604b913960600191505060405180910390fd5b6060846001600160a01b031663d8ad326d6040518163ffffffff1660e01b815260040160006040518083038186803b1580156107f057600080fd5b505afa158015610804573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f19168201604052602081101561082d57600080fd5b8101908080516040519392919084600160201b82111561084c57600080fd5b90830190602082018581111561086157600080fd5b82518660208202830111600160201b8211171561087d57600080fd5b82525081516020918201928201910280838360005b838110156108aa578181015183820152602001610892565b50505050905001604052505050905060606108c3611031565b90506000808080805b86518110156109605760006108f38883815181106108e657fe5b6020026020010151610704565b90506001600160a01b0381161580159061091f57508b6001600160a01b0316816001600160a01b031614155b1561092f57600190940193610957565b61094b88838151811061093e57fe5b60200260200101516112d7565b15610957576001909501945b506001016108cc565b508260405190808252806020026020018201604052801561098b578160200160208202803883390190505b509850826040519080825280602002602001820160405280156109b8578160200160208202803883390190505b509750836040519080825280602002602001820160405280156109e5578160200160208202803883390190505b509650821580156109f4575083155b15610a055750610b48945050505050565b60005b8651811015610b40576000610a228883815181106108e657fe5b90506001600160a01b03811615610aa057808b8581518110610a4057fe5b60200260200101906001600160a01b031690816001600160a01b031681525050878281518110610a6c57fe5b60200260200101518a8581518110610a8057fe5b6001600160e01b0319909216602092830291909101909101526001909301925b60005b8751811015610b3657888381518110610ab857fe5b60200260200101516001600160e01b031916888281518110610ad657fe5b60200260200101516001600160e01b0319161415610b2e57878181518110610afa57fe5b60200260200101518a8581518110610b0e57fe5b6001600160e01b0319909216602092830291909101909101526001909301925b600101610aa3565b5050600101610a08565b505050505050505b9193909250565b610b57610c4f565b6001600160a01b0316336001600160a01b031614610baa576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610be682828080602002602001604051908101604052809392919081815260200183836020028082843760009201919091525061133d92505050565b5050565b610bf2610c4f565b6001600160a01b0316336001600160a01b031614610c45576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610be6828261136d565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6000816001600160a01b0316610c8c83611476565b6001600160a01b03161492915050565b610ca4610c4f565b6001600160a01b0316336001600160a01b031614610cf7576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610d008161160d565b50565b6000610d0e82610704565b92915050565b6000610d0e826118eb565b610d27610c4f565b6001600160a01b0316336001600160a01b031614610d7a576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610d0081611a92565b610d8b610c4f565b6001600160a01b0316336001600160a01b031614610dde576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610d0081611cac565b606060005b8251811015610e4057610e11838281518110610e0457fe5b60200260200101516118eb565b15610e3857828181518110610e2257fe5b6020026020010160006001600160a01b03168152505b600101610dec565b5090919050565b610e4f610c4f565b6001600160a01b0316336001600160a01b031614610ea2576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b828114610ee05760405162461bcd60e51b8152600401808060200182810382526040815260200180611f5c6040913960400191505060405180910390fd5b610f1c848480806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250611d5f92505050565b610f5882828080602002602001604051908101604052809392919081815260200183836020028082843760009201919091525061133d92505050565b50505050565b610f66610c4f565b6001600160a01b0316336001600160a01b031614610fb9576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b610be6828280806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250611d5f92505050565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a47081811480159061102957508115155b949350505050565b60408051600d8082526101c08201909252606091829190602082016101a0803883390190505090506368d4635360e01b8160008151811061106e57fe5b6001600160e01b0319909216602092830291909101909101528051631ed86f1960e01b908290600190811061109f57fe5b6001600160e01b0319909216602092830291909101909101528051630132059160e21b90829060029081106110d057fe5b6001600160e01b031990921660209283029190910190910152805163a063246160e01b908290600390811061110157fe5b6001600160e01b0319909216602092830291909101909101528051637ede4acf60e11b908290600490811061113257fe5b6001600160e01b0319909216602092830291909101909101528051630b4a779360e11b908290600590811061116357fe5b6001600160e01b031990921660209283029190910190910152805163708d5f4b60e11b908290600690811061119457fe5b6001600160e01b0319909216602092830291909101909101528051636fc8b30d60e01b90829060079081106111c557fe5b6001600160e01b03199092166020928302919091019091015280516337753d4b60e21b90829060089081106111f657fe5b6001600160e01b03199092166020928302919091019091015280516332abba4760e21b908290600990811061122757fe5b6001600160e01b0319909216602092830291909101909101528051631ab7710d60e01b908290600a90811061125857fe5b6001600160e01b0319909216602092830291909101909101528051621afd1560e01b908290600b90811061128857fe5b6001600160e01b0319909216602092830291909101909101528051631c5ebe2f60e01b908290600c9081106112b957fe5b6001600160e01b031990921660209283029190910190910152905090565b600060606112e3611031565b905060005b8151811015611333578181815181106112fd57fe5b60200260200101516001600160e01b031916846001600160e01b031916141561132b5760019250505061075e565b6001016112e8565b5060009392505050565b60005b8151811015610be65761136582828151811061135857fe5b602002602001015161160d565b600101611340565b806001600160a01b0316826001600160a01b031614610be657611398816001600160a01b0316610ff5565b6113d35760405162461bcd60e51b8152600401808060200182810382526047815260200180611ebb6047913960600191505060405180910390fd5b6113e5826001600160a01b0316610ff5565b6114205760405162461bcd60e51b815260040180806020018281038252604781526020018061212e6047913960600191505060405180910390fd5b61142982611a92565b6114328161160d565b806001600160a01b0316826001600160a01b03167f604776a8e689ec10f8bd0af8caa234d56abd3ec92fbb13833c4bff96ff7a096a60405160405180910390a35050565b600061148a826001600160a01b0316610ff5565b6114c55760405162461bcd60e51b815260040180806020018281038252604c815260200180612097604c913960600191505060405180910390fd5b6060826001600160a01b031663d8ad326d6040518163ffffffff1660e01b815260040160006040518083038186803b15801561150057600080fd5b505afa158015611514573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f19168201604052602081101561153d57600080fd5b8101908080516040519392919084600160201b82111561155c57600080fd5b90830190602082018581111561157157600080fd5b82518660208202830111600160201b8211171561158d57600080fd5b82525081516020918201928201910280838360005b838110156115ba5781810151838201526020016115a2565b50505050905001604052505050905060008090505b81518110156113335760006115e98383815181106108e657fe5b90506001600160a01b0381161561160457925061075e915050565b506001016115cf565b61161f816001600160a01b0316610ff5565b61165a5760405162461bcd60e51b815260040180806020018281038252603b815260200180611e42603b913960400191505060405180910390fd5b6060816001600160a01b031663d8ad326d6040518163ffffffff1660e01b815260040160006040518083038186803b15801561169557600080fd5b505afa1580156116a9573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f1916820160405260208110156116d257600080fd5b8101908080516040519392919084600160201b8211156116f157600080fd5b90830190602082018581111561170657600080fd5b82518660208202830111600160201b8211171561172257600080fd5b82525081516020918201928201910280838360005b8381101561174f578181015183820152602001611737565b50505050905001604052505050905060008090505b81518110156118b25760006001600160a01b03166117878383815181106108e657fe5b6001600160a01b0316146117cc5760405162461bcd60e51b815260040180806020018281038252605a815260200180611f02605a913960600191505060405180910390fd5b81516000908390839081106117dd57fe5b60200260200101516001600160e01b0319161415611842576040805162461bcd60e51b815260206004820181905260248201527f646f6573206e6f7420616c6c6f7720656d7074792066756e6374696f6e206964604482015290519081900360640190fd5b61185182828151811061093e57fe5b1561188d5760405162461bcd60e51b815260040180806020018281038252604881526020018061204f6048913960600191505060405180910390fd5b6118aa82828151811061189c57fe5b602002602001015184611d8f565b600101611764565b506040516001600160a01b038316907f0e8ab0265c955b9584b70d255e316c63717f1fb52ba0acfff63bca74ca2e8fad90600090a25050565b60006118ff826001600160a01b0316610ff5565b61193a5760405162461bcd60e51b815260040180806020018281038252603e815260200180611fe8603e913960400191505060405180910390fd5b6060826001600160a01b031663d8ad326d6040518163ffffffff1660e01b815260040160006040518083038186803b15801561197557600080fd5b505afa158015611989573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f1916820160405260208110156119b257600080fd5b8101908080516040519392919084600160201b8211156119d157600080fd5b9083019060208201858111156119e657600080fd5b82518660208202830111600160201b82111715611a0257600080fd5b82525081516020918201928201910280838360005b83811015611a2f578181015183820152602001611a17565b50505050905001604052505050905060008090505b8151811015611a885760006001600160a01b0316611a678383815181106108e657fe5b6001600160a01b031614611a805760009250505061075e565b600101611a44565b5060019392505050565b611a9a610c4f565b6001600160a01b0316336001600160a01b031614611aed576040805162461bcd60e51b81526020600482015260176024820152600080516020611f9c833981519152604482015290519081900360640190fd5b611aff816001600160a01b0316610ff5565b611b3a5760405162461bcd60e51b815260040180806020018281038252603e815260200180611e7d603e913960400191505060405180910390fd5b6060816001600160a01b031663d8ad326d6040518163ffffffff1660e01b815260040160006040518083038186803b158015611b7557600080fd5b505afa158015611b89573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526020811015611bb257600080fd5b8101908080516040519392919084600160201b821115611bd157600080fd5b908301906020820185811115611be657600080fd5b82518660208202830111600160201b82111715611c0257600080fd5b82525081516020918201928201910280838360005b83811015611c2f578181015183820152602001611c17565b50505050905001604052505050905060008090505b8151811015611c7357611c6b828281518110611c5c57fe5b60200260200101516000611d8f565b600101611c44565b506040516001600160a01b038316907f75f4e5771d2cdd015405ae76feb37f5792736e71ff18f8a9dd690772a48111a390600090a25050565b6001600160a01b038116611cf15760405162461bcd60e51b815260040180806020018281038252602c815260200180611fbc602c913960400191505060405180910390fd5b806001600160a01b0316611d03610c4f565b6001600160a01b03167f5a3e66efaa1e445ebd894728a69d6959842ea1e97bd79b892797106e270efcd960405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b60005b8151811015610be657611d87828281518110611d7a57fe5b6020026020010151611a92565b600101611d62565b806001600160a01b0316611da283610704565b6001600160a01b0316836001600160e01b0319167ff6614290ded30fe1ee19a73a2b3b13ad1e931b421546145bf7c4e98f35cba55660405160405180910390a4604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815281519081900360120181206001600160e01b031990941660208083019190915281830194909452815180820383018152606090910190915280519201919091205556fe4d6f64756c657350726f787952656769737472793a3a5f6164644d6f64756c653a2061646472657373206973206e6f74206120636f6e74726163744d6f64756c657350726f787952656769737472793a3a5f72656d6f76654d6f64756c653a2061646472657373206973206e6f74206120636f6e74726163744d6f64756c657350726f787952656769737472793a3a5f7265706c6163654d6f64756c65202d205f6e65774d6f64756c65496d706c206973206e6f74206120636f6e74726163744d6f64756c657350726f787952656769737472793a3a5f6164644d6f64756c653a2066756e6374696f6e20616c72656164792072656769737465726564202d20757365207265706c6163654d6f64756c652066756e6374696f6e4d6f64756c657350726f787952656769737472793a3a7265706c6163654d6f64756c65733a206172726179732073697a6573206d75737420626520657175616c4f776e61626c653a3a206163636573732064656e69656400000000000000000050726f78794f776e61626c653a3a73657450726f78794f776e65723a20696e76616c696420616464726573734d6f64756c657350726f787952656769737472793a3a5f63616e4164644d6f64756c653a2061646472657373206973206e6f74206120636f6e74726163744d6f64756c657350726f78793a746172676574206d6f64756c65206e6f7420726567697374657265644d6f64756c657350726f787952656769737472793a3a5f6164644d6f64756c653a2068617320612066756e6374696f6e2077697468207468652073616d65207369676e61747572654d6f64756c657350726f787952656769737472793a3a5f676574526567697374657265644d6f64756c65416464726573733a2061646472657373206973206e6f74206120636f6e74726163744d6f64756c657350726f787952656769737472793a3a636865636b436c617368696e6746756e6353656c6563746f72733a2061646472657373206973206e6f74206120636f6e74726163744d6f64756c657350726f787952656769737472793a3a5f7265706c6163654d6f64756c65202d205f6f6c644d6f64756c65496d706c206973206e6f74206120636f6e7472616374a265627a7a72315820b12b171dc36bcfcfd17969254d7b1580373152ef66f13c84f5035f6f0e23e9c164736f6c63430005110032",
+    "devdoc": {
+        "methods": {
+            "addModule(address)": {
+                "params": {
+                    "_impl": "Module implementation address"
+                }
+            },
+            "addModules(address[])": {
+                "params": {
+                    "_implementations": "Modules implementation addresses"
+                }
+            },
+            "canAddModule(address)": {
+                "params": {
+                    "_impl": "Module implementation address to verify"
+                },
+                "return": "True if module can be added"
+            },
+            "canNotAddModules(address[])": {
+                "params": {
+                    "_implementations": "modules implementation addresses to verify"
+                },
+                "return": "addresses of registered modules"
+            },
+            "checkClashingFuncSelectors(address)": {
+                "params": {
+                    "_newModule": "module implementation which functions to verify"
+                },
+                "return": "Clashing functions signatures and corresponding modules (contracts) addresses"
+            },
+            "getFuncImplementation(bytes4)": {
+                "params": {
+                    "_sig": "Function signature to get impmementation address for"
+                },
+                "return": "Function's contract implelementation address"
+            },
+            "getProxyOwner()": {
+                "return": "_owner Address of the owner."
+            },
+            "isModuleRegistered(address)": {
+                "params": {
+                    "_impl": "deployment address to verify"
+                },
+                "return": "true if _impl address is a registered module"
+            },
+            "removeModule(address)": {
+                "params": {
+                    "_impl": "implementation address"
+                }
+            },
+            "removeModules(address[])": {
+                "params": {
+                    "_implementations": "Modules implementation addresses"
+                }
+            },
+            "replaceModule(address,address)": {
+                "params": {
+                    "_newModuleImpl": "Module implementation address to add",
+                    "_oldModuleImpl": "Module implementation address to remove"
+                }
+            },
+            "replaceModules(address[],address[])": {
+                "params": {
+                    "_implementationsFrom": "Modules to replace",
+                    "_implementationsTo": "Replacing modules"
+                }
+            },
+            "setProxyOwner(address)": {
+                "params": {
+                    "_owner": "Address of the owner."
+                }
+            }
+        }
+    },
+    "userdoc": {
+        "methods": {
+            "addModule(address)": {
+                "notice": "Add module functions. Overriding functions is not allowed. To replace modules use replaceModule function."
+            },
+            "addModules(address[])": {
+                "notice": "Add modules functions."
+            },
+            "canAddModule(address)": {
+                "notice": "Verifies if no functions from the module already registered"
+            },
+            "canNotAddModules(address[])": {
+                "notice": "Multiple modules verification if there are functions from the modules already registered"
+            },
+            "checkClashingFuncSelectors(address)": {
+                "notice": "Used externally to verify module being added for clashing"
+            },
+            "getProxyOwner()": {
+                "notice": "Return address of the owner."
+            },
+            "isModuleRegistered(address)": {
+                "notice": "Verifies the deployed contract address is a registered module contract"
+            },
+            "removeModule(address)": {
+                "notice": "To disable module - set all its functions implementation to address(0)"
+            },
+            "removeModules(address[])": {
+                "notice": "Add modules functions."
+            },
+            "replaceModule(address,address)": {
+                "notice": "Replace module - remove the previous, add the new one"
+            },
+            "replaceModules(address[],address[])": {
+                "notice": "Add modules functions."
+            },
+            "setProxyOwner(address)": {
+                "notice": "Set address of the owner (only owner can call this function)"
+            }
+        },
+        "notice": "ModulesProxy serves as a storage processed by a set of logic contracts - modules Modules functions are registered in the contract's slots generated per func sig All the function calls except for own Proxy functions are delegated to the registered functions The ModulesProxy is designed as a universal solution for refactorig contracts reaching a 24K size limit (EIP-170) * Upgradability is implemented at a module level to provide consistency It does not allow to replace separate functions - only the whole module meaning that if a module being registered contains other modules function signatures then these modulea should be replaced completely - all the functions should be removed to avoid leftovers or accidental replacements and therefore functional inconsistency. * A module is either a new non-overlapping with registered modules or a complete replacement of another registered module in which case all the old module functions are unregistered and then the new module functions are registered There is also a separate function to unregister a module which unregisters all the functions There is no option to unregister a subset of module functions - one should use pausable functionality to achieve this"
+    },
+    "storageLayout": {
+        "storage": [],
+        "types": null
+    }
+}

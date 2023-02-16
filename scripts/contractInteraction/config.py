@@ -8,7 +8,17 @@ def loadConfig():
     thisNetwork = network.show_active()
     if thisNetwork == "development":
         acct = accounts[0]
-        configFile = open(
+        devAcc = environ.get('ACC_NAME')
+        if(devAcc != None):
+            acct = accounts.load(devAcc)
+        else: 
+            acct = accounts.load("rskdeployer")
+        netName = environ.get('DEV_NET_NAME')
+        if(netName != None): 
+            configPath = "./scripts/contractInteraction/" + netName + "_contracts.json"
+            configFile = open(configPath)
+        else:
+            configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
@@ -16,6 +26,14 @@ def loadConfig():
             './scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet-dev":
         acct = accounts.load("rskdeployerdev")
+        configFile = open(
+            './scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-shared":
+        acct = accounts.load("rskdeployershared")
+        configFile = open(
+            './scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-dev-shared":
+        acct = accounts.load("rskdeployerdevshared")
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "testnet-ws":
@@ -39,7 +57,25 @@ def loadConfig():
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/testnet_contracts.json')
+    elif thisNetwork == "testnet-pub":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
+        acct = accounts.load("rskdeployer")
+        configFile = open(
+            './scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet2":
+        acct = accounts.load("rskdeployer")
+        configFile = open(
+            './scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-ws":
+        acct = accounts.load("rskdeployer")
+        configFile = open(
+            './scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet-websocket":
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "rsk-mainnet2-ws":
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/mainnet_contracts.json')
@@ -47,6 +83,10 @@ def loadConfig():
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/bsc_testnet_contracts.json')
+    elif thisNetwork == "sepolia":
+        acct = accounts.load("rskdeployer")
+        configFile = open(
+            './scripts/contractInteraction/sepolia_contracts.json')
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)

@@ -7,6 +7,8 @@
 const { ethers, waffle } = require("hardhat");
 const { expect } = require("chai");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { deployMockContract } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const SOV = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
@@ -46,7 +48,7 @@ contract("PriceFeeds", (accounts) => {
             testToken1.address,
             testWrbtc.address
         );
-        priceFeedsV1PoolOracleMockupTestToken1 = await waffle.deployMockContract(
+        priceFeedsV1PoolOracleMockupTestToken1 = await deployMockContract(
             sender,
             IV1PoolOracle.abi
         );
@@ -66,7 +68,7 @@ contract("PriceFeeds", (accounts) => {
             testToken2.address,
             testWrbtc.address
         );
-        priceFeedsV1PoolOracleMockupTestToken2 = await waffle.deployMockContract(
+        priceFeedsV1PoolOracleMockupTestToken2 = await deployMockContract(
             sender,
             IV1PoolOracle.abi
         );
@@ -87,10 +89,7 @@ contract("PriceFeeds", (accounts) => {
             doc.address,
             testWrbtc.address
         );
-        priceFeedsV1PoolOracleMockupDOC = await waffle.deployMockContract(
-            sender,
-            IV1PoolOracle.abi
-        );
+        priceFeedsV1PoolOracleMockupDOC = await deployMockContract(sender, IV1PoolOracle.abi);
         await priceFeedsV1PoolOracleMockupDOC.mock.latestAnswer.returns(docPrice);
         await priceFeedsV1PoolOracleMockupDOC.mock.latestPrice.returns(docPrice);
         await priceFeedsV1PoolOracleMockupDOC.mock.liquidityPool.returns(

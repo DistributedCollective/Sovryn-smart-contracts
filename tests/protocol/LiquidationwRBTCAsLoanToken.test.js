@@ -9,8 +9,8 @@
  */
 
 const { BN } = require("@openzeppelin/test-helpers");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const FeesEvents = artifacts.require("FeesEvents");
 
@@ -68,10 +68,10 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
 
     describe("Tests liquidation handling ", () => {
         /*
-			Test with different rates so the currentMargin is <= liquidationIncentivePercent
-			or > liquidationIncentivePercent
-			liquidationIncentivePercent = 5e18 by default
-		*/
+            Test with different rates so the currentMargin is <= liquidationIncentivePercent
+            or > liquidationIncentivePercent
+            liquidationIncentivePercent = 5e18 by default
+        */
         it("Test liquidate with rate 1e23", async () => {
             const rate = new BN(10).pow(new BN(23));
             await liquidate(
@@ -107,8 +107,8 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
         });
 
         /*
-			Test if fails when the position is healthy currentMargin > maintenanceRate
-		*/
+            Test if fails when the position is healthy currentMargin > maintenanceRate
+        */
         it("Test liquidate healthy position should fail", async () => {
             await liquidate_healthy_position_should_fail(
                 accounts,

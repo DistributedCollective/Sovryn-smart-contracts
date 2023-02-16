@@ -4,6 +4,9 @@
  */
 
 pragma solidity 0.5.17;
+pragma experimental ABIEncoderV2;
+
+import "../lib/MarginTradeStructHelpers.sol";
 
 interface ProtocolLike {
     function borrowOrTradeFromPool(
@@ -11,12 +14,12 @@ interface ProtocolLike {
         bytes32 loanId, // if 0, start a new loan
         bool isTorqueLoan,
         uint256 initialMargin,
-        address[4] calldata sentAddresses,
+        MarginTradeStructHelpers.SentAddresses calldata sentAddresses,
         // lender: must match loan if loanId provided
         // borrower: must match loan if loanId provided
         // receiver: receiver of funds (address(0) assumes borrower address)
         // manager: delegated manager of loan unless address(0)
-        uint256[5] calldata sentValues,
+        MarginTradeStructHelpers.SentAmounts calldata sentValues,
         // newRate: new loan interest rate
         // newPrincipal: new loan size (borrowAmount + any borrowed interest)
         // torqueInterest: new amount of interest to escrow for Torque loan (determines initial loan length)
@@ -77,4 +80,33 @@ interface ProtocolLike {
         address destToken,
         uint256 sourceTokenAmount
     ) external view returns (uint256);
+
+    function borrowerNonce(address) external view returns (uint256);
+
+    function closeWithSwap(
+        bytes32 loanId,
+        address receiver,
+        uint256 swapAmount, // denominated in collateralToken
+        bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
+        bytes calldata // for future use /*loanDataBytes*/
+    )
+        external
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        );
+
+    function closeWithDeposit(
+        bytes32 loanId,
+        address receiver,
+        uint256 depositAmount // denominated in loanToken
+    )
+        external
+        payable
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        );
 }

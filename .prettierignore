@@ -13,10 +13,12 @@ coverage.json
 docs
 truffle-config.js
 package.json
-hardhat.config.js
 hardhat-ganache-tests.config.js
 cache
 brownie-config.yaml
 .vscode
 abi
+.pytest_cache
+*.md
 types/
+venv/

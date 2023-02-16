@@ -25,7 +25,7 @@ def main():
     contracts = json.load(configFile)
 
     vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry'], abi=VestingRegistry.abi, owner=acct)
-    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
+    staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
     SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
 
     DAY = 24 * 60 * 60
@@ -34,8 +34,8 @@ def main():
     balanceBefore = acct.balance()
     totalAmount = 0
 
-    # amounts examples: 3787.24, 627.22
-    data = parseFile('./scripts/deployment/distribution/vestings4-bug-bounty.csv', 10**16)
+    # amounts examples: "6,516.85", 912.92 - mind 2 decimals strictly!
+    data = parseFile('./scripts/deployment/distribution/vestings21_check.csv', 10**16)
     totalAmount += data["totalAmount"]
 
     for teamVesting in data["teamVestingList"]:
@@ -72,8 +72,8 @@ def main():
         # vestingLogic = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=acct)
         # vestingLogic.stakeTokens(amount)
 
-        # stakes = staking.getStakes(vestingAddress)
-        # print(stakes)
+        stakes = staking.getStakes(vestingAddress)
+        print(stakes)
 
     # 5825.7
     print("=======================================")

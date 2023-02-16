@@ -26,7 +26,7 @@ contract Vesting is TeamVesting {
         address _tokenOwner,
         uint256 _cliff,
         uint256 _duration,
-        address _feeSharingProxy
+        address _feeSharingCollectorProxy
     )
         public
         TeamVesting(
@@ -36,7 +36,7 @@ contract Vesting is TeamVesting {
             _tokenOwner,
             _cliff,
             _duration,
-            _feeSharingProxy
+            _feeSharingCollectorProxy
         )
     {}
 

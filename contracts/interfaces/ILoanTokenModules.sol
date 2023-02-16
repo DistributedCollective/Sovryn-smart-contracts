@@ -274,4 +274,6 @@ interface ILoanTokenModules {
     function balanceOf(address _owner) external view returns (uint256);
 
     function totalSupply() external view returns (uint256);
+
+    function loanParamsIds(uint256) external view returns (bytes32);
 }

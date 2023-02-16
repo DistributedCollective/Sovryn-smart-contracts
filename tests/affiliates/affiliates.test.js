@@ -25,18 +25,17 @@
 
 const { BN, constants, send, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect, waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
 // const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard"); // replaced by MockLoanTokenLogic
 const LoanToken = artifacts.require("LoanToken");
-const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic"); // added functionality for isolated unit testing
 const ILoanTokenModulesMock = artifacts.require("ILoanTokenModulesMock");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 const LockedSOV = artifacts.require("LockedSOV");
-const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
-const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
@@ -47,6 +46,7 @@ const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const Affiliates = artifacts.require("Affiliates");
+const mutexUtils = require("../reentrancy/utils");
 
 const {
     getSUSD,
@@ -83,6 +83,8 @@ contract("Affiliates", (accounts) => {
     let swapsSovryn;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();
@@ -118,14 +120,15 @@ contract("Affiliates", (accounts) => {
             await sovryn.setLoanPool([loanTokenV2.address], [loanTokenAddress]);
         }
 
-        // Creating the Staking Instance.
-        stakingLogic = await StakingLogic.new(SUSD.address);
-        staking = await StakingProxy.new(SUSD.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(SUSD.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Creating the FeeSharing Instance.
-        feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);
+        feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
+            constants.ZERO_ADDRESS,
+            staking.address
+        );
 
         // Creating the Vesting Instance.
         vestingLogic = await VestingLogic.new();
@@ -134,7 +137,7 @@ contract("Affiliates", (accounts) => {
             vestingFactory.address,
             SUSD.address,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             owner // This should be Governance Timelock Contract.
         );
         vestingFactory.transferOwnership(vestingRegistry.address);
@@ -168,17 +171,17 @@ contract("Affiliates", (accounts) => {
 
         {
             /**
-			struct LoanParams {
-				bytes32 id; // id of loan params object
-				bool active; // if false, this object has been disabled by the owner and can't be used for future loans
-				address owner; // owner of this object
-				address loanToken; // the token being loaned
-				address collateralToken; // the required collateral token
-				uint256 minInitialMargin; // the minimum allowed initial margin
-				uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
-				uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
-			}
-		*/
+            struct LoanParams {
+                bytes32 id; // id of loan params object
+                bool active; // if false, this object has been disabled by the owner and can't be used for future loans
+                address owner; // owner of this object
+                address loanToken; // the token being loaned
+                address collateralToken; // the required collateral token
+                uint256 minInitialMargin; // the minimum allowed initial margin
+                uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
+                uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
+            }
+        */
         }
         params = [
             "0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object
@@ -780,17 +783,17 @@ contract("Affiliates", (accounts) => {
 
         {
             /**
-			struct LoanParams {
-				bytes32 id; // id of loan params object
-				bool active; // if false, this object has been disabled by the owner and can't be used for future loans
-				address owner; // owner of this object
-				address loanToken; // the token being loaned
-				address collateralToken; // the required collateral token
-				uint256 minInitialMargin; // the minimum allowed initial margin
-				uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
-				uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
-			}
-		*/
+            struct LoanParams {
+                bytes32 id; // id of loan params object
+                bool active; // if false, this object has been disabled by the owner and can't be used for future loans
+                address owner; // owner of this object
+                address loanToken; // the token being loaned
+                address collateralToken; // the required collateral token
+                uint256 minInitialMargin; // the minimum allowed initial margin
+                uint256 maintenanceMargin; // an unhealthy loan when current margin is at or below this value
+                uint256 maxLoanTerm; // the maximum term for new loans (0 means there's no max term)
+            }
+        */
         }
         params = [
             "0x0000000000000000000000000000000000000000000000000000000000000000", // bytes32 id; // id of loan params object

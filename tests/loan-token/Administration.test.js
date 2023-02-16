@@ -12,14 +12,15 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
+const mutexUtils = require("../reentrancy/utils");
 
 const {
     getSUSD,
@@ -50,6 +51,9 @@ contract("LoanTokenAdministration", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         SUSD = await getSUSD();
         RBTC = await getRBTC();
         WRBTC = await getWRBTC();
@@ -144,11 +148,11 @@ contract("LoanTokenAdministration", (accounts) => {
         });
 
         /*
-			1. pause a function
-			2. try to call the function - should fail
-			3. reactivate it
-			4. try to call the function - should succeed
-		*/
+            1. pause a function
+            2. try to call the function - should fail
+            3. reactivate it
+            4. try to call the function - should succeed
+        */
         it("Test toggle function pause", async () => {
             await lend_to_pool(loanToken, SUSD, owner);
             const functionSignature =

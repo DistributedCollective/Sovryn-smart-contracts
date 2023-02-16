@@ -43,3 +43,7 @@ abi
 types/
 typechain/
 !.github/
+*/deployments/localhost
+*/deployments/*forked*
+venv/
+!/external/artifacts/

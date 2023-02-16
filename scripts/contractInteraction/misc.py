@@ -3,27 +3,34 @@ from brownie.network.contract import InterfaceContainer
 import json
 import time;
 import copy
-from scripts.utils import * 
+from scripts.utils import *
+from scripts.contractInteraction.token import * 
 import scripts.contractInteraction.config as conf
 
-def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
+def loadAggregator(aggregatorAddress):
     abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
     abi = json.load(abiFile)
-    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    return Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+
+def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
+    aggregator = loadAggregator(aggregatorAddress)
     aggregator.redeem(tokenAddress, amount)
 
 #used to exchange XUSD -> USDT on the aggregator
 def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
-    abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
-    abi = json.load(abiFile)
-    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    aggregator = loadAggregator(aggregatorAddress)
     data = aggregator.redeem.encode_input(tokenAddress, amount)
     sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
 
+def redeemBTCWithXUSD(amountOfXUSD):
+    redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DoC'], amountOfXUSD)
+    tokenApproveFromMS(conf.contracts['DoC'], conf.contracts['MoneyOnChain'], amountOfXUSD)
+    redeemFreeDocWithMS(amountOfXUSD)
+
+
+
 def mintAggregatedToken(aggregatorAddress, tokenAddress, amount):
-    abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
-    abi = json.load(abiFile)
-    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    aggregator = loadAggregator(aggregatorAddress)
     token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
     data = token.approve(aggregatorAddress, amount)
     tx = aggregator.mint(tokenAddress, amount)
@@ -31,12 +38,10 @@ def mintAggregatedToken(aggregatorAddress, tokenAddress, amount):
 
 #used to exchange USDT -> XUSD on the aggregator
 def mintAggregatedTokenWithMS(aggregatorAddress, tokenAddress, amount):
-    abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
-    abi = json.load(abiFile)
-    aggregator = Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
+    aggregator = loadAggregator(aggregatorAddress)
     token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
-    if(token.allowance(conf.acct, aggregatorAddress) < amount):
-        data = token.approve(aggregatorAddress, amount)
+    if(token.allowance(conf.contracts['multisig'], aggregatorAddress) < amount):
+        data = token.approve.encode_input(aggregatorAddress, amount)
         sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
     data = aggregator.mint.encode_input(tokenAddress, amount)
     sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
@@ -49,6 +54,14 @@ def upgradeAggregator(multisig, newImpl):
     data = proxy.upgradeTo(newImpl)
     sendWithMultisig(multisig, proxy.address, data, conf.acct)
     print(txId)
+
+def redeemFreeDocWithMS(amountOfXUSD):
+    abiFile =  open('./scripts/contractInteraction/ABIs/MoneyOnChain.json')
+    abi = json.load(abiFile)
+    moc = Contract.from_abi("moc", address = conf.contracts['MoneyOnChain'], abi = abi, owner = conf.acct)
+    data = moc.redeemFreeDoc.encode_input(amountOfXUSD)
+    sendWithMultisig(conf.contracts['multisig'], moc.address, data, conf.acct)
+
 
 def readClaimBalanceOrigin(address):
     originClaimContract = Contract.from_abi("originClaim", address=conf.contracts['OriginInvestorsClaim'], abi=OriginInvestorsClaim.abi, owner=conf.acct)
@@ -124,15 +137,40 @@ def depositToLockedSOV(amount, recipient):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
     
-def deployFeeSharingLogic():
-    # Redeploy feeSharingLogic
-    feeSharing = conf.acct.deploy(FeeSharingLogic)
-    print("Fee sharing logic redeployed at: ", feeSharing.address)
-    print("Setting implementation for FeeSharingProxy")
-    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
-    data = feeSharingProxy.setImplementation.encode_input(feeSharing.address)
-    sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+def deployFeeSharingCollector():
+    # Redeploy feeSharingCollector
+    feeSharingCollector = conf.acct.deploy(FeeSharingCollector)
+    print("Fee sharing collector redeployed at: ", feeSharingCollector.address)
+    print("Setting implementation for FeeSharingCollectorProxy")
+    feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollectorProxy", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
+    data = feeSharingCollectorProxy.setImplementation.encode_input(feeSharingCollector.address)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollectorProxy.address, data, conf.acct)
 
 def replaceTx(txStr, newGas):
     txReceipt = chain.get_transaction(txStr)
     txReceipt.replace(None, newGas)
+
+#gets the logic contract for a proxy
+def getImplementation(proxyContract):
+    proxy = Contract.from_abi("FeeSharingCollectorProxy", address=proxyContract, abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
+    print(proxy.getImplementation())
+    
+def setNewContractGuardian(newGuardian):
+    #loan tokens
+    setPauser(conf.contracts['iXUSD'], newGuardian)
+    setPauser(conf.contracts['iUSDT'], newGuardian)
+    setPauser(conf.contracts['iRBTC'], newGuardian)
+    setPauser(conf.contracts['iDOC'], newGuardian)
+    setPauser(conf.contracts['iBPro'], newGuardian)
+
+    #loan token logic beacon
+
+    #protocol
+
+    #staking
+
+def openTrove(_maxFeePercentage, _ZUSDAmount, _upperHint, _lowerHint, coll):
+    abiFile =  open('./scripts/contractInteraction/ABIs/BorrowerOperations.json')
+    abi = json.load(abiFile)
+    borrowerOperations = Contract.from_abi("bo", address=conf.contracts['borrowerOperations'], abi=abi, owner=conf.acct)
+    borrowerOperations.openTrove(_maxFeePercentage, _ZUSDAmount, _upperHint, _lowerHint, {'value':coll})

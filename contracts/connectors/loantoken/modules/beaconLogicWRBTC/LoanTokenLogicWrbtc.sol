@@ -26,7 +26,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](36);
+        bytes4[] memory res = new bytes4[](32);
 
         // Loan Token Logic Standard
         res[0] = this.mint.selector;
@@ -54,25 +54,19 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         res[22] = this.getDepositAmountForBorrow.selector;
         res[23] = this.getBorrowAmountForDeposit.selector;
         res[24] = this.checkPriceDivergence.selector;
-        res[25] = this.checkPause.selector;
-        res[26] = this.setLiquidityMiningAddress.selector;
-        res[27] = this.calculateSupplyInterestRate.selector;
+        res[25] = this.calculateSupplyInterestRate.selector;
 
         // Loan Token WRBTC
-        res[28] = this.mintWithBTC.selector;
-        res[29] = this.burnToBTC.selector;
+        res[26] = this.mintWithBTC.selector;
+        res[27] = this.burnToBTC.selector;
 
         // Advanced Token
-        res[30] = this.approve.selector;
+        res[28] = this.approve.selector;
 
         // Advanced Token Storage
-        res[31] = this.totalSupply.selector;
-        res[32] = this.balanceOf.selector;
-        res[33] = this.allowance.selector;
-
-        // Loan Token Logic Storage Additional Variable
-        res[34] = this.getLiquidityMiningAddress.selector;
-        res[35] = this.withdrawRBTCTo.selector;
+        res[29] = this.totalSupply.selector;
+        res[30] = this.balanceOf.selector;
+        res[31] = this.allowance.selector;
 
         return (res, stringToBytes32("LoanTokenLogicWrbtc"));
     }
@@ -81,6 +75,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         external
         payable
         nonReentrant
+        globallyNonReentrant
         returns (uint256 mintAmount)
     {
         if (useLM) return _mintWithLM(receiver, msg.value);
@@ -91,7 +86,7 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external nonReentrant returns (uint256 loanAmountPaid) {
+    ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
         if (useLM) loanAmountPaid = _burnFromLM(burnAmount);
         else loanAmountPaid = _burnToken(burnAmount);
 
@@ -107,18 +102,18 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
      * @notice Handle transfers prior to adding newPrincipal to loanTokenSent.
      *
      * @param collateralTokenAddress The address of the collateral token.
-     * @param sentAddresses The array of addresses:
-     *   sentAddresses[0]: lender
-     *   sentAddresses[1]: borrower
-     *   sentAddresses[2]: receiver
-     *   sentAddresses[3]: manager
+     * @param sentAddresses The struct which contains addresses of
+     * - lender
+     * - borrower
+     * - receiver
+     * - manager
      *
-     * @param sentAmounts The array of amounts:
-     *   sentAmounts[0]: interestRate
-     *   sentAmounts[1]: newPrincipal
-     *   sentAmounts[2]: interestInitialAmount
-     *   sentAmounts[3]: loanTokenSent
-     *   sentAmounts[4]: collateralTokenSent
+     * @param sentAmounts The struct which contains uint256 of:
+     * - interestRate
+     * - newPrincipal
+     * - interestInitialAmount
+     * - loanTokenSent
+     * - collateralTokenSent
      *
      * @param withdrawalAmount The amount to withdraw.
      *
@@ -126,16 +121,16 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
      * */
     function _verifyTransfers(
         address collateralTokenAddress,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentAmounts,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
         uint256 withdrawalAmount
     ) internal returns (uint256 msgValue) {
         address _wrbtcToken = wrbtcTokenAddress;
         address _loanTokenAddress = _wrbtcToken;
-        address receiver = sentAddresses[2];
-        uint256 newPrincipal = sentAmounts[1];
-        uint256 loanTokenSent = sentAmounts[3];
-        uint256 collateralTokenSent = sentAmounts[4];
+        address receiver = sentAddresses.receiver;
+        uint256 newPrincipal = sentAmounts.newPrincipal;
+        uint256 loanTokenSent = sentAmounts.loanTokenSent;
+        uint256 collateralTokenSent = sentAmounts.collateralTokenSent;
 
         require(_loanTokenAddress != collateralTokenAddress, "26");
 

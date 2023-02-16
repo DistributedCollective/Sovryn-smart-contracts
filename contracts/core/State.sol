@@ -12,6 +12,7 @@ import "../openzeppelin/ReentrancyGuard.sol";
 import "../openzeppelin/Ownable.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../interfaces/IWrbtcERC20.sol";
+import "../reentrancy/SharedReentrancyGuard.sol";
 
 /**
  * @title State contract.
@@ -20,7 +21,7 @@ import "../interfaces/IWrbtcERC20.sol";
  *
  * This contract contains the storage values of the Protocol.
  * */
-contract State is Objects, ReentrancyGuard, Ownable {
+contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
     using SafeMath for uint256;
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet; // enumerable map of addresses
     using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses
@@ -208,6 +209,10 @@ contract State is Objects, ReentrancyGuard, Ownable {
 
     /// @dev Defines the portion of the trading rebate rewards (SOV) which is to be paid out in a liquid form in basis points. The rest is vested. The max value is 9999 (means 99.99% liquid, 0.01% vested)
     uint256 internal tradingRebateRewardsBasisPoint;
+
+    /// @dev Defines the defaultPath of conversion swap. This is created to prevent the non-rbtc pairs returning the shortest path which will not give the best rate.
+    /// Will be used in internal swap.
+    mapping(address => mapping(address => IERC20[])) internal defaultPathConversion;
 
     /**
      * @notice Add signature and target to storage.

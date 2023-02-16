@@ -1,3 +1,5 @@
+//TODO: remove this legacy config for tests using truffle ganache as a workaround before hh 
+// added instant blocks advance
 const { default: Ganache } = require("ganache-core");
 const { task } = require("hardhat/config");
 
@@ -9,7 +11,6 @@ require("@nomiclabs/hardhat-waffle");
 require("hardhat-contract-sizer"); //yarn run hardhat size-contracts
 require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
-require("hardhat-docgen");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -66,9 +67,5 @@ module.exports = {
 	mocha: {
 		timeout: 600000,
 		grep: "^(?=.*; using Ganache).*",
-	},
-	docgen: {
-		path: "./docs",
-		clear: true,
 	},
 };

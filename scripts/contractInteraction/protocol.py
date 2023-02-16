@@ -399,7 +399,7 @@ def redeploySwapsExternal():
     sendWithMultisig(conf.contracts['multisig'],
                      sovryn.address, data, conf.acct)
 
-# feesControllerAddress = new feeSharingProxy address
+# feesControllerAddress = new feeSharingCollectorProxy address
 
 
 def setFeesController(feesControllerAddress):
@@ -419,12 +419,13 @@ def readMaxAffiliateFee():
         "SovrynSwapNetwork", address=conf.contracts['swapNetwork'], abi=abi, owner=conf.acct)
     print(swapNetwork.maxAffiliateFee())
 
-#todo: extend with SOV and RBTC
+
 def withdrawFees():
     # Withdraw fees from protocol
-    feeSharingProxy = Contract.from_abi(
-        "FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
-    feeSharingProxy.withdrawFees([
+    feesController = readFeesController()
+    feeSharingCollectorProxy = Contract.from_abi(
+        "FeeSharingCollector", address=feesController, abi=FeeSharingCollector.abi, owner=conf.acct)
+    feeSharingCollectorProxy.withdrawFees([
         conf.contracts['USDT'],
         conf.contracts['DoC'],
         conf.contracts['ETHs'],
@@ -436,7 +437,7 @@ def withdrawFees():
     ])
 
     # Withdraw fees from AMM
-    feeSharingProxy.withdrawFeesAMM([
+    feeSharingCollectorProxy.withdrawFeesAMM([
         conf.contracts["ConverterSOV"],
         conf.contracts["ConverterXUSD"],
         conf.contracts["ConverterETHs"],
@@ -456,20 +457,20 @@ def setSupportedToken(tokenAddress):
 
 
 def deployConversionFeeSharingToWRBTC():
-    # For first time deployment of Upgradable FeeSharingProxy (v2), need to call deployFeeSharingProxy first to deploy the proxy
-    # After deployFeeSharingProxyCalled, need to store the address to the testnet_contracts.json with variable name = FeeSharingProxy2
+    # For first time deployment of Upgradable FeeSharingCollectorProxy (v2), need to call deployFeeSharingCollectorProxy first to deploy the proxy
+    # After deployFeeSharingCollectorProxyCalled, need to store the address to the testnet_contracts.json with variable name = FeeSharingCollectorProxy2
 
-    print("Redeploy fee sharing logic")
-    # Redeploy feeSharingLogic
-    feeSharing = conf.acct.deploy(FeeSharingLogic)
-    print("Fee sharing logic redeployed at: ", feeSharing.address)
+    print("Redeploy fee sharing collector")
+    # Redeploy feeSharingCollector
+    feeSharingCollector = conf.acct.deploy(FeeSharingCollector)
+    print("Fee sharing collector redeployed at: ", feeSharingCollector.address)
 
-    print("Set implementation for FeeSharingProxy")
-    feeSharingProxy = Contract.from_abi(
-        "FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
-    data = feeSharingProxy.setImplementation.encode_input(feeSharing.address)
+    print("Set implementation for FeeSharingCollectorProxy")
+    feeSharingCollectorProxy = Contract.from_abi(
+        "FeeSharingCollectorProxy", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
+    data = feeSharingCollectorProxy.setImplementation.encode_input(feeSharingCollector.address)
     sendWithMultisig(conf.contracts['multisig'],
-                     feeSharingProxy.address, data, conf.acct)
+                     feeSharingCollectorProxy.address, data, conf.acct)
 
     # Redeploy protocol settings
     replaceProtocolSettings()
@@ -478,20 +479,20 @@ def deployConversionFeeSharingToWRBTC():
     redeploySwapsExternal()
 
     # Set Fees Controller
-    setFeesController(feeSharingProxy.address)
+    setFeesController(feeSharingCollectorProxy.address)
 
 
-def deployFeeSharingProxy():
+def deployFeeSharingCollectorProxy():
     print("Deploy fee sharing proxy")
-    feeSharingProxy = conf.acct.deploy(
-        FeeSharingProxy, conf.contracts['sovrynProtocol'], conf.contracts['Staking'])
-    print(feeSharingProxy.address)
-    print('Proxy owner: ', feeSharingProxy.getProxyOwner())
-    print('FeeSharingProxy ownership: ', feeSharingProxy.owner())
-    feeSharingProxy.setProxyOwner(conf.contracts['multisig'])
-    feeSharingProxy.transferOwnership(conf.contracts['multisig'])
-    print('New proxy owner: ', feeSharingProxy.getProxyOwner())
-    print('New FeeSharingProxy ownership: ', feeSharingProxy.owner())
+    feeSharingCollectorProxy = conf.acct.deploy(
+        FeeSharingCollectorProxy, conf.contracts['sovrynProtocol'], conf.contracts['Staking'])
+    print(feeSharingCollectorProxy.address)
+    print('Proxy owner: ', feeSharingCollectorProxy.getProxyOwner())
+    print('FeeSharingCollectorProxy ownership: ', feeSharingCollectorProxy.owner())
+    feeSharingCollectorProxy.setProxyOwner(conf.contracts['multisig'])
+    feeSharingCollectorProxy.transferOwnership(conf.contracts['multisig'])
+    print('New proxy owner: ', feeSharingCollectorProxy.getProxyOwner())
+    print('New FeeSharingCollectorProxy ownership: ', feeSharingCollectorProxy.owner())
 
 
 def setSupportedTokens(tokenAddresses, supported):
@@ -616,42 +617,42 @@ def minInitialMargin(loanParamsId):
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     print(sovryn.minInitialMargin(loanParamsId))
 
-def addWhitelistConverterFeeSharingProxy(converterAddress):
-    feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
-    data = feeSharingProxy.addWhitelistedConverterAddress.encode_input(converterAddress)
+def addWhitelistConverterFeeSharingCollectorProxy(converterAddress):
+    feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+    data = feeSharingCollectorProxy.addWhitelistedConverterAddress.encode_input(converterAddress)
     print(data)
 
-    sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollectorProxy.address, data, conf.acct)
 
-def removeWhitelistConverterFeeSharingProxy(converterAddress):
-    feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
-    data = feeSharingProxy.removeWhitelistedConverterAddress.encode_input(converterAddress)
+def removeWhitelistConverterFeeSharingCollectorProxy(converterAddress):
+    feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+    data = feeSharingCollectorProxy.removeWhitelistedConverterAddress.encode_input(converterAddress)
 
     print(data)
-    sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollectorProxy.address, data, conf.acct)
 
 def readRolloverReward():
     sovryn = Contract.from_abi(
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     print(sovryn.rolloverBaseReward())
 
-def withdrawWRBTCFromFeeSharingProxyToProtocol(amount):
+def withdrawWRBTCFromFeeSharingCollectorProxyToProtocol(amount):
     receiver = conf.contracts['sovrynProtocol']
-    feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
+    feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
     wrbtc = Contract.from_abi("WRBTC", address=conf.contracts['WRBTC'], abi=ERC20.abi, owner=conf.acct)
     print("=============================================================")
-    print('withdrawWRBTCFromFeeSharingProxyToProtocol')
-    print("FeeSharingProxy WRBTC balance:  ", wrbtc.balanceOf(conf.contracts['FeeSharingProxy']))
+    print('withdrawWRBTCFromFeeSharingCollectorProxyToProtocol')
+    print("FeeSharingCollectorProxy WRBTC balance:  ", wrbtc.balanceOf(conf.contracts['FeeSharingCollectorProxy']))
     print("receiver:                       ", receiver)
     print("amount to withdraw:             ", amount)
     print("=============================================================")
-    withdrawWRBTCFromFeeSharingProxy(receiver, amount)
+    withdrawWRBTCFromFeeSharingCollectorProxy(receiver, amount)
 
-def withdrawWRBTCFromFeeSharingProxy(receiver, amount):
-    feeSharingProxy = Contract.from_abi("FeeSharingLogic", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingLogic.abi, owner=conf.acct)
-    data = feeSharingProxy.withdrawWRBTC.encode_input(receiver, amount)
+def withdrawWRBTCFromFeeSharingCollectorProxy(receiver, amount):
+    feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+    data = feeSharingCollectorProxy.withdrawWRBTC.encode_input(receiver, amount)
     print(data)
-    sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollectorProxy.address, data, conf.acct)
 
 def setRolloverFlexFeePercent(rolloverFlexFeePercentage):
     sovryn = Contract.from_abi(
@@ -675,6 +676,27 @@ def depositCollateral(loanId,depositAmount, tokenAddress):
         token.approve(sovryn.address, depositAmount)
     sovryn.depositCollateral(loanId,depositAmount)
 
+def setDefaultPathConversion(sourceTokenAddress, destTokenAddress, defaultPath):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setDefaultPathConversion.encode_input(defaultPath)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+def removeDefaultPathConversion(sourceTokenAddress, destTokenAddress):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.removeDefaultPathConversion.encode_input(sourceTokenAddress, destTokenAddress)
+    sendWithMultisig(conf.contracts['multisig'],
+                     sovryn.address, data, conf.acct)
+
+def readDefaultPathConversion(sourceTokenAddress, destTokenAddress):
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    defaultPathConversion = sovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress)
+    print(defaultPathConversion)
+    return defaultPathConversion
+
 # Transferring Ownership to GOV
 def transferProtocolOwnershipToGovernance():
     print("Transferring sovryn protocol ownserhip to: ", conf.contracts['TimelockOwner'])
@@ -682,3 +704,10 @@ def transferProtocolOwnershipToGovernance():
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
     data = sovryn.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
     sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
+def readFeesController():
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    feesController = sovryn.feesController()
+    print(feesController)
+    return feesController

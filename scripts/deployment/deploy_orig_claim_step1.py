@@ -36,15 +36,15 @@ def main():
     vestingFactory = acct.deploy(VestingFactory, vestingLogic.address)
 
     if thisNetwork == "rsk-mainnet":
-        feeSharingProxy = contracts["FeeSharingProxy"]
+        feeSharingCollectorProxy = contracts["FeeSharingCollectorProxy"]
     else:
         staking = Contract.from_abi(
-            "Staking", address=contracts['Staking'], abi=Staking.abi, owner=acct)
-        feeSharingProxy = staking.feeSharing()
+            "Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acct)
+        feeSharingCollectorProxy = staking.feeSharing()
 
     PRICE_SATS = 2500
     vestingRegistry = acct.deploy(VestingRegistry2, vestingFactory.address, contracts["SOV"], [
-                                  contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, contracts["Staking"], feeSharingProxy, teamVestingOwner)
+                                  contracts["CSOV1"], contracts["CSOV2"]], PRICE_SATS, contracts["Staking"], feeSharingCollectorProxy, teamVestingOwner)
     vestingFactory.transferOwnership(vestingRegistry.address)
 
     claimContract = acct.deploy(OriginInvestorsClaim, vestingRegistry.address)
