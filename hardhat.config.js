@@ -62,7 +62,7 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
         params: [
             {
                 forking: {
-                    jsonRpcUrl: "https://mainnet.sovryn.app/rpc",
+                    jsonRpcUrl: "https://mainnet4.sovryn.app/rpc",
                     blockNumber: 4272658,
                 },
             },
