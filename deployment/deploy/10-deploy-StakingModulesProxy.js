@@ -16,7 +16,6 @@ const func = async function (hre) {
         from: deployer,
         args: [],
         log: true,
-        skipIfAlreadyDeployed: true,
     });
 
     const stakingProxy = await ethers.getContract("StakingProxy");
