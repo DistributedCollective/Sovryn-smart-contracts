@@ -268,6 +268,88 @@ const createProposal = async (
     // @todo Add a decoded event logging: e.g. https://github.com/ethers-io/ethers.js/issues/487#issuecomment-1101937446
 };
 
+// the proxy ABI must have setImplementation() and getImplementation() functions
+const deployWithCustomProxy = async (
+    deployer,
+    logicName,
+    proxyName,
+    logicProxyName,
+    isOwnerMultisig = false,
+    multisigName = "MultiSigWallet",
+    logicInstanceName = "",
+    args = [],
+    proxyArgs = []
+) => {
+    const {
+        deployments: { deploy, get, getOrNull, log },
+        // getNamedAccounts,
+        ethers,
+    } = hre;
+    // const { deployer } = await getNamedAccounts();
+
+    let proxyDeployment = await getOrNull(proxyName);
+    if (!proxyDeployment) {
+        await deploy(proxyName, {
+            from: deployer,
+            args: proxyArgs,
+            log: true,
+        });
+    }
+
+    const tx = await deploy(logicInstanceName ? logicInstanceName : logicName, {
+        contract: logicName,
+        from: deployer,
+        args: args,
+        log: true,
+    });
+
+    const proxy = await ethers.getContract(proxyName);
+    const prevImpl = await proxy.getImplementation();
+    log(`Current ${proxyName} implementation: ${prevImpl}`);
+
+    if (tx.newlyDeployed || tx.address != prevImpl) {
+        log(`New ${logicName} implementation: ${tx.address}`);
+        const proxyDeployment = await get(proxyName);
+        await deployments.save(logicProxyName, {
+            address: proxy.address,
+            abi: proxyDeployment.abi,
+            bytecode: tx.bytecode,
+            deployedBytecode: tx.deployedBytecode,
+            implementation: tx.address,
+        });
+        if (hre.network.tags["testnet"] || isOwnerMultisig) {
+            //multisig is the owner
+            const multisigDeployment = await get(multisigName);
+            //@todo wrap getting ms tx data into a helper
+            let proxyInterface = new ethers.utils.Interface(proxyDeployment.abi);
+            let data = proxyInterface.encodeFunctionData("setImplementation", [tx.address]);
+            log(
+                `Creating multisig tx to set ${logicName} (${tx.address}) as implementation for ${proxyName} (${proxyDeployment.address}...`
+            );
+            log();
+            await sendWithMultisig(multisigDeployment.address, proxy.address, data, deployer);
+            log(
+                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<
+                 >>> DON'T PUSH DEPLOYMENTS TO THE REPO UNTIL THE MULTISIG TX SUCCESSFULLY SIGNED & EXECUTED <<<`
+            );
+        } else if (hre.network.tags["mainnet"]) {
+            log(">>> Create a Bitocracy proposal via SIP <<<");
+            log(
+                ">>> DON'T PUSH DEPLOYMENTS TO THE REPO UNTIL THE SIP IS SUCCESSFULLY EXECUTED <<<`"
+            );
+            // governance is the owner - need a SIP to register
+            // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
+        } else {
+            const proxy = await ethers.getContractAt(proxyName, proxyDeployment.address);
+            await proxy.setImplementation(tx.address);
+            log(
+                `>>> New implementation ${await proxy.getImplementation()} is set to the proxy <<<`
+            );
+        }
+        log();
+    }
+};
+
 module.exports = {
     getStakingModulesNames,
     stakingRegisterModuleWithMultisig,
@@ -281,4 +363,5 @@ module.exports = {
     multisigExecuteTx,
     getStakingModuleContractToReplace,
     createProposal,
+    deployWithCustomProxy,
 };
