@@ -20,10 +20,10 @@ const func = async function (hre) {
 
     const stakingProxy = await ethers.getContract("StakingProxy");
     const stakingProxyImpl = await stakingProxy.getImplementation();
-    log("Current stakingProxy.getImplementation():", stakingProxyImpl);
+    log("current stakingProxy.getImplementation():", stakingProxyImpl);
 
     if (tx.newlyDeployed || tx.address != stakingProxyImpl) {
-        log("New Staking Implementation (StakingModulesProxy):", tx.address);
+        log("new Staking Implementation (StakingModulesProxy):", tx.address);
         const stakingProxyDeployment = await get("StakingProxy");
         if (hre.network.tags["testnet"]) {
             //multisig is the owner
@@ -34,7 +34,7 @@ const func = async function (hre) {
             const { deployer } = await getNamedAccounts();
             ///@todo check if the deployer is one of ms owners
             log(
-                `Creating multisig tx to set StakingModulesProxy(${tx.address}) as implementation for StakingProxy(${stakingProxyDeployment.address}...`
+                `creating multisig tx to set StakingModulesProxy(${tx.address}) as implementation for StakingProxy(${stakingProxyDeployment.address}...`
             );
             await sendWithMultisig(
                 multisigDeployment.address,

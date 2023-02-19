@@ -38,7 +38,7 @@ const func = async function (hre) {
         });
         if (tx.newlyDeployed) {
             totalGas = totalGas.add(tx.receipt.cumulativeGasUsed);
-            log(tx.receipt.cumulativeGasUsed.toString());
+            log("cumulative gas:", tx.receipt.cumulativeGasUsed.toString());
         }
     }
     if (totalGas != 0) {
