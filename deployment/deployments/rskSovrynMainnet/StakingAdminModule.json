@@ -1,0 +1,1361 @@
+{
+    "address": "0x382e6480D6cDe9e64953Feb6E12B33da849Da44A",
+    "abi": [
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "admin",
+                    "type": "address"
+                }
+            ],
+            "name": "AdminAdded",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "admin",
+                    "type": "address"
+                }
+            ],
+            "name": "AdminRemoved",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "previousOwner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnershipTransferred",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "pauser",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "bool",
+                    "name": "added",
+                    "type": "bool"
+                }
+            ],
+            "name": "PauserAddedOrRemoved",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bool",
+                    "name": "setFrozen",
+                    "type": "bool"
+                }
+            ],
+            "name": "StakingFrozen",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bool",
+                    "name": "setPaused",
+                    "type": "bool"
+                }
+            ],
+            "name": "StakingPaused",
+            "type": "event"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "DELEGATION_TYPEHASH",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "DOMAIN_TYPEHASH",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "MAX_DURATION",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "MAX_VOTING_WEIGHT",
+            "outputs": [
+                {
+                    "internalType": "uint96",
+                    "name": "",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "SOVToken",
+            "outputs": [
+                {
+                    "internalType": "contract IERC20",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "WEIGHT_FACTOR",
+            "outputs": [
+                {
+                    "internalType": "uint96",
+                    "name": "",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_admin",
+                    "type": "address"
+                }
+            ],
+            "name": "addAdmin",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_pauser",
+                    "type": "address"
+                }
+            ],
+            "name": "addPauser",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "admins",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "allUnlocked",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "name": "delegateStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "fromBlock",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "uint96",
+                    "name": "stake",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "delegates",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "feeSharing",
+            "outputs": [
+                {
+                    "internalType": "contract IFeeSharingCollector",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "bool",
+                    "name": "_freeze",
+                    "type": "bool"
+                }
+            ],
+            "name": "freezeUnfreeze",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "frozen",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "getFunctionsList",
+            "outputs": [
+                {
+                    "internalType": "bytes4[]",
+                    "name": "",
+                    "type": "bytes4[]"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "pure",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "isOwner",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "kickoffTS",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [],
+            "name": "migrateToNewStakingContract",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "newStakingContract",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "nonces",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "numDelegateStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "numTotalStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "numUserStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "numVestingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "bool",
+                    "name": "_pause",
+                    "type": "bool"
+                }
+            ],
+            "name": "pauseUnpause",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "paused",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "pausers",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_admin",
+                    "type": "address"
+                }
+            ],
+            "name": "removeAdmin",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_pauser",
+                    "type": "address"
+                }
+            ],
+            "name": "removePauser",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_feeSharing",
+                    "type": "address"
+                }
+            ],
+            "name": "setFeeSharing",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_newStakingContract",
+                    "type": "address"
+                }
+            ],
+            "name": "setNewStakingContract",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "uint96",
+                    "name": "_weightScaling",
+                    "type": "uint96"
+                }
+            ],
+            "name": "setWeightScaling",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "name": "totalStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "fromBlock",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "uint96",
+                    "name": "stake",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "transferOwnership",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "name": "userStakingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "fromBlock",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "uint96",
+                    "name": "stake",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "name": "vestingCheckpoints",
+            "outputs": [
+                {
+                    "internalType": "uint32",
+                    "name": "fromBlock",
+                    "type": "uint32"
+                },
+                {
+                    "internalType": "uint96",
+                    "name": "stake",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "vestingCodeHashes",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "vestingRegistryLogic",
+            "outputs": [
+                {
+                    "internalType": "contract IVestingRegistry",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "vestingWhitelist",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "weightScaling",
+            "outputs": [
+                {
+                    "internalType": "uint96",
+                    "name": "",
+                    "type": "uint96"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ],
+    "transactionHash": "0xc2e3f164ae7e9bdc57b3fdef66f2f1a503026aae3e9ceb7d70d8e7f239484e17",
+    "receipt": {
+        "to": null,
+        "from": "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E",
+        "contractAddress": "0x382e6480D6cDe9e64953Feb6E12B33da849Da44A",
+        "transactionIndex": 0,
+        "gasUsed": "1972120",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000003000080000000000000000000000000000000020000000000000000000800000000000000000000000000000400400000002000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000",
+        "blockHash": "0x1e4b224679ce82c73471e8e1d6300ce2abb2b5f73ecaafeead74245f7d073994",
+        "transactionHash": "0xc2e3f164ae7e9bdc57b3fdef66f2f1a503026aae3e9ceb7d70d8e7f239484e17",
+        "logs": [
+            {
+                "transactionIndex": 0,
+                "blockNumber": 5067679,
+                "transactionHash": "0xc2e3f164ae7e9bdc57b3fdef66f2f1a503026aae3e9ceb7d70d8e7f239484e17",
+                "address": "0x382e6480D6cDe9e64953Feb6E12B33da849Da44A",
+                "topics": [
+                    "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+                    "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "0x000000000000000000000000fee171a152c02f336021fb9e79b4fac2304a9e7e"
+                ],
+                "data": "0x",
+                "logIndex": 0,
+                "blockHash": "0x1e4b224679ce82c73471e8e1d6300ce2abb2b5f73ecaafeead74245f7d073994"
+            }
+        ],
+        "blockNumber": 5067679,
+        "cumulativeGasUsed": "1972120",
+        "status": 1,
+        "byzantium": true
+    },
+    "args": [],
+    "numDeployments": 1,
+    "solcInputHash": "fe60cb37933b1a1880b0ca0522962f36",
+    "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"pauser\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bool\",\"name\":\"added\",\"type\":\"bool\"}],\"name\":\"PauserAddedOrRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bool\",\"name\":\"setFrozen\",\"type\":\"bool\"}],\"name\":\"StakingFrozen\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bool\",\"name\":\"setPaused\",\"type\":\"bool\"}],\"name\":\"StakingPaused\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"DELEGATION_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"DOMAIN_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"MAX_DURATION\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"MAX_VOTING_WEIGHT\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOVToken\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"WEIGHT_FACTOR\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"addAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_pauser\",\"type\":\"address\"}],\"name\":\"addPauser\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"admins\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"allUnlocked\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"delegateStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"delegates\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"feeSharing\",\"outputs\":[{\"internalType\":\"contract IFeeSharingCollector\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bool\",\"name\":\"_freeze\",\"type\":\"bool\"}],\"name\":\"freezeUnfreeze\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"frozen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getFunctionsList\",\"outputs\":[{\"internalType\":\"bytes4[]\",\"name\":\"\",\"type\":\"bytes4[]\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"kickoffTS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"migrateToNewStakingContract\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"newStakingContract\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numDelegateStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numTotalStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numUserStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numVestingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bool\",\"name\":\"_pause\",\"type\":\"bool\"}],\"name\":\"pauseUnpause\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"pausers\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"removeAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_pauser\",\"type\":\"address\"}],\"name\":\"removePauser\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feeSharing\",\"type\":\"address\"}],\"name\":\"setFeeSharing\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_newStakingContract\",\"type\":\"address\"}],\"name\":\"setNewStakingContract\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint96\",\"name\":\"_weightScaling\",\"type\":\"uint96\"}],\"name\":\"setWeightScaling\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"totalStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"userStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"vestingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"vestingCodeHashes\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"vestingRegistryLogic\",\"outputs\":[{\"internalType\":\"contract IVestingRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"vestingWhitelist\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"weightScaling\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"addAdmin(address)\":{\"params\":{\"_admin\":\"The addresses of the account to grant permissions.\"}},\"addPauser(address)\":{\"params\":{\"_pauser\":\"The address to grant pauser permissions.\"}},\"freezeUnfreeze(bool)\":{\"details\":\"When freezing, pause is always applied too. When unfreezing, the contract is left in paused stated.\",\"params\":{\"_freeze\":\"true when freezing, false when unfreezing\"}},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"migrateToNewStakingContract()\":{\"details\":\"Staking contract needs to be set before by the owner. Currently not implemented, just needed for the interface.     In case it's needed at some point in the future,     the implementation needs to be changed first.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"pauseUnpause(bool)\":{\"params\":{\"_pause\":\"true when pausing, false when unpausing\"}},\"removeAdmin(address)\":{\"params\":{\"_admin\":\"The addresses of the account to revoke permissions.\"}},\"removePauser(address)\":{\"params\":{\"_pauser\":\"The address to grant pauser permissions.\"}},\"setFeeSharing(address)\":{\"params\":{\"_feeSharing\":\"The address of FeeSharingCollectorProxy contract.\"}},\"setNewStakingContract(address)\":{\"details\":\"Doesn't have any influence as long as migrateToNewStakingContract is not implemented.\",\"params\":{\"_newStakingContract\":\"The address of the new staking contract.\"}},\"setWeightScaling(uint96)\":{\"params\":{\"_weightScaling\":\"The weight scaling.\"}},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Staking Admin Module.\"},\"userdoc\":{\"methods\":{\"addAdmin(address)\":{\"notice\":\"Add account to Admins ACL.\"},\"addPauser(address)\":{\"notice\":\"Add account to pausers ACL.\"},\"freezeUnfreeze(bool)\":{\"notice\":\"Freeze contract - disable all functions\"},\"migrateToNewStakingContract()\":{\"notice\":\"Allow a staker to migrate his positions to the new staking contract.\"},\"pauseUnpause(bool)\":{\"notice\":\"Pause/unpause contract\"},\"removeAdmin(address)\":{\"notice\":\"Remove account from Admins ACL.\"},\"removePauser(address)\":{\"notice\":\"Remove account from pausers ACL.\"},\"setFeeSharing(address)\":{\"notice\":\"Allow the owner to set a fee sharing proxy contract. We need it for unstaking with slashing.\"},\"setNewStakingContract(address)\":{\"notice\":\"Allow the owner to set a new staking contract. As a consequence it allows the stakers to migrate their positions to the new contract.\"},\"setWeightScaling(uint96)\":{\"notice\":\"Allow the owner to set weight scaling. We need it for unstaking with slashing.\"}},\"notice\":\"Implements administrative functionality pause, freeze and setting addresses and parameters related to staking\"}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Staking/modules/StakingAdminModule.sol\":\"StakingAdminModule\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/governance/IFeeSharingCollector.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/**\\n * @title Interface for contract governance/FeeSharingCollector/FeeSharingCollector.sol\\n * @dev Interfaces are used to cast a contract address into a callable instance.\\n * */\\ninterface IFeeSharingCollector {\\n    function withdrawFees(address[] calldata _token) external;\\n\\n    function transferTokens(address _token, uint96 _amount) external;\\n\\n    function withdraw(\\n        address _loanPoolToken,\\n        uint32 _maxCheckpoints,\\n        address _receiver\\n    ) external;\\n}\\n\",\"keccak256\":\"0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40\"},\"contracts/governance/Staking/SafeMath96.sol\":{\"content\":\"pragma solidity ^0.5.17;\\npragma experimental ABIEncoderV2;\\n\\n/**\\n * @title SafeMath96 contract.\\n * @notice Improved Solidity's arithmetic operations with added overflow checks.\\n * @dev SafeMath96 uses uint96, unsigned integers of 96 bits length, so every\\n * integer from 0 to 2^96-1 can be operated.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * SafeMath restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this contract instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n * */\\ncontract SafeMath96 {\\n    function safe32(uint256 n, string memory errorMessage) internal pure returns (uint32) {\\n        require(n < 2**32, errorMessage);\\n        return uint32(n);\\n    }\\n\\n    function safe64(uint256 n, string memory errorMessage) internal pure returns (uint64) {\\n        require(n < 2**64, errorMessage);\\n        return uint64(n);\\n    }\\n\\n    function safe96(uint256 n, string memory errorMessage) internal pure returns (uint96) {\\n        require(n < 2**96, errorMessage);\\n        return uint96(n);\\n    }\\n\\n    /**\\n     * @notice Adds two unsigned integers, reverting on overflow.\\n     * @dev Counterpart to Solidity's `+` operator.\\n     * @param a First integer.\\n     * @param b Second integer.\\n     * @param errorMessage The revert message on overflow.\\n     * @return The safe addition a+b.\\n     * */\\n    function add96(\\n        uint96 a,\\n        uint96 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint96) {\\n        uint96 c = a + b;\\n        require(c >= a, errorMessage);\\n        return c;\\n    }\\n\\n    /**\\n     * @notice Substracts two unsigned integers, reverting on underflow.\\n     * @dev Counterpart to Solidity's `-` operator.\\n     * @param a First integer.\\n     * @param b Second integer.\\n     * @param errorMessage The revert message on underflow.\\n     * @return The safe substraction a-b.\\n     * */\\n    function sub96(\\n        uint96 a,\\n        uint96 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint96) {\\n        require(b <= a, errorMessage);\\n        return a - b;\\n    }\\n\\n    /**\\n     * @notice Multiplies two unsigned integers, reverting on overflow.\\n     * @dev Counterpart to Solidity's `*` operator.\\n     * @param a First integer.\\n     * @param b Second integer.\\n     * @param errorMessage The revert message on overflow.\\n     * @return The safe product a*b.\\n     * */\\n    function mul96(\\n        uint96 a,\\n        uint96 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint96) {\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint96 c = a * b;\\n        require(c / a == b, errorMessage);\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @notice Divides two unsigned integers, reverting on overflow.\\n     * @dev Counterpart to Solidity's `/` operator.\\n     * @param a First integer.\\n     * @param b Second integer.\\n     * @param errorMessage The revert message on overflow.\\n     * @return The safe division a/b.\\n     * */\\n    function div96(\\n        uint96 a,\\n        uint96 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint96) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b > 0, errorMessage);\\n        uint96 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n}\\n\",\"keccak256\":\"0xc37b24a41212f26435849813104568112c9e151a60018f53d76c7d06e74782ce\"},\"contracts/governance/Staking/modules/StakingAdminModule.sol\":{\"content\":\"pragma solidity ^0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"../../../openzeppelin/Address.sol\\\";\\nimport \\\"./shared/StakingShared.sol\\\";\\nimport \\\"../../../proxy/modules/interfaces/IFunctionsList.sol\\\";\\n\\n/**\\n * @title Staking Admin Module.\\n * @notice Implements administrative functionality pause, freeze and setting addresses and parameters\\n * related to staking\\n * */\\ncontract StakingAdminModule is IFunctionsList, StakingShared {\\n    using Address for address payable;\\n\\n    event AdminAdded(address admin);\\n\\n    event AdminRemoved(address admin);\\n\\n    /// @param pauser address to grant power to pause the contract\\n    /// @param added true - added, false - removed\\n    event PauserAddedOrRemoved(address indexed pauser, bool indexed added);\\n\\n    /// @notice An event emitted when a staking is paused or unpaused\\n    /// @param setPaused true - pause, false - unpause\\n    event StakingPaused(bool indexed setPaused);\\n\\n    /// @notice An event emitted when a staking is frozen or unfrozen\\n    /// @param setFrozen true - freeze, false - unfreeze\\n    event StakingFrozen(bool indexed setFrozen);\\n\\n    /**\\n     * @notice Add account to Admins ACL.\\n     * @param _admin The addresses of the account to grant permissions.\\n     * */\\n    function addAdmin(address _admin) external onlyOwner whenNotFrozen {\\n        require(_admin != address(0), \\\"cannot add the zero address as an admin\\\");\\n        admins[_admin] = true;\\n        emit AdminAdded(_admin);\\n    }\\n\\n    /**\\n     * @notice Remove account from Admins ACL.\\n     * @param _admin The addresses of the account to revoke permissions.\\n     * */\\n    function removeAdmin(address _admin) external onlyOwner whenNotFrozen {\\n        require(admins[_admin], \\\"address is not an admin\\\");\\n        admins[_admin] = false;\\n        emit AdminRemoved(_admin);\\n    }\\n\\n    /**\\n     * @notice Add account to pausers ACL.\\n     * @param _pauser The address to grant pauser permissions.\\n     * */\\n    function addPauser(address _pauser) external onlyOwner whenNotFrozen {\\n        require(_pauser != address(0), \\\"cannot add the zero address as a pauser\\\");\\n        pausers[_pauser] = true;\\n        emit PauserAddedOrRemoved(_pauser, true);\\n    }\\n\\n    /**\\n     * @notice Remove account from pausers ACL.\\n     * @param _pauser The address to grant pauser permissions.\\n     * */\\n    function removePauser(address _pauser) external onlyOwner whenNotFrozen {\\n        require(pausers[_pauser], \\\"address is not a pauser\\\");\\n        delete pausers[_pauser];\\n        emit PauserAddedOrRemoved(_pauser, false);\\n    }\\n\\n    /**\\n     * @notice Pause/unpause contract\\n     * @param _pause true when pausing, false when unpausing\\n     * */\\n    function pauseUnpause(bool _pause) public onlyPauserOrOwner whenNotFrozen {\\n        paused = _pause;\\n        emit StakingPaused(_pause);\\n    }\\n\\n    /**\\n     * @notice Freeze contract - disable all functions\\n     * @param _freeze true when freezing, false when unfreezing\\n     * @dev When freezing, pause is always applied too. When unfreezing, the contract is left in paused stated.\\n     * */\\n    function freezeUnfreeze(bool _freeze) external onlyPauserOrOwner {\\n        require(_freeze != frozen, \\\"Cannot freeze/unfreeze to the same state\\\"); // WS25\\n        if (_freeze) pauseUnpause(true);\\n        frozen = _freeze;\\n        emit StakingFrozen(_freeze);\\n    }\\n\\n    /**\\n     * @notice Allow the owner to set a fee sharing proxy contract.\\n     * We need it for unstaking with slashing.\\n     * @param _feeSharing The address of FeeSharingCollectorProxy contract.\\n     * */\\n    function setFeeSharing(address _feeSharing) external onlyOwner whenNotFrozen {\\n        require(_feeSharing != address(0), \\\"FeeSharing address shouldn't be 0\\\"); // S17\\n        feeSharing = IFeeSharingCollector(_feeSharing);\\n    }\\n\\n    /**\\n     * @notice Allow the owner to set weight scaling.\\n     * We need it for unstaking with slashing.\\n     * @param _weightScaling The weight scaling.\\n     * */\\n    function setWeightScaling(uint96 _weightScaling) external onlyOwner whenNotFrozen {\\n        require(\\n            MIN_WEIGHT_SCALING <= _weightScaling && _weightScaling <= MAX_WEIGHT_SCALING,\\n            \\\"scaling doesn't belong to range [1, 9]\\\" // S18\\n        );\\n        weightScaling = _weightScaling;\\n    }\\n\\n    /**\\n     * @notice Allow the owner to set a new staking contract.\\n     * As a consequence it allows the stakers to migrate their positions\\n     * to the new contract.\\n     * @dev Doesn't have any influence as long as migrateToNewStakingContract\\n     * is not implemented.\\n     * @param _newStakingContract The address of the new staking contract.\\n     * */\\n    function setNewStakingContract(address _newStakingContract) external onlyOwner whenNotFrozen {\\n        require(_newStakingContract != address(0), \\\"can't reset the new staking contract to 0\\\"); // S16\\n        newStakingContract = _newStakingContract;\\n    }\\n\\n    /**\\n     * @notice Allow a staker to migrate his positions to the new staking contract.\\n     * @dev Staking contract needs to be set before by the owner.\\n     * Currently not implemented, just needed for the interface.\\n     *      In case it's needed at some point in the future,\\n     *      the implementation needs to be changed first.\\n     * */\\n    function migrateToNewStakingContract() external whenNotFrozen {\\n        require(newStakingContract != address(0), \\\"there is no new staking contract set\\\"); // S19\\n        revert(\\\"not implemented\\\");\\n        /// @dev implementation:\\n        /// @dev Iterate over all possible lock dates from now until now + MAX_DURATION.\\n        /// @dev Read the stake & delegate of the msg.sender\\n        /// @dev If stake > 0, stake it at the new contract until the lock date with the current delegate.\\n    }\\n\\n    function getFunctionsList() external pure returns (bytes4[] memory) {\\n        bytes4[] memory functionsList = new bytes4[](13);\\n        functionsList[0] = this.addAdmin.selector;\\n        functionsList[1] = this.removeAdmin.selector;\\n        functionsList[2] = this.addPauser.selector;\\n        functionsList[3] = this.removePauser.selector;\\n        functionsList[4] = this.pauseUnpause.selector;\\n        functionsList[5] = this.freezeUnfreeze.selector;\\n        functionsList[6] = this.setFeeSharing.selector;\\n        functionsList[7] = this.setWeightScaling.selector;\\n        functionsList[8] = this.setNewStakingContract.selector;\\n        functionsList[9] = this.owner.selector;\\n        functionsList[10] = this.isOwner.selector;\\n        functionsList[11] = this.transferOwnership.selector;\\n        functionsList[12] = this.migrateToNewStakingContract.selector;\\n        return functionsList;\\n    }\\n}\\n\",\"keccak256\":\"0xb94b194d5d5515b3bdb8d2539d255afeb7418ab1a77368d1ea5c32afcc04524d\"},\"contracts/governance/Staking/modules/shared/StakingShared.sol\":{\"content\":\"pragma solidity ^0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"./StakingStorageShared.sol\\\";\\nimport \\\"../../SafeMath96.sol\\\";\\nimport \\\"../../../../openzeppelin/SafeMath.sol\\\";\\nimport \\\"../../../../openzeppelin/Ownable.sol\\\";\\n\\n/**\\n * @title Staking modules shared functionality\\n */\\ncontract StakingShared is StakingStorageShared, SafeMath96 {\\n    using SafeMath for uint256;\\n\\n    uint256 internal constant FOUR_WEEKS = 4 weeks;\\n\\n    /**\\n     * @dev Throws if paused.\\n     */\\n    modifier whenNotPaused() {\\n        require(!paused, \\\"paused\\\"); // SS03\\n        _;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner or admin.\\n     */\\n    modifier onlyAuthorized() {\\n        require(isOwner() || admins[msg.sender], \\\"unauthorized\\\"); // SS01\\n        _;\\n    }\\n\\n    /**\\n\\t * @dev Throws if called by any account other than the owner or admin or pauser.\\n\\t \\n\\tmodifier onlyAuthorizedOrPauser() {\\n\\t\\trequire(isOwner() || admins[msg.sender] || pausers[msg.sender], \\\"unauthorized\\\"); // WS02\\n\\t\\t_;\\n\\t}\\n\\t*/\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner or pauser.\\n     */\\n    modifier onlyPauserOrOwner() {\\n        require(isOwner() || pausers[msg.sender], \\\"unauthorized\\\"); // SS02\\n        _;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than pauser.\\n     * @notice Uncomment when needed\\n     */\\n    /*\\n\\tmodifier onlyPauser() {\\n\\t\\trequire(pausers[msg.sender], \\\"Not pauser\\\");\\n\\t\\t_;\\n\\t}\\n\\t*/\\n\\n    /**\\n     * @dev Throws if frozen.\\n     */\\n    modifier whenNotFrozen() {\\n        require(!frozen, \\\"paused\\\"); // SS04\\n        _;\\n    }\\n\\n    constructor() internal {\\n        // abstract\\n    }\\n\\n    function _notSameBlockAsStakingCheckpoint(uint256 lockDate, address stakeFor) internal view {\\n        uint32 nCheckpoints = numUserStakingCheckpoints[stakeFor][lockDate];\\n        bool notSameBlock =\\n            userStakingCheckpoints[stakeFor][lockDate][nCheckpoints - 1].fromBlock != block.number;\\n        require(notSameBlock, \\\"cannot be mined in the same block as last stake\\\"); // S20\\n    }\\n\\n    /**\\n     * @notice Unstaking is possible every 2 weeks only. This means, to\\n     * calculate the key value for the staking checkpoints, we need to\\n     * map the intended timestamp to the closest available date.\\n     * @param timestamp The unlocking timestamp.\\n     * @return The actual unlocking date (might be up to 2 weeks shorter than intended).\\n     * */\\n    function _timestampToLockDate(uint256 timestamp) internal view returns (uint256 lockDate) {\\n        // Optimize gas costs by reading kickoffTS from storage only once.\\n        uint256 start = kickoffTS;\\n        require(timestamp >= start, \\\"timestamp < contract creation\\\"); // WS23\\n        /**\\n         * @dev If staking timestamp does not match any of the unstaking dates\\n         * , set the lockDate to the closest one before the timestamp.\\n         * E.g. Passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks.\\n         * */\\n        uint256 periodFromKickoff = (timestamp - start) / TWO_WEEKS;\\n        lockDate = periodFromKickoff * TWO_WEEKS + start;\\n    }\\n\\n    /**\\n     * @notice Determine the current Block Number\\n     * @dev This is segregated from the _getPriorUserStakeByDate function to better test\\n     * advancing blocks functionality using Mock Contracts\\n     * */\\n    function _getCurrentBlockNumber() internal view returns (uint256) {\\n        return block.number;\\n    }\\n\\n    /**\\n     * @notice Determine the prior number of stake for an account until a\\n     * \\t\\tcertain lock date as of a block number.\\n     * @dev All functions of Staking contract use this internal version,\\n     * \\t\\twe need to modify public function in order to workaround issue with Vesting.withdrawTokens:\\n     * return 1 instead of 0 if message sender is a contract.\\n     * @param account The address of the account to check.\\n     * @param date The lock date. Adjusted to the next valid lock date, if necessary.\\n     * @param blockNumber The block number to get the vote balance at.\\n     * @return The number of votes the account had as of the given block.\\n     * */\\n    function _getPriorUserStakeByDate(\\n        address account,\\n        uint256 date,\\n        uint256 blockNumber\\n    ) internal view returns (uint96) {\\n        require(blockNumber < _getCurrentBlockNumber(), \\\"not determined\\\"); // WS14\\n\\n        date = _adjustDateForOrigin(date);\\n        uint32 nCheckpoints = numUserStakingCheckpoints[account][date];\\n        if (nCheckpoints == 0) {\\n            return 0;\\n        }\\n\\n        /// @dev First check most recent balance.\\n        if (userStakingCheckpoints[account][date][nCheckpoints - 1].fromBlock <= blockNumber) {\\n            return userStakingCheckpoints[account][date][nCheckpoints - 1].stake;\\n        }\\n\\n        /// @dev Next check implicit zero balance.\\n        if (userStakingCheckpoints[account][date][0].fromBlock > blockNumber) {\\n            return 0;\\n        }\\n\\n        uint32 lower = 0;\\n        uint32 upper = nCheckpoints - 1;\\n        while (upper > lower) {\\n            uint32 center = upper - (upper - lower) / 2; /// @dev ceil, avoiding overflow.\\n            Checkpoint memory cp = userStakingCheckpoints[account][date][center];\\n            if (cp.fromBlock == blockNumber) {\\n                return cp.stake;\\n            } else if (cp.fromBlock < blockNumber) {\\n                lower = center;\\n            } else {\\n                upper = center - 1;\\n            }\\n        }\\n        return userStakingCheckpoints[account][date][lower].stake;\\n    }\\n\\n    /**\\n     * @dev origin vesting contracts have different dates\\n     * we need to add 2 weeks to get end of period (by default, it's start)\\n     * @param date The staking date to compute the power for.\\n     * @return unlocking date.\\n     */\\n    function _adjustDateForOrigin(uint256 date) internal view returns (uint256) {\\n        uint256 adjustedDate = _timestampToLockDate(date);\\n        //origin vesting contracts have different dates\\n        //we need to add 2 weeks to get end of period (by default, it's start)\\n        if (adjustedDate != date) {\\n            date = adjustedDate + TWO_WEEKS;\\n        }\\n        return date;\\n    }\\n\\n    /**\\n     * @notice Compute the weight for a specific date.\\n     * @param date The unlocking date.\\n     * @param startDate We compute the weight for the tokens staked until 'date' on 'startDate'.\\n     * @return The weighted stake the account had as of the given block.\\n     * */\\n    function _computeWeightByDate(uint256 date, uint256 startDate)\\n        internal\\n        pure\\n        returns (uint96 weight)\\n    {\\n        require(date >= startDate, \\\"date < startDate\\\"); // WS18\\n        uint256 remainingTime = (date - startDate);\\n        require(MAX_DURATION >= remainingTime, \\\"remaining time > max duration\\\"); // WS19\\n        /// @dev x = max days - remaining days\\n        uint96 x = uint96(MAX_DURATION - remainingTime) / (1 days);\\n        /// @dev w = (m^2 - x^2)/m^2 +1 (multiplied by the weight factor)\\n        weight = add96(\\n            WEIGHT_FACTOR,\\n            mul96(\\n                MAX_VOTING_WEIGHT * WEIGHT_FACTOR,\\n                sub96(\\n                    MAX_DURATION_POW_2,\\n                    x * x,\\n                    \\\"weight underflow\\\" // WS20\\n                ),\\n                \\\"weight mul overflow\\\" // WS21\\n            ) / MAX_DURATION_POW_2,\\n            \\\"overflow on weight\\\" // WS22\\n        );\\n    }\\n\\n    /**\\n     * @notice Return flag whether the given address is a registered vesting contract.\\n     * @param stakerAddress the address to check\\n     */\\n    function _isVestingContract(address stakerAddress) internal view returns (bool) {\\n        bool isVesting;\\n        bytes32 codeHash;\\n\\n        assembly {\\n            codeHash := extcodehash(stakerAddress)\\n        }\\n        if (address(vestingRegistryLogic) != address(0)) {\\n            isVesting = vestingRegistryLogic.isVestingAddress(stakerAddress);\\n        }\\n\\n        if (isVesting) return true;\\n        if (vestingCodeHashes[codeHash]) return true;\\n        return false;\\n    }\\n}\\n\",\"keccak256\":\"0x4032aa3828ef2fefc034188429ac376f760f0a74cb002a724aef5e270adc0098\"},\"contracts/governance/Staking/modules/shared/StakingStorageShared.sol\":{\"content\":\"pragma solidity ^0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"../../../../openzeppelin/Ownable.sol\\\";\\nimport \\\"../../../../interfaces/IERC20.sol\\\";\\nimport \\\"../../../IFeeSharingCollector.sol\\\";\\nimport \\\"../../../Vesting/IVestingRegistry.sol\\\";\\n\\n/**\\n * @title StakingStorageShared contract is inherited by Staking modules.\\n * @notice Just the storage part of stacking contract, no functions,\\n * only constant, variables and required structures (mappings).\\n * Used by StackingProxy and Checkpoints contracts.\\n *\\n * What is SOV staking?\\n * The purpose of the SOV token is to provide a pseudonymous,\\n * censorship-resistant mechanism for governing the parameters of the Sovryn\\n * protocol, while aligning the incentives of protocol governors with the\\n * long-term success of the protocol. Any SOV token holder can choose to\\n * stake (lock up) their tokens for a fixed period of time in return for\\n * voting rights in the Bitocracy. Stakers are further incentivised through\\n * fee and slashing rewards.\\n * */\\ncontract StakingStorageShared is Ownable {\\n    /// @notice 2 weeks in seconds.\\n    uint256 constant TWO_WEEKS = 1209600;\\n\\n    /// @notice The maximum possible voting weight before adding +1 (actually 10, but need 9 for computation).\\n    uint96 public constant MAX_VOTING_WEIGHT = 9;\\n\\n    /// @notice weight is multiplied with this factor (for allowing decimals, like 1.2x).\\n    /// @dev MAX_VOTING_WEIGHT * WEIGHT_FACTOR needs to be < 792, because there are 100,000,000 SOV with 18 decimals\\n    uint96 public constant WEIGHT_FACTOR = 10;\\n\\n    /// @notice The maximum duration to stake tokens for.\\n    uint256 public constant MAX_DURATION = 1092 days;\\n\\n    /// @notice The maximum duration ^2\\n    uint96 constant MAX_DURATION_POW_2 = 1092 * 1092;\\n\\n    /// @notice Default weight scaling.\\n    uint96 constant DEFAULT_WEIGHT_SCALING = 3;\\n\\n    /// @notice Range for weight scaling.\\n    uint96 constant MIN_WEIGHT_SCALING = 1;\\n    uint96 constant MAX_WEIGHT_SCALING = 9;\\n\\n    /// @notice The timestamp of contract creation. Base for the staking period calculation.\\n    uint256 public kickoffTS;\\n\\n    string name = \\\"SOVStaking\\\";\\n\\n    /// @notice The token to be staked.\\n    IERC20 public SOVToken;\\n\\n    /// @notice A record of each accounts delegate.\\n    mapping(address => mapping(uint256 => address)) public delegates;\\n\\n    /// @notice If this flag is set to true, all tokens are unlocked immediately.\\n    bool public allUnlocked = false;\\n\\n    /// @notice The EIP-712 typehash for the contract's domain.\\n    bytes32 public constant DOMAIN_TYPEHASH =\\n        keccak256(\\\"EIP712Domain(string name,uint256 chainId,address verifyingContract)\\\");\\n\\n    /// @notice The EIP-712 typehash for the delegation struct used by the contract.\\n    bytes32 public constant DELEGATION_TYPEHASH =\\n        keccak256(\\\"Delegation(address delegatee,uint256 lockDate,uint256 nonce,uint256 expiry)\\\");\\n\\n    /// @notice Used for stake migrations to a new staking contract with a different storage structure.\\n    address public newStakingContract;\\n\\n    /*************************** Checkpoints *******************************/\\n\\n    /// @notice A checkpoint for marking the stakes from a given block\\n    struct Checkpoint {\\n        uint32 fromBlock;\\n        uint96 stake;\\n    }\\n\\n    /// @notice A record of tokens to be unstaked at a given time in total.\\n    /// For total voting power computation. Voting weights get adjusted bi-weekly.\\n    /// @dev totalStakingCheckpoints[date][index] is a checkpoint.\\n    mapping(uint256 => mapping(uint32 => Checkpoint)) public totalStakingCheckpoints;\\n\\n    /// @notice The number of total staking checkpoints for each date.\\n    /// @dev numTotalStakingCheckpoints[date] is a number.\\n    mapping(uint256 => uint32) public numTotalStakingCheckpoints;\\n\\n    /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address.\\n    /// For delegatee voting power computation. Voting weights get adjusted bi-weekly.\\n    /// @dev delegateStakingCheckpoints[delegatee][date][index] is a checkpoint.\\n    mapping(address => mapping(uint256 => mapping(uint32 => Checkpoint)))\\n        public delegateStakingCheckpoints;\\n\\n    /// @notice The number of total staking checkpoints for each date per delegate.\\n    /// @dev numDelegateStakingCheckpoints[delegatee][date] is a number.\\n    mapping(address => mapping(uint256 => uint32)) public numDelegateStakingCheckpoints;\\n\\n    /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)\\n    /// @dev userStakingCheckpoints[user][date][index] is a checkpoint.\\n    mapping(address => mapping(uint256 => mapping(uint32 => Checkpoint)))\\n        public userStakingCheckpoints;\\n\\n    /// @notice The number of total staking checkpoints for each date per user.\\n    /// @dev numUserStakingCheckpoints[user][date] is a number.\\n    mapping(address => mapping(uint256 => uint32)) public numUserStakingCheckpoints;\\n\\n    /// @notice A record of states for signing / validating signatures\\n    /// @dev nonces[user] is a number.\\n    mapping(address => uint256) public nonces;\\n\\n    /*************************** Slashing *******************************/\\n\\n    /// @notice the address of FeeSharingCollectorProxy contract, we need it for unstaking with slashing.\\n    IFeeSharingCollector public feeSharing;\\n\\n    /// @notice used for weight scaling when unstaking with slashing.\\n    uint96 public weightScaling = DEFAULT_WEIGHT_SCALING;\\n\\n    /// @notice List of vesting contracts, tokens for these contracts won't be slashed if unstaked by governance.\\n    /// @dev vestingWhitelist[contract] is true/false.\\n    mapping(address => bool) public vestingWhitelist;\\n\\n    /// @dev user => flag whether user has admin role.\\n    /// @dev multisig should be an admin, admin can invoke only governanceWithdrawVesting function,\\n    /// \\tthis function works only with Team Vesting contracts\\n    mapping(address => bool) public admins;\\n\\n    /// @dev vesting contract code hash => flag whether it's registered code hash\\n    mapping(bytes32 => bool) public vestingCodeHashes;\\n\\n    /// @notice A record of tokens to be unstaked from vesting contract at a given time (lockDate -> vest checkpoint)\\n    /// @dev vestingCheckpoints[date][index] is a checkpoint.\\n    mapping(uint256 => mapping(uint32 => Checkpoint)) public vestingCheckpoints;\\n\\n    /// @notice The number of total vesting checkpoints for each date.\\n    /// @dev numVestingCheckpoints[date] is a number.\\n    mapping(uint256 => uint32) public numVestingCheckpoints;\\n\\n    ///@notice vesting registry contract\\n    IVestingRegistry public vestingRegistryLogic;\\n\\n    /// @dev user => flag whether user has pauser role.\\n    mapping(address => bool) public pausers;\\n\\n    /// @dev Staking contract is paused\\n    bool public paused;\\n\\n    /// @dev Staking contract is frozen\\n    bool public frozen;\\n\\n    /// @dev max iterations that can be supported in 1 tx for the withdrawal\\n    uint256 internal maxVestingWithdrawIterations;\\n\\n    constructor() internal {\\n        //abstract\\n    }\\n}\\n\",\"keccak256\":\"0xf83eb462825c77f9c0629d15a52c8248cd1e9ce1e947c6ea93102d952790dca4\"},\"contracts/governance/Vesting/IVestingRegistry.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/**\\n * @title Interface for upgradable Vesting Registry contract.\\n * @dev Interfaces are used to cast a contract address into a callable instance.\\n */\\ninterface IVestingRegistry {\\n    function getVesting(address _tokenOwner) external view returns (address);\\n\\n    function getTeamVesting(address _tokenOwner) external view returns (address);\\n\\n    function setVestingRegistry(address _vestingRegistryProxy) external;\\n\\n    function isVestingAdress(address _vestingAddress) external view returns (bool); //name typo. to be deprecated.\\n\\n    function isVestingAddress(address _vestingAddress) external view returns (bool);\\n\\n    function isTeamVesting(address _vestingAddress) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x9f972c6eff9310beed9807757744bbaa0901c34df1cfff1eb5f58cf47b25904d\"},\"contracts/interfaces/IERC20.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ncontract IERC20 {\\n    string public name;\\n    uint8 public decimals;\\n    string public symbol;\\n\\n    function totalSupply() public view returns (uint256);\\n\\n    function balanceOf(address _who) public view returns (uint256);\\n\\n    function allowance(address _owner, address _spender) public view returns (uint256);\\n\\n    function approve(address _spender, uint256 _value) public returns (bool);\\n\\n    function transfer(address _to, uint256 _value) public returns (bool);\\n\\n    function transferFrom(\\n        address _from,\\n        address _to,\\n        uint256 _value\\n    ) public returns (bool);\\n\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\"},\"contracts/openzeppelin/Address.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev Collection of functions related to the address type\\n */\\nlibrary Address {\\n    /**\\n     * @dev Returns true if `account` is a contract.\\n     *\\n     * [IMPORTANT]\\n     * ====\\n     * It is unsafe to assume that an address for which this function returns\\n     * false is an externally-owned account (EOA) and not a contract.\\n     *\\n     * Among others, `isContract` will return false for the following\\n     * types of addresses:\\n     *\\n     *  - an externally-owned account\\n     *  - a contract in construction\\n     *  - an address where a contract will be created\\n     *  - an address where a contract lived, but was destroyed\\n     * ====\\n     */\\n    function isContract(address account) internal view returns (bool) {\\n        // According to EIP-1052, 0x0 is the value returned for not-yet created accounts\\n        // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned\\n        // for accounts without code, i.e. `keccak256('')`\\n        bytes32 codehash;\\n        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;\\n        // solhint-disable-next-line no-inline-assembly\\n        assembly {\\n            codehash := extcodehash(account)\\n        }\\n        return (codehash != accountHash && codehash != 0x0);\\n    }\\n\\n    /**\\n     * @dev Converts an `address` into `address payable`. Note that this is\\n     * simply a type cast: the actual underlying value is not changed.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function toPayable(address account) internal pure returns (address payable) {\\n        return address(uint160(account));\\n    }\\n\\n    /**\\n     * @dev Replacement for Solidity's `transfer`: sends `amount` wei to\\n     * `recipient`, forwarding all available gas and reverting on errors.\\n     *\\n     * https://eips.ethereum.org/EIPS/eip-1884[EIP1884] increases the gas cost\\n     * of certain opcodes, possibly making contracts go over the 2300 gas limit\\n     * imposed by `transfer`, making them unable to receive funds via\\n     * `transfer`. {sendValue} removes this limitation.\\n     *\\n     * https://diligence.consensys.net/posts/2019/09/stop-using-soliditys-transfer-now/[Learn more].\\n     *\\n     * IMPORTANT: because control is transferred to `recipient`, care must be\\n     * taken to not create reentrancy vulnerabilities. Consider using\\n     * {ReentrancyGuard} or the\\n     * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html\\n     *   #use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function sendValue(address recipient, uint256 amount) internal {\\n        require(address(this).balance >= amount, \\\"Address: insufficient balance\\\");\\n\\n        // solhint-disable-next-line avoid-call-value\\n        (bool success, ) = recipient.call.value(amount)(\\\"\\\");\\n        require(success, \\\"Address: unable to send value, recipient may have reverted\\\");\\n    }\\n}\\n\",\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\"},\"contracts/openzeppelin/Context.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\ncontract Context {\\n    // Empty internal constructor, to prevent people from mistakenly deploying\\n    // an instance of this contract, which should be used via inheritance.\\n    constructor() internal {}\\n\\n    // solhint-disable-previous-line no-empty-blocks\\n\\n    function _msgSender() internal view returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\"},\"contracts/openzeppelin/Ownable.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\ncontract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() internal {\\n        address msgSender = _msgSender();\\n        _owner = msgSender;\\n        emit OwnershipTransferred(address(0), msgSender);\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(isOwner(), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns true if the caller is the current owner.\\n     */\\n    function isOwner() public view returns (bool) {\\n        return _msgSender() == _owner;\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public onlyOwner {\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     */\\n    function _transferOwnership(address newOwner) internal {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        emit OwnershipTransferred(_owner, newOwner);\\n        _owner = newOwner;\\n    }\\n}\\n\",\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\"},\"contracts/openzeppelin/SafeMath.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev Wrappers over Solidity's arithmetic operations with added overflow\\n * checks.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * `SafeMath` restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this library instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n */\\nlibrary SafeMath {\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\\n        uint256 c = a + b;\\n        require(c >= a, \\\"SafeMath: addition overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return sub(a, b, \\\"SafeMath: subtraction overflow\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot overflow.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function sub(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        require(b <= a, errorMessage);\\n        uint256 c = a - b;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint256 c = a * b;\\n        require(c / a == b, \\\"SafeMath: multiplication overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return div(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function div(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b != 0, errorMessage);\\n        uint256 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Integer division of two numbers, rounding up and truncating the quotient\\n     */\\n    function divCeil(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return divCeil(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Integer division of two numbers, rounding up and truncating the quotient\\n     */\\n    function divCeil(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b != 0, errorMessage);\\n\\n        if (a == 0) {\\n            return 0;\\n        }\\n        uint256 c = ((a - 1) / b) + 1;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return mod(a, b, \\\"SafeMath: modulo by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts with custom message when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function mod(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        require(b != 0, errorMessage);\\n        return a % b;\\n    }\\n\\n    function min256(uint256 _a, uint256 _b) internal pure returns (uint256) {\\n        return _a < _b ? _a : _b;\\n    }\\n}\\n\",\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\"},\"contracts/proxy/modules/interfaces/IFunctionsList.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.5.17;\\n\\ninterface IFunctionsList {\\n    function getFunctionsList() external pure returns (bytes4[] memory functionSignatures);\\n}\\n\",\"keccak256\":\"0x38fb0166042329bc9ffcab69742f215efd135cdcf2d48b2202cb7f1546709101\"}},\"version\":1}",
+    "bytecode": "0x60c0604052600a608081905269534f565374616b696e6760b01b60a09081526200002d9160029190620000ae565b506005805460ff19169055600d80546001600160a01b0316600360a01b179055600062000059620000a9565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a35062000150565b335b90565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f10620000f157805160ff191683800117855562000121565b8280016001018555821562000121579182015b828111156200012157825182559160200191906001019062000104565b506200012f92915062000133565b5090565b620000ab91905b808211156200012f57600081556001016200013a565b611ac680620001606000396000f3fe608060405234801561001057600080fd5b506004361061025d5760003560e01c80638f32d59b11610146578063b1724b46116100c3578063d8ad326d11610087578063d8ad326d146104c5578063db27ec18146104da578063dfb267c2146104ed578063e7a324dc14610500578063f2fde38b14610508578063f3f197311461051b5761025d565b8063b1724b4614610487578063b8a987321461048f578063bb533cf2146104a2578063bf626ec1146104b5578063d27569e7146104bd5761025d565b80639a377b821161010a5780639a377b821461043e578063a58848c514610451578063adae900214610459578063ae81dfe41461046c578063b0667f7a146104745761025d565b80638f32d59b146103e85780639436e7d4146103f057806394c2ce58146104105780639604c618146104235780639929e886146104365761025d565b80635419675f116101df5780636b6fde0e116101a35780636b6fde0e1461038157806370480275146103945780637ecebe00146103a757806380f51c12146103ba57806382dc1ec4146103cd5780638da5cb5b146103e05761025d565b80635419675f1461032a5780635c975abb14610332578063626ee2d91461033a57806368cefccc1461034d5780636b2c0f551461036e5761025d565b806317748adc1161022657806317748adc146102c55780631785f53c146102da57806320606b70146102ef57806327dd1b00146102f7578063429b62e5146103175761025d565b8062073f991461026257806303a18fa314610280578063054f7d9c1461029557806307392cc0146102aa578063104932cf146102bd575b600080fd5b61026a61052e565b60405161027791906118c4565b60405180910390f35b610288610534565b60405161027791906118d2565b61029d610543565b60405161027791906118b6565b61029d6102b8366004611357565b610551565b610288610566565b6102cd610575565b60405161027791906119d9565b6102ed6102e836600461128c565b61057a565b005b61026a610662565b61030a6103053660046112b2565b610679565b6040516102779190611890565b61029d61032536600461128c565b61069f565b6102ed6106b4565b61029d610721565b6102ed61034836600461128c565b61072a565b61036061035b3660046112ec565b6107be565b6040516102779291906119be565b6102ed61037c36600461128c565b6107fa565b61036061038f3660046112ec565b6108cb565b6102ed6103a236600461128c565b610907565b61026a6103b536600461128c565b6109cc565b61029d6103c836600461128c565b6109de565b6102ed6103db36600461128c565b6109f3565b61030a610ab7565b61029d610ac6565b6104036103fe366004611357565b610aea565b60405161027791906119b0565b61040361041e3660046112b2565b610b02565b6102ed610431366004611339565b610b25565b61029d610beb565b6102ed61044c36600461128c565b610bf4565b610288610c8e565b61029d61046736600461128c565b610c9d565b61030a610cb2565b6102ed610482366004611339565b610cc6565b61026a610d69565b6102ed61049d3660046113a5565b610d71565b6104036104b0366004611357565b610e25565b6102cd610e3d565b6102cd610e53565b6104cd610e58565b604051610277919061189e565b6104036104e83660046112b2565b6110ff565b6103606104fb366004611375565b611122565b61026a611158565b6102ed61051636600461128c565b611164565b610360610529366004611375565b611194565b60015481565b600d546001600160a01b031681565b601554610100900460ff1681565b60106020526000908152604090205460ff1681565b6013546001600160a01b031681565b600981565b610582610ac6565b6105a75760405162461bcd60e51b815260040161059e90611960565b60405180910390fd5b601554610100900460ff16156105cf5760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b0381166000908152600f602052604090205460ff166106075760405162461bcd60e51b815260040161059e90611930565b6001600160a01b0381166000908152600f602052604090819020805460ff19169055517fa3b62bc36326052d97ea62d63c3d60308ed4c3ea8ac079dd8499f1e9c4f80c0f90610657908390611890565b60405180910390a150565b60405161066e9061187a565b604051809103902081565b60046020908152600092835260408084209091529082529020546001600160a01b031681565b600f6020526000908152604090205460ff1681565b601554610100900460ff16156106dc5760405162461bcd60e51b815260040161059e906119a0565b60055461010090046001600160a01b03166107095760405162461bcd60e51b815260040161059e906118f0565b60405162461bcd60e51b815260040161059e90611910565b60155460ff1681565b610732610ac6565b61074e5760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff16156107765760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b03811661079c5760405162461bcd60e51b815260040161059e90611990565b600d80546001600160a01b0319166001600160a01b0392909216919091179055565b600a60209081526000938452604080852082529284528284209052825290205463ffffffff81169064010000000090046001600160601b031682565b610802610ac6565b61081e5760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff16156108465760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b03811660009081526014602052604090205460ff1661087e5760405162461bcd60e51b815260040161059e90611950565b6001600160a01b038116600081815260146020526040808220805460ff19169055519091907f343a65c26fd8d300f71358b36fb05702fab140d5967b6b41e25bec3ea11d6acf908390a350565b600860209081526000938452604080852082529284528284209052825290205463ffffffff81169064010000000090046001600160601b031682565b61090f610ac6565b61092b5760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff16156109535760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b0381166109795760405162461bcd60e51b815260040161059e906118e0565b6001600160a01b0381166000908152600f602052604090819020805460ff19166001179055517f44d6d25963f097ad14f29f06854a01f575648a1ef82f30e562ccd3889717e33990610657908390611890565b600c6020526000908152604090205481565b60146020526000908152604090205460ff1681565b6109fb610ac6565b610a175760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff1615610a3f5760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b038116610a655760405162461bcd60e51b815260040161059e90611940565b6001600160a01b038116600081815260146020526040808220805460ff1916600190811790915590519092917f343a65c26fd8d300f71358b36fb05702fab140d5967b6b41e25bec3ea11d6acf91a350565b6000546001600160a01b031690565b600080546001600160a01b0316610adb6111ca565b6001600160a01b031614905090565b60076020526000908152604090205463ffffffff1681565b600960209081526000928352604080842090915290825290205463ffffffff1681565b610b2d610ac6565b80610b4757503360009081526014602052604090205460ff165b610b635760405162461bcd60e51b815260040161059e90611960565b601560019054906101000a900460ff1615158115151415610b965760405162461bcd60e51b815260040161059e90611920565b8015610ba657610ba66001610cc6565b6015805461ff001916610100831515908102919091179091556040517fa5d42ea73646c260db9c3a891d146050c7adaf2fa515faedf2a52eddbbb7764490600090a250565b60055460ff1681565b610bfc610ac6565b610c185760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff1615610c405760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b038116610c665760405162461bcd60e51b815260040161059e90611980565b600580546001600160a01b0390921661010002610100600160a81b0319909216919091179055565b6003546001600160a01b031681565b600e6020526000908152604090205460ff1681565b60055461010090046001600160a01b031681565b610cce610ac6565b80610ce857503360009081526014602052604090205460ff165b610d045760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff1615610d2c5760405162461bcd60e51b815260040161059e906119a0565b6015805460ff19168215159081179091556040517f3cf4fe733160f8f8c48336fab32acee32ebaaa423a08a2be4e5ceff97dd98c6990600090a250565b63059fa60081565b610d79610ac6565b610d955760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff1615610dbd5760405162461bcd60e51b815260040161059e906119a0565b6001600160601b038116600111801590610de1575060096001600160601b03821611155b610dfd5760405162461bcd60e51b815260040161059e90611970565b600d80546001600160601b03909216600160a01b026001600160a01b03909216919091179055565b60126020526000908152604090205463ffffffff1681565b600d54600160a01b90046001600160601b031681565b600a81565b60408051600d8082526101c08201909252606091829190602082016101a080388339019050509050637048027560e01b81600081518110610e9557fe5b6001600160e01b03199092166020928302919091019091015280516305e17d4f60e21b9082906001908110610ec657fe5b6001600160e01b03199092166020928302919091019091015280516320b707b160e21b9082906002908110610ef757fe5b6001600160e01b0319909216602092830291909101909101528051636b2c0f5560e01b9082906003908110610f2857fe5b6001600160e01b03199092166020928302919091019091015280516358333fbd60e11b9082906004908110610f5957fe5b6001600160e01b03199092166020928302919091019091015280516312c098c360e31b9082906005908110610f8a57fe5b6001600160e01b031990921660209283029190910190910152805163626ee2d960e01b9082906006908110610fbb57fe5b6001600160e01b0319909216602092830291909101909101528051635c54c39960e11b9082906007908110610fec57fe5b6001600160e01b0319909216602092830291909101909101528051634d1bbdc160e11b908290600890811061101d57fe5b6001600160e01b0319909216602092830291909101909101528051638da5cb5b60e01b908290600990811061104e57fe5b6001600160e01b0319909216602092830291909101909101528051638f32d59b60e01b908290600a90811061107f57fe5b6001600160e01b031990921660209283029190910190910152805163f2fde38b60e01b908290600b9081106110b057fe5b6001600160e01b0319909216602092830291909101909101528051635419675f60e01b908290600c9081106110e157fe5b6001600160e01b031990921660209283029190910190910152905090565b600b60209081526000928352604080842090915290825290205463ffffffff1681565b600660209081526000928352604080842090915290825290205463ffffffff81169064010000000090046001600160601b031682565b60405161066e90611885565b61116c610ac6565b6111885760405162461bcd60e51b815260040161059e90611960565b611191816111ce565b50565b601160209081526000928352604080842090915290825290205463ffffffff81169064010000000090046001600160601b031682565b3390565b6001600160a01b0381166111f45760405162461bcd60e51b815260040161059e90611900565b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b803561125a81611a4b565b92915050565b803561125a81611a5f565b803561125a81611a68565b803561125a81611a71565b803561125a81611a7a565b60006020828403121561129e57600080fd5b60006112aa848461124f565b949350505050565b600080604083850312156112c557600080fd5b60006112d1858561124f565b92505060206112e28582860161126b565b9150509250929050565b60008060006060848603121561130157600080fd5b600061130d868661124f565b935050602061131e8682870161126b565b925050604061132f86828701611276565b9150509250925092565b60006020828403121561134b57600080fd5b60006112aa8484611260565b60006020828403121561136957600080fd5b60006112aa848461126b565b6000806040838503121561138857600080fd5b6000611394858561126b565b92505060206112e285828601611276565b6000602082840312156113b757600080fd5b60006112aa8484611281565b60006113cf8383611451565b505060200190565b6113e0816119ff565b82525050565b60006113f1826119ed565b6113fb81856119f1565b9350611406836119e7565b8060005b8381101561143457815161141e88826113c3565b9750611429836119e7565b92505060010161140a565b509495945050505050565b6113e081611a0a565b6113e081611a0f565b6113e081611a12565b6113e081611a40565b60006114706027836119f1565b7f63616e6e6f742061646420746865207a65726f20616464726573732061732061815266371030b236b4b760c91b602082015260400192915050565b60006114b96024836119f1565b7f7468657265206973206e6f206e6577207374616b696e6720636f6e7472616374815263081cd95d60e21b602082015260400192915050565b60006114ff6026836119f1565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b6000611547600f836119f1565b6e1b9bdd081a5b5c1b195b595b9d1959608a1b815260200192915050565b60006115726028836119f1565b7f43616e6e6f7420667265657a652f756e667265657a6520746f207468652073618152676d6520737461746560c01b602082015260400192915050565b60006115bc6017836119f1565b7f61646472657373206973206e6f7420616e2061646d696e000000000000000000815260200192915050565b60006115f56027836119f1565b7f63616e6e6f742061646420746865207a65726f20616464726573732061732061815266103830bab9b2b960c91b602082015260400192915050565b600061163e6043836119fa565b7f454950373132446f6d61696e28737472696e67206e616d652c75696e7432353681527f20636861696e49642c6164647265737320766572696679696e67436f6e74726160208201526263742960e81b604082015260430192915050565b60006116a96017836119f1565b7f61646472657373206973206e6f74206120706175736572000000000000000000815260200192915050565b60006116e2600c836119f1565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b600061170a6026836119f1565b7f7363616c696e6720646f65736e27742062656c6f6e6720746f2072616e6765208152655b312c20395d60d01b602082015260400192915050565b60006117526029836119f1565b7f63616e277420726573657420746865206e6577207374616b696e6720636f6e7481526807261637420746f20360bc1b602082015260400192915050565b600061179d604b836119fa565b7f44656c65676174696f6e28616464726573732064656c6567617465652c75696e81527f74323536206c6f636b446174652c75696e74323536206e6f6e63652c75696e7460208201526a323536206578706972792960a81b6040820152604b0192915050565b60006118106021836119f1565b7f46656553686172696e6720616464726573732073686f756c646e2774206265208152600360fc1b602082015260400192915050565b60006118536006836119f1565b651c185d5cd95960d21b815260200192915050565b6113e081611a2b565b6113e081611a34565b600061125a82611631565b600061125a82611790565b6020810161125a82846113d7565b602080825281016118af81846113e6565b9392505050565b6020810161125a828461143f565b6020810161125a8284611448565b6020810161125a828461145a565b6020808252810161125a81611463565b6020808252810161125a816114ac565b6020808252810161125a816114f2565b6020808252810161125a8161153a565b6020808252810161125a81611565565b6020808252810161125a816115af565b6020808252810161125a816115e8565b6020808252810161125a8161169c565b6020808252810161125a816116d5565b6020808252810161125a816116fd565b6020808252810161125a81611745565b6020808252810161125a81611803565b6020808252810161125a81611846565b6020810161125a8284611868565b604081016119cc8285611868565b6118af6020830184611871565b6020810161125a8284611871565b60200190565b5190565b90815260200190565b919050565b600061125a82611a1f565b151590565b90565b6001600160e01b03191690565b6001600160a01b031690565b63ffffffff1690565b6001600160601b031690565b600061125a826119ff565b611a54816119ff565b811461119157600080fd5b611a5481611a0a565b611a5481611a0f565b611a5481611a2b565b611a5481611a3456fea365627a7a72315820f98d0661f502777c0fb38a3a598e393b1205cfa2a761e1110fb5c93c33c043b66c6578706572696d656e74616cf564736f6c63430005110040",
+    "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061025d5760003560e01c80638f32d59b11610146578063b1724b46116100c3578063d8ad326d11610087578063d8ad326d146104c5578063db27ec18146104da578063dfb267c2146104ed578063e7a324dc14610500578063f2fde38b14610508578063f3f197311461051b5761025d565b8063b1724b4614610487578063b8a987321461048f578063bb533cf2146104a2578063bf626ec1146104b5578063d27569e7146104bd5761025d565b80639a377b821161010a5780639a377b821461043e578063a58848c514610451578063adae900214610459578063ae81dfe41461046c578063b0667f7a146104745761025d565b80638f32d59b146103e85780639436e7d4146103f057806394c2ce58146104105780639604c618146104235780639929e886146104365761025d565b80635419675f116101df5780636b6fde0e116101a35780636b6fde0e1461038157806370480275146103945780637ecebe00146103a757806380f51c12146103ba57806382dc1ec4146103cd5780638da5cb5b146103e05761025d565b80635419675f1461032a5780635c975abb14610332578063626ee2d91461033a57806368cefccc1461034d5780636b2c0f551461036e5761025d565b806317748adc1161022657806317748adc146102c55780631785f53c146102da57806320606b70146102ef57806327dd1b00146102f7578063429b62e5146103175761025d565b8062073f991461026257806303a18fa314610280578063054f7d9c1461029557806307392cc0146102aa578063104932cf146102bd575b600080fd5b61026a61052e565b60405161027791906118c4565b60405180910390f35b610288610534565b60405161027791906118d2565b61029d610543565b60405161027791906118b6565b61029d6102b8366004611357565b610551565b610288610566565b6102cd610575565b60405161027791906119d9565b6102ed6102e836600461128c565b61057a565b005b61026a610662565b61030a6103053660046112b2565b610679565b6040516102779190611890565b61029d61032536600461128c565b61069f565b6102ed6106b4565b61029d610721565b6102ed61034836600461128c565b61072a565b61036061035b3660046112ec565b6107be565b6040516102779291906119be565b6102ed61037c36600461128c565b6107fa565b61036061038f3660046112ec565b6108cb565b6102ed6103a236600461128c565b610907565b61026a6103b536600461128c565b6109cc565b61029d6103c836600461128c565b6109de565b6102ed6103db36600461128c565b6109f3565b61030a610ab7565b61029d610ac6565b6104036103fe366004611357565b610aea565b60405161027791906119b0565b61040361041e3660046112b2565b610b02565b6102ed610431366004611339565b610b25565b61029d610beb565b6102ed61044c36600461128c565b610bf4565b610288610c8e565b61029d61046736600461128c565b610c9d565b61030a610cb2565b6102ed610482366004611339565b610cc6565b61026a610d69565b6102ed61049d3660046113a5565b610d71565b6104036104b0366004611357565b610e25565b6102cd610e3d565b6102cd610e53565b6104cd610e58565b604051610277919061189e565b6104036104e83660046112b2565b6110ff565b6103606104fb366004611375565b611122565b61026a611158565b6102ed61051636600461128c565b611164565b610360610529366004611375565b611194565b60015481565b600d546001600160a01b031681565b601554610100900460ff1681565b60106020526000908152604090205460ff1681565b6013546001600160a01b031681565b600981565b610582610ac6565b6105a75760405162461bcd60e51b815260040161059e90611960565b60405180910390fd5b601554610100900460ff16156105cf5760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b0381166000908152600f602052604090205460ff166106075760405162461bcd60e51b815260040161059e90611930565b6001600160a01b0381166000908152600f602052604090819020805460ff19169055517fa3b62bc36326052d97ea62d63c3d60308ed4c3ea8ac079dd8499f1e9c4f80c0f90610657908390611890565b60405180910390a150565b60405161066e9061187a565b604051809103902081565b60046020908152600092835260408084209091529082529020546001600160a01b031681565b600f6020526000908152604090205460ff1681565b601554610100900460ff16156106dc5760405162461bcd60e51b815260040161059e906119a0565b60055461010090046001600160a01b03166107095760405162461bcd60e51b815260040161059e906118f0565b60405162461bcd60e51b815260040161059e90611910565b60155460ff1681565b610732610ac6565b61074e5760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff16156107765760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b03811661079c5760405162461bcd60e51b815260040161059e90611990565b600d80546001600160a01b0319166001600160a01b0392909216919091179055565b600a60209081526000938452604080852082529284528284209052825290205463ffffffff81169064010000000090046001600160601b031682565b610802610ac6565b61081e5760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff16156108465760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b03811660009081526014602052604090205460ff1661087e5760405162461bcd60e51b815260040161059e90611950565b6001600160a01b038116600081815260146020526040808220805460ff19169055519091907f343a65c26fd8d300f71358b36fb05702fab140d5967b6b41e25bec3ea11d6acf908390a350565b600860209081526000938452604080852082529284528284209052825290205463ffffffff81169064010000000090046001600160601b031682565b61090f610ac6565b61092b5760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff16156109535760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b0381166109795760405162461bcd60e51b815260040161059e906118e0565b6001600160a01b0381166000908152600f602052604090819020805460ff19166001179055517f44d6d25963f097ad14f29f06854a01f575648a1ef82f30e562ccd3889717e33990610657908390611890565b600c6020526000908152604090205481565b60146020526000908152604090205460ff1681565b6109fb610ac6565b610a175760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff1615610a3f5760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b038116610a655760405162461bcd60e51b815260040161059e90611940565b6001600160a01b038116600081815260146020526040808220805460ff1916600190811790915590519092917f343a65c26fd8d300f71358b36fb05702fab140d5967b6b41e25bec3ea11d6acf91a350565b6000546001600160a01b031690565b600080546001600160a01b0316610adb6111ca565b6001600160a01b031614905090565b60076020526000908152604090205463ffffffff1681565b600960209081526000928352604080842090915290825290205463ffffffff1681565b610b2d610ac6565b80610b4757503360009081526014602052604090205460ff165b610b635760405162461bcd60e51b815260040161059e90611960565b601560019054906101000a900460ff1615158115151415610b965760405162461bcd60e51b815260040161059e90611920565b8015610ba657610ba66001610cc6565b6015805461ff001916610100831515908102919091179091556040517fa5d42ea73646c260db9c3a891d146050c7adaf2fa515faedf2a52eddbbb7764490600090a250565b60055460ff1681565b610bfc610ac6565b610c185760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff1615610c405760405162461bcd60e51b815260040161059e906119a0565b6001600160a01b038116610c665760405162461bcd60e51b815260040161059e90611980565b600580546001600160a01b0390921661010002610100600160a81b0319909216919091179055565b6003546001600160a01b031681565b600e6020526000908152604090205460ff1681565b60055461010090046001600160a01b031681565b610cce610ac6565b80610ce857503360009081526014602052604090205460ff165b610d045760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff1615610d2c5760405162461bcd60e51b815260040161059e906119a0565b6015805460ff19168215159081179091556040517f3cf4fe733160f8f8c48336fab32acee32ebaaa423a08a2be4e5ceff97dd98c6990600090a250565b63059fa60081565b610d79610ac6565b610d955760405162461bcd60e51b815260040161059e90611960565b601554610100900460ff1615610dbd5760405162461bcd60e51b815260040161059e906119a0565b6001600160601b038116600111801590610de1575060096001600160601b03821611155b610dfd5760405162461bcd60e51b815260040161059e90611970565b600d80546001600160601b03909216600160a01b026001600160a01b03909216919091179055565b60126020526000908152604090205463ffffffff1681565b600d54600160a01b90046001600160601b031681565b600a81565b60408051600d8082526101c08201909252606091829190602082016101a080388339019050509050637048027560e01b81600081518110610e9557fe5b6001600160e01b03199092166020928302919091019091015280516305e17d4f60e21b9082906001908110610ec657fe5b6001600160e01b03199092166020928302919091019091015280516320b707b160e21b9082906002908110610ef757fe5b6001600160e01b0319909216602092830291909101909101528051636b2c0f5560e01b9082906003908110610f2857fe5b6001600160e01b03199092166020928302919091019091015280516358333fbd60e11b9082906004908110610f5957fe5b6001600160e01b03199092166020928302919091019091015280516312c098c360e31b9082906005908110610f8a57fe5b6001600160e01b031990921660209283029190910190910152805163626ee2d960e01b9082906006908110610fbb57fe5b6001600160e01b0319909216602092830291909101909101528051635c54c39960e11b9082906007908110610fec57fe5b6001600160e01b0319909216602092830291909101909101528051634d1bbdc160e11b908290600890811061101d57fe5b6001600160e01b0319909216602092830291909101909101528051638da5cb5b60e01b908290600990811061104e57fe5b6001600160e01b0319909216602092830291909101909101528051638f32d59b60e01b908290600a90811061107f57fe5b6001600160e01b031990921660209283029190910190910152805163f2fde38b60e01b908290600b9081106110b057fe5b6001600160e01b0319909216602092830291909101909101528051635419675f60e01b908290600c9081106110e157fe5b6001600160e01b031990921660209283029190910190910152905090565b600b60209081526000928352604080842090915290825290205463ffffffff1681565b600660209081526000928352604080842090915290825290205463ffffffff81169064010000000090046001600160601b031682565b60405161066e90611885565b61116c610ac6565b6111885760405162461bcd60e51b815260040161059e90611960565b611191816111ce565b50565b601160209081526000928352604080842090915290825290205463ffffffff81169064010000000090046001600160601b031682565b3390565b6001600160a01b0381166111f45760405162461bcd60e51b815260040161059e90611900565b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b803561125a81611a4b565b92915050565b803561125a81611a5f565b803561125a81611a68565b803561125a81611a71565b803561125a81611a7a565b60006020828403121561129e57600080fd5b60006112aa848461124f565b949350505050565b600080604083850312156112c557600080fd5b60006112d1858561124f565b92505060206112e28582860161126b565b9150509250929050565b60008060006060848603121561130157600080fd5b600061130d868661124f565b935050602061131e8682870161126b565b925050604061132f86828701611276565b9150509250925092565b60006020828403121561134b57600080fd5b60006112aa8484611260565b60006020828403121561136957600080fd5b60006112aa848461126b565b6000806040838503121561138857600080fd5b6000611394858561126b565b92505060206112e285828601611276565b6000602082840312156113b757600080fd5b60006112aa8484611281565b60006113cf8383611451565b505060200190565b6113e0816119ff565b82525050565b60006113f1826119ed565b6113fb81856119f1565b9350611406836119e7565b8060005b8381101561143457815161141e88826113c3565b9750611429836119e7565b92505060010161140a565b509495945050505050565b6113e081611a0a565b6113e081611a0f565b6113e081611a12565b6113e081611a40565b60006114706027836119f1565b7f63616e6e6f742061646420746865207a65726f20616464726573732061732061815266371030b236b4b760c91b602082015260400192915050565b60006114b96024836119f1565b7f7468657265206973206e6f206e6577207374616b696e6720636f6e7472616374815263081cd95d60e21b602082015260400192915050565b60006114ff6026836119f1565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b6000611547600f836119f1565b6e1b9bdd081a5b5c1b195b595b9d1959608a1b815260200192915050565b60006115726028836119f1565b7f43616e6e6f7420667265657a652f756e667265657a6520746f207468652073618152676d6520737461746560c01b602082015260400192915050565b60006115bc6017836119f1565b7f61646472657373206973206e6f7420616e2061646d696e000000000000000000815260200192915050565b60006115f56027836119f1565b7f63616e6e6f742061646420746865207a65726f20616464726573732061732061815266103830bab9b2b960c91b602082015260400192915050565b600061163e6043836119fa565b7f454950373132446f6d61696e28737472696e67206e616d652c75696e7432353681527f20636861696e49642c6164647265737320766572696679696e67436f6e74726160208201526263742960e81b604082015260430192915050565b60006116a96017836119f1565b7f61646472657373206973206e6f74206120706175736572000000000000000000815260200192915050565b60006116e2600c836119f1565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b600061170a6026836119f1565b7f7363616c696e6720646f65736e27742062656c6f6e6720746f2072616e6765208152655b312c20395d60d01b602082015260400192915050565b60006117526029836119f1565b7f63616e277420726573657420746865206e6577207374616b696e6720636f6e7481526807261637420746f20360bc1b602082015260400192915050565b600061179d604b836119fa565b7f44656c65676174696f6e28616464726573732064656c6567617465652c75696e81527f74323536206c6f636b446174652c75696e74323536206e6f6e63652c75696e7460208201526a323536206578706972792960a81b6040820152604b0192915050565b60006118106021836119f1565b7f46656553686172696e6720616464726573732073686f756c646e2774206265208152600360fc1b602082015260400192915050565b60006118536006836119f1565b651c185d5cd95960d21b815260200192915050565b6113e081611a2b565b6113e081611a34565b600061125a82611631565b600061125a82611790565b6020810161125a82846113d7565b602080825281016118af81846113e6565b9392505050565b6020810161125a828461143f565b6020810161125a8284611448565b6020810161125a828461145a565b6020808252810161125a81611463565b6020808252810161125a816114ac565b6020808252810161125a816114f2565b6020808252810161125a8161153a565b6020808252810161125a81611565565b6020808252810161125a816115af565b6020808252810161125a816115e8565b6020808252810161125a8161169c565b6020808252810161125a816116d5565b6020808252810161125a816116fd565b6020808252810161125a81611745565b6020808252810161125a81611803565b6020808252810161125a81611846565b6020810161125a8284611868565b604081016119cc8285611868565b6118af6020830184611871565b6020810161125a8284611871565b60200190565b5190565b90815260200190565b919050565b600061125a82611a1f565b151590565b90565b6001600160e01b03191690565b6001600160a01b031690565b63ffffffff1690565b6001600160601b031690565b600061125a826119ff565b611a54816119ff565b811461119157600080fd5b611a5481611a0a565b611a5481611a0f565b611a5481611a2b565b611a5481611a3456fea365627a7a72315820f98d0661f502777c0fb38a3a598e393b1205cfa2a761e1110fb5c93c33c043b66c6578706572696d656e74616cf564736f6c63430005110040",
+    "devdoc": {
+        "methods": {
+            "addAdmin(address)": {
+                "params": {
+                    "_admin": "The addresses of the account to grant permissions."
+                }
+            },
+            "addPauser(address)": {
+                "params": {
+                    "_pauser": "The address to grant pauser permissions."
+                }
+            },
+            "freezeUnfreeze(bool)": {
+                "details": "When freezing, pause is always applied too. When unfreezing, the contract is left in paused stated.",
+                "params": {
+                    "_freeze": "true when freezing, false when unfreezing"
+                }
+            },
+            "isOwner()": {
+                "details": "Returns true if the caller is the current owner."
+            },
+            "migrateToNewStakingContract()": {
+                "details": "Staking contract needs to be set before by the owner. Currently not implemented, just needed for the interface.     In case it's needed at some point in the future,     the implementation needs to be changed first."
+            },
+            "owner()": {
+                "details": "Returns the address of the current owner."
+            },
+            "pauseUnpause(bool)": {
+                "params": {
+                    "_pause": "true when pausing, false when unpausing"
+                }
+            },
+            "removeAdmin(address)": {
+                "params": {
+                    "_admin": "The addresses of the account to revoke permissions."
+                }
+            },
+            "removePauser(address)": {
+                "params": {
+                    "_pauser": "The address to grant pauser permissions."
+                }
+            },
+            "setFeeSharing(address)": {
+                "params": {
+                    "_feeSharing": "The address of FeeSharingCollectorProxy contract."
+                }
+            },
+            "setNewStakingContract(address)": {
+                "details": "Doesn't have any influence as long as migrateToNewStakingContract is not implemented.",
+                "params": {
+                    "_newStakingContract": "The address of the new staking contract."
+                }
+            },
+            "setWeightScaling(uint96)": {
+                "params": {
+                    "_weightScaling": "The weight scaling."
+                }
+            },
+            "transferOwnership(address)": {
+                "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+            }
+        },
+        "title": "Staking Admin Module."
+    },
+    "userdoc": {
+        "methods": {
+            "addAdmin(address)": {
+                "notice": "Add account to Admins ACL."
+            },
+            "addPauser(address)": {
+                "notice": "Add account to pausers ACL."
+            },
+            "freezeUnfreeze(bool)": {
+                "notice": "Freeze contract - disable all functions"
+            },
+            "migrateToNewStakingContract()": {
+                "notice": "Allow a staker to migrate his positions to the new staking contract."
+            },
+            "pauseUnpause(bool)": {
+                "notice": "Pause/unpause contract"
+            },
+            "removeAdmin(address)": {
+                "notice": "Remove account from Admins ACL."
+            },
+            "removePauser(address)": {
+                "notice": "Remove account from pausers ACL."
+            },
+            "setFeeSharing(address)": {
+                "notice": "Allow the owner to set a fee sharing proxy contract. We need it for unstaking with slashing."
+            },
+            "setNewStakingContract(address)": {
+                "notice": "Allow the owner to set a new staking contract. As a consequence it allows the stakers to migrate their positions to the new contract."
+            },
+            "setWeightScaling(uint96)": {
+                "notice": "Allow the owner to set weight scaling. We need it for unstaking with slashing."
+            }
+        },
+        "notice": "Implements administrative functionality pause, freeze and setting addresses and parameters related to staking"
+    },
+    "storageLayout": {
+        "storage": [
+            {
+                "astId": 52463,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "_owner",
+                "offset": 0,
+                "slot": "0",
+                "type": "t_address"
+            },
+            {
+                "astId": 22008,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "kickoffTS",
+                "offset": 0,
+                "slot": "1",
+                "type": "t_uint256"
+            },
+            {
+                "astId": 22011,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "name",
+                "offset": 0,
+                "slot": "2",
+                "type": "t_string_storage"
+            },
+            {
+                "astId": 22013,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "SOVToken",
+                "offset": 0,
+                "slot": "3",
+                "type": "t_contract(IERC20)31532"
+            },
+            {
+                "astId": 22019,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "delegates",
+                "offset": 0,
+                "slot": "4",
+                "type": "t_mapping(t_address,t_mapping(t_uint256,t_address))"
+            },
+            {
+                "astId": 22022,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "allUnlocked",
+                "offset": 0,
+                "slot": "5",
+                "type": "t_bool"
+            },
+            {
+                "astId": 22034,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "newStakingContract",
+                "offset": 1,
+                "slot": "5",
+                "type": "t_address"
+            },
+            {
+                "astId": 22045,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "totalStakingCheckpoints",
+                "offset": 0,
+                "slot": "6",
+                "type": "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)22039_storage))"
+            },
+            {
+                "astId": 22049,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "numTotalStakingCheckpoints",
+                "offset": 0,
+                "slot": "7",
+                "type": "t_mapping(t_uint256,t_uint32)"
+            },
+            {
+                "astId": 22057,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "delegateStakingCheckpoints",
+                "offset": 0,
+                "slot": "8",
+                "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)22039_storage)))"
+            },
+            {
+                "astId": 22063,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "numDelegateStakingCheckpoints",
+                "offset": 0,
+                "slot": "9",
+                "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint32))"
+            },
+            {
+                "astId": 22071,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "userStakingCheckpoints",
+                "offset": 0,
+                "slot": "10",
+                "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)22039_storage)))"
+            },
+            {
+                "astId": 22077,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "numUserStakingCheckpoints",
+                "offset": 0,
+                "slot": "11",
+                "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint32))"
+            },
+            {
+                "astId": 22081,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "nonces",
+                "offset": 0,
+                "slot": "12",
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "astId": 22083,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "feeSharing",
+                "offset": 0,
+                "slot": "13",
+                "type": "t_contract(IFeeSharingCollector)15409"
+            },
+            {
+                "astId": 22086,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "weightScaling",
+                "offset": 20,
+                "slot": "13",
+                "type": "t_uint96"
+            },
+            {
+                "astId": 22090,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "vestingWhitelist",
+                "offset": 0,
+                "slot": "14",
+                "type": "t_mapping(t_address,t_bool)"
+            },
+            {
+                "astId": 22094,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "admins",
+                "offset": 0,
+                "slot": "15",
+                "type": "t_mapping(t_address,t_bool)"
+            },
+            {
+                "astId": 22098,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "vestingCodeHashes",
+                "offset": 0,
+                "slot": "16",
+                "type": "t_mapping(t_bytes32,t_bool)"
+            },
+            {
+                "astId": 22104,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "vestingCheckpoints",
+                "offset": 0,
+                "slot": "17",
+                "type": "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)22039_storage))"
+            },
+            {
+                "astId": 22108,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "numVestingCheckpoints",
+                "offset": 0,
+                "slot": "18",
+                "type": "t_mapping(t_uint256,t_uint32)"
+            },
+            {
+                "astId": 22110,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "vestingRegistryLogic",
+                "offset": 0,
+                "slot": "19",
+                "type": "t_contract(IVestingRegistry)24387"
+            },
+            {
+                "astId": 22114,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "pausers",
+                "offset": 0,
+                "slot": "20",
+                "type": "t_mapping(t_address,t_bool)"
+            },
+            {
+                "astId": 22116,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "paused",
+                "offset": 0,
+                "slot": "21",
+                "type": "t_bool"
+            },
+            {
+                "astId": 22118,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "frozen",
+                "offset": 1,
+                "slot": "21",
+                "type": "t_bool"
+            },
+            {
+                "astId": 22120,
+                "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                "label": "maxVestingWithdrawIterations",
+                "offset": 0,
+                "slot": "22",
+                "type": "t_uint256"
+            }
+        ],
+        "types": {
+            "t_address": {
+                "encoding": "inplace",
+                "label": "address",
+                "numberOfBytes": "20"
+            },
+            "t_bool": {
+                "encoding": "inplace",
+                "label": "bool",
+                "numberOfBytes": "1"
+            },
+            "t_bytes32": {
+                "encoding": "inplace",
+                "label": "bytes32",
+                "numberOfBytes": "32"
+            },
+            "t_contract(IERC20)31532": {
+                "encoding": "inplace",
+                "label": "contract IERC20",
+                "numberOfBytes": "20"
+            },
+            "t_contract(IFeeSharingCollector)15409": {
+                "encoding": "inplace",
+                "label": "contract IFeeSharingCollector",
+                "numberOfBytes": "20"
+            },
+            "t_contract(IVestingRegistry)24387": {
+                "encoding": "inplace",
+                "label": "contract IVestingRegistry",
+                "numberOfBytes": "20"
+            },
+            "t_mapping(t_address,t_bool)": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => bool)",
+                "numberOfBytes": "32",
+                "value": "t_bool"
+            },
+            "t_mapping(t_address,t_mapping(t_uint256,t_address))": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => mapping(uint256 => address))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_uint256,t_address)"
+            },
+            "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)22039_storage)))": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => mapping(uint256 => mapping(uint32 => struct StakingStorageShared.Checkpoint)))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)22039_storage))"
+            },
+            "t_mapping(t_address,t_mapping(t_uint256,t_uint32))": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => mapping(uint256 => uint32))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_uint256,t_uint32)"
+            },
+            "t_mapping(t_address,t_uint256)": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => uint256)",
+                "numberOfBytes": "32",
+                "value": "t_uint256"
+            },
+            "t_mapping(t_bytes32,t_bool)": {
+                "encoding": "mapping",
+                "key": "t_bytes32",
+                "label": "mapping(bytes32 => bool)",
+                "numberOfBytes": "32",
+                "value": "t_bool"
+            },
+            "t_mapping(t_uint256,t_address)": {
+                "encoding": "mapping",
+                "key": "t_uint256",
+                "label": "mapping(uint256 => address)",
+                "numberOfBytes": "32",
+                "value": "t_address"
+            },
+            "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)22039_storage))": {
+                "encoding": "mapping",
+                "key": "t_uint256",
+                "label": "mapping(uint256 => mapping(uint32 => struct StakingStorageShared.Checkpoint))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_uint32,t_struct(Checkpoint)22039_storage)"
+            },
+            "t_mapping(t_uint256,t_uint32)": {
+                "encoding": "mapping",
+                "key": "t_uint256",
+                "label": "mapping(uint256 => uint32)",
+                "numberOfBytes": "32",
+                "value": "t_uint32"
+            },
+            "t_mapping(t_uint32,t_struct(Checkpoint)22039_storage)": {
+                "encoding": "mapping",
+                "key": "t_uint32",
+                "label": "mapping(uint32 => struct StakingStorageShared.Checkpoint)",
+                "numberOfBytes": "32",
+                "value": "t_struct(Checkpoint)22039_storage"
+            },
+            "t_string_storage": {
+                "encoding": "bytes",
+                "label": "string",
+                "numberOfBytes": "32"
+            },
+            "t_struct(Checkpoint)22039_storage": {
+                "encoding": "inplace",
+                "label": "struct StakingStorageShared.Checkpoint",
+                "members": [
+                    {
+                        "astId": 22036,
+                        "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                        "label": "fromBlock",
+                        "offset": 0,
+                        "slot": "0",
+                        "type": "t_uint32"
+                    },
+                    {
+                        "astId": 22038,
+                        "contract": "contracts/governance/Staking/modules/StakingAdminModule.sol:StakingAdminModule",
+                        "label": "stake",
+                        "offset": 4,
+                        "slot": "0",
+                        "type": "t_uint96"
+                    }
+                ],
+                "numberOfBytes": "32"
+            },
+            "t_uint256": {
+                "encoding": "inplace",
+                "label": "uint256",
+                "numberOfBytes": "32"
+            },
+            "t_uint32": {
+                "encoding": "inplace",
+                "label": "uint32",
+                "numberOfBytes": "4"
+            },
+            "t_uint96": {
+                "encoding": "inplace",
+                "label": "uint96",
+                "numberOfBytes": "12"
+            }
+        }
+    }
+}
