@@ -1,7 +1,7 @@
 {
   "overrides": [
     {
-      "files": ["*.sol", "*.js", "*.test.js", "*.json"],
+      "files": ["*.js", "*.test.js", "*.json"],
       "options": {
         "printWidth": 99,
         "tabWidth": 4,
@@ -9,6 +9,16 @@
         "singleQuote": false,
         "bracketSpacing": true,
         "explicitTypes": "always"
+      }
+    },
+    {
+      "files": ["*.sol"],
+      "options": {
+        "printWidth": 99,
+        "tabWidth": 4,
+        "useTabs": false,
+        "singleQuote": false,
+        "bracketSpacing": true
       }
     }
   ]
