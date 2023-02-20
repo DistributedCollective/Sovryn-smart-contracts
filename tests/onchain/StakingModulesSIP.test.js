@@ -69,12 +69,13 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
         const stakingProxy = await ethers.getContract("StakingProxy", deployer);
         const stakingModulesProxy = await ethers.getContract("StakingModulesProxy", deployer);
 
-        const governorOwner = await ethers.getContract("GovernorOwner", deployerSigner);
-        const governorOwnerSigner = await getImpersonatedSignerFromJsonRpcProvider(
-            (
-                await deployments.get("GovernorOwner")
-            ).address
+        const god = await deployments.get("GovernorOwner");
+        const governorOwner = await ethers.getContractAt(
+            "GovernorAlpha",
+            god.address,
+            deployerSigner
         );
+        const governorOwnerSigner = await getImpersonatedSignerFromJsonRpcProvider(god.address);
 
         await setBalance(governorOwnerSigner._address, ONE_RBTC);
         const timelockOwner = await ethers.getContract("TimelockOwner", governorOwnerSigner);
@@ -162,7 +163,7 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
             if (await staking.paused()) await staking.connect(multisigSigner).pauseUnpause(false);
             const kickoffTS = await stakingProxy.kickoffTS();
             await staking.stake(whaleAmount, kickoffTS.add(MAX_DURATION), deployer, deployer);
-            await mine(1);
+            await mine();
 
             await createSIP0049();
 
