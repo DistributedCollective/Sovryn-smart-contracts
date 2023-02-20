@@ -187,6 +187,15 @@ module.exports = {
             tags: ["testnet", "forked"],
             timeout: 100000,
         },
+        rskForkedMainnetFlashback: {
+            chainId: 31337,
+            accounts: mainnetAccounts,
+            url: "http://127.0.0.1:8545",
+            blockGasLimit: 6800000,
+            live: true,
+            tags: ["mainnet", "forked"],
+            timeout: 100000,
+        },
         rskForkedMainnet: {
             chainId: 31337,
             accounts: mainnetAccounts,
@@ -265,6 +274,7 @@ module.exports = {
                 "deployment/deployments/rskSovrynTestnet",
             ],
             rskForkedTestnetFlashback: ["external/deployments/rskSovrynTestnet"],
+            rskForkedMainnetFlashback: ["external/deployments/rskSovrynMainnetFlashback"],
             rskSovrynMainnet: ["external/deployments/rskSovrynMainnet"],
             rskMainnet: ["external/deployments/rskSovrynMainnet"],
             rskForkedMainnet: [
