@@ -165,10 +165,16 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
             await staking.stake(whaleAmount, kickoffTS.add(MAX_DURATION), deployer, deployer);
             await mine();
 
+            // CREATE PROPOSAL AND VERIFY
+            const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
             await createSIP0049();
+            const proposalId = await governorOwner.latestProposalIds(deployer);
+            expect(
+                proposalId.toString(),
+                "Proposal was not created. Check the SIP creation is not commented out."
+            ).not.equal(proposalIdBeforeSIP.toString());
 
             // VOTE FOR PROPOSAL
-            const proposalId = await governorOwner.latestProposalIds(deployer);
 
             await mine();
             await governorOwner.connect(deployerSigner).castVote(proposalId, true);

@@ -28,7 +28,7 @@ const createSIP0049 = async () => {
     const stakingModules = await ethers.getContractAt("ModulesProxy", stakingProxy.address);
     const stakingModulesProxy = await ethers.getContract("StakingModulesProxy");
     const stakingProxyAddress = stakingProxy.address;
-    const isNewModulesProxy = true; // (await stakingProxy.getImplementation()) != stakingModulesProxy.address;
+    const isNewModulesProxy = true; // @todo after initial deployment (await stakingProxy.getImplementation()) != stakingModulesProxy.address;
 
     const moduleNamesObject = getStakingModulesNames();
     const moduleNames = Object.values(moduleNamesObject);
@@ -88,7 +88,6 @@ const createSIP0049 = async () => {
         targets.push(stakingProxyAddress);
         values.push(0);
         signatures.push("setImplementation(address)");
-        //datas.push([encodeParameters(["address"], [stakingModulesProxy.address])]);
         datas.push(encodeParameters(["address"], [stakingModulesProxy.address]));
     }
     if (addModules.length > 0) {
