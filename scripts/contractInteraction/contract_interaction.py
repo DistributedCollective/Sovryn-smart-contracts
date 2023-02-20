@@ -18,10 +18,10 @@ def main():
     * use --no-deploy param to skip running hh deployment scripts by default 
     
     mainnet: 
-    npx hardhat node --fork https://mainnet4.sovryn.app/rpc --fork-block-number 4929553 --no-deploy
+    npx hardhat node --fork https://mainnet4.sovryn.app/rpc --no-deploy --fork-block-number 4929553
     
     testnet:   
-    npx hardhat node --fork https://testnet.sovryn.app/rpc --fork-block-number 3495000 --no-deploy
+    npx hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy --fork-block-number 3495000
 
     2) run the script respectively:
     export DEV_NET_NAME="testnet" && brownie run scripts/contractInteraction/contract_interaction.py --network development

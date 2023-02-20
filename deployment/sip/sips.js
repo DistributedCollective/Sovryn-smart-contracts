@@ -105,22 +105,21 @@ const createSIP0049 = async () => {
             encodeParameters(["address[]", "address[]"], [replaceModulesFrom, replaceModulesTo])
         );
         throw new Error(
-            "SIP-0039 is initial Staking modules deployment and should not have modules to replace"
+            "SIP-0049 is initial Staking modules deployment and should not have modules to replace"
         );
     }
     description =
-        "SIP-0049: Staking contract refactoring to resolve EIP-170 size limit, Details: <TODO: commit link>, sha256: <TODO: SIP file sha256>";
+        "SIP-0049: Staking contract refactoring and other improvements, Details: https://github.com/DistributedCollective/SIPS/blob/48a3f26/SIP-0049.md, sha256: 666a1d06a574d17acb44c34d443edcce724bbd34709b005d0f49b848e4adf9ce";
 
     const governorAddress = (await get("GovernorOwner")).address;
-    /* console.log("governor:", governorAddress);
+    /*console.log("governor:", governorAddress);
     console.log("targets:", targets);
     console.log("values:", values);
     console.log("signatures:", signatures);
     console.log("datas:", datas);
-    console.log("description:", description);
-    */
+    console.log("description:", description);*/
 
-    await createProposal(governorAddress, targets, values, signatures, datas, description);
+    //await createProposal(governorAddress, targets, values, signatures, datas, description);
 };
 
 module.exports = {

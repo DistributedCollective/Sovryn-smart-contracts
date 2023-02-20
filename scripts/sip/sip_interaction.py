@@ -518,4 +518,5 @@ def createProposalSIP005x():
     print(datas)
     print(description)
 
+    # @note WE DON'T NEED SIP - can be set via admin (multisig)
     #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)

@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const { createSIP0049 } = import("./sips");
+const { createSIP0049 } = require("./sips");
 
 async function main() {
     await createSIP0049();
