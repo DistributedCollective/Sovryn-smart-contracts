@@ -52,6 +52,7 @@ const StakingWrapperMockup = artifacts.require("StakingWrapperMockup");
 
 const FeeSharingCollector = artifacts.require("FeeSharingCollector");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
+const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const DELAY = 86400 * 14;
@@ -1171,7 +1172,7 @@ contract("Staking", (accounts) => {
             );
         });
 
-        it("should fail if the date duration exceeds the max_duration", async () => {
+        it("should fail if the date duration exceeds the max_duration and lockDate > blockTimestamp", async () => {
             let lockedDates = [kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(100)))];
             let values = [new BN(1000)];
 
@@ -2560,6 +2561,48 @@ contract("Staking", (accounts) => {
                 staking.stake(values[2], lockedDates[2], a1, a1, { from: guy }),
             ]);
 
+            let tx = await staking.setVestingStakes(lockedDates, values);
+            let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
+
+            for (let i = 0; i < lockedDates.length; i++) {
+                let numCheckpoints = await staking.numVestingCheckpoints.call(lockedDates[i]);
+                expect(numCheckpoints).to.be.bignumber.equal(new BN(1));
+                let value = await staking.vestingCheckpoints.call(lockedDates[i], 0);
+                expect(value.stake).to.be.bignumber.equal(values[i]);
+                expect(value.fromBlock).to.be.bignumber.equal(txBlockNumber.sub(new BN(1)));
+
+                await expectEvent.inTransaction(
+                    tx.receipt.rawLogs[0].transactionHash,
+                    StakingVestingModule,
+                    "VestingStakeSet",
+                    {
+                        lockedTS: lockedDates[i],
+                        value: values[i],
+                    }
+                );
+            }
+        });
+
+        it("should set vesting stakes if lockedDate < blockTimestamp", async () => {
+            let guy = accounts[0];
+            let lockedDates = [
+                kickoffTS.add(new BN(TWO_WEEKS)),
+                kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(2))),
+                kickoffTS.add(new BN(TWO_WEEKS).mul(new BN(4))),
+            ];
+            let values = [new BN(1000), new BN(30000000000), new BN(500000000000000)];
+            let totalStaked = values[0].add(values[1]).add(values[2]);
+            await token.transfer(guy, totalStaked); // give an account a few tokens for readability
+            await token.approve(staking.address, totalStaked, { from: guy });
+
+            // stake for exact date
+            await Promise.all([
+                staking.stake(values[0], lockedDates[0], a1, a1, { from: guy }),
+                staking.stake(values[1], lockedDates[1], a1, a1, { from: guy }),
+                staking.stake(values[2], lockedDates[2], a1, a1, { from: guy }),
+            ]);
+
+            await time.increase(2592000); // incerease timestamp 30 days, so that lockedDates will be < blockTimestamp
             let tx = await staking.setVestingStakes(lockedDates, values);
             let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
 

@@ -61,10 +61,12 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
         );
 
         // locked date must not exceed the MAX_DURATION
-        require(
-            lockedTS - block.timestamp <= MAX_DURATION,
-            "Invalid lock dates: exceed max duration"
-        );
+        if (lockedTS > block.timestamp) {
+            require(
+                lockedTS - block.timestamp <= MAX_DURATION,
+                "Invalid lock dates: exceed max duration"
+            );
+        }
 
         // the value must not exceed the total staked at the given locked date
         uint32 nStakeCheckpoints = numTotalStakingCheckpoints[lockedTS];
