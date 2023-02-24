@@ -317,13 +317,15 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(newImplementation).to.be.equal(newFeeSharingCollector.address);
         });
 
-        it("fallback function will revert if called by non-wrbtc contract", async () => {
+        it("fallback function should success", async () => {
             const newFeeSharingCollector = await FeeSharingCollector.new();
+            const amount = wei("2", "ether");
             await feeSharingCollectorProxyObj.setImplementation(newFeeSharingCollector.address);
-            await expectRevert(
-                feeSharingCollectorProxyObj.send(wei("0.0000000000000001", "ether")),
-                "FeeSharingCollector::fallback: only wRBTC token calls allowed"
-            );
+            await feeSharingCollectorProxyObj.send(amount);
+
+            expect(
+                (await web3.eth.getBalance(feeSharingCollectorProxyObj.address)).toString()
+            ).to.equal(amount);
         });
     });
 
@@ -1107,6 +1109,117 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 sender: account1,
                 receiver: account2,
                 amount: new BN(feeAmount).mul(new BN(3)).div(new BN(10)),
+            });
+        });
+
+        it("Should be able to withdraw to another account (WRBTC)", async () => {
+            await protocolDeploymentFixture();
+
+            // FeeSharingCollectorProxy
+            feeSharingCollectorProxy = await FeeSharingCollectorProxyMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            await sovryn.setFeesController(feeSharingCollectorProxy.address);
+
+            await WRBTC.mint(feeSharingCollectorProxy.address, wei("2", "ether"));
+
+            // stake - getPriorTotalVotingPower
+            let rootStake = 700;
+            await stake(rootStake, root);
+
+            let userStake = 300;
+            let userStakePercentage = (userStake / (userStake + rootStake)) * 10;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            // mock data
+            let lendingFeeTokensHeld = new BN(wei("1", "ether"));
+            let tradingFeeTokensHeld = new BN(wei("2", "ether"));
+            let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
+            let totalFeeTokensHeld = lendingFeeTokensHeld
+                .add(tradingFeeTokensHeld)
+                .add(borrowingFeeTokensHeld);
+            let feeAmount = await setFeeTokensHeld(
+                lendingFeeTokensHeld,
+                tradingFeeTokensHeld,
+                borrowingFeeTokensHeld
+            );
+
+            /** Add checkpoint for WRBTC */
+            await feeSharingCollectorProxy.addCheckPoint(
+                WRBTC.address,
+                totalFeeTokensHeld.toString()
+            );
+
+            /** Add checkpoint for iWRBTC */
+            await feeSharingCollectorProxy.addCheckPoint(
+                loanTokenWrbtc.address,
+                totalFeeTokensHeld.toString()
+            );
+
+            await loanTokenWrbtc.mintWithBTC(feeSharingCollectorProxy.address, false, {
+                value: totalFeeTokensHeld,
+            });
+
+            await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+
+            const accumulatedFeesRBTC = await feeSharingCollectorProxy.getAccumulatedFees.call(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            const accumulatedFeesWRBTC = await feeSharingCollectorProxy.getAccumulatedFees.call(
+                account1,
+                WRBTC.address
+            );
+            const accumulatedFeesIRBTC = await feeSharingCollectorProxy.getAccumulatedFees.call(
+                account1,
+                loanTokenWrbtc.address
+            );
+
+            expect(accumulatedFeesRBTC.toString()).to.equal(accumulatedFeesWRBTC.toString());
+            expect(accumulatedFeesRBTC.toString()).to.equal(accumulatedFeesIRBTC.toString());
+
+            let fees = await feeSharingCollectorProxy.getAccumulatedFees(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            expect(fees).to.be.bignumber.equal(
+                new BN(feeAmount).mul(new BN(userStakePercentage)).div(new BN(10))
+            );
+
+            let tx = await feeSharingCollectorProxy.withdrawRBTC(1000, account2, {
+                from: account1,
+            });
+
+            // processedCheckpoints
+            let [processedCheckpointsRBTC, processedCheckpointsWRBTC, processedCheckpointsIWRBTC] =
+                await Promise.all([
+                    feeSharingCollectorProxy.processedCheckpoints.call(
+                        account1,
+                        RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+                    ),
+                    feeSharingCollectorProxy.processedCheckpoints.call(account1, WRBTC.address),
+                    feeSharingCollectorProxy.processedCheckpoints.call(
+                        account1,
+                        loanTokenWrbtc.address
+                    ),
+                ]);
+
+            expect(processedCheckpointsRBTC.toNumber()).to.be.equal(1);
+            expect(processedCheckpointsWRBTC.toNumber()).to.be.equal(1);
+            expect(processedCheckpointsIWRBTC.toNumber()).to.be.equal(1);
+
+            expectEvent(tx, "RBTCWithdrawn", {
+                sender: account1,
+                receiver: account2,
+                amount: new BN(feeAmount)
+                    .mul(new BN(userStakePercentage).mul(new BN(3)))
+                    .div(new BN(10)), // need multiple by 3 since we added a mock for WRBTC & IRBTC
             });
         });
 
