@@ -622,38 +622,4 @@ def readTokenOwnerFromFunds():
     print("developmentFund.unlockedTokenOwner:", developmentFund.unlockedTokenOwner())
     print("developmentFund.lockedTokenOwner:", developmentFund.lockedTokenOwner())
 
-    '''
-    now = calendar.timegm(time.gmtime())
-    # print(now)
-
-    print("===============================================")
-    adoptionLastReleaseTime = adoptionFund.lastReleaseTime()
-    print("adoptionLastReleaseTime:", adoptionLastReleaseTime)
-    adoptionReleaseDuration = adoptionFund.getReleaseDuration()[::-1]
-    adoptionReleaseTokenAmount = adoptionFund.getReleaseTokenAmount()[::-1]
-    adoptionAmount = 0
-    for i in range(len(adoptionReleaseDuration)):
-        releaseTime = adoptionReleaseDuration[i]
-        releaseValue = adoptionReleaseTokenAmount[i]
-        if (now >= adoptionLastReleaseTime + releaseTime):
-            adoptionLastReleaseTime += releaseTime
-            adoptionAmount += releaseValue
-            print(str(adoptionLastReleaseTime) + " - " + str(releaseValue / DECIMALS))
-    print("adoptionFund:", adoptionAmount / DECIMALS)
-
-    print("===============================================")
-    developmentLastReleaseTime = developmentFund.lastReleaseTime()
-    print("developmentLastReleaseTime:", developmentLastReleaseTime)
-    developmentReleaseDuration = developmentFund.getReleaseDuration()[::-1]
-    developmentReleaseTokenAmount = developmentFund.getReleaseTokenAmount()[::-1]
-    developmentAmount = 0
-    for i in range(len(developmentReleaseDuration)):
-        releaseTime = developmentReleaseDuration[i]
-        releaseValue = developmentReleaseTokenAmount[i]
-        if (now >= developmentLastReleaseTime + releaseTime):
-            developmentLastReleaseTime += releaseTime
-            developmentAmount += releaseValue
-            print(str(developmentLastReleaseTime) + " - " + str(releaseValue / DECIMALS))
-    print("developmentFund:", developmentAmount / DECIMALS)
-    print("===============================================")
-    '''
+   
