@@ -39,6 +39,10 @@ def printMultisigOwners():
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     print(multisig.getOwners())
 
+def isMultisigOwner(address):
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    print(multisig.isOwner(address))
+
 def printMultisigOwnersOnAny(multisigAddress):
     multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=conf.acct)
     print(multisig.getOwners())

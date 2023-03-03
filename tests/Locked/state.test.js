@@ -11,7 +11,7 @@ const SOV = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const LockedSOV = artifacts.require("LockedSOV");
 const StakingProxy = artifacts.require("StakingProxy");
-const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
@@ -147,7 +147,7 @@ contract("Locked SOV (State)", (accounts) => {
         lockedSOV,
         newLockedSOV,
         staking,
-        feeSharingProxy,
+        feeSharingCollectorProxy,
         vestingLogic,
         vestingFactory,
         vestingRegistry;
@@ -172,7 +172,10 @@ contract("Locked SOV (State)", (accounts) => {
         staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Creating the FeeSharing Instance.
-        feeSharingProxy = await FeeSharingProxy.new(zeroAddress, staking.address);
+        feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
+            zeroAddress,
+            staking.address
+        );
 
         // Creating the Vesting Instance.
         vestingLogic = await VestingLogic.new();
@@ -181,7 +184,7 @@ contract("Locked SOV (State)", (accounts) => {
             vestingFactory.address,
             sov.address,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             creator // This should be Governance Timelock Contract.
         );
         await vestingFactory.transferOwnership(vestingRegistry.address);
@@ -269,7 +272,7 @@ contract("Locked SOV (State)", (accounts) => {
             vestingFactory.address,
             sov.address,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             creator // This should be Governance Timelock Contract.
         );
         await newLockedSOV.changeRegistryCliffAndDuration(

@@ -46,7 +46,7 @@ describe("StakingRewards - First Period", () => {
         //stakingProxy = await ethers.getContract("StakingProxy", root);
         //stakingProxy = await StakingProxy.new(SUSD.address);
         await deployAndGetIStaking(stakingProxy.address);
-        staking = await ethers.getContractAt("Staking", stakingProxy.address);
+        staking = await ethers.getContractAt("IStaking", stakingProxy.address);
 
         vestingRegistryLogic = await (
             await ethers.getContractFactory("VestingRegistryLogic")
@@ -64,7 +64,6 @@ describe("StakingRewards - First Period", () => {
 
         inOneWeek = kickoffTS.add(BigNumber.from(DELAY));
         inOneYear = kickoffTS.add(BigNumber.from(DELAY).mul(26));
-        console.log("inOneYear:", inOneYear.toNumber());
 
         inTwoYears = kickoffTS.add(BigNumber.from(DELAY).mul(26).mul(2));
         inThreeYears = kickoffTS.add(BigNumber.from(DELAY).mul(26).mul(3));

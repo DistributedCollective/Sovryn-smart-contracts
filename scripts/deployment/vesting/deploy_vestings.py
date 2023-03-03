@@ -35,7 +35,7 @@ def main():
         staking.setImplementation(stakingLogic.address)
         staking = Contract.from_abi("Staking", address=staking.address, abi=interface.IStaking.abi, owner=acct)
 
-        feeSharing = acct.deploy(FeeSharingProxy, protocolAddress, staking.address)
+        feeSharing = acct.deploy(FeeSharingCollectorProxy, protocolAddress, staking.address)
         staking.setFeeSharing(feeSharing.address)
 
         vestingLogic = acct.deploy(VestingLogic)

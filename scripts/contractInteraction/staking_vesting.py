@@ -227,11 +227,17 @@ def upgradeStakingModulesProxy():
     stakingModulesProxy = conf.acct.deploy(ModulesProxy)
     print("New StakingModuleProxy address:", stakingModulesProxy.address)
     
+    setStakingModulesProxy(stakingModulesProxy.address)
+
+def setStakingModulesProxy(stakingModulesProxyAddress):
+    print('Deploying account:', conf.acct.address)
+    print("Setting Staking Modules Proxy address as implementation for StakingProxy")
+
     # Get the proxy contract instance
     stakingProxy = Contract.from_abi("StakingProxy", address=conf.contracts['Staking'], abi=StakingProxy.abi, owner=conf.acct)
 
     # Register logic in Proxy
-    data = stakingProxy.setImplementation.encode_input(stakingModulesProxy.address)
+    data = stakingProxy.setImplementation.encode_input(stakingModulesProxyAddress)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['Staking'], data, conf.acct)
 
 # deployStakingModulesProxy
@@ -326,7 +332,7 @@ def canAddStakingModule(stakingModuleAddress):
 
 # Upgrade Vesting Registry
 
-def upgradeVesting():
+def upgradeVestingRegistry():
     print('Deploying account:', conf.acct.address)
     print("Upgrading vesting registry")
 
@@ -372,8 +378,8 @@ def updateAddresses():
     print(stakingRewardsProxy)
 
     # Get the fee sharing proxy contract instance
-    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
-    print(feeSharingProxy)
+    feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollectorProxy", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
+    print(feeSharingCollectorProxy)
 
     #Link Staking with Vesting
     data = staking.setVestingRegistry.encode_input(vestingRegistryProxy)
@@ -386,7 +392,7 @@ def updateAddresses():
     # sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
     #Link Staking with Fee Sharing
-    data = staking.setFeeSharing.encode_input(feeSharingProxy)
+    data = staking.setFeeSharing.encode_input(feeSharingCollectorProxy)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 

@@ -34,8 +34,8 @@ const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 
 const StakingProxy = artifacts.require("StakingProxy");
 
-const FeeSharingLogic = artifacts.require("FeeSharingLogic");
-const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingCollector = artifacts.require("FeeSharingCollector");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
@@ -57,6 +57,7 @@ const {
     getSOV,
 } = require("../Utils/initializer.js");
 const { etherGasCost } = require("../Utils/Ethereum.js");
+const mutexUtils = require("../reentrancy/utils");
 
 const { ZERO_ADDRESS } = constants;
 const wei = web3.utils.toWei;
@@ -74,6 +75,9 @@ contract("SwapsExternal", (accounts) => {
     let sovryn, loanToken;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();
@@ -120,12 +124,17 @@ contract("SwapsExternal", (accounts) => {
         const stakingProxy = await StakingProxy.new(SUSD.address);
         staking = await deployAndGetIStaking(stakingProxy.address);
 
-        // FeeSharingProxy
-        feeSharingLogic = await FeeSharingLogic.new();
-        feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
-        await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
-        feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
-        await sovryn.setFeesController(feeSharingProxy.address);
+        // FeeSharingCollectorProxy
+        feeSharingCollector = await FeeSharingCollector.new();
+        feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
+            sovryn.address,
+            staking.address
+        );
+        await feeSharingCollectorProxyObj.setImplementation(feeSharingCollector.address);
+        feeSharingCollectorProxy = await FeeSharingCollector.at(
+            feeSharingCollectorProxyObj.address
+        );
+        await sovryn.setFeesController(feeSharingCollectorProxy.address);
 
         // Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
         loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
@@ -141,7 +150,8 @@ contract("SwapsExternal", (accounts) => {
         const loanTokenAddressWrbtc = await loanTokenWrbtc.loanTokenAddress();
         await sovryn.setLoanPool([loanTokenWrbtc.address], [loanTokenAddressWrbtc]);
 
-        await WRBTC.mint(sovryn.address, wei("500", "ether"));
+        await WRBTC.deposit({ value: wei("500", "ether") });
+        await WRBTC.transfer(sovryn.address, wei("500", "ether"));
 
         // Creating the Vesting Instance.
         vestingLogic = await VestingLogic.new();
@@ -150,7 +160,7 @@ contract("SwapsExternal", (accounts) => {
             vestingFactory.address,
             SOVToken.address,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             lender // This should be Governance Timelock Contract.
         );
         vestingFactory.transferOwnership(vestingRegistry.address);
@@ -465,16 +475,15 @@ contract("SwapsExternal", (accounts) => {
                 from: lender,
             });
 
-            const tx = await feeSharingProxy.withdrawFees([SUSD.address]);
+            const tx = await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
 
             let swapFee = amount.mul(trading_fee_percent).div(new BN(wei("100", "ether")));
 
             // need to sub by swap fee because at this point, protocol will received the trading fee again.
             loanTokenWRBTCBalanceShouldBe = amount.mul(new BN(1)).sub(swapFee);
 
-            expectEvent(tx, "FeeWithdrawn", {
+            expectEvent(tx, "FeeWithdrawnInRBTC", {
                 sender: lender,
-                token: loanTokenWrbtc.address,
                 amount: loanTokenWRBTCBalanceShouldBe,
             });
         });

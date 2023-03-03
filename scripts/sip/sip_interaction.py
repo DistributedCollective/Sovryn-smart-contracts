@@ -270,7 +270,7 @@ def createProposalSIP0024():
 
 def createProposalSIP0030():
     # TODO StakingLogic4 should be deployed
-    # TODO FeeSharingProxy2 should be deployed
+    # TODO FeeSharingCollectorProxy2 should be deployed
     # TODO VestingRegistryProxy should be deployed
 
     stakingProxy = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
@@ -281,7 +281,7 @@ def createProposalSIP0030():
     values = [0, 0, 0]
     signatures = ["setImplementation(address)", "setFeeSharing(address)", "setVestingRegistry(address)"]
     data1 = stakingProxy.setImplementation.encode_input(contracts['StakingLogic4'])
-    data2 = stakingImpl.setFeeSharing.encode_input(contracts['FeeSharingProxy'])
+    data2 = stakingImpl.setFeeSharing.encode_input(contracts['FeeSharingCollectorProxy'])
     data3 = stakingImpl.setVestingRegistry.encode_input(contracts['VestingRegistryProxy'])
     datas = ["0x" + data1[10:], "0x" + data2[10:], "0x" + data3[10:]]
     description = "SIP-30: Concentrating staking revenues, Details: https://github.com/DistributedCollective/SIPS/blob/12bdd48/SIP-30.md, sha256: 8f7f95545d968dc4d9a37b9cad4228b562c76b7617c2740b221b1f70eb367620"
@@ -441,6 +441,18 @@ def createProposalSIP0049():
         'StakingWithdrawModule': contracts['StakingWithdrawModule'],
         'WeightedStakingModule': contracts['WeightedStakingModule']
     }
+
+    moduleAddresses = [ 
+        contracts['StakingAdminModule'],
+        contracts['StakingGovernanceModule'],
+        contracts['StakingStakeModule'],
+        contracts['StakingStorageModule'],
+        contracts['StakingVestingModule'],
+        contracts['StakingWithdrawModule'],
+        contracts['WeightedStakingModule']
+    ]
+    
+    '''
     invalidModules = {}
     for module in moduleAddresses:
         if not stakingModulesProxy.canAddModule(moduleAddresses[module]):
@@ -448,6 +460,7 @@ def createProposalSIP0049():
     
     if invalidModules != {}:
          raise Exception('Invalid modules:: ' + invalidModules)
+    '''
 
     # Action
     targets = [contracts['Staking'], contracts['Staking']]
@@ -505,4 +518,5 @@ def createProposalSIP005x():
     print(datas)
     print(description)
 
+    # @note WE DON'T NEED SIP - can be set via admin (multisig)
     #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)

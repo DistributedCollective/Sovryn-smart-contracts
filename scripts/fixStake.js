@@ -101,7 +101,7 @@ async function stake(accountAddress) {
 
 async function main() {
     // MAKE SURE TO RUN THE FORK MAINNET BY RUNNING THIS COMMAND:
-    // hardhat node --fork https://mainnet.sovryn.app/rpc --fork-block-number 4432300
+    // hardhat node --fork https://mainnet4.sovryn.app/rpc --fork-block-number 4432300
     const staker1 = "0x893816e814acecb58301c73585d97493d76f928e";
     let stakerTest = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
     await checkStakerBalance(staker1);

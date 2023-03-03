@@ -1,9 +1,12 @@
-const hre = require("hardhat");
-const {
+//const hre = require("hardhat");
+/*const {
     deployments: { deploy, get, log },
     getNamedAccounts,
     ethers,
-} = hre;
+} = hre;*/
+
+///@dev This file requires HardhatRuntimeEnvironment `hre` variable in its parent context for functions using hre to work
+const { arrayToUnique } = require("../helpers/utils");
 
 const getStakingModulesNames = () => {
     return {
@@ -23,7 +26,6 @@ const stakingRegisterModuleWithMultisig = () => {
 
 const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, value = 0) => {
     const { ethers } = hre;
-    console.log("Multisig tx data:", data);
     const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress);
     const signer = await ethers.getSigner(sender);
     receipt = await (
@@ -33,33 +35,99 @@ const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, 
     const abi = ["event Submission(uint256 indexed transactionId)"];
     let iface = new ethers.utils.Interface(abi);
     const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "Submission");
-    console.log("Multisig tx id:", parsedEvent.transactionId.value.toNumber());
+    await multisigCheckTx(parsedEvent.transactionId.value.toNumber(), multisig.address);
+};
+
+const signWithMultisig = async (multisigAddress, txId, sender) => {
+    const { ethers, getNamedAccounts } = hre;
+    console.log("Signing multisig txId:", txId);
+    const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress);
+    const signer = await ethers.getSigner(sender);
+    receipt = await (await multisig.connect(signer).confirmTransaction(txId)).wait();
+    // console.log("Required signatures:", await multisig.required());
+    console.log("Signed. Details:");
+    await multisigCheckTx(txId, multisig.address);
 };
 
 const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_ZERO) => {
+    const { ethers } = hre;
+    const multisig = await ethers.getContractAt(
+        "MultiSigWallet",
+        multisigAddress == ethers.constants.ADDRESS_ZERO
+            ? (
+                  await get("MultiSigWallet")
+              ).address
+            : multisigAddress
+    );
+    const transaction = await multisig.transactions(txId);
+    console.log(
+        "TX { ID: ",
+        txId,
+        ", Data: ",
+        transaction.data,
+        ", Value: ",
+        transaction.value.toString(),
+        ", Destination: ",
+        transaction.destination,
+        ", Confirmations: ",
+        (await multisig.getConfirmationCount(txId)).toNumber(),
+        ", Executed:",
+        transaction.executed,
+        ", Confirmed by:",
+        await multisig.getConfirmations(txId),
+        "}"
+    );
+};
+
+const multisigRevokeConfirmation = async (
+    txId,
+    sender,
+    multisigAddress = ethers.constants.ADDRESS_ZERO
+) => {
     const {
-        deployments: { get },
         ethers,
+        deployments: { get },
     } = hre;
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
         multisigAddress == ethers.constants.ADDRESS_ZERO
             ? (
-                  await get("multisig")
+                  await get("MultiSigWallet")
               ).address
             : multisigAddress
     );
-    console.log(
-        "TX ID: ",
-        txId,
-        "confirmations: ",
-        (await multisig.getConfirmationCount(txId)).toNumber(),
-        " Executed:",
-        (await multisig.transactions(txId))[3],
-        " Confirmed by: ",
-        await multisig.getConfirmations(txId)
+    console.log("Revoking confirmation of txId", txId, "...");
+    const signer = await ethers.getSigner(sender);
+    receipt = await (await multisig.connect(signer).revokeConfirmation(txId)).wait();
+    // console.log("Required signatures:", await multisig.required());
+    console.log(`Confirmation of txId ${txId} revoked.`);
+    console.log("Details:");
+    await multisigCheckTx(txId, multisig.address);
+};
+
+const multisigExecuteTx = async (
+    txId,
+    sender,
+    multisigAddress = ethers.constants.ADDRESS_ZERO
+) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const multisig = await ethers.getContractAt(
+        "MultiSigWallet",
+        multisigAddress == ethers.constants.ADDRESS_ZERO
+            ? (
+                  await get("MultiSigWallet")
+              ).address
+            : multisigAddress
     );
-    console.log("TX Data:", (await multisig.transactions(txId))[2]);
+    console.log("Executing multisig txId", txId, "...");
+    const signer = await ethers.getSigner(sender);
+    receipt = await (await multisig.connect(signer).execute(txId)).wait();
+    // console.log("Required signatures:", await multisig.required());
+    console.log("DONE. Details:");
+    await multisigCheckTx(txId, multisig.address);
 };
 
 const parseEthersLog = (parsed) => {
@@ -96,43 +164,46 @@ const getParsedEventLogFromReceipt = async (receipt, iface, eventName) => {
     return parseEthersLog(parsedLog);
 };
 
-const getStakingModuleClashingContracts = async (newModuleAddress) => {
+/* return values: 
+   - registered module contract address
+   - zero address (no registered module containing the new module's func sigs found)
+*/
+const getStakingModuleContractToReplace = async (stakingModulesProxy, newModuleAddress) => {
+    const { ethers } = hre;
     const clashing = await stakingModulesProxy.checkClashingFuncSelectors(newModuleAddress);
+    if (
+        clashing.clashingProxyRegistryFuncSelectors.length !== 0 &&
+        clashing.clashingProxyRegistryFuncSelectors[0] != "0x00000000"
+    ) {
+        throw `Clashing functions signatures of ${newModuleAddress} with StakingModulesProxy functions:\n ${clashing.clashingProxyRegistryFuncSelectors}`;
+    }
+
     if (
         clashing.clashingModules.length == 0 &&
         clashing.clashingProxyRegistryFuncSelectors.length == 0
-    )
+    ) {
         return [ethers.constants.AddressZero];
+    }
 
     if (clashing.clashingModules.length != 0) {
         const clashingUnique = clashing.clashingModules.filter(arrayToUnique);
         if (clashingUnique.length == 1) {
             const addressModuleBeingReplaced = clashingUnique[0];
-            if (addressModuleBeingReplaced != moduleAddressList[i]) {
-                log(`Replacing module ${moduleNames[i]}`);
-                const receipt = await (
-                    await stakingModulesProxy.replaceModule(
-                        addressModuleBeingReplaced,
-                        moduleAddressList[i]
-                    )
-                ).wait();
-
-                log(`cumulativeGasUsed: ${receipt.cumulativeGasUsed.toString()}`);
-                totalGas = totalGas.add(receipt.cumulativeGasUsed);
-            } else log(`Skipping module ${moduleNames[i]} replacement - the module is reused`);
+            if (addressModuleBeingReplaced != newModuleAddress) {
+                return addressModuleBeingReplaced;
+            } else {
+                console.log(
+                    `Skipping module ${newModuleAddress} replacement - the module is reused`
+                );
+                return false;
+            }
         } else {
-            log(`can't replace multiple modules at once:`);
+            console.log(`New module ${newModuleAddress} can't replace multiple modules at once:`);
             clashing.clashingModules.forEach((item, index, arr) => {
-                log(`${item[index]} - ${arr[1][index]}`);
+                console.log(`${item[index]} - ${arr[1][index]}`);
             });
+            throw new Error("Execution interrupted");
         }
-    }
-    if (
-        clashing.clashingProxyRegistryFuncSelectors.length !== 0 &&
-        clashing.clashingProxyRegistryFuncSelectors[0] != "0x00000000"
-    ) {
-        log("Clashing functions signatures with ModulesProxy functions:");
-        log(clashing.clashingProxyRegistryFuncSelectors);
     }
 };
 
@@ -141,21 +212,142 @@ const createProposal = async (
     targets,
     values,
     signatures,
-    datas,
+    callDatas,
     description
 ) => {
-    //governorDeployment = (await get("GovernorAlpha")).address;
+    const { ethers } = hre;
+    const { deployer } = await getNamedAccounts();
+    /* console.log("CREATING PROPOSAL:");
     console.log(`=============================================================
+    Proposal creator:    ${deployer}
     Governor Address:    ${governorAddress}
     Target:              ${targets}
     Values:              ${values}
     Signature:           ${signatures}
-    Data:                ${datas}
+    Data:                ${callDatas}
     Description:         ${description}
     =============================================================`);
+    */
+    const signer = await ethers.getSigner(deployer);
     const gov = await ethers.getContractAt("GovernorAlpha", governorAddress);
-    const tx = await gov.propose(targets, values, signatures, callDatas, description);
-    console.log(tx.info());
+    const receipt = await (
+        await gov.connect(signer).propose(targets, values, signatures, callDatas, description)
+    ).wait();
+
+    const abi = [
+        `
+            event ProposalCreated(
+            uint256 id,
+            address proposer,
+            address[] targets,
+            uint256[] values,
+            string[] signatures,
+            bytes[] calldatas,
+            uint256 startBlock,
+            uint256 endBlock,
+            string description)
+        `,
+    ];
+    let iface = new ethers.utils.Interface(abi);
+    const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "ProposalCreated");
+    // const { id, proposer, targets, values, signatures, calldatas, startBlock, endBlock } =
+    console.log("PROPOSAL CREATED:");
+    console.log(`=============================================================
+    Contract:            GovernorAlpha @ ${governorAddress}
+    Proposal Id:         ${parsedEvent.id.value.toString()}
+    Proposer:            ${parsedEvent.proposer.value}
+    Targets:             ${parsedEvent.targets.value}
+    Values:              ${parsedEvent.values.value.map(toString)}
+    Signature:           ${parsedEvent.signatures.value}
+    Data:                ${parsedEvent.calldatas.value}
+    StartBlock:          ${parsedEvent.startBlock.value.toString()}
+    EndBlock:            ${parsedEvent.endBlock.value.toString()}
+    Description:         ${parsedEvent.description.value}
+    =============================================================`);
+    // return receipt;
+    // @todo Add a decoded event logging: e.g. https://github.com/ethers-io/ethers.js/issues/487#issuecomment-1101937446
+};
+
+// the proxy ABI must have setImplementation() and getImplementation() functions
+const deployWithCustomProxy = async (
+    deployer,
+    logicName,
+    proxyName,
+    logicProxyName,
+    isOwnerMultisig = false,
+    multisigName = "MultiSigWallet",
+    logicInstanceName = "",
+    args = [],
+    proxyArgs = []
+) => {
+    const {
+        deployments: { deploy, get, getOrNull, log },
+        // getNamedAccounts,
+        ethers,
+    } = hre;
+    // const { deployer } = await getNamedAccounts();
+
+    let proxyDeployment = await getOrNull(proxyName);
+    if (!proxyDeployment) {
+        await deploy(proxyName, {
+            from: deployer,
+            args: proxyArgs,
+            log: true,
+        });
+    }
+
+    const tx = await deploy(logicInstanceName ? logicInstanceName : logicName, {
+        contract: logicName,
+        from: deployer,
+        args: args,
+        log: true,
+    });
+
+    const proxy = await ethers.getContract(proxyName);
+    const prevImpl = await proxy.getImplementation();
+    log(`Current ${proxyName} implementation: ${prevImpl}`);
+
+    if (tx.newlyDeployed || tx.address != prevImpl) {
+        log(`New ${logicName} implementation: ${tx.address}`);
+        const proxyDeployment = await get(proxyName);
+        await deployments.save(logicProxyName, {
+            address: proxy.address,
+            abi: proxyDeployment.abi,
+            bytecode: tx.bytecode,
+            deployedBytecode: tx.deployedBytecode,
+            implementation: tx.address,
+        });
+        if (hre.network.tags["testnet"] || isOwnerMultisig) {
+            //multisig is the owner
+            const multisigDeployment = await get(multisigName);
+            //@todo wrap getting ms tx data into a helper
+            let proxyInterface = new ethers.utils.Interface(proxyDeployment.abi);
+            let data = proxyInterface.encodeFunctionData("setImplementation", [tx.address]);
+            log(
+                `Creating multisig tx to set ${logicName} (${tx.address}) as implementation for ${proxyName} (${proxyDeployment.address}...`
+            );
+            log();
+            await sendWithMultisig(multisigDeployment.address, proxy.address, data, deployer);
+            log(
+                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<
+                 >>> DON'T PUSH DEPLOYMENTS TO THE REPO UNTIL THE MULTISIG TX SUCCESSFULLY SIGNED & EXECUTED <<<`
+            );
+        } else if (hre.network.tags["mainnet"]) {
+            log(">>> Create a Bitocracy proposal via SIP <<<");
+            log(
+                ">>> DON'T PUSH DEPLOYMENTS TO THE REPO UNTIL THE SIP IS SUCCESSFULLY EXECUTED <<<`"
+            );
+            // governance is the owner - need a SIP to register
+            // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
+        } else {
+            const proxy = await ethers.getContractAt(proxyName, proxyDeployment.address);
+            await proxy.setImplementation(tx.address);
+            log(
+                `>>> New implementation ${await proxy.getImplementation()} is set to the proxy <<<`
+            );
+        }
+        log();
+    }
 };
 
 module.exports = {
@@ -165,6 +357,11 @@ module.exports = {
     getEthersLog,
     getParsedEventLogFromReceipt,
     sendWithMultisig,
+    signWithMultisig,
     multisigCheckTx,
+    multisigRevokeConfirmation,
+    multisigExecuteTx,
+    getStakingModuleContractToReplace,
     createProposal,
+    deployWithCustomProxy,
 };

@@ -9,28 +9,45 @@ const func = async function (hre) {
         getNamedAccounts,
         ethers,
     } = hre;
-    const { deployer } = await getNamedAccounts(); //await ethers.getSigners();
+    const { deployer } = await getNamedAccounts();
 
-    const tx = await deploy("StakingModulesProxy", {
-        //the deployment instance name
-        contract: "ModulesProxy", //the contract to deploy
+    const tx = await deploy("StakingModulesProxy" /*deployment instance name*/, {
+        contract: "ModulesProxy", //contract to deploy
         from: deployer,
         args: [],
         log: true,
-        skipIfAlreadyDeployed: true,
     });
 
-    if (tx.newlyDeployed) {
+    const stakingProxy = await ethers.getContract("StakingProxy");
+    const stakingProxyImpl = await stakingProxy.getImplementation();
+    log("current stakingProxy.getImplementation():", stakingProxyImpl);
+
+    if (tx.newlyDeployed || tx.address != stakingProxyImpl) {
+        log("new Staking Implementation (StakingModulesProxy):", tx.address);
         const stakingProxyDeployment = await get("StakingProxy");
         if (hre.network.tags["testnet"]) {
             //multisig is the owner
             const multisigDeployment = await get("MultiSigWallet");
+            //@todo wrap getting ms tx data into a helper
             let stakingProxyInterface = new ethers.utils.Interface(stakingProxyDeployment.abi);
             let data = stakingProxyInterface.encodeFunctionData("setImplementation", [tx.address]);
-            const { deployer } = await getNamedAccounts("deployer");
-            await sendWithMultisig(multisigDeployment.address, tx.address, data, deployer);
+            const { deployer } = await getNamedAccounts();
+            ///@todo check if the deployer is one of ms owners
+            log(
+                `creating multisig tx to set StakingModulesProxy(${tx.address}) as implementation for StakingProxy(${stakingProxyDeployment.address}...`
+            );
+            await sendWithMultisig(
+                multisigDeployment.address,
+                stakingProxy.address,
+                data,
+                deployer
+            );
+            log(
+                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
+            );
         } else if (hre.network.tags["mainnet"]) {
-            //governance is the owner - need a SIP to register
+            log(">>> Create a Bitocracy proposal via SIP <<<");
+            // governance is the owner - need a SIP to register
             // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
         } else {
             const stakingProxy = await ethers.getContractAt(

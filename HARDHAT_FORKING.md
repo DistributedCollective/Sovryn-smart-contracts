@@ -40,7 +40,7 @@ contract('example forking tests', () => {
             params: [
                 {
                     forking: {
-                        jsonRpcUrl: "https://mainnet.sovryn.app/rpc",
+                        jsonRpcUrl: "https://mainnet4.sovryn.app/rpc",
                         blockNumber: 4272658,
                     },
                 },

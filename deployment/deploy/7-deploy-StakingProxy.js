@@ -11,19 +11,13 @@ const func = async function (hre) {
     const { deployer } = await getNamedAccounts(); //await ethers.getSigners();
     const sovTotalSupply = ethers.utils.parseEther("100000000");
 
-    const txSov = await deploy("SOV", {
-        from: deployer,
-        args: [sovTotalSupply],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
-
     await deploy("StakingProxy", {
         from: deployer,
-        args: [txSov.address ? txSov.address : (await get("SOV")).address],
+        args: [(await get("SOV")).address],
         log: true,
         skipIfAlreadyDeployed: true,
     });
 };
 func.tags = ["StakingProxy"];
+func.dependencies = ["SOV"];
 module.exports = func;

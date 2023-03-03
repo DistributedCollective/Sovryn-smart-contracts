@@ -18,10 +18,10 @@ def main():
     * use --no-deploy param to skip running hh deployment scripts by default 
     
     mainnet: 
-    npx hardhat node --fork https://mainnet.sovryn.app/rpc --fork-block-number 4929553 --no-deploy
+    npx hardhat node --fork https://mainnet4.sovryn.app/rpc --no-deploy --fork-block-number 4929553
     
     testnet:   
-    npx hardhat node --fork https://testnet.sovryn.app/rpc --fork-block-number 3495000 --no-deploy
+    npx hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy --fork-block-number 3495000
 
     2) run the script respectively:
     export DEV_NET_NAME="testnet" && brownie run scripts/contractInteraction/contract_interaction.py --network development
@@ -51,8 +51,33 @@ def main():
     #sendFromMultisig('0xc0AAcbDB9Ce627A348B91CfDB67eC6b2FBC3dCbd', 0.1e18)
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
-    #sendMYNTFromMultisigToFeeSharingProxy(36632.144056847e18)
+    #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
+    #confirmWithBFMS(8)
+    #checkTxOnBF(8)
+    
+    #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
+    
+    ### BF ###
+    #confirmWithAnyMS(8, conf.contracts["BFMultisigOrigins"])
+    #checkTxOnAny(8, conf.contracts["BFMultisigOrigins"])
+    
+    #confirmWithAnyMS(8, conf.contracts["BFMultisigToken"])
+    #checkTxOnAny(8, conf.contracts["BFMultisigToken"])
+    
+    #confirmWithAnyMS(8, conf.contracts["BFMultisigDeposit"])
+    #checkTxOnAny(8, conf.contracts["BFMultisigDeposit"])
+    
+    #confirmWithAnyMS(8, conf.contracts["BFmultisig"])
+    #checkTxOnAny(8, conf.contracts["BFmultisig"])
 
+    #confirmWithBFMS(8) # "BFmultisig"
+    #checkTxOnBF(29)   # "BFmultisig"
+    
+    #executeOnMultisig(1071)
+   
+    #confirmWithMS(1299)
+    #checkTx(1299)
+    
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
     #confirmMultipleTxsWithMS(960, 963)
 
@@ -68,7 +93,7 @@ def main():
 
     #withdrawFees()
     #readFeesController()
-    #setFeesController(conf.contracts['FeeSharingProxy1DayStaking'])
+    #setFeesController(conf.contracts['FeeSharingCollectorProxy1DayStaking'])
 
     #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
     #print('FastBTC offramp balance:', bal/10**18)
@@ -123,4 +148,6 @@ def main():
     # transferVestingRegistryOwnershipToGovernance()
 
 
-
+    # printLendingPoolsData()
+    #upgradeVestingRegistry()
+    #printMultisigOwners()

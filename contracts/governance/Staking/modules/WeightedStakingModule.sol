@@ -43,9 +43,13 @@ contract WeightedStakingModule is IFunctionsList, StakingShared, CheckpointsShar
 
         /// @dev Max 78 iterations.
         for (uint256 i = start; i <= end; i += TWO_WEEKS) {
-            uint96 weightedStake = weightedStakeByDate(account, i, start, blockNumber);
+            uint96 weightedStake = _weightedStakeByDate(account, i, start, blockNumber);
             if (weightedStake > 0) {
-                priorWeightedStake = add96(priorWeightedStake, weightedStake, "WS12"); // overflow on total weight
+                priorWeightedStake = add96(
+                    priorWeightedStake,
+                    weightedStake,
+                    "overflow on total weight calc"
+                ); // WS12
             }
         }
     }
@@ -53,24 +57,42 @@ contract WeightedStakingModule is IFunctionsList, StakingShared, CheckpointsShar
     /**
      * @notice Compute the voting power for a specific date.
      * Power = stake * weight
-     * TODO: WeightedStaking::weightedStakeByDate should probably better
-     * be internal instead of a public function.
      * @param account The user address.
-     * @param date The staking date to compute the power for.
-     * @param startDate The date for which we need to know the power of the stake.
+     * @param date The staking date to compute the power for. Adjusted to the previous valid lock date, if necessary.
+     * @param startDate The date for which we need to know the power of the stake. Adjusted to the previous valid lock date, if necessary.
      * @param blockNumber The block number, needed for checkpointing.
-     * @return The stacking power.
+     * @return The staking power.
      * */
     function weightedStakeByDate(
         address account,
         uint256 date,
         uint256 startDate,
         uint256 blockNumber
-    ) public view returns (uint96 power) {
+    ) external view returns (uint96 power) {
+        date = _timestampToLockDate(date);
+        startDate = _timestampToLockDate(startDate);
+        return _weightedStakeByDate(account, date, startDate, blockNumber);
+    }
+
+    /**
+     * @notice Compute the voting power for a specific date.
+     * Power = stake * weight
+     * @param account The user address.
+     * @param date The staking date to compute the power for.
+     * @param startDate The date for which we need to know the power of the stake.
+     * @param blockNumber The block number, needed for checkpointing.
+     * @return The staking power.
+     * */
+    function _weightedStakeByDate(
+        address account,
+        uint256 date,
+        uint256 startDate,
+        uint256 blockNumber
+    ) internal view returns (uint96 power) {
         uint96 staked = _getPriorUserStakeByDate(account, date, blockNumber);
         if (staked > 0) {
             uint96 weight = _computeWeightByDate(date, startDate);
-            power = mul96(staked, weight, "WS13") / WEIGHT_FACTOR; // overflow
+            power = mul96(staked, weight, "mul overflow") / WEIGHT_FACTOR; // WS13
         } else {
             power = 0;
         }

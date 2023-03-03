@@ -33,7 +33,7 @@ contract VestingRegistryStorage is Initializable, AdminRole {
     address public staking;
 
     ///@notice fee sharing proxy
-    address public feeSharingProxy;
+    address public feeSharingCollector;
 
     ///@notice the vesting owner (e.g. governance timelock address)
     address public vestingOwner;

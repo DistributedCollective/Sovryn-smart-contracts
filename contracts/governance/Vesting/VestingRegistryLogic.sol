@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../interfaces/IERC20.sol";
-import "../IFeeSharingProxy.sol";
+import "../IFeeSharingCollector.sol";
 import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "./VestingRegistryStorage.sol";
@@ -39,21 +39,21 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         address _vestingFactory,
         address _SOV,
         address _staking,
-        address _feeSharingProxy,
+        address _feeSharingCollector,
         address _vestingOwner,
         address _lockedSOV,
         address[] calldata _vestingRegistries
     ) external onlyOwner initializer {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
-        require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+        require(_feeSharingCollector != address(0), "feeSharingCollector address invalid");
         require(_vestingOwner != address(0), "vestingOwner address invalid");
         require(_lockedSOV != address(0), "LockedSOV address invalid");
 
         _setVestingFactory(_vestingFactory);
         SOV = _SOV;
         staking = _staking;
-        feeSharingProxy = _feeSharingProxy;
+        feeSharingCollector = _feeSharingCollector;
         vestingOwner = _vestingOwner;
         lockedSOV = LockedSOV(_lockedSOV);
         for (uint256 i = 0; i < _vestingRegistries.length; i++) {
@@ -365,7 +365,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollector,
                     _tokenOwner
                 );
             } else {
@@ -375,7 +375,7 @@ contract VestingRegistryLogic is VestingRegistryStorage {
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollector,
                     vestingOwner
                 );
             }

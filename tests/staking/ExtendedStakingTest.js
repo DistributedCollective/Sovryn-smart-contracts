@@ -66,8 +66,8 @@ const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
-const FeeSharingLogic = artifacts.require("FeeSharingLogic");
-const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingCollector = artifacts.require("FeeSharingCollector");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
 // Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
@@ -94,7 +94,7 @@ contract("Staking", (accounts) => {
     let token, SUSD, WRBTC, staking;
     let sovryn;
     let loanTokenLogic, loanToken;
-    let feeSharingProxy;
+    let feeSharingCollectorProxy;
     let kickoffTS, inOneWeek;
     let stakingStakeModule, iWeightedStakingModuleMockup, modulesObject, modulesAddressList;
 
@@ -158,13 +158,18 @@ contract("Staking", (accounts) => {
 
         await sovryn.setLoanPool([loanToken.address], [SUSD.address]);
 
-        //FeeSharingProxy
-        let feeSharingLogic = await FeeSharingLogic.new();
-        feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
-        await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
-        feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
-        await sovryn.setFeesController(feeSharingProxy.address);
-        await staking.setFeeSharing(feeSharingProxy.address);
+        //FeeSharingCollectorProxy
+        let feeSharingCollector = await FeeSharingCollector.new();
+        feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
+            sovryn.address,
+            staking.address
+        );
+        await feeSharingCollectorProxyObj.setImplementation(feeSharingCollector.address);
+        feeSharingCollectorProxy = await FeeSharingCollector.at(
+            feeSharingCollectorProxyObj.address
+        );
+        await sovryn.setFeesController(feeSharingCollectorProxy.address);
+        await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
         await token.transfer(account1, 1000);
         await token.approve(staking.address, TOTAL_SUPPLY);
@@ -476,14 +481,11 @@ contract("Staking", (accounts) => {
 
             await token.approve(staking.address, 0);
 
-            await token.approve(staking.address, amount * 2, { from: account1 });
-
             let contract = new web3.eth.Contract(staking.abi, staking.address);
             let sender = root;
             let data = contract.methods
                 .stakeWithApproval(sender, amount, lockedTS, root, root)
                 .encodeABI();
-            // let data = contract.methods.stakeWithApproval(account1, amount * 2, lockedTS, root, root).encodeABI();
             let tx = await token.approveAndCall(staking.address, amount, data, {
                 from: sender,
             });
@@ -523,7 +525,32 @@ contract("Staking", (accounts) => {
             expect(checkpoint.stake.toString()).to.be.equal(amount);
         });
 
-        //TODO: resume when refactored to resolve EIP-170 contract size issue
+        it("should fail if paused", async () => {
+            await staking.freezeUnfreeze(true);
+
+            let amount = "100";
+            let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let data = contract.methods
+                .stakeWithApproval(root, amount, lockedTS, root, root)
+                .encodeABI();
+
+            await expectRevert(token.approveAndCall(staking.address, amount, data), "paused");
+        });
+
+        it("should fail if frozen", async () => {
+            await staking.pauseUnpause(true);
+
+            let amount = "100";
+            let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
+            let contract = new web3.eth.Contract(staking.abi, staking.address);
+            let data = contract.methods
+                .stakeWithApproval(root, amount, lockedTS, root, root)
+                .encodeABI();
+
+            await expectRevert(token.approveAndCall(staking.address, amount, data), "paused");
+        });
+
         it("fails if invoked directly", async () => {
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
             await expectRevert(
@@ -531,7 +558,7 @@ contract("Staking", (accounts) => {
                 "unauthorized"
             );
         });
-        //TODO: resume when refactored to resolve EIP-170 contract size issue
+
         it("fails if wrong method passed in data", async () => {
             let amount = "100";
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
@@ -543,19 +570,18 @@ contract("Staking", (accounts) => {
                 "method is not allowed"
             );
         });
+
         it("fails if wrong sender passed in data", async () => {
             let amount = "100";
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
             let contract = new web3.eth.Contract(staking.abi, staking.address);
 
-            await token.approve(staking.address, amount * 2, { from: account1 });
-            let sender = root;
             let data = contract.methods
                 .stakeWithApproval(account1, amount, lockedTS, root, root)
                 .encodeABI();
 
             await expectRevert(
-                token.approveAndCall(staking.address, amount, data, { from: sender }),
+                token.approveAndCall(staking.address, amount, data, { from: root }),
                 "sender mismatch"
             );
         });
@@ -565,14 +591,12 @@ contract("Staking", (accounts) => {
             let lockedTS = await getTimeFromKickoff(TWO_WEEKS);
             let contract = new web3.eth.Contract(staking.abi, staking.address);
 
-            await token.approve(staking.address, amount * 2, { from: account1 });
-            let sender = root;
             let data = contract.methods
-                .stakeWithApproval(sender, amount, lockedTS, root, root)
+                .stakeWithApproval(account1, amount, lockedTS, root, root)
                 .encodeABI();
 
             await expectRevert(
-                token.approveAndCall(staking.address, amount * 2, data, { from: sender }),
+                token.approveAndCall(staking.address, amount * 2, data, { from: account1 }),
                 "amount mismatch"
             );
         });
@@ -740,7 +764,10 @@ contract("Staking", (accounts) => {
                     staking.extendStakingDuration(until, newTime),
                     "must increase staking duration"
                 ); // S04 : cannot reduce or have the same staking duration
-                await staking.delegate(root, until);
+                await expectRevert(
+                    staking.delegate(root, until),
+                    "cannot delegate to the existing delegatee"
+                );
             }
             const endVotes = await staking.getCurrentVotes(root);
             expect(
@@ -857,7 +884,10 @@ contract("Staking", (accounts) => {
                     staking.extendStakingDuration(until, newTime),
                     "must increase staking duration"
                 ); // S04 : cannot reduce or have the same staking duration
-                await staking.delegate(root, until);
+                await expectRevert(
+                    staking.delegate(root, until),
+                    "cannot delegate to the existing delegatee"
+                );
             }
             const endVotes = await staking.getCurrentVotes(root);
             expect(
@@ -873,11 +903,11 @@ contract("Staking", (accounts) => {
     });
 
     describe("increaseStake", () => {
-        it("stakesBySchedule w/ duration < = > MAX_DURATION", async () => {
+        it("stakesBySchedule w/ duration < = MAX_DURATION", async () => {
             let amount = "1000";
             let duration = new BN(MAX_DURATION).div(new BN(2));
             let cliff = new BN(TWO_WEEKS).mul(new BN(2));
-            let intervalLength = new BN(10000000);
+            let intervalLength = new BN(TWO_WEEKS).mul(new BN(2));
             let lockTS = await getTimeFromKickoff(duration);
             await staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root);
 
@@ -896,22 +926,11 @@ contract("Staking", (accounts) => {
             // console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
             let stakedDurationEqualToMax = rootStaked["stakes"][0];
 
-            // Reset & duration > MAX
-            await loadFixture(deploymentAndInitFixture);
-            duration = new BN(MAX_DURATION).mul(new BN(4));
-            await staking.stakesBySchedule(amount, cliff, duration, intervalLength, root, root);
-
-            // Check staking status for this staker
-            rootStaked = await staking.getStakes(root);
-            // console.log("rootStaked['stakes']", rootStaked["stakes"].toString());
-            let stakedDurationHigherThanMax = rootStaked["stakes"][0];
-
             /// @dev When duration = MAX or duration > MAX, contract deals w/ it as MAX
             ///   so the staked amount is higher when duration < MAX and equal when duration >= MAX
             expect(stakedDurationLowerThanMax).to.be.bignumber.greaterThan(
                 stakedDurationEqualToMax
             );
-            expect(stakedDurationEqualToMax).to.be.bignumber.equal(stakedDurationHigherThanMax);
         });
 
         it("Check getCurrentStakedUntil", async () => {
@@ -966,8 +985,8 @@ contract("Staking", (accounts) => {
             let maxValue = new BN(2).pow(new BN(96)).sub(new BN(1));
             await expectRevert(
                 staking.stake(maxValue.sub(new BN(100)), lockTS, root, root),
-                "IS20"
-            ); // S06 : overflow
+                "increaseStake: overflow"
+            ); // IS20
         });
 
         it("Should be able to increase stake", async () => {
@@ -1083,11 +1102,17 @@ contract("Staking", (accounts) => {
 
     describe("setWeightScaling", () => {
         it("Shouldn't be able to weight scaling less than min value", async () => {
-            await expectRevert(staking.setWeightScaling(0), "S18"); // S18 : revert wrong weight scaling
+            await expectRevert(
+                staking.setWeightScaling(0),
+                "scaling doesn't belong to range [1, 9]"
+            ); // S18
         });
 
         it("Shouldn't be able to weight scaling more than max value", async () => {
-            await expectRevert(staking.setWeightScaling(10), "S18"); // S18 : revert wrong weight scaling
+            await expectRevert(
+                staking.setWeightScaling(10),
+                "scaling doesn't belong to range [1, 9]"
+            ); // S18
         });
 
         it("Only owner should be able to weight scaling", async () => {
@@ -1241,7 +1266,7 @@ contract("Staking", (accounts) => {
             expect(parseInt(checkpoint.stake)).to.be.equal(0);
             expect(parseInt(numDelegateStakingCheckpoints)).to.be.equal(3);
 
-            let feeSharingBalance = await token.balanceOf.call(feeSharingProxy.address);
+            let feeSharingBalance = await token.balanceOf.call(feeSharingCollectorProxy.address);
             let userBalance = await token.balanceOf.call(account2);
 
             let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();
@@ -1340,13 +1365,18 @@ contract("Staking", (accounts) => {
                     continue;
                 }
 
-                // FeeSharingProxy
-                let feeSharingLogic = await FeeSharingLogic.new();
-                feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
-                await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
-                feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
-                await sovryn.setFeesController(feeSharingProxy.address);
-                await staking.setFeeSharing(feeSharingProxy.address);
+                // FeeSharingCollectorProxy
+                let feeSharingCollector = await FeeSharingCollector.new();
+                feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
+                    sovryn.address,
+                    staking.address
+                );
+                await feeSharingCollectorProxyObj.setImplementation(feeSharingCollector.address);
+                feeSharingCollectorProxy = await FeeSharingCollector.at(
+                    feeSharingCollectorProxyObj.address
+                );
+                await sovryn.setFeesController(feeSharingCollectorProxy.address);
+                await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
                 let duration = new BN(i * TWO_WEEKS);
                 let lockedTS = await getTimeFromKickoff(duration);
@@ -1365,7 +1395,9 @@ contract("Staking", (accounts) => {
                 stakingBalance = await token.balanceOf.call(staking.address);
                 expect(stakingBalance.toNumber()).to.be.equal(0);
 
-                let feeSharingBalance = await token.balanceOf.call(feeSharingProxy.address);
+                let feeSharingBalance = await token.balanceOf.call(
+                    feeSharingCollectorProxy.address
+                );
                 let userBalance = await token.balanceOf.call(account2);
 
                 let maxVotingWeight = await staking.getStorageMaxVotingWeight.call();

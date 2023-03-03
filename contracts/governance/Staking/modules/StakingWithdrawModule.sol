@@ -47,40 +47,23 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @dev If until is not a valid lock date, the next lock date after until is used.
      * */
     function withdraw(
         uint96 amount,
         uint256 until,
         address receiver
     ) external whenNotFrozen {
-        _notSameBlockAsStakingCheckpoint(until);
+        // adjust until here to avoid adjusting multiple times, and to make sure an adjusted date is passed to
+        // _notSameBlockAsStakingCheckpoint
+        until = _adjustDateForOrigin(until);
+
+        _notSameBlockAsStakingCheckpoint(until, msg.sender);
 
         _withdraw(amount, until, receiver, false);
         // @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
         //		we need to check block.timestamp here
         _withdrawNext(until, receiver, false);
-    }
-
-    /**
-     * @notice Withdraw the given amount of tokens.
-     * @param amount The number of tokens to withdraw.
-     * @param until The date until which the tokens were staked.
-     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting
-     * */
-    function governanceWithdraw(
-        uint96 amount,
-        uint256 until,
-        address receiver
-    ) external whenNotFrozen {
-        require(vestingWhitelist[msg.sender], "unauthorized"); // S07
-
-        _notSameBlockAsStakingCheckpoint(until);
-
-        _withdraw(amount, until, receiver, true);
-        // @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
-        //		we don't need to check block.timestamp here
-        _withdrawNext(until, receiver, true);
     }
 
     /**
@@ -171,6 +154,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      *
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
+     * Needs to be adjusted to the next valid lock date before calling this function.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
      * @param isGovernance Whether all tokens (true)
      * or just unlocked tokens (false).
@@ -186,7 +170,6 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         if (amount == 1 && _isVestingContract(msg.sender)) {
             return;
         }
-        until = _adjustDateForOrigin(until);
         _validateWithdrawParams(msg.sender, amount, until);
 
         /// @dev Determine the receiver.
@@ -245,11 +228,8 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     ) internal {
         address vesting = vestingConfig.vestingAddress;
 
-        until = _adjustDateForOrigin(until);
+        until = _timestampToLockDate(until);
         _validateWithdrawParams(vesting, amount, until);
-
-        /// @dev Determine the receiver.
-        if (receiver == address(0)) receiver = msg.sender;
 
         /// @dev Update the checkpoints.
         _decreaseDailyStake(until, amount);
@@ -272,6 +252,9 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         bool isGovernance
     ) internal {
         if (_isVestingContract(msg.sender)) {
+            // nextLock needs to be adjusted to the next valid lock date to make sure we don't accidentally
+            // withdraw stakes that are in the future and would get slashed (if until is not
+            // a valid lock date). but until is already handled in the withdraw function
             uint256 nextLock = until.add(TWO_WEEKS);
             if (isGovernance || block.timestamp >= nextLock) {
                 uint96 stakes = _getPriorUserStakeByDate(msg.sender, nextLock, block.number - 1);
@@ -285,13 +268,14 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     /**
      * @notice Get available and punished amount for withdrawing.
      * @param amount The number of tokens to withdraw.
-     * @param until The date until which the tokens were staked.
+     * @param until The date until which the tokens were staked. Adjusted to the next valid lock date, if necessary.
      * */
     function getWithdrawAmounts(uint96 amount, uint256 until)
         external
         view
         returns (uint96, uint96)
     {
+        until = _adjustDateForOrigin(until);
         _validateWithdrawParams(msg.sender, amount, until);
         uint96 punishedAmount = _getPunishedAmount(amount, until);
         return (amount - punishedAmount, punishedAmount);
@@ -343,20 +327,23 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      *
      * @param newMaxIterations new max iterations value.
      */
-    function setMaxVestingWithdrawIterations(uint256 newMaxIterations) external onlyAuthorized {
+    function setMaxVestingWithdrawIterations(uint256 newMaxIterations)
+        external
+        onlyAuthorized
+        whenNotFrozen
+    {
         require(newMaxIterations > 0, "Invalid max iterations");
         emit MaxVestingWithdrawIterationsUpdated(maxVestingWithdrawIterations, newMaxIterations);
         maxVestingWithdrawIterations = newMaxIterations;
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](6);
+        bytes4[] memory functionsList = new bytes4[](5);
         functionsList[0] = this.withdraw.selector;
-        functionsList[1] = this.governanceWithdraw.selector;
-        functionsList[2] = this.cancelTeamVesting.selector;
-        functionsList[3] = this.getWithdrawAmounts.selector;
-        functionsList[4] = this.unlockAllTokens.selector;
-        functionsList[5] = this.setMaxVestingWithdrawIterations.selector;
+        functionsList[1] = this.cancelTeamVesting.selector;
+        functionsList[2] = this.getWithdrawAmounts.selector;
+        functionsList[3] = this.unlockAllTokens.selector;
+        functionsList[4] = this.setMaxVestingWithdrawIterations.selector;
         return functionsList;
     }
 }

@@ -3,18 +3,19 @@ pragma experimental ABIEncoderV2;
 
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
-import "../IFeeSharingProxy.sol";
+import "../IFeeSharingCollector.sol";
 import "../Staking/interfaces/IStaking.sol";
 import "../../mixins/EnumerableAddressSet.sol";
+import "../../interfaces/IWrbtcERC20.sol";
 
 /**
- * @title FeeSharingProxy Storage contact.
- * @notice Just the storage part of feeSharingProxy contract, no functions,
+ * @title FeeSharingCollectorProxy Storage contact.
+ * @notice Just the storage part of feeSharingCollectorProxy contract, no functions,
  * only constant, variables and required structures (mappings).
- * Used by FeeSharingProxy, and the implementation logic of FeeSharingProxy (FeeSharingLogic)
+ * Used by FeeSharingCollectorProxy, and the implementation logic of FeeSharingCollectorProxy (FeeSharingCollector)
  *
  * */
-contract FeeSharingProxyStorage is Ownable {
+contract FeeSharingCollectorStorage is Ownable {
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
     /// @dev TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
     uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;
@@ -103,9 +104,9 @@ interface IProtocol {
         external
         returns (uint256 totalWRBTCWithdrawn);
 
-    function underlyingToLoanPool(address token) external returns (address);
+    function underlyingToLoanPool(address token) external view returns (address);
 
-    function wrbtcToken() external returns (address);
+    function wrbtcToken() external view returns (IWrbtcERC20);
 
     function getSovTokenAddress() external view returns (address);
 }

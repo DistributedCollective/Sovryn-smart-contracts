@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
 import "../Staking/interfaces/IStaking.sol";
-import "../IFeeSharingProxy.sol";
+import "../IFeeSharingCollector.sol";
 import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
 import "./VestingStorage.sol";
@@ -116,9 +116,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @dev Can be called only by owner.
      * */
     function governanceWithdrawTokens(address receiver) public {
-        require(msg.sender == address(staking), "unauthorized");
-
-        _withdrawTokens(receiver, true);
+        revert("deprecated, use cancelTeamVesting from the staking contract");
     }
 
     /**
@@ -163,11 +161,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
-                if (isGovernance) {
-                    staking.governanceWithdraw(stake, i, receiver);
-                } else {
-                    staking.withdraw(stake, i, receiver);
-                }
+                staking.withdraw(stake, i, receiver);
             }
         }
 
@@ -188,7 +182,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         require(_receiver != address(0), "receiver address invalid");
 
         /// @dev Invokes the fee sharing proxy.
-        feeSharingProxy.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
+        feeSharingCollector.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
 
         emit DividendsCollected(msg.sender, _loanPoolToken, _receiver, _maxCheckpoints);
     }

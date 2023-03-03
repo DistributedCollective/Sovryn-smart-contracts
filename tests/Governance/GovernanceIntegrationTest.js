@@ -125,7 +125,7 @@ contract("GovernanceIntegration", (accounts) => {
             expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentNew);
         });
 
-        it("Should be able to execute one action with signature in the call data", async () => {
+        it("Should be able to execute one action without signature in the call data", async () => {
             let lendingFeePercentOld = etherMantissa(10).toString();
             let lendingFeePercentNew = etherMantissa(7).toString();
 

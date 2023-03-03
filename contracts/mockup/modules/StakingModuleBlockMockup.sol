@@ -151,47 +151,46 @@ contract StakingModuleBlockMockup is
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
         // StakingGovernanceModule
-        bytes4[] memory functionsList = new bytes4[](32);
+        bytes4[] memory functionsList = new bytes4[](31);
         functionsList[0] = this.getPriorTotalVotingPower.selector;
         functionsList[1] = this.getCurrentVotes.selector;
         functionsList[2] = this.getPriorVotes.selector;
         functionsList[3] = this.getPriorStakeByDateForDelegatee.selector;
         functionsList[4] = this.getPriorTotalStakesForDate.selector;
         functionsList[5] = this.delegate.selector;
-        functionsList[6] = this.delegateBySig.selector;
 
         // StakingStakeModule
-        functionsList[7] = this.stake.selector;
-        functionsList[8] = this.stakeWithApproval.selector;
-        functionsList[9] = this.extendStakingDuration.selector;
-        functionsList[10] = this.stakesBySchedule.selector;
-        functionsList[11] = this.stakeBySchedule.selector;
-        functionsList[12] = this.balanceOf.selector;
-        functionsList[13] = this.getCurrentStakedUntil.selector;
-        functionsList[14] = this.getStakes.selector;
-        functionsList[15] = this.timestampToLockDate.selector;
+        functionsList[6] = this.stake.selector;
+        functionsList[7] = this.stakeWithApproval.selector;
+        functionsList[8] = this.extendStakingDuration.selector;
+        functionsList[9] = this.stakesBySchedule.selector;
+        functionsList[10] = this.stakeBySchedule.selector;
+        functionsList[11] = this.balanceOf.selector;
+        functionsList[12] = this.getCurrentStakedUntil.selector;
+        functionsList[13] = this.getStakes.selector;
+        functionsList[14] = this.timestampToLockDate.selector;
 
         //StakingVestingModule
-        functionsList[16] = this.setVestingRegistry.selector;
-        functionsList[17] = this.setVestingStakes.selector;
-        functionsList[18] = this.getPriorUserStakeByDate.selector;
-        functionsList[19] = this.getPriorVestingWeightedStake.selector;
-        functionsList[20] = this.getPriorVestingStakeByDate.selector;
-        functionsList[21] = this.addContractCodeHash.selector;
-        functionsList[22] = this.removeContractCodeHash.selector;
-        functionsList[23] = this.isVestingContract.selector;
+        functionsList[15] = this.setVestingRegistry.selector;
+        functionsList[16] = this.setVestingStakes.selector;
+        functionsList[17] = this.getPriorUserStakeByDate.selector;
+        functionsList[18] = this.getPriorVestingWeightedStake.selector;
+        functionsList[19] = this.getPriorVestingStakeByDate.selector;
+        functionsList[20] = this.addContractCodeHash.selector;
+        functionsList[21] = this.removeContractCodeHash.selector;
+        functionsList[22] = this.isVestingContract.selector;
 
         //BlockMockup
-        functionsList[24] = this.setBlockMockUpAddr.selector;
-        functionsList[25] = this.MOCK_priorWeightedStake.selector;
-        functionsList[26] = this.MOCK_priorWeightedStakeAtBlock.selector;
+        functionsList[23] = this.setBlockMockUpAddr.selector;
+        functionsList[24] = this.MOCK_priorWeightedStake.selector;
+        functionsList[25] = this.MOCK_priorWeightedStakeAtBlock.selector;
 
         //WeightedStakingModule
-        functionsList[27] = this.getPriorWeightedStake.selector;
-        functionsList[28] = this.weightedStakeByDate.selector;
-        functionsList[29] = this.computeWeightByDate.selector;
-        functionsList[30] = this.priorWeightedStakeAtBlock.selector;
-        functionsList[31] = this.getPriorWeightedStakeAtBlock.selector;
+        functionsList[26] = this.getPriorWeightedStake.selector;
+        functionsList[27] = this.weightedStakeByDate.selector;
+        functionsList[28] = this.computeWeightByDate.selector;
+        functionsList[29] = this.priorWeightedStakeAtBlock.selector;
+        functionsList[30] = this.getPriorWeightedStakeAtBlock.selector;
 
         return functionsList;
     }

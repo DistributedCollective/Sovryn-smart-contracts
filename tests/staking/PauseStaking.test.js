@@ -32,8 +32,8 @@ const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
-const FeeSharingLogic = artifacts.require("FeeSharingLogic");
-const FeeSharingProxy = artifacts.require("FeeSharingProxy");
+const FeeSharingCollector = artifacts.require("FeeSharingCollector");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
 // Upgradable Vesting Registry
 // const VestingRegistryLogic = artifacts.require("VestingRegistryLogicMockup");
@@ -64,7 +64,7 @@ contract("Staking", (accounts) => {
     let token, SUSD, WRBTC, staking;
     let sovryn;
     let loanTokenLogic, loanToken;
-    let feeSharingProxy;
+    let feeSharingCollectorProxy;
     let kickoffTS;
     let iWeightedStakingModuleMockup;
 
@@ -123,13 +123,18 @@ contract("Staking", (accounts) => {
 
         await sovryn.setLoanPool([loanToken.address], [SUSD.address]);
 
-        //FeeSharingProxy
-        let feeSharingLogic = await FeeSharingLogic.new();
-        feeSharingProxyObj = await FeeSharingProxy.new(sovryn.address, staking.address);
-        await feeSharingProxyObj.setImplementation(feeSharingLogic.address);
-        feeSharingProxy = await FeeSharingLogic.at(feeSharingProxyObj.address);
-        await sovryn.setFeesController(feeSharingProxy.address);
-        await staking.setFeeSharing(feeSharingProxy.address);
+        //FeeSharingCollectorProxy
+        let feeSharingCollector = await FeeSharingCollector.new();
+        feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
+            sovryn.address,
+            staking.address
+        );
+        await feeSharingCollectorProxyObj.setImplementation(feeSharingCollector.address);
+        feeSharingCollectorProxy = await FeeSharingCollector.at(
+            feeSharingCollectorProxyObj.address
+        );
+        await sovryn.setFeesController(feeSharingCollectorProxy.address);
+        await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
         await token.transfer(account1, 1000);
         await token.approve(staking.address, TOTAL_SUPPLY);
@@ -247,64 +252,6 @@ contract("Staking", (accounts) => {
 
             await staking.pauseUnpause(true); // Paused
             await expectRevert(staking.delegate(account1, lockedTS), "paused"); // SS03 : paused
-        });
-
-        it("should not delegate on behalf of the signatory when paused", async () => {
-            [pkbRoot, pkbA1] = getAccountsPrivateKeysBuffer();
-            const currentChainId = (await ethers.provider.getNetwork()).chainId;
-            const inThreeYears = kickoffTS.add(new BN(DELAY * 26 * 3));
-            const Domain = (staking) => ({
-                name: "SOVStaking",
-                chainId: currentChainId,
-                verifyingContract: staking.address,
-            });
-            const Types = {
-                Delegation: [
-                    { name: "delegatee", type: "address" },
-                    { name: "lockDate", type: "uint256" },
-                    { name: "nonce", type: "uint256" },
-                    { name: "expiry", type: "uint256" },
-                ],
-            };
-            const delegatee = root,
-                nonce = 0,
-                expiry = 10e9,
-                lockDate = inThreeYears;
-            const { v, r, s } = EIP712.sign(
-                Domain(staking),
-                "Delegation",
-                {
-                    delegatee,
-                    lockDate,
-                    nonce,
-                    expiry,
-                },
-                Types,
-                pkbA1
-            );
-
-            expect(await staking.delegates.call(account1, inThreeYears)).to.be.equal(address(0));
-
-            await staking.pauseUnpause(true); // Paused
-            await expectRevert(
-                staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s),
-                "paused"
-            ); // SS03 : paused
-
-            let tx = await staking.pauseUnpause(false); // Unpaused
-
-            await expectEvent.inTransaction(
-                tx.receipt.rawLogs[0].transactionHash,
-                StakingAdminModule,
-                "StakingPaused",
-                {
-                    setPaused: false,
-                }
-            );
-
-            tx = await staking.delegateBySig(delegatee, inThreeYears, nonce, expiry, v, r, s);
-            expect(tx.gasUsed < 80000);
-            expect(await staking.delegates.call(account1, inThreeYears)).to.be.equal(root);
         });
     });
 
@@ -428,7 +375,7 @@ contract("Staking", (accounts) => {
                 root,
                 16 * WEEK,
                 38 * WEEK,
-                feeSharingProxy.address
+                feeSharingCollectorProxy.address
             );
 
             const sampleVesting = vesting.address;
