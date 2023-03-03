@@ -17,14 +17,19 @@ const {
     multisigCheckTx,
     multisigRevokeConfirmation,
     multisigExecuteTx,
+    multisigAddRemoveOwner,
+    multisigAddOwner,
+    multisigRemoveOwner,
 } = require("./deployment/helpers/helpers");
+
+require("./hardhat/tasks/tasks");
 
 require("dotenv").config();
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 /// this is for use with ethers.js
-task("accounts", "Prints the list of accounts", async () => {
+/*task("accounts", "Prints the list of accounts", async () => {
     const accounts = await ethers.getSigners();
 
     for (const account of accounts.address) {
@@ -41,7 +46,7 @@ const testnetAccounts = process.env.TESTNET_DEPLOYER_PRIVATE_KEY
     ? [process.env.TESTNET_DEPLOYER_PRIVATE_KEY, process.env.TESTNET_SIGNER_PRIVATE_KEY]
     : [];
 const mainnetAccounts = process.env.MAINNET_DEPLOYER_PRIVATE_KEY
-    ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY]
+    ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY, process.env.MAINNET_SIGNER_PRIVATE_KEY]
     : [];
 
 /*
@@ -79,6 +84,15 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
     else console.log("Hardhat mainnet forking does NOT work properly!");
 });
 
+task("governor-owner:queue-proposal", "Queue proposal in the Governor Owner contract")
+    .addParam("proposal", "Proposal Id", undefined, types.string)
+    .setAction(async ({ proposal }, hre) => {
+        const { deployer } = await hre.getNamedAccounts();
+        const god = await deployments.get("GovernorOwner");
+        const governorOwner = await ethers.getContractAt("GovernorAlpha", god.address, deployer);
+        await governorOwner.queue(proposal);
+    });
+
 task("multisig:sign-tx", "Sign multisig tx")
     .addParam("txId", "Multisig transaction to sign", undefined, types.string)
     .setAction(async ({ txId }, hre) => {
@@ -102,12 +116,29 @@ task("multisig:check-tx", "Check multisig tx")
 
 task("multisig:revoke-confirmation", "Revoke multisig tx confirmation")
     .addParam("txId", "Multisig transaction to check", undefined, types.string)
-    .addParam("signer", "Multisig transaction to check", undefined, types.string, true)
+    .addParam("signer", "Signer", undefined, types.string, true)
     .setAction(async ({ txId, signer }, hre) => {
         await multisigRevokeConfirmation(
             txId,
-            signer ? signer : (await hre.getNamedAccounts()).signer
+            signer ? signer : (await hre.getNamedAccounts()).deployer
         );
+    });
+
+task("multisig:add-remove-owner", "Add or remove multisig owner")
+    .addParam("add", "add = true, remove = false", undefined)
+    .addParam("address", "Owner address to add or remove", undefined, types.string)
+    .addParam("signer", "Multisig transaction to check", undefined, types.string, true)
+    .setAction(async ({ add, address, signer }, hre) => {
+        if (add == "true") {
+            await multisigAddOwner(address);
+        } else {
+            await multisigRemoveOwner(address);
+        }
+        /*await multisigAddRemoveOwner(
+            add,
+            address,
+            signer ? signer : (await hre.getNamedAccounts()).signer
+        );*/
     });
 
 /*task("accounts", "Prints accounts", async (_, { web3 }) => {
@@ -239,9 +270,11 @@ module.exports = {
             //allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
         },
         rskSovrynMainnet: {
-            url: "https://mainnet.sovryn.app/rpc",
+            url: "https://mainnet-dev.sovryn.app/rpc",
             chainId: 30,
             accounts: mainnetAccounts,
+            gasPrice: 660000010,
+            blockGasLimit: 6800000,
             tags: ["mainnet"],
             timeout: 100000,
             //timeout: 20000, // increase if needed; 20000 is the default value
