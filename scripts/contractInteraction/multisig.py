@@ -40,7 +40,7 @@ def printMultisigOwners():
     print(multisig.getOwners())
 
 def printMultisigOwnersOnAny(multisigAddress):
-    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=conf.acct)
     print(multisig.getOwners())
 
 def replaceOwnerOnMultisig(multisig, oldOwner, newOwner):
@@ -140,3 +140,7 @@ def removeOwnerFromMultisig(newOwner):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     data = multisig.removeOwner.encode_input(newOwner)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['multisig'], data, conf.acct)
+
+def requiredConfirmations(multisigAddress):
+    multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=conf.acct)
+    print(multisig.required())
