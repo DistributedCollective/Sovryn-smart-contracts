@@ -7,6 +7,7 @@ import math
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 import eth_abi
+from datetime import datetime, timezone
 
 
 def sendSOVFromVestingRegistry():
@@ -583,3 +584,76 @@ def getVestingCreationAndTypes(vestingAddress):
 def readTokenOwner(vestingAddress):
     vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
     print(vesting.tokenOwner())
+
+def getReleaseScheduleFromDevelopmentFund():
+    getReleaseScheduleFromFund(conf.contracts['DevelopmentFund'])
+
+def getReleaseScheduleFromAdoptionFund():
+    getReleaseScheduleFromFund(conf.contracts['AdoptionFund'])
+
+def getReleaseScheduleFromFund(fundAddress):
+    fund = Contract.from_abi("Fund", address=fundAddress, abi=DevelopmentFund.abi, owner=conf.acct)
+    durations = fund.getReleaseDuration()[::-1]
+    amounts = fund.getReleaseTokenAmount()[::-1]
+    lastRelease = fund.lastReleaseTime()
+    nextRelease = lastRelease
+    now = datetime.now().timestamp()
+    unlocked = 0
+    schedule = [["Date", "Amount"]]
+
+    for i in range (0, len(amounts)):
+        nextRelease += durations[i]
+        if(nextRelease < lastRelease):
+            continue
+
+        if(nextRelease < now):
+            unlocked = unlocked + amounts[i]
+
+        schedule.append([datetime.fromtimestamp(nextRelease), amounts[i]/(10**18)])
+       
+    print("funds available for withdrawal:",unlocked/(10**18))
+    printToCSV("releaseSchedule-"+fundAddress+".csv", schedule)
+
+def readTokenOwnerFromFunds():
+    adoptionFund = Contract.from_abi("Fund", address=conf.contracts['AdoptionFund'], abi=DevelopmentFund.abi, owner=conf.acct)
+    developmentFund = Contract.from_abi("Fund", address=conf.contracts['DevelopmentFund'], abi=DevelopmentFund.abi, owner=conf.acct)
+    print("adoptionFund.unlockedTokenOwner:", adoptionFund.unlockedTokenOwner())
+    print("adoptionFund.lockedTokenOwner:", adoptionFund.lockedTokenOwner())
+    print("developmentFund.unlockedTokenOwner:", developmentFund.unlockedTokenOwner())
+    print("developmentFund.lockedTokenOwner:", developmentFund.lockedTokenOwner())
+
+    '''
+    now = calendar.timegm(time.gmtime())
+    # print(now)
+
+    print("===============================================")
+    adoptionLastReleaseTime = adoptionFund.lastReleaseTime()
+    print("adoptionLastReleaseTime:", adoptionLastReleaseTime)
+    adoptionReleaseDuration = adoptionFund.getReleaseDuration()[::-1]
+    adoptionReleaseTokenAmount = adoptionFund.getReleaseTokenAmount()[::-1]
+    adoptionAmount = 0
+    for i in range(len(adoptionReleaseDuration)):
+        releaseTime = adoptionReleaseDuration[i]
+        releaseValue = adoptionReleaseTokenAmount[i]
+        if (now >= adoptionLastReleaseTime + releaseTime):
+            adoptionLastReleaseTime += releaseTime
+            adoptionAmount += releaseValue
+            print(str(adoptionLastReleaseTime) + " - " + str(releaseValue / DECIMALS))
+    print("adoptionFund:", adoptionAmount / DECIMALS)
+
+    print("===============================================")
+    developmentLastReleaseTime = developmentFund.lastReleaseTime()
+    print("developmentLastReleaseTime:", developmentLastReleaseTime)
+    developmentReleaseDuration = developmentFund.getReleaseDuration()[::-1]
+    developmentReleaseTokenAmount = developmentFund.getReleaseTokenAmount()[::-1]
+    developmentAmount = 0
+    for i in range(len(developmentReleaseDuration)):
+        releaseTime = developmentReleaseDuration[i]
+        releaseValue = developmentReleaseTokenAmount[i]
+        if (now >= developmentLastReleaseTime + releaseTime):
+            developmentLastReleaseTime += releaseTime
+            developmentAmount += releaseValue
+            print(str(developmentLastReleaseTime) + " - " + str(releaseValue / DECIMALS))
+    print("developmentFund:", developmentAmount / DECIMALS)
+    print("===============================================")
+    '''
