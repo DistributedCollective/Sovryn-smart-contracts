@@ -292,7 +292,7 @@ const createProposal = async (
 ) => {
     const { ethers } = hre;
     const { deployer } = await getNamedAccounts();
-    /* console.log("CREATING PROPOSAL:");
+    console.log("CREATING PROPOSAL:");
     console.log(`=============================================================
     Proposal creator:    ${deployer}
     Governor Address:    ${governorAddress}
@@ -302,7 +302,7 @@ const createProposal = async (
     Data:                ${callDatas}
     Description:         ${description}
     =============================================================`);
-    */
+
     const signer = await ethers.getSigner(deployer);
     const gov = await ethers.getContractAt("GovernorAlpha", governorAddress);
     const receipt = await (
