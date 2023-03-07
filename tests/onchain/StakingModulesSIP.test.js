@@ -115,7 +115,7 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                 params: [
                     {
                         forking: {
-                            jsonRpcUrl: "https://mainnet4.sovryn.app/rpc",
+                            jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
                             blockNumber: 5037475, // block num at the time of the test creation with no Staking refactored deployed yet
                         },
                     },

@@ -1,6 +1,6 @@
 # Running onchain tests
 The onchain tests are supposed to run on a forked chains - mainnet or testnet.  
-1. `npx hardhat node --fork https://mainnet4.sovryn.app/rpc --no-deploy --fork-block-number 4929553`
+1. `npx hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy --fork-block-number 4929553`
     --fork-block-number is optional - use to time travel back
 2. run the test `npx hardhat test path/to/test.js --network X`
     network options: `rskForkedMainnet` or `rskForkedMainnetFlashback`
