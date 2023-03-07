@@ -290,8 +290,8 @@ module.exports = {
                 "external/deployments/rskSovrynTestnet",
                 "deployment/deployments/rskSovrynTestnet",
             ],
-            rskForkedTestnetFlashback: ["external/deployments/rskSovrynTestnet"],
-            rskForkedMainnetFlashback: ["external/deployments/rskSovrynMainnetFlashback"],
+            rskForkedTestnetFlashback: ["external/deployments/rskForkedTestnetFlashback"],
+            rskForkedMainnetFlashback: ["external/deployments/rskForkedMainnetFlashback"],
             rskSovrynMainnet: ["external/deployments/rskSovrynMainnet"],
             rskMainnet: ["external/deployments/rskSovrynMainnet"],
             rskForkedMainnet: [
@@ -305,6 +305,7 @@ module.exports = {
         target: "ethers-v5",
         alwaysGenerateOverloads: false, // should overloads with full signatures like deposit(uint256) be generated always, even if there are no overloads?
         externalArtifacts: ["external/artifacts/*.sol/!(*.dbg.json)"], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
+        // externalArtifacts: ["external/artifacts/*.json"], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
     },
     mocha: {
         timeout: 800000,
