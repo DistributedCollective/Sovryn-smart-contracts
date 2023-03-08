@@ -581,6 +581,29 @@ interface IStaking {
     ) external;
 
     /**
+     * @notice Withdraw the given amount of tokens.
+     * @param amount The number of tokens to withdraw.
+     * @param until The date until which the tokens were staked.
+     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * @dev **WARNING** This function should not be no longer used by Sovryn Protocol.
+     * Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.
+     * */
+    function governanceWithdraw(
+        uint96 amount,
+        uint256 until,
+        address receiver
+    ) external;
+
+    /**
+     * @notice Withdraw tokens for vesting contract.
+     * @param vesting The address of Vesting contract.
+     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
+     * */
+    function governanceWithdrawVesting(address vesting, address receiver) external;
+
+    /**
      * @notice Get available and punished amount for withdrawing.
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.

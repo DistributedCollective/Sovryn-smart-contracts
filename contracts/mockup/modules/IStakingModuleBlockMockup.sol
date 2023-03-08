@@ -516,6 +516,21 @@ interface IStakingModuleBlockMockup {
     ) external;
 
     /**
+     * @notice Withdraw the given amount of tokens.
+     * @param amount The number of tokens to withdraw.
+     * @param until The date until which the tokens were staked.
+     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * @dev **WARNING** This function should not be no longer used by Sovryn Protocol.
+     * Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.
+     * */
+    function governanceWithdraw(
+        uint96 amount,
+        uint256 until,
+        address receiver
+    ) external;
+
+    /**
      * @notice Governance withdraw vesting directly through staking contract.
      * This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing.
      * This function only allows cancelling vesting contract of the TeamVesting type.

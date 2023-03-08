@@ -114,9 +114,13 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * forwards them to an address specified by the token owner.
      * @param receiver The receiving address.
      * @dev Can be called only by owner.
+     * @dev **WARNING** This function should not be no longer used by Sovryn Protocol.
+     * Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.
      * */
     function governanceWithdrawTokens(address receiver) public {
-        revert("deprecated, use cancelTeamVesting from the staking contract");
+        require(msg.sender == address(staking), "unauthorized");
+
+        _withdrawTokens(receiver, true);
     }
 
     /**
@@ -161,7 +165,11 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
-                staking.withdraw(stake, i, receiver);
+                if (isGovernance) {
+                    staking.governanceWithdraw(stake, i, receiver);
+                } else {
+                    staking.withdraw(stake, i, receiver);
+                }
             }
         }
 
