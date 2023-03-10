@@ -154,4 +154,3 @@ def main():
     # printLendingPoolsData()
     #upgradeVestingRegistry()
     #printMultisigOwners()
-    # cancelTeamVesting("0xf197b5a9b7a31e68db1b3ba44d1bd978382d5cad")
