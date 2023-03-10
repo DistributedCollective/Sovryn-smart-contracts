@@ -73,11 +73,14 @@ def main():
     #confirmWithBFMS(8) # "BFmultisig"
     #checkTxOnBF(29)   # "BFmultisig"
     
-    #executeOnMultisig(1071)
+    # executeOnMultisig(1336)
    
-    #confirmWithMS(1299)
-    #checkTx(1299)
-    
+    # confirmWithMS(1317)
+    # checkTx(1334)
+    # checkTx(1335)
+    # checkTx(1336)
+    # checkTx(1337)
+
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
     #confirmMultipleTxsWithMS(960, 963)
 
@@ -151,3 +154,4 @@ def main():
     # printLendingPoolsData()
     #upgradeVestingRegistry()
     #printMultisigOwners()
+    # cancelTeamVesting("0xf197b5a9b7a31e68db1b3ba44d1bd978382d5cad")
