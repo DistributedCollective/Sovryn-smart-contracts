@@ -622,7 +622,7 @@ def readTokenOwnerFromFunds():
     print("developmentFund.unlockedTokenOwner:", developmentFund.unlockedTokenOwner())
     print("developmentFund.lockedTokenOwner:", developmentFund.lockedTokenOwner())
 
-def cancelTeamVesting(vestingAddress):
+def cancelTeamVesting(vestingAddress, receiver):
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
 
     vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
@@ -634,5 +634,5 @@ def cancelTeamVesting(vestingAddress):
 
     for i in range(startDate, endDate+1, 1209600*(maxWithdrawIterations-1)):
         print("cancel with start date: ", i)
-        data = staking.cancelTeamVesting.encode_input(vestingAddress, conf.contracts['multisig'], i)
+        data = staking.cancelTeamVesting.encode_input(vestingAddress, receiver, i)
         sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
