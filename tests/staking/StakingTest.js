@@ -2602,7 +2602,7 @@ contract("Staking", (accounts) => {
                 staking.stake(values[2], lockedDates[2], a1, a1, { from: guy }),
             ]);
 
-            await time.increase(2592000); // incerease timestamp 30 days, so that lockedDates will be < blockTimestamp
+            await time.increase(2592000); // increase timestamp 30 days, so that lockedDates will be < blockTimestamp
             let tx = await staking.setVestingStakes(lockedDates, values);
             let txBlockNumber = new BN(tx.receipt.blockNumber.toString());
 
