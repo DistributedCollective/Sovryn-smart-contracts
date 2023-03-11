@@ -36,6 +36,7 @@
 		"bn.js": "^5.1.2",
 		"chai-as-promised": "^7.1.1",
 		"chai-string": "^1.5.0",
+		"cli-color": "^2.0.3",
 		"coveralls": "^3.1.0",
 		"cross-env": "^7.0.3",
 		"decimal.js": "10.2.0",
@@ -52,6 +53,7 @@
 		"hardhat-log-remover": "^2.0.0",
 		"husky": "^4.3.6",
 		"mocha": "^8.2.1",
+		"node-logs": "^1.1.0",
 		"prettier": "2.3.2",
 		"prettier-plugin-solidity": "^1.0.0-beta.3",
 		"sol2uml": "^1.1.17",
@@ -80,9 +82,9 @@
 		"npm-publish": "npm run compile && npm publish",
 		"fees-withdraw": "brownie run rewards_cron",
 		"set-block": "brownie run setBlock_cron",
-		"fork:rsk-mainnet": "hardhat node --fork https://mainnet.sovryn.app/rpc",
-		"fork:rsk-mainnet-at-block": "cross-env IS_FORKED=1 && hardhat node --fork https://mainnet4.sovryn.app/rpc --fork-block-number 4690000",
-		"fork:rsk-testnet": "hardhat node --fork https://testnet.sovryn.app/rpc",
+		"fork:rsk-mainnet": "hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy",
+		"fork:rsk-mainnet-at-block": "cross-env IS_FORKED=1 && hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy --fork-block-number 4690000",
+		"fork:rsk-testnet": "hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy",
 		"deploy:staking-modules": "hardhat deploy --tags StakingModules"
 	},
 	"husky": {

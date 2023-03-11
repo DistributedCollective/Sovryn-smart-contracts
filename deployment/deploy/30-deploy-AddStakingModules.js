@@ -6,6 +6,7 @@ const {
     stakingRegisterModuleWithMultisig,
     sendWithMultisig,
 } = require("../helpers/helpers");
+const col = require("cli-color");
 
 const { arrayToUnique } = require("../helpers/utils");
 
@@ -17,7 +18,7 @@ const func = async function () {
     } = hre;
     // const { deployer } = await getNamedAccounts();
 
-    log("Registering Staking Modules...");
+    log(col.bgYellow("Adding New Staking Modules..."));
 
     const moduleNamesObject = getStakingModulesNames();
     let moduleDeployments = [];
@@ -28,25 +29,18 @@ const func = async function () {
     const stakingProxyDeployment = await get("StakingProxy");
     const stakingModulesProxyDeployment = await get("StakingModulesProxy"); //await ethers.getContract("StakingModulesProxy");
     // @dev stakingModulesProxy@stakingProxy
-    const stakingModulesProxy = await ethers.getContractAt(
-        stakingModulesProxyDeployment.abi,
-        stakingProxyDeployment.address
-    );
+    const stakingModulesProxy = await ethers.getContract("StakingModulesProxy");
 
     const { deployer } = await getNamedAccounts();
 
     for (let moduleName in moduleNamesObject) {
         const moduleDeployment = await get(moduleName);
-        //const moduleImpl = await ethers.getContractAt(moduleDeployment.abi, moduleDeployment.address);
         moduleDeployments.push({ name: moduleName, address: moduleDeployment.address });
         modulesAddressList.push(moduleDeployment.address);
     }
 
-    // const modulesAddressList = Object.values(moduleDeployments);
-
     // use the list to exclude some staking modules from registering
     const dontAddModules = {
-        /*
         StakingAdminModule: "StakingAdminModule",
         StakingGovernanceModule: "StakingGovernanceModule",
         StakingStakeModule: "StakingStakeModule",
@@ -54,24 +48,24 @@ const func = async function () {
         StakingVestingModule: "StakingVestingModule",
         StakingWithdrawModule: "StakingWithdrawModule",
         WeightedStakingModule: "WeightedStakingModule",
-        */
     };
     const modulesToAdd =
         Object.keys(dontAddModules).length > 0
-            ? modulesAddressList.filter((k) => {
-                  dontAddModules.indexOf(k) == -1;
+            ? modulesAddressList.filter((k, i) => {
+                  return dontAddModules[moduleDeployments[i].name] === undefined;
               })
             : modulesAddressList;
+    const canNotAddModules = (await stakingModulesProxy.canNotAddModules(modulesToAdd)).filter(
+        (item) => item !== ethers.constants.AddressZero
+    );
 
-    const canNotAddModules = (
-        await stakingModulesProxy.canNotAddModules(modulesAddressList)
-    ).filter((item, i, ar) => {
-        item !== ethers.constants.AddressZero;
-    });
     if (canNotAddModules.length > 0) {
-        throw new Error("Cannot add these modules: " + canNotAddModules);
+        throw new Error(col.redBright("Cannot add these modules: " + canNotAddModules));
     }
-
+    if (modulesToAdd.length === 0) {
+        log(col.bgBlue(">>> No modules to add"));
+        return;
+    }
     //const abi = ["event AddModule(address moduleAddress)"];
     const stakingModulesProxyABI = stakingModulesProxyDeployment.abi;
     const stakingModulesProxyInterface = new ethers.utils.Interface(stakingModulesProxyABI);
@@ -80,7 +74,7 @@ const func = async function () {
         // @todo wrap into a helper multisig tx creation
         const multisigDeployment = await get("MultiSigWallet");
         let data = stakingModulesProxyInterface.encodeFunctionData("addModules", [modulesToAdd]);
-        log("Generating multisig transaction to register modules...");
+        log(col.bgYellow("Generating multisig transaction to register modules..."));
         await sendWithMultisig(
             multisigDeployment.address,
             stakingProxyDeployment.address,
@@ -88,21 +82,22 @@ const func = async function () {
             deployer
         );
         log(
-            `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
+            col.bgBlue(
+                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
+            )
         );
     } else if (hre.network.tags["mainnet"]) {
         //owned by governance - need a SIP to register
         // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
         // TODO: figure out if possible to pass SIP via environment and run the script
         //const stakingProxyDeployment = await get("StakingProxy");
-
-        log("Staking modules and StakingModuleProxy are deployed");
+        log(col.bgBlue("Staking modules and StakingModuleProxy are deployed"));
         log(
             "Prepare and run SIP function in sips.js to create the proposal\n or alternatively use the brownie python proposal creation script."
         );
     } else {
         // hh ganache
-        log("Adding modules...");
+        log(col.bgYellow("Adding modules..."));
         log(modulesToAdd);
         await stakingModulesProxy.addModules(modulesToAdd);
     }
