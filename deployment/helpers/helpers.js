@@ -7,6 +7,7 @@
 
 ///@dev This file requires HardhatRuntimeEnvironment `hre` variable in its parent context for functions using hre to work
 const { arrayToUnique } = require("../helpers/utils");
+const col = require("cli-color");
 
 const getStakingModulesNames = () => {
     return {
@@ -44,7 +45,9 @@ const multisigAddOwner = async (addAddress) => {
     console.log(`creating multisig tx to add new owner ${addAddress}...`);
     await sendWithMultisig(multisigDeployment.address, multisigDeployment.address, data, deployer);
     console.log(
-        `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
+        col.bgBlue(
+            `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
+        )
     );
 };
 
@@ -62,7 +65,9 @@ const multisigRemoveOwner = async (removeAddress) => {
     console.log(`creating multisig tx to remove owner ${removeAddress}...`);
     await sendWithMultisig(multisigDeployment.address, multisigDeployment.address, data, deployer);
     console.log(
-        `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
+        col.bgBlue(
+            `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
+        )
     );
 };
 
@@ -257,7 +262,7 @@ const getStakingModuleContractToReplace = async (stakingModulesProxy, newModuleA
         clashing.clashingModules.length == 0 &&
         clashing.clashingProxyRegistryFuncSelectors.length == 0
     ) {
-        return [ethers.constants.AddressZero];
+        return ethers.constants.AddressZero;
     }
 
     if (clashing.clashingModules.length != 0) {
@@ -332,7 +337,7 @@ const createProposal = async (
     Proposal Id:         ${parsedEvent.id.value.toString()}
     Proposer:            ${parsedEvent.proposer.value}
     Targets:             ${parsedEvent.targets.value}
-    Values:              ${parsedEvent.values.value.map(toString)}
+    Values:              ${parsedEvent.values.value}
     Signature:           ${parsedEvent.signatures.value}
     Data:                ${parsedEvent.calldatas.value}
     StartBlock:          ${parsedEvent.startBlock.value.toString()}
@@ -346,33 +351,38 @@ const createProposal = async (
 // the proxy ABI must have setImplementation() and getImplementation() functions
 const deployWithCustomProxy = async (
     deployer,
-    logicName,
-    proxyName,
-    logicProxyName,
-    isOwnerMultisig = false,
-    multisigName = "MultiSigWallet",
-    logicInstanceName = "",
+    logicArtifactName, //logic contract artifact name
+    proxyArtifactName, // proxy deployment name
+    logicInstanceName = undefined, // save logic implementation as
+    proxyInstanceName = undefined, // save proxy implementation as
+    forceOwnerIsMultisig = false, // overrides network dependency
     args = [],
-    proxyArgs = []
+    proxyArgs = [],
+    multisigName = "MultiSigWallet"
 ) => {
     const {
         deployments: { deploy, get, getOrNull, log },
-        // getNamedAccounts,
         ethers,
     } = hre;
-    // const { deployer } = await getNamedAccounts();
 
+    proxyInstanceName = proxyInstanceName == "" ? undefined : proxyInstanceName;
+    logicInstanceName = logicInstanceName == "" ? undefined : logicInstanceName;
+
+    const proxyName = proxyInstanceName ?? proxyArtifactName; // support multiple deployments of the same artifact
     let proxyDeployment = await getOrNull(proxyName);
     if (!proxyDeployment) {
         await deploy(proxyName, {
+            contract: proxyArtifactName,
             from: deployer,
             args: proxyArgs,
             log: true,
         });
     }
 
-    const tx = await deploy(logicInstanceName ? logicInstanceName : logicName, {
-        contract: logicName,
+    const logicName = logicInstanceName ?? logicArtifactName;
+    const logicImplName = logicName + "_Implementation"; // naming convention like in hh deployment
+    const logicDeploymentTx = await deploy(logicImplName, {
+        contract: logicArtifactName,
         from: deployer,
         args: args,
         log: true,
@@ -382,30 +392,35 @@ const deployWithCustomProxy = async (
     const prevImpl = await proxy.getImplementation();
     log(`Current ${proxyName} implementation: ${prevImpl}`);
 
-    if (tx.newlyDeployed || tx.address != prevImpl) {
-        log(`New ${logicName} implementation: ${tx.address}`);
-        const proxyDeployment = await get(proxyName);
-        await deployments.save(logicProxyName, {
+    if (logicDeploymentTx.newlyDeployed || logicDeploymentTx.address != prevImpl) {
+        log(`New ${logicName} implementation: ${logicDeploymentTx.address}`);
+        await deployments.save(logicName, {
             address: proxy.address,
-            abi: proxyDeployment.abi,
-            bytecode: tx.bytecode,
-            deployedBytecode: tx.deployedBytecode,
-            implementation: tx.address,
+            abi: logicDeploymentTx.abi,
+            bytecode: logicDeploymentTx.bytecode,
+            deployedBytecode: logicDeploymentTx.deployedBytecode,
+            implementation: logicDeploymentTx.address,
         });
-        if (hre.network.tags["testnet"] || isOwnerMultisig) {
+
+        const proxyDeployment = await get(proxyName);
+        if (hre.network.tags["testnet"] || forceOwnerIsMultisig) {
             //multisig is the owner
             const multisigDeployment = await get(multisigName);
             //@todo wrap getting ms tx data into a helper
             let proxyInterface = new ethers.utils.Interface(proxyDeployment.abi);
-            let data = proxyInterface.encodeFunctionData("setImplementation", [tx.address]);
+            let data = proxyInterface.encodeFunctionData("setImplementation", [
+                logicDeploymentTx.address,
+            ]);
             log(
-                `Creating multisig tx to set ${logicName} (${tx.address}) as implementation for ${proxyName} (${proxyDeployment.address}...`
+                `Creating multisig tx to set ${logicArtifactName} (${logicDeploymentTx.address}) as implementation for ${proxyName} (${proxyDeployment.address}...`
             );
             log();
             await sendWithMultisig(multisigDeployment.address, proxy.address, data, deployer);
             log(
-                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<
+                col.bgBlue(
+                    `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<
                  >>> DON'T PUSH DEPLOYMENTS TO THE REPO UNTIL THE MULTISIG TX SUCCESSFULLY SIGNED & EXECUTED <<<`
+                )
             );
         } else if (hre.network.tags["mainnet"]) {
             log(">>> Create a Bitocracy proposal via SIP <<<");
@@ -416,7 +431,7 @@ const deployWithCustomProxy = async (
             // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
         } else {
             const proxy = await ethers.getContractAt(proxyName, proxyDeployment.address);
-            await proxy.setImplementation(tx.address);
+            await proxy.setImplementation(logicDeploymentTx.address);
             log(
                 `>>> New implementation ${await proxy.getImplementation()} is set to the proxy <<<`
             );

@@ -22,11 +22,17 @@ const {
 } = hre;
 // const { ethers } = hre;
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
-const { createSIP0049 } = require("../../deployment/sip/sips.js");
+const sipArgsScript = require("../hardhat/tasks/sips/args/sipArgs");
+const { createSIP } = require("../hardhat/tasks/sips/createSIP");
 
 const { ZERO_ADDRESS } = ethers.constants;
 
-const { encodeParameters, etherMantissa, mineBlock, increaseTime } = require("../Utils/Ethereum");
+const {
+    encodeParameters,
+    etherMantissa,
+    mineBlock,
+    increaseTime,
+} = require("../tests/Utils/Ethereum");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
@@ -35,7 +41,7 @@ const StakingProxy = artifacts.require("StakingProxy");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
 
-const { deployAndGetIStaking } = require("../Utils/initializer");
+const { deployAndGetIStaking } = require("../tests/Utils/initializer");
 
 const QUORUM_VOTES = etherMantissa(4000000);
 
@@ -98,14 +104,9 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
         };
     });
 
-    let loadFixtureAfterEach = false;
     before(async () => {});
     beforeEach(async () => {});
-    afterEach(async () => {
-        if (loadFixtureAfterEach) {
-            await setupTest();
-        }
-    });
+    afterEach(async () => {});
 
     describe("Staking Modules Onchain Testing", () => {
         it("SIP 0049 is executable", async () => {
@@ -116,7 +117,8 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                     {
                         forking: {
                             jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
-                            blockNumber: 5037475, // block num at the time of the test creation with no Staking refactored deployed yet
+                            blockNumber: 5069115, //5079890 // block num at the time of the test creation with no Staking refactored deployed yet
+                            //blockNumber: 5037475, // block num at the time of the test creation with no Staking refactored deployed yet
                         },
                     },
                 ],
@@ -132,7 +134,6 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                 timelockOwner,
                 timelockOwnerSigner,
             } = await setupTest();
-            loadFixtureAfterEach = true;
 
             // CREATE PROPOSAL
             const sov = await ethers.getContract("SOV", timelockOwnerSigner);
@@ -167,7 +168,8 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
 
             // CREATE PROPOSAL AND VERIFY
             const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
-            await createSIP0049();
+            //await createSIP0049();
+            await hre.run("sips:create-sip", { argsFunc: "getArgsSip0049" });
             const proposalId = await governorOwner.latestProposalIds(deployer);
             expect(
                 proposalId.toString(),
@@ -175,7 +177,6 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
             ).not.equal(proposalIdBeforeSIP.toString());
 
             // VOTE FOR PROPOSAL
-
             await mine();
             await governorOwner.connect(deployerSigner).castVote(proposalId, true);
 
@@ -193,11 +194,119 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
 
             // VALIDATE EXECUTION
             expect((await governorOwner.proposals(proposalId)).executed).to.be.true;
-            expect(await stakingProxy.getImplementation()).to.equal(stakingModulesProxy.address);
+            expect(await stakingProxy.getImplementation()).to.equal(
+                (await get("StakingModulesProxy_Implementation")).address
+            );
             const modulesProxy = await ethers.getContractAt("ModulesProxy", stakingProxy.address);
             expect(await modulesProxy.getFuncImplementation("0x8dae1b16")).to.equal(
                 (await get("WeightedStakingModule")).address
             );
+        });
+        it("SIPs unified 0054 and 0055 are executable", async () => {
+            if (!hre.network.tags["forked"]) return;
+            await hre.network.provider.request({
+                method: "hardhat_reset",
+                params: [
+                    {
+                        forking: {
+                            jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
+                            blockNumber: 5117306, // block num at the time of the test creation with no new modules deployed
+                        },
+                    },
+                ],
+            });
+
+            const {
+                deployer,
+                deployerSigner,
+                stakingProxy,
+                stakingModulesProxy,
+                governorOwner,
+                governorOwnerSigner,
+                timelockOwner,
+                timelockOwnerSigner,
+            } = await setupTest();
+
+            // CREATE PROPOSAL
+            const sov = await ethers.getContract("SOV", timelockOwnerSigner);
+            const whaleAmount = (await sov.totalSupply()).mul(ethers.BigNumber.from(5));
+            await sov.mint(deployer, whaleAmount);
+
+            await sov.connect(deployerSigner).approve(stakingProxy.address, whaleAmount);
+            const stakeABI = (await hre.artifacts.readArtifact("IStaking")).abi;
+            const staking = await ethers.getContractAt(
+                stakeABI,
+                stakingProxy.address,
+                deployerSigner
+            );
+            const multisigSigner = await getImpersonatedSignerFromJsonRpcProvider(
+                (
+                    await get("MultiSigWallet")
+                ).address
+            );
+            if (await staking.paused()) await staking.connect(multisigSigner).pauseUnpause(false);
+            const kickoffTS = await stakingProxy.kickoffTS();
+            await staking.stake(whaleAmount, kickoffTS.add(MAX_DURATION), deployer, deployer);
+            await mine();
+
+            // CREATE PROPOSAL AND VERIFY
+            const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
+            await hre.run("sips:create-sip", { argsFunc: "getArgsSipXX" });
+            const proposalId = await governorOwner.latestProposalIds(deployer);
+            expect(
+                proposalId,
+                "Proposal was not created. Check the SIP creation is not commented out."
+            ).is.gt(proposalIdBeforeSIP);
+
+            // VOTE FOR PROPOSAL
+
+            await mine();
+            await governorOwner.connect(deployerSigner).castVote(proposalId, true);
+
+            // QUEUE PROPOSAL
+            let proposal = await governorOwner.proposals(proposalId);
+            await mine(proposal.endBlock);
+            await governorOwner.queue(proposalId);
+
+            // VERIFY REGISTERED MODULES ARE NOT THE DEPLOYED ONES BEFORE THE SIP EXECUTION
+            const modulesProxy = await ethers.getContractAt("ModulesProxy", stakingProxy.address);
+            const stakingVestingModule = await ethers.getContract("StakingVestingModule");
+            const stakingVestingModuleFuncs = await stakingVestingModule.getFunctionsList();
+            for await (const func of stakingVestingModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).not.equal(
+                    stakingVestingModule.address
+                );
+            }
+
+            const stakingWithdrawModule = await ethers.getContract("StakingWithdrawModule");
+            const stakingWithdrawModuleFuncs = await stakingWithdrawModule.getFunctionsList();
+            for await (const func of stakingWithdrawModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).not.equal(
+                    stakingWithdrawModule.address
+                );
+            }
+
+            // EXECUTE PROPOSAL
+            proposal = await governorOwner.proposals(proposalId);
+            await time.increaseTo(proposal.eta);
+            await expect(governorOwner.execute(proposalId))
+                .to.emit(governorOwner, "ProposalExecuted")
+                .withArgs(proposalId);
+
+            // VALIDATE EXECUTION
+            expect((await governorOwner.proposals(proposalId)).executed).to.be.true;
+
+            // VERIFY REGISTERED MODULES FUNCS ARE REGISTERED
+            for await (const func of stakingVestingModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).equal(
+                    stakingVestingModule.address
+                );
+            }
+            for await (const func of stakingWithdrawModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).equal(
+                    stakingWithdrawModule.address
+                );
+            }
         });
     });
 });

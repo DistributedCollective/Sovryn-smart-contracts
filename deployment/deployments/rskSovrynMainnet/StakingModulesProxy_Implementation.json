@@ -1,5 +1,5 @@
 {
-    "address": "0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e",
+    "address": "0xe2B4A4213C823Cb3e1b90D128Aed17A86f45BbC0",
     "abi": [
         {
             "anonymous": false,
@@ -493,7 +493,6 @@
         },
         "notice": "ModulesProxy serves as a storage processed by a set of logic contracts - modules Modules functions are registered in the contract's slots generated per func sig All the function calls except for own Proxy functions are delegated to the registered functions The ModulesProxy is designed as a universal solution for refactorig contracts reaching a 24K size limit (EIP-170) * Upgradability is implemented at a module level to provide consistency It does not allow to replace separate functions - only the whole module meaning that if a module being registered contains other modules function signatures then these modulea should be replaced completely - all the functions should be removed to avoid leftovers or accidental replacements and therefore functional inconsistency. * A module is either a new non-overlapping with registered modules or a complete replacement of another registered module in which case all the old module functions are unregistered and then the new module functions are registered There is also a separate function to unregister a module which unregisters all the functions There is no option to unregister a subset of module functions - one should use pausable functionality to achieve this"
     },
-    "implementation": "0xe2B4A4213C823Cb3e1b90D128Aed17A86f45BbC0",
     "storageLayout": {
         "storage": [],
         "types": null

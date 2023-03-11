@@ -1,4 +1,5 @@
 const { task } = require("hardhat/config");
+require("./sips/createSIP");
 
 // const { ethers } = hre;
 // This is a sample Hardhat task. To learn how to create your own go to

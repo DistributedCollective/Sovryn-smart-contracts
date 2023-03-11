@@ -21,6 +21,7 @@ const {
     multisigAddOwner,
     multisigRemoveOwner,
 } = require("./deployment/helpers/helpers");
+require("./hardhat/tasks/sips/createSIP");
 
 require("./hardhat/tasks/tasks");
 
@@ -79,10 +80,11 @@ task("governor-owner:queue-proposal", "Queue proposal in the Governor Owner cont
 
 task("multisig:sign-tx", "Sign multisig tx")
     .addParam("txId", "Multisig transaction to sign", undefined, types.string)
-    .setAction(async ({ txId }, hre) => {
-        const { signer } = await hre.getNamedAccounts();
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ txId, signer }, hre) => {
+        const signerAcc = (await hre.getNamedAccounts())[signer];
         const ms = await ethers.getContract("MultiSigWallet");
-        await signWithMultisig(ms.address, txId, signer);
+        await signWithMultisig(ms.address, txId, signerAcc);
     });
 
 task("multisig:execute-tx", "Execute multisig tx by one of tx signers")
@@ -288,7 +290,7 @@ module.exports = {
             ],
             rskForkedTestnet: [
                 "external/deployments/rskSovrynTestnet",
-                "deployment/deployments/rskSovrynTestnet",
+                "external/deployments/rskForkedTestnet",
             ],
             rskForkedTestnetFlashback: ["external/deployments/rskForkedTestnetFlashback"],
             rskForkedMainnetFlashback: ["external/deployments/rskForkedMainnetFlashback"],
@@ -296,7 +298,7 @@ module.exports = {
             rskMainnet: ["external/deployments/rskSovrynMainnet"],
             rskForkedMainnet: [
                 "external/deployments/rskSovrynMainnet",
-                "deployment/deployments/rskSovrynMainnet",
+                "external/deployments/rskForkedMainnet",
             ],
         },
     },
