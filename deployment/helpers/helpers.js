@@ -396,10 +396,13 @@ const deployWithCustomProxy = async (
         log(`New ${logicName} implementation: ${logicDeploymentTx.address}`);
         await deployments.save(logicName, {
             address: proxy.address,
+            implementation: logicDeploymentTx.address,
             abi: logicDeploymentTx.abi,
             bytecode: logicDeploymentTx.bytecode,
             deployedBytecode: logicDeploymentTx.deployedBytecode,
-            implementation: logicDeploymentTx.address,
+            devdoc: logicDeploymentTx.devdoc,
+            userdoc: logicDeploymentTx.userdoc,
+            storageLayout: logicDeploymentTx.storageLayout,
         });
 
         const proxyDeployment = await get(proxyName);
