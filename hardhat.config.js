@@ -12,16 +12,6 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
-const {
-    signWithMultisig,
-    multisigCheckTx,
-    multisigRevokeConfirmation,
-    multisigExecuteTx,
-    multisigAddRemoveOwner,
-    multisigAddOwner,
-    multisigRemoveOwner,
-} = require("./deployment/helpers/helpers");
-require("./hardhat/tasks/sips/createSIP");
 
 require("./hardhat/tasks/tasks");
 
@@ -68,64 +58,6 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
         console.log("Hardhat mainnet forking works properly!");
     else console.log("Hardhat mainnet forking does NOT work properly!");
 });
-
-task("governor-owner:queue-proposal", "Queue proposal in the Governor Owner contract")
-    .addParam("proposal", "Proposal Id", undefined, types.string)
-    .setAction(async ({ proposal }, hre) => {
-        const { deployer } = await hre.getNamedAccounts();
-        const god = await deployments.get("GovernorOwner");
-        const governorOwner = await ethers.getContractAt("GovernorAlpha", god.address, deployer);
-        await governorOwner.queue(proposal);
-    });
-
-task("multisig:sign-tx", "Sign multisig tx")
-    .addParam("txId", "Multisig transaction to sign", undefined, types.string)
-    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ txId, signer }, hre) => {
-        const signerAcc = (await hre.getNamedAccounts())[signer];
-        const ms = await ethers.getContract("MultiSigWallet");
-        await signWithMultisig(ms.address, txId, signerAcc);
-    });
-
-task("multisig:execute-tx", "Execute multisig tx by one of tx signers")
-    .addParam("txId", "Multisig transaction to sign", undefined, types.string)
-    .addParam("signer", "Multisig transaction to check", undefined, types.string, true)
-    .setAction(async ({ txId, signer }, hre) => {
-        await multisigExecuteTx(txId, signer ? signer : (await hre.getNamedAccounts()).signer);
-    });
-
-task("multisig:check-tx", "Check multisig tx")
-    .addParam("txId", "Multisig transaction to check", undefined, types.string)
-    .setAction(async (taskArgs, hre) => {
-        await multisigCheckTx(taskArgs.txId);
-    });
-
-task("multisig:revoke-confirmation", "Revoke multisig tx confirmation")
-    .addParam("txId", "Multisig transaction to check", undefined, types.string)
-    .addParam("signer", "Signer", undefined, types.string, true)
-    .setAction(async ({ txId, signer }, hre) => {
-        await multisigRevokeConfirmation(
-            txId,
-            signer ? signer : (await hre.getNamedAccounts()).deployer
-        );
-    });
-
-task("multisig:add-remove-owner", "Add or remove multisig owner")
-    .addParam("add", "add = true, remove = false", undefined)
-    .addParam("address", "Owner address to add or remove", undefined, types.string)
-    .addParam("signer", "Multisig transaction to check", undefined, types.string, true)
-    .setAction(async ({ add, address, signer }, hre) => {
-        if (add == "true") {
-            await multisigAddOwner(address);
-        } else {
-            await multisigRemoveOwner(address);
-        }
-        /*await multisigAddRemoveOwner(
-            add,
-            address,
-            signer ? signer : (await hre.getNamedAccounts()).signer
-        );*/
-    });
 
 /*task("accounts", "Prints accounts", async (_, { web3 }) => {
     console.log();
@@ -188,9 +120,10 @@ module.exports = {
         },
         rskForkedTestnet: {
             chainId: 31337,
-            accounts: testnetAccounts,
             url: "http://127.0.0.1:8545/",
+            gasPrice: 66000010,
             blockGasLimit: 6800000,
+            accounts: testnetAccounts,
             live: true,
             tags: ["testnet", "forked"],
             timeout: 100000,
@@ -199,6 +132,7 @@ module.exports = {
             chainId: 31337,
             accounts: testnetAccounts,
             url: "http://127.0.0.1:8545/",
+            gasPrice: 66000010,
             blockGasLimit: 6800000,
             live: true,
             tags: ["testnet", "forked"],
@@ -246,9 +180,11 @@ module.exports = {
             timeout: 100000,
         },
         rskSovrynTestnet: {
+            chainId: 31,
             url: "https://testnet.sovryn.app/rpc",
             accounts: testnetAccounts,
-            chainId: 31,
+            gasPrice: 66000010,
+            blockGasLimit: 6800000,
             confirmations: 4,
             gasMultiplier: 1.25,
             tags: ["testnet"],
@@ -256,10 +192,10 @@ module.exports = {
             //allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
         },
         rskSovrynMainnet: {
-            url: "https://mainnet-dev.sovryn.app/rpc",
             chainId: 30,
+            url: "https://mainnet-dev.sovryn.app/rpc",
             accounts: mainnetAccounts,
-            gasPrice: 660000010,
+            gasPrice: 66000010,
             blockGasLimit: 6800000,
             tags: ["mainnet"],
             timeout: 100000,

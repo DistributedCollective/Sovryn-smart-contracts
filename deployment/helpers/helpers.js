@@ -30,20 +30,18 @@ const isMultisigOwner = async (multisigAddress, checkAddress) => {
     return await multisig.isOwner(checkAddress);
 };
 
-const multisigAddOwner = async (addAddress) => {
+const multisigAddOwner = async (addAddress, sender) => {
     const {
         ethers,
         getNamedAccounts,
         deployments: { get },
     } = hre;
-
     const multisigDeployment = await get("MultiSigWallet");
     let multisigInterface = new ethers.utils.Interface(multisigDeployment.abi);
     let data = multisigInterface.encodeFunctionData("addOwner", [addAddress]);
-    const { deployer } = await getNamedAccounts();
     ///@todo check if the deployer is one of ms owners
     console.log(`creating multisig tx to add new owner ${addAddress}...`);
-    await sendWithMultisig(multisigDeployment.address, multisigDeployment.address, data, deployer);
+    await sendWithMultisig(multisigDeployment.address, multisigDeployment.address, data, sender);
     console.log(
         col.bgBlue(
             `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
@@ -51,19 +49,17 @@ const multisigAddOwner = async (addAddress) => {
     );
 };
 
-const multisigRemoveOwner = async (removeAddress) => {
+const multisigRemoveOwner = async (removeAddress, sender) => {
     const {
         ethers,
         getNamedAccounts,
         deployments: { get },
     } = hre;
-
     const multisigDeployment = await get("MultiSigWallet");
     let multisigInterface = new ethers.utils.Interface(multisigDeployment.abi);
     let data = multisigInterface.encodeFunctionData("removeOwner", [removeAddress]);
-    const { deployer } = await getNamedAccounts();
     console.log(`creating multisig tx to remove owner ${removeAddress}...`);
-    await sendWithMultisig(multisigDeployment.address, multisigDeployment.address, data, deployer);
+    await sendWithMultisig(multisigDeployment.address, multisigDeployment.address, data, sender);
     console.log(
         col.bgBlue(
             `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
@@ -73,10 +69,15 @@ const multisigRemoveOwner = async (removeAddress) => {
 
 const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, value = 0) => {
     const { ethers } = hre;
-    const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress);
     const signer = await ethers.getSigner(sender);
+    const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress, signer);
+    const gasEstimated = (
+        await multisig.estimateGas.submitTransaction(contractAddress, value, data)
+    ).toNumber();
     receipt = await (
-        await multisig.connect(signer).submitTransaction(contractAddress, value, data)
+        await multisig.submitTransaction(contractAddress, value, data, {
+            gasLimit: Math.round(gasEstimated * 1.3),
+        })
     ).wait();
 
     const abi = ["event Submission(uint256 indexed transactionId)"];
@@ -88,9 +89,12 @@ const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, 
 const signWithMultisig = async (multisigAddress, txId, sender) => {
     const { ethers, getNamedAccounts } = hre;
     console.log("Signing multisig txId:", txId);
-    const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress);
     const signer = await ethers.getSigner(sender);
-    receipt = await (await multisig.connect(signer).confirmTransaction(txId)).wait();
+    const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress, signer);
+    const gasEstimated = (await multisig.estimateGas.confirmTransaction(txId)).toNumber();
+    receipt = await (
+        await multisig.confirmTransaction(txId, { gasLimit: Math.round(gasEstimated * 1.3) })
+    ).wait();
     // console.log("Required signatures:", await multisig.required());
     console.log("Signed. Details:");
     await multisigCheckTx(txId, multisig.address);
@@ -138,49 +142,20 @@ const multisigRevokeConfirmation = async (
         ethers,
         deployments: { get },
     } = hre;
+    const signer = await ethers.getSigner(sender);
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
         multisigAddress == ethers.constants.ADDRESS_ZERO
             ? (
                   await get("MultiSigWallet")
               ).address
-            : multisigAddress
+            : multisigAddress,
+        signer
     );
     console.log("Revoking confirmation of txId", txId, "...");
-    const signer = await ethers.getSigner(sender);
-    receipt = await (await multisig.connect(signer).revokeConfirmation(txId)).wait();
+    receipt = await (await multisig.revokeConfirmation(txId)).wait();
     // console.log("Required signatures:", await multisig.required());
     console.log(`Confirmation of txId ${txId} revoked.`);
-    console.log("Details:");
-    await multisigCheckTx(txId, multisig.address);
-};
-
-const multisigAddRemoveOwner = async (
-    addOwner,
-    ownerAddress,
-    sender,
-    multisigAddress = ethers.constants.ADDRESS_ZERO
-) => {
-    const {
-        ethers,
-        deployments: { get },
-    } = hre;
-    const multisig = await ethers.getContractAt(
-        "MultiSigWallet",
-        multisigAddress == ethers.constants.ADDRESS_ZERO
-            ? (
-                  await get("MultiSigWallet")
-              ).address
-            : multisigAddress
-    );
-    console.log(`${addOwner ? "Adding" : "Removing"} ${ownerAddress}`);
-    const signer = await ethers.getSigner(sender);
-    if (addOwner) {
-        receipt = await (await multisig.connect(signer).addOwner(ownerAddress)).wait();
-    } else {
-        receipt = await (await multisig.connect(signer).removeOwner(ownerAddress)).wait();
-    }
-
     console.log("Details:");
     await multisigCheckTx(txId, multisig.address);
 };
@@ -194,17 +169,23 @@ const multisigExecuteTx = async (
         ethers,
         deployments: { get },
     } = hre;
+    const signer = await ethers.getSigner(sender);
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
         multisigAddress == ethers.constants.ADDRESS_ZERO
             ? (
                   await get("MultiSigWallet")
               ).address
-            : multisigAddress
+            : multisigAddress,
+        signer
     );
     console.log("Executing multisig txId", txId, "...");
-    const signer = await ethers.getSigner(sender);
-    receipt = await (await multisig.connect(signer).execute(txId)).wait();
+    const gasEstimated = (await multisig.estimateGas.executeTransaction(txId)).toNumber();
+    receipt = await (
+        await multisig.executeTransaction(txId, { gasLimit: Math.round(gasEstimated * 1.3) })
+    ).wait();
+    //receipt = await multisig.callStatic.executeTransaction(txId);
+    console.log(receipt);
     // console.log("Required signatures:", await multisig.required());
     console.log("DONE. Details:");
     await multisigCheckTx(txId, multisig.address);
@@ -457,7 +438,6 @@ module.exports = {
     getStakingModuleContractToReplace,
     createProposal,
     deployWithCustomProxy,
-    multisigAddRemoveOwner,
     multisigAddOwner,
     multisigRemoveOwner,
 };

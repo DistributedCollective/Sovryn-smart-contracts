@@ -22,8 +22,6 @@ const {
 } = hre;
 // const { ethers } = hre;
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
-const sipArgsScript = require("../hardhat/tasks/sips/args/sipArgs");
-const { createSIP } = require("../hardhat/tasks/sips/createSIP");
 
 const { ZERO_ADDRESS } = ethers.constants;
 
@@ -168,8 +166,7 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
 
             // CREATE PROPOSAL AND VERIFY
             const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
-            //await createSIP0049();
-            await hre.run("sips:create-sip", { argsFunc: "getArgsSip0049" });
+            await hre.run("sips:create", { argsFunc: "getArgsSip0049" });
             const proposalId = await governorOwner.latestProposalIds(deployer);
             expect(
                 proposalId.toString(),
@@ -202,7 +199,7 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                 (await get("WeightedStakingModule")).address
             );
         });
-        it("SIPs unified 0054 and 0055 are executable", async () => {
+        it("SIP-X replacing staking modules is executable", async () => {
             if (!hre.network.tags["forked"]) return;
             await hre.network.provider.request({
                 method: "hardhat_reset",
@@ -251,7 +248,7 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
 
             // CREATE PROPOSAL AND VERIFY
             const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
-            await hre.run("sips:create-sip", { argsFunc: "getArgsSipXX" });
+            await hre.run("sips:create", { argsFunc: "getArgsSipXX" });
             const proposalId = await governorOwner.latestProposalIds(deployer);
             expect(
                 proposalId,
