@@ -112,8 +112,8 @@ module.exports = {
             allowUnlimitedContractSize: true,
             accounts: { mnemonic: "test test test test test test test test test test test junk" },
             initialBaseFeePerGas: 0,
-            port: 8505,
-            live: false,
+            //blockGasLimit: 6800000,
+            //gasPrice: 66000010,
         },
         localhost: {
             timeout: 100000,
