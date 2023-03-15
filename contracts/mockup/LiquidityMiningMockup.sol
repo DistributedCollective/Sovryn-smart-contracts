@@ -17,4 +17,12 @@ contract LiquidityMiningMockup is LiquidityMining {
         PoolInfo storage pool = poolInfoList[poolId];
         return _getPoolAccumulatedReward(pool);
     }
+
+    function getPoolTokenUnlockedImmediatelyPercent(address _poolToken)
+        public
+        view
+        returns (uint256)
+    {
+        return _getPoolTokenUnlockedImmediatelyPercent(_poolToken);
+    }
 }

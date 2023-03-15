@@ -66,4 +66,7 @@ contract LiquidityMiningStorage is AdminRole {
     // The % which determines how much will be unlocked immediately.
     /// @dev 10000 is 100%
     uint256 public unlockedImmediatelyPercent;
+
+    /// @dev overwrite the unlockedImmediatelyPercent for specific token.
+    mapping(address => uint256) public unlockedImmediatelyPercentOverwrite;
 }
