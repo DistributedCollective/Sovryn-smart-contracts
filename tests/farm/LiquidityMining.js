@@ -1624,6 +1624,188 @@ contract("LiquidityMining", (accounts) => {
             expect(unlockedBalance).bignumber.equal(new BN(0));
             expect(lockedBalance).bignumber.equal(new BN(0));
         });
+
+        it("getUserAccumulatedLiquidReward should return correct value", async () => {
+            await liquidityMining.add(token3.address, allocationPoint, false);
+            await token3.mint(account1, amount);
+            await token3.approve(liquidityMining.address, amount, { from: account1 });
+
+            // set unlockedImmediatelyPercent to 0%
+            const newUnlockedImmediatelyPercent = new BN(0);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+
+            // set unlockedImmediatelyPercentOverview for pool token 2 to 100%
+            const newUnlockedImmediatelyPercentOverwrite2 = new BN(10000);
+            await liquidityMining.setUnlockedImmediatelyPercentOverwrite(
+                token2.address,
+                newUnlockedImmediatelyPercentOverwrite2
+            );
+
+            const newUnlockedImmediatelyPercentOverwrite3 = new BN(3000);
+            await liquidityMining.setUnlockedImmediatelyPercentOverwrite(
+                token3.address,
+                newUnlockedImmediatelyPercentOverwrite3
+            );
+
+            const unlockImmediatelyPercentToken1 =
+                await liquidityMining.getPoolTokenUnlockedImmediatelyPercent(token1.address);
+            expect(unlockImmediatelyPercentToken1.toString()).to.equal(
+                newUnlockedImmediatelyPercent.toString()
+            );
+
+            const unlockImmediatelyPercentToken2 =
+                await liquidityMining.getPoolTokenUnlockedImmediatelyPercent(token2.address);
+            expect(unlockImmediatelyPercentToken2.toString()).to.equal(
+                newUnlockedImmediatelyPercentOverwrite2.toString()
+            );
+
+            const unlockImmediatelyPercentToken3 =
+                await liquidityMining.getPoolTokenUnlockedImmediatelyPercent(token3.address);
+            expect(unlockImmediatelyPercentToken3.toString()).to.equal(
+                newUnlockedImmediatelyPercentOverwrite3.toString()
+            );
+
+            await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await liquidityMining.deposit(token3.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await SOVToken.transfer(liquidityMining.address, amount.mul(new BN(2)));
+
+            const peviousAccumulatedRewardList =
+                await liquidityMining.getUserAccumulatedRewardList(account1);
+            const previousAccumulatedLiquidReward =
+                await liquidityMining.getUserAccumulatedLiquidReward(account1);
+            expect(previousAccumulatedLiquidReward).to.be.an("array");
+            expect(previousAccumulatedLiquidReward[0]).to.equal(
+                unlockImmediatelyPercentToken1
+                    .mul(peviousAccumulatedRewardList[0])
+                    .div(HUNDRED_PERCENT)
+            );
+            expect(previousAccumulatedLiquidReward[1]).to.equal(
+                unlockImmediatelyPercentToken2
+                    .mul(peviousAccumulatedRewardList[1])
+                    .div(HUNDRED_PERCENT)
+            );
+            expect(previousAccumulatedLiquidReward[2]).to.equal(
+                unlockImmediatelyPercentToken3
+                    .mul(peviousAccumulatedRewardList[2])
+                    .div(HUNDRED_PERCENT)
+            );
+
+            await liquidityMining.claimRewardFromAllPools(ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            const latestAccumulatedRewardList = await liquidityMining.getUserAccumulatedRewardList(
+                account1
+            );
+            expect(latestAccumulatedRewardList[0]).to.equal("0");
+            expect(latestAccumulatedRewardList[1]).to.equal("0");
+            expect(latestAccumulatedRewardList[2]).to.equal("0");
+
+            const latestAccumulatedLiquidReward =
+                await liquidityMining.getUserAccumulatedLiquidReward(account1);
+            expect(latestAccumulatedLiquidReward).to.be.an("array");
+            expect(latestAccumulatedLiquidReward[0]).to.equal("0");
+            expect(latestAccumulatedLiquidReward[1]).to.equal("0");
+            expect(latestAccumulatedLiquidReward[2]).to.equal("0");
+        });
+
+        it("getUserAccumulatedVestedReward should return correct value", async () => {
+            await liquidityMining.add(token3.address, allocationPoint, false);
+            await token3.mint(account1, amount);
+            await token3.approve(liquidityMining.address, amount, { from: account1 });
+
+            // set unlockedImmediatelyPercent to 0%
+            const newUnlockedImmediatelyPercent = new BN(0);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+
+            // set unlockedImmediatelyPercentOverview for pool token 2 to 100%
+            const newUnlockedImmediatelyPercentOverwrite2 = new BN(10000);
+            await liquidityMining.setUnlockedImmediatelyPercentOverwrite(
+                token2.address,
+                newUnlockedImmediatelyPercentOverwrite2
+            );
+
+            const newUnlockedImmediatelyPercentOverwrite3 = new BN(3000);
+            await liquidityMining.setUnlockedImmediatelyPercentOverwrite(
+                token3.address,
+                newUnlockedImmediatelyPercentOverwrite3
+            );
+
+            const unlockImmediatelyPercentToken1 =
+                await liquidityMining.getPoolTokenUnlockedImmediatelyPercent(token1.address);
+            expect(unlockImmediatelyPercentToken1.toString()).to.equal(
+                newUnlockedImmediatelyPercent.toString()
+            );
+
+            const unlockImmediatelyPercentToken2 =
+                await liquidityMining.getPoolTokenUnlockedImmediatelyPercent(token2.address);
+            expect(unlockImmediatelyPercentToken2.toString()).to.equal(
+                newUnlockedImmediatelyPercentOverwrite2.toString()
+            );
+
+            const unlockImmediatelyPercentToken3 =
+                await liquidityMining.getPoolTokenUnlockedImmediatelyPercent(token3.address);
+            expect(unlockImmediatelyPercentToken3.toString()).to.equal(
+                newUnlockedImmediatelyPercentOverwrite3.toString()
+            );
+
+            await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await liquidityMining.deposit(token3.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await SOVToken.transfer(liquidityMining.address, amount.mul(new BN(2)));
+
+            const peviousAccumulatedRewardList =
+                await liquidityMining.getUserAccumulatedRewardList(account1);
+            const previousAccumulatedVestedReward =
+                await liquidityMining.getUserAccumulatedVestedReward(account1);
+            expect(previousAccumulatedVestedReward).to.be.an("array");
+            expect(previousAccumulatedVestedReward[0]).to.equal(
+                HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken1)
+                    .mul(peviousAccumulatedRewardList[0])
+                    .div(HUNDRED_PERCENT)
+            );
+            expect(previousAccumulatedVestedReward[1]).to.equal(
+                HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken2)
+                    .mul(peviousAccumulatedRewardList[1])
+                    .div(HUNDRED_PERCENT)
+            );
+            expect(previousAccumulatedVestedReward[2]).to.equal(
+                HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken3)
+                    .mul(peviousAccumulatedRewardList[2])
+                    .div(HUNDRED_PERCENT)
+            );
+
+            await liquidityMining.claimRewardFromAllPools(ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            const latestAccumulatedRewardList = await liquidityMining.getUserAccumulatedRewardList(
+                account1
+            );
+            expect(latestAccumulatedRewardList[0]).to.equal("0");
+            expect(latestAccumulatedRewardList[1]).to.equal("0");
+            expect(latestAccumulatedRewardList[2]).to.equal("0");
+
+            const latestAccumulatedVestedReward =
+                await liquidityMining.getUserAccumulatedVestedReward(account1);
+            expect(latestAccumulatedVestedReward).to.be.an("array");
+            expect(latestAccumulatedVestedReward[0]).to.equal("0");
+            expect(latestAccumulatedVestedReward[1]).to.equal("0");
+            expect(latestAccumulatedVestedReward[2]).to.equal("0");
+        });
     });
 
     describe("withdraw", () => {
