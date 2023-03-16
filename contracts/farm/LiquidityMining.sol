@@ -114,7 +114,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @param _poolTokenUnlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
      * @dev 10000 is 100%
      */
-    function setPoolTokensUnlockedImmediatelyPercent(
+    function setPoolTokenUnlockedImmediatelyPercent(
         address _poolToken,
         uint256 _poolTokenUnlockedImmediatelyPercent
     ) external onlyAuthorized {

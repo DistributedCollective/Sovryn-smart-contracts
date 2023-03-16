@@ -343,7 +343,7 @@ contract("LiquidityMining", (accounts) => {
         });
     });
 
-    describe("setPoolTokensUnlockedImmediatelyPercent", () => {
+    describe("setPoolTokenUnlockedImmediatelyPercent", () => {
         it("should use the poolTokensUnlockedImmediatelyPercent by default", async () => {
             // should use unlockedImmediatelyPercent by default
             const unlockedImmediatelyPercent = await liquidityMining.unlockedImmediatelyPercent();
@@ -355,7 +355,7 @@ contract("LiquidityMining", (accounts) => {
 
             // set the poolTokensUnlockedImmediatelyPercent
             let newpoolTokensUnlockedImmediatelyPercent = new BN(3000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token1.address,
                 newpoolTokensUnlockedImmediatelyPercent
             );
@@ -385,7 +385,7 @@ contract("LiquidityMining", (accounts) => {
 
             // set the poolTokensUnlockedImmediatelyPercent to 0
             newpoolTokensUnlockedImmediatelyPercent = new BN(0);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token1.address,
                 newpoolTokensUnlockedImmediatelyPercent
             );
@@ -401,7 +401,7 @@ contract("LiquidityMining", (accounts) => {
 
         it("sets the expected values", async () => {
             let newpoolTokensUnlockedImmediatelyPercent = new BN(2000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token1.address,
                 newpoolTokensUnlockedImmediatelyPercent
             );
@@ -421,7 +421,7 @@ contract("LiquidityMining", (accounts) => {
 
         it("successfully set to 10000 (100%)", async () => {
             let newpoolTokensUnlockedImmediatelyPercent = new BN(10000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token1.address,
                 newpoolTokensUnlockedImmediatelyPercent
             );
@@ -442,21 +442,21 @@ contract("LiquidityMining", (accounts) => {
         it("fails if not an owner or an admin", async () => {
             await deploymentAndInit();
             await expectRevert(
-                liquidityMining.setPoolTokensUnlockedImmediatelyPercent(token1.address, 1000, {
+                liquidityMining.setPoolTokenUnlockedImmediatelyPercent(token1.address, 1000, {
                     from: account1,
                 }),
                 "unauthorized"
             );
 
             await liquidityMining.addAdmin(account1);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(token1.address, 1000, {
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(token1.address, 1000, {
                 from: account1,
             });
         });
 
         it("fails if unlockedImmediatelyPercent > 10000", async () => {
             await expectRevert(
-                liquidityMining.setPoolTokensUnlockedImmediatelyPercent(token1.address, 10001),
+                liquidityMining.setPoolTokenUnlockedImmediatelyPercent(token1.address, 10001),
                 "Unlocked immediately percent has to be less than equal to 10000."
             );
         });
@@ -1002,7 +1002,7 @@ contract("LiquidityMining", (accounts) => {
              *      - 100% of token1 reward will be transferred directly to the user.
              */
             const newpoolTokensUnlockedImmediatelyPercent = new BN(10000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token1.address,
                 newpoolTokensUnlockedImmediatelyPercent
             );
@@ -1075,7 +1075,7 @@ contract("LiquidityMining", (accounts) => {
              */
             // set the unlockedImmediatelyOverwrite to 30%
             const newpoolTokensUnlockedImmediatelyPercent = new BN(3000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token1.address,
                 newpoolTokensUnlockedImmediatelyPercent
             );
@@ -1419,7 +1419,7 @@ contract("LiquidityMining", (accounts) => {
 
             // set unlockedImmediatelyPercentOverview for pool token 2 to 100%
             const newpoolTokensUnlockedImmediatelyPercent = new BN(10000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token2.address,
                 newpoolTokensUnlockedImmediatelyPercent
             );
@@ -1536,7 +1536,7 @@ contract("LiquidityMining", (accounts) => {
 
             // set unlockedImmediatelyPercentOverview for pool token 2 to 100%
             const newpoolTokensUnlockedImmediatelyPercent = new BN(10000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token2.address,
                 newpoolTokensUnlockedImmediatelyPercent
             );
@@ -1697,13 +1697,13 @@ contract("LiquidityMining", (accounts) => {
 
             // set unlockedImmediatelyPercentOverview for pool token 2 to 100%
             const newpoolTokensUnlockedImmediatelyPercent2 = new BN(10000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token2.address,
                 newpoolTokensUnlockedImmediatelyPercent2
             );
 
             const newpoolTokensUnlockedImmediatelyPercent3 = new BN(3000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token3.address,
                 newpoolTokensUnlockedImmediatelyPercent3
             );
@@ -1796,13 +1796,13 @@ contract("LiquidityMining", (accounts) => {
 
             // set unlockedImmediatelyPercentOverview for pool token 2 to 100%
             const newpoolTokensUnlockedImmediatelyPercent2 = new BN(10000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token2.address,
                 newpoolTokensUnlockedImmediatelyPercent2
             );
 
             const newpoolTokensUnlockedImmediatelyPercent3 = new BN(3000);
-            await liquidityMining.setPoolTokensUnlockedImmediatelyPercent(
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token3.address,
                 newpoolTokensUnlockedImmediatelyPercent3
             );
