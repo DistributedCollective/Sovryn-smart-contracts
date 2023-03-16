@@ -77,9 +77,10 @@ def main():
     #executeOnMultisig(1343)
     #executeOnMultisig(1352)
    
-    #confirmWithMS(1299)
-    #checkTx(1355)
-    addAmmPoolTokenToLM('(WR)BTC/DLLR')
+    #confirmWithMS(1357)
+    #checkTx(1358)
+    
+    #addAmmPoolTokenToLM('(WR)BTC/DLLR')
 
     #hasApproval(conf.contracts['DLLR'], conf.contracts['multisig'], conf.contracts['RBTCWrapperProxyWithoutLM'])
 
