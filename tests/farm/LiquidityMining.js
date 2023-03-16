@@ -856,6 +856,12 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("should be able to claim reward (will be claimed with SOV tokens) with 10% of unlockedImmediatelyPercent", async () => {
+            /**
+             * unlockedImmediatelyPercent was set to 10%
+             * After user claim reward:
+             *      - 10% of token1 reward will be transferred directly to the user.
+             *      - 90% of token1 reward will be vested.
+             */
             let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
                 from: account1,
             });
@@ -928,6 +934,11 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("user should received the entire SOV rewards with 100% unlockedImmediatelyPercent", async () => {
+            /**
+             * set unlockedImmediatelyPercent to 100%
+             * After user claim reward:
+             *      - 100% of token1 reward will be transferred directly to the user.
+             */
             const newUnlockedImmediatelyPercent = new BN(10000);
             await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
 
@@ -985,6 +996,11 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("user should received the entire SOV rewards if unlockedImmediatelyOverwrite is set to 100%", async () => {
+            /**
+             * set unlockedImmediatelyPercentOverwrite to 100%
+             * After user claim reward:
+             *      - 100% of token1 reward will be transferred directly to the user.
+             */
             const newUnlockedImmediatelyPercentOverwrite = new BN(10000);
             await liquidityMining.setUnlockedImmediatelyPercentOverwrite(
                 token1.address,
@@ -1050,7 +1066,13 @@ contract("LiquidityMining", (accounts) => {
             });
         });
 
-        it("user should received the entire SOV rewards if unlockedImmediatelyOverwrite is set to less than 100%", async () => {
+        it("user should received the part of SOV rewards if unlockedImmediatelyOverwrite is set to less than 100%", async () => {
+            /**
+             * set unlockedImmediatelyPercentOverwrite to 30%
+             * After user claim reward:
+             *      - 30% of token1 reward will be transferred directly to the user.
+             *      - 70% of token1 reward will be vested.
+             */
             // set the unlockedImmediatelyOverwrite to 30%
             const newUnlockedImmediatelyPercentOverwrite = new BN(3000);
             await liquidityMining.setUnlockedImmediatelyPercentOverwrite(
@@ -1197,6 +1219,14 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("should be able to claim all rewards (will be claimed with SOV tokens) with 10% of unlockedImmediatelyPercent", async () => {
+            /**
+             * unlockedImmediatelyPercent was to 10%
+             * After user claim all rewards:
+             *      - 10% of token1 reward will be transferred directly to the user.
+             *      - 90% of token1 reward will be vested.
+             *      - 10% of token2 reward will be transferred directly to the user.
+             *      - 90% of token2 reward will be vested.
+             */
             let depositTx1 = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
                 from: account1,
             });
@@ -1291,6 +1321,12 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("should be able to claim all rewards (will be claimed with SOV tokens) with 100% of unlockedImmediatelyPercent", async () => {
+            /**
+             * Set unlockedImmediatelyPercent to 100%
+             * After user claim all rewards:
+             *      - 100% of token1 reward will be transferred directly to the user.
+             *      - 100% of token2 reward will be transferred directly to the user.
+             */
             // set unlockedImmediatelyPercent to 100%
             const newUnlockedImmediatelyPercent = new BN(10000);
             await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
@@ -1371,6 +1407,12 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("should be able to claim all rewards with combination of unlockedImmediatelyPercent (0% & 100%) among the pools", async () => {
+            /**
+             * Set unlockedImmediatelyPercent to 0% and unlockedImmediatelyPercentOverwrite for token2 to 100%
+             * After user claim all rewards:
+             *      - 100% of token1 reward will be vested.
+             *      - 100% of token2 reward will be transferred directly to the user.
+             */
             // set unlockedImmediatelyPercent to 0%
             const newUnlockedImmediatelyPercent = new BN(0);
             await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
@@ -1450,7 +1492,6 @@ contract("LiquidityMining", (accounts) => {
             expect(lockedBalance).bignumber.equal(new BN(0));
 
             const latestUserSOVBalance = await SOVToken.balanceOf(account1);
-            const totalRewards = userReward1.add(userReward2);
 
             /** user should only receive reward2 since only pool token 2 unlock immediate percentage that was set to 100%*/
             expect(latestUserSOVBalance.toString()).to.equal(
@@ -1482,6 +1523,13 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("should be able to claim all rewards with combination of unlockedImmediatelyPercent (30% & 100%) among the pools", async () => {
+            /**
+             * Set unlockedImmediatelyPercent to 30% and unlockedImmediatelyPercentOverwrite for token2 to 100%
+             * After user claim all rewards:
+             *      - 70% of token1 reward will be vested.
+             *      - 30% of token1 reward will be transferred directly to the user.
+             *      - 100% of token2 reward will be transferred directly to the user.
+             */
             // set unlockedImmediatelyPercent to 0%
             const newUnlockedImmediatelyPercent = new BN(3000);
             await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
@@ -1561,7 +1609,6 @@ contract("LiquidityMining", (accounts) => {
             expect(lockedBalance).bignumber.equal(new BN(0));
 
             const latestUserSOVBalance = await SOVToken.balanceOf(account1);
-            const totalRewards = userReward1.add(userReward2);
 
             /** user should only receive (100% of reward2 + 30% of reward 1)*/
             expect(latestUserSOVBalance.toString()).to.equal(
@@ -1626,6 +1673,20 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("getUserAccumulatedLiquidReward should return correct value", async () => {
+            /**
+             * 1. Register 3 tokens to LM
+             * 2. Set the immediate percent
+             *      - Token 1: 0%
+             *      - Token 2: 100%
+             *      - Token 3: 30%
+             * 3. Deposit into LM for those 3 tokens
+             * 4. getUserAccumulatedLiquidReward should return array that consist of:
+             *      - Token 1: 0% amount reward of token 1
+             *      - Token 2: 100% amount reward of token 2
+             *      - Token 3: 30% amount reward of token 3
+             * 5. claim all rewards
+             * 6. getUserAccumulatedLiquidReward should return 0 value for all of those 3 tokens.
+             */
             await liquidityMining.add(token3.address, allocationPoint, false);
             await token3.mint(account1, amount);
             await token3.approve(liquidityMining.address, amount, { from: account1 });
@@ -1717,6 +1778,20 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("getUserAccumulatedVestedReward should return correct value", async () => {
+            /**
+             * 1. Register 3 tokens to LM
+             * 2. Set the immediate percent
+             *      - Token 1: 0%
+             *      - Token 2: 100%
+             *      - Token 3: 30%
+             * 3. Deposit into LM for those 3 tokens
+             * 4. getUserAccumulatedVestedReward should return array that consist of:
+             *      - Token 1: 100% amount reward of token 1
+             *      - Token 2: 0% amount reward of token 2
+             *      - Token 3: 70% amount reward of token 3
+             * 5. claim all rewards
+             * 6. getUserAccumulatedVestedReward should return 0 value for all of those 3 tokens.
+             */
             await liquidityMining.add(token3.address, allocationPoint, false);
             await token3.mint(account1, amount);
             await token3.approve(liquidityMining.address, amount, { from: account1 });
