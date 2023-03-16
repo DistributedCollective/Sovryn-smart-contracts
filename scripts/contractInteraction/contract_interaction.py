@@ -67,16 +67,24 @@ def main():
     #confirmWithAnyMS(8, conf.contracts["BFMultisigDeposit"])
     #checkTxOnAny(8, conf.contracts["BFMultisigDeposit"])
     
-    #confirmWithAnyMS(8, conf.contracts["BFmultisig"])
-    #checkTxOnAny(8, conf.contracts["BFmultisig"])
+    #for i in range(11,13):
+    #    confirmWithAnyMS(i, conf.contracts["NewMultisigBF"])
+    #    checkTxOnAny(i, conf.contracts["NewMultisigBF"])
 
     #confirmWithBFMS(8) # "BFmultisig"
     #checkTxOnBF(29)   # "BFmultisig"
-    
-    #executeOnMultisig(1071)
+   # executeOnMultisig(1339)
+    #executeOnMultisig(1343)
+    #executeOnMultisig(1352)
    
     #confirmWithMS(1299)
-    #checkTx(1299)
+    #checkTx(1355)
+    addAmmPoolTokenToLM('(WR)BTC/DLLR')
+
+    #hasApproval(conf.contracts['DLLR'], conf.contracts['multisig'], conf.contracts['RBTCWrapperProxyWithoutLM'])
+
+
+    
     
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
     #confirmMultipleTxsWithMS(960, 963)
@@ -100,8 +108,21 @@ def main():
     #transferRBTCFromFastBTCOffRampToOnRamp(bal)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
-    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 100000e18)
-    #sendTokensFromMultisig(conf.contracts['USDT'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 1000000e18)
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], 250000e18)
+    #mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 249999e18)
+    #minReturn = getReturnForFirstLiquidityProvisionOnV1([10e18, 250000e18])
+    #addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterDLLR'], [conf.contracts['WRBTC'], conf.contracts['DLLR']], [0.1e18,2500e18] , 1)
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterDLLR'])
+    #redeemFromAggregator(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], 5e18)
+    #mintAggregatedToken(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 5e18)
+    #buyWRBTC(0.0002e18)
+    #addLiquidityV1( conf.contracts['ConverterDLLR'], [conf.contracts['WRBTC'], conf.contracts['DLLR']], [0.0002e18,5e18])
+
+    #addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterDLLR'], [conf.contracts['WRBTC'], conf.contracts['DLLR']], [9.9e18,247500e18] , 490e18)
+
+
+    #sendTokensFromMultisig(conf.contracts['DLLR'], '0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae', 100e18)
+
     #bal = getBalance(conf.contracts['(WR)BTC/ETH'], conf.contracts['multisig'])
     #removeLiquidityV1toMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterBNBs'], 1e18, [conf.contracts['WRBTC'], conf.contracts['BNBs']], [1,1])
 
@@ -119,35 +140,36 @@ def main():
     #addOwnerToMultisig('0x832E1bd30d037d0327F2A0447eD44FB952A9a043')
     #removeOwnerFromMultisig('0x27d55f5668ef4438635bdce0adca083507e77752')
 
+    
+
+
+
+
+def governanceTransfer():
     # # ---------- Transfer ownership to gov ----------
     # # core protocol
-    # transferProtocolOwnershipToGovernance()
+    transferProtocolOwnershipToGovernance()
 
     # # loan token
-    # transferBeaconOwnershipToGovernance()
-    # transferLoanTokenAdminRoleToGovernance()
-    # transferLoanTokenOwnershipToGovernance()
+    transferBeaconOwnershipToGovernance()
+    transferLoanTokenAdminRoleToGovernance()
+    transferLoanTokenOwnershipToGovernance()
 
     # # oracles
-    # transferOracleOwnershipToGovernance()
+    transferOracleOwnershipToGovernance()
 
     # # LM
-    # transferLiquidityMiningOwnershipToGovernance()
+    transferLiquidityMiningOwnershipToGovernance()
 
     # # Governance
     # # lockedSOV
-    # transferLockedSOVOwnershipToGovernance()
+    transferLockedSOVOwnershipToGovernance()
 
     # # Staking
-    # transferStakingOwnershipToGovernance()
+    transferStakingOwnershipToGovernance()
 
     # # StakingRewards
-    # transferStakingRewardsOwnershipToGovernance()
+    transferStakingRewardsOwnershipToGovernance()
 
     # # VestingRegistry
-    # transferVestingRegistryOwnershipToGovernance()
-
-
-    # printLendingPoolsData()
-    #upgradeVestingRegistry()
-    #printMultisigOwners()
+    transferVestingRegistryOwnershipToGovernance()
