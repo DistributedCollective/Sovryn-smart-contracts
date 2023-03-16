@@ -24,6 +24,36 @@ task("multisig:sign-tx", "Sign multisig tx")
         await signWithMultisig(ms.address, txId, signerAcc);
     });
 
+task("multisig:sign-txs", "Sign multiple multisig tx")
+    .addParam(
+        "txIds",
+        "Multisig transactions to sign. Supports '12,14,16-20,22' format where '16-20' is a continuous series of numbers",
+        undefined,
+        types.string
+    )
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ txIds, signer }, hre) => {
+        const {
+            deployments: { get },
+        } = hre;
+        const signerAcc = (await hre.getNamedAccounts())[signer];
+        const ms = await get("MultiSigWallet");
+        const txnArray = txIds.split(",").map((num) => parseInt(num));
+        /*for (let txId = txnArray[0]; txId <= txnArray[1]; txId++) {
+            await signWithMultisig(ms.address, txId, signerAcc);
+        }*/
+        for (txn of txnArray) {
+            if (txn.indexOf("-") === -1) {
+                await signWithMultisig(ms.address, txId, signerAcc);
+            } else {
+                const txnRangeArray = txIds.split("-", 2).map((num) => parseInt(num));
+                for (let txId = txnRangeArray[0]; txId <= txnRangeArray[1]; txId++) {
+                    await signWithMultisig(ms.address, txId, signerAcc);
+                }
+            }
+        }
+    });
+
 task("multisig:execute-tx", "Execute multisig tx by one of tx signers")
     .addParam("txId", "Multisig transaction to sign", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")

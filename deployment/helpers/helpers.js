@@ -181,14 +181,42 @@ const multisigExecuteTx = async (
     );
     console.log("Executing multisig txId", txId, "...");
     const gasEstimated = (await multisig.estimateGas.executeTransaction(txId)).toNumber();
-    receipt = await (
-        await multisig.executeTransaction(txId, { gasLimit: Math.round(gasEstimated * 1.3) })
-    ).wait();
-    //receipt = await multisig.callStatic.executeTransaction(txId);
-    console.log(receipt);
-    // console.log("Required signatures:", await multisig.required());
-    console.log("DONE. Details:");
+    console.log("Estimated Gas:", gasEstimated);
+    const lastBlock = await ethers.provider.getBlock();
+    const lastBlockGasLimit = lastBlock.gasLimit.toNumber();
+    console.log("Last Block Gas Limit:", lastBlockGasLimit);
+    const gasEstimatedMul = gasEstimated * 1.3;
+
+    let receipt;
+    let wontExecute = false;
+    if (gasEstimatedMul < lastBlockGasLimit) {
+        try {
+            await multisig.callStatic.executeTransaction(txId, { gasEstimatedMul });
+            receipt = await (await multisig.executeTransaction(txId, { gasEstimatedMul })).wait();
+        } catch (e) {
+            wontExecute = true;
+        }
+    }
+    if (wontExecute || gasEstimatedMul >= lastBlockGasLimit) {
+        receipt = await (
+            await multisig.executeTransaction(txId, { gasLimit: lastBlockGasLimit })
+        ).wait();
+    }
+
+    console.log(
+        col.yellowBright(
+            "==============================================================================="
+        )
+    );
+    console.log(col.greenBright("DONE. Details:"));
+    console.log("Tx hash:", receipt.transactionHash);
+    console.log("Gas used:", receipt.gasUsed.toNumber());
     await multisigCheckTx(txId, multisig.address);
+    console.log(
+        col.yellowBright(
+            "==============================================================================="
+        )
+    );
 };
 
 const parseEthersLog = (parsed) => {

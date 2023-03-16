@@ -78,11 +78,11 @@ task("sips:queue", "Queue proposal in the Governor Owner contract")
             deployments: { get },
         } = hre;
         const signerAcc = (await hre.getNamedAccounts())[signer];
-        const governorOwner = await ethers.getContract(
+        const governorContract = await ethers.getContract(
             governor,
             await ethers.getSigner(signerAcc)
         );
-        await governorOwner.queue(proposal);
+        await governorContract.queue(proposal);
     });
 
 task("sips:execute", "Queue proposal in the Governor Owner contract")
