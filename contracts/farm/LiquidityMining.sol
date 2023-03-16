@@ -769,46 +769,40 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @notice returns the accumulated liquid reward for the given user for each pool token
      * @param _user the address of the user
      */
-    function getUserAccumulatedLiquidReward(address _user)
-        external
-        view
-        returns (uint256[] memory)
-    {
+    function getUserAccumulatedLiquidReward(address _user) external view returns (uint256) {
         uint256 length = poolInfoList.length;
-        uint256[] memory rewardList = new uint256[](length);
+        uint256 result;
         for (uint256 i = 0; i < length; i++) {
             address _poolToken = address(poolInfoList[i].poolToken);
             uint256 _unlockedImmediatelyPercent =
                 _getPoolTokenUnlockedImmediatelyPercent(_poolToken);
-            rewardList[i] =
-                (_unlockedImmediatelyPercent * _getUserAccumulatedReward(i, _user)) /
-                10000;
+            result = result.add(
+                _unlockedImmediatelyPercent.mul(_getUserAccumulatedReward(i, _user)).div(10000)
+            );
         }
 
-        return rewardList;
+        return result;
     }
 
     /**
      * @notice returns the accumulated vested reward for the given user for each pool token
      * @param _user the address of the user
      */
-    function getUserAccumulatedVestedReward(address _user)
-        external
-        view
-        returns (uint256[] memory)
-    {
+    function getUserAccumulatedVestedReward(address _user) external view returns (uint256) {
         uint256 length = poolInfoList.length;
-        uint256[] memory rewardList = new uint256[](length);
+        uint256 result;
         for (uint256 i = 0; i < length; i++) {
             address _poolToken = address(poolInfoList[i].poolToken);
             uint256 _unlockedImmediatelyPercent =
                 _getPoolTokenUnlockedImmediatelyPercent(_poolToken);
-            rewardList[i] =
-                ((10000 - _unlockedImmediatelyPercent) * _getUserAccumulatedReward(i, _user)) /
-                10000;
+            result = result.add(
+                (10000 - _unlockedImmediatelyPercent).mul(_getUserAccumulatedReward(i, _user)).div(
+                    10000
+                )
+            );
         }
 
-        return rewardList;
+        return result;
     }
 
     /**

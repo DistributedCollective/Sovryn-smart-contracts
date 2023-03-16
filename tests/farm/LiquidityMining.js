@@ -1680,12 +1680,12 @@ contract("LiquidityMining", (accounts) => {
              *      - Token 2: 100%
              *      - Token 3: 30%
              * 3. Deposit into LM for those 3 tokens
-             * 4. getUserAccumulatedLiquidReward should return array that consist of:
+             * 4. getUserAccumulatedLiquidReward should return SUM of these 3 rewards:
              *      - Token 1: 0% amount reward of token 1
              *      - Token 2: 100% amount reward of token 2
              *      - Token 3: 30% amount reward of token 3
              * 5. claim all rewards
-             * 6. getUserAccumulatedLiquidReward should return 0 value for all of those 3 tokens.
+             * 6. getUserAccumulatedLiquidReward should return 0 value.
              */
             await liquidityMining.add(token3.address, allocationPoint, false);
             await token3.mint(account1, amount);
@@ -1741,21 +1741,18 @@ contract("LiquidityMining", (accounts) => {
                 await liquidityMining.getUserAccumulatedRewardList(account1);
             const previousAccumulatedLiquidReward =
                 await liquidityMining.getUserAccumulatedLiquidReward(account1);
-            expect(previousAccumulatedLiquidReward).to.be.an("array");
-            expect(previousAccumulatedLiquidReward[0]).to.equal(
-                unlockImmediatelyPercentToken1
-                    .mul(peviousAccumulatedRewardList[0])
-                    .div(HUNDRED_PERCENT)
-            );
-            expect(previousAccumulatedLiquidReward[1]).to.equal(
-                unlockImmediatelyPercentToken2
-                    .mul(peviousAccumulatedRewardList[1])
-                    .div(HUNDRED_PERCENT)
-            );
-            expect(previousAccumulatedLiquidReward[2]).to.equal(
-                unlockImmediatelyPercentToken3
-                    .mul(peviousAccumulatedRewardList[2])
-                    .div(HUNDRED_PERCENT)
+
+            const liquidRewardToken1 = unlockImmediatelyPercentToken1
+                .mul(peviousAccumulatedRewardList[0])
+                .div(HUNDRED_PERCENT);
+            const liquidRewardToken2 = unlockImmediatelyPercentToken2
+                .mul(peviousAccumulatedRewardList[1])
+                .div(HUNDRED_PERCENT);
+            const liquidRewardToken3 = unlockImmediatelyPercentToken3
+                .mul(peviousAccumulatedRewardList[2])
+                .div(HUNDRED_PERCENT);
+            expect(previousAccumulatedLiquidReward).to.equal(
+                liquidRewardToken1.add(liquidRewardToken2).add(liquidRewardToken3)
             );
 
             await liquidityMining.claimRewardFromAllPools(ZERO_ADDRESS, {
@@ -1771,10 +1768,7 @@ contract("LiquidityMining", (accounts) => {
 
             const latestAccumulatedLiquidReward =
                 await liquidityMining.getUserAccumulatedLiquidReward(account1);
-            expect(latestAccumulatedLiquidReward).to.be.an("array");
-            expect(latestAccumulatedLiquidReward[0]).to.equal("0");
-            expect(latestAccumulatedLiquidReward[1]).to.equal("0");
-            expect(latestAccumulatedLiquidReward[2]).to.equal("0");
+            expect(latestAccumulatedLiquidReward).to.equal("0");
         });
 
         it("getUserAccumulatedVestedReward should return correct value", async () => {
@@ -1785,12 +1779,12 @@ contract("LiquidityMining", (accounts) => {
              *      - Token 2: 100%
              *      - Token 3: 30%
              * 3. Deposit into LM for those 3 tokens
-             * 4. getUserAccumulatedVestedReward should return array that consist of:
+             * 4. getUserAccumulatedVestedReward should return SUM of these 3 rewards:
              *      - Token 1: 100% amount reward of token 1
              *      - Token 2: 0% amount reward of token 2
              *      - Token 3: 70% amount reward of token 3
              * 5. claim all rewards
-             * 6. getUserAccumulatedVestedReward should return 0 value for all of those 3 tokens.
+             * 6. getUserAccumulatedVestedReward should return 0 value.
              */
             await liquidityMining.add(token3.address, allocationPoint, false);
             await token3.mint(account1, amount);
@@ -1846,21 +1840,18 @@ contract("LiquidityMining", (accounts) => {
                 await liquidityMining.getUserAccumulatedRewardList(account1);
             const previousAccumulatedVestedReward =
                 await liquidityMining.getUserAccumulatedVestedReward(account1);
-            expect(previousAccumulatedVestedReward).to.be.an("array");
-            expect(previousAccumulatedVestedReward[0]).to.equal(
-                HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken1)
-                    .mul(peviousAccumulatedRewardList[0])
-                    .div(HUNDRED_PERCENT)
-            );
-            expect(previousAccumulatedVestedReward[1]).to.equal(
-                HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken2)
-                    .mul(peviousAccumulatedRewardList[1])
-                    .div(HUNDRED_PERCENT)
-            );
-            expect(previousAccumulatedVestedReward[2]).to.equal(
-                HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken3)
-                    .mul(peviousAccumulatedRewardList[2])
-                    .div(HUNDRED_PERCENT)
+
+            const vestedRewardToken1 = HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken1)
+                .mul(peviousAccumulatedRewardList[0])
+                .div(HUNDRED_PERCENT);
+            const vestedRewardToken2 = HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken2)
+                .mul(peviousAccumulatedRewardList[1])
+                .div(HUNDRED_PERCENT);
+            const vestedRewardToken3 = HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken3)
+                .mul(peviousAccumulatedRewardList[2])
+                .div(HUNDRED_PERCENT);
+            expect(previousAccumulatedVestedReward).to.equal(
+                vestedRewardToken1.add(vestedRewardToken2).add(vestedRewardToken3)
             );
 
             await liquidityMining.claimRewardFromAllPools(ZERO_ADDRESS, {
@@ -1876,10 +1867,7 @@ contract("LiquidityMining", (accounts) => {
 
             const latestAccumulatedVestedReward =
                 await liquidityMining.getUserAccumulatedVestedReward(account1);
-            expect(latestAccumulatedVestedReward).to.be.an("array");
-            expect(latestAccumulatedVestedReward[0]).to.equal("0");
-            expect(latestAccumulatedVestedReward[1]).to.equal("0");
-            expect(latestAccumulatedVestedReward[2]).to.equal("0");
+            expect(latestAccumulatedVestedReward).to.equal("0");
         });
     });
 
