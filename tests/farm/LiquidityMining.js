@@ -933,8 +933,9 @@ contract("LiquidityMining", (accounts) => {
             const latestUserSOVBalance = await SOVToken.balanceOf(account1);
 
             /** user should only receive 10% SOV since the unlockedImmediatelyPercent is 10% */
-            const unlockImmediatelyPercent =
-                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            const unlockImmediatelyPercent = await liquidityMining.calcUnlockedImmediatelyPercent(
+                token1.address
+            );
             expect(latestUserSOVBalance.toString()).to.equal(
                 previousUserSOVBalance.add(
                     userReward.mul(unlockImmediatelyPercent).div(HUNDRED_PERCENT)
@@ -1083,8 +1084,9 @@ contract("LiquidityMining", (accounts) => {
                 previousUserSOVBalance.add(userReward)
             );
 
-            const unlockImmediatelyPercent =
-                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            const unlockImmediatelyPercent = await liquidityMining.calcUnlockedImmediatelyPercent(
+                token1.address
+            );
             expect(unlockImmediatelyPercent.toString()).to.equal(
                 newpoolTokensUnlockedImmediatelyPercent.toString()
             );
@@ -1153,8 +1155,9 @@ contract("LiquidityMining", (accounts) => {
             const latestUserSOVBalance = await SOVToken.balanceOf(account1);
 
             /** user should only receive 10% SOV since the unlockedImmediatelyPercent is 30% */
-            const unlockImmediatelyPercent =
-                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            const unlockImmediatelyPercent = await liquidityMining.calcUnlockedImmediatelyPercent(
+                token1.address
+            );
             expect(unlockImmediatelyPercent.toString()).to.equal(
                 newpoolTokensUnlockedImmediatelyPercent.toString()
             );
@@ -1317,8 +1320,9 @@ contract("LiquidityMining", (accounts) => {
             const totalRewards = userReward1.add(userReward2);
 
             /** user should only receive 10% SOV since the unlockedImmediatelyPercent is 10% */
-            const unlockImmediatelyPercent =
-                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            const unlockImmediatelyPercent = await liquidityMining.calcUnlockedImmediatelyPercent(
+                token1.address
+            );
             expect(latestUserSOVBalance.toString()).to.equal(
                 previousUserSOVBalance.add(
                     totalRewards.mul(unlockImmediatelyPercent).div(HUNDRED_PERCENT)

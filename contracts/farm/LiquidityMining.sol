@@ -769,13 +769,16 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @notice returns the accumulated liquid reward for the given user for each pool token
      * @param _user the address of the user
      */
-    function getUserAccumulatedRewardToBePaidLiquid(address _user) external view returns (uint256) {
+    function getUserAccumulatedRewardToBePaidLiquid(address _user)
+        external
+        view
+        returns (uint256)
+    {
         uint256 length = poolInfoList.length;
         uint256 result;
         for (uint256 i = 0; i < length; i++) {
             address _poolToken = address(poolInfoList[i].poolToken);
-            uint256 calculatedImmediatelyPercent =
-                calcUnlockedImmediatelyPercent(_poolToken);
+            uint256 calculatedImmediatelyPercent = calcUnlockedImmediatelyPercent(_poolToken);
             result = result.add(
                 calculatedImmediatelyPercent.mul(_getUserAccumulatedReward(i, _user)).div(10000)
             );
@@ -793,12 +796,11 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         uint256 result;
         for (uint256 i = 0; i < length; i++) {
             address _poolToken = address(poolInfoList[i].poolToken);
-            uint256 calculatedImmediatelyPercent =
-                calcUnlockedImmediatelyPercent(_poolToken);
+            uint256 calculatedImmediatelyPercent = calcUnlockedImmediatelyPercent(_poolToken);
             result = result.add(
-                (10000 - calculatedImmediatelyPercent).mul(_getUserAccumulatedReward(i, _user)).div(
-                    10000
-                )
+                (10000 - calculatedImmediatelyPercent)
+                    .mul(_getUserAccumulatedReward(i, _user))
+                    .div(10000)
             );
         }
 
@@ -809,12 +811,12 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @dev calculate the unlocked immediate percentage of specific pool token
      * use the poolTokensUnlockedImmediatelyPercent by default, if it is not set, then use the unlockedImmediatelyPercent
      */
-    function calcUnlockedImmediatelyPercent(address _poolToken)
-        public
-        view
-        returns (uint256)
-    {
-        uint256 poolTokenUnlockedImmediatelyPercent = poolTokensUnlockedImmediatelyPercent[_poolToken];
-        return poolTokenUnlockedImmediatelyPercent > 0 ? poolTokenUnlockedImmediatelyPercent : unlockedImmediatelyPercent;
+    function calcUnlockedImmediatelyPercent(address _poolToken) public view returns (uint256) {
+        uint256 poolTokenUnlockedImmediatelyPercent =
+            poolTokensUnlockedImmediatelyPercent[_poolToken];
+        return
+            poolTokenUnlockedImmediatelyPercent > 0
+                ? poolTokenUnlockedImmediatelyPercent
+                : unlockedImmediatelyPercent;
     }
 }
