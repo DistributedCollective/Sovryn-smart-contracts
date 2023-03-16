@@ -111,18 +111,18 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
     /**
      * @notice Sets unlocked immediately percent overwrite for specific pool token.
      * @param _poolToken the address of pool token
-     * @param _unlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
+     * @param _poolTokenUnlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
      * @dev 10000 is 100%
      */
-    function setUnlockedImmediatelyPercentOverwrite(
+    function setPoolTokensUnlockedImmediatelyPercent(
         address _poolToken,
-        uint256 _unlockedImmediatelyPercent
+        uint256 _poolTokenUnlockedImmediatelyPercent
     ) external onlyAuthorized {
         require(
-            _unlockedImmediatelyPercent <= 10000,
+            _poolTokenUnlockedImmediatelyPercent <= 10000,
             "Unlocked immediately percent has to be less than equal to 10000."
         );
-        unlockedImmediatelyPercentOverwrite[_poolToken] = _unlockedImmediatelyPercent;
+        poolTokensUnlockedImmediatelyPercent[_poolToken] = _poolTokenUnlockedImmediatelyPercent;
     }
 
     /**
@@ -807,7 +807,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
     /**
      * @dev get the unlocked immediate percentage of specific pool token
-     * use the unlockedImmediatelyPercentOverwrite by default, if it is not set, then use the unlockedImmediatelyPercent
+     * use the poolTokensUnlockedImmediatelyPercent by default, if it is not set, then use the unlockedImmediatelyPercent
      */
     function _getPoolTokenUnlockedImmediatelyPercent(address _poolToken)
         internal
@@ -815,8 +815,8 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         returns (uint256)
     {
         return
-            unlockedImmediatelyPercentOverwrite[_poolToken] > 0
-                ? unlockedImmediatelyPercentOverwrite[_poolToken]
+            poolTokensUnlockedImmediatelyPercent[_poolToken] > 0
+                ? poolTokensUnlockedImmediatelyPercent[_poolToken]
                 : unlockedImmediatelyPercent;
     }
 }
