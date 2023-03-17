@@ -136,7 +136,7 @@ const getArgsSip0049 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
-const getArgsSipXX = async (hre) => {
+const getArgsSip0057 = async (hre) => {
     const {
         ethers,
         deployments: { get },
@@ -147,8 +147,8 @@ const getArgsSipXX = async (hre) => {
         "0x7Fe861e0948df601f28e0d84664Fa2Ddf4b39155", // StakingWithdrawModule
     ];
     const modulesTo = [
-        (await get("StakingVestingModule")).address, //"0xa1A80F1D50D07372A80EcC814c5C4F4d84Bd80cA",
-        (await get("StakingWithdrawModule")).address, //"0xc6F77b77FAAAECEeA4f3F46a482F5c192010cF51",
+        (await get("StakingVestingModule")).address, //"0x53C5C57302e7A6529C1A298B036426b944dC23Af",
+        (await get("StakingWithdrawModule")).address, //"0xf97c4751E4c75d28B600b0207519f2C71aA8902c",
     ];
 
     console.log(modulesTo);
@@ -171,6 +171,6 @@ const getArgsSipXX = async (hre) => {
 };
 
 module.exports = {
-    getArgsSipXX,
+    getArgsSip0057,
     getArgsSip0049,
 };

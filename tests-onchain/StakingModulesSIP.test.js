@@ -1,6 +1,4 @@
-// const { expect } = require("chai");
-/*const chai = require("chai");
-const { expect } = chai;*/
+//@note hh test tests-onchain/StakingModulesSIP.test.js --network rskForkedMainnetFlashback
 
 const {
     loadFixture,
@@ -108,7 +106,10 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
 
     describe("Staking Modules Onchain Testing", () => {
         it("SIP 0049 is executable", async () => {
-            if (!hre.network.tags["forked"]) return;
+            if (!hre.network.tags["forked"]) {
+                console.error("ERROR: Must run on a forked net");
+                return;
+            }
             await hre.network.provider.request({
                 method: "hardhat_reset",
                 params: [
@@ -200,7 +201,10 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
             );
         });
         it("SIP-X replacing staking modules is executable", async () => {
-            if (!hre.network.tags["forked"]) return;
+            if (!hre.network.tags["forked"]) {
+                console.error("ERROR: Must run on a forked net");
+                return;
+            }
             await hre.network.provider.request({
                 method: "hardhat_reset",
                 params: [
@@ -248,7 +252,7 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
 
             // CREATE PROPOSAL AND VERIFY
             const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
-            await hre.run("sips:create", { argsFunc: "getArgsSipXX" });
+            await hre.run("sips:create", { argsFunc: "getArgsSip0057" });
             const proposalId = await governorOwner.latestProposalIds(deployer);
             expect(
                 proposalId,
