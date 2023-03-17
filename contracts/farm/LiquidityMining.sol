@@ -606,7 +606,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
     ) internal {
         uint256 userAccumulatedReward = _user.accumulatedReward;
         /// @dev get unlock immediate percent of the pool token.
-        uint256 calculatedImmediatelyPercent = calcUnlockedImmediatelyPercent(_poolToken);
+        uint256 calculatedUnlockedImmediatelyPercent = calcUnlockedImmediatelyPercent(_poolToken);
 
         /// @dev Transfer if enough SOV balance on this LM contract.
         uint256 balance = SOV.balanceOf(address(this));
@@ -614,18 +614,18 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
             totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
             _user.accumulatedReward = 0;
 
-            /// @dev If calculatedImmediatelyPercent is 100%, transfer the reward to the LP (user).
+            /// @dev If calculatedUnlockedImmediatelyPercent is 100%, transfer the reward to the LP (user).
             ///   else, deposit it into lockedSOV vault contract, but first
             ///   SOV deposit must be approved to move the SOV tokens
             ///   from this LM contract into the lockedSOV vault.
-            if (calculatedImmediatelyPercent == 10000) {
+            if (calculatedUnlockedImmediatelyPercent == 10000) {
                 SOV.transfer(_userAddress, userAccumulatedReward);
             } else {
                 require(SOV.approve(address(lockedSOV), userAccumulatedReward), "Approve failed");
                 lockedSOV.deposit(
                     _userAddress,
                     userAccumulatedReward,
-                    calculatedImmediatelyPercent
+                    calculatedUnlockedImmediatelyPercent
                 );
 
                 if (_isStakingTokens) {
@@ -778,9 +778,12 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         uint256 result;
         for (uint256 i = 0; i < length; i++) {
             address _poolToken = address(poolInfoList[i].poolToken);
-            uint256 calculatedImmediatelyPercent = calcUnlockedImmediatelyPercent(_poolToken);
+            uint256 calculatedUnlockedImmediatelyPercent =
+                calcUnlockedImmediatelyPercent(_poolToken);
             result = result.add(
-                calculatedImmediatelyPercent.mul(_getUserAccumulatedReward(i, _user)).div(10000)
+                calculatedUnlockedImmediatelyPercent.mul(_getUserAccumulatedReward(i, _user)).div(
+                    10000
+                )
             );
         }
 
@@ -796,9 +799,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         uint256 result;
         for (uint256 i = 0; i < length; i++) {
             address _poolToken = address(poolInfoList[i].poolToken);
-            uint256 calculatedImmediatelyPercent = calcUnlockedImmediatelyPercent(_poolToken);
+            uint256 calculatedUnlockedImmediatelyPercent =
+                calcUnlockedImmediatelyPercent(_poolToken);
             result = result.add(
-                (10000 - calculatedImmediatelyPercent)
+                (10000 - calculatedUnlockedImmediatelyPercent)
                     .mul(_getUserAccumulatedReward(i, _user))
                     .div(10000)
             );

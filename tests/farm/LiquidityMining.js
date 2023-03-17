@@ -48,7 +48,7 @@ contract("LiquidityMining", (accounts) => {
     /// @dev 10000 is 100%
     const unlockedImmediatelyPercent = new BN(1000); // 10%
 
-    let root, account1, account2, account3, account4;
+    let root, account1, account2, account3, account4, lmAdmin;
     let SOVToken, token1, token2, token3, liquidityMiningConfigToken;
     let liquidityMining, wrapper;
     let lockedSOVAdmins, lockedSOV;
@@ -81,7 +81,7 @@ contract("LiquidityMining", (accounts) => {
 
     before(async () => {
         accounts = await web3.eth.getAccounts();
-        [root, account1, account2, account3, account4, ...accounts] = accounts;
+        [root, account1, account2, account3, account4, lmAdmin, ...accounts] = accounts;
     });
 
     /// @dev Test dummy liquidityMiningConfigToken methods for coverage
@@ -318,8 +318,11 @@ contract("LiquidityMining", (accounts) => {
 
         // it should be possible for an admin to set unlockedImmediatelyPercent to 0%
         it("successfully set to 0 (0%)", async () => {
+            await liquidityMining.addAdmin(lmAdmin);
             let newUnlockedImmediatelyPercent = new BN(0);
-            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent, {
+                from: lmAdmin,
+            });
 
             let _unlockedImmediatelyPercent = await liquidityMining.unlockedImmediatelyPercent();
             expect(_unlockedImmediatelyPercent).bignumber.equal(newUnlockedImmediatelyPercent);
@@ -327,8 +330,11 @@ contract("LiquidityMining", (accounts) => {
 
         // it should be possible for an admin to set unlockedImmediatelyPercent to 100%
         it("successfully set to 10000 (100%)", async () => {
+            await liquidityMining.addAdmin(lmAdmin);
             let newUnlockedImmediatelyPercent = new BN(10000);
-            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent, {
+                from: lmAdmin,
+            });
 
             let _unlockedImmediatelyPercent = await liquidityMining.unlockedImmediatelyPercent();
             expect(_unlockedImmediatelyPercent).bignumber.equal(newUnlockedImmediatelyPercent);
@@ -432,10 +438,12 @@ contract("LiquidityMining", (accounts) => {
 
         // it should be possible for an admin to set poolTokensUnlockedImmediatelyPercent to 0%
         it("successfully set to 0 (0%)", async () => {
+            await liquidityMining.addAdmin(lmAdmin);
             let newpoolTokensUnlockedImmediatelyPercent = new BN(0);
             await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token1.address,
-                newpoolTokensUnlockedImmediatelyPercent
+                newpoolTokensUnlockedImmediatelyPercent,
+                { from: lmAdmin }
             );
 
             let _poolTokensUnlockedImmediatelyPercent =
@@ -447,10 +455,12 @@ contract("LiquidityMining", (accounts) => {
 
         // it should be possible for an admin to set poolTokensUnlockedImmediatelyPercent to 100%
         it("successfully set to 10000 (100%)", async () => {
+            await liquidityMining.addAdmin(lmAdmin);
             let newpoolTokensUnlockedImmediatelyPercent = new BN(10000);
             await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
                 token1.address,
-                newpoolTokensUnlockedImmediatelyPercent
+                newpoolTokensUnlockedImmediatelyPercent,
+                { from: lmAdmin }
             );
 
             let _poolTokensUnlockedImmediatelyPercent =
