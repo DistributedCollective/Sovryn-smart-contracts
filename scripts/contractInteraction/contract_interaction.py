@@ -18,7 +18,7 @@ def main():
     * use --no-deploy param to skip running hh deployment scripts by default 
     
     mainnet: 
-    npx hardhat node --fork https://mainnet4.sovryn.app/rpc --no-deploy --fork-block-number 4929553
+    npx hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy --fork-block-number 4929553
     
     testnet:   
     npx hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy --fork-block-number 3495000

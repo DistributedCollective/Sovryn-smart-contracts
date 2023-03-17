@@ -234,6 +234,7 @@ module.exports = {
             rskMainnet: ["external/deployments/rskSovrynMainnet"],
             rskForkedMainnet: [
                 "external/deployments/rskSovrynMainnet",
+                "deployment/deployments/rskSovrynMainnet",
                 "external/deployments/rskForkedMainnet",
             ],
         },
