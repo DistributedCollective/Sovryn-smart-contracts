@@ -136,7 +136,7 @@ const getArgsSip0049 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
-const getArgsSip0057 = async (hre) => {
+const getArgsSip0058 = async (hre) => {
     const {
         ethers,
         deployments: { get },
@@ -164,13 +164,13 @@ const getArgsSip0057 = async (hre) => {
             ),
         ],
         description:
-            "SIP-00XX: Staking contract fix ..... , Details: https://github.com/DistributedCollective/SIPS/blob/48a3f26/SIP-00XX.md, sha256: _______",
+            "SIP-0058: Staking contract update, Details: https://github.com/DistributedCollective/SIPS/blob/abb5537/SIP-0058.md, sha256: _______",
     };
 
     return { args, governor: "GovernorOwner" };
 };
 
 module.exports = {
-    getArgsSip0057,
+    getArgsSip0058,
     getArgsSip0049,
 };
