@@ -257,7 +257,7 @@ def addStakingModule(moduleContract, moduleContractName, moduleAddress = ZERO_AD
     It will fail if the module being added has methods overlapping with registered modules
     Param newModuleAddress is used if the module already deployed
     '''
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['Staking'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
     print('Deploying account:', conf.acct.address)
     print('Upgrading Staking Module:', moduleContractName)
     stakingModule = deployOrGetStakingModule(moduleContract, moduleContractName, moduleAddress)
@@ -275,7 +275,7 @@ def replaceStakingModule(newModuleContract, newModuleContractName, stakingModule
     It will fail if the module being added has methods overlapping with registered modules other than that being replaced
     Param newModuleAddress is used if the new module already deployed
     '''
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['Staking'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
     newStakingModule = deployOrGetStakingModule(newModuleContract, newModuleContractName, newModuleAddress)
     if canReplaceStakingModule(newStakingModule.address, stakingModuleAddressToReplace):
         # Register Module in Proxy
@@ -284,7 +284,7 @@ def replaceStakingModule(newModuleContract, newModuleContractName, stakingModule
         sendWithMultisig(conf.contracts['multisig'], stakingModulesProxy.address, data, conf.acct)
 
 def removeStakingModule(module, moduleName, moduleAddress):
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['Staking'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
     print("Removing Staking Module:", moduleName, "@", moduleAddress)
     data = stakingModulesProxy.removeModule.encode_input(moduleAddress)
     sendWithMultisig(conf.contracts['multisig'], stakingModulesProxy.address, data, conf.acct)
@@ -299,7 +299,7 @@ def deployOrGetStakingModule(moduleContract, moduleContractName, moduleAddress =
     return stakingModule
 
 def canReplaceStakingModule(stakingModuleAddress, stakingModuleAddressToReplace):
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['Staking'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
     canAdd = stakingModulesProxy.canAddModule(stakingModuleAddress)
     hasClashing = False
     if canAdd:
@@ -316,7 +316,7 @@ def canReplaceStakingModule(stakingModuleAddress, stakingModuleAddressToReplace)
         return False
 
 def canAddStakingModule(stakingModuleAddress):
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['Staking'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
     canAdd = stakingModulesProxy.canAddModule(stakingModuleAddress)
     if canAdd:
         return True
