@@ -200,7 +200,7 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                 (await get("WeightedStakingModule")).address
             );
         });
-        it("SIP-X replacing staking modules is executable", async () => {
+        it("SIP-0058 replacing staking modules is executable", async () => {
             if (!hre.network.tags["forked"]) {
                 console.error("ERROR: Must run on a forked net");
                 return;

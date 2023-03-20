@@ -164,7 +164,7 @@ const getArgsSip0058 = async (hre) => {
             ),
         ],
         description:
-            "SIP-0058: Staking contract update, Details: https://github.com/DistributedCollective/SIPS/blob/abb5537/SIP-0058.md, sha256: _______",
+            "SIP-0058: Staking contract update, Details: https://github.com/DistributedCollective/SIPS/blob/7c96f89/SIP-0058.md, sha256: da1a79797bad8b1d830cd188046dc62946f90af7a6b016c540eaee419e720c10",
     };
 
     return { args, governor: "GovernorOwner" };
