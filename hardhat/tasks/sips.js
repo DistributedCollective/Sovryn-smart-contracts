@@ -167,3 +167,43 @@ task("sips:vote-for", "Vote for or against a proposal in the Governor Owner cont
             tx.logs.map((log) => parseEthersLogToValue(governorContract.interface.parseLog(log)))
         );
     });
+
+task("sips:queue-timer", "Queue SIP for execution with timer")
+    .addParam("proposal", "Proposal Id", undefined, types.string)
+    .addParam(
+        "governor",
+        "Governor deployment name: 'GovernorOwner' or 'GovernorAdmin'",
+        undefined,
+        types.string
+    )
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ proposal: proposalId, signer, governor }, hre) => {
+        const {
+            deployments: { get },
+            getNamedAccounts,
+        } = hre;
+        const signerAcc = ethers.utils.isAddress(signer)
+            ? signer
+            : (await hre.getNamedAccounts())[signer];
+
+        const governorContract = await ethers.getContract(
+            governor,
+            await ethers.getSigner(signerAcc)
+        );
+        let proposal = await governorContract.proposals(proposalId);
+
+        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        while ((await ethers.provider.getBlockNumber()) <= proposal.endBlock) {
+            const delayTime =
+                (proposal.endBlock - (await ethers.provider.getBlockNumber())) * 30000;
+            console.log(`pausing for ${delayTime / 1000} secs (${delayTime / 30000} blocks)`);
+            await delay(delayTime);
+        }
+        const proposalState = await governorContract.state(proposalId);
+        if (proposalState !== 4) {
+            throw new Error("Proposal NOT Succeeded");
+        }
+        await governorContract.queue(proposalId);
+        proposal = await governorContract.proposals(proposalId);
+        logger.success(`Proposal ${proposalId} queued. Execution ETA: ${proposal.eta}.`);
+    });
