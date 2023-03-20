@@ -9,6 +9,8 @@ const {
     multisigAddOwner,
     multisigRemoveOwner,
     sendWithMultisig,
+    parseEthersLog,
+    parseEthersLogToValue,
 } = require("../../deployment/helpers/helpers");
 
 const sipArgsList = require("./sips/args/sipArgs");
@@ -132,4 +134,36 @@ task("sips:cancel", "Queue proposal in the Governor Owner contract")
         const governorInterface = new ethers.utils.Interface((await get(governor)).abi);
         const data = governorInterface.encodeFunctionData("cancel", [proposal]);
         await sendWithMultisig(msAddress, governorContract, data, signer);
+    });
+
+task("sips:vote-for", "Vote for or against a proposal in the Governor Owner contract")
+    .addParam("proposal", "Proposal Id", undefined, types.string)
+    .addParam(
+        "governor",
+        "Governor deployment name: 'GovernorOwner' or 'GovernorAdmin'",
+        undefined,
+        types.string
+    )
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ proposal, signer, governor }, hre) => {
+        const {
+            deployments: { get },
+            getNamedAccounts,
+        } = hre;
+        const signerAcc = ethers.utils.isAddress(signer)
+            ? signer
+            : (await hre.getNamedAccounts())[signer];
+
+        const governorContract = await ethers.getContract(
+            governor,
+            await ethers.getSigner(signerAcc)
+        );
+        const tx = await (await governorContract.castVote(proposal, true)).wait();
+        console.log("Voted for");
+        console.log("tx:", tx.transactionHash);
+        console.log("{ to:", tx.to, "from:", tx.from, "}");
+        console.log(
+            "log:\n",
+            tx.logs.map((log) => parseEthersLogToValue(governorContract.interface.parseLog(log)))
+        );
     });

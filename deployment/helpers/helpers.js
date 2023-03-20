@@ -224,8 +224,19 @@ const parseEthersLog = (parsed) => {
     for (let i = 0; i < parsed.args.length; i++) {
         const input = parsed.eventFragment.inputs[i];
         const arg = parsed.args[i];
-        const newObj = { ...input, ...{ value: arg } };
+        const newObj = { ...input, ...{ value: arg.toString() } };
         parsedEvent[input["name"]] = newObj;
+    }
+    return parsedEvent;
+};
+
+const parseEthersLogToValue = (parsed) => {
+    let parsedEvent = {};
+    for (let i = 0; i < parsed.args.length; i++) {
+        const input = parsed.eventFragment.inputs[i];
+        const arg = parsed.args[i];
+        const newObj = { ...input, ...{ value: arg.toString() } };
+        parsedEvent[input["name"]] = newObj.value;
     }
     return parsedEvent;
 };
@@ -457,6 +468,7 @@ module.exports = {
     stakingRegisterModuleWithMultisig,
     parseEthersLog,
     getEthersLog,
+    parseEthersLogToValue,
     getParsedEventLogFromReceipt,
     sendWithMultisig,
     signWithMultisig,

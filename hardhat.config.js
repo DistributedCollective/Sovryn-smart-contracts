@@ -18,12 +18,15 @@ require("./hardhat/tasks/tasks");
 require("dotenv").config();
 
 const testnetAccounts = process.env.TESTNET_DEPLOYER_PRIVATE_KEY
-    ? [process.env.TESTNET_DEPLOYER_PRIVATE_KEY, process.env.TESTNET_SIGNER_PRIVATE_KEY]
+    ? [
+          process.env.TESTNET_DEPLOYER_PRIVATE_KEY,
+          process.env.TESTNET_SIGNER_PRIVATE_KEY,
+          process.env.PROPOSAL_CREATOR_PRIVATE_KEY,
+      ]
     : [];
 const mainnetAccounts = process.env.MAINNET_DEPLOYER_PRIVATE_KEY
-    ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY, process.env.MAINNET_SIGNER_PRIVATE_KEY]
+    ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY, process.env.PROPOSAL_CREATOR_PRIVATE_KEY]
     : [];
-
 /*
  * Test hardhat forking with patched hardhat
  *
@@ -103,6 +106,10 @@ module.exports = {
             default: 0,
         },
         signer: {
+            default: 1,
+            rskSovrynMainnet: 0,
+        },
+        voter: {
             default: 1,
         },
     },
@@ -231,7 +238,10 @@ module.exports = {
             rskForkedTestnetFlashback: ["external/deployments/rskForkedTestnetFlashback"],
             rskForkedMainnetFlashback: ["external/deployments/rskForkedMainnetFlashback"],
             rskSovrynMainnet: ["external/deployments/rskSovrynMainnet"],
-            rskMainnet: ["external/deployments/rskSovrynMainnet"],
+            rskMainnet: [
+                "external/deployments/rskSovrynMainnet",
+                "deployment/deployments/rskSovrynMainnet",
+            ],
             rskForkedMainnet: [
                 "external/deployments/rskSovrynMainnet",
                 "deployment/deployments/rskSovrynMainnet",
