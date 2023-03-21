@@ -16,6 +16,7 @@ require("@nomicfoundation/hardhat-chai-matchers");
 require("./hardhat/tasks/tasks");
 
 require("dotenv").config();
+require("cryptoenv").parse();
 
 const testnetAccounts = process.env.TESTNET_DEPLOYER_PRIVATE_KEY
     ? [
