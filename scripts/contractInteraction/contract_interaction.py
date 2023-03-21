@@ -35,7 +35,7 @@ def main():
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
     
     #print("fastBTC.balance()", loadBiDiFastBTC().balance()/1e18)
-    #withdrawRBTCFromFastBTCBiDi(33e18, conf.contracts['multisig'])
+    withdrawRBTCFromFastBTCBiDi(2.5e18, conf.contracts['Watcher'])
     
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
     #bal = getBalance(conf.contracts['FastBTCBiDi'], conf.contracts['Watcher'])
@@ -46,7 +46,7 @@ def main():
 
     #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 300000e18)
     #sendTokensFromMultisig(conf.contracts['SOV'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 250000e18)
-    #sendFromMultisig('0x986c65fc1783a445ceccade74234dc8627d429d8', 0.03e18)
+    #sendFromMultisig(conf.acct, 2.51e18)
     #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
     #sendFromMultisig('0xc0AAcbDB9Ce627A348B91CfDB67eC6b2FBC3dCbd', 0.1e18)
 
@@ -54,6 +54,11 @@ def main():
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
     #confirmWithBFMS(8)
     #checkTxOnBF(8)
+
+    #buyWRBTC(2.5e18)
+    #setPriceFeed(conf.contracts['DLLR'], '0xEd80Ccde8bAeFf2dBFC70d3028a27e501Fa0D7D5')
+
+    
     
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
     
@@ -142,8 +147,11 @@ def main():
     #removeOwnerFromMultisig('0x27d55f5668ef4438635bdce0adca083507e77752')
 
     
+    #getVoluntaryWeightedStake()
 
-
+    #contract = Contract.from_abi("Token", address=conf.contracts['WRBTC'], abi=LoanToken.abi, owner=conf.acct)
+    #balance = contract.balanceOf('0x051b89f575fcd540f0a6a5b49c75f9a83bb2cf07', block_identifier=5132683)
+    #print(balance/1e18)
 
 
 def governanceTransfer():

@@ -622,4 +622,10 @@ def readTokenOwnerFromFunds():
     print("developmentFund.unlockedTokenOwner:", developmentFund.unlockedTokenOwner())
     print("developmentFund.lockedTokenOwner:", developmentFund.lockedTokenOwner())
 
-   
+def getVoluntaryWeightedStake():
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+
+    vestingWeightedStake = staking.getPriorVestingWeightedStake(5138745, 1679073208);
+    totalWeightedStake = staking.getPriorTotalVotingPower(5138745, 1679073208);
+    voluntary = (totalWeightedStake - vestingWeightedStake)/1e18
+    print(voluntary)
