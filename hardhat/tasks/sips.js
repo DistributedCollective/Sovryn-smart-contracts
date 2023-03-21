@@ -207,7 +207,7 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
         if (proposalState !== 4) {
             throw new Error("Proposal NOT Succeeded");
         }
-        await governorContract.queue(proposalId);
+        (await governorContract.queue(proposalId)).wait();
         proposal = await governorContract.proposals(proposalId);
         logger.success(`Proposal ${proposalId} queued. Execution ETA: ${proposal.eta}.`);
     });
