@@ -194,9 +194,13 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
 
         const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         while ((await ethers.provider.getBlockNumber()) <= proposal.endBlock) {
-            const delayTime =
-                (proposal.endBlock - (await ethers.provider.getBlockNumber())) * 30000;
-            console.log(`pausing for ${delayTime / 1000} secs (${delayTime / 30000} blocks)`);
+            const currentBlockNumber = await ethers.provider.getBlockNumber();
+            const delayTime = (proposal.endBlock - currentBlockNumber) * 30000;
+            console.log(
+                `${new Date().toUTCString()}, current block ${currentBlockNumber}, target block ${
+                    proposal.endBlock
+                }:  pausing for ${delayTime / 1000} secs (${delayTime / 30000} blocks)`
+            );
             await delay(delayTime);
         }
         const proposalState = await governorContract.state(proposalId);
