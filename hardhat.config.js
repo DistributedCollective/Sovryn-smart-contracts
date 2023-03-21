@@ -21,7 +21,7 @@ const testnetAccounts = process.env.TESTNET_DEPLOYER_PRIVATE_KEY
     ? [process.env.TESTNET_DEPLOYER_PRIVATE_KEY, process.env.TESTNET_SIGNER_PRIVATE_KEY]
     : [];
 const mainnetAccounts = process.env.MAINNET_DEPLOYER_PRIVATE_KEY
-    ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY, process.env.MAINNET_SIGNER_PRIVATE_KEY]
+    ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY]
     : [];
 
 /*
@@ -104,6 +104,8 @@ module.exports = {
         },
         signer: {
             default: 1,
+            rskForkedMainnet: 0,
+            rskMainnet: 0,
         },
     },
     networks: {
