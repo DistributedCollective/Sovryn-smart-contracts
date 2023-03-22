@@ -39,6 +39,7 @@
 		"cli-color": "^2.0.3",
 		"coveralls": "^3.1.0",
 		"cross-env": "^7.0.3",
+		"cryptoenv": "^0.2.0",
 		"decimal.js": "10.2.0",
 		"dirty-chai": "^2.0.1",
 		"eslint": "^7.21.0",

@@ -16,6 +16,7 @@ require("@nomicfoundation/hardhat-chai-matchers");
 require("./hardhat/tasks/tasks");
 
 require("dotenv").config();
+require("cryptoenv").parse();
 
 const testnetAccounts = process.env.TESTNET_DEPLOYER_PRIVATE_KEY
     ? [process.env.TESTNET_DEPLOYER_PRIVATE_KEY, process.env.TESTNET_SIGNER_PRIVATE_KEY]
@@ -236,6 +237,7 @@ module.exports = {
             rskMainnet: ["external/deployments/rskSovrynMainnet"],
             rskForkedMainnet: [
                 "external/deployments/rskSovrynMainnet",
+                "deployment/deployments/rskSovrynMainnet",
                 "external/deployments/rskForkedMainnet",
             ],
         },
