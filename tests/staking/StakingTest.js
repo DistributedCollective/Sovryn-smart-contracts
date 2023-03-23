@@ -4329,14 +4329,14 @@ contract("Staking", (accounts) => {
                     kickoffTS.add(TWO_WEEKS_BN),
                     currentBlockNumber
                 )
-            ).to.be.revertedWith("not determined");
+            ).to.be.revertedWith("not determined yet");
             await expect(
                 staking.getPriorStakeByDateForDelegatee(
                     a1,
                     kickoffTS.add(TWO_WEEKS_BN),
                     currentBlockNumber + 1
                 )
-            ).to.be.revertedWith("not determined");
+            ).to.be.revertedWith("not determined yet");
         });
     });
 
