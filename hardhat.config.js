@@ -112,6 +112,8 @@ module.exports = {
         },
         voter: {
             default: 1,
+            rskForkedMainnet: 0,
+            rskMainnet: 0,
         },
     },
     networks: {
