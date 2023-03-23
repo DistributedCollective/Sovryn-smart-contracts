@@ -13,7 +13,7 @@ require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
 
-require("./hardhat/tasks/tasks");
+require("./hardhat/tasks");
 
 require("dotenv").config();
 require("cryptoenv").parse();
