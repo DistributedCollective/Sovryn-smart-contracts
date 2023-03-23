@@ -18,27 +18,6 @@ require("./hardhat/tasks");
 require("dotenv").config();
 require("cryptoenv").parse();
 
-/*const testnetAccounts = process.env.TESTNET_DEPLOYER_PRIVATE_KEY
-    ? [process.env.TESTNET_DEPLOYER_PRIVATE_KEY, process.env.TESTNET_SIGNER_PRIVATE_KEY]
-    : [];
-const mainnetAccounts = process.env.MAINNET_DEPLOYER_PRIVATE_KEY
-    ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY]
-    : [];
-    */
-
-/*
-    const testnetAccounts = process.env.TESTNET_DEPLOYER_PRIVATE_KEY
-    ? [
-          process.env.TESTNET_DEPLOYER_PRIVATE_KEY,
-          process.env.TESTNET_SIGNER_PRIVATE_KEY,
-          process.env.PROPOSAL_CREATOR_PRIVATE_KEY,
-      ]
-    : [];
-const mainnetAccounts = process.env.MAINNET_DEPLOYER_PRIVATE_KEY
-    ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY, process.env.PROPOSAL_CREATOR_PRIVATE_KEY]
-    : [];
-    */
-
 const mnemonic = { mnemonic: "test test test test test test test test test test test junk" };
 const testnetPKs = [
     process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "",
