@@ -38,7 +38,7 @@ function encodeType(primaryType, types = {}) {
 }
 
 function typeHash(primaryType, types = {}) {
-    return ethUtil.keccak256(encodeType(primaryType, types));
+    return ethUtil.keccakFromString(encodeType(primaryType, types), 256);
 }
 
 function encodeData(primaryType, data, types = {}) {
@@ -54,7 +54,7 @@ function encodeData(primaryType, data, types = {}) {
         let value = data[field.name];
         if (field.type == "string" || field.type == "bytes") {
             encTypes.push("bytes32");
-            value = ethUtil.keccak256(value);
+            value = ethUtil.keccakFromString(value, 256);
             encValues.push(value);
         } else if (types[field.type] !== undefined) {
             encTypes.push("bytes32");
