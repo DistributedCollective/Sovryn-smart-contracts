@@ -11,6 +11,7 @@ const {
     sendWithMultisig,
     parseEthersLog,
     parseEthersLogToValue,
+    delay,
 } = require("../../deployment/helpers/helpers");
 
 const sipArgsList = require("./sips/args/sipArgs");
@@ -192,7 +193,6 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
         );
         let proposal = await governorContract.proposals(proposalId);
 
-        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         while ((await ethers.provider.getBlockNumber()) <= proposal.endBlock) {
             const currentBlockNumber = await ethers.provider.getBlockNumber();
             const delayTime = (proposal.endBlock - currentBlockNumber) * 30000;
@@ -210,4 +210,43 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
         (await governorContract.queue(proposalId)).wait();
         proposal = await governorContract.proposals(proposalId);
         logger.success(`Proposal ${proposalId} queued. Execution ETA: ${proposal.eta}.`);
+    });
+
+task("sips:execute-timer", "Execute SIP with countdown")
+    .addParam("proposal", "Proposal Id", undefined, types.string)
+    .addParam(
+        "governor",
+        "Governor deployment name: 'GovernorOwner' or 'GovernorAdmin'",
+        undefined,
+        types.string
+    )
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ proposal: proposalId, signer, governor }, hre) => {
+        const { getNamedAccounts } = hre;
+
+        const signerAcc = ethers.utils.isAddress(signer)
+            ? signer
+            : (await getNamedAccounts())[signer];
+        const governorContract = await ethers.getContract(
+            governor,
+            await ethers.getSigner(signerAcc)
+        );
+
+        if ((await governorContract.state(proposalId)) !== 5) {
+            throw new Error("Proposal must be queued for execution");
+        }
+        let proposal = await governorContract.proposals(proposalId);
+        //Math.floor(Date.now() / 1000)
+        const currentBlockTimestamp = (await ethers.provider.getBlock()).timestamp;
+        if (proposal.eta > currentBlockTimestamp) {
+            const delayTime = proposal.eta - currentBlockTimestamp + 120; // add 2 minutes
+            logger.info(`Delaying proposal ${proposalId} execution for ${delayTime} sec`);
+            await delay(delayTime * 1000);
+        }
+        await (await governorContract.execute(proposalId)).wait();
+        if ((await governorContract.state(proposalId)) === 7) {
+            logger.success(`Proposal ${proposalId} executed`);
+        } else {
+            logger.error(`Proposal ${proposalId} is NOT executed`);
+        }
     });

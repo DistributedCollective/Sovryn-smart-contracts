@@ -241,6 +241,10 @@ const parseEthersLogToValue = (parsed) => {
     return parsedEvent;
 };
 
+const getTxLog = (tx, contract) => {
+    return tx.logs.map((log) => parseEthersLogToValue(contract.interface.parseLog(log)));
+};
+
 const getEthersLog = async (contract, filter) => {
     if (contract === undefined || filter === undefined) return;
     const events = await contract.queryFilter(filter);
@@ -462,6 +466,23 @@ const deployWithCustomProxy = async (
         log();
     }
 };
+const getTxRevertReason = async (txHash) => {
+    const tx = await ethers.provider.getTransaction(txHash);
+    try {
+        let code = await ethers.provider.call(tx, tx.blockNumber);
+        console.log("code:", code);
+    } catch (err) {
+        return err;
+        /*console.log(err);
+        const code = err.data.replace("Reverted ", "");
+        console.log({ err });
+        let reason = ethers.utils.toUtf8String("0x" + code.substr(138));
+        console.log("Revert reason:", reason);
+        return `Revert reason: ${reason}`;*/
+    }
+};
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
     getStakingModulesNames,
@@ -480,4 +501,7 @@ module.exports = {
     deployWithCustomProxy,
     multisigAddOwner,
     multisigRemoveOwner,
+    getTxLog,
+    getTxRevertReason,
+    delay,
 };

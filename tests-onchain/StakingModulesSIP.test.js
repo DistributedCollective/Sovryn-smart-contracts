@@ -309,5 +309,66 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                 );
             }
         });
+
+        it("SIP-0058-2 replacing staking modules is executable", async () => {
+            if (!hre.network.tags["forked"]) {
+                console.error("ERROR: Must run on a forked net");
+                return;
+            }
+            await hre.network.provider.request({
+                method: "hardhat_reset",
+                params: [
+                    {
+                        forking: {
+                            jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
+                            blockNumber: 5153348, // block num at the time of the test creation with no new modules deployed
+                        },
+                    },
+                ],
+            });
+
+            const { stakingProxy, governorOwner } = await setupTest();
+
+            // VERIFY REGISTERED MODULES ARE NOT THE DEPLOYED ONES BEFORE THE SIP EXECUTION
+            const modulesProxy = await ethers.getContractAt("ModulesProxy", stakingProxy.address);
+            const stakingVestingModule = await ethers.getContract("StakingVestingModule");
+            const stakingVestingModuleFuncs = await stakingVestingModule.getFunctionsList();
+            for await (const func of stakingVestingModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).not.equal(
+                    stakingVestingModule.address
+                );
+            }
+
+            const stakingWithdrawModule = await ethers.getContract("StakingWithdrawModule");
+            const stakingWithdrawModuleFuncs = await stakingWithdrawModule.getFunctionsList();
+            for await (const func of stakingWithdrawModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).not.equal(
+                    stakingWithdrawModule.address
+                );
+            }
+
+            // EXECUTE PROPOSAL
+            const proposalId = 25;
+            const proposal = await governorOwner.proposals(proposalId);
+            await time.increaseTo(proposal.eta);
+            await expect(governorOwner.execute(proposalId))
+                .to.emit(governorOwner, "ProposalExecuted")
+                .withArgs(proposalId);
+
+            // VALIDATE EXECUTION
+            expect((await governorOwner.proposals(proposalId)).executed).to.be.true;
+
+            // VERIFY REGISTERED MODULES FUNCS ARE REGISTERED
+            for await (const func of stakingVestingModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).equal(
+                    stakingVestingModule.address
+                );
+            }
+            for await (const func of stakingWithdrawModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).equal(
+                    stakingWithdrawModule.address
+                );
+            }
+        });
     });
 });
