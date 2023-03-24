@@ -7,7 +7,7 @@
  * Other minor optimizations:
  * - removed unneeded variables
  *
- * Notes: Added waffle fixture at beforeEach hook.
+ * Notes: Added fixture at beforeEach hook.
  */
 
 const { expect } = require("chai");

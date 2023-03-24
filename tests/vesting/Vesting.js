@@ -12,8 +12,11 @@
  *   Couldn't find a workaround other that reducing vesting duration.
  */
 
+const hre = require("hardhat");
+const { ethers } = hre;
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
+// const BN = ethers.BogNumber.
 const {
     deployAndGetIStaking,
     initializeStakingModulesAt,
@@ -38,9 +41,7 @@ const TOTAL_SUPPLY = "20000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
 const TWO_WEEKS = 1209600;
 
-const hre = require("hardhat");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
-const { ethers } = hre;
 
 const increaseTimeEthers = async (time) => {
     await ethers.provider.send("evm_increaseTime", [time]);
@@ -1410,7 +1411,8 @@ contract("Vesting", (accounts) => {
             expect(vestingBalance).to.be.bignumber.equal(new BN(0));
 
             /// should emit token withdrawn event for complete withdrawal
-            const end = vesting.endDate();
+            const end = await vesting.endDate();
+            console.log(new BN(TWO_WEEKS));
             tx = await staking.cancelTeamVesting(
                 vesting.address,
                 root,

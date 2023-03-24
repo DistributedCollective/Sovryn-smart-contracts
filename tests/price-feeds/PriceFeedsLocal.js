@@ -3,7 +3,7 @@
  */
 
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
-const { expect, waffle } = require("hardhat");
+const { expect } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const TestToken = artifacts.require("TestToken");

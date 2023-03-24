@@ -10,7 +10,7 @@
  * Other minor optimizations:
  * - fixed some comments
  *
- * Notes: Used Waffle fixture to avoid redeployments on sovAndRewardWithdraw tests
+ * Notes: Used fixture to avoid redeployments on sovAndRewardWithdraw tests
  *
  */
 

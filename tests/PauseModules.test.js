@@ -14,7 +14,7 @@
  *  - reordered external modules apart from local variables
  *
  * Notes:
- * 	Previous optimization by Tyrone adding a waffle fixture (loadFixture)
+ * 	Previous optimization by Tyrone adding a fixture (loadFixture)
  *  improved a 20% the code speed:
  * 		reduced total elapsed time from 5s to 4s
  *  Updated to use only the initializer.js functions for protocol deployment.

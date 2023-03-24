@@ -5,7 +5,6 @@ require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-ethers");
 require("hardhat-deploy-ethers");
 require("@nomiclabs/hardhat-web3");
-require("@nomiclabs/hardhat-waffle");
 require("hardhat-contract-sizer"); //yarn run hardhat size-contracts
 require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");

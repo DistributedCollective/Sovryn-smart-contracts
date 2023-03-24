@@ -13,7 +13,7 @@ const { BigNumber } = require("@ethersproject/bignumber");
 const { BN, constants } = require("@openzeppelin/test-helpers");
 const { mine, mineUpTo, takeSnapshot } = require("@nomicfoundation/hardhat-network-helpers");
 
-const { deployAndGetIStaking } = require("../Utils/initializer");
+const { deployAndGetIStaking } = require("./Utils/initializer");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
 const TWO_WEEKS = 1209600;
