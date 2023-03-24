@@ -4,7 +4,7 @@ live:
       - name: Mainnet
         chainid: 30
         id: rsk-mainnet
-        host: wws://mainnet.sovryn.app/websocket
+        host: https://mainnet-dev.sovryn.app/rpc
 
       - name: Testnet
         chainid: 31
