@@ -76,7 +76,7 @@
 		"test": "npx hardhat test",
 		"uml": "npx sol2uml ./contracts -o UML.svg",
 		"generate-types": "hardhat export-abi",
-		"postinstall": "patch-package",
+		"postinstall": "npx patch-package",
 		"compile": "npx hardhat compile",
 		"npm-publish": "npm run compile && npm publish",
 		"fees-withdraw": "brownie run rewards_cron",
@@ -96,7 +96,7 @@
 		"dotenv": "^16.0.1",
 		"keccak": "^3.0.1",
 		"keccak256": "^1.0.3",
-		"patch-package": "^6.4.7",
+		"patch-package": "^6.5.1",
 		"phantomjs-prebuilt": "^2.1.16",
 		"yarn": "^1.22.10"
 	}
