@@ -11,7 +11,12 @@
 const { expect } = require("chai");
 const { BigNumber } = require("@ethersproject/bignumber");
 const { BN, constants } = require("@openzeppelin/test-helpers");
-const { mine, mineUpTo, takeSnapshot } = require("@nomicfoundation/hardhat-network-helpers");
+const {
+    mine,
+    mineUpTo,
+    takeSnapshot,
+    reset,
+} = require("@nomicfoundation/hardhat-network-helpers");
 
 const { deployAndGetIStaking } = require("./Utils/initializer");
 
@@ -36,6 +41,7 @@ describe("StakingRewards - First Period", () => {
     let blockNum;
 
     before(async () => {
+        await reset();
         accounts = await ethers.getSigners();
         [root, a1, a2, a3, a4, a5, ...accounts] = accounts;
 

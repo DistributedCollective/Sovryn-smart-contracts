@@ -53,12 +53,14 @@ const {
     getSOV,
 } = require("./Utils/initializer.js");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const mutexUtils = require("./reentrancy/utils");
 
 contract("Pause Modules", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
     let loanParams, loanParamsId;
     /// @note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
     async function fixtureInitialize(_wallets, _provider) {
+        await mutexUtils.getOrDeployMutex();
         SUSD = await getSUSD(); // Underlying Token
         RBTC = await getRBTC();
         WRBTC = await getWRBTC();
