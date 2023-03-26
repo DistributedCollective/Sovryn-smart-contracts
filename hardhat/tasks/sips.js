@@ -11,6 +11,7 @@ const {
     sendWithMultisig,
     parseEthersLog,
     parseEthersLogToValue,
+    getTxLog,
     delay,
 } = require("../../deployment/helpers/helpers");
 
@@ -85,10 +86,15 @@ task("sips:queue", "Queue proposal in the Governor Owner contract")
             governor,
             await ethers.getSigner(signerAcc)
         );
-        await governorContract.queue(proposal);
+        await (await governorContract.queue(proposal)).wait();
+        if ((await governorContract.state(proposal)) === 5) {
+            logger.info(`SIP ${proposal} queued`);
+        } else {
+            logger.error(`SIP ${proposal} is NOT queued`);
+        }
     });
 
-task("sips:execute", "Queue proposal in the Governor Owner contract")
+task("sips:execute", "Execute proposal in a Governor contract")
     .addParam("proposal", "Proposal Id", undefined, types.string)
     .addParam(
         "governor",
@@ -107,7 +113,14 @@ task("sips:execute", "Queue proposal in the Governor Owner contract")
             await ethers.getSigner(signerAcc)
         );
         const gasEstimated = (await governorContract.estimateGas.execute(proposal)).toNumber();
-        await governorContract.execute(proposal, { gasLimit: Math.round(gasEstimated * 1.3) });
+        await (
+            await governorContract.execute(proposal, { gasLimit: Math.round(gasEstimated * 2) })
+        ).wait();
+        if ((await governorContract.state(proposal)) === 7) {
+            logger.info(`SIP ${proposal} executed`);
+        } else {
+            logger.error(`SIP ${proposal} is NOT executed`);
+        }
     });
 
 task("sips:cancel", "Queue proposal in the Governor Owner contract")
