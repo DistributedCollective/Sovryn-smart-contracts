@@ -16,6 +16,7 @@ const {
     mineUpTo,
     takeSnapshot,
     reset,
+    time: nhtime,
 } = require("@nomicfoundation/hardhat-network-helpers");
 
 const { deployAndGetIStaking } = require("./Utils/initializer");
@@ -338,16 +339,19 @@ describe("StakingRewards - First Period", () => {
     }
 
     async function increaseTrueTimeAndBlocks(seconds) {
-        //await network.provider.send("evm_setAutomine", [false]);
-        const secondsBN = BigNumber.from(seconds);
-        await ethers.provider.send("evm_increaseTime", [30]);
-        await mine(secondsBN.div(30), { interval: 30 });
+        await network.provider.send("evm_setAutomine", [false]);
+        // const secondsBN = BigNumber.from(seconds);
+        // await ethers.provider.send("evm_increaseTime", [30]);
+        // await mine(secondsBN.div(30), { interval: 30 });
 
-        timeDiff = secondsBN.sub(secondsBN.div(30).mul(30)).toNumber();
-        if (timeDiff > 0) {
-            increaseTime(timeDiff);
-        }
-        //await network.provider.send("evm_setAutomine", [true]);
+        await nhtime.setNextBlockTimestamp((await nhtime.latest()) + 30);
+        await mine(Math.round(seconds / 30), { interval: 30 });
+
+        // timeDiff = secondsBN.sub(secondsBN.div(30).mul(30)).toNumber();
+        // if (timeDiff > 0) {
+        //     increaseTime(timeDiff);
+        // }
+        await network.provider.send("evm_setAutomine", [true]);
     }
 
     async function increaseTime(seconds) {
