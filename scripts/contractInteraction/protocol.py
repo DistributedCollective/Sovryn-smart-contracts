@@ -425,16 +425,6 @@ def withdrawFees():
     feesController = readFeesController()
     feeSharingCollectorProxy = Contract.from_abi(
         "FeeSharingCollector", address=feesController, abi=FeeSharingCollector.abi, owner=conf.acct)
-    feeSharingCollectorProxy.withdrawFees([
-        conf.contracts['USDT'],
-        conf.contracts['DoC'],
-        conf.contracts['ETHs'],
-        conf.contracts['XUSD'],
-        conf.contracts['FISH'],
-        conf.contracts['BPro'],
-        conf.contracts['SOV'],
-        conf.contracts['WRBTC'],
-    ])
 
     # Withdraw fees from AMM
     feeSharingCollectorProxy.withdrawFeesAMM([
@@ -446,6 +436,19 @@ def withdrawFees():
         conf.contracts["ConverterFISH"],
         conf.contracts["ConverterRIF"],
         conf.contracts["ConverterMYNT"],
+        conf.contracts["ConverterDLLR"],
+    ])
+
+    #  Withdraw fees from protocol
+    feeSharingCollectorProxy.withdrawFees([
+        conf.contracts['USDT'],
+        conf.contracts['DoC'],
+        conf.contracts['ETHs'],
+        conf.contracts['XUSD'],
+        conf.contracts['FISH'],
+        conf.contracts['BPro'],
+        conf.contracts['SOV'],
+        conf.contracts['WRBTC'],
     ])
 
 def setSupportedToken(tokenAddress):
