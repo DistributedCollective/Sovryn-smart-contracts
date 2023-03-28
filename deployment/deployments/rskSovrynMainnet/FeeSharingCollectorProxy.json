@@ -1,8 +1,8 @@
 {
-    "address": "0x115cAF168c51eD15ec535727F64684D33B7b08D1",
     "_format": "hh-sol-artifact-1",
     "contractName": "FeeSharingCollectorProxy",
     "sourceName": "contracts/governance/FeeSharingCollector/FeeSharingCollectorProxy.sol",
+    "address": "0x115cAF168c51eD15ec535727F64684D33B7b08D1",
     "abi": [
         {
             "inputs": [
