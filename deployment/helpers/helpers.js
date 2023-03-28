@@ -88,7 +88,7 @@ const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, 
 
 const signWithMultisig = async (multisigAddress, txId, sender) => {
     const { ethers, getNamedAccounts } = hre;
-    console.log("Signing multisig txId:", txId);
+    console.log("Signing multisig txId...", txId);
     const signer = await ethers.getSigner(sender);
     const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress, signer);
     const gasEstimated = (await multisig.estimateGas.confirmTransaction(txId)).toNumber();
@@ -100,7 +100,6 @@ const signWithMultisig = async (multisigAddress, txId, sender) => {
     console.log("Signed. Details:");
     await multisigCheckTx(txId, multisig.address);
     */
-    console.log("Signing multisig txId", txId, "...");
     console.log("Estimated Gas:", gasEstimated);
     const lastBlock = await ethers.provider.getBlock();
     const lastBlockGasLimit = lastBlock.gasLimit.toNumber();
