@@ -83,7 +83,7 @@ const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, 
     const abi = ["event Submission(uint256 indexed transactionId)"];
     let iface = new ethers.utils.Interface(abi);
     const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "Submission");
-    await multisigCheckTx(parsedEvent.transactionId.value.toNumber(), multisig.address);
+    await multisigCheckTx(parsedEvent.transactionId.value, multisig.address);
 };
 
 const signWithMultisig = async (multisigAddress, txId, sender) => {
