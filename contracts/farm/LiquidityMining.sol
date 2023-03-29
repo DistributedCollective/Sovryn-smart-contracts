@@ -303,6 +303,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         PoolInfo storage pool = poolInfoList[_poolId];
         UserInfo storage user = userInfoMap[_poolId][_user];
 
+        // SKIPPED THIS ONLY FOR TESTNET
+        // Since this causing the error when calling the balanceOf function
+        if(address(pool.poolToken) == 0xD449c0c468Cae235d3E320Ff48d05EbDdcde64c3) return 0;
+
         uint256 accumulatedRewardPerShare = pool.accumulatedRewardPerShare;
         uint256 poolTokenBalance = pool.poolToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && poolTokenBalance != 0) {
