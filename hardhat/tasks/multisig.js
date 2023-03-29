@@ -13,21 +13,21 @@ const {
 const logger = new Logs().showInConsole(true);
 
 task("multisig:sign-tx", "Sign multisig tx")
-    .addParam("txId", "Multisig transaction to sign", undefined, types.string)
+    .addParam("id", "Multisig transaction to sign", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ txId, signer }, hre) => {
+    .setAction(async ({ id, signer }, hre) => {
         const {
             deployments: { get },
         } = hre;
         const signerAcc = (await hre.getNamedAccounts())[signer];
         const ms = await get("MultiSigWallet");
-        await signWithMultisig(ms.address, txId, signerAcc);
+        await signWithMultisig(ms.address, id, signerAcc);
     });
 
 task("multisig:sign-txs", "Sign multiple multisig tx")
     .addParam(
         "txIds",
-        "Multisig transactions to sign. Supports '12,14,16-20,22' format where '16-20' is a continuous series of numbers",
+        "Multisig transactions to sign. Supports '12,14,16-20,22' format where '16-20' is a continuous range of integers",
         undefined,
         types.string
     )
@@ -39,9 +39,6 @@ task("multisig:sign-txs", "Sign multiple multisig tx")
         const signerAcc = (await hre.getNamedAccounts())[signer];
         const ms = await get("MultiSigWallet");
         const txnArray = txIds.split(",").map((num) => parseInt(num));
-        /*for (let txId = txnArray[0]; txId <= txnArray[1]; txId++) {
-            await signWithMultisig(ms.address, txId, signerAcc);
-        }*/
         for (let txId of txnArray) {
             if (typeof txId !== "string" || txId.indexOf("-") === -1) {
                 await signWithMultisig(ms.address, txId, signerAcc);
@@ -55,25 +52,25 @@ task("multisig:sign-txs", "Sign multiple multisig tx")
     });
 
 task("multisig:execute-tx", "Execute multisig tx by one of tx signers")
-    .addParam("txId", "Multisig transaction to sign", undefined, types.string)
+    .addParam("id", "Multisig transaction to sign", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ txId, signer }, hre) => {
+    .setAction(async ({ id, signer }, hre) => {
         const signerAcc = (await hre.getNamedAccounts())[signer];
-        await multisigExecuteTx(txId, signerAcc);
+        await multisigExecuteTx(id, signerAcc);
     });
 
 task("multisig:check-tx", "Check multisig tx")
-    .addParam("txId", "Multisig transaction to check", undefined, types.string)
+    .addParam("id", "Multisig transaction id to check", undefined, types.string)
     .setAction(async (taskArgs, hre) => {
-        await multisigCheckTx(taskArgs.txId);
+        await multisigCheckTx(taskArgs.id);
     });
 
 task("multisig:revoke-confirmation", "Revoke multisig tx confirmation")
-    .addParam("txId", "Multisig transaction to check", undefined, types.string)
+    .addParam("tx", "Multisig transaction to revoke confirmation from", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ txId, signer }, hre) => {
+    .setAction(async ({ id, signer }, hre) => {
         const signerAcc = (await hre.getNamedAccounts())[signer];
-        await multisigRevokeConfirmation(txId, signerAcc);
+        await multisigRevokeConfirmation(id, signerAcc);
     });
 
 task("multisig:add-owner", "Add or remove multisig owner")
