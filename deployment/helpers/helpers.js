@@ -83,21 +83,59 @@ const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, 
     const abi = ["event Submission(uint256 indexed transactionId)"];
     let iface = new ethers.utils.Interface(abi);
     const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "Submission");
-    await multisigCheckTx(parsedEvent.transactionId.value.toNumber(), multisig.address);
+    await multisigCheckTx(parsedEvent.transactionId.value, multisig.address);
 };
 
 const signWithMultisig = async (multisigAddress, txId, sender) => {
     const { ethers, getNamedAccounts } = hre;
-    console.log("Signing multisig txId:", txId);
+    console.log("Signing multisig txId...", txId);
     const signer = await ethers.getSigner(sender);
     const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress, signer);
     const gasEstimated = (await multisig.estimateGas.confirmTransaction(txId)).toNumber();
+    /*
     receipt = await (
         await multisig.confirmTransaction(txId, { gasLimit: Math.round(gasEstimated * 1.3) })
     ).wait();
     // console.log("Required signatures:", await multisig.required());
     console.log("Signed. Details:");
     await multisigCheckTx(txId, multisig.address);
+    */
+    console.log("Estimated Gas:", gasEstimated);
+    const lastBlock = await ethers.provider.getBlock();
+    const lastBlockGasLimit = lastBlock.gasLimit.toNumber();
+    console.log("Last Block Gas Limit:", lastBlockGasLimit);
+    const gasEstimatedMul = gasEstimated * 1.5;
+
+    let receipt;
+    let wontSign = false;
+    if (gasEstimatedMul < lastBlockGasLimit) {
+        try {
+            await multisig.callStatic.confirmTransaction(txId, { gasEstimatedMul });
+            receipt = await (await multisig.confirmTransaction(txId, { gasEstimatedMul })).wait();
+        } catch (e) {
+            wontSign = true;
+        }
+    }
+    if (wontSign || gasEstimatedMul >= lastBlockGasLimit) {
+        receipt = await (
+            await multisig.confirmTransaction(txId, { gasLimit: lastBlockGasLimit })
+        ).wait();
+    }
+
+    console.log(
+        col.yellowBright(
+            "==============================================================================="
+        )
+    );
+    console.log(col.greenBright("DONE. Details:"));
+    console.log("Tx hash:", receipt.transactionHash);
+    console.log("Gas used:", receipt.gasUsed.toNumber());
+    await multisigCheckTx(txId, multisig.address);
+    console.log(
+        col.yellowBright(
+            "==============================================================================="
+        )
+    );
 };
 
 const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_ZERO) => {
@@ -224,10 +262,25 @@ const parseEthersLog = (parsed) => {
     for (let i = 0; i < parsed.args.length; i++) {
         const input = parsed.eventFragment.inputs[i];
         const arg = parsed.args[i];
-        const newObj = { ...input, ...{ value: arg } };
+        const newObj = { ...input, ...{ value: arg.toString() } };
         parsedEvent[input["name"]] = newObj;
     }
     return parsedEvent;
+};
+
+const parseEthersLogToValue = (parsed) => {
+    let parsedEvent = {};
+    for (let i = 0; i < parsed.args.length; i++) {
+        const input = parsed.eventFragment.inputs[i];
+        const arg = parsed.args[i];
+        const newObj = { ...input, ...{ value: arg.toString() } };
+        parsedEvent[input["name"]] = newObj.value;
+    }
+    return parsedEvent;
+};
+
+const getTxLog = (tx, contract) => {
+    return tx.logs.map((log) => parseEthersLogToValue(contract.interface.parseLog(log)));
 };
 
 const getEthersLog = async (contract, filter) => {
@@ -451,12 +504,30 @@ const deployWithCustomProxy = async (
         log();
     }
 };
+const getTxRevertReason = async (txHash) => {
+    const tx = await ethers.provider.getTransaction(txHash);
+    try {
+        let code = await ethers.provider.call(tx, tx.blockNumber);
+        console.log("code:", code);
+    } catch (err) {
+        return err;
+        /*console.log(err);
+        const code = err.data.replace("Reverted ", "");
+        console.log({ err });
+        let reason = ethers.utils.toUtf8String("0x" + code.substr(138));
+        console.log("Revert reason:", reason);
+        return `Revert reason: ${reason}`;*/
+    }
+};
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
     getStakingModulesNames,
     stakingRegisterModuleWithMultisig,
     parseEthersLog,
     getEthersLog,
+    parseEthersLogToValue,
     getParsedEventLogFromReceipt,
     sendWithMultisig,
     signWithMultisig,
@@ -468,4 +539,7 @@ module.exports = {
     deployWithCustomProxy,
     multisigAddOwner,
     multisigRemoveOwner,
+    getTxLog,
+    getTxRevertReason,
+    delay,
 };

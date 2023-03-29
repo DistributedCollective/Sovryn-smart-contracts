@@ -12,7 +12,7 @@
  *
  * Notes: Instead of a general deployment for all tests in the beforeEach hook,
  *  it has been restricted exclusively to those tests that required it. Besides,
- *  a waffle fixture is used only on tests that can start from the initial snapshot.
+ *  the oz test-helpers fixture is used only on tests that can start from the initial snapshot.
  *
  *   + Added test of dummy liquidityMiningConfigToken methods for coverage.
  */

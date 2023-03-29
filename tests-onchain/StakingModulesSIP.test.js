@@ -1,6 +1,4 @@
-// const { expect } = require("chai");
-/*const chai = require("chai");
-const { expect } = chai;*/
+//@note hh test tests-onchain/StakingModulesSIP.test.js --network rskForkedMainnetFlashback
 
 const {
     loadFixture,
@@ -108,7 +106,10 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
 
     describe("Staking Modules Onchain Testing", () => {
         it("SIP 0049 is executable", async () => {
-            if (!hre.network.tags["forked"]) return;
+            if (!hre.network.tags["forked"]) {
+                console.error("ERROR: Must run on a forked net");
+                return;
+            }
             await hre.network.provider.request({
                 method: "hardhat_reset",
                 params: [
@@ -199,8 +200,11 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                 (await get("WeightedStakingModule")).address
             );
         });
-        it("SIP-X replacing staking modules is executable", async () => {
-            if (!hre.network.tags["forked"]) return;
+        it("SIP-0058 replacing staking modules is executable", async () => {
+            if (!hre.network.tags["forked"]) {
+                console.error("ERROR: Must run on a forked net");
+                return;
+            }
             await hre.network.provider.request({
                 method: "hardhat_reset",
                 params: [
@@ -248,7 +252,7 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
 
             // CREATE PROPOSAL AND VERIFY
             const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
-            await hre.run("sips:create", { argsFunc: "getArgsSipXX" });
+            await hre.run("sips:create", { argsFunc: "getArgsSip0058" });
             const proposalId = await governorOwner.latestProposalIds(deployer);
             expect(
                 proposalId,
@@ -285,6 +289,67 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
 
             // EXECUTE PROPOSAL
             proposal = await governorOwner.proposals(proposalId);
+            await time.increaseTo(proposal.eta);
+            await expect(governorOwner.execute(proposalId))
+                .to.emit(governorOwner, "ProposalExecuted")
+                .withArgs(proposalId);
+
+            // VALIDATE EXECUTION
+            expect((await governorOwner.proposals(proposalId)).executed).to.be.true;
+
+            // VERIFY REGISTERED MODULES FUNCS ARE REGISTERED
+            for await (const func of stakingVestingModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).equal(
+                    stakingVestingModule.address
+                );
+            }
+            for await (const func of stakingWithdrawModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).equal(
+                    stakingWithdrawModule.address
+                );
+            }
+        });
+
+        it("SIP-0058-2 replacing staking modules is executable", async () => {
+            if (!hre.network.tags["forked"]) {
+                console.error("ERROR: Must run on a forked net");
+                return;
+            }
+            await hre.network.provider.request({
+                method: "hardhat_reset",
+                params: [
+                    {
+                        forking: {
+                            jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
+                            blockNumber: 5153348, // block num at the time of the test creation with no new modules deployed
+                        },
+                    },
+                ],
+            });
+
+            const { stakingProxy, governorOwner } = await setupTest();
+
+            // VERIFY REGISTERED MODULES ARE NOT THE DEPLOYED ONES BEFORE THE SIP EXECUTION
+            const modulesProxy = await ethers.getContractAt("ModulesProxy", stakingProxy.address);
+            const stakingVestingModule = await ethers.getContract("StakingVestingModule");
+            const stakingVestingModuleFuncs = await stakingVestingModule.getFunctionsList();
+            for await (const func of stakingVestingModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).not.equal(
+                    stakingVestingModule.address
+                );
+            }
+
+            const stakingWithdrawModule = await ethers.getContract("StakingWithdrawModule");
+            const stakingWithdrawModuleFuncs = await stakingWithdrawModule.getFunctionsList();
+            for await (const func of stakingWithdrawModuleFuncs) {
+                expect(await modulesProxy.getFuncImplementation(func)).not.equal(
+                    stakingWithdrawModule.address
+                );
+            }
+
+            // EXECUTE PROPOSAL
+            const proposalId = 25;
+            const proposal = await governorOwner.proposals(proposalId);
             await time.increaseTo(proposal.eta);
             await expect(governorOwner.execute(proposalId))
                 .to.emit(governorOwner, "ProposalExecuted")

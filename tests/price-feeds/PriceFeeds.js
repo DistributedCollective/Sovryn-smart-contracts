@@ -1,13 +1,13 @@
 /** Speed optimized on branch hardhatTestRefactor, 2021-10-01
- * No bottlenecks found. No beforeEach hook, and waffle mockup was already applied.
+ * No bottlenecks found. No beforeEach hook, and mockup was already applied.
  *
  * Total time elapsed: 4.9s
  */
 
-const { ethers, waffle } = require("hardhat");
+const { ethers } = require("hardhat");
 const { expect } = require("chai");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
-const { deployMockContract } = waffle;
+const { deployMockContract } = require("@ethereum-waffle/mock-contract");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const SOV = artifacts.require("SOV");

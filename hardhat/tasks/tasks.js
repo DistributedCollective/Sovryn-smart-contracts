@@ -1,2 +1,0 @@
-require("./multisig");
-require("./sips");

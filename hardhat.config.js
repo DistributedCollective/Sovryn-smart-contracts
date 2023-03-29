@@ -1,3 +1,4 @@
+require("cryptoenv").parse();
 const { task } = require("hardhat/config");
 
 require("@nomiclabs/hardhat-ganache");
@@ -5,7 +6,6 @@ require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-ethers");
 require("hardhat-deploy-ethers");
 require("@nomiclabs/hardhat-web3");
-require("@nomiclabs/hardhat-waffle");
 require("hardhat-contract-sizer"); //yarn run hardhat size-contracts
 require("solidity-coverage"); // $ npx hardhat coverage
 require("hardhat-log-remover");
@@ -13,17 +13,23 @@ require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
 
-require("./hardhat/tasks/tasks");
+require("./hardhat/tasks");
 
 require("dotenv").config();
-require("cryptoenv").parse();
 
-const testnetAccounts = process.env.TESTNET_DEPLOYER_PRIVATE_KEY
-    ? [process.env.TESTNET_DEPLOYER_PRIVATE_KEY, process.env.TESTNET_SIGNER_PRIVATE_KEY]
-    : [];
-const mainnetAccounts = process.env.MAINNET_DEPLOYER_PRIVATE_KEY
-    ? [process.env.MAINNET_DEPLOYER_PRIVATE_KEY]
-    : [];
+const mnemonic = { mnemonic: "test test test test test test test test test test test junk" };
+const testnetPKs = [
+    process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "",
+    process.env.TESTNET_SIGNER_PRIVATE_KEY ?? "",
+    process.env.TESTNET_SIGNER_PRIVATE_KEY_2 ?? "",
+].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
+const testnetAccounts = testnetPKs.length > 0 ? testnetPKs : mnemonic;
+
+const mainnetPKs = [
+    process.env.MAINNET_DEPLOYER_PRIVATE_KEY ?? "",
+    process.env.PROPOSAL_CREATOR_PRIVATE_KEY ?? "",
+].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
+const mainnetAccounts = mainnetPKs.length > 0 ? mainnetPKs : mnemonic;
 
 /*
  * Test hardhat forking with patched hardhat
@@ -104,6 +110,10 @@ module.exports = {
             default: 0,
         },
         signer: {
+            default: 1,
+            rskSovrynMainnet: 0,
+        },
+        voter: {
             default: 1,
             rskForkedMainnet: 0,
             rskMainnet: 0,
@@ -234,7 +244,10 @@ module.exports = {
             rskForkedTestnetFlashback: ["external/deployments/rskForkedTestnetFlashback"],
             rskForkedMainnetFlashback: ["external/deployments/rskForkedMainnetFlashback"],
             rskSovrynMainnet: ["external/deployments/rskSovrynMainnet"],
-            rskMainnet: ["external/deployments/rskSovrynMainnet"],
+            rskMainnet: [
+                "external/deployments/rskSovrynMainnet",
+                "deployment/deployments/rskSovrynMainnet",
+            ],
             rskForkedMainnet: [
                 "external/deployments/rskSovrynMainnet",
                 "deployment/deployments/rskSovrynMainnet",

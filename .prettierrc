@@ -7,12 +7,11 @@
         "tabWidth": 4,
         "useTabs": false,
         "singleQuote": false,
-        "bracketSpacing": true,
-        "explicitTypes": "always"
+        "bracketSpacing": true
       }
     },
     {
-      "files": ["*.sol"],
+      "files": "*.sol",
       "options": {
         "printWidth": 99,
         "tabWidth": 4,

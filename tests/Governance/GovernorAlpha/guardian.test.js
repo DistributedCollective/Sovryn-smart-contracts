@@ -36,7 +36,7 @@ const {
 const { deployAndGetIStaking } = require("../../Utils/initializer");
 
 const { assert } = require("chai");
-const { ethers, waffle } = require("hardhat");
+const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 // Some constants we would be using in the contract.

@@ -8,10 +8,9 @@
  */
 
 const { expect } = require("chai");
-const { waffle, ethers } = require("hardhat");
+const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-
-const { BN } = require("@openzeppelin/test-helpers");
+const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 
 const { mineBlock, setTime } = require("../Utils/Ethereum");
 const { deployAndGetIStaking } = require("../Utils/initializer");
@@ -288,9 +287,10 @@ contract("WeightedStaking", (accounts) => {
 
         it("should be unable to compute the total voting power for the current block", async () => {
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
-            await expect(
-                staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS)
-            ).to.be.revertedWith("not determined");
+            await expectRevert(
+                staking.getPriorTotalVotingPower(result.receipt.blockNumber, kickoffTS),
+                "not determined"
+            );
         });
     });
 
@@ -356,9 +356,10 @@ contract("WeightedStaking", (accounts) => {
 
         it("should be unable to compute the voting power for the current block", async () => {
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
-            await expect(
-                staking.getPriorVotes(a3, result.receipt.blockNumber, kickoffTS)
-            ).to.be.revertedWith("not determined yet");
+            await expectRevert(
+                staking.getPriorVotes(a3, result.receipt.blockNumber, kickoffTS),
+                "not determined yet"
+            );
         });
 
         it("should return the current votes", async () => {
@@ -426,9 +427,10 @@ contract("WeightedStaking", (accounts) => {
 
         it("should be unable to compute the weighted stake for the current block", async () => {
             let result = await staking.stake("100", inOneYear, a3, a3, { from: a2 });
-            await expect(
-                staking.getPriorWeightedStake(a3, result.receipt.blockNumber, kickoffTS)
-            ).to.be.revertedWith("not determined");
+            await expectRevert(
+                staking.getPriorWeightedStake(a3, result.receipt.blockNumber, kickoffTS),
+                "not determined"
+            );
         });
     });
 
@@ -621,9 +623,10 @@ contract("WeightedStaking", (accounts) => {
             expect(delegateeVP2.toNumber()).to.eq(1030);
 
             //4. trying to change delegatee by an attacker (non-staker)
-            await expect(
-                staking.stake("1", inThreeYears, staker, attacker, { from: attacker })
-            ).to.be.revertedWith("Only stakeFor account is allowed to change delegatee");
+            await expectRevert(
+                staking.stake("1", inThreeYears, staker, attacker, { from: attacker }),
+                "Only stakeFor account is allowed to change delegatee"
+            );
         });
     });
 });

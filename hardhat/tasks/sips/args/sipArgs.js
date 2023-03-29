@@ -136,7 +136,7 @@ const getArgsSip0049 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
-const getArgsSipXX = async (hre) => {
+const getArgsSip0058 = async (hre) => {
     const {
         ethers,
         deployments: { get },
@@ -147,8 +147,8 @@ const getArgsSipXX = async (hre) => {
         "0x7Fe861e0948df601f28e0d84664Fa2Ddf4b39155", // StakingWithdrawModule
     ];
     const modulesTo = [
-        (await get("StakingVestingModule")).address, //"0xa1A80F1D50D07372A80EcC814c5C4F4d84Bd80cA",
-        (await get("StakingWithdrawModule")).address, //"0xc6F77b77FAAAECEeA4f3F46a482F5c192010cF51",
+        (await get("StakingVestingModule")).address, //"0x53C5C57302e7A6529C1A298B036426b944dC23Af",
+        (await get("StakingWithdrawModule")).address, //"0xf97c4751E4c75d28B600b0207519f2C71aA8902c",
     ];
 
     console.log(modulesTo);
@@ -164,13 +164,13 @@ const getArgsSipXX = async (hre) => {
             ),
         ],
         description:
-            "SIP-00XX: Staking contract fix ..... , Details: https://github.com/DistributedCollective/SIPS/blob/48a3f26/SIP-00XX.md, sha256: _______",
+            "SIP-0058: Staking contract update, Details: https://github.com/DistributedCollective/SIPS/blob/7c96f89/SIP-0058.md, sha256: da1a79797bad8b1d830cd188046dc62946f90af7a6b016c540eaee419e720c10",
     };
 
     return { args, governor: "GovernorOwner" };
 };
 
 module.exports = {
-    getArgsSipXX,
+    getArgsSip0058,
     getArgsSip0049,
 };
