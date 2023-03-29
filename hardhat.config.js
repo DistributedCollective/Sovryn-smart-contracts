@@ -1,3 +1,4 @@
+require("cryptoenv").parse();
 const { task } = require("hardhat/config");
 
 require("@nomiclabs/hardhat-ganache");
@@ -15,7 +16,6 @@ require("@nomicfoundation/hardhat-chai-matchers");
 require("./hardhat/tasks");
 
 require("dotenv").config();
-require("cryptoenv").parse();
 
 const mnemonic = { mnemonic: "test test test test test test test test test test test junk" };
 const testnetPKs = [
