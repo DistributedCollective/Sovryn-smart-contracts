@@ -1,11 +1,11 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Fees Scheduler Protocol
+name: Fees Scheduler AMM
 
 on:
   schedule:
-    - cron: "0 11 * * SAT"
+    - cron: "0 0 * * FRI"
   workflow_dispatch:
 
 jobs:
@@ -63,7 +63,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Withdraw Fees
-        run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron.py --network=rsk-mainnet
+        run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron_amm.py --network=rsk-mainnet
         env:
           REWARDS_CRON: 1
           FEE_CLAIMER: ${{secrets.FEE_CLAIMER}}
