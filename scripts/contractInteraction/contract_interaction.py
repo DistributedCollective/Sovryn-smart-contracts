@@ -35,7 +35,7 @@ def main():
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
     
     #print("fastBTC.balance()", loadBiDiFastBTC().balance()/1e18)
-    withdrawRBTCFromFastBTCBiDi(2.5e18, conf.contracts['Watcher'])
+    #withdrawRBTCFromFastBTCBiDi(2.5e18, conf.contracts['Watcher'])
     
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
     #bal = getBalance(conf.contracts['FastBTCBiDi'], conf.contracts['Watcher'])
@@ -57,8 +57,6 @@ def main():
 
     #buyWRBTC(2.5e18)
     #setPriceFeed(conf.contracts['DLLR'], '0xEd80Ccde8bAeFf2dBFC70d3028a27e501Fa0D7D5')
-
-    
     
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
     
