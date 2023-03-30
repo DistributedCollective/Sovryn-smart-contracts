@@ -455,7 +455,7 @@ const deployWithCustomProxy = async (
     log(`Current ${proxyName} implementation: ${prevImpl}`);
 
     if (logicDeploymentTx.newlyDeployed || logicDeploymentTx.address != prevImpl) {
-        log(`New ${logicName} implementation: ${logicDeploymentTx.address}`);
+        log(`New ${proxyName} implementation: ${logicImplName} @ ${logicDeploymentTx.address}`);
         await deployments.save(logicName, {
             address: proxy.address,
             implementation: logicDeploymentTx.address,
