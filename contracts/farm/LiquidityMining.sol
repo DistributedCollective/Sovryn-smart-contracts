@@ -378,6 +378,13 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
             return;
         }
 
+        // SKIPPED THIS ONLY FOR TESTNET
+        // Since this causing the error when calling the balanceOf function
+        if(address(pool.poolToken) == 0xD449c0c468Cae235d3E320Ff48d05EbDdcde64c3) {
+            pool.lastRewardBlock = block.number;
+            return;
+        }
+
         uint256 poolTokenBalance = pool.poolToken.balanceOf(address(this));
         if (poolTokenBalance == 0) {
             pool.lastRewardBlock = block.number;
@@ -413,6 +420,12 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
             passedBlocks.mul(rewardTokensPerBlock).mul(_pool.allocationPoint).div(
                 totalAllocationPoint
             );
+
+        // SKIPPED THIS ONLY FOR TESTNET
+        // Since this causing the error when calling the balanceOf function
+        if(address(_pool.poolToken) == 0xD449c0c468Cae235d3E320Ff48d05EbDdcde64c3) {
+            return (0, 0);
+        }
 
         uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
         poolTokenBalance = poolTokenBalance.add(_additionalAmount);
