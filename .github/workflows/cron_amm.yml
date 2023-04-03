@@ -5,7 +5,7 @@ name: Fees Scheduler AMM
 
 on:
   schedule:
-    - cron: "0 0 * * FRI"
+    - cron: "0 0 * * THU"
   workflow_dispatch:
 
 jobs:
