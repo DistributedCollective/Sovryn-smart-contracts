@@ -147,9 +147,9 @@ def main():
     
     #getVoluntaryWeightedStake()
 
-    #contract = Contract.from_abi("Token", address=conf.contracts['WRBTC'], abi=LoanToken.abi, owner=conf.acct)
-    #balance = contract.balanceOf('0x051b89f575fcd540f0a6a5b49c75f9a83bb2cf07', block_identifier=5132683)
-    #print(balance/1e18)
+    contract = Contract.from_abi("Token", address=conf.contracts['SOV'], abi=LoanToken.abi, owner=conf.acct)
+    balance = contract.balanceOf(conf.acct)
+    print(balance/1e18)
 
 
 def governanceTransfer():

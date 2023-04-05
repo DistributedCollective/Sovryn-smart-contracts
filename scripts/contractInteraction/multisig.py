@@ -119,6 +119,20 @@ def transferXUSDtoTokenSender(amount):
 
     sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
 
+def transferToTokenSender(currency, amount):
+    '''
+    direct liquid currency distribution
+    '''
+    # amount = 4739700 * 10**16
+
+    tokenSenderAddress = conf.contracts['GenericTokenSender']
+    token = Contract.from_abi("TestToken", address=conf.contracts[currency], abi=TestToken.abi, owner=conf.acct)
+    data = token.transfer.encode_input(tokenSenderAddress, amount)
+    print("Transfer",amount,currency, "from Multisig:", conf.contracts['multisig']," to GenericTokenSender:",tokenSenderAddress)
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+
 def transferSOVtoAccount(receiver, amount):
     '''
     creates multisig tx 
