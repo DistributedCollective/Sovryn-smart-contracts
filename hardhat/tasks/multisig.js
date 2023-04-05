@@ -26,26 +26,26 @@ task("multisig:sign-tx", "Sign multisig tx")
 
 task("multisig:sign-txs", "Sign multiple multisig tx")
     .addParam(
-        "txIds",
+        "ids",
         "Multisig transactions to sign. Supports '12,14,16-20,22' format where '16-20' is a continuous range of integers",
         undefined,
         types.string
     )
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ txIds, signer }, hre) => {
+    .setAction(async ({ ids, signer }, hre) => {
         const {
             deployments: { get },
         } = hre;
         const signerAcc = (await hre.getNamedAccounts())[signer];
         const ms = await get("MultiSigWallet");
-        const txnArray = txIds.split(",").map((num) => parseInt(num));
+        const txnArray = ids.split(",");
         for (let txId of txnArray) {
             if (typeof txId !== "string" || txId.indexOf("-") === -1) {
                 await signWithMultisig(ms.address, txId, signerAcc);
             } else {
-                const txnRangeArray = txIds.split("-", 2).map((num) => parseInt(num));
-                for (let txId = txnRangeArray[0]; txId <= txnRangeArray[1]; txId++) {
-                    await signWithMultisig(ms.address, txId, signerAcc);
+                const txnRangeArray = ids.split("-", 2).map((num) => parseInt(num));
+                for (let id = txnRangeArray[0]; id <= txnRangeArray[1]; id++) {
+                    await signWithMultisig(ms.address, id, signerAcc);
                 }
             }
         }
@@ -63,6 +63,22 @@ task("multisig:check-tx", "Check multisig tx")
     .addParam("id", "Multisig transaction id to check", undefined, types.string)
     .setAction(async (taskArgs, hre) => {
         await multisigCheckTx(taskArgs.id);
+    });
+
+task("multisig:check-txs", "Check multiple multisig txs")
+    .addParam("ids", "Multisig transaction ids list to check", undefined, types.string)
+    .setAction(async ({ ids }, hre) => {
+        const txnArray = ids.split(",");
+        for (let txId of txnArray) {
+            if (typeof txId !== "string" || txId.indexOf("-") === -1) {
+                await multisigCheckTx(txId);
+            } else {
+                const txnRangeArray = txId.split("-", 2).map((num) => parseInt(num));
+                for (let id = txnRangeArray[0]; id <= txnRangeArray[1]; id++) {
+                    await multisigCheckTx(id);
+                }
+            }
+        }
     });
 
 task("multisig:revoke-confirmation", "Revoke multisig tx confirmation")
