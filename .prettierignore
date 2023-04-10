@@ -22,3 +22,5 @@ abi
 *.md
 types/
 venv/
+deployment/deployments
+tmp/

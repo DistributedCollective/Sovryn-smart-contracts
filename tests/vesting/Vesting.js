@@ -12,8 +12,11 @@
  *   Couldn't find a workaround other that reducing vesting duration.
  */
 
+const hre = require("hardhat");
+const { ethers } = hre;
 const { expect } = require("chai");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
+// const BN = ethers.BogNumber.
 const {
     deployAndGetIStaking,
     initializeStakingModulesAt,
@@ -38,9 +41,7 @@ const TOTAL_SUPPLY = "20000000000000000000000000";
 const ONE_MILLON = "1000000000000000000000000";
 const TWO_WEEKS = 1209600;
 
-const hre = require("hardhat");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
-const { ethers } = hre;
 
 const increaseTimeEthers = async (time) => {
     await ethers.provider.send("evm_increaseTime", [time]);
@@ -911,6 +912,30 @@ contract("Vesting", (accounts) => {
             await vesting.withdrawTokens(root, { from: a1 });
         });
 
+        it("Shouldn't be possible to use governanceWithdrawVesting by not owner", async () => {
+            let toStake = ONE_MILLON;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                26 * WEEK,
+                104 * WEEK,
+                feeSharingCollectorProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await expectRevert(
+                staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }),
+                "unauthorized"
+            );
+        });
+
         it("cancelTeamVesting should fail if recipient is zero address", async () => {
             let toStake = ONE_MILLON;
 
@@ -1287,6 +1312,30 @@ contract("Vesting", (accounts) => {
             );
         });
 
+        it("Shouldn't be possible to use governanceWithdraw by user", async () => {
+            let toStake = ONE_MILLON;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                26 * WEEK,
+                104 * WEEK,
+                feeSharingCollectorProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            await expectRevert(
+                staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root),
+                "unauthorized"
+            );
+        });
+
         it("governanceWithdrawTokens", async () => {
             let previousAmount = await token.balanceOf(root);
             let toStake = ONE_MILLON;
@@ -1362,7 +1411,8 @@ contract("Vesting", (accounts) => {
             expect(vestingBalance).to.be.bignumber.equal(new BN(0));
 
             /// should emit token withdrawn event for complete withdrawal
-            const end = vesting.endDate();
+            const end = await vesting.endDate();
+            console.log(new BN(TWO_WEEKS));
             tx = await staking.cancelTeamVesting(
                 vesting.address,
                 root,
@@ -1377,26 +1427,6 @@ contract("Vesting", (accounts) => {
                     caller: root,
                     receiver: root,
                 }
-            );
-        });
-
-        it("governanceWithdrawTokens should be reverted", async () => {
-            // Stake
-            vesting = await Vesting.new(
-                vestingLogic.address,
-                token.address,
-                staking.address,
-                root,
-                16 * WEEK,
-                38 * WEEK,
-                feeSharingCollectorProxy.address
-            );
-            vesting = await VestingLogic.at(vesting.address);
-            await vestingReg.setTeamVesting(vesting.address, 0);
-
-            await expectRevert(
-                vesting.governanceWithdrawTokens(root),
-                "deprecated, use cancelTeamVesting from the staking contract"
             );
         });
     });

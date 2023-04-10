@@ -19,3 +19,5 @@ from scripts.contractInteraction.ownership import *
 from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
 from scripts.contractInteraction.fastbtc import *
+from scripts.contractInteraction.bondingcurve import *
+from scripts.contractInteraction.aggregator import *

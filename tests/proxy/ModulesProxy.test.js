@@ -12,7 +12,7 @@ const chai = require("chai");
 const { expect } = chai;
 
 const hre = require("hardhat");
-const { ethers, waffle, deployments, network, getNamedAccounts } = hre;
+const { ethers, deployments, network, getNamedAccounts } = hre;
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { getStakingModulesNames } = require("../../deployment/helpers/helpers");
 const {

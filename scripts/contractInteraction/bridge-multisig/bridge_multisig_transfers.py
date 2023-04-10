@@ -23,11 +23,11 @@ def main():
     #sendAggregatedTokensFromExchequer(contracts['ETHbs'], contracts['Aggregator-ETH-RSK'], acct, 39.5e18)
     #sendTokensToETHFromMultisig(contracts['SOV'], '0xdd0e3546eebf3f1cc4454a16b4dc5b677923bdc1', 50000e18)
     #bal = getBalance(conf.contracts['USDCes'], conf.contracts['multisig'])
-    sendTokensToETHFromMultisig(contracts['USDTes'], '0x9E0816a71B53ca67201a5088df960fE90910DE55', 2000e18)
+    #sendTokensToETHFromMultisig(contracts['USDTes'], '0x9E0816a71B53ca67201a5088df960fE90910DE55', 2000e18)
     #sendAggregatedTokensFromWallet(contracts['ETHes'], contracts['Aggregator-ETH-RSK'], '0xf5972e2bcc10404367cbdca2a3319470fbea3ff7', 2e17)
 
     #send eSOV send eSOV over the bridge to our gate.io address
-    #sendTokensFromMultisig(contracts['SOV'], '0xd71C3b440517bE7c660BB23f08bD2d6ED896C664', 100e18)
+    sendTokensToETHFromMultisig(contracts['SOV'], '0x5092019A3E0334586273A21a701F1BD859ECAbD6', 270000e18)
     
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
 

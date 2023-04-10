@@ -7,6 +7,7 @@ import math
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 import eth_abi
+from datetime import datetime, timezone
 
 
 def sendSOVFromVestingRegistry():
@@ -256,7 +257,7 @@ def addStakingModule(moduleContract, moduleContractName, moduleAddress = ZERO_AD
     It will fail if the module being added has methods overlapping with registered modules
     Param newModuleAddress is used if the module already deployed
     '''
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['Staking'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
     print('Deploying account:', conf.acct.address)
     print('Upgrading Staking Module:', moduleContractName)
     stakingModule = deployOrGetStakingModule(moduleContract, moduleContractName, moduleAddress)
@@ -274,7 +275,7 @@ def replaceStakingModule(newModuleContract, newModuleContractName, stakingModule
     It will fail if the module being added has methods overlapping with registered modules other than that being replaced
     Param newModuleAddress is used if the new module already deployed
     '''
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['Staking'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
     newStakingModule = deployOrGetStakingModule(newModuleContract, newModuleContractName, newModuleAddress)
     if canReplaceStakingModule(newStakingModule.address, stakingModuleAddressToReplace):
         # Register Module in Proxy
@@ -283,7 +284,7 @@ def replaceStakingModule(newModuleContract, newModuleContractName, stakingModule
         sendWithMultisig(conf.contracts['multisig'], stakingModulesProxy.address, data, conf.acct)
 
 def removeStakingModule(module, moduleName, moduleAddress):
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['Staking'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
     print("Removing Staking Module:", moduleName, "@", moduleAddress)
     data = stakingModulesProxy.removeModule.encode_input(moduleAddress)
     sendWithMultisig(conf.contracts['multisig'], stakingModulesProxy.address, data, conf.acct)
@@ -298,7 +299,7 @@ def deployOrGetStakingModule(moduleContract, moduleContractName, moduleAddress =
     return stakingModule
 
 def canReplaceStakingModule(stakingModuleAddress, stakingModuleAddressToReplace):
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['Staking'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
     canAdd = stakingModulesProxy.canAddModule(stakingModuleAddress)
     hasClashing = False
     if canAdd:
@@ -315,7 +316,7 @@ def canReplaceStakingModule(stakingModuleAddress, stakingModuleAddressToReplace)
         return False
 
 def canAddStakingModule(stakingModuleAddress):
-    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['StakingModulesProxy'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
+    stakingModulesProxy = Contract.from_abi("StakingModulesProxy", address=conf.contracts['Staking'], abi=ModulesProxyRegistry.abi, owner=conf.acct)
     canAdd = stakingModulesProxy.canAddModule(stakingModuleAddress)
     if canAdd:
         return True
@@ -583,3 +584,48 @@ def getVestingCreationAndTypes(vestingAddress):
 def readTokenOwner(vestingAddress):
     vesting = Contract.from_abi("VestingLogic", address=vestingAddress, abi=VestingLogic.abi, owner=conf.acct)
     print(vesting.tokenOwner())
+
+def getReleaseScheduleFromDevelopmentFund():
+    getReleaseScheduleFromFund(conf.contracts['DevelopmentFund'])
+
+def getReleaseScheduleFromAdoptionFund():
+    getReleaseScheduleFromFund(conf.contracts['AdoptionFund'])
+
+def getReleaseScheduleFromFund(fundAddress):
+    fund = Contract.from_abi("Fund", address=fundAddress, abi=DevelopmentFund.abi, owner=conf.acct)
+    durations = fund.getReleaseDuration()[::-1]
+    amounts = fund.getReleaseTokenAmount()[::-1]
+    lastRelease = fund.lastReleaseTime()
+    nextRelease = lastRelease
+    now = datetime.now().timestamp()
+    unlocked = 0
+    schedule = [["Date", "Amount"]]
+
+    for i in range (0, len(amounts)):
+        nextRelease += durations[i]
+        if(nextRelease < lastRelease):
+            continue
+
+        if(nextRelease < now):
+            unlocked = unlocked + amounts[i]
+
+        schedule.append([datetime.fromtimestamp(nextRelease), amounts[i]/(10**18)])
+       
+    print("funds available for withdrawal:",unlocked/(10**18))
+    printToCSV("releaseSchedule-"+fundAddress+".csv", schedule)
+
+def readTokenOwnerFromFunds():
+    adoptionFund = Contract.from_abi("Fund", address=conf.contracts['AdoptionFund'], abi=DevelopmentFund.abi, owner=conf.acct)
+    developmentFund = Contract.from_abi("Fund", address=conf.contracts['DevelopmentFund'], abi=DevelopmentFund.abi, owner=conf.acct)
+    print("adoptionFund.unlockedTokenOwner:", adoptionFund.unlockedTokenOwner())
+    print("adoptionFund.lockedTokenOwner:", adoptionFund.lockedTokenOwner())
+    print("developmentFund.unlockedTokenOwner:", developmentFund.unlockedTokenOwner())
+    print("developmentFund.lockedTokenOwner:", developmentFund.lockedTokenOwner())
+
+def getVoluntaryWeightedStake():
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+
+    vestingWeightedStake = staking.getPriorVestingWeightedStake(5138745, 1679073208);
+    totalWeightedStake = staking.getPriorTotalVotingPower(5138745, 1679073208);
+    voluntary = (totalWeightedStake - vestingWeightedStake)/1e18
+    print(voluntary)

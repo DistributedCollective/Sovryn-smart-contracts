@@ -337,13 +337,58 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         maxVestingWithdrawIterations = newMaxIterations;
     }
 
+    /**
+     * @notice Withdraw tokens for vesting contract.
+     * @param vesting The address of Vesting contract.
+     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
+     * @dev This function is dedicated only to support backward compatibility for sovryn ecosystem that has been implementing this staking contract.
+     * @dev Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.
+     * https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/4bbfe5bd0311ca71e4ef0e3af810d3791d8e4061/contracts/governance/Staking/modules/StakingWithdrawModule.sol#L78
+     * */
+    function governanceWithdrawVesting(address vesting, address receiver)
+        public
+        onlyAuthorized
+        whenNotFrozen
+    {
+        vestingWhitelist[vesting] = true;
+        ITeamVesting(vesting).governanceWithdrawTokens(receiver);
+        vestingWhitelist[vesting] = false;
+
+        emit VestingTokensWithdrawn(vesting, receiver);
+    }
+
+    /**
+     * @notice Withdraw the given amount of tokens.
+     * @param amount The number of tokens to withdraw.
+     * @param until The date until which the tokens were staked.
+     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
+     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting
+     * */
+    function governanceWithdraw(
+        uint96 amount,
+        uint256 until,
+        address receiver
+    ) external whenNotFrozen {
+        require(vestingWhitelist[msg.sender], "unauthorized"); // S07
+
+        _notSameBlockAsStakingCheckpoint(until, msg.sender);
+
+        _withdraw(amount, until, receiver, true);
+        // @dev withdraws tokens for lock date 2 weeks later than given lock date if sender is a contract
+        //		we don't need to check block.timestamp here
+        _withdrawNext(until, receiver, true);
+    }
+
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](5);
+        bytes4[] memory functionsList = new bytes4[](7);
         functionsList[0] = this.withdraw.selector;
         functionsList[1] = this.cancelTeamVesting.selector;
         functionsList[2] = this.getWithdrawAmounts.selector;
         functionsList[3] = this.unlockAllTokens.selector;
         functionsList[4] = this.setMaxVestingWithdrawIterations.selector;
+        functionsList[5] = this.governanceWithdraw.selector;
+        functionsList[6] = this.governanceWithdrawVesting.selector;
         return functionsList;
     }
 }

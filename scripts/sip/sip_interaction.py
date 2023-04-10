@@ -518,4 +518,16 @@ def createProposalSIP005x():
     print(datas)
     print(description)
 
+    # @note WE DON'T NEED SIP - can be set via admin (multisig)
     #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
+def createProposalSIP0056():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0056: Sunsetting the MYNT Token : https://github.com/DistributedCollective/SIPS/blob/59dca4f/SIP-0056.md, sha256: 8648026a41a96f50bc6cfb8a678ac58ab70f98ebfbc3186a7e015ddcedaf0b25"
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)

@@ -1,6 +1,6 @@
 const path = require("path");
 const { getContractNameFromScriptFileName } = require("../helpers/utils");
-
+const col = require("cli-color");
 const { getStakingModulesNames } = require("../helpers/helpers");
 const func = async function (hre) {
     const {
@@ -25,11 +25,13 @@ const func = async function (hre) {
         WeightedStakingModule: "WeightedStakingModule",
         */
     };
+    log(col.bgYellow("Deploying StakingModules..."));
     const modulesList = getStakingModulesNames();
     const stakingModuleNames = Object.keys(modulesList).filter(
         (k) => !dontDeployModules.hasOwnProperty(k)
     );
-
+    let modulesToAdd = {};
+    let modulesToReplace = {};
     for (let i = 0; i < stakingModuleNames.length; i++) {
         const tx = await deploy(stakingModuleNames[i], {
             from: deployer,
@@ -38,7 +40,7 @@ const func = async function (hre) {
         });
         if (tx.newlyDeployed) {
             totalGas = totalGas.add(tx.receipt.cumulativeGasUsed);
-            log(tx.receipt.cumulativeGasUsed.toString());
+            log("cumulative gas:", tx.receipt.cumulativeGasUsed.toString());
         }
     }
     if (totalGas != 0) {

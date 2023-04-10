@@ -44,7 +44,7 @@ def isMultisigOwner(address):
     print(multisig.isOwner(address))
 
 def printMultisigOwnersOnAny(multisigAddress):
-    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=conf.acct)
     print(multisig.getOwners())
 
 def replaceOwnerOnMultisig(multisig, oldOwner, newOwner):
@@ -119,6 +119,20 @@ def transferXUSDtoTokenSender(amount):
 
     sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
 
+def transferToTokenSender(currency, amount):
+    '''
+    direct liquid currency distribution
+    '''
+    # amount = 4739700 * 10**16
+
+    tokenSenderAddress = conf.contracts['GenericTokenSender']
+    token = Contract.from_abi("TestToken", address=conf.contracts[currency], abi=TestToken.abi, owner=conf.acct)
+    data = token.transfer.encode_input(tokenSenderAddress, amount)
+    print("Transfer",amount,currency, "from Multisig:", conf.contracts['multisig']," to GenericTokenSender:",tokenSenderAddress)
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+
 def transferSOVtoAccount(receiver, amount):
     '''
     creates multisig tx 
@@ -144,3 +158,7 @@ def removeOwnerFromMultisig(newOwner):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     data = multisig.removeOwner.encode_input(newOwner)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['multisig'], data, conf.acct)
+
+def requiredConfirmations(multisigAddress):
+    multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=conf.acct)
+    print(multisig.required())

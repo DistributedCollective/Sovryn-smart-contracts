@@ -23,7 +23,7 @@
  *
  */
 
-const { ethers, waffle } = require("hardhat");
+const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");

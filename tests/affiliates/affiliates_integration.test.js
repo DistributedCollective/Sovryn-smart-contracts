@@ -9,7 +9,7 @@
  *  - removed unused modules and lines of code
  *  - reformatted code comments
  *
- * Notes: Used waffle fixture to snapshot deployment scenarios.
+ * Notes: Used fixture to snapshot deployment scenarios.
  *   Updated to use the initializer.js functions for protocol deployment.
  *   Updated to use SUSD as underlying token, instead of custom SUSD.
  *   Updated to use WRBTC as collateral token, instead of custom testWrbtc.
@@ -18,8 +18,8 @@
 const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const { BN, constants, expectEvent } = require("@openzeppelin/test-helpers");
-const { expect, waffle } = require("hardhat");
-const { deployMockContract } = waffle;
+const { expect } = require("hardhat");
+const { deployMockContract } = require("@ethereum-waffle/mock-contract");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
@@ -87,8 +87,9 @@ contract("Affiliates", (accounts) => {
     async function deploymentAndInitFixture(_wallets, _provider) {
         // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
         await mutexUtils.getOrDeployMutex();
-        const provider = waffle.provider;
-        [senderMock] = provider.getWallets();
+        const provider = ethers.provider;
+        // [senderMock] = provider.getWallets();
+        [senderMock] = await ethers.getSigners();
 
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();

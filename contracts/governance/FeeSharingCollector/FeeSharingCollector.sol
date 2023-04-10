@@ -98,12 +98,7 @@ contract FeeSharingCollector is
     /* Functions */
 
     /// @dev fallback function to support rbtc transfer when unwrap the wrbtc.
-    function() external payable {
-        require(
-            msg.sender == address(protocol.wrbtcToken()),
-            "FeeSharingCollector::fallback: only wRBTC token calls allowed"
-        );
-    }
+    function() external payable {}
 
     /**
      * @notice Withdraw fees for the given token:

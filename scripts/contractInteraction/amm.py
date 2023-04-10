@@ -192,11 +192,11 @@ def addLiquidityV1UsingWrapper(wrapper, converter, tokens, amounts):
     abiFile =  open('./scripts/contractInteraction/ABIs/RBTCWrapperProxy.json')
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=wrapper, abi=abi, owner=conf.acct)
-    '''
+    
     token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=conf.acct)
     token.approve(wrapperProxy.address, amounts[1])
-    '''
-    tx = wrapperProxy.addLiquidityToV1(converter, tokens, amounts, 1, {'value': amounts[0], 'allow_revert':True})
+    
+    tx = wrapperProxy.addLiquidityToV1(converter, tokens, amounts, 1, {'value': amounts[0]})
     print(tx)
 
 def addLiquidityV2UsingWrapper(converter, tokenAddress, amount):
@@ -231,15 +231,15 @@ def addLiquidityV1FromMultisigUsingWrapper(wrapper, converter, tokens, amounts, 
     # approve
     token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=conf.acct)
     data = token.approve.encode_input(wrapperProxy.address, amounts[1])
-    print(data)
+    #print(data)
 
-    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+    #sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
     
     # addLiquidityToV1
     data = wrapperProxy.addLiquidityToV1.encode_input(converter, tokens, amounts, minReturn)
     print(data)
 
-    sendWithMultisig(conf.contracts['multisig'], wrapperProxy.address, data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], wrapperProxy.address, data, conf.acct, amounts[0])
 
 #expects the first token to be wrbtc
 #example: removeLiquidityV1toMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], 100e18, [conf.contracts['WRBTC'], conf.contracts['MYNT']], [5e18,2500000e18])
@@ -394,3 +394,9 @@ def getV1Converter(converterAddress):
     abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json')
     abi = json.load(abiFile)
     return Contract.from_abi("LiquidityPoolV1Converter", address=converterAddress, abi=abi, owner=conf.acct)
+
+def getReturnForFirstLiquidityProvisionOnV1(reserveAmounts):
+    converter = getV1Converter(conf.contracts['ConverterSOV'])
+    poolTokens = converter.geometricMean(reserveAmounts)
+    print(poolTokens/1e18)
+    return poolTokens

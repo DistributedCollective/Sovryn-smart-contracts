@@ -817,6 +817,35 @@ contract("FourYearVesting", (accounts) => {
                 "unauthorized"
             );
         });
+
+        it("shouldn't be possible to use governanceWithdrawVesting by anyone but owner", async () => {
+            let toStake = ONE_MILLON;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                feeSharingCollectorProxy.address,
+                52 * WEEK
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await token.approve(vesting.address, toStake);
+
+            await expectRevert(
+                staking.governanceWithdrawVesting(vesting.address, root, { from: a1 }),
+                "unauthorized"
+            );
+        });
+
+        it("shouldn't be possible to use governanceWithdraw by user", async () => {
+            await expectRevert(
+                staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root),
+                "unauthorized"
+            );
+        });
     });
 
     describe("collectDividends", async () => {

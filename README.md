@@ -92,9 +92,9 @@ OR
 brownie networks add rsk testnet host=https://public-node.testnet.rsk.co chainid=31
 ```
 
-Note: If you want to work with mainnet, please use host as `wss://mainnet.sovryn.app/ws` and chainid as `30`
+Note: If you want to work with mainnet, please use host as `wss://mainnet.sovryn.app/websocket` and chainid as `30`
 
-3. Deploy contracts locally
+1. Deploy contracts locally
 
 ```bash
 brownie run deploy_everything.py
