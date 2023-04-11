@@ -47,7 +47,7 @@
 		"hardhat": "^2.13.0",
 		"hardhat-abi-exporter": "^2.10.1",
 		"hardhat-contract-sizer": "^2.0.2",
-		"hardhat-deploy": "^0.11.25",
+		"hardhat-deploy": "^0.11.26",
 		"hardhat-deploy-ethers": "^0.3.0-beta.13",
 		"hardhat-log-remover": "^2.0.0",
 		"husky": "^4.3.6",

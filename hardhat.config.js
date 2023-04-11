@@ -224,7 +224,7 @@ module.exports = {
     external: {
         contracts: [
             {
-                artifacts: "external/artifacts/*.sol/!(*.dbg.json)",
+                artifacts: "external/artifacts",
                 // deploy: "node_modules/@cartesi/arbitration/export/deploy",
             },
             //{
