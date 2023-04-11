@@ -1,57 +1,50 @@
-# The FeeSharingLogic contract. (ILoanToken.sol)
+# The FeeSharingCollector contract. (ILoanToken.sol)
 
-View Source: [contracts/governance/FeeSharingProxy/FeeSharingLogic.sol](../contracts/governance/FeeSharingProxy/FeeSharingLogic.sol)
+View Source: [contracts/governance/FeeSharingCollector/FeeSharingCollector.sol](../contracts/governance/FeeSharingCollector/FeeSharingCollector.sol)
 
-**↗ Extends: [SafeMath96](SafeMath96.md), [IFeeSharingProxy](IFeeSharingProxy.md), [Ownable](Ownable.md), [FeeSharingProxyStorage](FeeSharingProxyStorage.md)**
+**↗ Extends: [SafeMath96](SafeMath96.md), [IFeeSharingCollector](IFeeSharingCollector.md), [Ownable](Ownable.md), [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)**
 
 **ILoanToken**
 
-Staking is not only granting voting rights, but also access to fee
-sharing according to the own voting power in relation to the total. Whenever
-somebody decides to collect the fees from the protocol, they get transferred
-to a proxy contract which invests the funds in the lending pool and keeps
-the pool tokens.
- * The fee sharing proxy will be set as feesController of the protocol contract.
-This allows the fee sharing proxy to withdraw the fees. The fee sharing
-proxy holds the pool tokens and keeps track of which user owns how many
-tokens. In order to know how many tokens a user owns, the fee sharing proxy
-needs to know the user’s weighted stake in relation to the total weighted
-stake (aka total voting power).
- * Because both values are subject to change, they may be different on each fee
-withdrawal. To be able to calculate a user’s share of tokens when he wants
-to withdraw, we need checkpoints.
- * This contract is intended to be set as the protocol fee collector.
-Anybody can invoke the withdrawFees function which uses
-protocol.withdrawFees to obtain available fees from operations on a
-certain token. These fees are deposited in the corresponding loanPool.
-Also, the staking contract sends slashed tokens to this contract. When a
-user calls the withdraw function, the contract transfers the fee sharing
-rewards in proportion to the user’s weighted stake since the last withdrawal.
- * The protocol is collecting fees in all sorts of currencies and then automatically
-supplies them to the respective lending pools. Therefore, all fees are
-generating interest for the SOV holders. If one of them withdraws fees, it will
-get pool tokens. It is planned to add the option to convert anything to rBTC
-before withdrawing, but not yet implemented.
+This contract withdraws fees to be paid to SOV Stakers from the protocol.
+Stakers call withdraw() to get their share of the fees.
+ *
+
+## Contract Members
+**Constants & Variables**
+
+```js
+//internal members
+address internal constant ZERO_ADDRESS;
+
+//public members
+address public constant RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT;
+
+```
 
 **Events**
 
 ```js
-event FeeWithdrawn(address indexed sender, address indexed token, uint256  amount);
+event FeeWithdrawnInRBTC(address indexed sender, uint256  amount);
 event TokensTransferred(address indexed sender, address indexed token, uint256  amount);
 event CheckpointAdded(address indexed sender, address indexed token, uint256  amount);
 event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint256  amount);
 event FeeAMMWithdrawn(address indexed sender, address indexed converter, uint256  amount);
 event WhitelistedConverter(address indexed sender, address  converter);
 event UnwhitelistedConverter(address indexed sender, address  converter);
+event RBTCWithdrawn(address indexed sender, address indexed receiver, uint256  amount);
 ```
 
 ## Functions
 
+- [constructor()](#constructor)
 - [withdrawFees(address[] _tokens)](#withdrawfees)
 - [withdrawFeesAMM(address[] _converters)](#withdrawfeesamm)
 - [transferTokens(address _token, uint96 _amount)](#transfertokens)
+- [transferRBTC()](#transferrbtc)
 - [_addCheckpoint(address _token, uint96 _amount)](#_addcheckpoint)
 - [withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver)](#withdraw)
+- [withdrawRBTC(uint32 _maxCheckpoints, address _receiver)](#withdrawrbtc)
 - [getAccumulatedFees(address _user, address _loanPoolToken)](#getaccumulatedfees)
 - [_getAccumulatedFees(address _user, address _loanPoolToken, uint32 _maxCheckpoints)](#_getaccumulatedfees)
 - [_getEndOfRange(uint256 start, address _loanPoolToken, uint32 _maxCheckpoints)](#_getendofrange)
@@ -62,19 +55,42 @@ event UnwhitelistedConverter(address indexed sender, address  converter);
 - [getWhitelistedConverterList()](#getwhitelistedconverterlist)
 - [_validateWhitelistedConverter(address[] converterAddresses)](#_validatewhitelistedconverter)
 - [withdrawWRBTC(address receiver, uint256 wrbtcAmount)](#withdrawwrbtc)
+- [getAccumulatedRBTCFeeBalances(address _user)](#getaccumulatedrbtcfeebalances)
+- [_getRBTCBalances(address _user, uint32 _maxCheckpoints)](#_getrbtcbalances)
+- [_getAndValidateLoanPoolWRBTC(address _wRBTCAddress)](#_getandvalidateloanpoolwrbtc)
 - [mint(address receiver, uint256 depositAmount)](#mint)
 - [burnToBTC(address receiver, uint256 burnAmount, bool useLM)](#burntobtc)
+- [tokenPrice()](#tokenprice)
+
+---    
+
+> ### constructor
+
+fallback function to support rbtc transfer when unwrap the wrbtc.
+
+```solidity
+function () external payable
+```
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on() external payable {}
+
+```
+</details>
 
 ---    
 
 > ### withdrawFees
 
-⤾ overrides [IFeeSharingProxy.withdrawFees](IFeeSharingProxy.md#withdrawfees)
+⤾ overrides [IFeeSharingCollector.withdrawFees](IFeeSharingCollector.md#withdrawfees)
 
 Withdraw fees for the given token:
 lendingFee + tradingFee + borrowingFee
 the fees (except SOV) will be converted in wRBTC form, and then will be transferred to wRBTC loan pool.
-For SOV, it will be directly deposited into the feeSharingProxy from the protocol.
+For SOV, it will be directly deposited into the feeSharingCollector from the protocol.
      *
 
 ```solidity
@@ -95,41 +111,33 @@ on withdrawFees(address[] memory _tokens) public {
         for (uint256 i = 0; i < _tokens.length; i++) {
             require(
                 Address.isContract(_tokens[i]),
-                "FeeSharingProxy::withdrawFees: token is not a contract"
+                "FeeSharingCollector::withdrawFees: token is not a contract"
             );
         }
 
         uint256 wrbtcAmountWithdrawn = protocol.withdrawFees(_tokens, address(this));
-        uint256 poolTokenAmount;
 
-        address wRBTCAddress = protocol.wrbtcToken();
-        require(
-            wRBTCAddress != address(0),
-            "FeeSharingProxy::withdrawFees: wRBTCAddress is not set"
-        );
-
-        address loanPoolToken = protocol.underlyingToLoanPool(wRBTCAddress);
-        require(
-            loanPoolToken != address(0),
-            "FeeSharingProxy::withdrawFees: loan wRBTC not found"
-        );
+        IWrbtcERC20 wRBTCToken = protocol.wrbtcToken();
 
         if (wrbtcAmountWithdrawn > 0) {
-            /// @dev TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
-            IERC20(wRBTCAddress).approve(loanPoolToken, wrbtcAmountWithdrawn);
-            poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), wrbtcAmountWithdrawn);
+            // unwrap the wrbtc to rbtc, and hold the rbtc.
+            wRBTCToken.withdraw(wrbtcAmountWithdrawn);
 
             /// @notice Update unprocessed amount of tokens
             uint96 amount96 =
                 safe96(
-                    poolTokenAmount,
-                    "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits"
+                    wrbtcAmountWithdrawn,
+                    "FeeSharingCollector::withdrawFees: wrbtc token amount exceeds 96 bits"
                 );
 
-            _addCheckpoint(loanPoolToken, amount96);
+            _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
         }
 
-        emit FeeWithdrawn(msg.sender, loanPoolToken, poolTokenAmount);
+        // note deprecated event since we unify the wrbtc & rbtc
+        // emit FeeWithdrawn(msg.sender, RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, poolTokenAmount);
+
+        // note new emitted event
+        emit FeeWithdrawnInRBTC(msg.sender, wrbtcAmountWithdrawn);
     }
 
 ```
@@ -159,17 +167,7 @@ function withdrawFeesAMM(address[] _converters) public nonpayable
 
 ```javascript
 on withdrawFeesAMM(address[] memory _converters) public {
-        address wRBTCAddress = protocol.wrbtcToken();
-        require(
-            wRBTCAddress != address(0),
-            "FeeSharingProxy::withdrawFees: wRBTCAddress is not set"
-        );
-
-        address loanPoolToken = protocol.underlyingToLoanPool(wRBTCAddress);
-        require(
-            loanPoolToken != address(0),
-            "FeeSharingProxy::withdrawFees: loan wRBTC not found"
-        );
+        IWrbtcERC20 wRBTCToken = protocol.wrbtcToken();
 
         // Validate
         _validateWhitelistedConverter(_converters);
@@ -180,30 +178,28 @@ on withdrawFeesAMM(address[] memory _converters) public {
                 IConverterAMM(_converters[i]).withdrawFees(address(this));
 
             if (wrbtcAmountWithdrawn > 0) {
-                /// @dev TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
-                IERC20(wRBTCAddress).approve(loanPoolToken, wrbtcAmountWithdrawn);
-                uint256 poolTokenAmount =
-                    ILoanToken(loanPoolToken).mint(address(this), wrbtcAmountWithdrawn);
+                // unwrap wrbtc to rbtc, and hold the rbtc
+                wRBTCToken.withdraw(wrbtcAmountWithdrawn);
 
                 /// @notice Update unprocessed amount of tokens
                 uint96 amount96 =
                     safe96(
-                        poolTokenAmount,
-                        "FeeSharingProxy::withdrawFees: pool token amount exceeds 96 bits"
+                        wrbtcAmountWithdrawn,
+                        "FeeSharingCollector::withdrawFeesAMM: wrbtc token amount exceeds 96 bits"
                     );
 
                 totalPoolTokenAmount = add96(
                     totalPoolTokenAmount,
                     amount96,
-                    "FeeSharingProxy::withdrawFees: total pool token amount exceeds 96 bits"
+                    "FeeSharingCollector::withdrawFeesAMM: total wrbtc token amount exceeds 96 bits"
                 );
 
-                emit FeeAMMWithdrawn(msg.sender, _converters[i], poolTokenAmount);
+                emit FeeAMMWithdrawn(msg.sender, _converters[i], wrbtcAmountWithdrawn);
             }
         }
 
         if (totalPoolTokenAmount > 0) {
-            _addCheckpoint(loanPoolToken, totalPoolTokenAmount);
+            _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, totalPoolTokenAmount);
         }
     }
 
@@ -214,7 +210,7 @@ on withdrawFeesAMM(address[] memory _converters) public {
 
 > ### transferTokens
 
-⤾ overrides [IFeeSharingProxy.transferTokens](IFeeSharingProxy.md#transfertokens)
+⤾ overrides [IFeeSharingCollector.transferTokens](IFeeSharingCollector.md#transfertokens)
 
 Transfer tokens to this contract.
 
@@ -234,16 +230,49 @@ function transferTokens(address _token, uint96 _amount) public nonpayable
 
 ```javascript
 on transferTokens(address _token, uint96 _amount) public {
-        require(_token != address(0), "FeeSharingProxy::transferTokens: invalid address");
-        require(_amount > 0, "FeeSharingProxy::transferTokens: invalid amount");
+        require(_token != ZERO_ADDRESS, "FeeSharingCollector::transferTokens: invalid address");
+        require(_amount > 0, "FeeSharingCollector::transferTokens: invalid amount");
 
         /// @notice Transfer tokens from msg.sender
         bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
         require(success, "Staking::transferTokens: token transfer failed");
 
+        // if _token is wrbtc, need to unwrap it to rbtc
+        IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
+        if (_token == address(wrbtcToken)) {
+            wrbtcToken.withdraw(_amount);
+            _token = RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT;
+        }
+
         _addCheckpoint(_token, _amount);
 
         emit TokensTransferred(msg.sender, _token, _amount);
+    }
+
+```
+</details>
+
+---    
+
+> ### transferRBTC
+
+Transfer RBTC / native tokens to this contract.
+
+```solidity
+function transferRBTC() external payable
+```
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on transferRBTC() external payable {
+        uint96 _amount = uint96(msg.value);
+        require(_amount > 0, "FeeSharingCollector::transferRBTC: invalid value");
+
+        _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, _amount);
+
+        emit TokensTransferred(msg.sender, ZERO_ADDRESS, _amount);
     }
 
 ```
@@ -277,7 +306,7 @@ on _addCheckpoint(address _token, uint96 _amount) internal {
                 add96(
                     unprocessedAmount[_token],
                     _amount,
-                    "FeeSharingProxy::_addCheckpoint: amount exceeds 96 bits"
+                    "FeeSharingCollector::_addCheckpoint: amount exceeds 96 bits"
                 );
 
             /// @notice Reset unprocessed amount of tokens to zero.
@@ -289,7 +318,7 @@ on _addCheckpoint(address _token, uint96 _amount) internal {
             unprocessedAmount[_token] = add96(
                 unprocessedAmount[_token],
                 _amount,
-                "FeeSharingProxy::_addCheckpoint: unprocessedAmount exceeds 96 bits"
+                "FeeSharingCollector::_addCheckpoint: unprocessedAmount exceeds 96 bits"
             );
         }
     }
@@ -301,7 +330,7 @@ on _addCheckpoint(address _token, uint96 _amount) internal {
 
 > ### withdraw
 
-⤾ overrides [IFeeSharingProxy.withdraw](IFeeSharingProxy.md#withdraw)
+⤾ overrides [IFeeSharingCollector.withdraw](IFeeSharingCollector.md#withdraw)
 
 Withdraw accumulated fee to the message sender.
      * The Sovryn protocol collects fees on every trade/swap and loan.
@@ -333,46 +362,119 @@ on withdraw(
         uint32 _maxCheckpoints,
         address _receiver
     ) public nonReentrant {
-        /// @dev Prevents processing / checkpoints because of block gas limit.
+        /// @dev Prevents checkpoints processing block gas limit
         require(
             _maxCheckpoints > 0,
-            "FeeSharingProxy::withdraw: _maxCheckpoints should be positive"
+            "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
         );
 
-        address wRBTCAddress = protocol.wrbtcToken();
-        require(wRBTCAddress != address(0), "FeeSharingProxy::withdraw: wRBTCAddress is not set");
-
-        address loanPoolTokenWRBTC = protocol.underlyingToLoanPool(wRBTCAddress);
-        require(
-            loanPoolTokenWRBTC != address(0),
-            "FeeSharingProxy::withdraw: loan wRBTC not found"
-        );
+        address wRBTCAddress = address(protocol.wrbtcToken());
+        address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(wRBTCAddress);
 
         address user = msg.sender;
-        if (_receiver == address(0)) {
+        if (_receiver == ZERO_ADDRESS) {
             _receiver = msg.sender;
         }
 
-        uint256 amount;
-        uint256 end;
-        (amount, end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
-        require(amount > 0, "FeeSharingProxy::withdrawFees: no tokens for a withdrawal");
+        (uint256 amount, uint256 end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
+        require(amount > 0, "FeeSharingCollector::withdrawFees: no tokens for a withdrawal");
 
         processedCheckpoints[user][_loanPoolToken] = end;
 
         if (loanPoolTokenWRBTC == _loanPoolToken) {
-            // We will change, so that feeSharingProxy will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
+            // We will change, so that feeSharingCollector will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
             uint256 loanAmountPaid =
                 ILoanTokenWRBTC(_loanPoolToken).burnToBTC(_receiver, amount, false);
         } else {
             // Previously it directly send the loanToken to the user
             require(
-                IERC20(_loanPoolToken).transfer(user, amount),
-                "FeeSharingProxy::withdraw: withdrawal failed"
+                IERC20(_loanPoolToken).transfer(_receiver, amount),
+                "FeeSharingCollector::withdraw: withdrawal failed"
             );
         }
 
         emit UserFeeWithdrawn(msg.sender, _receiver, _loanPoolToken, amount);
+    }
+
+```
+</details>
+
+---    
+
+> ### withdrawRBTC
+
+withdraw all of the RBTC balance based on particular checkpoints
+     * RBTC balance consists of:
+- rbtc balance
+- wrbtc balance which will be unwrapped to rbtc
+- iwrbtc balance which will be unwrapped to rbtc
+
+```solidity
+function withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonpayable nonReentrant 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _maxCheckpoints | uint32 |  | 
+| _receiver | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonReentrant {
+        uint256 wrbtcAmount;
+        uint256 rbtcAmount;
+        uint256 iWrbtcAmount;
+        uint256 endRBTC;
+        uint256 endWRBTC;
+        uint256 endIWRBTC;
+        uint256 iWRBTCloanAmountPaid;
+        address user = msg.sender;
+
+        IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
+
+        address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
+
+        if (_receiver == ZERO_ADDRESS) {
+            _receiver = msg.sender;
+        }
+
+        (rbtcAmount, wrbtcAmount, iWrbtcAmount, endRBTC, endWRBTC, endIWRBTC) = _getRBTCBalances(
+            user,
+            _maxCheckpoints
+        );
+
+        if (rbtcAmount > 0) {
+            processedCheckpoints[user][RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT] = endRBTC;
+        }
+
+        // unwrap the wrbtc
+        if (wrbtcAmount > 0) {
+            processedCheckpoints[user][address(wrbtcToken)] = endWRBTC;
+            wrbtcToken.withdraw(wrbtcAmount);
+        }
+
+        // pull out the iWRBTC to rbtc to this feeSharingCollector contract
+        if (iWrbtcAmount > 0) {
+            processedCheckpoints[user][loanPoolTokenWRBTC] = endIWRBTC;
+            iWRBTCloanAmountPaid = ILoanTokenWRBTC(loanPoolTokenWRBTC).burnToBTC(
+                address(this),
+                iWrbtcAmount,
+                false
+            );
+        }
+
+        uint256 totalAmount = rbtcAmount.add(wrbtcAmount).add(iWRBTCloanAmountPaid);
+        require(totalAmount > 0, "FeeSharingCollector::withdrawFees: no rbtc for a withdrawal");
+
+        // withdraw everything
+        (bool success, ) = _receiver.call.value(totalAmount)("");
+        require(success, "FeeSharingCollector::withdrawRBTC: Withdrawal failed");
+
+        emit RBTCWithdrawn(user, _receiver, totalAmount);
     }
 
 ```
@@ -445,7 +547,11 @@ returns(uint256, uint256)
 | ------------- |------------- | -----|
 | _user | address | Address of the user's account. | 
 | _loanPoolToken | address | Loan pool token address. | 
-| _maxCheckpoints | uint32 | Checkpoint index incremental. | 
+| _maxCheckpoints | uint32 | Checkpoint index incremental.      * | 
+
+**Returns**
+
+accumulated fees amount
 
 <details>
 	<summary><strong>Source Code</strong></summary>
@@ -460,30 +566,21 @@ returns(uint256, uint256)
             return (0, 0);
         }
 
-        uint256 start = processedCheckpoints[_user][_loanPoolToken];
+        uint256 processedUserCheckpoints = processedCheckpoints[_user][_loanPoolToken];
         uint256 end;
 
-        /// @dev Additional bool param can't be used because of stack too deep error.
-        if (_maxCheckpoints > 0) {
-            /// @dev withdraw -> _getAccumulatedFees
-            require(
-                start < numTokenCheckpoints[_loanPoolToken],
-                "FeeSharingProxy::withdrawFees: no tokens for a withdrawal"
-            );
-            end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
-        } else {
-            /// @dev getAccumulatedFees -> _getAccumulatedFees
-            /// Don't throw error for getter invocation outside of transaction.
-            if (start >= numTokenCheckpoints[_loanPoolToken]) {
-                return (0, numTokenCheckpoints[_loanPoolToken]);
-            }
-            end = numTokenCheckpoints[_loanPoolToken];
+        if (processedUserCheckpoints >= numTokenCheckpoints[_loanPoolToken]) {
+            return (0, _maxCheckpoints > 0 ? 0 : numTokenCheckpoints[_loanPoolToken]);
         }
+
+        end = _maxCheckpoints > 0
+            ? _getEndOfRange(processedUserCheckpoints, _loanPoolToken, _maxCheckpoints)
+            : numTokenCheckpoints[_loanPoolToken];
 
         uint256 amount = 0;
         uint256 cachedLockDate = 0;
         uint96 cachedWeightedStake = 0;
-        for (uint256 i = start; i < end; i++) {
+        for (uint256 i = processedUserCheckpoints; i < end; i++) {
             Checkpoint storage checkpoint = tokenCheckpoints[_loanPoolToken][i];
             uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
             uint96 weightedStake;
@@ -555,7 +652,7 @@ returns(uint256)
             }
             end = safe32(
                 start + _maxCheckpoints,
-                "FeeSharingProxy::withdraw: checkpoint index exceeds 32 bits"
+                "FeeSharingCollector::withdraw: checkpoint index exceeds 32 bits"
             );
             if (end > nCheckpoints) {
                 end = nCheckpoints;
@@ -600,12 +697,12 @@ function _writeTokenCheckpoint(address _token, uint96 _numTokens) internal nonpa
         uint32 blockNumber =
             safe32(
                 block.number,
-                "FeeSharingProxy::_writeCheckpoint: block number exceeds 32 bits"
+                "FeeSharingCollector::_writeCheckpoint: block number exceeds 32 bits"
             );
         uint32 blockTimestamp =
             safe32(
                 block.timestamp,
-                "FeeSharingProxy::_writeCheckpoint: block timestamp exceeds 32 bits"
+                "FeeSharingCollector::_writeCheckpoint: block timestamp exceeds 32 bits"
             );
         uint256 nCheckpoints = numTokenCheckpoints[_token];
 
@@ -663,7 +760,7 @@ returns(totalWeightedStake uint96)
         totalWeightedStake = sub96(
             totalWeightedStake,
             vestingWeightedStake,
-            "FeeSharingProxy::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
+            "FeeSharingCollector::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
         );
     }
 
@@ -805,16 +902,159 @@ function withdrawWRBTC(address receiver, uint256 wrbtcAmount) external nonpayabl
 
 ```javascript
  withdrawWRBTC(address receiver, uint256 wrbtcAmount) external onlyOwner {
-        address wRBTCAddress = protocol.wrbtcToken();
-        require(
-            wRBTCAddress != address(0),
-            "FeeSharingProxy::withdrawFees: wRBTCAddress is not set"
-        );
+        address wRBTCAddress = address(protocol.wrbtcToken());
 
         uint256 balance = IERC20(wRBTCAddress).balanceOf(address(this));
         require(wrbtcAmount <= balance, "Insufficient balance");
 
         IERC20(wRBTCAddress).safeTransfer(receiver, wrbtcAmount);
+    }
+
+    /*
+```
+</details>
+
+---    
+
+> ### getAccumulatedRBTCFeeBalances
+
+view function that calculate the total RBTC that includes:
+- RBTC
+- WRBTC
+- iWRBTC * iWRBTC.tokenPrice()
+
+```solidity
+function getAccumulatedRBTCFeeBalances(address _user) external view
+returns(uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _user | address | address of the user. | 
+
+**Returns**
+
+rbtc balance of the given user's address.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+ getAccumulatedRBTCFeeBalances(address _user) external view returns (uint256) {
+        uint256 _rbtcAmount;
+        uint256 _wrbtcAmount;
+        uint256 _iWrbtcAmount;
+        (_rbtcAmount, _wrbtcAmount, _iWrbtcAmount, , , ) = _getRBTCBalances(_user, 0);
+        return _rbtcAmount.add(_wrbtcAmount).add(_iWrbtcAmount);
+    }
+
+    /*
+```
+</details>
+
+---    
+
+> ### _getRBTCBalances
+
+private function that responsible to calculate the user's token that has RBTC as underlying token (rbtc, wrbtc, iWrbtc)
+     *
+
+```solidity
+function _getRBTCBalances(address _user, uint32 _maxCheckpoints) private view
+returns(_rbtcAmount uint256, _wrbtcAmount uint256, _iWrbtcAmount uint256, _endRBTC uint256, _endWRBTC uint256, _endIWRBTC uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _user | address | address of the user. | 
+| _maxCheckpoints | uint32 | maximum checkpoints.      * | 
+
+**Returns**
+
+_rbtcAmount rbtc amount
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+ _getRBTCBalances(address _user, uint32 _maxCheckpoints)
+        private
+        view
+        returns (
+            uint256 _rbtcAmount,
+            uint256 _wrbtcAmount,
+            uint256 _iWrbtcAmount,
+            uint256 _endRBTC,
+            uint256 _endWRBTC,
+            uint256 _endIWRBTC
+        )
+    {
+        IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
+
+        address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
+
+        (_rbtcAmount, _endRBTC) = _getAccumulatedFees(
+            _user,
+            RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+            _maxCheckpoints
+        );
+        (_wrbtcAmount, _endWRBTC) = _getAccumulatedFees(
+            _user,
+            address(wrbtcToken),
+            _maxCheckpoints
+        );
+        (_iWrbtcAmount, _endIWRBTC) = _getAccumulatedFees(
+            _user,
+            loanPoolTokenWRBTC,
+            _maxCheckpoints
+        );
+
+        _iWrbtcAmount = _iWrbtcAmount.mul(ILoanTokenWRBTC(loanPoolTokenWRBTC).tokenPrice()).div(
+            1e18
+        );
+    }
+
+    /*
+```
+</details>
+
+---    
+
+> ### _getAndValidateLoanPoolWRBTC
+
+private function to get and validate the wrbtc loan pool token address based on the wrbtc token address.
+
+```solidity
+function _getAndValidateLoanPoolWRBTC(address _wRBTCAddress) private view
+returns(address)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _wRBTCAddress | address | wrbtc token address.      * | 
+
+**Returns**
+
+wrbtc loan pool wrbtc token address
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+ _getAndValidateLoanPoolWRBTC(address _wRBTCAddress) private view returns (address) {
+        address loanPoolTokenWRBTC = protocol.underlyingToLoanPool(_wRBTCAddress);
+        require(
+            loanPoolTokenWRBTC != ZERO_ADDRESS,
+            "FeeSharingCollector::withdraw: loan wRBTC not found"
+        );
+
+        return loanPoolTokenWRBTC;
     }
 }
 
@@ -875,6 +1115,25 @@ returns(loanAmountPaid uint256)
         uint256 burnAmount,
         bool useLM
     ) external returns (uint256 loanAmountPaid);
+
+    fu
+```
+</details>
+
+---    
+
+> ### tokenPrice
+
+```solidity
+function tokenPrice() external view
+returns(price uint256)
+```
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+ tokenPrice() external view returns (uint256 price);
 }
 
 ```
@@ -891,7 +1150,7 @@ returns(loanAmountPaid uint256)
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
@@ -907,9 +1166,9 @@ returns(loanAmountPaid uint256)
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -922,11 +1181,16 @@ returns(loanAmountPaid uint256)
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -938,6 +1202,7 @@ returns(loanAmountPaid uint256)
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -968,6 +1233,7 @@ returns(loanAmountPaid uint256)
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -987,11 +1253,15 @@ returns(loanAmountPaid uint256)
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -1014,6 +1284,7 @@ returns(loanAmountPaid uint256)
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -1021,18 +1292,24 @@ returns(loanAmountPaid uint256)
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -1045,6 +1322,7 @@ returns(loanAmountPaid uint256)
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -1057,5 +1335,5 @@ returns(loanAmountPaid uint256)
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)
