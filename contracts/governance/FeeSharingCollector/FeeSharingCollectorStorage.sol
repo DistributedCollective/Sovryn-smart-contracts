@@ -17,10 +17,7 @@ import "../../interfaces/IWrbtcERC20.sol";
  * */
 contract FeeSharingCollectorStorage is Ownable {
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
-    /// @dev TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
     uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;
-
-    uint32 constant MAX_CHECKPOINTS = 100;
 
     IProtocol public protocol;
     IStaking public staking;
@@ -29,10 +26,10 @@ contract FeeSharingCollectorStorage is Ownable {
     mapping(address => mapping(uint256 => Checkpoint)) public tokenCheckpoints;
 
     /// @notice The number of checkpoints for each pool token address.
-    mapping(address => uint256) public numTokenCheckpoints;
+    mapping(address => uint256) public totalTokenCheckpoints;
 
     /// @notice
-    /// user => token => processed checkpoint
+    /// user => token => processed checkpoints
     mapping(address => mapping(address => uint256)) public processedCheckpoints;
 
     /// @notice Last time fees were withdrawn per pool token address:
