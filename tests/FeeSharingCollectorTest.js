@@ -22,7 +22,7 @@
  *       It didn't work.
  */
 
-const { expect } = require("chai");
+// const { expect } = require("chai");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
@@ -1866,6 +1866,172 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 stakingDate
             );
             console.log("\ngasUsed: " + tx.receipt.gasUsed);
+        });
+    });
+
+    describe.only("withdrawStartingFromCheckpoint, withdrawRBTCStartingFromCheckpoint and getNextPositiveUserCheckpoint", () => {
+        afterEach(async () => {
+            await loadFixture(protocolDeploymentFixture);
+        });
+        it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint revert if _fromCheckpoint == 0", async () => {
+            await expectRevert(
+                feeSharingCollectorProxy.withdrawStartingFromCheckpoint(
+                    SOVToken.address,
+                    0,
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "_fromCheckpoint param must be > 0"
+            );
+
+            await expectRevert(
+                feeSharingCollectorProxy.withdrawRBTCStartingFromCheckpoint(0, 10, ZERO_ADDRESS, {
+                    from: account1,
+                }),
+                "_fromCheckpoint param must be > 0"
+            );
+        });
+
+        it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint revert if _fromCheckpoint < processedCheckpoints[user][_loanPoolToken]", async () => {
+            feeSharingCollectorProxy = await FeeSharingCollectorProxyMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await feeSharingCollectorProxy.setUserProcessedCheckpoints(
+                account1,
+                SOVToken.address,
+                3
+            );
+            await expectRevert(
+                feeSharingCollectorProxy.withdrawStartingFromCheckpoint(
+                    SOVToken.address,
+                    1,
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "_fromCheckpoint param must be >= user's processedCheckpoints"
+            );
+
+            await feeSharingCollectorProxy.setUserProcessedCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                2
+            );
+
+            await expectRevert(
+                feeSharingCollectorProxy.withdrawRBTCStartingFromCheckpoint(1, 10, ZERO_ADDRESS, {
+                    from: account1,
+                }),
+                "_fromCheckpoint param must be >= user's processedCheckpoints"
+            );
+        });
+
+        it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint revert if no token previous checkpoint at _fromCheckpoint - 1", async () => {
+            feeSharingCollectorProxy = await FeeSharingCollectorProxyMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await feeSharingCollectorProxy.setUserProcessedCheckpoints(
+                account1,
+                SOVToken.address,
+                3
+            );
+            await expectRevert(
+                feeSharingCollectorProxy.withdrawStartingFromCheckpoint(
+                    SOVToken.address,
+                    4,
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "No previous checkpoint for token at [_fromCheckpoint - 1]"
+            );
+
+            await feeSharingCollectorProxy.setUserProcessedCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                1
+            );
+
+            await expectRevert(
+                feeSharingCollectorProxy.withdrawRBTCStartingFromCheckpoint(2, 10, ZERO_ADDRESS, {
+                    from: account1,
+                }),
+                "No previous checkpoint for token at [_fromCheckpoint - 1]"
+            );
+        });
+
+        it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint revert if the user had a stake > 0 at _fromCheckpoint - 1", async () => {
+            feeSharingCollectorProxy = await FeeSharingCollectorProxyMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            const userStake = 100;
+            await SOVToken.transfer(account1, userStake * 2);
+            await stake(userStake, account1);
+            await stake(userStake, account1);
+            await feeSharingCollectorProxy.addCheckPoint(SOVToken.address, userStake);
+            await feeSharingCollectorProxy.addCheckPoint(SOVToken.address, userStake);
+            await feeSharingCollectorProxy.setUserProcessedCheckpoints(
+                account1,
+                SOVToken.address,
+                1
+            );
+            //await staking.MOCK_priorWeightedStake(userStake * 10);
+            await expectRevert(
+                feeSharingCollectorProxy.withdrawStartingFromCheckpoint(
+                    SOVToken.address,
+                    1,
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "User weighted stake should be zero at previous checkpoint"
+            );
+            // RBTC
+            await feeSharingCollectorProxy.addCheckPoint(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                userStake
+            );
+            await feeSharingCollectorProxy.addCheckPoint(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                userStake
+            );
+            await feeSharingCollectorProxy.setUserProcessedCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                1
+            );
+            await expectRevert(
+                feeSharingCollectorProxy.withdrawRBTCStartingFromCheckpoint(1, 10, ZERO_ADDRESS, {
+                    from: account1,
+                }),
+                "User weighted stake should be zero at previous checkpoint"
+            );
+        });
+
+        // the result of calling withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint with _fromCheckpoint == processedCheckpoints[user][_loanPoolToken] is the same result as when calling withdraw or withdrawRBTC
+        it("calling withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint with _fromCheckpoint == processedCheckpoints[user][_loanPoolToken] is the same as withdraw and withdrawRBTC respectively", async () => {});
+
+        // If calling withdrawStartingFromCheckpoint or withdrawRBTCStartingFromCheckpoint  with _fromCheckpoint > processedCheckpoints[user][_loanPoolToken] it starts calculating the fees from _fromCheckpoint
+        it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint starts calculating fees correctly", async () => {
+            // To test this, create 10 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawStartingFromCheckpoint with _fromCheckpoint = 9  and _maxCheckpoints = 3
+        });
+
+        it("getNextPositiveUserCheckpoint returns the first checkpoint on which the user has a stake > 0", async () => {});
+        it("getNextPositiveUserCheckpoint returns the index of the last checkpoint if the user has no stake at all", async () => {
+            // here we present a scenario for FE to pre-calc fees
+            // 1. call
         });
     });
 

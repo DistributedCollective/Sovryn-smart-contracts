@@ -40,4 +40,12 @@ contract FeeSharingCollectorProxyMockup is FeeSharingCollector {
             );
         _addCheckpoint(loanPoolToken, amount96);
     }
+
+    function setUserProcessedCheckpoints(
+        address _user,
+        address _loanPoolToken,
+        uint256 num
+    ) public {
+        processedCheckpoints[_user][_loanPoolToken] = num;
+    }
 }
