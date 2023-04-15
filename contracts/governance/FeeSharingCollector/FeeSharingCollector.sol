@@ -341,18 +341,20 @@ contract FeeSharingCollector is
             _fromCheckpoint >= processedCheckpoints[_user][_token],
             "_fromCheckpoint param must be >= user's processedCheckpoints"
         );
-        Checkpoint storage prevCheckpoint = tokenCheckpoints[_token][_fromCheckpoint - 1];
-        require(
-            prevCheckpoint.blockNumber > 0,
-            "No previous checkpoint for token at [_fromCheckpoint - 1]"
-        );
-        uint96 weightedStake =
-            staking.getPriorWeightedStake(
-                _user,
-                prevCheckpoint.blockNumber - 1,
-                prevCheckpoint.timestamp
+        if (_fromCheckpoint != processedCheckpoints[_user][_token]) {
+            Checkpoint storage prevCheckpoint = tokenCheckpoints[_token][_fromCheckpoint - 1];
+            require(prevCheckpoint.blockNumber > 0, "No previous checkpoint for token");
+            uint96 weightedStake =
+                staking.getPriorWeightedStake(
+                    _user,
+                    prevCheckpoint.blockNumber - 1,
+                    prevCheckpoint.timestamp
+                );
+            require(
+                weightedStake == 0,
+                "User weighted stake should be zero at previous checkpoint"
             );
-        require(weightedStake == 0, "User weighted stake should be zero at previous checkpoint");
+        }
         _;
     }
 
