@@ -27,7 +27,7 @@ def main():
     # lend()
     # checkTxns()
     # checkUserBalance()
-    check()
+    #check()
 
 def loadConfig():
     global contracts, acct
@@ -105,10 +105,10 @@ def updateLMConfig():
 
     MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
     # SOV/rBTC - 25k SOV
-    ALLOCATION_POINT_BTC_SOV = 15000 # (WR)BTC/SOV
+    ALLOCATION_POINT_BTC_SOV = 12000 # (WR)BTC/SOV
 
     # xUSD/rBTC - 1 SOV
-    ALLOCATION_POINT_BTC_XUSD = 15000 # (WR)BTC/XUSD
+    ALLOCATION_POINT_BTC_XUSD = 7500 # (WR)BTC/XUSD
 
     # DLLR/rBTC - 25k SOV
     ALLOCATION_POINT_BTC_DLLR =  30000 # (WR)BTC/DLLR
@@ -124,8 +124,8 @@ def updateLMConfig():
 
     # update this before executing
     data = lm.updateTokens.encode_input(
-        [contracts['(WR)BTC/XUSD'], contracts['(WR)BTC/DLLR'], contracts['(WR)BTC/SOV'], contracts['LiquidityMiningConfigToken']],
-        [ALLOCATION_POINT_BTC_XUSD, ALLOCATION_POINT_BTC_DLLR, ALLOCATION_POINT_BTC_SOV, ALLOCATION_POINT_CONFIG_TOKEN],
+        [contracts['(WR)BTC/XUSD'],  contracts['(WR)BTC/SOV'], contracts['LiquidityMiningConfigToken']],
+        [ALLOCATION_POINT_BTC_XUSD,  ALLOCATION_POINT_BTC_SOV, ALLOCATION_POINT_CONFIG_TOKEN],
         True
     )
     tx = multisig.submitTransaction(lm.address,0,data)
