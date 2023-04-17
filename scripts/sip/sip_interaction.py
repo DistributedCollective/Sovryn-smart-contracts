@@ -23,7 +23,7 @@ def main():
 
     # Call the function you want here
 
-    createProposalSIP0049()
+    createProposalSIP0060()
     #createProposalSIP0050()
 
     balanceAfter = acct.balance()
@@ -54,7 +54,7 @@ def loadConfig():
         print("acct:", acct)
         configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
-        acct = accounts.load("rskdeployer")
+        acct = accounts.load("proposer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif thisNetwork == "rsk-mainnet-ws":
         acct = accounts.load("rskdeployer")
@@ -531,3 +531,14 @@ def createProposalSIP0056():
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalSIP0060():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0060: Add DLLR as collateral for borrowing : https://github.com/DistributedCollective/SIPS/blob/2443b3c/SIP-0060.md, sha256: 532151b945263f0a4725980d2358c12143e8a8cfb59017df2592baf994f6059d"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
