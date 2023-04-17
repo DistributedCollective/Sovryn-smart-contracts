@@ -52,12 +52,21 @@ def main():
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
-    #confirmWithBFMS(8)
-    #checkTxOnBF(8)
+    confirmWithBFMS(28)
+    checkTxOnBF(28)
 
+    #setupTorqueLoanParams(conf.contracts['iBPro'], conf.contracts['BPro'], conf.contracts['DLLR'], Wei("50 ether"))
+
+    #triggerEmergencyStop(conf.contracts['iDLLR'], False)
+
+    #readDemandCurve(conf.contracts['iXUSD'])
+    #deployLoanToken(conf.contracts['DLLR'], 'iDLLR', 'iDLLR', 6000000000000000000,15000000000000000000, 75000000000000000000, 150000000000000000000, [conf.contracts['WRBTC'], conf.contracts['SOV'], conf.contracts['BPro']])
+    #lendToPool(conf.contracts['iDLLR'], conf.contracts['DLLR'], 5000e18)
+    #buyWRBTC(0.5e18)
+    #testBorrow(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['SOV'], 100e18)
     #buyWRBTC(2.5e18)
     #setPriceFeed(conf.contracts['DLLR'], '0xEd80Ccde8bAeFf2dBFC70d3028a27e501Fa0D7D5')
-    
+    #withdrawTokensFromWatcher(conf.contracts['XUSD'], amount, conf.contracts['multisig'])
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
     
     ### BF ###
@@ -81,7 +90,9 @@ def main():
     #executeOnMultisig(1352)
    
     #confirmWithMS(1357)
-    #checkTx(1358)
+    #checkTx(1401)
+    #checkTx(1403)
+    #checkTx(1405)
     
     #addAmmPoolTokenToLM('(WR)BTC/DLLR')
 
@@ -107,6 +118,7 @@ def main():
     #readFeesController()
     #setFeesController(conf.contracts['FeeSharingCollectorProxy1DayStaking'])
 
+    #revokeConfirmationMS(txId)
     #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
     #print('FastBTC offramp balance:', bal/10**18)
     #transferRBTCFromFastBTCOffRampToOnRamp(bal)
@@ -147,9 +159,9 @@ def main():
     
     #getVoluntaryWeightedStake()
 
-    contract = Contract.from_abi("Token", address=conf.contracts['SOV'], abi=LoanToken.abi, owner=conf.acct)
-    balance = contract.balanceOf(conf.acct)
-    print(balance/1e18)
+    #contract = Contract.from_abi("Token", address=conf.contracts['SOV'], abi=LoanToken.abi, owner=conf.acct)
+    #balance = contract.balanceOf(conf.acct)
+    #print(balance/1e18)
 
 
 def governanceTransfer():
