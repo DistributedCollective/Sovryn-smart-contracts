@@ -52,8 +52,8 @@ def main():
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
-    confirmWithBFMS(28)
-    checkTxOnBF(28)
+    #confirmWithBFMS(28)
+    #checkTxOnBF(28)
 
     #setupTorqueLoanParams(conf.contracts['iBPro'], conf.contracts['BPro'], conf.contracts['DLLR'], Wei("50 ether"))
 
@@ -90,7 +90,7 @@ def main():
     #executeOnMultisig(1352)
    
     #confirmWithMS(1357)
-    #checkTx(1401)
+    #checkTx(1408)
     #checkTx(1403)
     #checkTx(1405)
     
@@ -99,6 +99,7 @@ def main():
     #hasApproval(conf.contracts['DLLR'], conf.contracts['multisig'], conf.contracts['RBTCWrapperProxyWithoutLM'])
 
 
+    distributeMissedFees()
     
     
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
