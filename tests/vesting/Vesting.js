@@ -27,7 +27,7 @@ const StakingProxy = artifacts.require("StakingProxy");
 const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const SOV = artifacts.require("SOV");
 const TestWrbtc = artifacts.require("TestWrbtc");
-const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
 //Upgradable Vesting Registry

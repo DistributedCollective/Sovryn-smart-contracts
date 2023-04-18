@@ -9,11 +9,9 @@ import "../../mixins/EnumerableAddressSet.sol";
 import "../../interfaces/IWrbtcERC20.sol";
 
 /**
- * @title FeeSharingCollectorProxy Storage contact.
- * @notice Just the storage part of feeSharingCollectorProxy contract, no functions,
- * only constant, variables and required structures (mappings).
- * Used by FeeSharingCollectorProxy, and the implementation logic of FeeSharingCollectorProxy (FeeSharingCollector)
- *
+ * @title FeeSharingCollectorStorage contact
+ * @notice Just the storage part of FeeSharingCollector contract, and FeeSharingCollectorProxy. No functions,
+ * only constant, variables and required structures (mappings)
  * */
 contract FeeSharingCollectorStorage is Ownable {
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
