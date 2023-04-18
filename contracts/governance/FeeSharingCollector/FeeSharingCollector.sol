@@ -115,7 +115,7 @@ contract FeeSharingCollector is
      *
      * @param _tokens array address of the token
      * */
-    function withdrawFees(address[] memory _tokens) public {
+    function withdrawFees(address[] calldata _tokens) external {
         for (uint256 i = 0; i < _tokens.length; i++) {
             require(
                 Address.isContract(_tokens[i]),
@@ -320,7 +320,7 @@ contract FeeSharingCollector is
      * This function will directly burnToBTC and use the msg.sender (user) as the receiver
      *
      * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
-     * @param _maxCheckpoints Maximum number of checkpoints to be processed.
+     * @param _maxCheckpoints Maximum number of checkpoints to be processed. Must be positive value.
      * @param _receiver The receiver of tokens or msg.sender
      * */
     function withdraw(
@@ -331,30 +331,41 @@ contract FeeSharingCollector is
         _withdraw(_token, _maxCheckpoints, _receiver);
     }
 
+    /// @notice Validates is the checkpoint is payable for the user
     modifier validFromCheckpointParam(
         uint256 _fromCheckpoint,
         address _user,
         address _token
     ) {
-        require(_fromCheckpoint > 0, "_fromCheckpoint param must be > 0");
+        // _fromCheckppoint is checkpoint number, not array index, so should be > 1
+        require(_fromCheckpoint > 1, "_fromCheckpoint param must be > 1");
+        uint256 fromCheckpointIndex = _fromCheckpoint - 1;
         require(
-            _fromCheckpoint >= processedCheckpoints[_user][_token],
-            "_fromCheckpoint param must be >= user's processedCheckpoints"
+            _fromCheckpoint > processedCheckpoints[_user][_token],
+            "_fromCheckpoint param must be > userProcessedCheckpoints"
         );
-        if (_fromCheckpoint != processedCheckpoints[_user][_token]) {
-            Checkpoint storage prevCheckpoint = tokenCheckpoints[_token][_fromCheckpoint - 1];
-            require(prevCheckpoint.blockNumber > 0, "No previous checkpoint for token");
-            uint96 weightedStake =
-                staking.getPriorWeightedStake(
-                    _user,
-                    prevCheckpoint.blockNumber - 1,
-                    prevCheckpoint.timestamp
-                );
-            require(
-                weightedStake == 0,
-                "User weighted stake should be zero at previous checkpoint"
+        require(
+            _fromCheckpoint <= totalTokenCheckpoints[_token],
+            "_fromCheckpoint should be <= totalTokenCheckpoints"
+        );
+
+        Checkpoint memory prevCheckpoint = tokenCheckpoints[_token][fromCheckpointIndex - 1];
+
+        uint96 weightedStake =
+            staking.getPriorWeightedStake(
+                _user,
+                prevCheckpoint.blockNumber,
+                prevCheckpoint.timestamp
             );
-        }
+        require(weightedStake == 0, "User weighted stake should be zero at previous checkpoint");
+
+        Checkpoint memory fromCheckpoint = tokenCheckpoints[_token][fromCheckpointIndex];
+        weightedStake = staking.getPriorWeightedStake(
+            _user,
+            fromCheckpoint.blockNumber,
+            fromCheckpoint.timestamp
+        );
+        require(weightedStake > 0, "User weighted stake should be > 0 at  _fromCheckpoint");
         _;
     }
 
@@ -377,12 +388,12 @@ contract FeeSharingCollector is
      * */
     function withdrawStartingFromCheckpoint(
         address _token,
-        uint32 _fromCheckpoint,
+        uint256 _fromCheckpoint,
         uint32 _maxCheckpoints,
         address _receiver
     ) public validFromCheckpointParam(_fromCheckpoint, msg.sender, _token) nonReentrant {
         if (_fromCheckpoint > processedCheckpoints[msg.sender][_token]) {
-            processedCheckpoints[msg.sender][_token] = _fromCheckpoint;
+            processedCheckpoints[msg.sender][_token] = _fromCheckpoint.sub(1);
         }
         _withdraw(_token, _maxCheckpoints, _receiver);
     }
@@ -483,7 +494,8 @@ contract FeeSharingCollector is
         if (
             _fromCheckpoint > processedCheckpoints[msg.sender][RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT]
         ) {
-            processedCheckpoints[msg.sender][RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT] = _fromCheckpoint;
+            processedCheckpoints[msg.sender][RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT] = _fromCheckpoint
+                .sub(1);
         }
         _withdrawRBTC(_maxCheckpoints, _receiver);
     }
@@ -498,42 +510,40 @@ contract FeeSharingCollector is
     function getNextPositiveUserCheckpoint(address _user, address _token)
         external
         view
-        returns (uint256)
+        returns (
+            uint256 checkpointNum,
+            bool hasSkippedCheckpoints,
+            bool hasFees
+        )
     {
         if (staking.isVestingContract(_user)) {
-            return 0;
+            return (0, false, false);
         }
 
         uint256 processedUserCheckpoints = processedCheckpoints[_user][_token];
         uint256 end = totalTokenCheckpoints[_token];
 
         if (processedUserCheckpoints >= end || end == 0) {
-            return end;
+            return (end, false, false);
         }
 
         uint256 cachedLockDate = 0;
         // @note here processedUserCheckpoints is a number of processed checkpoints and
         // also an index for the next checkpoint because an array index starts wtih 0
         for (uint256 i = processedUserCheckpoints; i < end; i++) {
-            Checkpoint storage checkpoint = tokenCheckpoints[_token][i];
-            uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
-            uint96 weightedStake;
-            if (lockDate != cachedLockDate) {
-                /// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
-                /// For the same block like we did for total voting power in _writeTokenCheckpoint
-                weightedStake = staking.getPriorWeightedStake(
+            Checkpoint storage tokenCheckpoint = tokenCheckpoints[_token][i];
+            uint96 weightedStake =
+                staking.getPriorWeightedStake(
                     _user,
-                    checkpoint.blockNumber - 1,
-                    checkpoint.timestamp
+                    tokenCheckpoint.blockNumber - 1,
+                    tokenCheckpoint.timestamp
                 );
-                if (weightedStake > 0) {
-                    return i;
-                } else {
-                    cachedLockDate = lockDate;
-                }
+            if (weightedStake > 0) {
+                // i is the index and we need to return point num which is i + 1
+                return (i + 1, i > processedUserCheckpoints, true);
             }
         }
-        return end - 1;
+        return (end, end > processedUserCheckpoints, false);
     }
 
     /**
@@ -661,7 +671,7 @@ contract FeeSharingCollector is
      * they are not considered by the withdrawing logic (to avoid inconsistencies).
      *
      * @param start Start of the range.
-     * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
+     * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of a pool token.
      * @param _maxCheckpoints Checkpoint index incremental.
      * */
     function _getEndOfRange(
