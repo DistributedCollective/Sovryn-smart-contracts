@@ -89,17 +89,26 @@ def main():
     #executeOnMultisig(1343)
     #executeOnMultisig(1352)
    
-    #confirmWithMS(1357)
-    #checkTx(1408)
+    confirmWithMS(1429)
+    #checkTx(1128)
     #checkTx(1403)
-    #checkTx(1405)
+    checkTx(1429)
     
     #addAmmPoolTokenToLM('(WR)BTC/DLLR')
 
     #hasApproval(conf.contracts['DLLR'], conf.contracts['multisig'], conf.contracts['RBTCWrapperProxyWithoutLM'])
 
 
-    distributeMissedFees()
+    #distributeMissedFees()
+    '''
+    getFeeSharingState(conf.contracts['SOV'])
+    getFeeSharingState(conf.contracts['ZUSD'])
+    getFeeSharingState(conf.contracts['iRBTC'])
+    getFeeSharingState(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT())
+    '''
+    
+    #bal = getBalance(conf.contracts['iRBTC'], conf.contracts['multisig'])
+    #transferTokens(conf.contracts['iRBTC'], bal)
     
     
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
@@ -125,7 +134,7 @@ def main():
     #transferRBTCFromFastBTCOffRampToOnRamp(bal)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
-    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], 250000e18)
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], 16658.600400155126 * 10**18)
     #mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 249999e18)
     #minReturn = getReturnForFirstLiquidityProvisionOnV1([10e18, 250000e18])
     #addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterDLLR'], [conf.contracts['WRBTC'], conf.contracts['DLLR']], [0.1e18,2500e18] , 1)
