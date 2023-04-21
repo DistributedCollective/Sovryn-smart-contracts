@@ -131,6 +131,8 @@ def main():
     #revokeConfirmationMS(txId)
     #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
     #print('FastBTC offramp balance:', bal/10**18)
+    #print('Multisig balance:', getContractBTCBalance(conf.contracts['multisig'])/1e18)
+
     #transferRBTCFromFastBTCOffRampToOnRamp(bal)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
