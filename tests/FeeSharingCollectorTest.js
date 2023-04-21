@@ -347,8 +347,9 @@ contract("FeeSharingCollector:", (accounts) => {
             );
             expect(processedCheckpoints.toNumber()).to.equal(10);
         });
+
         it("withdrawRBTCStartingFromCheckpoint calculates fees correctly", async () => {
-            // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
+            // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRBTCStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
             await stake(900, root);
@@ -382,24 +383,6 @@ contract("FeeSharingCollector:", (accounts) => {
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(processedCheckpoints.toNumber()).to.equal(10);
-
-            /// SOV
-            //mock data
-            let lendingFeeTokensHeld = new BN(wei("1", "ether"));
-            let tradingFeeTokensHeld = new BN(wei("2", "ether"));
-            let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
-            let totalFeeTokensHeld = lendingFeeTokensHeld
-                .add(tradingFeeTokensHeld)
-                .add(borrowingFeeTokensHeld);
-            let feeAmount = await setFeeTokensHeld(
-                lendingFeeTokensHeld,
-                tradingFeeTokensHeld,
-                borrowingFeeTokensHeld,
-                false,
-                true
-            );
-
-            tx = await feeSharingCollector.withdrawFees([SOVToken.address]);
         });
 
         it("getNextPositiveUserCheckpoint for RBTC returns the first checkpoint on which the user has a stake > 0", async () => {
@@ -582,54 +565,6 @@ contract("FeeSharingCollector:", (accounts) => {
                 "User weighted stake should be zero at previous checkpoint"
             );
         });
-
-        // the result of calling withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint with _fromCheckpoint == processedCheckpoints[user][_loanPoolToken] is the same result as when calling withdraw or withdrawRBTC
-        it.skip("calling withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint with _fromCheckpoint == processedCheckpoints[user][_loanPoolToken] is the same as withdraw and withdrawRBTC respectively", async () => {
-            /// @todo remove this test if deprecation of _fromCheckpoint == processedCheckpoints[user][_loanPoolToken] is approved. otherwise - WIP, complete the test
-            //// withdrawStartingFromCheckpoint
-            let userStake = 100;
-            const setup = async () => {
-                await stake(900, root);
-                if (MOCK_PRIOR_WEIGHTED_STAKE) {
-                    await staking.MOCK_priorWeightedStake(userStake * 10);
-                }
-                await SOVToken.transfer(account1, userStake);
-                await stake(userStake, account1);
-
-                // mock data
-                await createCheckpoints(30);
-            };
-
-            await setup();
-
-            let tx = await feeSharingCollector.withdrawStartingFromCheckpoint(
-                loanToken.address,
-
-                1000,
-                ZERO_ADDRESS,
-                { from: account1 }
-            );
-            console.log("\nwithdraw(checkpoints = 30).gasUsed: " + tx.receipt.gasUsed);
-            // processedCheckpoints
-            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
-                account1,
-                loanToken.address
-            );
-            expect(processedCheckpoints.toNumber()).to.be.equal(30);
-            // expect;
-
-            //// withdraw
-            await loadFixture(protocolDeploymentFixture);
-            await setup();
-
-            //// withdrawRBTC
-            await loadFixture(protocolDeploymentFixture);
-            await setup();
-
-            //// withdrawRBTCStartingFromCheckpoint
-            await loadFixture(protocolDeploymentFixture);
-            await setup();
-        });
     });
 
     describe("getNextPositiveUserCheckpoint", () => {
@@ -776,7 +711,7 @@ contract("FeeSharingCollector:", (accounts) => {
     });
 
     describe("FeeSharingCollectorProxy", () => {
-        /*before(async () => {
+        before(async () => {
             await loadFixture(protocolDeploymentFixture);
         });
         beforeEach(async () => {
@@ -784,7 +719,7 @@ contract("FeeSharingCollector:", (accounts) => {
         });
         afterEach(async () => {
             await snapshot.restore();
-        });*/
+        });
         it("Check owner & implementation", async () => {
             const proxyOwner = await feeSharingCollectorProxyObj.getProxyOwner();
             const implementation = await feeSharingCollectorProxyObj.getImplementation();

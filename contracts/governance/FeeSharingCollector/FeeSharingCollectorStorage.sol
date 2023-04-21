@@ -23,7 +23,7 @@ contract FeeSharingCollectorStorage is Ownable {
     /// @notice Checkpoints by index per pool token address
     mapping(address => mapping(uint256 => Checkpoint)) public tokenCheckpoints;
 
-    /// @notice The number of checkpoints for each pool token address.
+    /// @notice The number of checkpoints for each token address.
     mapping(address => uint256) public totalTokenCheckpoints;
 
     /// @notice

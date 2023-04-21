@@ -281,7 +281,6 @@ contract FeeSharingCollector is
         }
 
         (uint256 amount, uint256 end) = _getAccumulatedFees(user, _token, _maxCheckpoints);
-        // require(amount > 0, "FeeSharingCollector::withdrawFees: no tokens for withdrawal");
         if (amount == 0) {
             if (end > processedCheckpoints[user][_token]) {
                 processedCheckpoints[user][_token] = end;
@@ -898,6 +897,19 @@ contract FeeSharingCollector is
         );
 
         return loanPoolTokenWRBTC;
+    }
+
+    // @todo update dependency `numTokenCheckpoints` -> `totalTokenCheckpoints` and deprecate numTokenCheckpoints function
+    /**
+     * @dev This getter function `numTokenCheckpoints` is added for backwards compatibility
+     *      broken when renamed `numTokenCheckpoints` storage variable to `totalTokenCheckpoints`.
+     *
+     * @param _token token address to get checkpoints for
+     *
+     * @return Total token checkpoints
+     */
+    function numTokenCheckpoints(address _token) external view returns (uint256) {
+        return totalTokenCheckpoints[_token];
     }
 }
 
