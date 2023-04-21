@@ -52,8 +52,8 @@ def main():
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
-    confirmWithBFMS(28)
-    checkTxOnBF(28)
+    #confirmWithBFMS(28)
+    #checkTxOnBF(28)
 
     #setupTorqueLoanParams(conf.contracts['iBPro'], conf.contracts['BPro'], conf.contracts['DLLR'], Wei("50 ether"))
 
@@ -121,6 +121,8 @@ def main():
     #revokeConfirmationMS(txId)
     #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
     #print('FastBTC offramp balance:', bal/10**18)
+    #print('Multisig balance:', getContractBTCBalance(conf.contracts['multisig'])/1e18)
+
     #transferRBTCFromFastBTCOffRampToOnRamp(bal)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
