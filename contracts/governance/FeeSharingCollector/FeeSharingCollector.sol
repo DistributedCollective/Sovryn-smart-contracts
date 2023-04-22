@@ -82,7 +82,8 @@ contract FeeSharingCollector is
     event UserFeeProcessedNoWithdraw(
         address indexed sender,
         address indexed token,
-        uint256 indexed timestamp
+        uint256 prevProcessedCheckpoints,
+        uint256 newProcessedCheckpoints
     );
 
     /**
@@ -283,8 +284,13 @@ contract FeeSharingCollector is
         (uint256 amount, uint256 end) = _getAccumulatedFees(user, _token, _maxCheckpoints);
         if (amount == 0) {
             if (end > processedCheckpoints[user][_token]) {
+                emit UserFeeProcessedNoWithdraw(
+                    msg.sender,
+                    _token,
+                    processedCheckpoints[user][_token],
+                    end
+                );
                 processedCheckpoints[user][_token] = end;
-                emit UserFeeProcessedNoWithdraw(msg.sender, _token, end);
                 return;
             } else {
                 // getting here most likely means smth wrong with the state

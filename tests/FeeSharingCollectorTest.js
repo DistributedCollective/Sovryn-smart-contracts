@@ -1484,6 +1484,84 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
+        it("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints", async () => {
+            await protocolDeploymentFixture();
+            await stake(900, root);
+            await createCheckpointsSOV(10);
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            expect(fees).to.be.bignumber.equal("0");
+
+            const tx = await feeSharingCollector.withdraw(SOVToken.address, 9, ZERO_ADDRESS, {
+                from: account1,
+            });
+            expectEvent(tx, "UserFeeProcessedNoWithdraw", {
+                sender: account1,
+                token: SOVToken.address,
+                prevProcessedCheckpoints: new BN(0),
+                newProcessedCheckpoints: new BN(9),
+            });
+        });
+
+        it("Shifts user's processed checkpoints to max if no fees due within max checkpoints and exist user's  previous checkpoints", async () => {
+            await protocolDeploymentFixture();
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await sovryn.setFeesController(feeSharingCollector.address);
+
+            await stake(900, root);
+            await createCheckpointsSOV(10);
+
+            await feeSharingCollector.setUserProcessedCheckpoints(account1, SOVToken.address, 2);
+
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            expect(fees).to.be.bignumber.equal("0");
+
+            // const { amount, end } = await feeSharingCollector.getFullAccumulatedFees(
+            //     account1,
+            //     SOVToken.address,
+            //     11
+            // );
+            // console.log(" amount, end:", amount.toNumber(), end.toNumber());
+
+            // maxCheckpoints (20) + processedUserCheckpoints(0) > totalTokenCheckpoints (10)
+            let tx = await feeSharingCollector.trueWithdraw(SOVToken.address, 20, ZERO_ADDRESS, {
+                from: account1,
+            });
+            expectEvent(tx, "UserFeeProcessedNoWithdraw", {
+                sender: account1,
+                token: SOVToken.address,
+                prevProcessedCheckpoints: new BN(2),
+                newProcessedCheckpoints: new BN(10),
+            });
+
+            // maxCheckpoints (8) + processedUserCheckpoints(10) < totalTokenCheckpoints (25)
+            await createCheckpointsSOV(15);
+            tx = await feeSharingCollector.trueWithdraw(SOVToken.address, 8, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            expectEvent(tx, "UserFeeProcessedNoWithdraw", {
+                sender: account1,
+                token: SOVToken.address,
+                prevProcessedCheckpoints: new BN(10),
+                newProcessedCheckpoints: new BN(18),
+            });
+
+            // maxCheckpoints (7) + processedUserCheckpoints(18) ===  totalTokenCheckpoints (25)
+            tx = await feeSharingCollector.trueWithdraw(SOVToken.address, 7, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            expectEvent(tx, "UserFeeProcessedNoWithdraw", {
+                sender: account1,
+                token: SOVToken.address,
+                prevProcessedCheckpoints: new BN(18),
+                newProcessedCheckpoints: new BN(25),
+            });
+        });
+
         it("Shouldn't be able to withdraw zero amount (for token pool)", async () => {
             await protocolDeploymentFixture();
             let fees = await feeSharingCollector.getAccumulatedFees(account1, loanToken.address);
