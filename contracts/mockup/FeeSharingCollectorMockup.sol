@@ -41,6 +41,10 @@ contract FeeSharingCollectorMockup is FeeSharingCollector {
         _addCheckpoint(loanPoolToken, amount96);
     }
 
+    function setTotalTokenCheckpoints(address _token, uint256 qty) public {
+        totalTokenCheckpoints[_token] = qty;
+    }
+
     function setUserProcessedCheckpoints(
         address _user,
         address _loanPoolToken,

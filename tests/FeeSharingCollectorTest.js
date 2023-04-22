@@ -296,6 +296,7 @@ contract("FeeSharingCollector:", (accounts) => {
     beforeEach(async () => {
         await loadFixture(protocolDeploymentFixture);
     });
+
     describe("withdrawStartingFromCheckpoint, withdrawRBTCStartingFromCheckpoint and getNextPositiveUserCheckpoint", () => {
         let snapshot;
         before(async () => {
@@ -707,6 +708,59 @@ contract("FeeSharingCollector:", (accounts) => {
                 nextCheckpoint.hasSkippedCheckpoints,
                 nextCheckpoint.hasFees,
             ]).to.eql([10, true, true]);
+        });
+    });
+
+    describe("feeSharingCollector functions", () => {
+        let snapshot;
+        before(async () => {
+            await loadFixture(protocolDeploymentFixture);
+        });
+        beforeEach(async () => {
+            snapshot = await takeSnapshot();
+        });
+        afterEach(async () => {
+            await snapshot.restore();
+        });
+        it("numTokenCheckpoints returns value of totalTokenCheckpoints", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            await feeSharingCollector.setTotalTokenCheckpoints(SOVToken.address, 3);
+            expect((await feeSharingCollector.totalTokenCheckpoints(SOVToken.address)).toNumber())
+                .equal(
+                    (await feeSharingCollector.numTokenCheckpoints(SOVToken.address)).toNumber()
+                )
+                .equal(3);
+
+            await feeSharingCollector.setTotalTokenCheckpoints(SOVToken.address, 0);
+            expect((await feeSharingCollector.totalTokenCheckpoints(SOVToken.address)).toNumber())
+                .equal(
+                    (await feeSharingCollector.numTokenCheckpoints(SOVToken.address)).toNumber()
+                )
+                .equal(0);
+
+            await feeSharingCollector.setTotalTokenCheckpoints(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                5
+            );
+            expect(
+                (
+                    await feeSharingCollector.totalTokenCheckpoints(
+                        RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+                    )
+                ).toNumber()
+            )
+                .equal(
+                    (
+                        await feeSharingCollector.numTokenCheckpoints(
+                            RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+                        )
+                    ).toNumber()
+                )
+                .equal(5);
         });
     });
 
