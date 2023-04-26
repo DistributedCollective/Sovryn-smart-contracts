@@ -16,6 +16,7 @@ import "../../interfaces/IWrbtcERC20.sol";
 contract FeeSharingCollectorStorage is Ownable {
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
     uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;
+    uint256 public constant MAX_NEXT_POSITIVE_CHECKPOINT = 120;
 
     IProtocol public protocol;
     IStaking public staking;

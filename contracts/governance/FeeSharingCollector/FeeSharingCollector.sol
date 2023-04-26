@@ -510,9 +510,14 @@ contract FeeSharingCollector is
      *
      * @param _user The address of the user or contract.
      * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
+     * @param _startFrom Checkpoint number to start from. If _startFrom < processedUserCheckpoints then starts from processedUserCheckpoints.
      * @return Checkpoint number where user's weighted stake > 0
      */
-    function getNextPositiveUserCheckpoint(address _user, address _token)
+    function getNextPositiveUserCheckpoint(
+        address _user,
+        address _token,
+        uint256 _startFrom
+    )
         external
         view
         returns (
@@ -526,16 +531,21 @@ contract FeeSharingCollector is
         }
 
         uint256 processedUserCheckpoints = processedCheckpoints[_user][_token];
-        uint256 end = totalTokenCheckpoints[_token];
+        uint256 totalCheckpoints = totalTokenCheckpoints[_token];
 
-        if (processedUserCheckpoints >= end || end == 0) {
-            return (end, false, false);
+        if (processedUserCheckpoints >= totalCheckpoints || totalCheckpoints == 0) {
+            return (totalCheckpoints, false, false);
         }
 
-        uint256 cachedLockDate = 0;
+        uint256 startFrom =
+            _startFrom > processedUserCheckpoints ? _startFrom : processedUserCheckpoints;
+
+        uint256 nextMax = startFrom.add(MAX_NEXT_POSITIVE_CHECKPOINT);
+        uint256 end = nextMax < totalCheckpoints ? nextMax : totalCheckpoints;
+
         // @note here processedUserCheckpoints is a number of processed checkpoints and
         // also an index for the next checkpoint because an array index starts wtih 0
-        for (uint256 i = processedUserCheckpoints; i < end; i++) {
+        for (uint256 i = startFrom; i < end; i++) {
             Checkpoint storage tokenCheckpoint = tokenCheckpoints[_token][i];
             uint96 weightedStake =
                 staking.getPriorWeightedStake(
