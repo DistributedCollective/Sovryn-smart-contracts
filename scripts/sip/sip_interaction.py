@@ -542,3 +542,28 @@ def createProposalSIP0060():
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0061():
+    stabilityPoolProxy = Contract.from_abi("StabilityPoolProxy", address = contracts['stabilityPool'], abi = UpgradableProxy.abi, owner = acct)
+    stabilityPool = Contract.from_abi("StabilityPool", address=contracts['stabilityPool'], abi=StakingProxy.abi, owner=acct)
+
+    # TODO: Need to update the new logic stability pool once deployed to the mainnet
+    stabilityPoolLogicAddress = "0x"
+
+    # TODO: Need to update the deployed community issuance address once deployed to the mainnet
+    communityIssuanceAddress = "0x"
+
+    # Action
+    target = [contracts['stabilityPool'], contracts['stabilityPool']]
+    value = [0, 0]
+    signature = ["setImplementation(address)", "setCommunityIssuanceAddress(address)"]
+
+    data1 = stabilityPoolProxy.setImplementation.encode_input(stabilityPoolLogicAddress)
+    data2 = stabilityPool.setCommunityIssuanceAddress.encode_input(communityIssuanceAddress)
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
+
+    # TODO Need to update description once SIP details has been published
+    description = "SIP-0061: Update stability pool subsidies : , sha256: "
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
