@@ -97,6 +97,8 @@ const mutexUtils = require("./reentrancy/utils");
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
+const MAX_NEXT_POSITIVE_CHECKPOINT = 75;
+
 const {
     getSUSD,
     getRBTC,
@@ -326,7 +328,8 @@ contract("FeeSharingCollector:", (accounts) => {
             let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
 
             let tx = await feeSharingCollector.withdrawStartingFromCheckpoint(
@@ -366,7 +369,8 @@ contract("FeeSharingCollector:", (accounts) => {
             let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
 
             let tx = await feeSharingCollector.withdrawStartingFromCheckpoint(
@@ -406,7 +410,8 @@ contract("FeeSharingCollector:", (accounts) => {
             let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
 
             let tx = await feeSharingCollector.withdrawRBTCStartingFromCheckpoint(
@@ -441,7 +446,8 @@ contract("FeeSharingCollector:", (accounts) => {
             const nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(10);
         });
@@ -459,7 +465,8 @@ contract("FeeSharingCollector:", (accounts) => {
             const nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(10);
         });
@@ -474,9 +481,6 @@ contract("FeeSharingCollector:", (accounts) => {
             await stake(900, root);
             const userStake = 100;
 
-            const MAX_NEXT_POSITIVE_CHECKPOINT = (
-                await feeSharingCollector.MAX_NEXT_POSITIVE_CHECKPOINT()
-            ).toNumber(); //120
             await SOVToken.transfer(account1, userStake);
 
             // SOV
@@ -507,12 +511,13 @@ contract("FeeSharingCollector:", (accounts) => {
                     (totalTokenCheckpoints - userProcessedCheckpoints) /
                         MAX_NEXT_POSITIVE_CHECKPOINT
                 ) + addChunks;
-            expect(chunks).equal(2);
+            expect(chunks).equal(3);
 
             let nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(MAX_NEXT_POSITIVE_CHECKPOINT);
             expect(!nextCheckpoint.hasFees);
@@ -521,7 +526,20 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                121
+                MAX_NEXT_POSITIVE_CHECKPOINT + 1,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(
+                MAX_NEXT_POSITIVE_CHECKPOINT * 2 + 1
+            );
+            expect(!nextCheckpoint.hasFees);
+            expect(!nextCheckpoint.hasSkippedCheckpoints);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                MAX_NEXT_POSITIVE_CHECKPOINT * 2 + 1,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(200);
             expect(!nextCheckpoint.hasFees);
@@ -530,7 +548,8 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                199
+                199,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(200);
             expect(!nextCheckpoint.hasFees);
@@ -539,7 +558,8 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                200
+                200,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(200);
             expect(!nextCheckpoint.hasFees);
@@ -548,7 +568,8 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                250
+                250,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(200);
             expect(!nextCheckpoint.hasFees);
@@ -560,7 +581,8 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                200
+                200,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
 
             expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(201);
@@ -743,7 +765,8 @@ contract("FeeSharingCollector:", (accounts) => {
             let nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect([
                 nextCheckpoint.checkpointNum.toNumber(),
@@ -759,7 +782,8 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect([
                 nextCheckpoint.checkpointNum.toNumber(),
@@ -772,7 +796,8 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect([
                 nextCheckpoint.checkpointNum.toNumber(),
@@ -790,7 +815,8 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect([
                 nextCheckpoint.checkpointNum.toNumber(),
@@ -808,7 +834,8 @@ contract("FeeSharingCollector:", (accounts) => {
             let nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect([
                 nextCheckpoint.checkpointNum.toNumber(),
@@ -824,7 +851,8 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect([
                 nextCheckpoint.checkpointNum.toNumber(),
@@ -841,7 +869,8 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect([
                 nextCheckpoint.checkpointNum.toNumber(),
@@ -863,7 +892,8 @@ contract("FeeSharingCollector:", (accounts) => {
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                0
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
             );
             expect([
                 nextCheckpoint.checkpointNum.toNumber(),

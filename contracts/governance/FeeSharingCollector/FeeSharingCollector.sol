@@ -516,7 +516,8 @@ contract FeeSharingCollector is
     function getNextPositiveUserCheckpoint(
         address _user,
         address _token,
-        uint256 _startFrom
+        uint256 _startFrom,
+        uint256 _maxCheckpoints
     )
         external
         view
@@ -529,9 +530,10 @@ contract FeeSharingCollector is
         if (staking.isVestingContract(_user)) {
             return (0, false, false);
         }
+        require(_maxCheckpoints > 0, "_maxCheckpoints must be > 0");
 
-        uint256 processedUserCheckpoints = processedCheckpoints[_user][_token];
         uint256 totalCheckpoints = totalTokenCheckpoints[_token];
+        uint256 processedUserCheckpoints = processedCheckpoints[_user][_token];
 
         if (processedUserCheckpoints >= totalCheckpoints || totalCheckpoints == 0) {
             return (totalCheckpoints, false, false);
@@ -540,8 +542,10 @@ contract FeeSharingCollector is
         uint256 startFrom =
             _startFrom > processedUserCheckpoints ? _startFrom : processedUserCheckpoints;
 
-        uint256 nextMax = startFrom.add(MAX_NEXT_POSITIVE_CHECKPOINT);
-        uint256 end = nextMax < totalCheckpoints ? nextMax : totalCheckpoints;
+        uint256 end = startFrom.add(_maxCheckpoints);
+        if (end >= totalCheckpoints) {
+            end = totalCheckpoints;
+        }
 
         // @note here processedUserCheckpoints is a number of processed checkpoints and
         // also an index for the next checkpoint because an array index starts wtih 0
