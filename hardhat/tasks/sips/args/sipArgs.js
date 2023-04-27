@@ -193,10 +193,8 @@ const getArgsSip0061 = async (hre) => {
         values: [0, 0],
         signatures: ["setImplementation(address)", "setCommunityIssuanceAddress(address)"],
         data: [
-            ethers.utils.defaultAbiCoder.encode(
-                ["address", "address"],
-                [newStabilityPoolImplementation, communityIssuanceAddress]
-            ),
+            ethers.utils.defaultAbiCoder.encode(["address"], [newStabilityPoolImplementation]),
+            ethers.utils.defaultAbiCoder.encode(["address"], [communityIssuanceAddress]),
         ],
         description: "SIP-0061: Update stability pool subsidies : , sha256: ",
     };
