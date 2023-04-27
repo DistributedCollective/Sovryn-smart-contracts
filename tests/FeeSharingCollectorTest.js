@@ -452,6 +452,18 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(10);
         });
 
+        it("getNextPositiveUserCheckpoint reverts on _maxCheckpoints == 0", async () => {
+            await expectRevert(
+                feeSharingCollector.getNextPositiveUserCheckpoint(
+                    account1,
+                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                    0,
+                    0
+                ),
+                "_maxCheckpoints must be > 0"
+            );
+        });
+
         it("getNextPositiveUserCheckpoint for SOV returns the first checkpoint on which the user has a stake > 0", async () => {
             await stake(900, root);
             const userStake = 100;
