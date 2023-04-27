@@ -511,6 +511,7 @@ contract FeeSharingCollector is
      * @param _user The address of the user or contract.
      * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
      * @param _startFrom Checkpoint number to start from. If _startFrom < processedUserCheckpoints then starts from processedUserCheckpoints.
+     * @param _maxCheckpoints Max checkpoints to process in a row to avoid timeout error
      * @return Checkpoint number where user's weighted stake > 0
      */
     function getNextPositiveUserCheckpoint(
