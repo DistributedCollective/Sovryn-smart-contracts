@@ -82,7 +82,7 @@
 		"test": "npx hardhat test",
 		"uml": "npx sol2uml ./contracts -o UML.svg",
 		"generate-types": "hardhat export-abi",
-		"postinstall": "npx patch-package",
+		"prepare": "npx patch-package",
 		"compile": "npx hardhat compile",
 		"npm-publish": "npm run compile && npm publish",
 		"fees-withdraw": "brownie run rewards_cron",
