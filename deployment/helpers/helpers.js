@@ -9,6 +9,23 @@
 const { arrayToUnique } = require("../helpers/utils");
 const col = require("cli-color");
 
+const logTimer = (time, passedTime) => {
+    const delaySeconds = time / 1000;
+    let timer = delaySeconds - passedTime;
+
+    let hours = parseInt(timer / 3600, 10);
+    let minutes = parseInt((timer % 3600) / 60, 10);
+    let seconds = parseInt(timer % 60, 10);
+    hours = hours < 10 ? "0" + hours : hours;
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+    process.stdout.write("");
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+
+    process.stdout.write(hours + ":" + minutes + ":" + seconds);
+};
+
 const getStakingModulesNames = () => {
     return {
         StakingAdminModule: "StakingAdminModule",
@@ -549,4 +566,5 @@ module.exports = {
     getTxLog,
     getTxRevertReason,
     delay,
+    logTimer,
 };

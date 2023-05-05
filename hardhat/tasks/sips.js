@@ -13,6 +13,7 @@ const {
     parseEthersLogToValue,
     getTxLog,
     delay,
+    logTimer,
 } = require("../../deployment/helpers/helpers");
 
 const sipArgsList = require("./sips/args/sipArgs");
@@ -205,17 +206,25 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
             await ethers.getSigner(signerAcc)
         );
         let proposal = await governorContract.proposals(proposalId);
-
-        while ((await ethers.provider.getBlockNumber()) <= proposal.endBlock) {
-            const currentBlockNumber = await ethers.provider.getBlockNumber();
-            const delayTime = (proposal.endBlock - currentBlockNumber) * 30000;
-            console.log(
+        let currentBlockNumber = await ethers.provider.getBlockNumber();
+        let passedTime = 0;
+        let delayTime;
+        const logTime = () => {
+            logTimer(delayTime, passedTime);
+            passedTime++;
+        };
+        while (currentBlockNumber <= proposal.endBlock) {
+            delayTime = (proposal.endBlock - currentBlockNumber) * 30000;
+            logger.warn(
                 `${new Date().toUTCString()}, current block ${currentBlockNumber}, target block ${
                     proposal.endBlock
                 }:  pausing for ${delayTime / 1000} secs (${delayTime / 30000} blocks)`
             );
+            setInterval(logTime, 1000);
             await delay(delayTime);
+            currentBlockNumber = await ethers.provider.getBlockNumber();
         }
+        clearInterval(logTime);
         const proposalState = await governorContract.state(proposalId);
         if (proposalState !== 4) {
             throw new Error("Proposal NOT Succeeded");
