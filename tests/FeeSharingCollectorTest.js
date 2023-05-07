@@ -321,10 +321,10 @@ contract("FeeSharingCollector:", (accounts) => {
 
             await SOVToken.transfer(account1, userStake);
             await createCheckpointsSOV(9);
-
             await stake(userStake, account1);
             await createCheckpointsSOV(1);
 
+            const tokenBalanceBefore = await SOVToken.balanceOf(account1);
             let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
                 account1,
                 SOVToken.address,
@@ -332,19 +332,33 @@ contract("FeeSharingCollector:", (accounts) => {
                 MAX_NEXT_POSITIVE_CHECKPOINT
             );
 
+            const { checkpointNum } = nextPositive;
+            expect(checkpointNum.toNumber()).eql(10);
+
+            const expectedReward = await feeSharingCollector.getAccumulatedFees(
+                account1,
+                SOVToken.address
+            );
+
             let tx = await feeSharingCollector.withdrawStartingFromCheckpoint(
                 SOVToken.address,
-                nextPositive.checkpointNum.toNumber(),
+                nextPositive.checkpointNum,
                 3,
                 ZERO_ADDRESS,
                 { from: account1 }
             );
+
+            const tokenBalanceAfter = await SOVToken.balanceOf(account1);
 
             expectEvent(tx, "UserFeeWithdrawn", {
                 sender: account1,
                 token: SOVToken.address,
                 amount: new BN(60),
             });
+
+            expect(tokenBalanceAfter.sub(tokenBalanceBefore).toNumber()).eql(
+                expectedReward.toNumber()
+            );
 
             let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
