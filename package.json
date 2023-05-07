@@ -84,6 +84,8 @@
 		"fork:rsk-mainnet": "hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy",
 		"fork:rsk-mainnet-at-block": "cross-env IS_FORKED=1 && hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy --fork-block-number 4690000",
 		"fork:rsk-testnet": "hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy",
+		"hh:console-fork-mainnet": "hardhat console --network rskForkedMainnet",
+		"hh:console-fork-testnet": "hardhat console --network rskForkedTestnet",
 		"deploy:staking-modules": "hardhat deploy --tags StakingModules"
 	},
 	"husky": {
