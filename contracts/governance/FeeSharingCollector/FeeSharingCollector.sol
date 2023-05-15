@@ -642,6 +642,7 @@ contract FeeSharingCollector is
                     checkpoint.timestamp
                 );
                 cachedWeightedStake = weightedStake;
+                cachedLockDate = lockDate;
             }
             uint256 share =
                 uint256(checkpoint.numTokens).mul(weightedStake).div(
