@@ -3,7 +3,7 @@
   "contractName": "FeeSharingCollector",
   "sourceName": "contracts/governance/FeeSharingCollector/FeeSharingCollector.sol",
   "address":"0x115cAF168c51eD15ec535727F64684D33B7b08D1",
-  "implementation":"0xaC51118cf012260d0886C04014207ec7EEc4F9C8",
+  "implementation":"0x4aD59A02ead4968072433da8BA52cFb5d1067FDa",
   "abi": [
     {
       "anonymous": false,
