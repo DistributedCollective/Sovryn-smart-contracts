@@ -275,7 +275,6 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints,
         address _receiver
     ) public nonReentrant {
-        revert("fees claiming is on maintenance");
         /// @dev Prevents processing / checkpoints because of block gas limit.
         require(
             _maxCheckpoints > 0,
@@ -322,7 +321,6 @@ contract FeeSharingCollector is
      *
      */
     function withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonReentrant {
-        revert("fees claiming is on maintenance");
         uint256 wrbtcAmount;
         uint256 rbtcAmount;
         uint256 iWrbtcAmount;
