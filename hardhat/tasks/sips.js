@@ -260,10 +260,19 @@ task("sips:execute-timer", "Execute SIP with countdown")
         let proposal = await governorContract.proposals(proposalId);
         //Math.floor(Date.now() / 1000)
         const currentBlockTimestamp = (await ethers.provider.getBlock()).timestamp;
+        let passedTime = 0;
+        let logDelayTime;
+        const logTime = () => {
+            logTimer(logDelayTime, passedTime);
+            passedTime++;
+        };
         if (proposal.eta > currentBlockTimestamp) {
             const delayTime = proposal.eta - currentBlockTimestamp + 120; // add 2 minutes
+            logDelayTime = delayTime * 1000;
             logger.info(`Delaying proposal ${proposalId} execution for ${delayTime} sec`);
+            setInterval(logTime, 1000);
             await delay(delayTime * 1000);
+            clearInterval(logTime);
         }
         await (await governorContract.execute(proposalId)).wait();
         if ((await governorContract.state(proposalId)) === 7) {
