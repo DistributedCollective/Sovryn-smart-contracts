@@ -231,6 +231,7 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
         }
         (await governorContract.queue(proposalId)).wait();
         proposal = await governorContract.proposals(proposalId);
+        console.log("");
         logger.success(`Proposal ${proposalId} queued. Execution ETA: ${proposal.eta}.`);
     });
 
@@ -275,6 +276,7 @@ task("sips:execute-timer", "Execute SIP with countdown")
             clearInterval(logTime);
         }
         await (await governorContract.execute(proposalId)).wait();
+        console.log("");
         if ((await governorContract.state(proposalId)) === 7) {
             logger.success(`Proposal ${proposalId} executed`);
         } else {
