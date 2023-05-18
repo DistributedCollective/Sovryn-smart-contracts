@@ -623,27 +623,21 @@ contract FeeSharingCollector is
         }
 
         uint256 amount = 0;
-        uint256 cachedLockDate = 0;
-        uint96 cachedWeightedStake = 0;
         // @note here processedUserCheckpoints is a number of processed checkpoints and
         // also an index for the next checkpoint because an array index starts wtih 0
         for (uint256 i = processedUserCheckpoints; i < end; i++) {
             Checkpoint memory checkpoint = tokenCheckpoints[_token][i];
             uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
-            uint96 weightedStake;
-            if (lockDate == cachedLockDate) {
-                weightedStake = cachedWeightedStake;
-            } else {
-                /// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
-                /// For the same block like we did for total voting power in _writeTokenCheckpoint
-                weightedStake = staking.getPriorWeightedStake(
+
+            /// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
+            /// For the same block like we did for total voting power in _writeTokenCheckpoint
+            uint96 weightedStake =
+                staking.getPriorWeightedStake(
                     _user,
                     checkpoint.blockNumber - 1,
                     checkpoint.timestamp
                 );
-                cachedWeightedStake = weightedStake;
-                cachedLockDate = lockDate;
-            }
+
             uint256 share =
                 uint256(checkpoint.numTokens).mul(weightedStake).div(
                     uint256(checkpoint.totalWeightedStake)
