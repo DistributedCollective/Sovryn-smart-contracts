@@ -627,7 +627,6 @@ contract FeeSharingCollector is
         // also an index for the next checkpoint because an array index starts wtih 0
         for (uint256 i = processedUserCheckpoints; i < end; i++) {
             Checkpoint memory checkpoint = tokenCheckpoints[_token][i];
-            uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
 
             /// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
             /// For the same block like we did for total voting power in _writeTokenCheckpoint
