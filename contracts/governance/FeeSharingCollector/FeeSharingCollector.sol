@@ -336,7 +336,7 @@ contract FeeSharingCollector is
         _withdraw(_token, _maxCheckpoints, _receiver);
     }
 
-    /// @notice Validates is the checkpoint is payable for the user
+    /// @notice Validates if the checkpoint is payable for the user
     modifier validFromCheckpointParam(
         uint256 _fromCheckpoint,
         address _user,
@@ -398,6 +398,9 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints,
         address _receiver
     ) public validFromCheckpointParam(_fromCheckpoint, msg.sender, _token) nonReentrant {
+        // @dev e.g. _fromCheckpoint == 10
+        // after _withdraw() user's processedCheckpoints should be 10 =>
+        // set processed checkpoints = 9, next maping index = 9 (10th checkpoint)
         uint256 prevFromCheckpoint = _fromCheckpoint.sub(1);
         if (prevFromCheckpoint > processedCheckpoints[msg.sender][_token]) {
             processedCheckpoints[msg.sender][_token] = prevFromCheckpoint;
@@ -498,6 +501,9 @@ contract FeeSharingCollector is
         validFromCheckpointParam(_fromCheckpoint, msg.sender, RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
         nonReentrant
     {
+        // @dev e.g. _fromCheckpoint == 10
+        // after _withdraw() user's processedCheckpoints should be 10 =>
+        // set processed checkpoints = 9, next maping index = 9 (10th checkpoint)
         uint256 prevFromCheckpoint = _fromCheckpoint.sub(1);
         if (
             prevFromCheckpoint >
