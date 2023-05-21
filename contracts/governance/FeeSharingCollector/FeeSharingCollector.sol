@@ -812,11 +812,13 @@ contract FeeSharingCollector is
      * @return rbtc balance of the given user's address.
      */
     function getAccumulatedRBTCFeeBalances(address _user) external view returns (uint256) {
-        uint256 _rbtcAmount;
-        uint256 _wrbtcAmount;
-        uint256 _iWrbtcAmount;
-        (_rbtcAmount, _wrbtcAmount, _iWrbtcAmount, , , ) = _getRBTCBalances(_user, 0);
-        return _rbtcAmount.add(_wrbtcAmount).add(_iWrbtcAmount);
+        (uint256 _rbtcAmount, uint256 _wrbtcAmount, uint256 _iWrbtcAmount, , , ) =
+            _getRBTCBalances(_user, 0);
+        IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
+        address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
+        uint256 iWRBTCAmountOwed =
+            _iWrbtcAmount.mul(ILoanTokenWRBTC(loanPoolTokenWRBTC).tokenPrice()).div(1e18);
+        return _rbtcAmount.add(_wrbtcAmount).add(iWRBTCAmountOwed);
     }
 
     /**
@@ -862,10 +864,6 @@ contract FeeSharingCollector is
             _user,
             loanPoolTokenWRBTC,
             _maxCheckpoints
-        );
-
-        _iWrbtcAmount = _iWrbtcAmount.mul(ILoanTokenWRBTC(loanPoolTokenWRBTC).tokenPrice()).div(
-            1e18
         );
     }
 
