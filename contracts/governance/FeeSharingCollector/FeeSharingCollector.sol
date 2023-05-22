@@ -629,20 +629,27 @@ contract FeeSharingCollector is
         }
 
         uint256 amount = 0;
+        uint256 cachedLockDate = 0;
+        uint96 cachedWeightedStake = 0;
         // @note here processedUserCheckpoints is a number of processed checkpoints and
         // also an index for the next checkpoint because an array index starts wtih 0
         for (uint256 i = processedUserCheckpoints; i < end; i++) {
             Checkpoint memory checkpoint = tokenCheckpoints[_token][i];
-
-            /// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
-            /// For the same block like we did for total voting power in _writeTokenCheckpoint
-            uint96 weightedStake =
-                staking.getPriorWeightedStake(
+            uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
+            uint96 weightedStake;
+            if (lockDate == cachedLockDate) {
+                weightedStake = cachedWeightedStake;
+            } else {
+                /// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
+                /// For the same block like we did for total voting power in _writeTokenCheckpoint
+                weightedStake = staking.getPriorWeightedStake(
                     _user,
                     checkpoint.blockNumber - 1,
                     checkpoint.timestamp
                 );
-
+                cachedWeightedStake = weightedStake;
+                cachedLockDate = lockDate;
+            }
             uint256 share =
                 uint256(checkpoint.numTokens).mul(weightedStake).div(
                     uint256(checkpoint.totalWeightedStake)
@@ -816,9 +823,9 @@ contract FeeSharingCollector is
             _getRBTCBalances(_user, 0);
         IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
         address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
-        uint256 iWRBTCAmountOwed =
+        uint256 iWRBTCAmountInRBTC =
             _iWrbtcAmount.mul(ILoanTokenWRBTC(loanPoolTokenWRBTC).tokenPrice()).div(1e18);
-        return _rbtcAmount.add(_wrbtcAmount).add(iWRBTCAmountOwed);
+        return _rbtcAmount.add(_wrbtcAmount).add(iWRBTCAmountInRBTC);
     }
 
     /**
