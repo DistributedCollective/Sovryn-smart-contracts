@@ -590,6 +590,94 @@ contract FeeSharingCollector is
     }
 
     /**
+     * @notice Get the accumulated fee rewards for the message sender for a checkpoints range
+     *
+     * @dev This function is required to keep consistent with caching of weighted voting power when claiming fees
+     *
+     * @param _user The address of a user (staker) or contract.
+     * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
+     * @param _startFrom Checkpoint to start calculating fees from.
+     * @param _maxCheckpoints maxCheckpoints to get accumulated fees for the _user
+     * @return The accumulated fees rewards for the _user in the given checkpoints interval: [_startFrom, _startFrom + maxCheckpoints].
+     * */
+    function getAccumulatedFeesForCheckpointsRange(
+        address _user,
+        address _token,
+        uint256 _startFrom,
+        uint32 _maxCheckpoints
+    ) external view returns (uint256) {
+        uint256 amount;
+        (amount, ) = _getAccumulatedFeesForCheckpointsRange(
+            _user,
+            _token,
+            _startFrom,
+            _maxCheckpoints
+        );
+        return amount;
+    }
+
+    /**
+     * @notice Gets accumulated fees for a user starting from a given checkpoint
+     *
+     * @param _user Address of the user's account.
+     * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
+     * @param _maxCheckpoints Max checkpoints to process at once to fit into block gas limit
+     * @param _startFrom Checkpoint num to start calculations from
+     *
+     * @return feesAmount - accumulated fees amount
+     * @return endCheckpoint - last checkpoint of fees calculation
+     * */
+    function _getAccumulatedFeesForCheckpointsRange(
+        address _user,
+        address _token,
+        uint256 _startFrom,
+        uint32 _maxCheckpoints
+    ) internal view returns (uint256 feesAmount, uint256 endCheckpoint) {
+        if (staking.isVestingContract(_user)) {
+            return (0, 0);
+        }
+        uint256 processedUserCheckpoints = processedCheckpoints[_user][_token];
+        uint256 startRange =
+            _startFrom > processedUserCheckpoints ? _startFrom : processedUserCheckpoints;
+        endCheckpoint = _maxCheckpoints > 0
+            ? _getEndOfRange(startRange, _token, _maxCheckpoints)
+            : totalTokenCheckpoints[_token];
+
+        if (startRange >= totalTokenCheckpoints[_token]) {
+            return (0, endCheckpoint);
+        }
+
+        uint256 cachedLockDate = 0;
+        uint96 cachedWeightedStake = 0;
+        // @note here processedUserCheckpoints is a number of processed checkpoints and
+        // also an index for the next checkpoint because an array index starts wtih 0
+        for (uint256 i = startRange; i < endCheckpoint; i++) {
+            Checkpoint memory checkpoint = tokenCheckpoints[_token][i];
+            uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
+            uint96 weightedStake;
+            if (lockDate == cachedLockDate) {
+                weightedStake = cachedWeightedStake;
+            } else {
+                /// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
+                /// For the same block like we did for total voting power in _writeTokenCheckpoint
+                weightedStake = staking.getPriorWeightedStake(
+                    _user,
+                    checkpoint.blockNumber - 1,
+                    checkpoint.timestamp
+                );
+                cachedWeightedStake = weightedStake;
+                cachedLockDate = lockDate;
+            }
+            uint256 share =
+                uint256(checkpoint.numTokens).mul(weightedStake).div(
+                    uint256(checkpoint.totalWeightedStake)
+                );
+            feesAmount = feesAmount.add(share);
+        }
+        return (feesAmount, endCheckpoint);
+    }
+
+    /**
      * @notice Whenever fees are withdrawn, the staking contract needs to
      * checkpoint the block number, the number of pool tokens and the
      * total voting power at that time (read from the staking contract).
@@ -615,48 +703,7 @@ contract FeeSharingCollector is
         address _token,
         uint32 _maxCheckpoints
     ) internal view returns (uint256, uint256) {
-        if (staking.isVestingContract(_user)) {
-            return (0, 0);
-        }
-        uint256 processedUserCheckpoints = processedCheckpoints[_user][_token];
-        uint256 end =
-            _maxCheckpoints > 0
-                ? _getEndOfRange(processedUserCheckpoints, _token, _maxCheckpoints)
-                : totalTokenCheckpoints[_token];
-
-        if (processedUserCheckpoints >= totalTokenCheckpoints[_token]) {
-            return (0, end);
-        }
-
-        uint256 amount = 0;
-        uint256 cachedLockDate = 0;
-        uint96 cachedWeightedStake = 0;
-        // @note here processedUserCheckpoints is a number of processed checkpoints and
-        // also an index for the next checkpoint because an array index starts wtih 0
-        for (uint256 i = processedUserCheckpoints; i < end; i++) {
-            Checkpoint memory checkpoint = tokenCheckpoints[_token][i];
-            uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
-            uint96 weightedStake;
-            if (lockDate == cachedLockDate) {
-                weightedStake = cachedWeightedStake;
-            } else {
-                /// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
-                /// For the same block like we did for total voting power in _writeTokenCheckpoint
-                weightedStake = staking.getPriorWeightedStake(
-                    _user,
-                    checkpoint.blockNumber - 1,
-                    checkpoint.timestamp
-                );
-                cachedWeightedStake = weightedStake;
-                cachedLockDate = lockDate;
-            }
-            uint256 share =
-                uint256(checkpoint.numTokens).mul(weightedStake).div(
-                    uint256(checkpoint.totalWeightedStake)
-                );
-            amount = amount.add(share);
-        }
-        return (amount, end);
+        return _getAccumulatedFeesForCheckpointsRange(_user, _token, 0, _maxCheckpoints);
     }
 
     /**
