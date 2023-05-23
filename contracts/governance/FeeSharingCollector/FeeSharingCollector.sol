@@ -829,9 +829,9 @@ contract FeeSharingCollector is
         onlyOwner
     {
         // @todo Finalize the amounts here
-        uint256 rbtcAmount = 1e18;
-        uint256 zusdAmount = 1e20;
-        uint256 sovAmount = 1e20;
+        uint256 rbtcAmount = 878778886164898400;
+        uint256 zusdAmount = 16658600400155126000000;
+        uint256 sovAmount = 6275898259771202000000;
 
         address zusdToken = 0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d;
         address sovToken = 0xEFc78fc7d48b64958315949279Ba181c2114ABBd;

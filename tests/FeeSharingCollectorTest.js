@@ -3297,7 +3297,7 @@ contract("FeeSharingCollector:", (accounts) => {
 
     describe("recover incorrect allocated fees", async () => {
         let mockSOV, mockZUSD;
-        let rbtcAmount = new BN(wei("1", "ether"));
+        let rbtcAmount = new BN(wei("878778886164898400", "wei"));
 
         beforeEach(async () => {
             mockSOV = await smock.fake("TestToken", {
