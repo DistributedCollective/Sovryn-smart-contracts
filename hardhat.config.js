@@ -240,6 +240,7 @@ module.exports = {
             rskForkedTestnet: [
                 "external/deployments/rskSovrynTestnet",
                 "external/deployments/rskForkedTestnet",
+                "deployment/deployments/rskSovrynTestnet",
             ],
             rskForkedTestnetFlashback: ["external/deployments/rskForkedTestnetFlashback"],
             rskForkedMainnetFlashback: ["external/deployments/rskForkedMainnetFlashback"],

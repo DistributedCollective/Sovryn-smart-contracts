@@ -1,4 +1,5 @@
 pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
 
 import "../Staking/SafeMath96.sol";
 import "../../openzeppelin/SafeMath.sol";

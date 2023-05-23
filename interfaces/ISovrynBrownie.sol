@@ -106,7 +106,10 @@ contract ISovrynBrownie is
 
     function depositProtocolToken(uint256 amount) external;
 
-    function getLoanPoolsList(uint256 start, uint256 count) external;
+    function getLoanPoolsList(uint256 start, uint256 count)
+        external
+        view
+        returns (bytes32[] memory);
 
     function isLoanPool(address loanPool) external view returns (bool);
 
