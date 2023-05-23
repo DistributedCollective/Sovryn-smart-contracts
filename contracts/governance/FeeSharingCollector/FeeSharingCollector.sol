@@ -104,9 +104,13 @@ contract FeeSharingCollector is
     event RBTCWithdrawn(address indexed sender, address indexed receiver, uint256 amount);
 
     /* Modifier */
-    modifier notExecuted(bytes4 _funcSig) {
-        require(!isFunctionExecuted[_funcSig], "FeeSharingCollector: function can only be called once");
+    modifier oneTimeExecution(bytes4 _funcSig) {
+        require(
+            !isFunctionExecuted[_funcSig],
+            "FeeSharingCollector: function can only be called once"
+        );
         _;
+        isFunctionExecuted[_funcSig] = true;
     }
 
     /* Functions */
@@ -819,24 +823,31 @@ contract FeeSharingCollector is
      * The amount for all of the tokens above is hardcoded
      * The withdrawn tokens will be sent to the owner.
      */
-    function recoverIncorrectAllocatedFees() external notExecuted(this.recoverIncorrectAllocatedFees.selector) {
-        isFunctionExecuted[this.recoverIncorrectAllocatedFees.selector] = true;
-        uint256 rbtcAmount = 0;
-        uint256 zusdAmount = 0;
-        uint256 sovAmount = 0;
+    function recoverIncorrectAllocatedFees()
+        external
+        oneTimeExecution(this.recoverIncorrectAllocatedFees.selector)
+        onlyOwner
+    {
+        // @todo Finalize the amounts here
+        uint256 rbtcAmount = 1e18;
+        uint256 zusdAmount = 1e20;
+        uint256 sovAmount = 1e20;
 
         address zusdToken = 0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d;
         address sovToken = 0xEFc78fc7d48b64958315949279Ba181c2114ABBd;
-        
+
         // Withdraw rbtc
         (bool success, ) = owner().call.value(rbtcAmount)("");
-        require(success, "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed");
+        require(
+            success,
+            "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
+        );
 
         // Withdraw ZUSD
-        // IERC20(zusdToken).safeTransfer(owner(), zusdAmount);
+        IERC20(zusdToken).safeTransfer(owner(), zusdAmount);
 
         // Withdraw SOV
-        // IERC20(sovToken).safeTransfer(owner(), sovAmount);
+        IERC20(sovToken).safeTransfer(owner(), sovAmount);
     }
 
     /**
