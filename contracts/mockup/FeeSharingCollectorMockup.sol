@@ -58,6 +58,6 @@ contract FeeSharingCollectorMockup is FeeSharingCollector {
         address _token,
         uint32 _maxCheckpoints
     ) public view returns (uint256 amount, uint256 end) {
-        (amount, end) = _getAccumulatedFees(_user, _token, _maxCheckpoints);
+        (amount, end) = _getAccumulatedFees(_user, _token, 0, _maxCheckpoints);
     }
 }
