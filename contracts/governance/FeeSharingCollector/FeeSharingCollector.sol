@@ -828,7 +828,6 @@ contract FeeSharingCollector is
         oneTimeExecution(this.recoverIncorrectAllocatedFees.selector)
         onlyOwner
     {
-        // @todo Finalize the amounts here
         uint256 rbtcAmount = 878778886164898400;
         uint256 zusdAmount = 16658600400155126000000;
         uint256 sovAmount = 6275898259771202000000;
