@@ -90,7 +90,7 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const maxWithdrawIterations = 10;
 
 contract("Staking", (accounts) => {
-    let root, account1, account2;
+    let root, account1, account2, account3;
     let token, SUSD, WRBTC, staking;
     let sovryn;
     let loanTokenLogic, loanToken;
@@ -178,7 +178,7 @@ contract("Staking", (accounts) => {
     }
 
     before(async () => {
-        [root, account1, account2, ...accounts] = accounts;
+        [root, account1, account2, account3, ...accounts] = accounts;
     });
 
     beforeEach(async () => {
@@ -331,6 +331,32 @@ contract("Staking", (accounts) => {
                     toDelegate: root,
                 }
             );
+        });
+
+        it("Should not revert delagated VP by staking for the delegator", async () => {
+            let amount = "1000";
+            let duration = new BN(TWO_WEEKS).mul(new BN(2));
+            let lockedTS = await getTimeFromKickoff(duration);
+
+            await token.transfer(account3, 1000);
+            await token.approve(staking.address, TOTAL_SUPPLY, { from: account3 });
+
+            // root user stakes and delegates voting to account1
+            await staking.stake(amount, lockedTS, root, account1);
+
+            let delegatee = await staking.delegates.call(root, lockedTS);
+            expect(delegatee).to.be.equal(account1);
+
+            // another user stakes for the root user (only able to delegate to the user being staked for)
+            // await staking.stake("1", lockedTS, root, root, { from: account3 });
+            await expectRevert(
+                staking.stake("1", lockedTS, root, root, { from: account3 }),
+                "Only sender is allowed to change delegatee"
+            );
+
+            // now the root user's delegatee is NOT reset back to the root user
+            delegatee = await staking.delegates.call(root, lockedTS);
+            expect(delegatee).to.be.equal(account1);
         });
 
         it("Should be able to stake and delegate for another person", async () => {
