@@ -169,8 +169,38 @@ const getArgsSip0058 = async (hre) => {
 
     return { args, governor: "GovernorOwner" };
 };
+const getArgsSip0063 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+
+    const modulesFrom = [
+        "0xdf41bD1F610d0DBe9D990e3eb04fd983777f1966", // StakingStakeModule
+    ];
+    const modulesTo = [(await get("StakingStakeModule")).address];
+
+    console.log([modulesFrom], "->", [modulesTo]);
+
+    const args = {
+        targets: [(await get("StakingProxy")).address],
+        values: [0],
+        signatures: ["replaceModules(address[],address[])"],
+        data: [
+            ethers.utils.defaultAbiCoder.encode(
+                ["address[]", "address[]"],
+                [modulesFrom, modulesTo]
+            ),
+        ],
+        description:
+            "SIP-0063: Fix Staking Bug to Prevent Reverting Delegated Voting Power, Details: TBD, sha256: TBD",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
 
 module.exports = {
     getArgsSip0058,
     getArgsSip0049,
+    getArgsSip0063,
 };

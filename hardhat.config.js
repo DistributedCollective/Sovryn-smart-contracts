@@ -15,7 +15,7 @@ require("@nomicfoundation/hardhat-chai-matchers");
 
 extendEnvironment((hre) => {
     const config = hre.network.config;
-    if (config?.url) {
+    if (config?.url && hre.network.tags["forked"]) {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider(config.url);
     }
 });
