@@ -48,7 +48,7 @@
 		"hardhat": "^2.13.0",
 		"hardhat-abi-exporter": "^2.10.1",
 		"hardhat-contract-sizer": "^2.0.2",
-		"hardhat-deploy": "^0.11.25",
+		"hardhat-deploy": "^0.11.26",
 		"hardhat-deploy-ethers": "^0.3.0-beta.13",
 		"hardhat-log-remover": "^2.0.0",
 		"husky": "^4.3.6",
@@ -73,7 +73,7 @@
 		"analyze-contracts": "slither .",
 		"contract-size": "yarn run hardhat size-contracts",
 		"coverage": "npx hardhat coverage",
-		"doc": "yarn run hardhat docgen",
+		"doc": "yarn docgen",
 		"lint": "npm run lint-sol && npm run lint-js",
 		"lint-sol": "solhint contracts/{*,**/*,**/**/*,**/**/**/*,**/**/**/**/*}.sol",
 		"lint-js": "eslint . --ext .js",
@@ -90,6 +90,8 @@
 		"fork:rsk-mainnet": "hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy",
 		"fork:rsk-mainnet-at-block": "cross-env IS_FORKED=1 && hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy --fork-block-number 4690000",
 		"fork:rsk-testnet": "hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy",
+		"hh:console-fork-mainnet": "hardhat console --network rskForkedMainnet",
+		"hh:console-fork-testnet": "hardhat console --network rskForkedTestnet",
 		"deploy:staking-modules": "hardhat deploy --tags StakingModules"
 	},
 	"husky": {

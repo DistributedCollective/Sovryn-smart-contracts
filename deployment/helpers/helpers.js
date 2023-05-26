@@ -9,6 +9,9 @@
 const { arrayToUnique } = require("../helpers/utils");
 const col = require("cli-color");
 
+const Logs = require("node-logs");
+const logger = new Logs().showInConsole(true);
+
 const logTimer = (time, passedTime) => {
     const delaySeconds = time / 1000;
     let timer = delaySeconds - passedTime;
