@@ -1,4 +1,5 @@
 const { task } = require("hardhat/config");
+const { extendEnvironment } = require("hardhat/config");
 
 require("@nomiclabs/hardhat-ganache");
 require("@nomiclabs/hardhat-truffle5");
@@ -11,6 +12,13 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
+
+extendEnvironment((hre) => {
+    const config = hre.network.config;
+    if (config?.url) {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider(config.url);
+    }
+});
 
 require("./hardhat/tasks");
 
