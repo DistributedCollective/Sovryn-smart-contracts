@@ -3364,6 +3364,18 @@ contract("FeeSharingCollector:", (accounts) => {
                 "SafeERC20: ERC20 operation did not succeed"
             );
         });
+
+        it("Should revert if rbtc transfer failed", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            await expectRevert(
+                feeSharingCollector.recoverIncorrectAllocatedFees(),
+                "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
+            );
+        });
     });
 
     async function stake(amount, user, checkpointCount) {
