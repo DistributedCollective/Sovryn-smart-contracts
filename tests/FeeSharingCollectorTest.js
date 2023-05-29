@@ -3371,6 +3371,7 @@ contract("FeeSharingCollector:", (accounts) => {
                 staking.address
             );
 
+            /** Should revert because feeSharingCollector does not have enough balance of rbtc */
             await expectRevert(
                 feeSharingCollector.recoverIncorrectAllocatedFees(),
                 "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
