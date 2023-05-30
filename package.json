@@ -19,6 +19,7 @@
 	"files": [
 		"artifacts/",
 		"contracts/",
+		"hardhat/",
 		"interfaces/",
 		"scripts/contractInteraction/mainnet_contracts.json",
 		"scripts/contractInteraction/testnet_contracts.json",
