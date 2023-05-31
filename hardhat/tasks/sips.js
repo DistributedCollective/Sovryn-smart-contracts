@@ -209,6 +209,7 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
         let currentBlockNumber = await ethers.provider.getBlockNumber();
         let passedTime = 0;
         let delayTime;
+        let intervalId;
         const logTime = () => {
             logTimer(delayTime, passedTime);
             passedTime++;
@@ -220,11 +221,11 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
                     proposal.endBlock
                 }:  pausing for ${delayTime / 1000} secs (${delayTime / 30000} blocks)`
             );
-            setInterval(logTime, 1000);
+            intervalId = setInterval(logTime, 1000);
             await delay(delayTime);
             currentBlockNumber = await ethers.provider.getBlockNumber();
         }
-        clearInterval(logTime);
+        clearInterval(intervalId);
         const proposalState = await governorContract.state(proposalId);
         if (proposalState !== 4) {
             throw new Error("Proposal NOT Succeeded");
@@ -271,9 +272,9 @@ task("sips:execute-timer", "Execute SIP with countdown")
             const delayTime = proposal.eta - currentBlockTimestamp + 120; // add 2 minutes
             logDelayTime = delayTime * 1000;
             logger.info(`Delaying proposal ${proposalId} execution for ${delayTime} sec`);
-            setInterval(logTime, 1000);
+            const intervalId = setInterval(logTime, 1000);
             await delay(delayTime * 1000);
-            clearInterval(logTime);
+            clearInterval(intervalId);
         }
         await (await governorContract.execute(proposalId)).wait();
         console.log("");
