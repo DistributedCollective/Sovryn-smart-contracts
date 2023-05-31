@@ -158,14 +158,14 @@ const signWithMultisig = async (multisigAddress, txId, sender) => {
     );
 };
 
-const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_ZERO) => {
+const multisigCheckTx = async (txId, multisigAddress = ethers.constants.AddressZero) => {
     const {
         ethers,
         deployments: { get },
     } = hre;
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
-        multisigAddress == ethers.constants.ADDRESS_ZERO
+        multisigAddress == ethers.constants.AddressZero
             ? (
                   await get("MultiSigWallet")
               ).address
@@ -194,7 +194,7 @@ const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_
 const multisigRevokeConfirmation = async (
     txId,
     sender,
-    multisigAddress = ethers.constants.ADDRESS_ZERO
+    multisigAddress = ethers.constants.AddressZero
 ) => {
     const {
         ethers,
@@ -203,7 +203,7 @@ const multisigRevokeConfirmation = async (
     const signer = await ethers.getSigner(sender);
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
-        multisigAddress == ethers.constants.ADDRESS_ZERO
+        multisigAddress == ethers.constants.AddressZero
             ? (
                   await get("MultiSigWallet")
               ).address
@@ -218,11 +218,7 @@ const multisigRevokeConfirmation = async (
     await multisigCheckTx(txId, multisig.address);
 };
 
-const multisigExecuteTx = async (
-    txId,
-    sender,
-    multisigAddress = ethers.constants.ADDRESS_ZERO
-) => {
+const multisigExecuteTx = async (txId, sender, multisigAddress = ethers.constants.AddressZero) => {
     const {
         ethers,
         deployments: { get },
@@ -230,7 +226,7 @@ const multisigExecuteTx = async (
     const signer = await ethers.getSigner(sender);
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
-        multisigAddress == ethers.constants.ADDRESS_ZERO
+        multisigAddress == ethers.constants.AddressZero
             ? (
                   await get("MultiSigWallet")
               ).address
@@ -561,6 +557,7 @@ module.exports = {
     multisigCheckTx,
     multisigRevokeConfirmation,
     multisigExecuteTx,
+    isMultisigOwner,
     getStakingModuleContractToReplace,
     createProposal,
     deployWithCustomProxy,

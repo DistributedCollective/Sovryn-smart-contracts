@@ -261,7 +261,7 @@ task("sips:execute-timer", "Execute SIP with countdown")
         }
         let proposal = await governorContract.proposals(proposalId);
         //Math.floor(Date.now() / 1000)
-        const currentBlockTimestamp = (await ethers.provider.getBlock()).timestamp;
+        const currentBlockTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
         let passedTime = 0;
         let logDelayTime;
         const logTime = () => {
