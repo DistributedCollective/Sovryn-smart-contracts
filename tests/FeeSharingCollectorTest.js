@@ -23,7 +23,7 @@
  */
 
 // const { expect } = require("chai");
-const { loadFixture, takeSnapshot } = require("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture, takeSnapshot, mine } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 const { smock } = require("@defi-wonderland/smock");
 
@@ -322,6 +322,7 @@ contract("FeeSharingCollector:", (accounts) => {
 
             await SOVToken.transfer(account1, userStake);
             await createCheckpointsSOV(9);
+            await mine(2880 * 15, { interval: 30 }); // 86400 (1day) / 30 == 2800 * 15 (2 weeks + 1 day - for weighted stake to be updated in cache of FeeSharingCollector._getAccumulatedFees())
             await stake(userStake, account1);
             await createCheckpointsSOV(1);
 
@@ -357,9 +358,9 @@ contract("FeeSharingCollector:", (accounts) => {
                 amount: new BN(60),
             });
 
-            expect(tokenBalanceAfter.sub(tokenBalanceBefore).toNumber()).eql(
-                expectedReward.toNumber()
-            );
+            expect(tokenBalanceAfter.sub(tokenBalanceBefore).toNumber())
+                .eql(expectedReward.toNumber())
+                .eql(60);
 
             let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
@@ -2174,6 +2175,7 @@ contract("FeeSharingCollector:", (accounts) => {
             await feeSharingCollector.withdrawFees([SOVToken.address]);
 
             let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            console.log("FEES:", fees.toString());
             expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
 
             let userInitialISOVBalance = await SOVToken.balanceOf(account1);

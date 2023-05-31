@@ -13,6 +13,7 @@ const {
     parseEthersLogToValue,
     getTxLog,
     delay,
+    logTimer,
 } = require("../../deployment/helpers/helpers");
 
 const sipArgsList = require("./sips/args/sipArgs");
@@ -205,23 +206,33 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
             await ethers.getSigner(signerAcc)
         );
         let proposal = await governorContract.proposals(proposalId);
-
-        while ((await ethers.provider.getBlockNumber()) <= proposal.endBlock) {
-            const currentBlockNumber = await ethers.provider.getBlockNumber();
-            const delayTime = (proposal.endBlock - currentBlockNumber) * 30000;
-            console.log(
+        let currentBlockNumber = await ethers.provider.getBlockNumber();
+        let passedTime = 0;
+        let delayTime;
+        let intervalId;
+        const logTime = () => {
+            logTimer(delayTime, passedTime);
+            passedTime++;
+        };
+        while (currentBlockNumber <= proposal.endBlock) {
+            delayTime = (proposal.endBlock - currentBlockNumber) * 30000;
+            logger.warn(
                 `${new Date().toUTCString()}, current block ${currentBlockNumber}, target block ${
                     proposal.endBlock
                 }:  pausing for ${delayTime / 1000} secs (${delayTime / 30000} blocks)`
             );
+            intervalId = setInterval(logTime, 1000);
             await delay(delayTime);
+            currentBlockNumber = await ethers.provider.getBlockNumber();
         }
+        clearInterval(intervalId);
         const proposalState = await governorContract.state(proposalId);
         if (proposalState !== 4) {
             throw new Error("Proposal NOT Succeeded");
         }
         (await governorContract.queue(proposalId)).wait();
         proposal = await governorContract.proposals(proposalId);
+        console.log("");
         logger.success(`Proposal ${proposalId} queued. Execution ETA: ${proposal.eta}.`);
     });
 
@@ -250,13 +261,23 @@ task("sips:execute-timer", "Execute SIP with countdown")
         }
         let proposal = await governorContract.proposals(proposalId);
         //Math.floor(Date.now() / 1000)
-        const currentBlockTimestamp = (await ethers.provider.getBlock()).timestamp;
+        const currentBlockTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        let passedTime = 0;
+        let logDelayTime;
+        const logTime = () => {
+            logTimer(logDelayTime, passedTime);
+            passedTime++;
+        };
         if (proposal.eta > currentBlockTimestamp) {
             const delayTime = proposal.eta - currentBlockTimestamp + 120; // add 2 minutes
+            logDelayTime = delayTime * 1000;
             logger.info(`Delaying proposal ${proposalId} execution for ${delayTime} sec`);
+            const intervalId = setInterval(logTime, 1000);
             await delay(delayTime * 1000);
+            clearInterval(intervalId);
         }
         await (await governorContract.execute(proposalId)).wait();
+        console.log("");
         if ((await governorContract.state(proposalId)) === 7) {
             logger.success(`Proposal ${proposalId} executed`);
         } else {

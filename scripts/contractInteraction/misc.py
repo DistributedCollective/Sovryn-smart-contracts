@@ -6,6 +6,7 @@ import copy
 from scripts.utils import *
 from scripts.contractInteraction.token import * 
 import scripts.contractInteraction.config as conf
+from scripts.contractInteraction.loan_tokens import getTokenPrice
 
 
 
@@ -122,3 +123,53 @@ def openTrove(_maxFeePercentage, _ZUSDAmount, _upperHint, _lowerHint, coll):
     abi = json.load(abiFile)
     borrowerOperations = Contract.from_abi("bo", address=conf.contracts['borrowerOperations'], abi=abi, owner=conf.acct)
     borrowerOperations.openTrove(_maxFeePercentage, _ZUSDAmount, _upperHint, _lowerHint, {'value':coll})
+
+def distributeMissedFees():
+    Total_iWRBTC = 0.7473876932797053 
+    Total_SOV = 6275.898259771202 
+    Total_ZUSD = 16658.600400155126 
+    Total_WRBTC = 0.11341026623965539 
+    Total_RBTC_DUMMY = 0.004887638144724727 
+    Total_RBTC = Total_RBTC_DUMMY + Total_WRBTC + Total_iWRBTC * (getTokenPrice(conf.contracts['iRBTC'])/(10**18))
+    print(Total_RBTC)
+    
+    feeSharingCollector = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+
+    token = Contract.from_abi("Token", address= conf.contracts['SOV'], abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(feeSharingCollector.address, Total_SOV * 10**18)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['SOV'] , data, conf.acct)
+    data = feeSharingCollector.transferTokens.encode_input(conf.contracts['SOV'], Total_SOV * 10**18)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollector.address , data, conf.acct)
+
+    token = Contract.from_abi("Token", address= conf.contracts['ZUSD'], abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(feeSharingCollector.address, Total_ZUSD * 10**18)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['ZUSD'] , data, conf.acct)
+    data = feeSharingCollector.transferTokens.encode_input(conf.contracts['ZUSD'], Total_ZUSD * 10**18)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollector.address , data, conf.acct)
+
+    data = feeSharingCollector.transferRBTC.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollector.address , data, conf.acct, Total_RBTC * 10**18)
+    
+
+def getFeeSharingState(tokenAddress):
+    feeSharingCollector = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+    numCheckpoints = feeSharingCollector.numTokenCheckpoints(tokenAddress)
+    print("num checkpoints:", numCheckpoints)
+    lastCheckpoint = feeSharingCollector.tokenCheckpoints(tokenAddress, numCheckpoints-1)
+    print("latest checkpoint:", lastCheckpoint)
+    unprocessed = feeSharingCollector.unprocessedAmount(tokenAddress)
+    print("unprocessed amount:", unprocessed)
+
+def RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT():
+    feeSharingCollector = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+    return feeSharingCollector.RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT()
+
+def transferTokens(tokenAddress, amount):
+    feeSharingCollector = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+    token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(feeSharingCollector.address, amount)
+    sendWithMultisig(conf.contracts['multisig'], tokenAddress , data, conf.acct)
+    data = feeSharingCollector.transferTokens.encode_input(tokenAddress, amount)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollector.address , data, conf.acct)
+
+
