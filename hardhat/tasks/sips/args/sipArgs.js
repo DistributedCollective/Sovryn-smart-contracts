@@ -170,7 +170,40 @@ const getArgsSip0058 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0061 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+
+    // @TODO Need to update the StabilityPool_Implementation address in deployments/rskSovrynMainnet/StabilityPool_Implementation.json once the new stability pool implementation deployed to the mainnet
+    const newStabilityPoolImplementation = (await get("StabilityPool_Implementation")).address;
+
+    // @TODO Need to add the CommunityIssuance_Proxy.json to deployments/rskSovrynMainnet/CommunityIssuance_Proxy.json once the new CommunityIssuance deployed to the mainnet
+    const communityIssuanceAddress = (await get("CommunityIssuance_Proxy")).address;
+
+    console.log(`New stability pool implementation: ${newStabilityPoolImplementation}`);
+    console.log(`Community issuance address: ${communityIssuanceAddress}`);
+
+    const args = {
+        targets: [
+            (await get("StabilityPool_Proxy")).address,
+            (await get("StabilityPool_Proxy")).address,
+        ],
+        values: [0, 0],
+        signatures: ["setImplementation(address)", "setCommunityIssuanceAddress(address)"],
+        data: [
+            ethers.utils.defaultAbiCoder.encode(["address"], [newStabilityPoolImplementation]),
+            ethers.utils.defaultAbiCoder.encode(["address"], [communityIssuanceAddress]),
+        ],
+        description: "SIP-0061: Update stability pool subsidies : , sha256: ",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
+    getArgsSip0061,
     getArgsSip0058,
     getArgsSip0049,
 };

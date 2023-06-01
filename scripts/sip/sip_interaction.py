@@ -23,7 +23,7 @@ def main():
 
     # Call the function you want here
 
-    createProposalSIP0060()
+    createProposalSIP0061()
     #createProposalSIP0050()
 
     balanceAfter = acct.balance()
@@ -38,8 +38,8 @@ def loadConfig():
     global contracts, acct
     thisNetwork = network.show_active()
     if thisNetwork == "development":
-        acct = accounts[0]
-        configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
+        acct = accounts.load("rskdeployer")
+        configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
@@ -542,3 +542,30 @@ def createProposalSIP0060():
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0061():
+    stabilityPoolProxy = Contract.from_abi("StabilityPoolProxy", address = contracts['stabilityPool'], abi = UpgradableProxy.abi, owner = acct)
+    abiFile =  open('./scripts/contractInteraction/ABIs/StabilityPool.json')
+    abi = json.load(abiFile)
+    stabilityPool = Contract.from_abi("StabilityPool", address=contracts['stabilityPool'], abi = abi, owner = acct)
+
+    # TODO: Need to update the new logic stability pool once deployed to the mainnet
+    stabilityPoolLogicAddress = ""
+
+    # TODO: Need to update the deployed community issuance address once deployed to the mainnet
+    communityIssuanceAddress = ""
+
+    # Action
+    target = [contracts['stabilityPool'], contracts['stabilityPool']]
+    value = [0, 0]
+    signature = ["setImplementation(address)", "setCommunityIssuanceAddress(address)"]
+
+    data1 = stabilityPoolProxy.setImplementation.encode_input(stabilityPoolLogicAddress)
+    data2 = stabilityPool.setCommunityIssuanceAddress.encode_input(communityIssuanceAddress)
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
+
+    # TODO Need to update description once SIP details has been published
+    description = "SIP-0061: Update stability pool subsidies : , sha256: "
+
+    # Create Proposal
+    createProposal(contracts['GovernorOwner'], target, value, signature, datas, description)
