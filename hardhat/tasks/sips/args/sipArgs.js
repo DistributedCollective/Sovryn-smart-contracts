@@ -193,7 +193,7 @@ const getArgsSip0063 = async (hre) => {
             ),
         ],
         description:
-            "SIP-0063: Fix Staking Bug to Prevent Reverting Delegated Voting Power, Details: TBD, sha256: TBD",
+            "SIP-0063: Fix Staking Bug to Prevent Reverting Delegated Voting Power, Details: https://github.com/DistributedCollective/SIPS/blob/12f2600/SIP-0063.md, sha256: c56786f8bd6907c844720a127136b6ee0189360790f3e87f1490b23e2ddd614a",
     };
 
     return { args, governor: "GovernorOwner" };
