@@ -79,20 +79,26 @@ def main():
     #confirmWithAnyMS(8, conf.contracts["BFMultisigDeposit"])
     #checkTxOnAny(8, conf.contracts["BFMultisigDeposit"])
     
-    #for i in range(11,13):
+    #for i in range(13,17):
     #    confirmWithAnyMS(i, conf.contracts["NewMultisigBF"])
     #    checkTxOnAny(i, conf.contracts["NewMultisigBF"])
 
-    #confirmWithBFMS(8) # "BFmultisig"
+    #confirmWithBFMS(29) # "BFmultisig"
     #checkTxOnBF(29)   # "BFmultisig"
+    #testTradeOpeningAndClosing(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['WRBTC'], 100e18, 2e18, False, 0)
+    #tokenIsSupported(conf.contracts['DLLR'])
+    #tokenIsSupported(conf.contracts['WRBTC'])
+    #setSupportedTokens([conf.contracts['DLLR']], [True])
+
    # executeOnMultisig(1339)
     #executeOnMultisig(1343)
     #executeOnMultisig(1352)
    
-    confirmWithMS(1429)
+    #confirmWithMS(1454)
     #checkTx(1128)
-    #checkTx(1403)
-    checkTx(1429)
+    #checkTx(1454)
+    #for i in range (1435, 1444):
+    #    checkTx(i)
     
     #addAmmPoolTokenToLM('(WR)BTC/DLLR')
 
@@ -112,7 +118,7 @@ def main():
     
     
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
-    #confirmMultipleTxsWithMS(960, 963)
+    #confirmMultipleTxsWithMS(1435, 1444)
 
     #mintAggregatedToken(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1e18)
 
@@ -172,6 +178,11 @@ def main():
     #contract = Contract.from_abi("Token", address=conf.contracts['SOV'], abi=LoanToken.abi, owner=conf.acct)
     #balance = contract.balanceOf(conf.acct)
     #print(balance/1e18)
+
+    #addFeeStructure(2,21400,20)
+    #setCurrentFeeStructure(2)
+
+    readTokenOwnerFromFunds()
 
 
 def governanceTransfer():
