@@ -103,8 +103,12 @@ task("sips:populate", "Create SIP tx object to Propose to Sovryn Governance")
         );
 
         delete tx.from;
+        logger.warning("==================== populated tx start ====================");
+        logger.info(tx);
+        logger.warning("==================== populated tx end   =================");
         return tx;
     });
+
 task("sips:queue", "Queue proposal in the Governor Owner contract")
     .addParam("proposal", "Proposal Id", undefined, types.string)
     .addParam(
