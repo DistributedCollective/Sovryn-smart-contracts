@@ -23,7 +23,7 @@ def main():
 
     # Call the function you want here
 
-    createProposalSIP0060()
+    createProposalSIP00XX()
     #createProposalSIP0050()
 
     balanceAfter = acct.balance()
@@ -542,3 +542,21 @@ def createProposalSIP0060():
 
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP00XX():
+    adoptionFund = Contract.from_abi("AdoptionFund", address=contracts['AdoptionFund'], abi=DevelopmentFund.abi, owner=acct)
+
+    # Action
+    targets = [contracts['AdoptionFund']]
+    values = [0]
+    signatures = ["updateUnlockedTokenOwner(address)"]
+    data = adoptionFund.updateUnlockedTokenOwner.encode_input(contracts['multisig'])
+    datas = ["0x" + data[10:]]
+    description = "SIP-00XX : , Details: , sha256: "
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+
