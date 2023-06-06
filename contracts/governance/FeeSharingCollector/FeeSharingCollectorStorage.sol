@@ -9,18 +9,13 @@ import "../../mixins/EnumerableAddressSet.sol";
 import "../../interfaces/IWrbtcERC20.sol";
 
 /**
- * @title FeeSharingCollectorProxy Storage contact.
- * @notice Just the storage part of feeSharingCollectorProxy contract, no functions,
- * only constant, variables and required structures (mappings).
- * Used by FeeSharingCollectorProxy, and the implementation logic of FeeSharingCollectorProxy (FeeSharingCollector)
- *
+ * @title FeeSharingCollectorStorage contact
+ * @notice Just the storage part of FeeSharingCollector contract, and FeeSharingCollectorProxy. No functions,
+ * only constant, variables and required structures (mappings)
  * */
 contract FeeSharingCollectorStorage is Ownable {
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
-    /// @dev TODO FEE_WITHDRAWAL_INTERVAL, MAX_CHECKPOINTS
     uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;
-
-    uint32 constant MAX_CHECKPOINTS = 100;
 
     IProtocol public protocol;
     IStaking public staking;
@@ -28,11 +23,11 @@ contract FeeSharingCollectorStorage is Ownable {
     /// @notice Checkpoints by index per pool token address
     mapping(address => mapping(uint256 => Checkpoint)) public tokenCheckpoints;
 
-    /// @notice The number of checkpoints for each pool token address.
-    mapping(address => uint256) public numTokenCheckpoints;
+    /// @notice The number of checkpoints for each token address.
+    mapping(address => uint256) public totalTokenCheckpoints;
 
     /// @notice
-    /// user => token => processed checkpoint
+    /// user => token => processed checkpoints
     mapping(address => mapping(address => uint256)) public processedCheckpoints;
 
     /// @notice Last time fees were withdrawn per pool token address:

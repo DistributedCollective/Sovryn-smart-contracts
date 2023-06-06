@@ -61,6 +61,9 @@ margin trading and lending https://bzx.network similar to the dYdX protocol.
 - [getTradingRebateRewardsBasisPoint()](#gettradingrebaterewardsbasispoint)
 - [getDedicatedSOVRebate()](#getdedicatedsovrebate)
 - [setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)](#setrolloverflexfeepercent)
+- [getDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)](#getdefaultpathconversion)
+- [setDefaultPathConversion(IERC20[] defaultPath)](#setdefaultpathconversion)
+- [removeDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)](#removedefaultpathconversion)
 
 ---    
 
@@ -168,6 +171,9 @@ function initialize(address target) external onlyOwner {
         _setTarget(this.getTradingRebateRewardsBasisPoint.selector, target);
         _setTarget(this.getDedicatedSOVRebate.selector, target);
         _setTarget(this.setRolloverFlexFeePercent.selector, target);
+        _setTarget(this.getDefaultPathConversion.selector, target);
+        _setTarget(this.setDefaultPathConversion.selector, target);
+        _setTarget(this.removeDefaultPathConversion.selector, target);
         emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
     }
 ```
@@ -825,7 +831,7 @@ function setFeesController(address newController) external onlyOwner whenNotPaus
 The feesController calls this function to withdraw fees
 from three sources: lending, trading and borrowing.
 The fees (except SOV) will be converted to wRBTC.
-For SOV, it will be deposited directly to feeSharingProxy from the protocol.
+For SOV, it will be deposited directly to feeSharingCollector from the protocol.
      *
 
 ```solidity
@@ -889,7 +895,7 @@ function withdrawFees(address[] calldata tokens, address receiver)
             uint256 amountConvertedToWRBTC;
             if (tokens[i] == address(sovTokenAddress)) {
                 IERC20(tokens[i]).approve(feesController, tempAmount);
-                IFeeSharingProxy(feesController).transferTokens(
+                IFeeSharingCollector(feesController).transferTokens(
                     address(sovTokenAddress),
                     uint96(tempAmount)
                 );
@@ -906,7 +912,7 @@ function withdrawFees(address[] calldata tokens, address receiver)
                         .swapExternal(
                         tokens[i], // source token address
                         address(wrbtcToken), // dest token address
-                        feesController, // set feeSharingProxy as receiver
+                        feesController, // set feeSharingCollector as receiver
                         protocolAddress, // protocol as the sender
                         tempAmount, // source token amount
                         0, // reqDestToken
@@ -1734,6 +1740,137 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 ```
 </details>
 
+---    
+
+> ### getDefaultPathConversion
+
+Get default path conversion for pairs.
+     *
+
+```solidity
+function getDefaultPathConversion(address sourceTokenAddress, address destTokenAddress) external view
+returns(contract IERC20[])
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| sourceTokenAddress | address | source token address. | 
+| destTokenAddress | address | destination token address.      * | 
+
+**Returns**
+
+default path of the conversion.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)
+        external
+        view
+        returns (IERC20[] memory)
+    {
+        return defaultPathConversion[sourceTokenAddress][destTokenAddress];
+    }
+```
+</details>
+
+---    
+
+> ### setDefaultPathConversion
+
+Set default path conversion for pairs.
+     *
+
+```solidity
+function setDefaultPathConversion(IERC20[] defaultPath) external nonpayable onlyOwner whenNotPaused 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| defaultPath | IERC20[] | array of addresses for the default path. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setDefaultPathConversion(IERC20[] calldata defaultPath)
+        external
+        onlyOwner
+        whenNotPaused
+    {
+        address sourceTokenAddress = address(defaultPath[0]);
+        address destTokenAddress = address(defaultPath[defaultPath.length - 1]);
+
+        uint256 defaultPathLength = defaultPath.length;
+        require(defaultPathLength >= 3, "ERR_PATH_LENGTH");
+
+        for (uint256 i = 0; i < defaultPathLength; i++) {
+            require(Address.isContract(address(defaultPath[i])), "ERR_PATH_NON_CONTRACT_ADDR");
+        }
+
+        defaultPathConversion[sourceTokenAddress][destTokenAddress] = defaultPath;
+
+        emit SetDefaultPathConversion(
+            msg.sender,
+            sourceTokenAddress,
+            destTokenAddress,
+            defaultPath
+        );
+    }
+```
+</details>
+
+---    
+
+> ### removeDefaultPathConversion
+
+Remove the default path conversion for pairs
+     *
+
+```solidity
+function removeDefaultPathConversion(address sourceTokenAddress, address destTokenAddress) external nonpayable onlyOwner whenNotPaused 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| sourceTokenAddress | address | source token address. | 
+| destTokenAddress | address | destination token address | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function removeDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)
+        external
+        onlyOwner
+        whenNotPaused
+    {
+        require(
+            defaultPathConversion[sourceTokenAddress][destTokenAddress].length > 0,
+            "DEFAULT_PATH_EMPTY"
+        );
+
+        IERC20[] memory defaultPathValue =
+            defaultPathConversion[sourceTokenAddress][destTokenAddress];
+        delete defaultPathConversion[sourceTokenAddress][destTokenAddress];
+
+        emit RemoveDefaultPathConversion(
+            msg.sender,
+            sourceTokenAddress,
+            destTokenAddress,
+            defaultPathValue
+        );
+    }
+```
+</details>
+
 ## Contracts
 
 * [Address](Address.md)
@@ -1745,7 +1882,7 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
@@ -1761,9 +1898,9 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -1776,11 +1913,16 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -1792,6 +1934,7 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -1822,6 +1965,7 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -1841,11 +1985,15 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -1868,6 +2016,7 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -1875,18 +2024,24 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -1899,6 +2054,7 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -1911,5 +2067,5 @@ function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

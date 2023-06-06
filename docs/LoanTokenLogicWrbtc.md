@@ -11,7 +11,7 @@ View Source: [contracts/connectors/loantoken/modules/beaconLogicWRBTC/LoanTokenL
 - [getListFunctionSignatures()](#getlistfunctionsignatures)
 - [mintWithBTC(address receiver, bool useLM)](#mintwithbtc)
 - [burnToBTC(address receiver, uint256 burnAmount, bool useLM)](#burntobtc)
-- [_verifyTransfers(address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, uint256 withdrawalAmount)](#_verifytransfers)
+- [_verifyTransfers(address collateralTokenAddress, struct MarginTradeStructHelpers.SentAddresses sentAddresses, struct MarginTradeStructHelpers.SentAmounts sentAmounts, uint256 withdrawalAmount)](#_verifytransfers)
 
 ---    
 
@@ -35,7 +35,7 @@ function getListFunctionSignatures()
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](36);
+        bytes4[] memory res = new bytes4[](32);
 
         // Loan Token Logic Standard
         res[0] = this.mint.selector;
@@ -63,25 +63,19 @@ function getListFunctionSignatures()
         res[22] = this.getDepositAmountForBorrow.selector;
         res[23] = this.getBorrowAmountForDeposit.selector;
         res[24] = this.checkPriceDivergence.selector;
-        res[25] = this.checkPause.selector;
-        res[26] = this.setLiquidityMiningAddress.selector;
-        res[27] = this.calculateSupplyInterestRate.selector;
+        res[25] = this.calculateSupplyInterestRate.selector;
 
         // Loan Token WRBTC
-        res[28] = this.mintWithBTC.selector;
-        res[29] = this.burnToBTC.selector;
+        res[26] = this.mintWithBTC.selector;
+        res[27] = this.burnToBTC.selector;
 
         // Advanced Token
-        res[30] = this.approve.selector;
+        res[28] = this.approve.selector;
 
         // Advanced Token Storage
-        res[31] = this.totalSupply.selector;
-        res[32] = this.balanceOf.selector;
-        res[33] = this.allowance.selector;
-
-        // Loan Token Logic Storage Additional Variable
-        res[34] = this.getLiquidityMiningAddress.selector;
-        res[35] = this.withdrawRBTCTo.selector;
+        res[29] = this.totalSupply.selector;
+        res[30] = this.balanceOf.selector;
+        res[31] = this.allowance.selector;
 
         return (res, stringToBytes32("LoanTokenLogicWrbtc"));
     }
@@ -93,7 +87,7 @@ function getListFunctionSignatures()
 > ### mintWithBTC
 
 ```solidity
-function mintWithBTC(address receiver, bool useLM) external payable nonReentrant 
+function mintWithBTC(address receiver, bool useLM) external payable nonReentrant globallyNonReentrant 
 returns(mintAmount uint256)
 ```
 
@@ -112,6 +106,7 @@ function mintWithBTC(address receiver, bool useLM)
         external
         payable
         nonReentrant
+        globallyNonReentrant
         returns (uint256 mintAmount)
     {
         if (useLM) return _mintWithLM(receiver, msg.value);
@@ -125,7 +120,7 @@ function mintWithBTC(address receiver, bool useLM)
 > ### burnToBTC
 
 ```solidity
-function burnToBTC(address receiver, uint256 burnAmount, bool useLM) external nonpayable nonReentrant 
+function burnToBTC(address receiver, uint256 burnAmount, bool useLM) external nonpayable nonReentrant globallyNonReentrant 
 returns(loanAmountPaid uint256)
 ```
 
@@ -145,7 +140,7 @@ function burnToBTC(
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external nonReentrant returns (uint256 loanAmountPaid) {
+    ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
         if (useLM) loanAmountPaid = _burnFromLM(burnAmount);
         else loanAmountPaid = _burnToken(burnAmount);
 
@@ -161,13 +156,13 @@ function burnToBTC(
 
 > ### _verifyTransfers
 
-⤾ overrides [LoanTokenLogicStandard._verifyTransfers](LoanTokenLogicStandard.md#_verifytransfers)
+⤾ overrides [IStaking._verifyTransfers](IStaking.md#_verifytransfers)
 
 Handle transfers prior to adding newPrincipal to loanTokenSent.
      *
 
 ```solidity
-function _verifyTransfers(address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, uint256 withdrawalAmount) internal nonpayable
+function _verifyTransfers(address collateralTokenAddress, struct MarginTradeStructHelpers.SentAddresses sentAddresses, struct MarginTradeStructHelpers.SentAmounts sentAmounts, uint256 withdrawalAmount) internal nonpayable
 returns(msgValue uint256)
 ```
 
@@ -176,8 +171,8 @@ returns(msgValue uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | collateralTokenAddress | address | The address of the collateral token. | 
-| sentAddresses | address[4] | The array of addresses:   sentAddresses[0]: lender   sentAddresses[1]: borrower   sentAddresses[2]: receiver   sentAddresses[3]: manager      * | 
-| sentAmounts | uint256[5] | The array of amounts:   sentAmounts[0]: interestRate   sentAmounts[1]: newPrincipal   sentAmounts[2]: interestInitialAmount   sentAmounts[3]: loanTokenSent   sentAmounts[4]: collateralTokenSent      * | 
+| sentAddresses | struct MarginTradeStructHelpers.SentAddresses | The struct which contains addresses of - lender - borrower - receiver - manager      * | 
+| sentAmounts | struct MarginTradeStructHelpers.SentAmounts | The struct which contains uint256 of: - interestRate - newPrincipal - interestInitialAmount - loanTokenSent - collateralTokenSent      * | 
 | withdrawalAmount | uint256 | The amount to withdraw.      * | 
 
 **Returns**
@@ -190,16 +185,16 @@ msgValue The amount of value sent.
 ```javascript
 function _verifyTransfers(
         address collateralTokenAddress,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentAmounts,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
         uint256 withdrawalAmount
     ) internal returns (uint256 msgValue) {
         address _wrbtcToken = wrbtcTokenAddress;
         address _loanTokenAddress = _wrbtcToken;
-        address receiver = sentAddresses[2];
-        uint256 newPrincipal = sentAmounts[1];
-        uint256 loanTokenSent = sentAmounts[3];
-        uint256 collateralTokenSent = sentAmounts[4];
+        address receiver = sentAddresses.receiver;
+        uint256 newPrincipal = sentAmounts.newPrincipal;
+        uint256 loanTokenSent = sentAmounts.loanTokenSent;
+        uint256 collateralTokenSent = sentAmounts.collateralTokenSent;
 
         require(_loanTokenAddress != collateralTokenAddress, "26");
 
@@ -261,7 +256,7 @@ function _verifyTransfers(
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
@@ -277,9 +272,9 @@ function _verifyTransfers(
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -292,11 +287,16 @@ function _verifyTransfers(
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -308,6 +308,7 @@ function _verifyTransfers(
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -338,6 +339,7 @@ function _verifyTransfers(
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -357,11 +359,15 @@ function _verifyTransfers(
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -384,6 +390,7 @@ function _verifyTransfers(
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -391,18 +398,24 @@ function _verifyTransfers(
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -415,6 +428,7 @@ function _verifyTransfers(
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -427,5 +441,5 @@ function _verifyTransfers(
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

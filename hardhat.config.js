@@ -1,4 +1,5 @@
 const { task } = require("hardhat/config");
+const { extendEnvironment } = require("hardhat/config");
 
 require("@nomiclabs/hardhat-ganache");
 require("@nomiclabs/hardhat-truffle5");
@@ -11,6 +12,13 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
+
+extendEnvironment((hre) => {
+    const config = hre.network.config;
+    if (config?.url && hre.network.tags["forked"]) {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider(config.url);
+    }
+});
 
 require("./hardhat/tasks");
 
@@ -224,7 +232,7 @@ module.exports = {
     external: {
         contracts: [
             {
-                artifacts: "external/artifacts/*.sol/!(*.dbg.json)",
+                artifacts: "external/artifacts",
                 // deploy: "node_modules/@cartesi/arbitration/export/deploy",
             },
             //{
@@ -240,6 +248,7 @@ module.exports = {
             rskForkedTestnet: [
                 "external/deployments/rskSovrynTestnet",
                 "external/deployments/rskForkedTestnet",
+                "deployment/deployments/rskSovrynTestnet",
             ],
             rskForkedTestnetFlashback: ["external/deployments/rskForkedTestnetFlashback"],
             rskForkedMainnetFlashback: ["external/deployments/rskForkedMainnetFlashback"],
@@ -259,7 +268,7 @@ module.exports = {
         outDir: "types",
         target: "ethers-v5",
         alwaysGenerateOverloads: false, // should overloads with full signatures like deposit(uint256) be generated always, even if there are no overloads?
-        externalArtifacts: ["external/artifacts/*.sol/!(*.dbg.json)"], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
+        externalArtifacts: ["external/artifacts"], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
         // externalArtifacts: ["external/artifacts/*.json"], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
     },
     mocha: {

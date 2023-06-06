@@ -94,12 +94,6 @@ def main():
     #executeOnMultisig(1343)
     #executeOnMultisig(1352)
    
-    #confirmWithMS(1454)
-    #checkTx(1128)
-    #checkTx(1454)
-    #for i in range (1435, 1444):
-    #    checkTx(i)
-    
     #addAmmPoolTokenToLM('(WR)BTC/DLLR')
 
     #hasApproval(conf.contracts['DLLR'], conf.contracts['multisig'], conf.contracts['RBTCWrapperProxyWithoutLM'])
@@ -137,6 +131,8 @@ def main():
     #revokeConfirmationMS(txId)
     #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
     #print('FastBTC offramp balance:', bal/10**18)
+    #print('Multisig balance:', getContractBTCBalance(conf.contracts['multisig'])/1e18)
+
     #transferRBTCFromFastBTCOffRampToOnRamp(bal)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
