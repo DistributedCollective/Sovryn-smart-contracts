@@ -81,7 +81,7 @@ task("multisig:check-txs", "Check multiple multisig txs")
         }
     });
 
-task("multisig:revoke", "Revoke multisig tx confirmation")
+task("multisig:revoke-sig", "Revoke multisig tx confirmation")
     .addParam("id", "Multisig transaction to revoke confirmation from", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .setAction(async ({ id, signer }, hre) => {

@@ -56,6 +56,13 @@ const mainnetRewardAssets = [
     // "0xEFc78fc7d48b64958315949279Ba181c2114ABBd".toLowerCase(), // SOV
 ];
 
+const mainnetTokenAddressToName = {
+    "0xeabd29be3c3187500df86a2613c6470e12f2d77d": "rBTC",
+    "0xa9dcdc63eabb8a2b6f39d7ff9429d88340044a7a": "iWRBTC",
+    "0xdb107fa69e33f05180a4c2ce9c2e7cb481645c2d": "ZUSD",
+    "0xefc78fc7d48b64958315949279ba181c2114abbd": "SOV",
+};
+
 testnetData = {
     url: testnetUrl,
     chainId: 31,
@@ -193,7 +200,7 @@ describe("Check if Fee Sharing Collector was properly fixed", async () => {
                     "    User N° " +
                         (i + 1) +
                         " Status for Token " +
-                        (j + 1) +
+                        mainnetTokenAddressToName[mainnetRewardAssets[j]] +
                         " " +
                         tokens[j] +
                         ": "
@@ -215,76 +222,89 @@ describe("Check if Fee Sharing Collector was properly fixed", async () => {
                     await feeSharingCollector.numTokenCheckpoints(tokens[j])
                 ).toNumber();
 
-                let completed = false;
-                index = 0;
-
                 let expectedReward = await feeSharingCollector.getAccumulatedFees(
                     users[i],
                     tokens[j]
                 );
 
                 logger.information(
-                    "    User N° " + (i + 1) + " Expected Reward in token N° " + (j + 1) + ": "
+                    "    User N° " +
+                        (i + 1) +
+                        " Expected Reward in token " +
+                        mainnetTokenAddressToName[mainnetRewardAssets[j]] +
+                        ": "
                 );
                 logger.warning("    " + expectedReward.toString());
 
                 const tokenAsset = await ethers.getContractAt("ERC20", tokens[j]);
                 let balanceBefore = await tokenAsset.balanceOf(users[i]);
+
+                let completed = false;
+                let index = 0;
+                const MAX_CHECKPOINTS = 74;
                 while (!completed) {
                     let balanceAfter;
-                    logger.warn("index: " + index);
+
                     let expectedRewardBeforeWithdraw =
                         await feeSharingCollector.getAccumulatedFees(users[i], tokens[j]);
                     let balanceBeforeWithdraw = await tokenAsset.balanceOf(users[i]);
-                    logger.warn("Withdrawal using regular withdraw()...");
-                    let claimFees = await feeSharingCollector.withdraw(tokens[j], 83, users[i], {
-                        gasLimit: 6500000,
-                        gasPrice: 66e7,
-                    });
+                    // logger.warn("Withdrawal using regular withdraw()...");
+                    let claimFees = await feeSharingCollector.withdraw(
+                        tokens[j],
+                        MAX_CHECKPOINTS,
+                        users[i],
+                        {
+                            gasLimit: 6500000,
+                            gasPrice: 66e7,
+                        }
+                    );
                     let claimFeesTx = await claimFees.wait();
                     balanceAfter = await tokenAsset.balanceOf(users[i]);
-                    logger.information(
-                        "    User N° " +
-                            (i + 1) +
-                            " Balance after withdraw() in token N° " +
-                            (j + 1) +
-                            ": "
-                    );
-
                     let expectedRewardAfterWithdraw = await feeSharingCollector.getAccumulatedFees(
                         users[i],
                         tokens[j]
                     );
                     let balanceAfterWithdraw = await tokenAsset.balanceOf(users[i]);
-                    logger.warning("    " + balanceAfter.toString());
-                    logger.info(
-                        `    Rewards actual sub rewards expected: ${balanceAfterWithdraw
+
+                    const payDiff =
+                        balanceAfterWithdraw
                             .sub(balanceBeforeWithdraw)
                             .sub(expectedRewardBeforeWithdraw)
-                            .add(expectedRewardAfterWithdraw)
-                            // .div(ethers.constants.WeiPerEther)
-                            .toString()}`
-                    );
+                            .add(expectedRewardAfterWithdraw) / 1e18;
+                    if (payDiff !== 0) {
+                        logger.warn("index: " + index);
+                        logger.information(
+                            "    User N° " +
+                                (i + 1) +
+                                " Balance after withdraw() in token " +
+                                mainnetTokenAddressToName[mainnetRewardAssets[j]] +
+                                ": "
+                        );
+                        logger.warning("    " + balanceAfter.toString());
+                        logger.info(`    Rewards actual sub rewards expected: ${payDiff}`);
+                    }
 
                     userProcessedCheckpoints = (
                         await feeSharingCollector.processedCheckpoints(users[i], tokens[j])
                     ).toNumber();
                     completed = userProcessedCheckpoints >= totalTokenCheckpoints; // || hasFees;
+                    index++;
                 }
 
                 let balanceAfter = await tokenAsset.balanceOf(users[i]);
                 logger.warning("IN TOTAL:...");
                 logger.information(
-                    "    User N° " + (i + 1) + " Balance after in token N° " + (j + 1) + ": "
+                    "    User N° " +
+                        (i + 1) +
+                        " Balance after in token " +
+                        mainnetTokenAddressToName[mainnetRewardAssets[j]] +
+                        ": "
                 );
                 logger.warning("    " + balanceAfter.toString());
-                logger.info(
-                    `Rewards actual sub rewards expected: ${balanceAfter
-                        .sub(balanceBefore)
-                        .sub(expectedReward)
-                        //.div(ethers.constants.WeiPerEther)
-                        .toString()}`
-                );
+                const payDiff = balanceAfter.sub(balanceBefore).sub(expectedReward) / 1e18;
+                if (payDiff > 0)
+                    logger.error(`    Rewards actual sub rewards expected: ${payDiff}`);
+                else logger.info(`    Rewards actual sub rewards expected: ${payDiff}`);
             }
         }
     });

@@ -22,8 +22,8 @@
  *       It didn't work.
  */
 
-const { expect } = require("chai");
-const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+// const { expect } = require("chai");
+const { loadFixture, takeSnapshot, mine } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
 const { ZERO_ADDRESS } = constants;
@@ -62,7 +62,7 @@ const LockedSOV = artifacts.require("LockedSOV");
 
 const FeeSharingCollector = artifacts.require("FeeSharingCollector");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
-const FeeSharingCollectorProxyMockup = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorMockup = artifacts.require("FeeSharingCollectorMockup");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 
@@ -97,6 +97,8 @@ const mutexUtils = require("./reentrancy/utils");
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
 
+const MAX_NEXT_POSITIVE_CHECKPOINT = 75;
+
 const {
     getSUSD,
     getRBTC,
@@ -114,7 +116,7 @@ const {
     getSOV,
 } = require("./Utils/initializer.js");
 
-contract("FeeSharingCollectorProxy:", (accounts) => {
+contract("FeeSharingCollector:", (accounts) => {
     const name = "Test SOVToken";
     const symbol = "TST";
 
@@ -123,8 +125,8 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
     let SOVToken, SUSD, WRBTC, sovryn, staking;
     let loanTokenSettings, loanTokenLogic, loanToken;
     let feeSharingCollectorProxyObj;
-    let feeSharingCollectorProxy;
     let feeSharingCollector;
+    let feeSharingCollectorLogic;
     let loanTokenWrbtc;
     let tradingFeePercent;
     let mockPrice;
@@ -217,17 +219,14 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         await loanToken.setAdmin(root);
         await sovryn.setLoanPool([loanToken.address], [SUSD.address]);
 
-        // FeeSharingCollectorProxy
-        feeSharingCollector = await FeeSharingCollector.new();
+        feeSharingCollectorLogic = await FeeSharingCollector.new();
         feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
             sovryn.address,
             staking.address
         );
-        await feeSharingCollectorProxyObj.setImplementation(feeSharingCollector.address);
-        feeSharingCollectorProxy = await FeeSharingCollector.at(
-            feeSharingCollectorProxyObj.address
-        );
-        await sovryn.setFeesController(feeSharingCollectorProxy.address);
+        await feeSharingCollectorProxyObj.setImplementation(feeSharingCollectorLogic.address);
+        feeSharingCollector = await FeeSharingCollector.at(feeSharingCollectorProxyObj.address);
+        await sovryn.setFeesController(feeSharingCollector.address);
 
         // Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
         loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
@@ -256,7 +255,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             vestingFactory.address,
             SOVToken.address,
             staking.address,
-            feeSharingCollectorProxy.address,
+            feeSharingCollector.address,
             root // This should be Governance Timelock Contract.
         );
         vestingFactory.transferOwnership(vestingRegistry.address);
@@ -291,7 +290,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         await sovryn.setMaxDisagreement(maxDisagreement);
 
         RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT =
-            await feeSharingCollectorProxy.RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT();
+            await feeSharingCollector.RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT();
 
         return sovryn;
     }
@@ -300,12 +299,705 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         await loadFixture(protocolDeploymentFixture);
     });
 
+    describe("withdrawStartingFromCheckpoint, withdrawRBTCStartingFromCheckpoint and getNextPositiveUserCheckpoint", () => {
+        let snapshot;
+        before(async () => {
+            await loadFixture(protocolDeploymentFixture);
+        });
+        beforeEach(async () => {
+            snapshot = await takeSnapshot();
+        });
+        afterEach(async () => {
+            await snapshot.restore();
+        });
+
+        // If calling withdrawStartingFromCheckpoint or withdrawRBTCStartingFromCheckpoint  with _fromCheckpoint > processedCheckpoints[user][_loanPoolToken] it starts calculating the fees from _fromCheckpoint
+        it("withdrawStartingFromCheckpoint calculates fees correctly", async () => {
+            // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
+
+            /// RBTC
+            await stake(900, root);
+            const userStake = 100;
+
+            await SOVToken.transfer(account1, userStake);
+            await createCheckpointsSOV(9);
+            await mine(2880 * 15, { interval: 30 }); // 86400 (1day) / 30 == 2800 * 15 (2 weeks + 1 day - for weighted stake to be updated in cache of FeeSharingCollector._getAccumulatedFees())
+            await stake(userStake, account1);
+            await createCheckpointsSOV(1);
+
+            const tokenBalanceBefore = await SOVToken.balanceOf(account1);
+            let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+
+            const { checkpointNum } = nextPositive;
+            expect(checkpointNum.toNumber()).eql(10);
+
+            const expectedReward = await feeSharingCollector.getAccumulatedFees(
+                account1,
+                SOVToken.address
+            );
+
+            let tx = await feeSharingCollector.withdrawStartingFromCheckpoint(
+                SOVToken.address,
+                nextPositive.checkpointNum,
+                3,
+                ZERO_ADDRESS,
+                { from: account1 }
+            );
+
+            const tokenBalanceAfter = await SOVToken.balanceOf(account1);
+
+            expectEvent(tx, "UserFeeWithdrawn", {
+                sender: account1,
+                token: SOVToken.address,
+                amount: new BN(60),
+            });
+
+            expect(tokenBalanceAfter.sub(tokenBalanceBefore).toNumber())
+                .eql(expectedReward.toNumber())
+                .eql(60);
+
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                SOVToken.address
+            );
+            expect(processedCheckpoints.toNumber()).to.equal(10);
+        });
+
+        it("withdrawStartingFromCheckpoint works with large number of unprocessed token checkpoints", async () => {
+            // To test this, create 250 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
+
+            /// RBTC
+            await stake(900, root);
+            const userStake = 100;
+
+            await SOVToken.transfer(account1, userStake);
+            await createCheckpointsSOV(9);
+
+            await stake(userStake, account1);
+            await createCheckpointsSOV(1);
+
+            let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+
+            let tx = await feeSharingCollector.withdrawStartingFromCheckpoint(
+                SOVToken.address,
+                nextPositive.checkpointNum.toNumber(),
+                3,
+                ZERO_ADDRESS,
+                { from: account1 }
+            );
+
+            expectEvent(tx, "UserFeeWithdrawn", {
+                sender: account1,
+                token: SOVToken.address,
+                amount: new BN(60),
+            });
+
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                SOVToken.address
+            );
+            expect(processedCheckpoints.toNumber()).to.equal(10);
+        });
+
+        it("withdrawRBTCStartingFromCheckpoint calculates fees correctly", async () => {
+            // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRBTCStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
+
+            /// RBTC
+            await stake(900, root);
+            const userStake = 100;
+
+            await SOVToken.transfer(account1, userStake);
+            await createCheckpoints(9);
+
+            await stake(userStake, account1);
+            await createCheckpoints(1);
+
+            let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+
+            let tx = await feeSharingCollector.withdrawRBTCStartingFromCheckpoint(
+                nextPositive.checkpointNum.toNumber(),
+                3,
+                ZERO_ADDRESS,
+                { from: account1 }
+            );
+
+            expectEvent(tx, "RBTCWithdrawn", {
+                sender: account1,
+                amount: new BN(60),
+            });
+
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            expect(processedCheckpoints.toNumber()).to.equal(10);
+        });
+
+        it("getNextPositiveUserCheckpoint for RBTC returns the first checkpoint on which the user has a stake > 0", async () => {
+            await stake(900, root);
+            const userStake = 100;
+
+            await SOVToken.transfer(account1, userStake);
+            await createCheckpoints(9);
+
+            await stake(userStake, account1);
+            await createCheckpoints(1);
+
+            const nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(10);
+        });
+
+        it("getNextPositiveUserCheckpoint reverts on _maxCheckpoints == 0", async () => {
+            await expectRevert(
+                feeSharingCollector.getNextPositiveUserCheckpoint(
+                    account1,
+                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                    0,
+                    0
+                ),
+                "_maxCheckpoints must be > 0"
+            );
+        });
+
+        it("getNextPositiveUserCheckpoint for SOV returns the first checkpoint on which the user has a stake > 0", async () => {
+            await stake(900, root);
+            const userStake = 100;
+
+            await SOVToken.transfer(account1, userStake);
+            await createCheckpointsSOV(9);
+
+            await stake(userStake, account1);
+            await createCheckpointsSOV(1);
+
+            const nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(10);
+        });
+
+        it("getNextPositiveUserCheckpoint processing for SOV when user's unprocessed checkpoints > MAX_NEXT_POSITIVE_CHECKPOINT", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await sovryn.setFeesController(feeSharingCollector.address);
+
+            await stake(900, root);
+            const userStake = 100;
+
+            await SOVToken.transfer(account1, userStake);
+
+            // SOV
+            // @todo this loop takes a long time. see if can be optimized.
+            for (let i = 0; i < 200; i++) {
+                await feeSharingCollector.addCheckPoint(SOVToken.address, userStake);
+                await increaseTime(FEE_WITHDRAWAL_INTERVAL);
+                await mineBlock();
+            }
+
+            // await feeSharingCollector.setTotalTokenCheckpoints(SOVToken.address, 250);
+            // await feeSharingCollector.addCheckPoint(SOVToken.address, userStake);
+            // await feeSharingCollector.setUserProcessedCheckpoints(account1, SOVToken.address, 1);
+            // await createCheckpointsSOV(250);
+
+            const userProcessedCheckpoints = (
+                await feeSharingCollector.processedCheckpoints(account1, SOVToken.address)
+            ).toNumber(); // 0
+            const totalTokenCheckpoints = (
+                await feeSharingCollector.totalTokenCheckpoints(SOVToken.address)
+            ).toNumber();
+
+            const modChunks =
+                (totalTokenCheckpoints - userProcessedCheckpoints) % MAX_NEXT_POSITIVE_CHECKPOINT;
+            const addChunks = modChunks > 0 ? 1 : 0;
+            const chunks =
+                parseInt(
+                    (totalTokenCheckpoints - userProcessedCheckpoints) /
+                        MAX_NEXT_POSITIVE_CHECKPOINT
+                ) + addChunks;
+            expect(chunks).equal(3);
+
+            let nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(MAX_NEXT_POSITIVE_CHECKPOINT);
+            expect(!nextCheckpoint.hasFees);
+            expect(!nextCheckpoint.hasSkippedCheckpoints);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                MAX_NEXT_POSITIVE_CHECKPOINT + 1,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(
+                MAX_NEXT_POSITIVE_CHECKPOINT * 2 + 1
+            );
+            expect(!nextCheckpoint.hasFees);
+            expect(!nextCheckpoint.hasSkippedCheckpoints);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                MAX_NEXT_POSITIVE_CHECKPOINT * 2 + 1,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(200);
+            expect(!nextCheckpoint.hasFees);
+            expect(!nextCheckpoint.hasSkippedCheckpoints);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                199,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(200);
+            expect(!nextCheckpoint.hasFees);
+            expect(!nextCheckpoint.hasSkippedCheckpoints);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                200,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(200);
+            expect(!nextCheckpoint.hasFees);
+            expect(!nextCheckpoint.hasSkippedCheckpoints);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                250,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(200);
+            expect(!nextCheckpoint.hasFees);
+            expect(!nextCheckpoint.hasSkippedCheckpoints);
+
+            await stake(userStake, account1);
+            await createCheckpointsSOV(1);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                200,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(201);
+            expect(nextCheckpoint.hasFees);
+            expect(nextCheckpoint.hasSkippedCheckpoints);
+        });
+
+        it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint revert if _fromCheckpoint == 0", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await sovryn.setFeesController(feeSharingCollector.address);
+            await expectRevert(
+                feeSharingCollector.withdrawStartingFromCheckpoint(
+                    SOVToken.address,
+                    0,
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "_fromCheckpoint param must be > 1"
+            );
+
+            await expectRevert(
+                feeSharingCollector.withdrawRBTCStartingFromCheckpoint(0, 10, ZERO_ADDRESS, {
+                    from: account1,
+                }),
+                "_fromCheckpoint param must be > 1"
+            );
+        });
+
+        it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint revert if _fromCheckpoint < processedCheckpoints[user][_token]", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await sovryn.setFeesController(feeSharingCollector.address);
+            let rootStake = 900;
+            await stake(rootStake, root);
+            const userStake = 100;
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+            await feeSharingCollector.addCheckPoint(SOVToken.address, 100);
+            await feeSharingCollector.setUserProcessedCheckpoints(account1, SOVToken.address, 3);
+            await expectRevert(
+                feeSharingCollector.withdrawStartingFromCheckpoint(
+                    SOVToken.address,
+                    3,
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "_fromCheckpoint param must be > userProcessedCheckpoints"
+            );
+
+            await expectRevert(
+                feeSharingCollector.withdrawStartingFromCheckpoint(
+                    SOVToken.address,
+                    2,
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "_fromCheckpoint param must be > userProcessedCheckpoints"
+            );
+
+            await feeSharingCollector.setUserProcessedCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                2
+            );
+
+            await expectRevert(
+                feeSharingCollector.withdrawRBTCStartingFromCheckpoint(2, 10, ZERO_ADDRESS, {
+                    from: account1,
+                }),
+                "_fromCheckpoint param must be > userProcessedCheckpoints"
+            );
+
+            await feeSharingCollector.setUserProcessedCheckpoints(account1, SOVToken.address, 2);
+
+            await expectRevert(
+                feeSharingCollector.withdrawStartingFromCheckpoint(
+                    SOVToken.address,
+                    2,
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "_fromCheckpoint param must be > userProcessedCheckpoints"
+            );
+        });
+
+        it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint revert if the user had a stake > 0 at _fromCheckpoint - 1", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await sovryn.setFeesController(feeSharingCollector.address);
+
+            let rootStake = 800;
+            await stake(rootStake, root);
+            const userStake = 100;
+            await SOVToken.transfer(account1, userStake * 2);
+            await stake(userStake, account1);
+
+            // SOV
+            for (let i = 0; i < 2; i++) {
+                await feeSharingCollector.addCheckPoint(SOVToken.address, userStake);
+                await increaseTime(FEE_WITHDRAWAL_INTERVAL);
+                await mineBlock();
+            }
+            await feeSharingCollector.addCheckPoint(SOVToken.address, userStake);
+
+            await feeSharingCollector.setUserProcessedCheckpoints(account1, SOVToken.address, 1);
+            await expectRevert(
+                feeSharingCollector.withdrawStartingFromCheckpoint(
+                    SOVToken.address,
+                    2,
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "User weighted stake should be zero at previous checkpoint"
+            );
+
+            // RBTC
+            for (let i = 0; i < 2; i++) {
+                await feeSharingCollector.addCheckPoint(
+                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                    userStake
+                );
+                await increaseTime(FEE_WITHDRAWAL_INTERVAL);
+                await mineBlock();
+            }
+            await feeSharingCollector.addCheckPoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, userStake);
+            await feeSharingCollector.setUserProcessedCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                1
+            );
+            await expectRevert(
+                feeSharingCollector.withdrawRBTCStartingFromCheckpoint(2, 10, ZERO_ADDRESS, {
+                    from: account1,
+                }),
+                "User weighted stake should be zero at previous checkpoint"
+            );
+        });
+    });
+
+    describe("getNextPositiveUserCheckpoint", () => {
+        before(async () => {
+            await loadFixture(protocolDeploymentFixture);
+        });
+        beforeEach(async () => {
+            snapshot = await takeSnapshot();
+        });
+        afterEach(async () => {
+            // after doing some changes, you can restore to the state of the snapshot
+            await snapshot.restore();
+        });
+        it("getNextPositiveUserCheckpoint for SOV returns correct [checkpointNum, hasSkippedCheckpoints, hasFees]", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await sovryn.setFeesController(feeSharingCollector.address);
+
+            let nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect([
+                nextCheckpoint.checkpointNum.toNumber(),
+                nextCheckpoint.hasSkippedCheckpoints,
+                nextCheckpoint.hasFees,
+            ]).to.eql([0, false, false]);
+
+            await stake(900, root);
+            const userStake = 100;
+
+            await createCheckpointsSOV(9);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect([
+                nextCheckpoint.checkpointNum.toNumber(),
+                nextCheckpoint.hasSkippedCheckpoints,
+                nextCheckpoint.hasFees,
+            ]).to.eql([9, true, false]);
+
+            await feeSharingCollector.setUserProcessedCheckpoints(account1, SOVToken.address, 9);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect([
+                nextCheckpoint.checkpointNum.toNumber(),
+                nextCheckpoint.hasSkippedCheckpoints,
+                nextCheckpoint.hasFees,
+            ]).to.eql([9, false, false]);
+
+            // undo mock user processed checkpoints
+            await feeSharingCollector.setUserProcessedCheckpoints(account1, SOVToken.address, 0);
+
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+            await createCheckpointsSOV(1);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect([
+                nextCheckpoint.checkpointNum.toNumber(),
+                nextCheckpoint.hasSkippedCheckpoints,
+                nextCheckpoint.hasFees,
+            ]).to.eql([10, true, true]);
+        });
+        it("getNextPositiveUserCheckpoint for RBTC returns correct [checkpointNum, hasSkippedCheckpoints, hasFees]", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await sovryn.setFeesController(feeSharingCollector.address);
+
+            let nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect([
+                nextCheckpoint.checkpointNum.toNumber(),
+                nextCheckpoint.hasSkippedCheckpoints,
+                nextCheckpoint.hasFees,
+            ]).to.eql([0, false, false]);
+
+            await stake(900, root);
+            const userStake = 100;
+
+            await createCheckpoints(9);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect([
+                nextCheckpoint.checkpointNum.toNumber(),
+                nextCheckpoint.hasSkippedCheckpoints,
+                nextCheckpoint.hasFees,
+            ]).to.eql([9, true, false]);
+
+            await feeSharingCollector.setUserProcessedCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                9
+            );
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect([
+                nextCheckpoint.checkpointNum.toNumber(),
+                nextCheckpoint.hasSkippedCheckpoints,
+                nextCheckpoint.hasFees,
+            ]).to.eql([9, false, false]);
+
+            // undo mock user processed checkpoints
+            await feeSharingCollector.setUserProcessedCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0
+            );
+
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+            await createCheckpoints(1);
+
+            nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect([
+                nextCheckpoint.checkpointNum.toNumber(),
+                nextCheckpoint.hasSkippedCheckpoints,
+                nextCheckpoint.hasFees,
+            ]).to.eql([10, true, true]);
+        });
+    });
+
+    describe("feeSharingCollector functions", () => {
+        let snapshot;
+        before(async () => {
+            await loadFixture(protocolDeploymentFixture);
+        });
+        beforeEach(async () => {
+            snapshot = await takeSnapshot();
+        });
+        afterEach(async () => {
+            await snapshot.restore();
+        });
+        it("numTokenCheckpoints returns value of totalTokenCheckpoints", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            await feeSharingCollector.setTotalTokenCheckpoints(SOVToken.address, 3);
+            expect((await feeSharingCollector.totalTokenCheckpoints(SOVToken.address)).toNumber())
+                .equal(
+                    (await feeSharingCollector.numTokenCheckpoints(SOVToken.address)).toNumber()
+                )
+                .equal(3);
+
+            await feeSharingCollector.setTotalTokenCheckpoints(SOVToken.address, 0);
+            expect((await feeSharingCollector.totalTokenCheckpoints(SOVToken.address)).toNumber())
+                .equal(
+                    (await feeSharingCollector.numTokenCheckpoints(SOVToken.address)).toNumber()
+                )
+                .equal(0);
+
+            await feeSharingCollector.setTotalTokenCheckpoints(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                5
+            );
+            expect(
+                (
+                    await feeSharingCollector.totalTokenCheckpoints(
+                        RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+                    )
+                ).toNumber()
+            )
+                .equal(
+                    (
+                        await feeSharingCollector.numTokenCheckpoints(
+                            RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+                        )
+                    ).toNumber()
+                )
+                .equal(5);
+        });
+    });
+
     describe("FeeSharingCollectorProxy", () => {
+        before(async () => {
+            await loadFixture(protocolDeploymentFixture);
+        });
+        beforeEach(async () => {
+            snapshot = await takeSnapshot();
+        });
+        afterEach(async () => {
+            await snapshot.restore();
+        });
         it("Check owner & implementation", async () => {
             const proxyOwner = await feeSharingCollectorProxyObj.getProxyOwner();
             const implementation = await feeSharingCollectorProxyObj.getImplementation();
 
-            expect(implementation).to.be.equal(feeSharingCollector.address);
+            expect(implementation).to.be.equal(feeSharingCollectorLogic.address);
             expect(proxyOwner).to.be.equal(root);
         });
 
@@ -333,14 +1025,14 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         it("Shouldn't be able to use zero token address", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
-                feeSharingCollectorProxy.withdrawFees([ZERO_ADDRESS]),
+                feeSharingCollector.withdrawFees([ZERO_ADDRESS]),
                 "FeeSharingCollector::withdrawFees: token is not a contract"
             );
         });
 
         it("Withdraw zero amount will success with the proper emitted event", async () => {
             await protocolDeploymentFixture();
-            const tx = await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            const tx = await feeSharingCollector.withdrawFees([SUSD.address]);
             expectEvent(tx, "FeeWithdrawnInRBTC", {
                 sender: root,
                 amount: new BN(0),
@@ -481,23 +1173,23 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             );
             let previousProtocolWrbtcBalance = await WRBTC.balanceOf(protocol.address);
             let previousFeeSharingCollectorProxyRBTCBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollectorProxy.address)
+                await web3.eth.getBalance(feeSharingCollector.address)
             );
 
-            tx = await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            tx = await feeSharingCollector.withdrawFees([SUSD.address]);
 
             await checkWithdrawFee();
 
             //check irbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
             let feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
-            // feeSharingCollectorProxy no longer provides the liquidity to lending pool.
+            // feeSharingCollector no longer provides the liquidity to lending pool.
             expect(feeSharingCollectorProxyBalance.toString()).to.be.equal("0");
 
             // make sure wrbtc balance is 0 after withdrawal
             let feeSharingCollectorProxyWRBTCBalance = await WRBTC.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyWRBTCBalance.toString()).to.be.equal(
                 new BN(0).toString()
@@ -509,20 +1201,20 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 latestProtocolWrbtcBalance.toString()
             );
 
-            // rbtc balance of feeSharingCollectorProxy should be increased
+            // rbtc balance of feeSharingCollector should be increased
             let latestFeeSharingCollectorProxyRBTCBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollectorProxy.address)
+                await web3.eth.getBalance(feeSharingCollector.address)
             );
             expect(
                 previousFeeSharingCollectorProxyRBTCBalance.add(new BN(feeAmount)).toString()
             ).to.equal(latestFeeSharingCollectorProxyRBTCBalance.toString());
 
             //checkpoints
-            let numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
-            let checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
@@ -532,7 +1224,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             );
             expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
             // check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -567,41 +1259,41 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             );
 
             let previousFeeSharingCollectorProxyRBTCBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollectorProxy.address)
+                await web3.eth.getBalance(feeSharingCollector.address)
             );
 
-            tx = await feeSharingCollectorProxy.withdrawFees([WRBTC.address]);
+            tx = await feeSharingCollector.withdrawFees([WRBTC.address]);
 
             await checkWithdrawFee();
 
             //check irbtc balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
             let feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toString()).to.be.equal("0");
 
             // make sure wrbtc balance is 0 after withdrawal
             let feeSharingCollectorProxyWRBTCBalance = await WRBTC.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyWRBTCBalance.toString()).to.be.equal(
                 new BN(0).toString()
             );
 
-            // rbtc balance of feeSharingCollectorProxy should be increased
+            // rbtc balance of feeSharingCollector should be increased
             let latestFeeSharingCollectorProxyRBTCBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollectorProxy.address)
+                await web3.eth.getBalance(feeSharingCollector.address)
             );
             expect(
                 previousFeeSharingCollectorProxyRBTCBalance.add(new BN(feeAmount)).toString()
             ).to.equal(latestFeeSharingCollectorProxyRBTCBalance.toString());
 
             //checkpoints
-            let numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
-            let checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
@@ -612,7 +1304,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
             //check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -648,23 +1340,23 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             );
 
             let previousFeeSharingCollectorProxyRBTCBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollectorProxy.address)
+                await web3.eth.getBalance(feeSharingCollector.address)
             );
 
-            tx = await feeSharingCollectorProxy.withdrawFees([SOVToken.address]);
+            tx = await feeSharingCollector.withdrawFees([SOVToken.address]);
 
             await checkWithdrawFee(false, false, true);
 
             //check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
             let feeSharingCollectorProxyBalance = await SOVToken.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toString()).to.be.equal(feeAmount.toString());
 
-            // special for SOV token, it won't be converted into rbtc, instead it will directly transfer SOV to feeSharingCollectorProxy.
+            // special for SOV token, it won't be converted into rbtc, instead it will directly transfer SOV to feeSharingCollector.
             // so the rbtc balance should remain the same.
             let latestFeeSharingCollectorProxyRBTCBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollectorProxy.address)
+                await web3.eth.getBalance(feeSharingCollector.address)
             );
             expect(previousFeeSharingCollectorProxyRBTCBalance.toString()).to.equal(
                 latestFeeSharingCollectorProxyRBTCBalance.toString()
@@ -672,21 +1364,18 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             // make sure wrbtc balance is 0 after withdrawal
             let feeSharingCollectorProxyWRBTCBalance = await WRBTC.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyWRBTCBalance.toString()).to.be.equal(
                 new BN(0).toString()
             );
 
             //checkpoints
-            let numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 SOVToken.address
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
-            let checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
-                SOVToken.address,
-                0
-            );
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(SOVToken.address, 0);
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(
                 totalStake * MAX_VOTING_WEIGHT
@@ -694,7 +1383,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
             //check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 SOVToken.address
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -741,22 +1430,22 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             );
             let totalFeeAmount = feeAmount;
 
-            let tx = await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            let tx = await feeSharingCollector.withdrawFees([SUSD.address]);
 
             await checkWithdrawFee();
 
             // check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
             let feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toString()).to.be.equal("0");
 
             // checkpoints
-            let numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
-            let checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
@@ -767,7 +1456,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
             // check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -798,14 +1487,14 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             let unprocessedAmount = feeAmount;
             totalFeeAmount = totalFeeAmount.add(feeAmount);
 
-            tx = await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            tx = await feeSharingCollector.withdrawFees([SUSD.address]);
 
             // Need to checkwithdrawfee manually
             await checkWithdrawFee();
 
             // check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
             feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toString()).to.be.equal("0");
 
@@ -836,22 +1525,22 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             totalFeeAmount = totalFeeAmount.add(feeAmount);
 
             await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-            tx = await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            tx = await feeSharingCollector.withdrawFees([SUSD.address]);
             // In this state the price of SUSD/WRBTC already adjusted because of previous swap, so we need to consider this in the next swapFee calculation
             await checkWithdrawFee();
 
             // check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
             feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toString()).to.be.equal("0");
 
             // checkpoints
-            numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(2);
-            checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(2);
+            checkpoint = await feeSharingCollector.tokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 1
             );
@@ -864,7 +1553,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             );
 
             // check lastFeeWithdrawalTime
-            lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -872,7 +1561,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             // make sure wrbtc balance is 0 after withdrawal
             let feeSharingCollectorProxyWRBTCBalance = await WRBTC.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyWRBTCBalance.toString()).to.be.equal(
                 new BN(0).toString()
@@ -884,7 +1573,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         it("Shouldn't be able to use zero token address", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
-                feeSharingCollectorProxy.transferTokens(ZERO_ADDRESS, 1000),
+                feeSharingCollector.transferTokens(ZERO_ADDRESS, 1000),
                 "FeeSharingCollector::transferTokens: invalid address"
             );
         });
@@ -892,7 +1581,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         it("Shouldn't be able to transfer zero amount", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
-                feeSharingCollectorProxy.transferTokens(SOVToken.address, 0),
+                feeSharingCollector.transferTokens(SOVToken.address, 0),
                 "FeeSharingCollector::transferTokens: invalid amount"
             );
         });
@@ -900,7 +1589,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         it("Shouldn't be able to withdraw zero amount", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
-                feeSharingCollectorProxy.transferTokens(SOVToken.address, 1000),
+                feeSharingCollector.transferTokens(SOVToken.address, 1000),
                 "invalid transfer"
             );
         });
@@ -912,12 +1601,12 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await stake(totalStake, root);
 
             let amount = 1000;
-            await SOVToken.approve(feeSharingCollectorProxy.address, amount * 7);
+            await SOVToken.approve(feeSharingCollector.address, amount * 7);
 
-            let tx = await feeSharingCollectorProxy.transferTokens(SOVToken.address, amount);
+            let tx = await feeSharingCollector.transferTokens(SOVToken.address, amount);
 
             expect(
-                await feeSharingCollectorProxy.unprocessedAmount.call(SOVToken.address)
+                await feeSharingCollector.unprocessedAmount.call(SOVToken.address)
             ).to.be.bignumber.equal(new BN(0));
 
             expectEvent(tx, "TokensTransferred", {
@@ -927,14 +1616,11 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             });
 
             // checkpoints
-            let numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 SOVToken.address
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
-            let checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
-                SOVToken.address,
-                0
-            );
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(SOVToken.address, 0);
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(
                 totalStake * MAX_VOTING_WEIGHT
@@ -942,7 +1628,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(checkpoint.numTokens.toString()).to.be.equal(amount.toString());
 
             // check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 SOVToken.address
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -955,10 +1641,10 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             });
 
             // second time
-            tx = await feeSharingCollectorProxy.transferTokens(SOVToken.address, amount * 2);
+            tx = await feeSharingCollector.transferTokens(SOVToken.address, amount * 2);
 
             expect(
-                await feeSharingCollectorProxy.unprocessedAmount.call(SOVToken.address)
+                await feeSharingCollector.unprocessedAmount.call(SOVToken.address)
             ).to.be.bignumber.equal(new BN(amount * 2));
 
             expectEvent(tx, "TokensTransferred", {
@@ -969,18 +1655,18 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             await increaseTime(FEE_WITHDRAWAL_INTERVAL);
             // third time
-            tx = await feeSharingCollectorProxy.transferTokens(SOVToken.address, amount * 4);
+            tx = await feeSharingCollector.transferTokens(SOVToken.address, amount * 4);
 
             expect(
-                await feeSharingCollectorProxy.unprocessedAmount.call(SOVToken.address)
+                await feeSharingCollector.unprocessedAmount.call(SOVToken.address)
             ).to.be.bignumber.equal(new BN(0));
 
             // checkpoints
-            numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 SOVToken.address
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(2);
-            checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(SOVToken.address, 1);
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(2);
+            checkpoint = await feeSharingCollector.tokenCheckpoints.call(SOVToken.address, 1);
             expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
             expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(
                 totalStake * MAX_VOTING_WEIGHT
@@ -988,7 +1674,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(checkpoint.numTokens.toNumber()).to.be.equal(amount * 6);
 
             // check lastFeeWithdrawalTime
-            lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 SOVToken.address
             );
             block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -1000,7 +1686,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         it("Shouldn't be able to withdraw without checkpoints (for token pool)", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
-                feeSharingCollectorProxy.withdraw(loanToken.address, 0, account2, {
+                feeSharingCollector.withdraw(loanToken.address, 0, account2, {
                     from: account1,
                 }),
                 "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
@@ -1010,42 +1696,117 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         it("Shouldn't be able to withdraw without checkpoints (for wRBTC pool)", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
-                feeSharingCollectorProxy.withdraw(loanTokenWrbtc.address, 0, account2, {
+                feeSharingCollector.withdraw(loanTokenWrbtc.address, 0, account2, {
                     from: account1,
                 }),
                 "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
             );
         });
 
+        it("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints", async () => {
+            await protocolDeploymentFixture();
+            await stake(900, root);
+            await createCheckpointsSOV(10);
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            expect(fees).to.be.bignumber.equal("0");
+
+            const tx = await feeSharingCollector.withdraw(SOVToken.address, 9, ZERO_ADDRESS, {
+                from: account1,
+            });
+            expectEvent(tx, "UserFeeProcessedNoWithdraw", {
+                sender: account1,
+                token: SOVToken.address,
+                prevProcessedCheckpoints: new BN(0),
+                newProcessedCheckpoints: new BN(9),
+            });
+        });
+
+        it("Shifts user's processed checkpoints to max if no fees due within max checkpoints and exist user's  previous checkpoints", async () => {
+            await protocolDeploymentFixture();
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await sovryn.setFeesController(feeSharingCollector.address);
+
+            await stake(900, root);
+            await createCheckpointsSOV(10);
+
+            await feeSharingCollector.setUserProcessedCheckpoints(account1, SOVToken.address, 2);
+
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            expect(fees).to.be.bignumber.equal("0");
+
+            // const { amount, end } = await feeSharingCollector.getFullAccumulatedFees(
+            //     account1,
+            //     SOVToken.address,
+            //     11
+            // );
+            // console.log(" amount, end:", amount.toNumber(), end.toNumber());
+
+            // maxCheckpoints (20) + processedUserCheckpoints(0) > totalTokenCheckpoints (10)
+            let tx = await feeSharingCollector.trueWithdraw(SOVToken.address, 20, ZERO_ADDRESS, {
+                from: account1,
+            });
+            expectEvent(tx, "UserFeeProcessedNoWithdraw", {
+                sender: account1,
+                token: SOVToken.address,
+                prevProcessedCheckpoints: new BN(2),
+                newProcessedCheckpoints: new BN(10),
+            });
+
+            // maxCheckpoints (8) + processedUserCheckpoints(10) < totalTokenCheckpoints (25)
+            await createCheckpointsSOV(15);
+            tx = await feeSharingCollector.trueWithdraw(SOVToken.address, 8, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            expectEvent(tx, "UserFeeProcessedNoWithdraw", {
+                sender: account1,
+                token: SOVToken.address,
+                prevProcessedCheckpoints: new BN(10),
+                newProcessedCheckpoints: new BN(18),
+            });
+
+            // maxCheckpoints (7) + processedUserCheckpoints(18) ===  totalTokenCheckpoints (25)
+            tx = await feeSharingCollector.trueWithdraw(SOVToken.address, 7, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            expectEvent(tx, "UserFeeProcessedNoWithdraw", {
+                sender: account1,
+                token: SOVToken.address,
+                prevProcessedCheckpoints: new BN(18),
+                newProcessedCheckpoints: new BN(25),
+            });
+        });
+
         it("Shouldn't be able to withdraw zero amount (for token pool)", async () => {
             await protocolDeploymentFixture();
-            let fees = await feeSharingCollectorProxy.getAccumulatedFees(
-                account1,
-                loanToken.address
-            );
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, loanToken.address);
             expect(fees).to.be.bignumber.equal("0");
 
             await expectRevert(
-                feeSharingCollectorProxy.withdraw(loanToken.address, 10, ZERO_ADDRESS, {
+                feeSharingCollector.withdraw(loanToken.address, 10, ZERO_ADDRESS, {
                     from: account1,
                 }),
-                "FeeSharingCollector::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollector::withdrawFees: no tokens for withdrawal"
             );
         });
 
         it("Shouldn't be able to withdraw zero amount (for wRBTC pool)", async () => {
             await protocolDeploymentFixture();
-            let fees = await feeSharingCollectorProxy.getAccumulatedFees(
+            let fees = await feeSharingCollector.getAccumulatedFees(
                 account1,
                 loanTokenWrbtc.address
             );
             expect(fees).to.be.bignumber.equal("0");
 
             await expectRevert(
-                feeSharingCollectorProxy.withdraw(loanTokenWrbtc.address, 10, ZERO_ADDRESS, {
+                feeSharingCollector.withdraw(loanTokenWrbtc.address, 10, ZERO_ADDRESS, {
                     from: account1,
                 }),
-                "FeeSharingCollector::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollector::withdrawFees: no tokens for withdrawal"
             );
         });
 
@@ -1075,27 +1836,27 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 borrowingFeeTokensHeld
             );
 
-            await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            await feeSharingCollector.withdrawFees([SUSD.address]);
 
-            let fees = await feeSharingCollectorProxy.getAccumulatedFees(
+            let fees = await feeSharingCollector.getAccumulatedFees(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
 
-            let tx = await feeSharingCollectorProxy.withdrawRBTC(1000, account2, {
+            let tx = await feeSharingCollector.withdrawRBTC(1000, account2, {
                 from: account1,
             });
 
             // processedCheckpoints
             let [processedCheckpointsRBTC, processedCheckpointsWRBTC, processedCheckpointsIWRBTC] =
                 await Promise.all([
-                    feeSharingCollectorProxy.processedCheckpoints.call(
+                    feeSharingCollector.processedCheckpoints.call(
                         account1,
                         RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
                     ),
-                    feeSharingCollectorProxy.processedCheckpoints.call(account1, WRBTC.address),
-                    feeSharingCollectorProxy.processedCheckpoints.call(
+                    feeSharingCollector.processedCheckpoints.call(account1, WRBTC.address),
+                    feeSharingCollector.processedCheckpoints.call(
                         account1,
                         loanTokenWrbtc.address
                     ),
@@ -1116,14 +1877,14 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await protocolDeploymentFixture();
 
             // FeeSharingCollectorProxy
-            feeSharingCollectorProxy = await FeeSharingCollectorProxyMockup.new(
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
                 sovryn.address,
                 staking.address
             );
 
-            await sovryn.setFeesController(feeSharingCollectorProxy.address);
+            await sovryn.setFeesController(feeSharingCollector.address);
 
-            await WRBTC.mint(feeSharingCollectorProxy.address, wei("2", "ether"));
+            await WRBTC.mint(feeSharingCollector.address, wei("2", "ether"));
 
             // stake - getPriorTotalVotingPower
             let rootStake = 700;
@@ -1151,32 +1912,29 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             );
 
             /** Add checkpoint for WRBTC */
-            await feeSharingCollectorProxy.addCheckPoint(
-                WRBTC.address,
-                totalFeeTokensHeld.toString()
-            );
+            await feeSharingCollector.addCheckPoint(WRBTC.address, totalFeeTokensHeld.toString());
 
             /** Add checkpoint for iWRBTC */
-            await feeSharingCollectorProxy.addCheckPoint(
+            await feeSharingCollector.addCheckPoint(
                 loanTokenWrbtc.address,
                 totalFeeTokensHeld.toString()
             );
 
-            await loanTokenWrbtc.mintWithBTC(feeSharingCollectorProxy.address, false, {
+            await loanTokenWrbtc.mintWithBTC(feeSharingCollector.address, false, {
                 value: totalFeeTokensHeld,
             });
 
-            await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            await feeSharingCollector.withdrawFees([SUSD.address]);
 
-            const accumulatedFeesRBTC = await feeSharingCollectorProxy.getAccumulatedFees.call(
+            const accumulatedFeesRBTC = await feeSharingCollector.getAccumulatedFees.call(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
-            const accumulatedFeesWRBTC = await feeSharingCollectorProxy.getAccumulatedFees.call(
+            const accumulatedFeesWRBTC = await feeSharingCollector.getAccumulatedFees.call(
                 account1,
                 WRBTC.address
             );
-            const accumulatedFeesIRBTC = await feeSharingCollectorProxy.getAccumulatedFees.call(
+            const accumulatedFeesIRBTC = await feeSharingCollector.getAccumulatedFees.call(
                 account1,
                 loanTokenWrbtc.address
             );
@@ -1184,7 +1942,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(accumulatedFeesRBTC.toString()).to.equal(accumulatedFeesWRBTC.toString());
             expect(accumulatedFeesRBTC.toString()).to.equal(accumulatedFeesIRBTC.toString());
 
-            let fees = await feeSharingCollectorProxy.getAccumulatedFees(
+            let fees = await feeSharingCollector.getAccumulatedFees(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
@@ -1192,19 +1950,19 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 new BN(feeAmount).mul(new BN(userStakePercentage)).div(new BN(10))
             );
 
-            let tx = await feeSharingCollectorProxy.withdrawRBTC(1000, account2, {
+            let tx = await feeSharingCollector.withdrawRBTC(1000, account2, {
                 from: account1,
             });
 
             // processedCheckpoints
             let [processedCheckpointsRBTC, processedCheckpointsWRBTC, processedCheckpointsIWRBTC] =
                 await Promise.all([
-                    feeSharingCollectorProxy.processedCheckpoints.call(
+                    feeSharingCollector.processedCheckpoints.call(
                         account1,
                         RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
                     ),
-                    feeSharingCollectorProxy.processedCheckpoints.call(account1, WRBTC.address),
-                    feeSharingCollectorProxy.processedCheckpoints.call(
+                    feeSharingCollector.processedCheckpoints.call(account1, WRBTC.address),
+                    feeSharingCollector.processedCheckpoints.call(
                         account1,
                         loanTokenWrbtc.address
                     ),
@@ -1226,11 +1984,11 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         it("Should be able to withdraw (token pool)", async () => {
             await protocolDeploymentFixture();
             // FeeSharingCollectorProxy
-            feeSharingCollectorProxy = await FeeSharingCollectorProxyMockup.new(
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
                 sovryn.address,
                 staking.address
             );
-            await sovryn.setFeesController(feeSharingCollectorProxy.address);
+            await sovryn.setFeesController(feeSharingCollector.address);
 
             // stake - getPriorTotalVotingPower
             let rootStake = 700;
@@ -1247,32 +2005,24 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             const loanPoolTokenAddress = await sovryn.underlyingToLoanPool(SUSD.address);
             const amountLend = new BN(wei("500", "ether"));
             await SUSD.approve(loanPoolTokenAddress, amountLend);
-            await loanToken.mint(feeSharingCollectorProxy.address, amountLend);
+            await loanToken.mint(feeSharingCollector.address, amountLend);
 
-            // Check ISUSD Balance for feeSharingCollectorProxy
+            // Check ISUSD Balance for feeSharingCollector
             const feeSharingCollectorProxyLoanBalanceToken = await loanToken.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyLoanBalanceToken.toString()).to.be.equal(
                 amountLend.toString()
             );
 
-            // Withdraw ISUSD from feeSharingCollectorProxy
+            // Withdraw ISUSD from feeSharingCollector
             // const initial
-            await feeSharingCollectorProxy.addCheckPoint(
-                loanPoolTokenAddress,
-                amountLend.toString()
-            );
-            let tx = await feeSharingCollectorProxy.trueWithdraw(
-                loanToken.address,
-                10,
-                ZERO_ADDRESS,
-                {
-                    from: account1,
-                }
-            );
+            await feeSharingCollector.addCheckPoint(loanPoolTokenAddress, amountLend.toString());
+            let tx = await feeSharingCollector.trueWithdraw(loanToken.address, 10, ZERO_ADDRESS, {
+                from: account1,
+            });
             const updatedfeeSharingCollectorProxyLoanBalanceToken = await loanToken.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             const updatedAccount1LoanBalanceToken = await loanToken.balanceOf(account1);
             console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
@@ -1320,16 +2070,16 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 borrowingFeeTokensHeld
             );
 
-            await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            await feeSharingCollector.withdrawFees([SUSD.address]);
 
-            let fees = await feeSharingCollectorProxy.getAccumulatedFees(
+            let fees = await feeSharingCollector.getAccumulatedFees(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
 
             let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
-            let tx = await feeSharingCollectorProxy.withdrawRBTC(10, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdrawRBTC(10, ZERO_ADDRESS, {
                 from: account1,
             });
 
@@ -1365,7 +2115,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             userInitialBtcBalance = userInitialBtcBalance.sub(new BN(txFee));
             // processedCheckpoints
-            let processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
@@ -1373,7 +2123,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             // check balances
             let feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
 
             expect(feeSharingCollectorProxyBalance.toNumber()).to.be.equal(0);
@@ -1421,21 +2171,19 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 true
             );
 
-            await feeSharingCollectorProxy.withdrawFees([SOVToken.address]);
+            await feeSharingCollector.withdrawFees([SOVToken.address]);
 
-            let fees = await feeSharingCollectorProxy.getAccumulatedFees(
-                account1,
-                SOVToken.address
-            );
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            console.log("FEES:", fees.toString());
             expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
 
             let userInitialISOVBalance = await SOVToken.balanceOf(account1);
-            let tx = await feeSharingCollectorProxy.withdraw(SOVToken.address, 10, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdraw(SOVToken.address, 10, ZERO_ADDRESS, {
                 from: account1,
             });
 
             //processedCheckpoints
-            let processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
                 SOVToken.address
             );
@@ -1443,7 +2191,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             //check balances
             let feeSharingCollectorProxyBalance = await SOVToken.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toNumber()).to.be.equal((feeAmount * 7) / 10);
             let userBalance = await SOVToken.balanceOf.call(account1);
@@ -1489,21 +2237,18 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 true
             );
 
-            await feeSharingCollectorProxy.withdrawFees([SOVToken.address]);
+            await feeSharingCollector.withdrawFees([SOVToken.address]);
 
-            let fees = await feeSharingCollectorProxy.getAccumulatedFees(
-                account1,
-                SOVToken.address
-            );
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
             expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
 
             const receiverBalanceBefore = await SOVToken.balanceOf(account2);
-            let tx = await feeSharingCollectorProxy.withdraw(SOVToken.address, 10, account2, {
+            let tx = await feeSharingCollector.withdraw(SOVToken.address, 10, account2, {
                 from: account1,
             });
 
             //processedCheckpoints
-            let processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
                 SOVToken.address
             );
@@ -1511,7 +2256,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             //check balances
             let feeSharingCollectorProxyBalance = await SOVToken.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toNumber()).to.be.equal((feeAmount * 7) / 10);
             const receiverBalanceAfter = await SOVToken.balanceOf(account2);
@@ -1557,10 +2302,10 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 borrowingFeeTokensHeld
             );
             let totalFeeAmount = feeAmount;
-            await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            await feeSharingCollector.withdrawFees([SUSD.address]);
 
             let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
-            let tx = await feeSharingCollectorProxy.withdrawRBTC(1, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdrawRBTC(1, ZERO_ADDRESS, {
                 from: account1,
             });
 
@@ -1580,7 +2325,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             userInitialBtcBalance = userInitialBtcBalance.sub(new BN(txFee));
             // processedCheckpoints
-            let processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
@@ -1588,7 +2333,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             // check balances
             let feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toNumber()).to.be.equal(0);
             let userBalance = await loanTokenWrbtc.balanceOf.call(account1);
@@ -1614,7 +2359,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             totalFeeAmount = totalFeeAmount.add(feeAmount);
             let totalLoanTokenWRBTCBalanceShouldBeAccount1 = feeAmount;
             await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-            await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            await feeSharingCollector.withdrawFees([SUSD.address]);
 
             // [THIRD]
             // mock data
@@ -1633,11 +2378,11 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             totalLoanTokenWRBTCBalanceShouldBeAccount1 =
                 totalLoanTokenWRBTCBalanceShouldBeAccount1.add(feeAmount);
             await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-            await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            await feeSharingCollector.withdrawFees([SUSD.address]);
 
             // [SECOND] - [THIRD]
             userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
-            tx = await feeSharingCollectorProxy.withdrawRBTC(2, ZERO_ADDRESS, {
+            tx = await feeSharingCollector.withdrawRBTC(2, ZERO_ADDRESS, {
                 from: account1,
             });
             gasPrice = new BN(parseInt(tx.receipt.effectiveGasPrice));
@@ -1647,7 +2392,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             userInitialBtcBalance = userInitialBtcBalance.sub(new BN(txFee));
 
             // processedCheckpoints
-            processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(
+            processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
@@ -1655,7 +2400,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             // check balances
             feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toNumber()).to.be.equal(0);
             userBalance = await loanTokenWrbtc.balanceOf.call(account1);
@@ -1686,12 +2431,12 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             // mock data
             await createCheckpoints(10);
 
-            let tx = await feeSharingCollectorProxy.withdrawRBTC(1000, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdrawRBTC(1000, ZERO_ADDRESS, {
                 from: account1,
             });
             console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
             // processedCheckpoints
-            let processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
@@ -1714,34 +2459,34 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             // mock data
             await createCheckpoints(10);
 
-            let tx = await feeSharingCollectorProxy.withdrawRBTC(5, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdrawRBTC(5, ZERO_ADDRESS, {
                 from: account1,
             });
             console.log("\nwithdraw(checkpoints = 5).gasUsed: " + tx.receipt.gasUsed);
             // processedCheckpoints
-            let processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(5);
 
-            tx = await feeSharingCollectorProxy.withdrawRBTC(3, ZERO_ADDRESS, {
+            tx = await feeSharingCollector.withdrawRBTC(3, ZERO_ADDRESS, {
                 from: account1,
             });
             console.log("\nwithdraw(checkpoints = 3).gasUsed: " + tx.receipt.gasUsed);
             // processedCheckpoints
-            processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(
+            processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(8);
 
-            tx = await feeSharingCollectorProxy.withdrawRBTC(1000, ZERO_ADDRESS, {
+            tx = await feeSharingCollector.withdrawRBTC(1000, ZERO_ADDRESS, {
                 from: account1,
             });
             console.log("\nwithdraw(checkpoints = 2).gasUsed: " + tx.receipt.gasUsed);
             // processedCheckpoints
-            processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(
+            processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
@@ -1762,10 +2507,10 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         //     // mock data
         //     await createCheckpoints(30);
         //
-        //     let tx = await feeSharingCollectorProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
+        //     let tx = await feeSharingCollector.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
         //     console.log("\nwithdraw(checkpoints = 30).gasUsed: " + tx.receipt.gasUsed);
         //     // processedCheckpoints
-        //     let processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(account1, loanToken.address);
+        //     let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(account1, loanToken.address);
         //     expect(processedCheckpoints.toNumber()).to.be.equal(30);
         // });
         //
@@ -1783,10 +2528,10 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         //     // mock data
         //     await createCheckpoints(100);
         //
-        //     let tx = await feeSharingCollectorProxy.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
+        //     let tx = await feeSharingCollector.withdraw(loanToken.address, 1000, ZERO_ADDRESS, {from: account1});
         //     console.log("\nwithdraw(checkpoints = 500).gasUsed: " + tx.receipt.gasUsed);
         //     // processedCheckpoints
-        //     let processedCheckpoints = await feeSharingCollectorProxy.processedCheckpoints.call(account1, loanToken.address);
+        //     let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(account1, loanToken.address);
         //     expect(processedCheckpoints.toNumber()).to.be.equal(100);
         // });
         //
@@ -1841,9 +2586,9 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             // mock data
             await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
 
-            await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            await feeSharingCollector.withdrawFees([SUSD.address]);
 
-            let tx = await feeSharingCollectorProxy.withdrawRBTC(10, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdrawRBTC(10, ZERO_ADDRESS, {
                 from: account1,
             });
             console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
@@ -1880,7 +2625,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 root
             );
             await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
-            let fees = await feeSharingCollectorProxy.getAccumulatedFees(
+            let fees = await feeSharingCollector.getAccumulatedFees(
                 vestingInstance.address,
                 loanToken.address
             );
@@ -1899,7 +2644,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
             await expectRevert(
                 vestingInstance.collectDividends(loanToken.address, 5, root),
-                "FeeSharingCollector::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollector::withdrawFees: no tokens for withdrawal"
             );
         });
 
@@ -1917,9 +2662,9 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await stake(userStake, account1);
 
             await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
-            let tx = await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            let tx = await feeSharingCollector.withdrawFees([SUSD.address]);
             let feesWithdrawn = tx.logs[1].args.amount;
-            let userFees = await feeSharingCollectorProxy.getAccumulatedFees(
+            let userFees = await feeSharingCollector.getAccumulatedFees(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
@@ -1935,11 +2680,11 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await protocolDeploymentFixture();
 
             await expectRevert(
-                feeSharingCollectorProxy.addWhitelistedConverterAddress(account1),
+                feeSharingCollector.addWhitelistedConverterAddress(account1),
                 "Non contract address given"
             );
             await expectRevert(
-                feeSharingCollectorProxy.addWhitelistedConverterAddress(ZERO_ADDRESS),
+                feeSharingCollector.addWhitelistedConverterAddress(ZERO_ADDRESS),
                 "Non contract address given"
             );
 
@@ -1947,18 +2692,16 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 SOVToken.address,
                 SUSD.address
             );
-            await feeSharingCollectorProxy.addWhitelistedConverterAddress(
+            await feeSharingCollector.addWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
             );
-            let whitelistedConverterList =
-                await feeSharingCollectorProxy.getWhitelistedConverterList();
+            let whitelistedConverterList = await feeSharingCollector.getWhitelistedConverterList();
             expect(whitelistedConverterList.length).to.equal(1);
             expect(whitelistedConverterList[0]).to.equal(liquidityPoolV1Converter.address);
-            await feeSharingCollectorProxy.addWhitelistedConverterAddress(
+            await feeSharingCollector.addWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
             );
-            whitelistedConverterList =
-                await feeSharingCollectorProxy.getWhitelistedConverterList();
+            whitelistedConverterList = await feeSharingCollector.getWhitelistedConverterList();
             expect(whitelistedConverterList.length).to.equal(1);
             expect(whitelistedConverterList[0]).to.equal(liquidityPoolV1Converter.address);
         });
@@ -1971,30 +2714,26 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 SOVToken.address,
                 SUSD.address
             );
-            let whitelistedConverterList =
-                await feeSharingCollectorProxy.getWhitelistedConverterList();
+            let whitelistedConverterList = await feeSharingCollector.getWhitelistedConverterList();
             expect(whitelistedConverterList.length).to.equal(0);
 
-            await feeSharingCollectorProxy.removeWhitelistedConverterAddress(
+            await feeSharingCollector.removeWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
             );
-            whitelistedConverterList =
-                await feeSharingCollectorProxy.getWhitelistedConverterList();
+            whitelistedConverterList = await feeSharingCollector.getWhitelistedConverterList();
             expect(whitelistedConverterList.length).to.equal(0);
 
-            await feeSharingCollectorProxy.addWhitelistedConverterAddress(
+            await feeSharingCollector.addWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
             );
-            whitelistedConverterList =
-                await feeSharingCollectorProxy.getWhitelistedConverterList();
+            whitelistedConverterList = await feeSharingCollector.getWhitelistedConverterList();
             expect(whitelistedConverterList.length).to.equal(1);
             expect(whitelistedConverterList[0]).to.equal(liquidityPoolV1Converter.address);
 
-            await feeSharingCollectorProxy.removeWhitelistedConverterAddress(
+            await feeSharingCollector.removeWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
             );
-            whitelistedConverterList =
-                await feeSharingCollectorProxy.getWhitelistedConverterList();
+            whitelistedConverterList = await feeSharingCollector.getWhitelistedConverterList();
             expect(whitelistedConverterList.length).to.equal(0);
         });
 
@@ -2003,7 +2742,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await protocolDeploymentFixture();
 
             await expectRevert(
-                feeSharingCollectorProxy.withdrawFeesAMM([accounts[0]]),
+                feeSharingCollector.withdrawFeesAMM([accounts[0]]),
                 "Invalid Converter"
             );
         });
@@ -2026,47 +2765,45 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await liquidityPoolV1Converter.setTotalFeeMockupValue(feeAmount.toString());
 
             await expectRevert(
-                feeSharingCollectorProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]),
+                feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]),
                 "Invalid Converter"
             );
-            await feeSharingCollectorProxy.addWhitelistedConverterAddress(
+            await feeSharingCollector.addWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
             );
-            await feeSharingCollectorProxy.removeWhitelistedConverterAddress(
+            await feeSharingCollector.removeWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
             );
             await expectRevert(
-                feeSharingCollectorProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]),
+                feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]),
                 "Invalid Converter"
             );
-            await feeSharingCollectorProxy.addWhitelistedConverterAddress(
+            await feeSharingCollector.addWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
             );
 
             await expectRevert(
-                feeSharingCollectorProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]),
+                feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]),
                 "unauthorized"
             );
-            await liquidityPoolV1Converter.setFeesController(feeSharingCollectorProxy.address);
+            await liquidityPoolV1Converter.setFeesController(feeSharingCollector.address);
             await liquidityPoolV1Converter.setWrbtcToken(WRBTC.address);
             await WRBTC.mint(liquidityPoolV1Converter.address, wei("2", "ether"));
 
             let previousFeeSharingCollectorProxyRBTCBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollectorProxy.address)
+                await web3.eth.getBalance(feeSharingCollector.address)
             );
-            tx = await feeSharingCollectorProxy.withdrawFeesAMM([
-                liquidityPoolV1Converter.address,
-            ]);
+            tx = await feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]);
 
             //check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
             let feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toString()).to.be.equal("0");
 
-            // rbtc balance of feeSharingCollectorProxy should be increased
+            // rbtc balance of feeSharingCollector should be increased
             let latestFeeSharingCollectorProxyRBTCBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollectorProxy.address)
+                await web3.eth.getBalance(feeSharingCollector.address)
             );
             expect(
                 previousFeeSharingCollectorProxyRBTCBalance.add(new BN(feeAmount)).toString()
@@ -2074,16 +2811,16 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             // make sure wrbtc balance is 0 after withdrawal
             let feeSharingCollectorProxyWRBTCBalance = await WRBTC.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyWRBTCBalance.toString()).to.be.equal("0");
 
             //checkpoints
-            let numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
-            let checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
@@ -2094,7 +2831,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
             //check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -2125,36 +2862,34 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await liquidityPoolV1Converter.setTotalFeeMockupValue(feeAmount.toString());
 
             await expectRevert(
-                feeSharingCollectorProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]),
+                feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]),
                 "Invalid Converter"
             );
-            await feeSharingCollectorProxy.addWhitelistedConverterAddress(
+            await feeSharingCollector.addWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
             );
             await expectRevert(
-                feeSharingCollectorProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]),
+                feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]),
                 "unauthorized"
             );
-            await liquidityPoolV1Converter.setFeesController(feeSharingCollectorProxy.address);
+            await liquidityPoolV1Converter.setFeesController(feeSharingCollector.address);
             await liquidityPoolV1Converter.setWrbtcToken(WRBTC.address);
             await WRBTC.mint(liquidityPoolV1Converter.address, wei("2", "ether"));
 
             let previousFeeSharingCollectorProxyRBTCBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollectorProxy.address)
+                await web3.eth.getBalance(feeSharingCollector.address)
             );
-            tx = await feeSharingCollectorProxy.withdrawFeesAMM([
-                liquidityPoolV1Converter.address,
-            ]);
+            tx = await feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]);
 
             //check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
             let feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toString()).to.be.equal("0");
 
-            // rbtc balance of feeSharingCollectorProxy should be increased
+            // rbtc balance of feeSharingCollector should be increased
             let latestFeeSharingCollectorProxyRBTCBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollectorProxy.address)
+                await web3.eth.getBalance(feeSharingCollector.address)
             );
             expect(
                 previousFeeSharingCollectorProxyRBTCBalance.add(new BN(feeAmount)).toString()
@@ -2162,18 +2897,18 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             // make sure wrbtc balance is 0 after withdrawal
             let feeSharingCollectorProxyWRBTCBalance = await WRBTC.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyWRBTCBalance.toString()).to.be.equal(
                 new BN(0).toString()
             );
 
             //checkpoints
-            let numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
-            let checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
@@ -2184,7 +2919,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
 
             //check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -2214,44 +2949,42 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             const feeAmount = new BN(wei("0", "ether"));
             await liquidityPoolV1Converter.setTotalFeeMockupValue(feeAmount.toString());
             await expectRevert(
-                feeSharingCollectorProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]),
+                feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]),
                 "Invalid Converter"
             );
-            await feeSharingCollectorProxy.addWhitelistedConverterAddress(
+            await feeSharingCollector.addWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
             );
             await expectRevert(
-                feeSharingCollectorProxy.withdrawFeesAMM([liquidityPoolV1Converter.address]),
+                feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]),
                 "unauthorized"
             );
-            await liquidityPoolV1Converter.setFeesController(feeSharingCollectorProxy.address);
+            await liquidityPoolV1Converter.setFeesController(feeSharingCollector.address);
             await liquidityPoolV1Converter.setWrbtcToken(WRBTC.address);
             await WRBTC.mint(liquidityPoolV1Converter.address, wei("2", "ether"));
 
-            tx = await feeSharingCollectorProxy.withdrawFeesAMM([
-                liquidityPoolV1Converter.address,
-            ]);
+            tx = await feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]);
 
             //check WRBTC balance (wrbt balance = (totalFeeTokensHeld * mockPrice) - swapFee)
             let feeSharingCollectorProxyBalance = await loanTokenWrbtc.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyBalance.toString()).to.be.equal(feeAmount.toString());
 
             // make sure wrbtc balance is 0 after withdrawal
             let feeSharingCollectorProxyWRBTCBalance = await WRBTC.balanceOf.call(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(feeSharingCollectorProxyWRBTCBalance.toString()).to.be.equal(
                 new BN(0).toString()
             );
 
             //checkpoints
-            let numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 loanTokenWrbtc.address
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(0);
-            let checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(0);
+            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(
                 loanTokenWrbtc.address,
                 0
             );
@@ -2260,7 +2993,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(checkpoint.numTokens.toString()).to.be.equal("0");
 
             //check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 loanTokenWrbtc.address
             );
             expect(lastFeeWithdrawalTime.toString()).to.be.equal("0");
@@ -2273,7 +3006,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             const receiver = accounts[1];
             const previousBalanceReceiver = await WRBTC.balanceOf(receiver);
             await expectRevert(
-                feeSharingCollectorProxy.withdrawWRBTC(receiver, 0, { from: accounts[1] }),
+                feeSharingCollector.withdrawWRBTC(receiver, 0, { from: accounts[1] }),
                 "unauthorized"
             );
         });
@@ -2282,10 +3015,10 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             await protocolDeploymentFixture();
             const receiver = accounts[1];
             const previousBalanceReceiver = await WRBTC.balanceOf(receiver);
-            await feeSharingCollectorProxy.withdrawWRBTC(receiver, 0);
+            await feeSharingCollector.withdrawWRBTC(receiver, 0);
             const latestBalanceReceiver = await WRBTC.balanceOf(receiver);
             const latestBalanceFeeSharingCollectorProxy = await WRBTC.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
 
             expect(
@@ -2294,29 +3027,29 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(latestBalanceFeeSharingCollectorProxy.toString()).to.equal("0");
         });
 
-        it("Withdraw wrbtc more than the balance of feeSharingCollectorProxy should revert", async () => {
+        it("Withdraw wrbtc more than the balance of feeSharingCollector should revert", async () => {
             await protocolDeploymentFixture();
             await WRBTC.mint(root, wei("500", "ether"));
-            await WRBTC.transfer(feeSharingCollectorProxy.address, wei("1", "ether"));
+            await WRBTC.transfer(feeSharingCollector.address, wei("1", "ether"));
 
             const receiver = accounts[1];
             const previousBalanceReceiver = await WRBTC.balanceOf(receiver);
             const feeSharingCollectorProxyBalance = await WRBTC.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             const amount = feeSharingCollectorProxyBalance.add(new BN(100));
             const previousBalanceFeeSharingCollectorProxy = await WRBTC.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
 
             await expectRevert(
-                feeSharingCollectorProxy.withdrawWRBTC(receiver, amount.toString()),
+                feeSharingCollector.withdrawWRBTC(receiver, amount.toString()),
                 "Insufficient balance"
             );
 
             const latestBalanceReceiver = await WRBTC.balanceOf(receiver);
             const latestBalanceFeeSharingCollectorProxy = await WRBTC.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
 
             expect(
@@ -2330,15 +3063,15 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         it("Fully Withdraw wrbtc", async () => {
             await protocolDeploymentFixture();
             await WRBTC.mint(root, wei("500", "ether"));
-            await WRBTC.transfer(feeSharingCollectorProxy.address, wei("1", "ether"));
+            await WRBTC.transfer(feeSharingCollector.address, wei("1", "ether"));
 
             const receiver = accounts[1];
             const previousBalanceReceiver = await WRBTC.balanceOf(receiver);
             const feeSharingCollectorProxyBalance = await WRBTC.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
 
-            const tx = await feeSharingCollectorProxy.withdrawWRBTC(
+            const tx = await feeSharingCollector.withdrawWRBTC(
                 receiver,
                 feeSharingCollectorProxyBalance.toString()
             );
@@ -2347,7 +3080,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 WRBTC,
                 "Transfer",
                 {
-                    src: feeSharingCollectorProxy.address,
+                    src: feeSharingCollector.address,
                     dst: receiver,
                     wad: feeSharingCollectorProxyBalance.toString(),
                 }
@@ -2355,7 +3088,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             const latestBalanceReceiver = await WRBTC.balanceOf(receiver);
             const latestBalanceFeeSharingCollectorProxy = await WRBTC.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
 
             expect(
@@ -2367,27 +3100,27 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         it("Partially Withdraw wrbtc", async () => {
             await protocolDeploymentFixture();
             await WRBTC.mint(root, wei("500", "ether"));
-            await WRBTC.transfer(feeSharingCollectorProxy.address, wei("1", "ether"));
+            await WRBTC.transfer(feeSharingCollector.address, wei("1", "ether"));
 
             const receiver = accounts[1];
             const restAmount = new BN("100"); // 100 wei
             const previousBalanceReceiver = await WRBTC.balanceOf(receiver);
             const feeSharingCollectorProxyBalance = await WRBTC.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             const amount = feeSharingCollectorProxyBalance.sub(restAmount);
             const previousBalanceFeeSharingCollectorProxy = await WRBTC.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             expect(previousBalanceFeeSharingCollectorProxy.toString()).to.equal(wei("1", "ether"));
 
-            const tx = await feeSharingCollectorProxy.withdrawWRBTC(receiver, amount.toString());
+            const tx = await feeSharingCollector.withdrawWRBTC(receiver, amount.toString());
             await expectEvent.inTransaction(
                 tx.receipt.rawLogs[0].transactionHash,
                 WRBTC,
                 "Transfer",
                 {
-                    src: feeSharingCollectorProxy.address,
+                    src: feeSharingCollector.address,
                     dst: receiver,
                     wad: amount,
                 }
@@ -2395,7 +3128,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             const latestBalanceReceiver = await WRBTC.balanceOf(receiver);
             const latestBalanceFeeSharingCollectorProxy = await WRBTC.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
 
             expect(
@@ -2406,12 +3139,12 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             );
 
             // try to withdraw the rest
-            const tx2 = await feeSharingCollectorProxy.withdrawWRBTC(
+            const tx2 = await feeSharingCollector.withdrawWRBTC(
                 receiver,
                 latestBalanceFeeSharingCollectorProxy.toString()
             );
             const finalBalanceFeeSharingCollectorProxy = await WRBTC.balanceOf(
-                feeSharingCollectorProxy.address
+                feeSharingCollector.address
             );
             const finalBalanceReceiver = await WRBTC.balanceOf(receiver);
             expect(new BN(finalBalanceReceiver).toString()).to.equal(
@@ -2424,7 +3157,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
                 WRBTC,
                 "Transfer",
                 {
-                    src: feeSharingCollectorProxy.address,
+                    src: feeSharingCollector.address,
                     dst: receiver,
                     wad: latestBalanceFeeSharingCollectorProxy.toString(),
                 }
@@ -2442,16 +3175,14 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             let amount = 1000;
 
             await expectRevert(
-                feeSharingCollectorProxy.transferRBTC({ from: root, value: 0 }),
+                feeSharingCollector.transferRBTC({ from: root, value: 0 }),
                 "FeeSharingCollector::transferRBTC: invalid value"
             );
             const totalAccumulatedRBTCFee =
-                await feeSharingCollectorProxy.getAccumulatedRBTCFeeBalances(root);
+                await feeSharingCollector.getAccumulatedRBTCFeeBalances(root);
             expect(totalAccumulatedRBTCFee.toNumber()).to.equal(0);
             expect(
-                await feeSharingCollectorProxy.unprocessedAmount.call(
-                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
-                )
+                await feeSharingCollector.unprocessedAmount.call(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
             ).to.be.bignumber.equal(new BN(0));
         });
 
@@ -2463,15 +3194,14 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             let amount = 1000;
 
-            let tx = await feeSharingCollectorProxy.transferRBTC({ from: root, value: amount });
-            let totalAccumulatedRBTCFee =
-                await feeSharingCollectorProxy.getAccumulatedRBTCFeeBalances(root);
+            let tx = await feeSharingCollector.transferRBTC({ from: root, value: amount });
+            let totalAccumulatedRBTCFee = await feeSharingCollector.getAccumulatedRBTCFeeBalances(
+                root
+            );
             expect(totalAccumulatedRBTCFee.toString()).to.equal(new BN(amount).toString());
 
             expect(
-                await feeSharingCollectorProxy.unprocessedAmount.call(
-                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
-                )
+                await feeSharingCollector.unprocessedAmount.call(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
             ).to.be.bignumber.equal(new BN(0));
 
             expectEvent(tx, "TokensTransferred", {
@@ -2481,11 +3211,11 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             });
 
             // checkpoints
-            let numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(1);
-            let checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(1);
+            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 0
             );
@@ -2496,7 +3226,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(checkpoint.numTokens.toString()).to.be.equal(amount.toString());
 
             // check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             let block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -2509,8 +3239,8 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             });
 
             // second time
-            tx = await feeSharingCollectorProxy.transferRBTC({ from: root, value: amount * 2 });
-            totalAccumulatedRBTCFee = await feeSharingCollectorProxy.getAccumulatedRBTCFeeBalances(
+            tx = await feeSharingCollector.transferRBTC({ from: root, value: amount * 2 });
+            totalAccumulatedRBTCFee = await feeSharingCollector.getAccumulatedRBTCFeeBalances(
                 root
             );
 
@@ -2518,9 +3248,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(totalAccumulatedRBTCFee.toString()).to.equal(new BN(amount).toString());
 
             expect(
-                await feeSharingCollectorProxy.unprocessedAmount.call(
-                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
-                )
+                await feeSharingCollector.unprocessedAmount.call(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
             ).to.be.bignumber.equal(new BN(amount * 2));
 
             expectEvent(tx, "TokensTransferred", {
@@ -2531,9 +3259,9 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
 
             await increaseTime(FEE_WITHDRAWAL_INTERVAL);
             // third time
-            tx = await feeSharingCollectorProxy.transferRBTC({ from: root, value: amount * 4 });
+            tx = await feeSharingCollector.transferRBTC({ from: root, value: amount * 4 });
 
-            totalAccumulatedRBTCFee = await feeSharingCollectorProxy.getAccumulatedRBTCFeeBalances(
+            totalAccumulatedRBTCFee = await feeSharingCollector.getAccumulatedRBTCFeeBalances(
                 root
             );
 
@@ -2541,17 +3269,15 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(totalAccumulatedRBTCFee.toString()).to.equal(new BN(amount * 7).toString());
 
             expect(
-                await feeSharingCollectorProxy.unprocessedAmount.call(
-                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
-                )
+                await feeSharingCollector.unprocessedAmount.call(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
             ).to.be.bignumber.equal(new BN(0));
 
             // checkpoints
-            numTokenCheckpoints = await feeSharingCollectorProxy.numTokenCheckpoints.call(
+            totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
-            expect(numTokenCheckpoints.toNumber()).to.be.equal(2);
-            checkpoint = await feeSharingCollectorProxy.tokenCheckpoints.call(
+            expect(totalTokenCheckpoints.toNumber()).to.be.equal(2);
+            checkpoint = await feeSharingCollector.tokenCheckpoints.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 1
             );
@@ -2562,7 +3288,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             expect(checkpoint.numTokens.toNumber()).to.be.equal(amount * 6);
 
             // check lastFeeWithdrawalTime
-            lastFeeWithdrawalTime = await feeSharingCollectorProxy.lastFeeWithdrawalTime.call(
+            lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             );
             block = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -2656,7 +3382,15 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
         for (let i = 0; i < number; i++) {
             await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
             await increaseTime(FEE_WITHDRAWAL_INTERVAL);
-            await feeSharingCollectorProxy.withdrawFees([SUSD.address]);
+            await feeSharingCollector.withdrawFees([SUSD.address]);
+        }
+    }
+
+    async function createCheckpointsSOV(number) {
+        for (let i = 0; i < number; i++) {
+            await setFeeTokensHeld(new BN(100), new BN(200), new BN(300), false, true);
+            await increaseTime(FEE_WITHDRAWAL_INTERVAL);
+            await feeSharingCollector.withdrawFees([SOVToken.address]);
         }
     }
 
@@ -2669,7 +3403,7 @@ contract("FeeSharingCollectorProxy:", (accounts) => {
             tokenOwner,
             cliff,
             cliff,
-            feeSharingCollectorProxy.address
+            feeSharingCollector.address
         );
         vestingInstance = await VestingLogic.at(vestingInstance.address);
         // important, so it's recognized as vesting contract
