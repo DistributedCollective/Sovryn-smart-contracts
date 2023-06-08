@@ -92,15 +92,15 @@ task("multisig:revoke-sig", "Revoke multisig tx confirmation")
 task("multisig:add-owner", "Add or remove multisig owner")
     .addParam("address", "Owner address to add or remove", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ add, address, signer }, hre) => {
+    .setAction(async ({ address, signer }, hre) => {
         const signerAcc = (await hre.getNamedAccounts())[signer];
-        await multisigAddOwner(address, signer);
+        await multisigAddOwner(address, signerAcc);
     });
 
 task("multisig:remove-owner", "Add or remove multisig owner")
     .addParam("address", "Owner address to add or remove", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ add, address, signer }, hre) => {
+    .setAction(async ({ address, signer }, hre) => {
         const signerAcc = (await hre.getNamedAccounts())[signer];
         await multisigRemoveOwner(address, signerAcc);
     });
