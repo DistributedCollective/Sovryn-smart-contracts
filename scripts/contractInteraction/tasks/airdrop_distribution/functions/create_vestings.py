@@ -13,7 +13,7 @@ def createVestings(path, dryRun, multiplier):
 
     vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
 
-    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=conf.Staking.abi, owner=conf.acct)
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     SOVtoken = Contract.from_abi("SOV", address=conf.contracts['SOV'], abi=SOV.abi, owner=conf.acct)
 
     DAY = 24 * 60 * 60

@@ -35,4 +35,8 @@ interface ILockedSOV {
     function cliff() external view returns (uint256);
 
     function duration() external view returns (uint256);
+
+    function getLockedBalance(address _addr) external view returns (uint256 _balance);
+
+    function getUnlockedBalance(address _addr) external view returns (uint256 _balance);
 }

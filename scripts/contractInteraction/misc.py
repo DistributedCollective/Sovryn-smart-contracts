@@ -6,61 +6,10 @@ import copy
 from scripts.utils import *
 from scripts.contractInteraction.token import * 
 import scripts.contractInteraction.config as conf
-
-def loadAggregator(aggregatorAddress):
-    abiFile =  open('./scripts/contractInteraction/ABIs/aggregator.json')
-    abi = json.load(abiFile)
-    return Contract.from_abi("Aggregator", address=aggregatorAddress, abi=abi, owner=conf.acct)
-
-def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
-    aggregator = loadAggregator(aggregatorAddress)
-    aggregator.redeem(tokenAddress, amount)
-
-#used to exchange XUSD -> USDT on the aggregator
-def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
-    aggregator = loadAggregator(aggregatorAddress)
-    data = aggregator.redeem.encode_input(tokenAddress, amount)
-    sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
-
-def redeemBTCWithXUSD(amountOfXUSD):
-    redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DoC'], amountOfXUSD)
-    tokenApproveFromMS(conf.contracts['DoC'], conf.contracts['MoneyOnChain'], amountOfXUSD)
-    redeemFreeDocWithMS(amountOfXUSD)
+from scripts.contractInteraction.loan_tokens import getTokenPrice
 
 
 
-def mintAggregatedToken(aggregatorAddress, tokenAddress, amount):
-    aggregator = loadAggregator(aggregatorAddress)
-    token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
-    data = token.approve(aggregatorAddress, amount)
-    tx = aggregator.mint(tokenAddress, amount)
-    tx.info()
-
-#used to exchange USDT -> XUSD on the aggregator
-def mintAggregatedTokenWithMS(aggregatorAddress, tokenAddress, amount):
-    aggregator = loadAggregator(aggregatorAddress)
-    token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
-    if(token.allowance(conf.acct, aggregatorAddress) < amount):
-        data = token.approve(aggregatorAddress, amount)
-        sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
-    data = aggregator.mint.encode_input(tokenAddress, amount)
-    sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
-
-
-def upgradeAggregator(multisig, newImpl):
-    abiFile =  open('./scripts/contractInteraction/ABIs/AggregatorProxy.json')
-    abi = json.load(abiFile)
-    proxy = Contract.from_abi("ETHAggregatorProxy", address = conf.contracts['ETHAggregatorProxy'], abi = abi, owner = conf.acct)
-    data = proxy.upgradeTo(newImpl)
-    sendWithMultisig(multisig, proxy.address, data, conf.acct)
-    print(txId)
-
-def redeemFreeDocWithMS(amountOfXUSD):
-    abiFile =  open('./scripts/contractInteraction/ABIs/MoneyOnChain.json')
-    abi = json.load(abiFile)
-    moc = Contract.from_abi("moc", address = conf.contracts['MoneyOnChain'], abi = abi, owner = conf.acct)
-    data = moc.redeemFreeDoc.encode_input(amountOfXUSD)
-    sendWithMultisig(conf.contracts['multisig'], moc.address, data, conf.acct)
 
 
 def readClaimBalanceOrigin(address):
@@ -137,14 +86,14 @@ def depositToLockedSOV(amount, recipient):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
     
-def deployFeeSharingLogic():
-    # Redeploy feeSharingLogic
-    feeSharing = conf.acct.deploy(FeeSharingLogic)
-    print("Fee sharing logic redeployed at: ", feeSharing.address)
-    print("Setting implementation for FeeSharingProxy")
-    feeSharingProxy = Contract.from_abi("FeeSharingProxy", address=conf.contracts['FeeSharingProxy'], abi=FeeSharingProxy.abi, owner=conf.acct)
-    data = feeSharingProxy.setImplementation.encode_input(feeSharing.address)
-    sendWithMultisig(conf.contracts['multisig'], feeSharingProxy.address, data, conf.acct)
+def deployFeeSharingCollector():
+    # Redeploy feeSharingCollector
+    feeSharingCollector = conf.acct.deploy(FeeSharingCollector)
+    print("Fee sharing collector redeployed at: ", feeSharingCollector.address)
+    print("Setting implementation for FeeSharingCollectorProxy")
+    feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollectorProxy", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
+    data = feeSharingCollectorProxy.setImplementation.encode_input(feeSharingCollector.address)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollectorProxy.address, data, conf.acct)
 
 def replaceTx(txStr, newGas):
     txReceipt = chain.get_transaction(txStr)
@@ -152,7 +101,7 @@ def replaceTx(txStr, newGas):
 
 #gets the logic contract for a proxy
 def getImplementation(proxyContract):
-    proxy = Contract.from_abi("FeeSharingProxy", address=proxyContract, abi=FeeSharingProxy.abi, owner=conf.acct)
+    proxy = Contract.from_abi("FeeSharingCollectorProxy", address=proxyContract, abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
     print(proxy.getImplementation())
     
 def setNewContractGuardian(newGuardian):
@@ -168,3 +117,59 @@ def setNewContractGuardian(newGuardian):
     #protocol
 
     #staking
+
+def openTrove(_maxFeePercentage, _ZUSDAmount, _upperHint, _lowerHint, coll):
+    abiFile =  open('./scripts/contractInteraction/ABIs/BorrowerOperations.json')
+    abi = json.load(abiFile)
+    borrowerOperations = Contract.from_abi("bo", address=conf.contracts['borrowerOperations'], abi=abi, owner=conf.acct)
+    borrowerOperations.openTrove(_maxFeePercentage, _ZUSDAmount, _upperHint, _lowerHint, {'value':coll})
+
+def distributeMissedFees():
+    Total_iWRBTC = 0.7473876932797053 
+    Total_SOV = 6275.898259771202 
+    Total_ZUSD = 16658.600400155126 
+    Total_WRBTC = 0.11341026623965539 
+    Total_RBTC_DUMMY = 0.004887638144724727 
+    Total_RBTC = Total_RBTC_DUMMY + Total_WRBTC + Total_iWRBTC * (getTokenPrice(conf.contracts['iRBTC'])/(10**18))
+    print(Total_RBTC)
+    
+    feeSharingCollector = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+
+    token = Contract.from_abi("Token", address= conf.contracts['SOV'], abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(feeSharingCollector.address, Total_SOV * 10**18)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['SOV'] , data, conf.acct)
+    data = feeSharingCollector.transferTokens.encode_input(conf.contracts['SOV'], Total_SOV * 10**18)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollector.address , data, conf.acct)
+
+    token = Contract.from_abi("Token", address= conf.contracts['ZUSD'], abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(feeSharingCollector.address, Total_ZUSD * 10**18)
+    sendWithMultisig(conf.contracts['multisig'], conf.contracts['ZUSD'] , data, conf.acct)
+    data = feeSharingCollector.transferTokens.encode_input(conf.contracts['ZUSD'], Total_ZUSD * 10**18)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollector.address , data, conf.acct)
+
+    data = feeSharingCollector.transferRBTC.encode_input()
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollector.address , data, conf.acct, Total_RBTC * 10**18)
+    
+
+def getFeeSharingState(tokenAddress):
+    feeSharingCollector = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+    numCheckpoints = feeSharingCollector.numTokenCheckpoints(tokenAddress)
+    print("num checkpoints:", numCheckpoints)
+    lastCheckpoint = feeSharingCollector.tokenCheckpoints(tokenAddress, numCheckpoints-1)
+    print("latest checkpoint:", lastCheckpoint)
+    unprocessed = feeSharingCollector.unprocessedAmount(tokenAddress)
+    print("unprocessed amount:", unprocessed)
+
+def RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT():
+    feeSharingCollector = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+    return feeSharingCollector.RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT()
+
+def transferTokens(tokenAddress, amount):
+    feeSharingCollector = Contract.from_abi("FeeSharingCollector", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollector.abi, owner=conf.acct)
+    token = Contract.from_abi("Token", address= tokenAddress, abi = TestToken.abi, owner=conf.acct)
+    data = token.approve.encode_input(feeSharingCollector.address, amount)
+    sendWithMultisig(conf.contracts['multisig'], tokenAddress , data, conf.acct)
+    data = feeSharingCollector.transferTokens.encode_input(tokenAddress, amount)
+    sendWithMultisig(conf.contracts['multisig'], feeSharingCollector.address , data, conf.acct)
+
+

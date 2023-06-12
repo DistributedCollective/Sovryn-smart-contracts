@@ -35,9 +35,9 @@ while $ProcessServer; do
     read -n 1 server;
 
     case $server in
-      1) ServerURL="https://mainnet.sovryn.app/rpc" && ProcessServer=false;;
+      1) ServerURL="https://mainnet4.sovryn.app/rpc" && ProcessServer=false;;
       2) ServerURL="https://testnet.sovryn.app/rpc" && ProcessServer=false;;
-	  3) ServerURL="https://mainnet2.sovryn.app/rpc" && ProcessServer=false;;
+	  #3) ServerURL="https://mainnet2.sovryn.app/rpc" && ProcessServer=false;;
 	  4) ServerURL="https://testnet2.sovryn.app/rpc" && ProcessServer=false;;
       #5) ServerURL="http://18.190.157.115:4444/" && ProcessServer=false;;
       *) echo "invalid option";;

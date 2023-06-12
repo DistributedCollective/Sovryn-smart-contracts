@@ -14,8 +14,8 @@
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
 const {
@@ -41,11 +41,12 @@ const { encodeParameters, etherMantissa, mineBlock, increaseTime } = require("..
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
+
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const QUORUM_VOTES = etherMantissa(4000000);
 
@@ -68,10 +69,9 @@ contract("GovernanceIntegration", (accounts) => {
         await sovryn.setSovrynProtocolAddress(sovryn.address);
 
         // Staking
-        let stakingLogic = await StakingLogic.new(SUSD.address);
-        staking = await StakingProxy.new(SUSD.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(SUSD.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Governor
         timelock = await Timelock.new(root, TWO_DAYS);
@@ -125,7 +125,7 @@ contract("GovernanceIntegration", (accounts) => {
             expect(lendingFeePercent.toString()).to.be.equal(lendingFeePercentNew);
         });
 
-        it("Should be able to execute one action with signature in the call data", async () => {
+        it("Should be able to execute one action without signature in the call data", async () => {
             let lendingFeePercentOld = etherMantissa(10).toString();
             let lendingFeePercentNew = etherMantissa(7).toString();
 
@@ -177,12 +177,12 @@ contract("GovernanceIntegration", (accounts) => {
                         ]
                     ),
                     /*encodeParameters(
-						["address[]", "uint256[]"],
-						[
-							[account1, account2],
-							[1111, 2222],
-						]
-					),*/
+                        ["address[]", "uint256[]"],
+                        [
+                            [account1, account2],
+                            [1111, 2222],
+                        ]
+                    ),*/
                 ],
                 description: "change settings",
             };

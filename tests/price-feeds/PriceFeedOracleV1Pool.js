@@ -16,8 +16,8 @@
 
 const { expect } = require("chai");
 const { constants, expectRevert } = require("@openzeppelin/test-helpers");
-const { waffle } = require("hardhat");
-const { deployMockContract, loadFixture } = waffle;
+const { deployMockContract } = require("@ethereum-waffle/mock-contract");
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const PriceFeeds = artifacts.require("PriceFeeds");
 const PriceFeedV1PoolOracle = artifacts.require("PriceFeedV1PoolOracle");
@@ -61,8 +61,8 @@ contract("PriceFeedOracleV1Pool", (accounts) => {
     let priceFeedsV1PoolOracleTestToken1;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
-        const provider = waffle.provider;
-        [senderMock] = provider.getWallets();
+        const provider = ethers.provider;
+        [senderMock] = await ethers.getSigners();
 
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();

@@ -12,8 +12,8 @@
  */
 
 const { assert, expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { BN, constants, expectRevert } = require("@openzeppelin/test-helpers");
 
 const {

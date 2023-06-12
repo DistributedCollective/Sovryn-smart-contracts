@@ -15,8 +15,6 @@ import "../core/objects/LoanParamsStruct.sol";
 
 /**
  * @title The Fees Helper contract.
- * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
- * trading and lending https://bzx.network similar to the dYdX protocol.
  *
  * This contract calculates and pays lending/borrow fees and rewards.
  * */

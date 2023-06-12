@@ -1,10 +1,11 @@
 
 from brownie import *
 from brownie.network.contract import InterfaceContainer
+from brownie.network.account import PublicKeyAccount
 import json
 import time;
 import copy
-from scripts.utils import * 
+from scripts.utils import *  
 import scripts.contractInteraction.config as conf
 from scripts.contractInteraction.loan_tokens import *
 from scripts.contractInteraction.protocol import *
@@ -18,3 +19,5 @@ from scripts.contractInteraction.ownership import *
 from scripts.contractInteraction.misc import *
 from scripts.contractInteraction.prices import *
 from scripts.contractInteraction.fastbtc import *
+from scripts.contractInteraction.bondingcurve import *
+from scripts.contractInteraction.aggregator import *

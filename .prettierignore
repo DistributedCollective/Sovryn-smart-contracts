@@ -13,7 +13,6 @@ coverage.json
 docs
 truffle-config.js
 package.json
-hardhat.config.js
 hardhat-ganache-tests.config.js
 cache
 brownie-config.yaml
@@ -23,3 +22,5 @@ abi
 *.md
 types/
 venv/
+deployment/deployments
+tmp/

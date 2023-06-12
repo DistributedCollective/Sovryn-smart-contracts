@@ -15,20 +15,18 @@
  */
 
 const { expect, assert } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
-const provider = waffle.provider;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const provider = ethers.provider;
 
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
 const { mineBlock } = require("../Utils/Ethereum");
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
-const TestWrbtc = artifacts.require("TestWrbtc");
 const TestToken = artifacts.require("TestToken");
-const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry2");
@@ -47,7 +45,7 @@ const pricsSats = "2500";
 contract("VestingRegistry", (accounts) => {
     let root, account1, account2, account3;
     let SOV, cSOV1, cSOV2;
-    let staking, stakingLogic, feeSharingProxy;
+    let staking, feeSharingCollectorProxy;
     let vestingFactory, vestingLogic, vestingRegistry;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
@@ -55,12 +53,15 @@ contract("VestingRegistry", (accounts) => {
         cSOV1 = await TestToken.new("cSOV1", "cSOV1", 18, TOTAL_SUPPLY);
         cSOV2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
 
-        stakingLogic = await StakingLogic.new(SOV.address);
-        staking = await StakingProxy.new(SOV.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(SOV.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
-        feeSharingProxy = await FeeSharingProxy.new(ZERO_ADDRESS, staking.address);
+        feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
+            ZERO_ADDRESS,
+            staking.address
+        );
 
         vestingLogic = await VestingLogic.new();
         vestingFactory = await VestingFactory.new(vestingLogic.address);
@@ -70,7 +71,7 @@ contract("VestingRegistry", (accounts) => {
             [cSOV1.address, cSOV2.address],
             pricsSats,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             account1
         );
         vestingFactory.transferOwnership(vestingRegistry.address);
@@ -93,14 +94,14 @@ contract("VestingRegistry", (accounts) => {
             let _CSOV1 = await vestingRegistry.CSOVtokens(0);
             let _CSOV2 = await vestingRegistry.CSOVtokens(1);
             let _stacking = await vestingRegistry.staking();
-            let _feeSharingProxy = await vestingRegistry.feeSharingProxy();
+            let _feeSharingCollectorProxy = await vestingRegistry.feeSharingCollector();
             let _vestingOwner = await vestingRegistry.vestingOwner();
 
             expect(_sov).equal(SOV.address);
             expect(_CSOV1).equal(cSOV1.address);
             expect(_CSOV2).equal(cSOV2.address);
             expect(_stacking).equal(staking.address);
-            expect(_feeSharingProxy).equal(feeSharingProxy.address);
+            expect(_feeSharingCollectorProxy).equal(feeSharingCollectorProxy.address);
             expect(_vestingOwner).equal(account1);
         });
 
@@ -112,7 +113,7 @@ contract("VestingRegistry", (accounts) => {
                     [cSOV1.address, cSOV2.address],
                     pricsSats,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1
                 ),
                 "vestingFactory address invalid"
@@ -127,7 +128,7 @@ contract("VestingRegistry", (accounts) => {
                     [cSOV1.address, cSOV2.address],
                     pricsSats,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1
                 ),
                 "SOV address invalid"
@@ -142,7 +143,7 @@ contract("VestingRegistry", (accounts) => {
                     [cSOV1.address, cSOV2.address, ZERO_ADDRESS],
                     pricsSats,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1
                 ),
                 "CSOV address invalid"
@@ -157,14 +158,14 @@ contract("VestingRegistry", (accounts) => {
                     [cSOV1.address, cSOV2.address],
                     pricsSats,
                     ZERO_ADDRESS,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     account1
                 ),
                 "staking address invalid"
             );
         });
 
-        it("fails if the 0 address is passed as feeSharingProxy address", async () => {
+        it("fails if the 0 address is passed as feeSharingCollectorProxy address", async () => {
             await expectRevert(
                 VestingRegistry.new(
                     vestingFactory.address,
@@ -175,7 +176,7 @@ contract("VestingRegistry", (accounts) => {
                     ZERO_ADDRESS,
                     account1
                 ),
-                "feeSharingProxy address invalid"
+                "feeSharingCollector address invalid"
             );
         });
 
@@ -187,7 +188,7 @@ contract("VestingRegistry", (accounts) => {
                     [cSOV1.address, cSOV2.address],
                     pricsSats,
                     staking.address,
-                    feeSharingProxy.address,
+                    feeSharingCollectorProxy.address,
                     ZERO_ADDRESS
                 ),
                 "vestingOwner address invalid"
@@ -381,11 +382,6 @@ contract("VestingRegistry", (accounts) => {
             let vesting = await VestingLogic.at(vestingAddress);
             await checkVesting(vesting, account2, cliff, duration, amount);
 
-            await expectRevert(
-                vesting.governanceWithdrawTokens(account2),
-                "operation not supported"
-            );
-
             let proxy = await UpgradableProxy.at(vestingAddress);
             await expectRevert(proxy.setImplementation(account2), "revert");
         });
@@ -453,8 +449,6 @@ contract("VestingRegistry", (accounts) => {
 
             let vesting = await VestingLogic.at(vestingAddress);
             await checkVesting(vesting, account2, cliff, duration, amount);
-
-            await expectRevert(vesting.governanceWithdrawTokens(account2), "unauthorized");
 
             let proxy = await UpgradableProxy.at(vestingAddress);
             await expectRevert(proxy.setImplementation(account2), "revert");
@@ -613,7 +607,7 @@ contract("VestingRegistry", (accounts) => {
                 lockedTS,
                 numUserStakingCheckpoints - 1
             );
-            assert.equal(numDelegateStakingCheckpoints.toString(), "1");
+            assert.equal(parseInt(numDelegateStakingCheckpoints), 1);
             if (i === start) {
                 assert.equal(delegateStakingCheckpoints.stake.toString(), stakeForFirstInterval);
             } else {

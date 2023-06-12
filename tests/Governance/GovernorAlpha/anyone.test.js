@@ -23,13 +23,12 @@
  *
  */
 
-const { ethers, waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { ethers } = require("hardhat");
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("Timelock");
 const TestToken = artifacts.require("TestToken");
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const SetGet = artifacts.require("setGet");
 
@@ -44,6 +43,7 @@ const {
 // const web3 = require("Web3");
 
 const { encodeParameters, increaseTime, blockNumber, mineBlock } = require("../../Utils/Ethereum");
+const { deployAndGetIStaking } = require("../../Utils/initializer");
 
 const { assert } = require("chai");
 
@@ -104,7 +104,7 @@ async function advanceBlocks(num) {
 }
 
 contract("GovernorAlpha (Any User Functions)", (accounts) => {
-    let governorAlpha, stakingLogic, stakingProxy, timelock, testToken, setGet;
+    let governorAlpha, staking, stakingProxy, timelock, testToken, setGet;
     let guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo;
     let targets, values, signatures, callDatas, eta, proposalId;
 
@@ -120,11 +120,10 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
         // Creating the instance of Test Token.
         testToken = await TestToken.new("TestToken", "TST", 18, totalSupply);
 
-        // Creating the Staking Contract instance.
-        stakingLogic = await StakingLogic.new(testToken.address);
-        stakingProxy = await StakingProxy.new(testToken.address);
-        await stakingProxy.setImplementation(stakingLogic.address);
-        stakingLogic = await StakingLogic.at(stakingProxy.address);
+        // Staking
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(testToken.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Creating the Timelock Contract instance.
         // We would be assigning the `guardianOne` as the admin for now.
@@ -133,7 +132,7 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
         // Creating the Governor Contract Instance.
         governorAlpha = await GovernorAlpha.new(
             timelock.address,
-            stakingLogic.address,
+            staking.address,
             guardianOne,
             quorumPercentageVotes,
             minPercentageVotes
@@ -180,8 +179,8 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
         await testToken.transfer(voterTwo, amount, { from: guardianOne });
 
         // Making the Voters to stake.
-        await stake(testToken, stakingLogic, voterOne, constants.ZERO_ADDRESS, amount);
-        await stake(testToken, stakingLogic, voterTwo, constants.ZERO_ADDRESS, amount);
+        await stake(testToken, staking, voterOne, constants.ZERO_ADDRESS, amount);
+        await stake(testToken, staking, voterTwo, constants.ZERO_ADDRESS, amount);
     }
 
     beforeEach("", async () => {

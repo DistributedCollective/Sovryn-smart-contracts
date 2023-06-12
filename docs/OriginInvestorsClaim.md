@@ -19,7 +19,7 @@ uint256 public vestingTerm;
 uint256 public investorsQty;
 bool public investorsListInitialized;
 contract VestingRegistry public vestingRegistry;
-contract Staking public staking;
+contract IStaking public staking;
 contract IERC20 public SOVToken;
 mapping(address => bool) public admins;
 mapping(address => uint256) public investorsAmountsList;
@@ -110,9 +110,9 @@ function (address vestingRegistryAddress) public nonpayable
 ```javascript
 constructor(address vestingRegistryAddress) public {
         vestingRegistry = VestingRegistry(vestingRegistryAddress);
-        staking = Staking(vestingRegistry.staking());
+        staking = IStaking(vestingRegistry.staking());
         kickoffTS = staking.kickoffTS();
-        SOVToken = staking.SOVToken();
+        SOVToken = IERC20(staking.SOVToken());
         vestingTerm = kickoffTS + SOV_VESTING_CLIFF;
     }
 ```
@@ -396,7 +396,7 @@ function transfer() internal {
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
@@ -412,9 +412,9 @@ function transfer() internal {
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -427,11 +427,16 @@ function transfer() internal {
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -443,6 +448,7 @@ function transfer() internal {
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -473,6 +479,7 @@ function transfer() internal {
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -492,11 +499,15 @@ function transfer() internal {
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -519,6 +530,7 @@ function transfer() internal {
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -526,18 +538,24 @@ function transfer() internal {
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -550,6 +568,7 @@ function transfer() internal {
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -562,5 +581,5 @@ function transfer() internal {
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

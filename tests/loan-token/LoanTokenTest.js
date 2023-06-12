@@ -18,21 +18,13 @@ const {
     getRBTC,
     getWRBTC,
     getBZRX,
-    getLoanTokenLogic,
-    getLoanToken,
-    getLoanTokenLogicWrbtc,
-    getLoanTokenWRBTC,
-    loan_pool_setup,
-    set_demand_curve,
     getPriceFeeds,
     getSovryn,
-    decodeLogs,
-    getSOV,
+    deployAndGetIStaking,
 } = require("../Utils/initializer.js");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingLogic = artifacts.require("Staking");
 const StakingProxy = artifacts.require("StakingProxy");
 
 const LoanToken = artifacts.require("LoanToken");
@@ -70,11 +62,9 @@ contract("LoanTokenUpgrade", (accounts) => {
         sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
         await sovryn.setSovrynProtocolAddress(sovryn.address);
 
-        // Staking
-        let stakingLogic = await StakingLogic.new(SUSD.address);
-        staking = await StakingProxy.new(SUSD.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(SUSD.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Governor
         timelock = await Timelock.new(root, TWO_DAYS);

@@ -27,7 +27,7 @@ def main():
     teamVestingOwner = multisig
     SOVAddress = contracts['SOV']
     stakingAddress = contracts['Staking']
-    feeSharingAddress = contracts['FeeSharingProxy']
+    feeSharingAddress = contracts['FeeSharingCollectorProxy']
 
     balanceBefore = acct.balance()
 

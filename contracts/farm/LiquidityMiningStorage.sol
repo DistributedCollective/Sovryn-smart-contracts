@@ -33,7 +33,7 @@ contract LiquidityMiningStorage is AdminRole {
         uint256 accumulatedRewardPerShare; // Accumulated amount of reward tokens per share, times 1e12. See below.
     }
 
-    // SVR tokens created per block.
+    // Rewards tokens created per block.
     uint256 public rewardTokensPerBlock;
     // The block number when reward token mining starts.
     uint256 public startBlock;
@@ -66,4 +66,7 @@ contract LiquidityMiningStorage is AdminRole {
     // The % which determines how much will be unlocked immediately.
     /// @dev 10000 is 100%
     uint256 public unlockedImmediatelyPercent;
+
+    /// @dev overwrite the unlockedImmediatelyPercent for specific token.
+    mapping(address => uint256) public poolTokensUnlockedImmediatelyPercent;
 }

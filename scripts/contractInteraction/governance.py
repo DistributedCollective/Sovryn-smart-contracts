@@ -17,6 +17,10 @@ def queueProposal(id):
     tx = governor.queue(id)
     tx.info()
 
+def queueProposalAdmin(id):
+    governor = Contract.from_abi("GovernorAlpha", address=conf.contracts['GovernorAdmin'], abi=GovernorAlpha.abi, owner=conf.acct)
+    governor.queue(id)
+
 def executeProposal(id):
     governor = Contract.from_abi("GovernorAlpha", address=conf.contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=conf.acct)
     tx = governor.execute(id)
@@ -37,3 +41,16 @@ def transferLockedSOVOwnershipToGovernance():
     # TODO: Need to check whether we need to remove the other admin or not
     data = lockedSOV.addAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
+
+def proposalState(type, proposalId):
+    governor = Contract.from_abi("GovernorAlpha", address=conf.contracts[type], abi=GovernorAlpha.abi, owner=conf.acct)
+    print(governor.state(proposalId))
+
+def timelockAdmin(type):
+    timelock =  Contract.from_abi("Timelock", address=conf.contracts[type], abi=Timelock.abi, owner=conf.acct)
+    print(timelock.admin())
+    print(timelock.pendingAdmin())
+
+def simulateVeto():
+    governor = Contract.from_abi("GovernorAlpha", address=conf.contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=conf.acct)
+    governor.cancel(20,{"from":conf.contracts['multisig']}).call(block_identifier=5113690)

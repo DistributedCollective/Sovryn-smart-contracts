@@ -34,7 +34,7 @@ function getListFunctionSignatures()
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](36);
+        bytes4[] memory res = new bytes4[](32);
 
         // Loan Token Logic Standard
         res[0] = this.borrow.selector;
@@ -60,9 +60,7 @@ function getListFunctionSignatures()
         res[20] = this.getDepositAmountForBorrow.selector;
         res[21] = this.getBorrowAmountForDeposit.selector;
         res[22] = this.checkPriceDivergence.selector;
-        res[23] = this.checkPause.selector;
-        res[24] = this.setLiquidityMiningAddress.selector;
-        res[25] = this.calculateSupplyInterestRate.selector;
+        res[23] = this.calculateSupplyInterestRate.selector;
 
         // Loan Token LM & OVERLOADING function
         /**
@@ -70,22 +68,18 @@ function getListFunctionSignatures()
          * LoanTokenLogicStandard also has mint & burn function (overloading).
          * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
          */
-        res[26] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicStandard
-        res[27] = bytes4(keccak256("mint(address,uint256,bool)")); /// LoanTokenLogicLM
-        res[28] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
-        res[29] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
+        res[24] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicStandard
+        res[25] = bytes4(keccak256("mint(address,uint256,bool)")); /// LoanTokenLogicLM
+        res[26] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
+        res[27] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
 
         // Advanced Token
-        res[30] = this.approve.selector;
+        res[28] = this.approve.selector;
 
         // Advanced Token Storage
-        res[31] = this.totalSupply.selector;
-        res[32] = this.balanceOf.selector;
-        res[33] = this.allowance.selector;
-
-        // Loan Token Logic Storage Additional Variable
-        res[34] = this.getLiquidityMiningAddress.selector;
-        res[35] = this.withdrawRBTCTo.selector;
+        res[29] = this.totalSupply.selector;
+        res[30] = this.balanceOf.selector;
+        res[31] = this.allowance.selector;
 
         return (res, stringToBytes32("LoanTokenLogicLM"));
     }
@@ -99,7 +93,7 @@ function getListFunctionSignatures()
 deposit into the lending pool and optionally participate at the Liquidity Mining Program
 
 ```solidity
-function mint(address receiver, uint256 depositAmount, bool useLM) external nonpayable nonReentrant 
+function mint(address receiver, uint256 depositAmount, bool useLM) external nonpayable nonReentrant globallyNonReentrant 
 returns(minted uint256)
 ```
 
@@ -119,7 +113,7 @@ function mint(
         address receiver,
         uint256 depositAmount,
         bool useLM
-    ) external nonReentrant returns (uint256 minted) {
+    ) external nonReentrant globallyNonReentrant returns (uint256 minted) {
         if (useLM) return _mintWithLM(receiver, depositAmount);
         else return _mintToken(receiver, depositAmount);
     }
@@ -134,7 +128,7 @@ withdraws from the lending pool and optionally retrieves the pool tokens from th
         Liquidity Mining Contract
 
 ```solidity
-function burn(address receiver, uint256 burnAmount, bool useLM) external nonpayable nonReentrant 
+function burn(address receiver, uint256 burnAmount, bool useLM) external nonpayable nonReentrant globallyNonReentrant 
 returns(redeemed uint256)
 ```
 
@@ -154,7 +148,7 @@ function burn(
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external nonReentrant returns (uint256 redeemed) {
+    ) external nonReentrant globallyNonReentrant returns (uint256 redeemed) {
         if (useLM) redeemed = _burnFromLM(burnAmount);
         else redeemed = _burnToken(burnAmount);
         //this needs to be here and not in _burnTokens because of the WRBTC implementation
@@ -176,7 +170,7 @@ function burn(
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
@@ -192,9 +186,9 @@ function burn(
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -207,11 +201,16 @@ function burn(
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -223,6 +222,7 @@ function burn(
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -253,6 +253,7 @@ function burn(
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -272,11 +273,15 @@ function burn(
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -299,6 +304,7 @@ function burn(
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -306,18 +312,24 @@ function burn(
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -330,6 +342,7 @@ function burn(
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -342,5 +355,5 @@ function burn(
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

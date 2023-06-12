@@ -131,7 +131,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
         require(_receiver != address(0), "receiver address invalid");
 
         /// @dev Invokes the fee sharing proxy.
-        feeSharingProxy.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
+        feeSharingCollector.withdraw(_loanPoolToken, _maxCheckpoints, _receiver);
 
         emit DividendsCollected(msg.sender, _loanPoolToken, _receiver, _maxCheckpoints);
     }
@@ -178,7 +178,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * */
     function migrateToNewStakingContract() external onlyOwners {
         staking.migrateToNewStakingContract();
-        staking = Staking(staking.newStakingContract());
+        staking = IStaking(staking.newStakingContract());
         emit MigratedToNewStakingContract(msg.sender, address(staking));
     }
 
@@ -328,11 +328,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
-                if (isGovernance) {
-                    staking.governanceWithdraw(stake, i, receiver);
-                } else {
-                    staking.withdraw(stake, i, receiver);
-                }
+                staking.withdraw(stake, i, receiver);
             }
         }
 
@@ -353,7 +349,7 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * register stakeTokensWithApproval selector on this contract.
      * @return The array of registered selectors on this contract.
      * */
-    function _getSelectors() internal view returns (bytes4[] memory) {
+    function _getSelectors() internal pure returns (bytes4[] memory) {
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = this.stakeTokensWithApproval.selector;
         return selectors;

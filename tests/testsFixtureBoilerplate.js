@@ -1,12 +1,11 @@
 /**
- * Boilerplate to build unit tests w/ waffle fixtures on the beforeEach hook.
+ * Boilerplate to build unit tests w/ fixtures on the beforeEach hook.
  * Init deployment embedded on a fixture avoids to redeploy contracts when running every test.
  * So, this is a very significant speed optimization resource to apply on tests
  * that do not require to preserve the flow from one test to another.
  */
 
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const {
     getSUSD,

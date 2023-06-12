@@ -1,12 +1,14 @@
 /** Speed optimized on branch hardhatTestRefactor, 2021-10-01
- * No bottlenecks found. No beforeEach hook, and waffle mockup was already applied.
+ * No bottlenecks found. No beforeEach hook, and mockup was already applied.
  *
  * Total time elapsed: 4.9s
  */
 
-const { ethers, waffle } = require("hardhat");
+const { ethers } = require("hardhat");
 const { expect } = require("chai");
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { deployMockContract } = require("@ethereum-waffle/mock-contract");
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const SOV = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
@@ -46,7 +48,7 @@ contract("PriceFeeds", (accounts) => {
             testToken1.address,
             testWrbtc.address
         );
-        priceFeedsV1PoolOracleMockupTestToken1 = await waffle.deployMockContract(
+        priceFeedsV1PoolOracleMockupTestToken1 = await deployMockContract(
             sender,
             IV1PoolOracle.abi
         );
@@ -66,7 +68,7 @@ contract("PriceFeeds", (accounts) => {
             testToken2.address,
             testWrbtc.address
         );
-        priceFeedsV1PoolOracleMockupTestToken2 = await waffle.deployMockContract(
+        priceFeedsV1PoolOracleMockupTestToken2 = await deployMockContract(
             sender,
             IV1PoolOracle.abi
         );
@@ -87,10 +89,7 @@ contract("PriceFeeds", (accounts) => {
             doc.address,
             testWrbtc.address
         );
-        priceFeedsV1PoolOracleMockupDOC = await waffle.deployMockContract(
-            sender,
-            IV1PoolOracle.abi
-        );
+        priceFeedsV1PoolOracleMockupDOC = await deployMockContract(sender, IV1PoolOracle.abi);
         await priceFeedsV1PoolOracleMockupDOC.mock.latestAnswer.returns(docPrice);
         await priceFeedsV1PoolOracleMockupDOC.mock.latestPrice.returns(docPrice);
         await priceFeedsV1PoolOracleMockupDOC.mock.liquidityPool.returns(

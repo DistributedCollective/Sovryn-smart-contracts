@@ -1,28 +1,14 @@
-// For this test, multisig wallet will be done by normal wallets.
-
-/** Speed optimized on branch hardhatTestRefactor, 2021-09-17
- * Greatest bottlenecks found at:
- * 	- Two last tests, performing several escrow operations.
- * Total time elapsed: 5s
- * After optimization: 4.4s
- *
- * Other minor optimizations:
- * - reformatted code comments
- *
- * Notes: Minting and test values calculation have been moved to the before hook.
- *   Some tests have been reordered to avoid redeployments
- *   Tried to integrate tests into just 1 flow,
- *   but it is not lineal because status and release time
- *   are creating bifurcations that can only be traveled
- *   through different rounds.
+/**
+ * Escrow rewards users functions tests
  */
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const EscrowReward = artifacts.require("EscrowReward");
 const LockedSOV = artifacts.require("LockedSOV"); // Ideally should be using actual LockedSOV for testing.
-const StakingLogic = artifacts.require("Staking");
+
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("TestToken");
-const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
@@ -91,14 +77,15 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
         // Creating the instance of SOV Token.
         sov = await SOV.new("Sovryn", "SOV", 18, zero);
 
-        // Creating the Staking Instance.
-        stakingLogic = await StakingLogic.new(sov.address);
-        staking = await StakingProxy.new(sov.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(sov.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Creating the FeeSharing Instance.
-        feeSharingProxy = await FeeSharingProxy.new(constants.ZERO_ADDRESS, staking.address);
+        feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
+            constants.ZERO_ADDRESS,
+            staking.address
+        );
 
         // Creating the Vesting Instance.
         vestingLogic = await VestingLogic.new();
@@ -107,7 +94,7 @@ contract("Escrow Rewards (Any User Functions)", (accounts) => {
             vestingFactory.address,
             sov.address,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             creator // This should be Governance Timelock Contract.
         );
         vestingFactory.transferOwnership(vestingRegistry.address);

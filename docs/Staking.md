@@ -32,7 +32,7 @@ uint256 internal constant FOUR_WEEKS;
 - [stakesBySchedule(uint256 amount, uint256 cliff, uint256 duration, uint256 intervalLength, address stakeFor, address delegatee)](#stakesbyschedule)
 - [withdraw(uint96 amount, uint256 until, address receiver)](#withdraw)
 - [governanceWithdraw(uint96 amount, uint256 until, address receiver)](#governancewithdraw)
-- [governanceWithdrawVesting(address vesting, address receiver)](#governancewithdrawvesting)
+- [governanceDirectWithdrawVesting(address vesting, address receiver)](#governanceDirectWithdrawVesting)
 - [_withdraw(uint96 amount, uint256 until, address receiver, bool isGovernance)](#_withdraw)
 - [_withdrawNext(uint256 until, address receiver, bool isGovernance)](#_withdrawnext)
 - [getWithdrawAmounts(uint96 amount, uint256 until)](#getwithdrawamounts)
@@ -435,12 +435,12 @@ function governanceWithdraw(
 
 ---    
 
-> ### governanceWithdrawVesting
+> ### governanceDirectWithdrawVesting
 
 Withdraw tokens for vesting contract.
 
 ```solidity
-function governanceWithdrawVesting(address vesting, address receiver) public nonpayable onlyAuthorized whenNotFrozen 
+function governanceDirectWithdrawVesting(address vesting, address receiver) public nonpayable onlyAuthorized whenNotFrozen 
 ```
 
 **Arguments**
@@ -454,7 +454,7 @@ function governanceWithdrawVesting(address vesting, address receiver) public non
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function governanceWithdrawVesting(address vesting, address receiver)
+function governanceDirectWithdrawVesting(address vesting, address receiver)
         public
         onlyAuthorized
         whenNotFrozen

@@ -13,9 +13,9 @@ const { expect } = require("chai");
 const { expectRevert, expectEvent, BN } = require("@openzeppelin/test-helpers");
 
 const { address, etherMantissa, encodeParameters, mineBlock } = require("../../Utils/Ethereum");
+const { deployAndGetIStaking } = require("../../Utils/initializer");
 
 const GovernorAlpha = artifacts.require("GovernorAlpha");
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 //Upgradable Vesting Registry
@@ -36,10 +36,10 @@ contract("GovernorAlpha#propose/5", (accounts) => {
         [root, acct, ...accounts] = accounts;
         token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
 
-        let stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(token.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         gov = await GovernorAlpha.new(address(0), staking.address, address(0), 4, 0);
 
@@ -172,7 +172,6 @@ contract("GovernorAlpha#propose/5", (accounts) => {
                     await staking.stake(QUORUM_VOTES, stakingDate, accounts[4], accounts[4], {
                         from: accounts[4],
                     });
-                    await staking.delegate(accounts[4], stakingDate, { from: accounts[4] });
 
                     await gov.propose(targets, values, signatures, callDatas, "do nothing", {
                         from: accounts[4],
@@ -205,7 +204,6 @@ contract("GovernorAlpha#propose/5", (accounts) => {
             await staking.stake(QUORUM_VOTES, stakingDate, accounts[2], accounts[2], {
                 from: accounts[2],
             });
-            await staking.delegate(accounts[2], stakingDate, { from: accounts[2] });
 
             await mineBlock();
             let nextProposalId = await gov.propose.call(
@@ -229,7 +227,6 @@ contract("GovernorAlpha#propose/5", (accounts) => {
             await staking.stake(QUORUM_VOTES, stakingDate, accounts[3], accounts[3], {
                 from: accounts[3],
             });
-            await staking.delegate(accounts[3], stakingDate, { from: accounts[3] });
             await mineBlock();
 
             // await updateTime(comp);

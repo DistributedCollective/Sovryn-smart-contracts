@@ -225,7 +225,6 @@ contract StakingRewards is StakingRewardsStorage {
         } else {
             duration = lastStakingInterval;
         }
-
         for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
             uint256 referenceBlock = checkpointBlockDetails[i];
             if (referenceBlock == 0) {
@@ -236,7 +235,6 @@ contract StakingRewards is StakingRewardsStorage {
             if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
             weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
         }
-
         lastWithdrawalInterval = duration;
         amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
     }

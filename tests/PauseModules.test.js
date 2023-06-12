@@ -14,16 +14,15 @@
  *  - reordered external modules apart from local variables
  *
  * Notes:
- * 	Previous optimization by Tyrone adding a waffle fixture (loadFixture)
+ * 	Previous optimization by Tyrone adding a fixture (loadFixture)
  *  improved a 20% the code speed:
  * 		reduced total elapsed time from 5s to 4s
  *  Updated to use only the initializer.js functions for protocol deployment.
  *  Updated to use SUSD as underlying token.
  */
 
-const { waffle } = require("hardhat");
 const { assert, expect } = require("chai");
-const { loadFixture } = waffle;
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
@@ -54,12 +53,14 @@ const {
     getSOV,
 } = require("./Utils/initializer.js");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const mutexUtils = require("./reentrancy/utils");
 
 contract("Pause Modules", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
     let loanParams, loanParamsId;
     /// @note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
     async function fixtureInitialize(_wallets, _provider) {
+        await mutexUtils.getOrDeployMutex();
         SUSD = await getSUSD(); // Underlying Token
         RBTC = await getRBTC();
         WRBTC = await getWRBTC();

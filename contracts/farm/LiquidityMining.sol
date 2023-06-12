@@ -95,17 +95,34 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
     /**
      * @notice Sets unlocked immediately percent.
      * @param _unlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
-     * @dev @dev 10000 is 100%
+     * @dev 10000 is 100%
      */
     function setUnlockedImmediatelyPercent(uint256 _unlockedImmediatelyPercent)
         external
         onlyAuthorized
     {
         require(
-            _unlockedImmediatelyPercent < 10000,
-            "Unlocked immediately percent has to be less than 10000."
+            _unlockedImmediatelyPercent <= 10000,
+            "Unlocked immediately percent has to be less than equal to 10000."
         );
         unlockedImmediatelyPercent = _unlockedImmediatelyPercent;
+    }
+
+    /**
+     * @notice Sets unlocked immediately percent overwrite for specific pool token.
+     * @param _poolToken the address of pool token
+     * @param _poolTokenUnlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
+     * @dev 10000 is 100%
+     */
+    function setPoolTokenUnlockedImmediatelyPercent(
+        address _poolToken,
+        uint256 _poolTokenUnlockedImmediatelyPercent
+    ) external onlyAuthorized {
+        require(
+            _poolTokenUnlockedImmediatelyPercent <= 10000,
+            "Unlocked immediately percent has to be less than equal to 10000."
+        );
+        poolTokensUnlockedImmediatelyPercent[_poolToken] = _poolTokenUnlockedImmediatelyPercent;
     }
 
     /**
@@ -496,7 +513,13 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
             uint256 poolId = i;
             _claimReward(poolId, userAddress, false);
         }
-        lockedSOV.withdrawAndStakeTokensFrom(userAddress);
+
+        if (
+            lockedSOV.getLockedBalance(userAddress) > 0 ||
+            lockedSOV.getUnlockedBalance(userAddress) > 0
+        ) {
+            lockedSOV.withdrawAndStakeTokensFrom(userAddress);
+        }
     }
 
     /**
@@ -582,6 +605,8 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         bool _isCheckingBalance
     ) internal {
         uint256 userAccumulatedReward = _user.accumulatedReward;
+        /// @dev get unlock immediate percent of the pool token.
+        uint256 calculatedUnlockedImmediatelyPercent = calcUnlockedImmediatelyPercent(_poolToken);
 
         /// @dev Transfer if enough SOV balance on this LM contract.
         uint256 balance = SOV.balanceOf(address(this));
@@ -589,15 +614,23 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
             totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
             _user.accumulatedReward = 0;
 
-            /// @dev Instead of transferring the reward to the LP (user),
-            ///   deposit it into lockedSOV vault contract, but first
+            /// @dev If calculatedUnlockedImmediatelyPercent is 100%, transfer the reward to the LP (user).
+            ///   else, deposit it into lockedSOV vault contract, but first
             ///   SOV deposit must be approved to move the SOV tokens
             ///   from this LM contract into the lockedSOV vault.
-            require(SOV.approve(address(lockedSOV), userAccumulatedReward), "Approve failed");
-            lockedSOV.deposit(_userAddress, userAccumulatedReward, unlockedImmediatelyPercent);
+            if (calculatedUnlockedImmediatelyPercent == 10000) {
+                SOV.transfer(_userAddress, userAccumulatedReward);
+            } else {
+                require(SOV.approve(address(lockedSOV), userAccumulatedReward), "Approve failed");
+                lockedSOV.deposit(
+                    _userAddress,
+                    userAccumulatedReward,
+                    calculatedUnlockedImmediatelyPercent
+                );
 
-            if (_isStakingTokens) {
-                lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
+                if (_isStakingTokens) {
+                    lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
+                }
             }
 
             /// @dev Event log.
@@ -730,5 +763,64 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
     {
         UserInfo memory ui = getUserInfo(_poolToken, _user);
         return ui.amount;
+    }
+
+    /**
+     * @notice returns the accumulated liquid reward for the given user for each pool token
+     * @param _user the address of the user
+     */
+    function getUserAccumulatedRewardToBePaidLiquid(address _user)
+        external
+        view
+        returns (uint256)
+    {
+        uint256 length = poolInfoList.length;
+        uint256 result;
+        for (uint256 i = 0; i < length; i++) {
+            address _poolToken = address(poolInfoList[i].poolToken);
+            uint256 calculatedUnlockedImmediatelyPercent =
+                calcUnlockedImmediatelyPercent(_poolToken);
+            result = result.add(
+                calculatedUnlockedImmediatelyPercent.mul(_getUserAccumulatedReward(i, _user)).div(
+                    10000
+                )
+            );
+        }
+
+        return result;
+    }
+
+    /**
+     * @notice returns the accumulated vested reward for the given user for each pool token
+     * @param _user the address of the user
+     */
+    function getUserAccumulatedRewardToBeVested(address _user) external view returns (uint256) {
+        uint256 length = poolInfoList.length;
+        uint256 result;
+        for (uint256 i = 0; i < length; i++) {
+            address _poolToken = address(poolInfoList[i].poolToken);
+            uint256 calculatedUnlockedImmediatelyPercent =
+                calcUnlockedImmediatelyPercent(_poolToken);
+            result = result.add(
+                (10000 - calculatedUnlockedImmediatelyPercent)
+                    .mul(_getUserAccumulatedReward(i, _user))
+                    .div(10000)
+            );
+        }
+
+        return result;
+    }
+
+    /**
+     * @dev calculate the unlocked immediate percentage of specific pool token
+     * use the poolTokensUnlockedImmediatelyPercent by default, if it is not set, then use the unlockedImmediatelyPercent
+     */
+    function calcUnlockedImmediatelyPercent(address _poolToken) public view returns (uint256) {
+        uint256 poolTokenUnlockedImmediatelyPercent =
+            poolTokensUnlockedImmediatelyPercent[_poolToken];
+        return
+            poolTokenUnlockedImmediatelyPercent > 0
+                ? poolTokenUnlockedImmediatelyPercent
+                : unlockedImmediatelyPercent;
     }
 }

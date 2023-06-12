@@ -12,14 +12,14 @@
  *
  * Notes: Instead of a general deployment for all tests in the beforeEach hook,
  *  it has been restricted exclusively to those tests that required it. Besides,
- *  a waffle fixture is used only on tests that can start from the initial snapshot.
+ *  the oz test-helpers fixture is used only on tests that can start from the initial snapshot.
  *
  *   + Added test of dummy liquidityMiningConfigToken methods for coverage.
  */
 
 const { expect } = require("chai");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 const { etherMantissa, mineBlock, advanceBlocks } = require("../Utils/Ethereum");
 
@@ -42,12 +42,13 @@ contract("LiquidityMining", (accounts) => {
     const rewardTokensPerBlock = new BN(3);
     const startDelayBlocks = new BN(1);
     const numberOfBonusBlocks = new BN(50);
+    const HUNDRED_PERCENT = new BN(10000);
 
     // The % which determines how much will be unlocked immediately.
     /// @dev 10000 is 100%
     const unlockedImmediatelyPercent = new BN(1000); // 10%
 
-    let root, account1, account2, account3, account4;
+    let root, account1, account2, account3, account4, lmAdmin;
     let SOVToken, token1, token2, token3, liquidityMiningConfigToken;
     let liquidityMining, wrapper;
     let lockedSOVAdmins, lockedSOV;
@@ -80,7 +81,7 @@ contract("LiquidityMining", (accounts) => {
 
     before(async () => {
         accounts = await web3.eth.getAccounts();
-        [root, account1, account2, account3, account4, ...accounts] = accounts;
+        [root, account1, account2, account3, account4, lmAdmin, ...accounts] = accounts;
     });
 
     /// @dev Test dummy liquidityMiningConfigToken methods for coverage
@@ -315,6 +316,31 @@ contract("LiquidityMining", (accounts) => {
             expect(_unlockedImmediatelyPercent).bignumber.equal(newUnlockedImmediatelyPercent);
         });
 
+        // it should be possible for an admin to set unlockedImmediatelyPercent to 0%
+        it("successfully set to 0 (0%)", async () => {
+            await liquidityMining.addAdmin(lmAdmin);
+            let newUnlockedImmediatelyPercent = new BN(0);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent, {
+                from: lmAdmin,
+            });
+
+            let _unlockedImmediatelyPercent = await liquidityMining.unlockedImmediatelyPercent();
+            expect(_unlockedImmediatelyPercent).bignumber.equal(newUnlockedImmediatelyPercent);
+        });
+
+        // it should be possible for an admin to set unlockedImmediatelyPercent to 100%
+        it("successfully set to 10000 (100%)", async () => {
+            await liquidityMining.addAdmin(lmAdmin);
+            let newUnlockedImmediatelyPercent = new BN(10000);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent, {
+                from: lmAdmin,
+            });
+
+            let _unlockedImmediatelyPercent = await liquidityMining.unlockedImmediatelyPercent();
+            expect(_unlockedImmediatelyPercent).bignumber.equal(newUnlockedImmediatelyPercent);
+        });
+
+        // it should not be possible for any other address than owner / admin to set the unlockedImmediatelyPercent
         it("fails if not an owner or an admin", async () => {
             await deploymentAndInit();
             await expectRevert(
@@ -326,10 +352,150 @@ contract("LiquidityMining", (accounts) => {
             await liquidityMining.setUnlockedImmediatelyPercent(1000, { from: account1 });
         });
 
-        it("fails if unlockedImmediatelyPercent >= 10000", async () => {
+        it("fails if unlockedImmediatelyPercent > 10000", async () => {
             await expectRevert(
-                liquidityMining.setUnlockedImmediatelyPercent(100000),
-                "Unlocked immediately percent has to be less than 10000."
+                liquidityMining.setUnlockedImmediatelyPercent(10001),
+                "Unlocked immediately percent has to be less than equal to 10000."
+            );
+        });
+    });
+
+    describe("setPoolTokenUnlockedImmediatelyPercent", () => {
+        it("should use the poolTokensUnlockedImmediatelyPercent by default", async () => {
+            // should use unlockedImmediatelyPercent by default
+            const unlockedImmediatelyPercent = await liquidityMining.unlockedImmediatelyPercent();
+            let previousPoolTokenUnlockedImmediatelyPercent =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            expect(previousPoolTokenUnlockedImmediatelyPercent).bignumber.equal(
+                unlockedImmediatelyPercent
+            );
+
+            // set the poolTokensUnlockedImmediatelyPercent
+            let newpoolTokensUnlockedImmediatelyPercent = new BN(3000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token1.address,
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+
+            let _poolTokensUnlockedImmediatelyPercent =
+                await liquidityMining.poolTokensUnlockedImmediatelyPercent(token1.address);
+            expect(_poolTokensUnlockedImmediatelyPercent).bignumber.equal(
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+
+            let latestPoolTokenUnlockedImmediatelyPercent =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            expect(latestPoolTokenUnlockedImmediatelyPercent).bignumber.equal(
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+        });
+
+        it("should use the unlockedImmediatelyPercent if poolTokensUnlockedImmediatelyPercent is updated to 0", async () => {
+            // calcUnlockedImmediatelyPercent should use the poolTokensUnlockedImmediatelyPercent since it was set from the previous test
+            const poolTokensUnlockedImmediatelyPercent =
+                await liquidityMining.poolTokensUnlockedImmediatelyPercent(token1.address);
+            const previousPoolTokenUnlockedImmediatelyPercent =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            expect(previousPoolTokenUnlockedImmediatelyPercent).bignumber.equal(
+                poolTokensUnlockedImmediatelyPercent
+            );
+
+            // set the poolTokensUnlockedImmediatelyPercent to 0
+            newpoolTokensUnlockedImmediatelyPercent = new BN(0);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token1.address,
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+
+            // calcUnlockedImmediatelyPercent should use the unlockedImmediatelyPercent
+            const unlockedImmediatelyPercent = await liquidityMining.unlockedImmediatelyPercent();
+            const latestPoolTokenUnlockedImmediatelyPercent =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            expect(latestPoolTokenUnlockedImmediatelyPercent).bignumber.equal(
+                unlockedImmediatelyPercent
+            );
+        });
+
+        it("sets the expected values", async () => {
+            let newpoolTokensUnlockedImmediatelyPercent = new BN(2000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token1.address,
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+
+            let _poolTokensUnlockedImmediatelyPercent =
+                await liquidityMining.poolTokensUnlockedImmediatelyPercent(token1.address);
+            expect(_poolTokensUnlockedImmediatelyPercent).bignumber.equal(
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+
+            let latestPoolTokenUnlockedImmediatelyPercent =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            expect(latestPoolTokenUnlockedImmediatelyPercent).bignumber.equal(
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+        });
+
+        // it should be possible for an admin to set poolTokensUnlockedImmediatelyPercent to 0%
+        it("successfully set to 0 (0%)", async () => {
+            await liquidityMining.addAdmin(lmAdmin);
+            let newpoolTokensUnlockedImmediatelyPercent = new BN(0);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token1.address,
+                newpoolTokensUnlockedImmediatelyPercent,
+                { from: lmAdmin }
+            );
+
+            let _poolTokensUnlockedImmediatelyPercent =
+                await liquidityMining.poolTokensUnlockedImmediatelyPercent(token1.address);
+            expect(_poolTokensUnlockedImmediatelyPercent).bignumber.equal(
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+        });
+
+        // it should be possible for an admin to set poolTokensUnlockedImmediatelyPercent to 100%
+        it("successfully set to 10000 (100%)", async () => {
+            await liquidityMining.addAdmin(lmAdmin);
+            let newpoolTokensUnlockedImmediatelyPercent = new BN(10000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token1.address,
+                newpoolTokensUnlockedImmediatelyPercent,
+                { from: lmAdmin }
+            );
+
+            let _poolTokensUnlockedImmediatelyPercent =
+                await liquidityMining.poolTokensUnlockedImmediatelyPercent(token1.address);
+            expect(_poolTokensUnlockedImmediatelyPercent).bignumber.equal(
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+
+            let latestPoolTokenUnlockedImmediatelyPercent =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            expect(latestPoolTokenUnlockedImmediatelyPercent).bignumber.equal(
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+        });
+
+        // it should not be possible for any other address than owner / admin to set the poolTokensUnlockedImmediatelyPercent
+        it("fails if not an owner or an admin", async () => {
+            await deploymentAndInit();
+            await expectRevert(
+                liquidityMining.setPoolTokenUnlockedImmediatelyPercent(token1.address, 1000, {
+                    from: account1,
+                }),
+                "unauthorized"
+            );
+
+            await liquidityMining.addAdmin(account1);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(token1.address, 1000, {
+                from: account1,
+            });
+        });
+
+        it("fails if unlockedImmediatelyPercent > 10000", async () => {
+            await expectRevert(
+                liquidityMining.setPoolTokenUnlockedImmediatelyPercent(token1.address, 10001),
+                "Unlocked immediately percent has to be less than equal to 10000."
             );
         });
     });
@@ -727,12 +893,21 @@ contract("LiquidityMining", (accounts) => {
             );
         });
 
-        it("should be able to claim reward (will be claimed with SOV tokens)", async () => {
+        // if claiming rewards for single pool and 0% <unlockedImmediatelyPercent<100% and poolTokensUnlockedImmediatelyPercent is 0, unlockedImmediatelyPercent of the reward amount gets transferred to the user directly (through the lockedSOV contract) and 100% - unlockedImmediatelyPercent are vested
+        it("should be able to claim reward (will be claimed with SOV tokens) with 10% of unlockedImmediatelyPercent", async () => {
+            /**
+             * unlockedImmediatelyPercent was set to 10%
+             * After user claim reward:
+             *      - 10% of token1 reward will be transferred directly to the user.
+             *      - 90% of token1 reward will be vested.
+             */
             let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
                 from: account1,
             });
             let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
             await SOVToken.transfer(liquidityMining.address, new BN(1000));
+
+            const previousUserSOVBalance = await SOVToken.balanceOf(account1);
 
             let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {
                 from: account1,
@@ -765,11 +940,262 @@ contract("LiquidityMining", (accounts) => {
             expect(unlockedBalance).bignumber.equal(new BN(0));
             expect(lockedBalance).bignumber.equal(new BN(0));
 
+            const latestUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            /** user should only receive 10% SOV since the unlockedImmediatelyPercent is 10% */
+            const unlockImmediatelyPercent = await liquidityMining.calcUnlockedImmediatelyPercent(
+                token1.address
+            );
+            expect(latestUserSOVBalance.toString()).to.equal(
+                previousUserSOVBalance.add(
+                    userReward.mul(unlockImmediatelyPercent).div(HUNDRED_PERCENT)
+                )
+            );
+
             expectEvent(tx, "RewardClaimed", {
                 user: account1,
                 poolToken: token1.address,
                 amount: userReward,
             });
+
+            // the other 90% of reward claimed will be staked
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                lockedSOV,
+                "TokensStaked",
+                {
+                    _initiator: account1,
+                    _vesting: ZERO_ADDRESS,
+                    _amount: userReward
+                        .mul(HUNDRED_PERCENT.sub(unlockImmediatelyPercent))
+                        .div(HUNDRED_PERCENT),
+                }
+            );
+        });
+
+        // if claiming rewards for single pool and unlockedImmediatelyPercent is 100% and poolTokensUnlockedImmediatelyPercent is 0, the user receives 100% of the tokens directly to his wallet
+        it("user should receive the entire SOV rewards with 100% unlockedImmediatelyPercent", async () => {
+            /**
+             * set unlockedImmediatelyPercent to 100%
+             * After user claim reward:
+             *      - 100% of token1 reward will be transferred directly to the user.
+             */
+            const newUnlockedImmediatelyPercent = new BN(10000);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+
+            let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+            await SOVToken.transfer(liquidityMining.address, new BN(1000));
+
+            const previousUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            let totalUsersBalance = await liquidityMining.totalUsersBalance();
+            expect(totalUsersBalance).bignumber.equal(new BN(0));
+
+            let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+            let latestBlockNumber = new BN(tx.receipt.blockNumber);
+            checkPoolInfo(
+                poolInfo,
+                token1.address,
+                allocationPoint,
+                latestBlockNumber,
+                new BN(-1)
+            );
+
+            await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+            let userReward = await checkUserReward(
+                account1,
+                token1,
+                depositBlockNumber,
+                latestBlockNumber
+            );
+
+            // withdrawAndStakeTokensFrom was invoked
+            let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+            let lockedBalance = await lockedSOV.getLockedBalance(account1);
+            expect(unlockedBalance).bignumber.equal(new BN(0));
+            expect(lockedBalance).bignumber.equal(new BN(0));
+
+            const latestUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            /** user should receive the entire SOV reward since the unlockedImmediatelyPercent is 100% */
+            expect(latestUserSOVBalance.toString()).to.equal(
+                previousUserSOVBalance.add(userReward)
+            );
+
+            expectEvent(tx, "RewardClaimed", {
+                user: account1,
+                poolToken: token1.address,
+                amount: userReward,
+            });
+        });
+
+        it("user should receive the entire SOV rewards if poolTokensUnlockedImmediatelyPercent is set to 100%", async () => {
+            /**
+             * set poolTokensUnlockedImmediatelyPercent to 100%
+             * After user claim reward:
+             *      - 100% of token1 reward will be transferred directly to the user.
+             */
+            const newpoolTokensUnlockedImmediatelyPercent = new BN(10000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token1.address,
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+
+            let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+            await SOVToken.transfer(liquidityMining.address, new BN(1000));
+
+            const previousUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            let totalUsersBalance = await liquidityMining.totalUsersBalance();
+            expect(totalUsersBalance).bignumber.equal(new BN(0));
+
+            let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+            let latestBlockNumber = new BN(tx.receipt.blockNumber);
+            checkPoolInfo(
+                poolInfo,
+                token1.address,
+                allocationPoint,
+                latestBlockNumber,
+                new BN(-1)
+            );
+
+            await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+            let userReward = await checkUserReward(
+                account1,
+                token1,
+                depositBlockNumber,
+                latestBlockNumber
+            );
+
+            // withdrawAndStakeTokensFrom was invoked
+            let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+            let lockedBalance = await lockedSOV.getLockedBalance(account1);
+            expect(unlockedBalance).bignumber.equal(new BN(0));
+            expect(lockedBalance).bignumber.equal(new BN(0));
+
+            const latestUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            /** user should receive the entire SOV reward since the unlockedImmediatelyPercent is 100% */
+            expect(latestUserSOVBalance.toString()).to.equal(
+                previousUserSOVBalance.add(userReward)
+            );
+
+            const unlockImmediatelyPercent = await liquidityMining.calcUnlockedImmediatelyPercent(
+                token1.address
+            );
+            expect(unlockImmediatelyPercent.toString()).to.equal(
+                newpoolTokensUnlockedImmediatelyPercent.toString()
+            );
+
+            expectEvent(tx, "RewardClaimed", {
+                user: account1,
+                poolToken: token1.address,
+                amount: userReward,
+            });
+        });
+
+        // if claiming rewards for a single pool and poolTokensUnlockedImmediatelyPercent > 0 and poolTokensUnlockedImmediatelyPercent != unlockedImmediatelyPercent, poolTokensUnlockedImmediatelyPercent of the reward amount gets transferred immediately to the user
+        it("user should receive the part of SOV rewards if poolTokensUnlockedImmediatelyPercent is set to less than 100%", async () => {
+            /**
+             * set poolTokensUnlockedImmediatelyPercent to 30%
+             * After user claim reward:
+             *      - 30% of token1 reward will be transferred directly to the user.
+             *      - 70% of token1 reward will be vested.
+             */
+            // set the poolTokensUnlockedImmediatelyPercent to 30%
+            const newpoolTokensUnlockedImmediatelyPercent = new BN(3000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token1.address,
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+
+            let depositTx = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+            await SOVToken.transfer(liquidityMining.address, new BN(1000));
+
+            const previousUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            let totalUsersBalance = await liquidityMining.totalUsersBalance();
+            expect(totalUsersBalance).bignumber.equal(new BN(0));
+
+            let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+            let latestBlockNumber = new BN(tx.receipt.blockNumber);
+            checkPoolInfo(
+                poolInfo,
+                token1.address,
+                allocationPoint,
+                latestBlockNumber,
+                new BN(-1)
+            );
+
+            await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+            let userReward = await checkUserReward(
+                account1,
+                token1,
+                depositBlockNumber,
+                latestBlockNumber
+            );
+
+            // withdrawAndStakeTokensFrom was invoked
+            let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+            let lockedBalance = await lockedSOV.getLockedBalance(account1);
+            expect(unlockedBalance).bignumber.equal(new BN(0));
+            expect(lockedBalance).bignumber.equal(new BN(0));
+
+            const latestUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            /** user should only receive 10% SOV since the unlockedImmediatelyPercent is 30% */
+            const unlockImmediatelyPercent = await liquidityMining.calcUnlockedImmediatelyPercent(
+                token1.address
+            );
+            expect(unlockImmediatelyPercent.toString()).to.equal(
+                newpoolTokensUnlockedImmediatelyPercent.toString()
+            );
+            expect(latestUserSOVBalance.toString()).to.equal(
+                previousUserSOVBalance.add(
+                    userReward.mul(unlockImmediatelyPercent).div(HUNDRED_PERCENT)
+                )
+            );
+
+            expectEvent(tx, "RewardClaimed", {
+                user: account1,
+                poolToken: token1.address,
+                amount: userReward,
+            });
+
+            // the other 70% of reward claimed will be staked
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                lockedSOV,
+                "TokensStaked",
+                {
+                    _initiator: account1,
+                    _vesting: ZERO_ADDRESS,
+                    _amount: userReward
+                        .mul(HUNDRED_PERCENT.sub(unlockImmediatelyPercent))
+                        .div(HUNDRED_PERCENT),
+                }
+            );
         });
 
         it("should be able to claim reward using wrapper", async () => {
@@ -836,7 +1262,15 @@ contract("LiquidityMining", (accounts) => {
             );
         });
 
-        it("should be able to claim reward (will be claimed with SOV tokens)", async () => {
+        it("should be able to claim all rewards (will be claimed with SOV tokens) with 10% of unlockedImmediatelyPercent", async () => {
+            /**
+             * unlockedImmediatelyPercent was to 10%
+             * After user claim all rewards:
+             *      - 10% of token1 reward will be transferred directly to the user.
+             *      - 90% of token1 reward will be vested.
+             *      - 10% of token2 reward will be transferred directly to the user.
+             *      - 90% of token2 reward will be vested.
+             */
             let depositTx1 = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
                 from: account1,
             });
@@ -846,6 +1280,8 @@ contract("LiquidityMining", (accounts) => {
             });
             let depositBlockNumber2 = new BN(depositTx2.receipt.blockNumber);
             await SOVToken.transfer(liquidityMining.address, amount.mul(new BN(2)));
+
+            const previousUserSOVBalance = await SOVToken.balanceOf(account1);
 
             let tx = await liquidityMining.claimRewardFromAllPools(ZERO_ADDRESS, {
                 from: account1,
@@ -890,11 +1326,363 @@ contract("LiquidityMining", (accounts) => {
             expect(unlockedBalance).bignumber.equal(new BN(0));
             expect(lockedBalance).bignumber.equal(new BN(0));
 
+            const latestUserSOVBalance = await SOVToken.balanceOf(account1);
+            const totalRewards = userReward1.add(userReward2);
+
+            /** user should only receive 10% SOV since the unlockedImmediatelyPercent is 10% */
+            const unlockImmediatelyPercent = await liquidityMining.calcUnlockedImmediatelyPercent(
+                token1.address
+            );
+            expect(latestUserSOVBalance.toString()).to.equal(
+                previousUserSOVBalance.add(
+                    totalRewards.mul(unlockImmediatelyPercent).div(HUNDRED_PERCENT)
+                )
+            );
+
             expectEvent(tx, "RewardClaimed", {
                 user: account1,
                 poolToken: token1.address,
                 amount: userReward1,
             });
+
+            // the other 90% of reward claimed will be staked
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                lockedSOV,
+                "TokensStaked",
+                {
+                    _initiator: account1,
+                    _vesting: ZERO_ADDRESS,
+                    _amount: totalRewards
+                        .mul(HUNDRED_PERCENT.sub(unlockImmediatelyPercent))
+                        .divRound(HUNDRED_PERCENT),
+                }
+            );
+
+            expect(userReward1, tx.logs[0].args.amount);
+            expect(token1.address, tx.logs[0].args.poolToken);
+            expect(userReward2, tx.logs[1].args.amount);
+            expect(token2.address, tx.logs[1].args.poolToken);
+        });
+
+        // if the user only deposited into pool with 100% liquid rewards and claims rewards for all pools, the reward gets transferred immediately to the user and no vesting contract is created
+        it("should be able to claim all rewards (will be claimed with SOV tokens) with 100% of unlockedImmediatelyPercent", async () => {
+            /**
+             * Set unlockedImmediatelyPercent to 100%
+             * After user claim all rewards:
+             *      - 100% of token1 reward will be transferred directly to the user.
+             *      - 100% of token2 reward will be transferred directly to the user.
+             */
+            // set unlockedImmediatelyPercent to 100%
+            const newUnlockedImmediatelyPercent = new BN(10000);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+
+            let depositTx1 = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber1 = new BN(depositTx1.receipt.blockNumber);
+            let depositTx2 = await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber2 = new BN(depositTx2.receipt.blockNumber);
+            await SOVToken.transfer(liquidityMining.address, amount.mul(new BN(2)));
+
+            const previousUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            let tx = await liquidityMining.claimRewardFromAllPools(ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            let totalUsersBalance = await liquidityMining.totalUsersBalance();
+            expect(totalUsersBalance).bignumber.equal(new BN(0));
+
+            let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+            let latestBlockNumber = new BN(tx.receipt.blockNumber);
+            checkPoolInfo(
+                poolInfo,
+                token1.address,
+                allocationPoint,
+                latestBlockNumber,
+                new BN(-1)
+            );
+
+            await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+            let userReward1 = await checkUserReward(
+                account1,
+                token1,
+                depositBlockNumber1,
+                latestBlockNumber
+            );
+            // we have 2 pools with the same allocation points
+            userReward1 = userReward1.div(new BN(2));
+
+            await checkUserPoolTokens(account1, token2, amount, amount, new BN(0));
+            let userReward2 = await checkUserReward(
+                account1,
+                token2,
+                depositBlockNumber2,
+                latestBlockNumber
+            );
+            // we have 2 pools with the same allocation points
+            userReward2 = userReward2.div(new BN(2));
+
+            // withdrawAndStakeTokensFrom was invoked
+            let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+            let lockedBalance = await lockedSOV.getLockedBalance(account1);
+            expect(unlockedBalance).bignumber.equal(new BN(0));
+            expect(lockedBalance).bignumber.equal(new BN(0));
+
+            const latestUserSOVBalance = await SOVToken.balanceOf(account1);
+            const totalRewards = userReward1.add(userReward2);
+
+            /** user should only receive 10% SOV since the unlockedImmediatelyPercent is 10% */
+            expect(latestUserSOVBalance.toString()).to.equal(
+                previousUserSOVBalance.add(totalRewards)
+            );
+
+            expectEvent(tx, "RewardClaimed", {
+                user: account1,
+                poolToken: token1.address,
+                amount: userReward1,
+            });
+
+            expect(userReward1, tx.logs[0].args.amount);
+            expect(token1.address, tx.logs[0].args.poolToken);
+            expect(userReward2, tx.logs[1].args.amount);
+            expect(token2.address, tx.logs[1].args.poolToken);
+        });
+
+        // if the user has deposited at least 2 pool tokens and is claiming rewards for all pools and <unlockedImmediatelyPercent = 0 and one of the pools has poolTokensUnlockedImmediatelyPercent = 100%, the user should receive the rewards for that one pool liquid and the other one vested
+        it("should be able to claim all rewards with combination of unlockedImmediatelyPercent (0% & 100%) among the pools", async () => {
+            /**
+             * Set unlockedImmediatelyPercent to 0% and poolTokensUnlockedImmediatelyPercent for token2 to 100%
+             * After user claim all rewards:
+             *      - 100% of token1 reward will be vested.
+             *      - 100% of token2 reward will be transferred directly to the user.
+             */
+            // set unlockedImmediatelyPercent to 0%
+            const newUnlockedImmediatelyPercent = new BN(0);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+
+            // set poolTokensUnlockedImmediatelyPercent for pool token 2 to 100%
+            const newpoolTokensUnlockedImmediatelyPercent = new BN(10000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token2.address,
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+
+            const unlockImmediatelyPercentToken1 =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            expect(unlockImmediatelyPercentToken1.toString()).to.equal(
+                newUnlockedImmediatelyPercent.toString()
+            );
+
+            const unlockImmediatelyPercentToken2 =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token2.address);
+            expect(unlockImmediatelyPercentToken2.toString()).to.equal(
+                newpoolTokensUnlockedImmediatelyPercent.toString()
+            );
+
+            let depositTx1 = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber1 = new BN(depositTx1.receipt.blockNumber);
+            let depositTx2 = await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber2 = new BN(depositTx2.receipt.blockNumber);
+            await SOVToken.transfer(liquidityMining.address, amount.mul(new BN(2)));
+
+            const previousUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            let tx = await liquidityMining.claimRewardFromAllPools(ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            let totalUsersBalance = await liquidityMining.totalUsersBalance();
+            expect(totalUsersBalance).bignumber.equal(new BN(0));
+
+            let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+            let latestBlockNumber = new BN(tx.receipt.blockNumber);
+            checkPoolInfo(
+                poolInfo,
+                token1.address,
+                allocationPoint,
+                latestBlockNumber,
+                new BN(-1)
+            );
+
+            await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+            let userReward1 = await checkUserReward(
+                account1,
+                token1,
+                depositBlockNumber1,
+                latestBlockNumber
+            );
+            // we have 2 pools with the same allocation points
+            userReward1 = userReward1.div(new BN(2));
+
+            await checkUserPoolTokens(account1, token2, amount, amount, new BN(0));
+            let userReward2 = await checkUserReward(
+                account1,
+                token2,
+                depositBlockNumber2,
+                latestBlockNumber
+            );
+            // we have 2 pools with the same allocation points
+            userReward2 = userReward2.div(new BN(2));
+
+            // withdrawAndStakeTokensFrom was invoked
+            let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+            let lockedBalance = await lockedSOV.getLockedBalance(account1);
+            expect(unlockedBalance).bignumber.equal(new BN(0));
+            expect(lockedBalance).bignumber.equal(new BN(0));
+
+            const latestUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            /** user should only receive reward2 since only pool token 2 unlock immediate percentage that was set to 100%*/
+            expect(latestUserSOVBalance.toString()).to.equal(
+                previousUserSOVBalance.add(userReward2)
+            );
+
+            expectEvent(tx, "RewardClaimed", {
+                user: account1,
+                poolToken: token1.address,
+                amount: userReward1,
+            });
+
+            // entire reward1 will be staked since we set the unlockedImmediatelyPercent to 0%
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                lockedSOV,
+                "TokensStaked",
+                {
+                    _initiator: account1,
+                    _vesting: ZERO_ADDRESS,
+                    _amount: userReward1,
+                }
+            );
+
+            expect(userReward1, tx.logs[0].args.amount);
+            expect(token1.address, tx.logs[0].args.poolToken);
+            expect(userReward2, tx.logs[1].args.amount);
+            expect(token2.address, tx.logs[1].args.poolToken);
+        });
+
+        it("should be able to claim all rewards with combination of unlockedImmediatelyPercent (30% & 100%) among the pools", async () => {
+            /**
+             * Set unlockedImmediatelyPercent to 30% and poolTokensUnlockedImmediatelyPercent for token2 to 100%
+             * After user claim all rewards:
+             *      - 70% of token1 reward will be vested.
+             *      - 30% of token1 reward will be transferred directly to the user.
+             *      - 100% of token2 reward will be transferred directly to the user.
+             */
+            // set unlockedImmediatelyPercent to 0%
+            const newUnlockedImmediatelyPercent = new BN(3000);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+
+            // set poolTokensUnlockedImmediatelyPercent for pool token 2 to 100%
+            const newpoolTokensUnlockedImmediatelyPercent = new BN(10000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token2.address,
+                newpoolTokensUnlockedImmediatelyPercent
+            );
+
+            const unlockImmediatelyPercentToken1 =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            expect(unlockImmediatelyPercentToken1.toString()).to.equal(
+                newUnlockedImmediatelyPercent.toString()
+            );
+
+            const unlockImmediatelyPercentToken2 =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token2.address);
+            expect(unlockImmediatelyPercentToken2.toString()).to.equal(
+                newpoolTokensUnlockedImmediatelyPercent.toString()
+            );
+
+            let depositTx1 = await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber1 = new BN(depositTx1.receipt.blockNumber);
+            let depositTx2 = await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber2 = new BN(depositTx2.receipt.blockNumber);
+            await SOVToken.transfer(liquidityMining.address, amount.mul(new BN(2)));
+
+            const previousUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            let tx = await liquidityMining.claimRewardFromAllPools(ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            let totalUsersBalance = await liquidityMining.totalUsersBalance();
+            expect(totalUsersBalance).bignumber.equal(new BN(0));
+
+            let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+            let latestBlockNumber = new BN(tx.receipt.blockNumber);
+            checkPoolInfo(
+                poolInfo,
+                token1.address,
+                allocationPoint,
+                latestBlockNumber,
+                new BN(-1)
+            );
+
+            await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+            let userReward1 = await checkUserReward(
+                account1,
+                token1,
+                depositBlockNumber1,
+                latestBlockNumber
+            );
+            // we have 2 pools with the same allocation points
+            userReward1 = userReward1.div(new BN(2));
+
+            await checkUserPoolTokens(account1, token2, amount, amount, new BN(0));
+            let userReward2 = await checkUserReward(
+                account1,
+                token2,
+                depositBlockNumber2,
+                latestBlockNumber
+            );
+            // we have 2 pools with the same allocation points
+            userReward2 = userReward2.div(new BN(2));
+
+            // withdrawAndStakeTokensFrom was invoked
+            let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+            let lockedBalance = await lockedSOV.getLockedBalance(account1);
+            expect(unlockedBalance).bignumber.equal(new BN(0));
+            expect(lockedBalance).bignumber.equal(new BN(0));
+
+            const latestUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            /** user should only receive (100% of reward2 + 30% of reward 1)*/
+            expect(latestUserSOVBalance.toString()).to.equal(
+                previousUserSOVBalance
+                    .add(userReward2)
+                    .add(userReward1.mul(unlockImmediatelyPercentToken1).div(HUNDRED_PERCENT))
+            );
+
+            expectEvent(tx, "RewardClaimed", {
+                user: account1,
+                poolToken: token1.address,
+                amount: userReward1,
+            });
+
+            // 70% reward1 will be staked since we set the unlockedImmediatelyPercent to 30%
+            await expectEvent.inTransaction(
+                tx.receipt.rawLogs[0].transactionHash,
+                lockedSOV,
+                "TokensStaked",
+                {
+                    _initiator: account1,
+                    _vesting: ZERO_ADDRESS,
+                    _amount: userReward1
+                        .mul(HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken1))
+                        .divRound(HUNDRED_PERCENT),
+                }
+            );
 
             expect(userReward1, tx.logs[0].args.amount);
             expect(token1.address, tx.logs[0].args.poolToken);
@@ -929,6 +1717,206 @@ contract("LiquidityMining", (accounts) => {
             let lockedBalance = await lockedSOV.getLockedBalance(account1);
             expect(unlockedBalance).bignumber.equal(new BN(0));
             expect(lockedBalance).bignumber.equal(new BN(0));
+        });
+
+        // getUserAccumulatedRewardToBePaidLiquid return the expected values if there are 3 pools of which 1 has poolTokensUnlockedImmediatelyPercent = 0, one has poolTokensUnlockedImmediatelyPercent = 30% and one has poolTokensUnlockedImmediatelyPercent = 100%. unlockedImmediatelyPercent is 0
+        it("getUserAccumulatedRewardToBePaidLiquid should return correct value", async () => {
+            /**
+             * 1. Register 3 tokens to LM
+             * 2. Set the immediate percent
+             *      - Token 1: 0%
+             *      - Token 2: 100%
+             *      - Token 3: 30%
+             * 3. Deposit into LM for those 3 tokens
+             * 4. getUserAccumulatedRewardToBePaidLiquid should return SUM of these 3 rewards:
+             *      - Token 1: 0% amount reward of token 1
+             *      - Token 2: 100% amount reward of token 2
+             *      - Token 3: 30% amount reward of token 3
+             * 5. claim all rewards
+             * 6. getUserAccumulatedRewardToBePaidLiquid should return 0 value.
+             */
+            await liquidityMining.add(token3.address, allocationPoint, false);
+            await token3.mint(account1, amount);
+            await token3.approve(liquidityMining.address, amount, { from: account1 });
+
+            // set unlockedImmediatelyPercent to 0%
+            const newUnlockedImmediatelyPercent = new BN(0);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+
+            // set poolTokensUnlockedImmediatelyPercent for pool token 2 to 100%
+            const newpoolTokensUnlockedImmediatelyPercent2 = new BN(10000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token2.address,
+                newpoolTokensUnlockedImmediatelyPercent2
+            );
+
+            const newpoolTokensUnlockedImmediatelyPercent3 = new BN(3000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token3.address,
+                newpoolTokensUnlockedImmediatelyPercent3
+            );
+
+            const unlockImmediatelyPercentToken1 =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            expect(unlockImmediatelyPercentToken1.toString()).to.equal(
+                newUnlockedImmediatelyPercent.toString()
+            );
+
+            const unlockImmediatelyPercentToken2 =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token2.address);
+            expect(unlockImmediatelyPercentToken2.toString()).to.equal(
+                newpoolTokensUnlockedImmediatelyPercent2.toString()
+            );
+
+            const unlockImmediatelyPercentToken3 =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token3.address);
+            expect(unlockImmediatelyPercentToken3.toString()).to.equal(
+                newpoolTokensUnlockedImmediatelyPercent3.toString()
+            );
+
+            await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await liquidityMining.deposit(token3.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await SOVToken.transfer(liquidityMining.address, amount.mul(new BN(2)));
+
+            const peviousAccumulatedRewardList =
+                await liquidityMining.getUserAccumulatedRewardList(account1);
+            const previousAccumulatedLiquidReward =
+                await liquidityMining.getUserAccumulatedRewardToBePaidLiquid(account1);
+
+            const liquidRewardToken1 = unlockImmediatelyPercentToken1
+                .mul(peviousAccumulatedRewardList[0])
+                .div(HUNDRED_PERCENT);
+            const liquidRewardToken2 = unlockImmediatelyPercentToken2
+                .mul(peviousAccumulatedRewardList[1])
+                .div(HUNDRED_PERCENT);
+            const liquidRewardToken3 = unlockImmediatelyPercentToken3
+                .mul(peviousAccumulatedRewardList[2])
+                .div(HUNDRED_PERCENT);
+            expect(previousAccumulatedLiquidReward).to.equal(
+                liquidRewardToken1.add(liquidRewardToken2).add(liquidRewardToken3)
+            );
+
+            await liquidityMining.claimRewardFromAllPools(ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            const latestAccumulatedRewardList = await liquidityMining.getUserAccumulatedRewardList(
+                account1
+            );
+            expect(latestAccumulatedRewardList[0]).to.equal("0");
+            expect(latestAccumulatedRewardList[1]).to.equal("0");
+            expect(latestAccumulatedRewardList[2]).to.equal("0");
+
+            const latestAccumulatedLiquidReward =
+                await liquidityMining.getUserAccumulatedRewardToBePaidLiquid(account1);
+            expect(latestAccumulatedLiquidReward).to.equal("0");
+        });
+
+        // getUserAccumulatedRewardToBeVested return the expected values if there are 3 pools of which 1 has poolTokensUnlockedImmediatelyPercent = 0, one has poolTokensUnlockedImmediatelyPercent = 30% and one has poolTokensUnlockedImmediatelyPercent = 100%. unlockedImmediatelyPercent is 0
+        it("getUserAccumulatedRewardToBeVested should return correct value", async () => {
+            /**
+             * 1. Register 3 tokens to LM
+             * 2. Set the immediate percent
+             *      - Token 1: 0%
+             *      - Token 2: 100%
+             *      - Token 3: 30%
+             * 3. Deposit into LM for those 3 tokens
+             * 4. getUserAccumulatedRewardToBeVested should return SUM of these 3 rewards:
+             *      - Token 1: 100% amount reward of token 1
+             *      - Token 2: 0% amount reward of token 2
+             *      - Token 3: 70% amount reward of token 3
+             * 5. claim all rewards
+             * 6. getUserAccumulatedRewardToBeVested should return 0 value.
+             */
+            await liquidityMining.add(token3.address, allocationPoint, false);
+            await token3.mint(account1, amount);
+            await token3.approve(liquidityMining.address, amount, { from: account1 });
+
+            // set unlockedImmediatelyPercent to 0%
+            const newUnlockedImmediatelyPercent = new BN(0);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+
+            // set poolTokensUnlockedImmediatelyPercent for pool token 2 to 100%
+            const newpoolTokensUnlockedImmediatelyPercent2 = new BN(10000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token2.address,
+                newpoolTokensUnlockedImmediatelyPercent2
+            );
+
+            const newpoolTokensUnlockedImmediatelyPercent3 = new BN(3000);
+            await liquidityMining.setPoolTokenUnlockedImmediatelyPercent(
+                token3.address,
+                newpoolTokensUnlockedImmediatelyPercent3
+            );
+
+            const unlockImmediatelyPercentToken1 =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token1.address);
+            expect(unlockImmediatelyPercentToken1.toString()).to.equal(
+                newUnlockedImmediatelyPercent.toString()
+            );
+
+            const unlockImmediatelyPercentToken2 =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token2.address);
+            expect(unlockImmediatelyPercentToken2.toString()).to.equal(
+                newpoolTokensUnlockedImmediatelyPercent2.toString()
+            );
+
+            const unlockImmediatelyPercentToken3 =
+                await liquidityMining.calcUnlockedImmediatelyPercent(token3.address);
+            expect(unlockImmediatelyPercentToken3.toString()).to.equal(
+                newpoolTokensUnlockedImmediatelyPercent3.toString()
+            );
+
+            await liquidityMining.deposit(token1.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await liquidityMining.deposit(token2.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await liquidityMining.deposit(token3.address, amount, ZERO_ADDRESS, {
+                from: account1,
+            });
+            await SOVToken.transfer(liquidityMining.address, amount.mul(new BN(2)));
+
+            const peviousAccumulatedRewardList =
+                await liquidityMining.getUserAccumulatedRewardList(account1);
+            const previousAccumulatedVestedReward =
+                await liquidityMining.getUserAccumulatedRewardToBeVested(account1);
+
+            const vestedRewardToken1 = HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken1)
+                .mul(peviousAccumulatedRewardList[0])
+                .div(HUNDRED_PERCENT);
+            const vestedRewardToken2 = HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken2)
+                .mul(peviousAccumulatedRewardList[1])
+                .div(HUNDRED_PERCENT);
+            const vestedRewardToken3 = HUNDRED_PERCENT.sub(unlockImmediatelyPercentToken3)
+                .mul(peviousAccumulatedRewardList[2])
+                .div(HUNDRED_PERCENT);
+            expect(previousAccumulatedVestedReward).to.equal(
+                vestedRewardToken1.add(vestedRewardToken2).add(vestedRewardToken3)
+            );
+
+            await liquidityMining.claimRewardFromAllPools(ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            const latestAccumulatedRewardList = await liquidityMining.getUserAccumulatedRewardList(
+                account1
+            );
+            expect(latestAccumulatedRewardList[0]).to.equal("0");
+            expect(latestAccumulatedRewardList[1]).to.equal("0");
+            expect(latestAccumulatedRewardList[2]).to.equal("0");
+
+            const latestAccumulatedVestedReward =
+                await liquidityMining.getUserAccumulatedRewardToBeVested(account1);
+            expect(latestAccumulatedVestedReward).to.equal("0");
         });
     });
 
@@ -2005,7 +2993,7 @@ contract("LiquidityMining", (accounts) => {
             expect(await liquidityMining.BONUS_BLOCK_MULTIPLIER()).bignumber.equal("10");
         });
 
-        it("SVR", async () => {
+        it("SOV token address set correctly", async () => {
             expect(await liquidityMining.SOV()).equal(SOVToken.address);
         });
 
@@ -2263,6 +3251,7 @@ contract("LiquidityMining", (accounts) => {
             depositBlockNumber,
             latestBlockNumber
         );
+
         let userReward = passedBlocks.mul(rewardTokensPerBlock);
         let userInfo = await liquidityMining.getUserInfo(poolToken.address, user);
         expect(userInfo.accumulatedReward).bignumber.equal(new BN(0));

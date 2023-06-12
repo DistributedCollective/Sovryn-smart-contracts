@@ -28,9 +28,9 @@ const EIP712 = require("../../Utils/EIP712");
 const BigNumber = require("bignumber.js");
 
 const { getAccountsPrivateKeysBuffer } = require("../../Utils/hardhat_utils");
+const { deployAndGetIStaking } = require("../../Utils/initializer");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 
@@ -62,10 +62,10 @@ contract("governorAlpha#castVote/2", (accounts) => {
         await setNextBlockTimestamp(block.timestamp + 100);
         token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
 
-        let stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        // Staking
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(token.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         gov = await GovernorAlpha.new(address(0), staking.address, root, 4, 0);
 

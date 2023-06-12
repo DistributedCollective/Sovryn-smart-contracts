@@ -10,8 +10,8 @@
 
 const { expect } = require("chai");
 const { BN, expectRevert } = require("@openzeppelin/test-helpers");
-const { waffle } = require("hardhat");
-const { loadFixture } = waffle;
+
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const FeesEvents = artifacts.require("FeesEvents");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
@@ -124,10 +124,10 @@ contract("ProtocolCloseDeposit", (accounts) => {
 
     describe("Tests the close with deposit. ", () => {
         /*
-			Tests paid interests to lender
-			Test that loan attributes are updated
-			Test loan swap event
-		*/
+            Tests paid interests to lender
+            Test that loan attributes are updated
+            Test loan swap event
+        */
         it("Test rollover", async () => {
             // prepare the test
 
@@ -557,9 +557,9 @@ contract("ProtocolCloseDeposit", (accounts) => {
         });
 
         /*
-			Collateral should decrease
-			Sender collateral balance should increase
-		*/
+            Collateral should decrease
+            Sender collateral balance should increase
+        */
         it("Test rollover reward payment", async () => {
             // prepare the test
             const [, initial_loan, loan_id] = await setup_rollover_test(

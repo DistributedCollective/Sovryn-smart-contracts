@@ -12,9 +12,8 @@
 const SOV = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const LockedSOV = artifacts.require("LockedSOV");
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
-const FeeSharingProxy = artifacts.require("FeeSharingProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
@@ -24,6 +23,7 @@ const {
     expectRevert,
     constants, // Assertions for transactions that should fail.
 } = require("@openzeppelin/test-helpers");
+const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const { assert } = require("chai");
 
@@ -47,7 +47,7 @@ function randomValue() {
 }
 
 contract("Locked SOV (Any User Functions)", (accounts) => {
-    let sov, lockedSOV, newLockedSOV, vestingRegistry, vestingLogic, stakingLogic;
+    let sov, lockedSOV, newLockedSOV, vestingRegistry, vestingLogic;
     let creator, admin, newAdmin, userOne, userTwo, userThree, userFour, userFive;
 
     before("Initiating Accounts & Creating Test Token Instance.", async () => {
@@ -63,14 +63,16 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
         sov = await SOV.new("Sovryn", "SOV", 18, zero);
         wrbtc = await TestWrbtc.new();
 
-        // Creating the Staking Instance.
-        stakingLogic = await StakingLogic.new(sov.address);
-        staking = await StakingProxy.new(sov.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(sov.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         // Creating the FeeSharing Instance.
-        feeSharingProxy = await FeeSharingProxy.new(zeroAddress, staking.address);
+        feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
+            zeroAddress,
+            staking.address
+        );
 
         // Creating the Vesting Instance.
         vestingLogic = await VestingLogic.new();
@@ -79,7 +81,7 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
             vestingFactory.address,
             sov.address,
             staking.address,
-            feeSharingProxy.address,
+            feeSharingCollectorProxy.address,
             creator // This should be Governance Timelock Contract.
         );
         await vestingFactory.transferOwnership(vestingRegistry.address);
@@ -170,7 +172,10 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
     });
 
     it("No one can use createVestingAndStake() if he does not have any locked sov balance.", async () => {
-        await expectRevert(newLockedSOV.createVestingAndStake({ from: userOne }), "S01");
+        await expectRevert(
+            newLockedSOV.createVestingAndStake({ from: userOne }),
+            "Invalid amount"
+        );
     });
 
     it("Anyone can create a vesting schedule using createVesting() even with no locked sov balance.", async () => {

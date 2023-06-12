@@ -78,3 +78,14 @@ def unfreezeBiDiFastBTC():
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
 
+def addFeeStructure(feeStructureIndex, newBaseFeeSatoshi, newDynamicFee):
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.addFeeStructure.encode_input(feeStructureIndex, newBaseFeeSatoshi, newDynamicFee)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def setCurrentFeeStructure(feeStructureIndex):
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.setCurrentFeeStructure.encode_input(feeStructureIndex)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)

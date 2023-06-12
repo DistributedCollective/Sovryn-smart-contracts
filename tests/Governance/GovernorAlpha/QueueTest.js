@@ -8,6 +8,7 @@
  */
 
 const { expectRevert, BN } = require("@openzeppelin/test-helpers");
+const { mine } = require("@nomicfoundation/hardhat-network-helpers");
 
 const {
     etherMantissa,
@@ -15,10 +16,11 @@ const {
     mineBlock,
     increaseTime,
 } = require("../../Utils/Ethereum");
+const { deployAndGetIStaking } = require("../../Utils/initializer");
+const { ethers } = require("hardhat");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingLogic = artifacts.require("StakingMockup");
 const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 //Upgradable Vesting Registry
@@ -43,8 +45,6 @@ async function enfranchise(token, staking, actor, amount) {
 
     await staking.setVestingRegistry(vesting.address);
     await staking.stake(amount, stakingDate, actor, actor, { from: actor });
-
-    await staking.delegate(actor, stakingDate, { from: actor });
 }
 
 contract("GovernorAlpha#queue/1", (accounts) => {
@@ -57,10 +57,10 @@ contract("GovernorAlpha#queue/1", (accounts) => {
         const timelock = await Timelock.new(root, DELAY);
         token = await TestToken.new("TestToken", "TST", 18, TOTAL_SUPPLY);
 
-        let stakingLogic = await StakingLogic.new(token.address);
-        staking = await StakingProxy.new(token.address);
-        await staking.setImplementation(stakingLogic.address);
-        staking = await StakingLogic.at(staking.address);
+        /// Staking Modules
+        // Creating the Staking Instance (Staking Modules Interface).
+        const stakingProxy = await StakingProxy.new(token.address);
+        staking = await deployAndGetIStaking(stakingProxy.address);
 
         gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
 
@@ -92,9 +92,11 @@ contract("GovernorAlpha#queue/1", (accounts) => {
             );
         });
 
-        it("reverts on queueing overlapping actions in different proposals, works if waiting; using Ganache", async () => {
+        it("reverts on queueing overlapping actions in different proposals, works if waiting", async () => {
             await enfranchise(token, staking, a2, QUORUM_VOTES);
-            await mineBlock();
+            //await mineBlock();
+
+            await mine();
 
             const targets = [staking.address];
             const values = ["0"];
@@ -110,15 +112,17 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 
             await gov.castVote(proposalId1, true, { from: a1 });
             await gov.castVote(proposalId2, true, { from: a2 });
-            await advanceBlocks(30);
 
+            await mine(30);
             await expectRevert(
                 gov.queueProposals([proposalId1, proposalId2]),
                 "GovernorAlpha::_queueOrRevert: proposal action already queued at eta"
             );
 
             await gov.queue(proposalId1);
-            await increaseTime(60);
+            await ethers.provider.send("evm_increaseTime", [60]);
+            await mine();
+
             await gov.queue(proposalId2);
         });
     });

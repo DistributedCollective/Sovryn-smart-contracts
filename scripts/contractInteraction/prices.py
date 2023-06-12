@@ -124,12 +124,16 @@ def checkRates():
     readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', conf.contracts['USDT'])
     readTargetWeights('0x133eBE9c8bA524C9B1B601E794dF527f390729bF', conf.contracts['WRBTC'])
 
+def setPriceFeed(tokenAddress, priceFeed):
+    feeds = Contract.from_abi("PriceFeeds", address= conf.contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = conf.acct)
+    data = feeds.setPriceFeed.encode_input([tokenAddress], [priceFeed])
+    sendWithMultisig(conf.contracts['multisig'], feeds.address, data, conf.acct)
 
 
 def readPriceFeedFor(tokenAddress):
     feeds = Contract.from_abi("PriceFeeds", address= conf.contracts['PriceFeeds'], abi = PriceFeeds.abi, owner = conf.acct)
     address = feeds.pricesFeeds(tokenAddress)
-    print("price feed: "+address);
+    print("price feed: "+address)
     return(address)
 
 def readOracleFromV2Converter(converterAddress):

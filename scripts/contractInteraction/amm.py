@@ -6,6 +6,7 @@ import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
 from web3 import Web3
+from scripts.contractInteraction.token import *
 
 def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTokenAddress):
     abiFile =  open('./scripts/contractInteraction/ABIs/SovrynSwapNetwork.json')
@@ -192,11 +193,11 @@ def addLiquidityV1UsingWrapper(wrapper, converter, tokens, amounts):
     abiFile =  open('./scripts/contractInteraction/ABIs/RBTCWrapperProxy.json')
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=wrapper, abi=abi, owner=conf.acct)
-    '''
+    
     token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=conf.acct)
     token.approve(wrapperProxy.address, amounts[1])
-    '''
-    tx = wrapperProxy.addLiquidityToV1(converter, tokens, amounts, 1, {'value': amounts[0], 'allow_revert':True})
+    
+    tx = wrapperProxy.addLiquidityToV1(converter, tokens, amounts, 1, {'value': amounts[0]})
     print(tx)
 
 def addLiquidityV2UsingWrapper(converter, tokenAddress, amount):
@@ -231,15 +232,15 @@ def addLiquidityV1FromMultisigUsingWrapper(wrapper, converter, tokens, amounts, 
     # approve
     token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=conf.acct)
     data = token.approve.encode_input(wrapperProxy.address, amounts[1])
-    print(data)
+    #print(data)
 
-    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+    #sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
     
     # addLiquidityToV1
     data = wrapperProxy.addLiquidityToV1.encode_input(converter, tokens, amounts, minReturn)
     print(data)
 
-    sendWithMultisig(conf.contracts['multisig'], wrapperProxy.address, data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], wrapperProxy.address, data, conf.acct, amounts[0])
 
 #expects the first token to be wrbtc
 #example: removeLiquidityV1toMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterMYNT'], 100e18, [conf.contracts['WRBTC'], conf.contracts['MYNT']], [5e18,2500000e18])
@@ -337,7 +338,7 @@ def getReturnForV2PoolToken(converter, poolToken, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json')
     abi = json.load(abiFile)
     converter = Contract.from_abi("LiquidityPoolV2Converter", address=converter, abi=abi, owner=conf.acct)
-    print(converter.removeLiquidityReturnAndFee(poolToken, amount))
+    return converter.removeLiquidityReturnAndFee(poolToken, amount)
 
 def withdrawFromRBTCWrapperProxy(tokenAddress, to, amount):
     abiFile =  open('./scripts/contractInteraction/ABIs/RBTCWrapperProxy.json')
@@ -366,3 +367,59 @@ def transferOwnershipAMMContractsToGovernance(contractAddress, destinationAddres
     data = ammContract.transferOwnership.encode_input(destinationAddress)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], ammContract.address, data, conf.acct)
+
+def getExchequerBalances():
+    usdtPool = getBalance(conf.contracts['(WR)BTC/USDT2'], conf.contracts['multisig'])
+    balanceAndFee = getReturnForV2PoolToken(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], usdtPool)
+    usdtBalance = balanceAndFee[0]
+
+    bnbPool = getBalance(conf.contracts['(WR)BTC/BNB'], conf.contracts['multisig'])
+    bnbPoolTotal = getTotalSupply(conf.contracts['(WR)BTC/BNB'])
+    bnbBalanceInPool = getBalance(conf.contracts['BNBs'], conf.contracts['ConverterBNBs'])
+    rbtcBalanceInPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterBNBs'])
+
+    print('----------------')
+    bnbBalance = bnbPool / bnbPoolTotal * bnbBalanceInPool
+    wrbtcBalance = bnbPool / bnbPoolTotal * rbtcBalanceInPool
+
+    print("USDT balance: ", usdtBalance/1e18)
+    print("BNB balance: ", bnbBalance/1e18)
+    print("WRBTC balance: ", wrbtcBalance/1e18)
+
+def getConversionFee(converterAddress):
+    converter = getV1Converter(converterAddress)
+    print(converter.conversionFee())
+
+def setConversionFee(converterAddress, conversionFee):
+    converter = getV1Converter(converterAddress)
+    data = converter.setConversionFee.encode_input(conversionFee)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], converter.address, data, conf.acct)
+
+def getProtocolFee():
+    swapSettings = getSwapSettings()
+    print(swapSettings.protocolFee())
+
+
+def setProtocolFee(protocolFee):
+    swapSettings = getSwapSettings()
+    data = swapSettings.setProtocolFee.encode_input(protocolFee)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], swapSettings.address, data, conf.acct)
+
+
+def getSwapSettings():
+    abiFile =  open('./scripts/contractInteraction/ABIs/SwapSettings.json')
+    abi = json.load(abiFile)
+    return Contract.from_abi("SwapSettings", address=conf.contracts['SwapSettings'], abi=abi, owner=conf.acct)
+
+def getV1Converter(converterAddress):
+    abiFile =  open('./scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json')
+    abi = json.load(abiFile)
+    return Contract.from_abi("LiquidityPoolV1Converter", address=converterAddress, abi=abi, owner=conf.acct)
+
+def getReturnForFirstLiquidityProvisionOnV1(reserveAmounts):
+    converter = getV1Converter(conf.contracts['ConverterSOV'])
+    poolTokens = converter.geometricMean(reserveAmounts)
+    print(poolTokens/1e18)
+    return poolTokens

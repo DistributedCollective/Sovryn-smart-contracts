@@ -15,6 +15,7 @@ ignore/
 !.solhint.json
 !.solhintignore
 !.eslintignore
+!.chainId
 ignore
 *.txt
 *.log
@@ -44,4 +45,6 @@ types/
 typechain/
 !.github/
 */deployments/localhost
+*/deployments/*forked*
 venv/
+!/external/artifacts/
