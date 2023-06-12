@@ -524,7 +524,7 @@ def createProposalSIP0060():
 # === Accepting Ownership of AMM Contracts ===
 # === Governor Admin ===
 def createProposalSIP0064():
-    # total = 16
+    # total = 10
     # Action
     targets = [
         contracts['swapNetwork'],
@@ -557,7 +557,7 @@ def createProposalSIP0064():
     #createProposal(contracts['GovernorAdmin'], targets, values, signatures, datas, description)
 
 def createProposalSIP0065():
-    # total = 16
+    # total = 6
     # Action
     targets = [
         contracts['MYNTPoolOracle'],
@@ -587,7 +587,7 @@ def createProposalSIP0065():
 
 # === Governor Owner ===
 def createProposalSIP0066():
-    # total = 13
+    # total = 10
     # Action
     targets = [
         contracts['ConverterDOC'],
@@ -617,7 +617,7 @@ def createProposalSIP0066():
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
 def createProposalSIP0067():
-    # total = 13
+    # total = 3
     # Action
     targets = [
         contracts['ConverterRIF'],
@@ -637,4 +637,4 @@ def createProposalSIP0067():
     print(signatures)
     print(datas)
     print(description)
-    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
