@@ -23,7 +23,7 @@ def main():
 
     # Call the function you want here
 
-    createProposalSIP00XX()
+    createProposalSIP0065()
     #createProposalSIP0050()
 
     balanceAfter = acct.balance()
@@ -54,7 +54,8 @@ def loadConfig():
         print("acct:", acct)
         configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
-        acct = accounts.load("proposer")
+        #acct = accounts.load("proposer")
+        acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif thisNetwork == "rsk-mainnet-ws":
         acct = accounts.load("rskdeployer")
@@ -543,16 +544,20 @@ def createProposalSIP0060():
     # Create Proposal
     createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
 
-def createProposalSIP00XX():
+def createProposalSIP0065():
     adoptionFund = Contract.from_abi("AdoptionFund", address=contracts['AdoptionFund'], abi=DevelopmentFund.abi, owner=acct)
+    devFund = Contract.from_abi("DevelopmentFund", address=contracts['DevelopmentFund'], abi=DevelopmentFund.abi, owner=acct)
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
 
     # Action
-    targets = [contracts['AdoptionFund']]
-    values = [0]
-    signatures = ["updateUnlockedTokenOwner(address)"]
-    data = adoptionFund.updateUnlockedTokenOwner.encode_input(contracts['multisig'])
-    datas = ["0x" + data[10:]]
-    description = "SIP-00XX : , Details: , sha256: "
+    targets = [contracts['AdoptionFund'], contracts['DevelopmentFund'], contracts['SOV']]
+    values = [0, 0, 0]
+    signatures = ["withdrawTokensByUnlockedTokenOwner(uint256)", "withdrawTokensByUnlockedTokenOwner(uint256)", "transfer(address,uint256)"]   
+    data1 = adoptionFund.withdrawTokensByUnlockedTokenOwner.encode_input(1000000 * 10**18)
+    data2 = devFund.withdrawTokensByUnlockedTokenOwner.encode_input(2000000 * 10**18)
+    data3 = SOVtoken.transfer.encode_input(contracts['multisig'], 3000000 * 10**18)
+    datas = ["0x" + data1[10:], "0x" + data2[10:], "0x" + data3[10:]]
+    description = "SIP-0065: Transfer of SOV from Adoption and Development Funds to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/cd3d249cddb6a5d0af59209c337c6864ad922007/SIP-0065.md, sha256: d6a703af4d3866ff6a7f927b680da23f450338d5346dca5d3d1e6b5751c45550"
 
     # Create Proposal
     print(signatures)
