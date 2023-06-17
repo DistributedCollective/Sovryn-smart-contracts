@@ -206,7 +206,7 @@ const getArgsSip0065 = async (hre) => {
         deployments: { get },
     } = hre;
 
-    const contracts = require('../../../scripts/contractInteraction/mainnet_contracts.json');
+    const contracts = require('../../../../scripts/contractInteraction/mainnet_contracts.json');
     const AdoptionFundAddress = contracts['AdoptionFund'];
     const DevelopmentFundAddress = contracts['DevelopmentFund'];
     const SovAddress = contracts['SOV'];
