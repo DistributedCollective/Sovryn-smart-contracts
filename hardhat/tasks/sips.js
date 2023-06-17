@@ -67,7 +67,7 @@ task("sips:create", "Create SIP to Sovryn Governance")
         logger.success(`Start Block:          ${eventData.startBlock}`);
         logger.success(`End Block:            ${eventData.endBlock}`);
         logger.success(`============================================================='`);
-    });
+});
 
 task("sips:populate", "Create SIP tx object to Propose to Sovryn Governance")
     .addParam(
@@ -107,7 +107,7 @@ task("sips:populate", "Create SIP tx object to Propose to Sovryn Governance")
         logger.info(tx);
         logger.warning("==================== populated tx end   =================");
         return tx;
-    });
+});
 
 task("sips:queue", "Queue proposal in the Governor Owner contract")
     .addParam("proposal", "Proposal Id", undefined, types.string)
@@ -133,7 +133,7 @@ task("sips:queue", "Queue proposal in the Governor Owner contract")
         } else {
             logger.error(`SIP ${proposal} is NOT queued`);
         }
-    });
+});
 
 task("sips:execute", "Execute proposal in a Governor contract")
     .addParam("proposal", "Proposal Id", undefined, types.string)
@@ -162,7 +162,7 @@ task("sips:execute", "Execute proposal in a Governor contract")
         } else {
             logger.error(`SIP ${proposal} is NOT executed`);
         }
-    });
+});
 
 task("sips:cancel", "Queue proposal in the Governor Owner contract")
     .addParam("proposal", "Proposal Id", undefined, types.string)
@@ -189,7 +189,7 @@ task("sips:cancel", "Queue proposal in the Governor Owner contract")
         const governorInterface = new ethers.utils.Interface((await get(governor)).abi);
         const data = governorInterface.encodeFunctionData("cancel", [proposal]);
         await sendWithMultisig(msAddress, governorContract, data, signer);
-    });
+});
 
 task("sips:vote-for", "Vote for or against a proposal in the Governor Owner contract")
     .addParam("proposal", "Proposal Id", undefined, types.string)
@@ -221,7 +221,7 @@ task("sips:vote-for", "Vote for or against a proposal in the Governor Owner cont
             "log:\n",
             tx.logs.map((log) => parseEthersLogToValue(governorContract.interface.parseLog(log)))
         );
-    });
+});
 
 task("sips:queue-timer", "Queue SIP for execution with timer")
     .addParam("proposal", "Proposal Id", undefined, types.string)
@@ -274,7 +274,7 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
         proposal = await governorContract.proposals(proposalId);
         console.log("");
         logger.success(`Proposal ${proposalId} queued. Execution ETA: ${proposal.eta}.`);
-    });
+});
 
 task("sips:execute-timer", "Execute SIP with countdown")
     .addParam("proposal", "Proposal Id", undefined, types.string)
@@ -323,4 +323,4 @@ task("sips:execute-timer", "Execute SIP with countdown")
         } else {
             logger.error(`Proposal ${proposalId} is NOT executed`);
         }
-    });
+});
