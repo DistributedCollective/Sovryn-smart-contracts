@@ -184,7 +184,7 @@ contract("LoanTokenFunctionality", (accounts) => {
 
             /** Vesting contract should not receive the amount */
             expect(
-                previousVestingContractBalance.add(latestVestingContractBalance).toString()
+                previousVestingContractBalance.sub(latestVestingContractBalance).toString()
             ).to.equal("0");
         });
 
