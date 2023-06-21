@@ -44,7 +44,7 @@ def transferTokensFromWallet(tokenContract, receiver, amount):
 def sendToWatcher(tokenAddress, amount):
     if(tokenAddress == conf.contracts['WRBTC']):
        buyWRBTC(amount)
-    transferTokensFromWallet(conf.contracts['WRBTC'], conf.contracts['WatcherContract'], amount)
+    transferTokensFromWallet(tokenAddress, conf.contracts['WatcherContract'], amount)
     
 def tokenApproveFromMS(tokenContract, receiver, amount):
     token = Contract.from_abi("Token", address= tokenContract, abi = TestToken.abi, owner=conf.acct)
