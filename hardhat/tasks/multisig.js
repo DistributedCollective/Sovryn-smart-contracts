@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 const { task } = require("hardhat/config");
+const { ethers } = require("ethers");
 const Logs = require("node-logs");
 const {
     signWithMultisig,
@@ -15,12 +16,24 @@ const logger = new Logs().showInConsole(true);
 task("multisig:sign-tx", "Sign multisig tx")
     .addParam("id", "Multisig transaction to sign", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ id, signer }, hre) => {
+    .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
+    .setAction(async ({ id, signer, multisig }, hre) => {
         const {
             deployments: { get },
         } = hre;
         const signerAcc = (await hre.getNamedAccounts())[signer];
-        const ms = await get("MultiSigWallet");
+        if (!ethers.utils.isAddress(multisig)) {
+            multisig = ethers.constants.AddressZero;
+        }
+        const { ethers } = hre;
+        const code = await ethers.provider.getCode(multisig);
+        if (code === "0x") {
+            multisig = ethers.constants.AddressZero;
+        }
+        const ms =
+            multisig === ethers.constants.AddressZero
+                ? await get("MultiSigWallet")
+                : await ethers.getContractAt("MultiSigWallet", multisig);
         await signWithMultisig(ms.address, id, signerAcc);
     });
 
@@ -32,12 +45,24 @@ task("multisig:sign-txs", "Sign multiple multisig tx")
         types.string
     )
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ ids, signer }, hre) => {
+    .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
+    .setAction(async ({ ids, signer, multisig }, hre) => {
         const {
             deployments: { get },
         } = hre;
         const signerAcc = (await hre.getNamedAccounts())[signer];
-        const ms = await get("MultiSigWallet");
+        const { ethers } = hre;
+        if (!ethers.utils.isAddress(multisig)) {
+            multisig = ethers.constants.AddressZero;
+        }
+        const code = await ethers.provider.getCode(multisig);
+        if (code === "0x") {
+            multisig = ethers.constants.AddressZero;
+        }
+        const ms =
+            multisig === ethers.constants.AddressZero
+                ? await get("MultiSigWallet")
+                : await ethers.getContractAt("MultiSigWallet", multisig);
         const txnArray = ids.split(",");
         for (let txId of txnArray) {
             if (typeof txId !== "string" || txId.indexOf("-") === -1) {
@@ -54,39 +79,115 @@ task("multisig:sign-txs", "Sign multiple multisig tx")
 task("multisig:execute-tx", "Execute multisig tx by one of tx signers")
     .addParam("id", "Multisig transaction to sign", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ id, signer }, hre) => {
+    .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
+    .setAction(async ({ id, signer, multisig }, hre) => {
         const signerAcc = (await hre.getNamedAccounts())[signer];
-        await multisigExecuteTx(id, signerAcc);
+        if (!ethers.utils.isAddress(multisig)) {
+            multisig = ethers.constants.AddressZero;
+        }
+        const { ethers } = hre;
+        const code = await ethers.provider.getCode(multisig);
+        if (code === "0x") {
+            multisig = ethers.constants.AddressZero;
+        }
+        await multisigExecuteTx(id, signerAcc, multisig);
     });
 
 task("multisig:check-tx", "Check multisig tx")
     .addParam("id", "Multisig transaction id to check", undefined, types.string)
-    .setAction(async (taskArgs, hre) => {
-        await multisigCheckTx(taskArgs.id);
+    .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
+    .setAction(async ({ id, multisig }, hre) => {
+        const { ethers } = hre;
+        const code = await ethers.provider.getCode(multisig);
+        if (code === "0x") {
+            multisig = ethers.constants.AddressZero;
+        }
+        await multisigCheckTx(id, multisig);
     });
 
 task("multisig:check-txs", "Check multiple multisig txs")
     .addParam("ids", "Multisig transaction ids list to check", undefined, types.string)
-    .setAction(async ({ ids }, hre) => {
+    .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
+    .setAction(async ({ ids, multisig }, hre) => {
+        const { ethers } = hre;
+        if (!ethers.utils.isAddress(multisig)) {
+            multisig = ethers.constants.AddressZero;
+        }
+        const code = await ethers.provider.getCode(multisig);
+        if (code === "0x") {
+            multisig = ethers.constants.AddressZero;
+        }
         const txnArray = ids.split(",");
         for (let txId of txnArray) {
             if (typeof txId !== "string" || txId.indexOf("-") === -1) {
-                await multisigCheckTx(txId);
+                await multisigCheckTx(txId, multisig);
             } else {
                 const txnRangeArray = txId.split("-", 2).map((num) => parseInt(num));
                 for (let id = txnRangeArray[0]; id <= txnRangeArray[1]; id++) {
-                    await multisigCheckTx(id);
+                    await multisigCheckTx(id, multisig);
                 }
             }
         }
     });
 
 task("multisig:revoke-sig", "Revoke multisig tx confirmation")
-    .addParam("id", "Multisig transaction to revoke confirmation from", undefined, types.string)
+    .addParam(
+        "id",
+        "Multisig transaction ids to revoke confirmation from",
+        undefined,
+        types.string
+    )
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ id, signer }, hre) => {
+    .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
+    .setAction(async ({ id, signer, multisig }, hre) => {
         const signerAcc = (await hre.getNamedAccounts())[signer];
-        await multisigRevokeConfirmation(id, signerAcc);
+        const { ethers } = hre;
+        if (!ethers.utils.isAddress(multisig)) {
+            multisig = ethers.constants.AddressZero;
+        }
+        const code = await ethers.provider.getCode(multisig);
+        if (code === "0x") {
+            multisig = ethers.constants.AddressZero;
+        }
+        const ms =
+            multisig === ethers.constants.AddressZero
+                ? await get("MultiSigWallet")
+                : await ethers.getContractAt("MultiSigWallet", multisig);
+        await multisigRevokeConfirmation(id, signerAcc, ms.address);
+    });
+
+task("multisig:revoke-sigs", "Revoke multisig tx confirmation")
+    .addParam("ids", "Multisig transaction to revoke confirmation from", undefined, types.string)
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
+    .setAction(async ({ ids, signer, multisig }, hre) => {
+        const signerAcc = (await hre.getNamedAccounts())[signer];
+        const {
+            ethers,
+            deployments: { get },
+        } = hre;
+        if (!ethers.utils.isAddress(multisig)) {
+            multisig = ethers.constants.AddressZero;
+        }
+        const code = await ethers.provider.getCode(multisig);
+        if (code === "0x") {
+            multisig = ethers.constants.AddressZero;
+        }
+        const ms =
+            multisig === ethers.constants.AddressZero
+                ? await get("MultiSigWallet")
+                : await ethers.getContractAt("MultiSigWallet", multisig);
+        const txnArray = ids.split(",");
+        for (let txId of txnArray) {
+            if (typeof txId !== "string" || txId.indexOf("-") === -1) {
+                await multisigRevokeConfirmation(txId, signerAcc, ms.address);
+            } else {
+                const txnRangeArray = txId.split("-", 2).map((num) => parseInt(num));
+                for (let id = txnRangeArray[0]; id <= txnRangeArray[1]; id++) {
+                    await multisigRevokeConfirmation(id, signerAcc, ms.address);
+                }
+            }
+        }
     });
 
 task("multisig:add-owner", "Add or remove multisig owner")
