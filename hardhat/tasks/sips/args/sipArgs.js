@@ -206,39 +206,33 @@ const getArgsSip0065 = async (hre) => {
         deployments: { get },
     } = hre;
 
-    const contracts = require('../../../../scripts/contractInteraction/mainnet_contracts.json');
-    const AdoptionFundAddress = contracts['AdoptionFund'];
-    const DevelopmentFundAddress = contracts['DevelopmentFund'];
-    const SovAddress = contracts['SOV'];
-    const multiSigAddress = contracts['multisig'];
+    const contracts = require("../../../../scripts/contractInteraction/mainnet_contracts.json");
+    const AdoptionFundAddress = contracts["AdoptionFund"];
+    const DevelopmentFundAddress = contracts["DevelopmentFund"];
+    const SovAddress = contracts["SOV"];
+    const multiSigAddress = contracts["multisig"];
     const amountFromAdoption = ethers.utils.parseEther("1000000");
     const amountFromDevelopment = ethers.utils.parseEther("2000000");
     const amountToTransfer = ethers.utils.parseEther("3000000");
 
     const args = {
-        targets: [AdoptionFundAddress,DevelopmentFundAddress,SovAddress],
-        values: [0,0,0],
+        targets: [AdoptionFundAddress, DevelopmentFundAddress, SovAddress],
+        values: [0, 0, 0],
         signatures: [
-            "withdrawTokensByUnlockedTokenOwner(uint256)", 
-            "withdrawTokensByUnlockedTokenOwner(uint256)", 
-            "transfer(address,uint256)"
+            "withdrawTokensByUnlockedTokenOwner(uint256)",
+            "withdrawTokensByUnlockedTokenOwner(uint256)",
+            "transfer(address,uint256)",
         ],
         data: [
+            ethers.utils.defaultAbiCoder.encode(["uint256"], [amountFromAdoption]),
+            ethers.utils.defaultAbiCoder.encode(["uint256"], [amountFromDevelopment]),
             ethers.utils.defaultAbiCoder.encode(
-                ["uint256"],
-                [amountFromAdoption]
-            ),
-            ethers.utils.defaultAbiCoder.encode(
-                ["uint256"],
-                [amountFromDevelopment]
-            ),
-            ethers.utils.defaultAbiCoder.encode(
-                ["address","uint256"],
-                [multiSigAddress,amountToTransfer]
+                ["address", "uint256"],
+                [multiSigAddress, amountToTransfer]
             ),
         ],
         description:
-        "SIP-0065: Transfer of SOV from Adoption and Development Funds to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/cd3d249cddb6a5d0af59209c337c6864ad922007/SIP-0065.md, sha256: d6a703af4d3866ff6a7f927b680da23f450338d5346dca5d3d1e6b5751c45550",
+            "SIP-0065: Transfer of SOV from Adoption and Development Funds to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/cd3d249cddb6a5d0af59209c337c6864ad922007/SIP-0065.md, sha256: d6a703af4d3866ff6a7f927b680da23f450338d5346dca5d3d1e6b5751c45550",
     };
 
     return { args, governor: "GovernorOwner" };
