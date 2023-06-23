@@ -24,3 +24,4 @@ types/
 venv/
 deployment/deployments
 tmp/
+out/
