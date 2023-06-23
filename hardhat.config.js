@@ -238,7 +238,7 @@ module.exports = {
             //},
         ],
         deployments: {
-            rskSovrynTestnet: ["external/deployments/rskSovrynTestnet"],
+            rskSovrynTestnet: ["external/deployments/rskTestnet"],
             rskTestnet: [
                 "external/deployments/rskTestnet",
                 "deployment/deployments/rskSovrynTestnet",
