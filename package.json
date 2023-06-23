@@ -102,5 +102,8 @@
 			"pre-commit": "yarn prettier",
 			"pre-push": "yarn lint && yarn prettier-check"
 		}
+	},
+	"dependencies": {
+		"@nomicfoundation/hardhat-foundry": "^1.0.1"
 	}
 }
