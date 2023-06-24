@@ -1,4 +1,4 @@
-# FeeSharingCollectorProxy Storage contact. (FeeSharingCollectorStorage.sol)
+# FeeSharingCollectorStorage contact (FeeSharingCollectorStorage.sol)
 
 View Source: [contracts/governance/FeeSharingCollector/FeeSharingCollectorStorage.sol](../contracts/governance/FeeSharingCollector/FeeSharingCollectorStorage.sol)
 
@@ -7,10 +7,8 @@ View Source: [contracts/governance/FeeSharingCollector/FeeSharingCollectorStorag
 
 **FeeSharingCollectorStorage**
 
-Just the storage part of feeSharingCollectorProxy contract, no functions,
-only constant, variables and required structures (mappings).
-Used by FeeSharingCollectorProxy, and the implementation logic of FeeSharingCollectorProxy (FeeSharingCollector)
- *
+Just the storage part of FeeSharingCollector contract, and FeeSharingCollectorProxy. No functions,
+only constant, variables and required structures (mappings)
 
 ## Structs
 ### Checkpoint
@@ -30,7 +28,6 @@ struct Checkpoint {
 ```js
 //internal members
 uint256 internal constant FEE_WITHDRAWAL_INTERVAL;
-uint32 internal constant MAX_CHECKPOINTS;
 uint256 internal constant REENTRANCY_GUARD_FREE;
 uint256 internal constant REENTRANCY_GUARD_LOCKED;
 uint256 internal reentrancyLock;
@@ -40,7 +37,7 @@ struct EnumerableAddressSet.AddressSet internal whitelistedConverterList;
 contract IProtocol public protocol;
 contract IStaking public staking;
 mapping(address => mapping(uint256 => struct FeeSharingCollectorStorage.Checkpoint)) public tokenCheckpoints;
-mapping(address => uint256) public numTokenCheckpoints;
+mapping(address => uint256) public totalTokenCheckpoints;
 mapping(address => mapping(address => uint256)) public processedCheckpoints;
 mapping(address => uint256) public lastFeeWithdrawalTime;
 mapping(address => uint96) public unprocessedAmount;
@@ -174,7 +171,6 @@ function getSovTokenAddress() external view returns (address);
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

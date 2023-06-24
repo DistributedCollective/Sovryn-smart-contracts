@@ -223,15 +223,19 @@ function _stakeOptionalTokenTransfer(
         //		if  first stake was withdrawn completely and stake was delegated to the staker
         //		(no delegation to another address).
         address previousDelegatee = delegates[stakeFor][until];
+
         if (previousDelegatee != delegatee) {
             // @dev only the user that stakes for himself is allowed to delegate VP to another address
             // which works with vesting stakes and prevents vulnerability of delegating VP to an arbitrary address from
             // any address
+
             if (delegatee != stakeFor) {
                 require(
                     stakeFor == sender,
                     "Only stakeFor account is allowed to change delegatee"
                 );
+            } else if (sender != stakeFor && previousDelegatee != address(0)) {
+                require(stakeFor == sender, "Only sender is allowed to change delegatee");
             }
 
             /// @dev Update delegatee.
@@ -666,7 +670,7 @@ function getStakes(address account)
 
 > ### _getToken
 
-⤾ overrides [ApprovalReceiver._getToken](ApprovalReceiver.md#_gettoken)
+undefined
 
 Overrides default ApprovalReceiver._getToken function to
 register SOV token on this contract.
@@ -690,7 +694,7 @@ function _getToken() internal view returns (address) {
 
 > ### _getSelectors
 
-⤾ overrides [ApprovalReceiver._getSelectors](ApprovalReceiver.md#_getselectors)
+undefined
 
 Overrides default ApprovalReceiver._getSelectors function to
 register stakeWithApproval selector on this contract.
@@ -793,7 +797,6 @@ function getFunctionsList() external pure returns (bytes4[] memory) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

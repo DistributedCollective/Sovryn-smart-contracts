@@ -27,6 +27,8 @@ updated to reference the new contract address.
 
 > ### setImplementation
 
+⤿ Overridden Implementation(s): [FourYearVesting.setImplementation](FourYearVesting.md#setimplementation)
+
 Set address of the implementation.
 
 ```solidity
@@ -93,7 +95,6 @@ nction setProxyOwner(address _owner) public onlyProxyOwner {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

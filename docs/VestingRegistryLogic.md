@@ -37,7 +37,6 @@ event VestingCreationAndTypesSet(address indexed vesting, struct VestingRegistry
 - [_addDeployedVestings(address _tokenOwner, uint256 _vestingCreationType)](#_adddeployedvestings)
 - [getVestingsOf(address _tokenOwner)](#getvestingsof)
 - [getVestingDetails(address _vestingAddress)](#getvestingdetails)
-- [isVestingAdress(address _vestingAddress)](#isvestingadress)
 - [isVestingAddress(address _vestingAddress)](#isvestingaddress)
 
 ---    
@@ -845,33 +844,6 @@ function getVestingDetails(address _vestingAddress)
 
 ---    
 
-> ### isVestingAdress
-
-returns if the address is a vesting address
-
-```solidity
-function isVestingAdress(address _vestingAddress) external view
-returns(isVestingAddr bool)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _vestingAddress | address |  | 
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function isVestingAdress(address _vestingAddress) external view returns (bool isVestingAddr) {
-        return isVesting[_vestingAddress];
-    }
-```
-</details>
-
----    
-
 > ### isVestingAddress
 
 returns if the address is a vesting address
@@ -913,7 +885,6 @@ function isVestingAddress(address _vestingAddress) external view returns (bool i
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

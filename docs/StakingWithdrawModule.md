@@ -604,7 +604,7 @@ function governanceWithdraw(
 
 > ### getFunctionsList
 
-⤾ overrides [IFunctionsList.getFunctionsList](IFunctionsList.md#getfunctionslist)
+undefined
 
 ```solidity
 function getFunctionsList() external pure
@@ -645,7 +645,6 @@ function getFunctionsList() external pure returns (bytes4[] memory) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
