@@ -1,0 +1,1098 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "baseToken",
+      "outputs": [
+        {
+          "internalType": "contract IWrbtcERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "wrbtcToken",
+      "outputs": [
+        {
+          "internalType": "contract IWrbtcERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x6080604052348015600f57600080fd5b5060b28061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c8063afe84009146037578063c55dae63146059575b600080fd5b603d605f565b604080516001600160a01b039092168252519081900360200190f35b603d606e565b6000546001600160a01b031681565b6001546001600160a01b03168156fea265627a7a72315820e94e5b315c833317af5595ff803367a5f7db8a657e6f49850c71a653aa04c25164736f6c63430005110032",
+    "sourceMap": "542:1217:48:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;542:1217:48;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052348015600f57600080fd5b506004361060325760003560e01c8063afe84009146037578063c55dae63146059575b600080fd5b603d605f565b604080516001600160a01b039092168252519081900360200190f35b603d606e565b6000546001600160a01b031681565b6001546001600160a01b03168156fea265627a7a72315820e94e5b315c833317af5595ff803367a5f7db8a657e6f49850c71a653aa04c25164736f6c63430005110032",
+    "sourceMap": "542:1217:48:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;542:1217:48;;;;;;;;;;;;;;;;;;;;;;;;567:29;;;:::i;:::-;;;;-1:-1:-1;;;;;567:29:48;;;;;;;;;;;;;;602:28;;;:::i;567:29::-;;;-1:-1:-1;;;;;567:29:48;;:::o;602:28::-;;;-1:-1:-1;;;;;602:28:48;;:::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "baseToken()": "c55dae63",
+    "wrbtcToken()": "afe84009"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"baseToken\",\"outputs\":[{\"internalType\":\"contract IWrbtcERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"wrbtcToken\",\"outputs\":[{\"internalType\":\"contract IWrbtcERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{},\"title\":\"The Price Feeds Constants contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * This contract keep the addresses of token instances for wrBTC, base token and protocol token.\"}},\"settings\":{\"compilationTarget\":{\"contracts/feeds/PriceFeedsConstants.sol\":\"Constants\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/feeds/PriceFeedsConstants.sol\":{\"keccak256\":\"0x0fa85c00dd41dff315be51bc3220bd8826430bd1388424eb969fb188e203f0af\",\"urls\":[\"bzz-raw://bfbacbad0daedbb1febbe08f0ea11f702c8ae49f298e998ecf2f200c6fbdb822\",\"dweb:/ipfs/QmQd8w8nEfyim1uQsLnm4Bwf9o3j3NGACkQhp4ZPqt5tzR\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/interfaces/IWrbtc.sol\":{\"keccak256\":\"0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492\",\"urls\":[\"bzz-raw://d1adc3348aded3938e587fead4d4becf8efbed346c9cdc73e1f8ed42cb43b2c9\",\"dweb:/ipfs/QmZPMshLwXDwH2UKkFeV5QPtz129swV354fQ25gqKWAV94\"]},\"contracts/interfaces/IWrbtcERC20.sol\":{\"keccak256\":\"0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5\",\"urls\":[\"bzz-raw://12d22b4d1e74d95f82d2bc84b5e3c978e2341cb7a1b8fc383b64aaef59f13a00\",\"dweb:/ipfs/QmZkPrztJ5nwiKKudgz8aWX6kk3YHKCtmxJndMvV1NJuS6\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "baseToken",
+          "outputs": [
+            {
+              "internalType": "contract IWrbtcERC20",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "wrbtcToken",
+          "outputs": [
+            {
+              "internalType": "contract IWrbtcERC20",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/feeds/PriceFeedsConstants.sol": "Constants"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/feeds/PriceFeedsConstants.sol": {
+        "keccak256": "0x0fa85c00dd41dff315be51bc3220bd8826430bd1388424eb969fb188e203f0af",
+        "urls": [
+          "bzz-raw://bfbacbad0daedbb1febbe08f0ea11f702c8ae49f298e998ecf2f200c6fbdb822",
+          "dweb:/ipfs/QmQd8w8nEfyim1uQsLnm4Bwf9o3j3NGACkQhp4ZPqt5tzR"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IERC20.sol": {
+        "keccak256": "0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855",
+        "urls": [
+          "bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40",
+          "dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IWrbtc.sol": {
+        "keccak256": "0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492",
+        "urls": [
+          "bzz-raw://d1adc3348aded3938e587fead4d4becf8efbed346c9cdc73e1f8ed42cb43b2c9",
+          "dweb:/ipfs/QmZPMshLwXDwH2UKkFeV5QPtz129swV354fQ25gqKWAV94"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IWrbtcERC20.sol": {
+        "keccak256": "0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5",
+        "urls": [
+          "bzz-raw://12d22b4d1e74d95f82d2bc84b5e3c978e2341cb7a1b8fc383b64aaef59f13a00",
+          "dweb:/ipfs/QmZkPrztJ5nwiKKudgz8aWX6kk3YHKCtmxJndMvV1NJuS6"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Address.sol": {
+        "keccak256": "0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54",
+        "urls": [
+          "bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3",
+          "dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/feeds/PriceFeedsConstants.sol",
+    "id": 11814,
+    "exportedSymbols": {
+      "Constants": [
+        11813
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "118:1642:48",
+    "nodes": [
+      {
+        "id": 11746,
+        "nodeType": "PragmaDirective",
+        "src": "118:23:48",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 11747,
+        "nodeType": "ImportDirective",
+        "src": "143:39:48",
+        "nodes": [],
+        "absolutePath": "contracts/interfaces/IWrbtcERC20.sol",
+        "file": "../interfaces/IWrbtcERC20.sol",
+        "scope": 11814,
+        "sourceUnit": 34036,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 11748,
+        "nodeType": "ImportDirective",
+        "src": "183:37:48",
+        "nodes": [],
+        "absolutePath": "contracts/openzeppelin/Address.sol",
+        "file": "../openzeppelin/Address.sol",
+        "scope": 11814,
+        "sourceUnit": 54445,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 11813,
+        "nodeType": "ContractDefinition",
+        "src": "542:1217:48",
+        "nodes": [
+          {
+            "id": 11750,
+            "nodeType": "VariableDeclaration",
+            "src": "567:29:48",
+            "nodes": [],
+            "constant": false,
+            "name": "wrbtcToken",
+            "scope": 11813,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_contract$_IWrbtcERC20_$34035",
+              "typeString": "contract IWrbtcERC20"
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 11749,
+              "name": "IWrbtcERC20",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 34035,
+              "src": "567:11:48",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IWrbtcERC20_$34035",
+                "typeString": "contract IWrbtcERC20"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 11752,
+            "nodeType": "VariableDeclaration",
+            "src": "602:28:48",
+            "nodes": [],
+            "constant": false,
+            "name": "baseToken",
+            "scope": 11813,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_contract$_IWrbtcERC20_$34035",
+              "typeString": "contract IWrbtcERC20"
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 11751,
+              "name": "IWrbtcERC20",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 34035,
+              "src": "602:11:48",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IWrbtcERC20_$34035",
+                "typeString": "contract IWrbtcERC20"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 11754,
+            "nodeType": "VariableDeclaration",
+            "src": "636:37:48",
+            "nodes": [],
+            "constant": false,
+            "name": "protocolTokenAddress",
+            "scope": 11813,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_address",
+              "typeString": "address"
+            },
+            "typeName": {
+              "id": 11753,
+              "name": "address",
+              "nodeType": "ElementaryTypeName",
+              "src": "636:7:48",
+              "stateMutability": "nonpayable",
+              "typeDescriptions": {
+                "typeIdentifier": "t_address",
+                "typeString": "address"
+              }
+            },
+            "value": null,
+            "visibility": "internal"
+          },
+          {
+            "id": 11774,
+            "nodeType": "FunctionDefinition",
+            "src": "818:216:48",
+            "nodes": [],
+            "body": {
+              "id": 11773,
+              "nodeType": "Block",
+              "src": "879:155:48",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "arguments": [
+                          {
+                            "argumentTypes": null,
+                            "id": 11762,
+                            "name": "_wrbtcTokenAddress",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 11756,
+                            "src": "916:18:48",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": [
+                            {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 11760,
+                            "name": "Address",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 54444,
+                            "src": "897:7:48",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_contract$_Address_$54444_$",
+                              "typeString": "type(library Address)"
+                            }
+                          },
+                          "id": 11761,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "isContract",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 54396,
+                          "src": "897:18:48",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_function_internal_view$_t_address_$returns$_t_bool_$",
+                            "typeString": "function (address) view returns (bool)"
+                          }
+                        },
+                        "id": 11763,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "functionCall",
+                        "lValueRequested": false,
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "897:38:48",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "5f7772627463546f6b656e41646472657373206e6f74206120636f6e7472616374",
+                        "id": 11764,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "937:35:48",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_d4b50e87c9d55e5edf5a160a7da88224da3e9551bf38c8e77b63a082b508b4ea",
+                          "typeString": "literal_string \"_wrbtcTokenAddress not a contract\""
+                        },
+                        "value": "_wrbtcTokenAddress not a contract"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_d4b50e87c9d55e5edf5a160a7da88224da3e9551bf38c8e77b63a082b508b4ea",
+                          "typeString": "literal_string \"_wrbtcTokenAddress not a contract\""
+                        }
+                      ],
+                      "id": 11759,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        62895,
+                        62896
+                      ],
+                      "referencedDeclaration": 62896,
+                      "src": "889:7:48",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 11765,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "889:84:48",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 11766,
+                  "nodeType": "ExpressionStatement",
+                  "src": "889:84:48"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 11771,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 11767,
+                      "name": "wrbtcToken",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 11750,
+                      "src": "983:10:48",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_IWrbtcERC20_$34035",
+                        "typeString": "contract IWrbtcERC20"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "arguments": [
+                        {
+                          "argumentTypes": null,
+                          "id": 11769,
+                          "name": "_wrbtcTokenAddress",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 11756,
+                          "src": "1008:18:48",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        ],
+                        "id": 11768,
+                        "name": "IWrbtcERC20",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 34035,
+                        "src": "996:11:48",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_contract$_IWrbtcERC20_$34035_$",
+                          "typeString": "type(contract IWrbtcERC20)"
+                        }
+                      },
+                      "id": 11770,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "typeConversion",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "996:31:48",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_IWrbtcERC20_$34035",
+                        "typeString": "contract IWrbtcERC20"
+                      }
+                    },
+                    "src": "983:44:48",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_IWrbtcERC20_$34035",
+                      "typeString": "contract IWrbtcERC20"
+                    }
+                  },
+                  "id": 11772,
+                  "nodeType": "ExpressionStatement",
+                  "src": "983:44:48"
+                }
+              ]
+            },
+            "documentation": "@notice Set wrBTC token address.\n     * @param _wrbtcTokenAddress The address of the wrapped wrBTC token.\n",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "_setWrbtcToken",
+            "parameters": {
+              "id": 11757,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11756,
+                  "name": "_wrbtcTokenAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11774,
+                  "src": "842:26:48",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 11755,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "842:7:48",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "841:28:48"
+            },
+            "returnParameters": {
+              "id": 11758,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "879:0:48"
+            },
+            "scope": 11813,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "id": 11792,
+            "nodeType": "FunctionDefinition",
+            "src": "1179:235:48",
+            "nodes": [],
+            "body": {
+              "id": 11791,
+              "nodeType": "Block",
+              "src": "1253:161:48",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "arguments": [
+                          {
+                            "argumentTypes": null,
+                            "id": 11782,
+                            "name": "_protocolTokenAddress",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 11776,
+                            "src": "1290:21:48",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": [
+                            {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 11780,
+                            "name": "Address",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 54444,
+                            "src": "1271:7:48",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_contract$_Address_$54444_$",
+                              "typeString": "type(library Address)"
+                            }
+                          },
+                          "id": 11781,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "isContract",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 54396,
+                          "src": "1271:18:48",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_function_internal_view$_t_address_$returns$_t_bool_$",
+                            "typeString": "function (address) view returns (bool)"
+                          }
+                        },
+                        "id": 11783,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "functionCall",
+                        "lValueRequested": false,
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "1271:41:48",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "5f70726f746f636f6c546f6b656e41646472657373206e6f74206120636f6e7472616374",
+                        "id": 11784,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1314:38:48",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_e273df875a3a12a28f8b01bb25f585329211ba0c76edd90ed0743a15790d8e30",
+                          "typeString": "literal_string \"_protocolTokenAddress not a contract\""
+                        },
+                        "value": "_protocolTokenAddress not a contract"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_e273df875a3a12a28f8b01bb25f585329211ba0c76edd90ed0743a15790d8e30",
+                          "typeString": "literal_string \"_protocolTokenAddress not a contract\""
+                        }
+                      ],
+                      "id": 11779,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        62895,
+                        62896
+                      ],
+                      "referencedDeclaration": 62896,
+                      "src": "1263:7:48",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 11785,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1263:90:48",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 11786,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1263:90:48"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 11789,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 11787,
+                      "name": "protocolTokenAddress",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 11754,
+                      "src": "1363:20:48",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "id": 11788,
+                      "name": "_protocolTokenAddress",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 11776,
+                      "src": "1386:21:48",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "src": "1363:44:48",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "id": 11790,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1363:44:48"
+                }
+              ]
+            },
+            "documentation": "@notice Set protocol token address.\n     * @param _protocolTokenAddress The address of the protocol token.\n",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "_setProtocolTokenAddress",
+            "parameters": {
+              "id": 11777,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11776,
+                  "name": "_protocolTokenAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11792,
+                  "src": "1213:29:48",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 11775,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1213:7:48",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1212:31:48"
+            },
+            "returnParameters": {
+              "id": 11778,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1253:0:48"
+            },
+            "scope": 11813,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "id": 11812,
+            "nodeType": "FunctionDefinition",
+            "src": "1547:210:48",
+            "nodes": [],
+            "body": {
+              "id": 11811,
+              "nodeType": "Block",
+              "src": "1606:151:48",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "arguments": [
+                          {
+                            "argumentTypes": null,
+                            "id": 11800,
+                            "name": "_baseTokenAddress",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 11794,
+                            "src": "1643:17:48",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": [
+                            {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 11798,
+                            "name": "Address",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 54444,
+                            "src": "1624:7:48",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_contract$_Address_$54444_$",
+                              "typeString": "type(library Address)"
+                            }
+                          },
+                          "id": 11799,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "isContract",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 54396,
+                          "src": "1624:18:48",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_function_internal_view$_t_address_$returns$_t_bool_$",
+                            "typeString": "function (address) view returns (bool)"
+                          }
+                        },
+                        "id": 11801,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "functionCall",
+                        "lValueRequested": false,
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "1624:37:48",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "5f62617365546f6b656e41646472657373206e6f74206120636f6e7472616374",
+                        "id": 11802,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1663:34:48",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_c086c0f64db25cae8e8963b5d46dccc03b7a4ab389d42b9f0601d70df549d575",
+                          "typeString": "literal_string \"_baseTokenAddress not a contract\""
+                        },
+                        "value": "_baseTokenAddress not a contract"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_c086c0f64db25cae8e8963b5d46dccc03b7a4ab389d42b9f0601d70df549d575",
+                          "typeString": "literal_string \"_baseTokenAddress not a contract\""
+                        }
+                      ],
+                      "id": 11797,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        62895,
+                        62896
+                      ],
+                      "referencedDeclaration": 62896,
+                      "src": "1616:7:48",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 11803,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1616:82:48",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 11804,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1616:82:48"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 11809,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 11805,
+                      "name": "baseToken",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 11752,
+                      "src": "1708:9:48",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_IWrbtcERC20_$34035",
+                        "typeString": "contract IWrbtcERC20"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "arguments": [
+                        {
+                          "argumentTypes": null,
+                          "id": 11807,
+                          "name": "_baseTokenAddress",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 11794,
+                          "src": "1732:17:48",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        ],
+                        "id": 11806,
+                        "name": "IWrbtcERC20",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 34035,
+                        "src": "1720:11:48",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_contract$_IWrbtcERC20_$34035_$",
+                          "typeString": "type(contract IWrbtcERC20)"
+                        }
+                      },
+                      "id": 11808,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "typeConversion",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "1720:30:48",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_IWrbtcERC20_$34035",
+                        "typeString": "contract IWrbtcERC20"
+                      }
+                    },
+                    "src": "1708:42:48",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_IWrbtcERC20_$34035",
+                      "typeString": "contract IWrbtcERC20"
+                    }
+                  },
+                  "id": 11810,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1708:42:48"
+                }
+              ]
+            },
+            "documentation": "@notice Set base token address.\n     * @param _baseTokenAddress The address of the base token.\n",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "_setBaseToken",
+            "parameters": {
+              "id": 11795,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11794,
+                  "name": "_baseTokenAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11812,
+                  "src": "1570:25:48",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 11793,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1570:7:48",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1569:27:48"
+            },
+            "returnParameters": {
+              "id": 11796,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1606:0:48"
+            },
+            "scope": 11813,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "internal"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@title The Price Feeds Constants contract.\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\nmargin trading and lending https://bzx.network similar to the dYdX protocol.\n * This contract keep the addresses of token instances for wrBTC, base token\nand protocol token.\n",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          11813
+        ],
+        "name": "Constants",
+        "scope": 11814
+      }
+    ]
+  },
+  "id": 48
+}

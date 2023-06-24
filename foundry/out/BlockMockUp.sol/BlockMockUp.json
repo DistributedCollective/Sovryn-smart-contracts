@@ -1,0 +1,424 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "blockNum",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getBlockNum",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_blockNum",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_blockNum",
+          "type": "uint256"
+        }
+      ],
+      "name": "setBlockNum",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405234801561001057600080fd5b5060c18061001f6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c80632bdd22901460415780637f6c6f1014605d5780638ae63d6d146075575b600080fd5b605b60048036036020811015605557600080fd5b5035607b565b005b60636080565b60408051918252519081900360200190f35b60636086565b600055565b60005490565b6000548156fea265627a7a72315820cb75f59773badbdcf66cb8716657820a3e04a3578ff54acd6f7a8fc51c6ddee164736f6c63430005110032",
+    "sourceMap": "82:437:129:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;82:437:129;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052348015600f57600080fd5b5060043610603c5760003560e01c80632bdd22901460415780637f6c6f1014605d5780638ae63d6d146075575b600080fd5b605b60048036036020811015605557600080fd5b5035607b565b005b60636080565b60408051918252519081900360200190f35b60636086565b600055565b60005490565b6000548156fea265627a7a72315820cb75f59773badbdcf66cb8716657820a3e04a3578ff54acd6f7a8fc51c6ddee164736f6c63430005110032",
+    "sourceMap": "82:437:129:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;82:437:129;;;;;;;;;;;;;;;;;;;;;;;;;;;;;433:84;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;433:84:129;;:::i;:::-;;236:95;;;:::i;:::-;;;;;;;;;;;;;;;;109:23;;;:::i;433:84::-;490:8;:20;433:84::o;236:95::-;280:17;316:8;236:95;:::o;109:23::-;;;;:::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "blockNum()": "8ae63d6d",
+    "getBlockNum()": "7f6c6f10",
+    "setBlockNum(uint256)": "2bdd2290"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"blockNum\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getBlockNum\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_blockNum\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_blockNum\",\"type\":\"uint256\"}],\"name\":\"setBlockNum\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"getBlockNum()\":{\"return\":\"_blockNum The block number.\"},\"setBlockNum(uint256)\":{\"params\":{\"_blockNum\":\"The block number.\"}}},\"title\":\"Used to get and set mock block number.\"},\"userdoc\":{\"methods\":{\"getBlockNum()\":{\"notice\":\"To get the `blockNum`.\"},\"setBlockNum(uint256)\":{\"notice\":\"To set the `blockNum`.\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/BlockMockUp.sol\":\"BlockMockUp\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/mockup/BlockMockUp.sol\":{\"keccak256\":\"0x71900b9ec438044a2df243aced9c8895b1720de6fc1ee7c101535a61cbca0eaf\",\"urls\":[\"bzz-raw://b88004197340003caaed064d07df884b0412a5f08684fbf1a469963752cc129f\",\"dweb:/ipfs/QmVMrwhRviW7AhFV2vR6mR6eEu3CnDDsqYHsbtRw21Rpvk\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "blockNum",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "getBlockNum",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "_blockNum",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "_blockNum",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "setBlockNum"
+        }
+      ],
+      "devdoc": {
+        "methods": {
+          "getBlockNum()": {
+            "return": "_blockNum The block number."
+          },
+          "setBlockNum(uint256)": {
+            "params": {
+              "_blockNum": "The block number."
+            }
+          }
+        }
+      },
+      "userdoc": {
+        "methods": {
+          "getBlockNum()": {
+            "notice": "To get the `blockNum`."
+          },
+          "setBlockNum(uint256)": {
+            "notice": "To set the `blockNum`."
+          }
+        }
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/mockup/BlockMockUp.sol": "BlockMockUp"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/mockup/BlockMockUp.sol": {
+        "keccak256": "0x71900b9ec438044a2df243aced9c8895b1720de6fc1ee7c101535a61cbca0eaf",
+        "urls": [
+          "bzz-raw://b88004197340003caaed064d07df884b0412a5f08684fbf1a469963752cc129f",
+          "dweb:/ipfs/QmVMrwhRviW7AhFV2vR6mR6eEu3CnDDsqYHsbtRw21Rpvk"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/mockup/BlockMockUp.sol",
+    "id": 37052,
+    "exportedSymbols": {
+      "BlockMockUp": [
+        37051
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:520:129",
+    "nodes": [
+      {
+        "id": 37030,
+        "nodeType": "PragmaDirective",
+        "src": "0:23:129",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 37051,
+        "nodeType": "ContractDefinition",
+        "src": "82:437:129",
+        "nodes": [
+          {
+            "id": 37032,
+            "nodeType": "VariableDeclaration",
+            "src": "109:23:129",
+            "nodes": [],
+            "constant": false,
+            "name": "blockNum",
+            "scope": 37051,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 37031,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "109:7:129",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 37040,
+            "nodeType": "FunctionDefinition",
+            "src": "236:95:129",
+            "nodes": [],
+            "body": {
+              "id": 37039,
+              "nodeType": "Block",
+              "src": "299:32:129",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 37037,
+                    "name": "blockNum",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 37032,
+                    "src": "316:8:129",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 37036,
+                  "id": 37038,
+                  "nodeType": "Return",
+                  "src": "309:15:129"
+                }
+              ]
+            },
+            "documentation": "@notice To get the `blockNum`.\n@return _blockNum The block number.",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getBlockNum",
+            "parameters": {
+              "id": 37033,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "256:2:129"
+            },
+            "returnParameters": {
+              "id": 37036,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 37035,
+                  "name": "_blockNum",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 37040,
+                  "src": "280:17:129",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 37034,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "280:7:129",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "279:19:129"
+            },
+            "scope": 37051,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "public"
+          },
+          {
+            "id": 37050,
+            "nodeType": "FunctionDefinition",
+            "src": "433:84:129",
+            "nodes": [],
+            "body": {
+              "id": 37049,
+              "nodeType": "Block",
+              "src": "480:37:129",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 37047,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 37045,
+                      "name": "blockNum",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 37032,
+                      "src": "490:8:129",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "id": 37046,
+                      "name": "_blockNum",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 37042,
+                      "src": "501:9:129",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "490:20:129",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 37048,
+                  "nodeType": "ExpressionStatement",
+                  "src": "490:20:129"
+                }
+              ]
+            },
+            "documentation": "@notice To set the `blockNum`.\n@param _blockNum The block number.",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "setBlockNum",
+            "parameters": {
+              "id": 37043,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 37042,
+                  "name": "_blockNum",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 37050,
+                  "src": "454:17:129",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 37041,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "454:7:129",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "453:19:129"
+            },
+            "returnParameters": {
+              "id": 37044,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "480:0:129"
+            },
+            "scope": 37051,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@title Used to get and set mock block number.",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          37051
+        ],
+        "name": "BlockMockUp",
+        "scope": 37052
+      }
+    ]
+  },
+  "id": 129
+}

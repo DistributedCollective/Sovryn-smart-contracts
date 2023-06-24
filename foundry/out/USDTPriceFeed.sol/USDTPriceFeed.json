@@ -1,0 +1,490 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "latestAnswer",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "latestTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x6080604052348015600f57600080fd5b50609a8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c806350d25bcd1460375780638205bf6a14604f575b600080fd5b603d6055565b60408051918252519081900360200190f35b603d6061565b670de0b6b3a764000090565b429056fea265627a7a7231582061be12041831adc2d22c556537cdb26f36d2c9071f314f0031ffa6c2213be48264736f6c63430005110032",
+    "sourceMap": "260:522:49:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;260:522:49;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052348015600f57600080fd5b506004361060325760003560e01c806350d25bcd1460375780638205bf6a14604f575b600080fd5b603d6055565b60408051918252519081900360200190f35b603d6061565b670de0b6b3a764000090565b429056fea265627a7a7231582061be12041831adc2d22c556537cdb26f36d2c9071f314f0031ffa6c2213be48264736f6c63430005110032",
+    "sourceMap": "260:522:49:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;260:522:49;;;;;;;;;;;;;;;;;;;;;;;;471:89;;;:::i;:::-;;;;;;;;;;;;;;;;694:86;;;:::i;471:89::-;344:7;471:89;:::o;694:86::-;770:3;694:86;:::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "latestAnswer()": "50d25bcd",
+    "latestTimestamp()": "8205bf6a"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"latestAnswer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"latestTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"latestAnswer()\":{\"return\":\"Always returns the trivial rate of 1.\"},\"latestTimestamp()\":{\"return\":\"Always trivial current block's timestamp.\"}}},\"userdoc\":{\"methods\":{\"latestAnswer()\":{\"notice\":\"Get the USDT price.\"},\"latestTimestamp()\":{\"notice\":\"Get the las time the price was updated.\"}},\"notice\":\"The Price Feed USDT contract. * This contract implements USDT query functionality, getting the price and the last timestamp from a trivial formula, always returning 1 and now.\"}},\"settings\":{\"compilationTarget\":{\"contracts/feeds/USDTPriceFeed.sol\":\"USDTPriceFeed\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/feeds/PriceFeeds.sol\":{\"keccak256\":\"0x1c90db64dc36611a0eca6a29a8cb138dac1821864920e6bcd5acb7e5071e2bf1\",\"urls\":[\"bzz-raw://fcad9db567fb499f1b67278be1e99148252fa49a7c64d538499ab5e86605bdd1\",\"dweb:/ipfs/QmY8bgKUHdcQcaiHRnnY5YLYXKXRcg5aWXanCc6GD1Kn8g\"]},\"contracts/feeds/PriceFeedsConstants.sol\":{\"keccak256\":\"0x0fa85c00dd41dff315be51bc3220bd8826430bd1388424eb969fb188e203f0af\",\"urls\":[\"bzz-raw://bfbacbad0daedbb1febbe08f0ea11f702c8ae49f298e998ecf2f200c6fbdb822\",\"dweb:/ipfs/QmQd8w8nEfyim1uQsLnm4Bwf9o3j3NGACkQhp4ZPqt5tzR\"]},\"contracts/feeds/USDTPriceFeed.sol\":{\"keccak256\":\"0x71a2a541bbf698232885bd291ea71e742fb77aec4c296d64c4d3059dcd1e96dd\",\"urls\":[\"bzz-raw://57378422d8f4ee268f3374e50dafd61f79ca6c72e772e7b1af0ade919ebc6c33\",\"dweb:/ipfs/QmYyN27P4rn5xf4Jz7cmmFtFT4WYWqpiXEy6qh8PCUzSw2\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/interfaces/IWrbtc.sol\":{\"keccak256\":\"0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492\",\"urls\":[\"bzz-raw://d1adc3348aded3938e587fead4d4becf8efbed346c9cdc73e1f8ed42cb43b2c9\",\"dweb:/ipfs/QmZPMshLwXDwH2UKkFeV5QPtz129swV354fQ25gqKWAV94\"]},\"contracts/interfaces/IWrbtcERC20.sol\":{\"keccak256\":\"0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5\",\"urls\":[\"bzz-raw://12d22b4d1e74d95f82d2bc84b5e3c978e2341cb7a1b8fc383b64aaef59f13a00\",\"dweb:/ipfs/QmZkPrztJ5nwiKKudgz8aWX6kk3YHKCtmxJndMvV1NJuS6\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "latestAnswer",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "latestTimestamp",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {
+          "latestAnswer()": {
+            "return": "Always returns the trivial rate of 1."
+          },
+          "latestTimestamp()": {
+            "return": "Always trivial current block's timestamp."
+          }
+        }
+      },
+      "userdoc": {
+        "methods": {
+          "latestAnswer()": {
+            "notice": "Get the USDT price."
+          },
+          "latestTimestamp()": {
+            "notice": "Get the las time the price was updated."
+          }
+        }
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/feeds/USDTPriceFeed.sol": "USDTPriceFeed"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/feeds/PriceFeeds.sol": {
+        "keccak256": "0x1c90db64dc36611a0eca6a29a8cb138dac1821864920e6bcd5acb7e5071e2bf1",
+        "urls": [
+          "bzz-raw://fcad9db567fb499f1b67278be1e99148252fa49a7c64d538499ab5e86605bdd1",
+          "dweb:/ipfs/QmY8bgKUHdcQcaiHRnnY5YLYXKXRcg5aWXanCc6GD1Kn8g"
+        ],
+        "license": null
+      },
+      "contracts/feeds/PriceFeedsConstants.sol": {
+        "keccak256": "0x0fa85c00dd41dff315be51bc3220bd8826430bd1388424eb969fb188e203f0af",
+        "urls": [
+          "bzz-raw://bfbacbad0daedbb1febbe08f0ea11f702c8ae49f298e998ecf2f200c6fbdb822",
+          "dweb:/ipfs/QmQd8w8nEfyim1uQsLnm4Bwf9o3j3NGACkQhp4ZPqt5tzR"
+        ],
+        "license": null
+      },
+      "contracts/feeds/USDTPriceFeed.sol": {
+        "keccak256": "0x71a2a541bbf698232885bd291ea71e742fb77aec4c296d64c4d3059dcd1e96dd",
+        "urls": [
+          "bzz-raw://57378422d8f4ee268f3374e50dafd61f79ca6c72e772e7b1af0ade919ebc6c33",
+          "dweb:/ipfs/QmYyN27P4rn5xf4Jz7cmmFtFT4WYWqpiXEy6qh8PCUzSw2"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IERC20.sol": {
+        "keccak256": "0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855",
+        "urls": [
+          "bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40",
+          "dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IWrbtc.sol": {
+        "keccak256": "0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492",
+        "urls": [
+          "bzz-raw://d1adc3348aded3938e587fead4d4becf8efbed346c9cdc73e1f8ed42cb43b2c9",
+          "dweb:/ipfs/QmZPMshLwXDwH2UKkFeV5QPtz129swV354fQ25gqKWAV94"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IWrbtcERC20.sol": {
+        "keccak256": "0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5",
+        "urls": [
+          "bzz-raw://12d22b4d1e74d95f82d2bc84b5e3c978e2341cb7a1b8fc383b64aaef59f13a00",
+          "dweb:/ipfs/QmZkPrztJ5nwiKKudgz8aWX6kk3YHKCtmxJndMvV1NJuS6"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Address.sol": {
+        "keccak256": "0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54",
+        "urls": [
+          "bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3",
+          "dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Context.sol": {
+        "keccak256": "0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b",
+        "urls": [
+          "bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826",
+          "dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Ownable.sol": {
+        "keccak256": "0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a",
+        "urls": [
+          "bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a",
+          "dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/SafeMath.sol": {
+        "keccak256": "0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8",
+        "urls": [
+          "bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719",
+          "dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/feeds/USDTPriceFeed.sol",
+    "id": 11839,
+    "exportedSymbols": {
+      "USDTPriceFeed": [
+        11838
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:783:49",
+    "nodes": [
+      {
+        "id": 11815,
+        "nodeType": "PragmaDirective",
+        "src": "0:23:49",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 11816,
+        "nodeType": "ImportDirective",
+        "src": "25:26:49",
+        "nodes": [],
+        "absolutePath": "contracts/feeds/PriceFeeds.sol",
+        "file": "./PriceFeeds.sol",
+        "scope": 11839,
+        "sourceUnit": 11745,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 11838,
+        "nodeType": "ContractDefinition",
+        "src": "260:522:49",
+        "nodes": [
+          {
+            "id": 11821,
+            "nodeType": "VariableDeclaration",
+            "src": "307:44:49",
+            "nodes": [],
+            "constant": true,
+            "name": "USDT_RATE",
+            "scope": 11838,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 11819,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "307:7:49",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "31",
+              "id": 11820,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "344:7:49",
+              "subdenomination": "ether",
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_1000000000000000000_by_1",
+                "typeString": "int_const 1000000000000000000"
+              },
+              "value": "1"
+            },
+            "visibility": "private"
+          },
+          {
+            "id": 11829,
+            "nodeType": "FunctionDefinition",
+            "src": "471:89:49",
+            "nodes": [],
+            "body": {
+              "id": 11828,
+              "nodeType": "Block",
+              "src": "527:33:49",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 11826,
+                    "name": "USDT_RATE",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 11821,
+                    "src": "544:9:49",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 11825,
+                  "id": 11827,
+                  "nodeType": "Return",
+                  "src": "537:16:49"
+                }
+              ]
+            },
+            "documentation": "@notice Get the USDT price.\n     * @return Always returns the trivial rate of 1.\n",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "latestAnswer",
+            "parameters": {
+              "id": 11822,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "492:2:49"
+            },
+            "returnParameters": {
+              "id": 11825,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11824,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11829,
+                  "src": "518:7:49",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 11823,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "518:7:49",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "517:9:49"
+            },
+            "scope": 11838,
+            "stateMutability": "view",
+            "superFunction": 10869,
+            "visibility": "external"
+          },
+          {
+            "id": 11837,
+            "nodeType": "FunctionDefinition",
+            "src": "694:86:49",
+            "nodes": [],
+            "body": {
+              "id": 11836,
+              "nodeType": "Block",
+              "src": "753:27:49",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 11834,
+                    "name": "now",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 62894,
+                    "src": "770:3:49",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 11833,
+                  "id": 11835,
+                  "nodeType": "Return",
+                  "src": "763:10:49"
+                }
+              ]
+            },
+            "documentation": "@notice Get the las time the price was updated.\n@return Always trivial current block's timestamp.",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "latestTimestamp",
+            "parameters": {
+              "id": 11830,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "718:2:49"
+            },
+            "returnParameters": {
+              "id": 11833,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 11832,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 11837,
+                  "src": "744:7:49",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 11831,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "744:7:49",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "743:9:49"
+            },
+            "scope": 11838,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 11817,
+              "name": "IPriceFeedsExt",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 10870,
+              "src": "286:14:49",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IPriceFeedsExt_$10870",
+                "typeString": "contract IPriceFeedsExt"
+              }
+            },
+            "id": 11818,
+            "nodeType": "InheritanceSpecifier",
+            "src": "286:14:49"
+          }
+        ],
+        "contractDependencies": [
+          10870
+        ],
+        "contractKind": "contract",
+        "documentation": "@notice The Price Feed USDT contract.\n * This contract implements USDT query functionality,\ngetting the price and the last timestamp from a\ntrivial formula, always returning 1 and now.\n",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          11838,
+          10870
+        ],
+        "name": "USDTPriceFeed",
+        "scope": 11839
+      }
+    ]
+  },
+  "id": 49
+}

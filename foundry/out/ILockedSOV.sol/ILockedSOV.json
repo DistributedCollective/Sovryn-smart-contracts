@@ -1,0 +1,905 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "cliff",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_userAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_sovAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_basisPoint",
+          "type": "uint256"
+        }
+      ],
+      "name": "deposit",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_userAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_sovAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "depositSOV",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "duration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_addr",
+          "type": "address"
+        }
+      ],
+      "name": "getLockedBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_balance",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_addr",
+          "type": "address"
+        }
+      ],
+      "name": "getUnlockedBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_balance",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_userAddress",
+          "type": "address"
+        }
+      ],
+      "name": "withdrawAndStakeTokensFrom",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "cliff()": "13d033c0",
+    "deposit(address,uint256,uint256)": "0efe6a8b",
+    "depositSOV(address,uint256)": "f33bf9a1",
+    "duration()": "0fb5a6b4",
+    "getLockedBalance(address)": "c4086893",
+    "getUnlockedBalance(address)": "129de5bf",
+    "withdrawAndStakeTokensFrom(address)": "2b6df82a"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"cliff\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_sovAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_basisPoint\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_sovAmount\",\"type\":\"uint256\"}],\"name\":\"depositSOV\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_addr\",\"type\":\"address\"}],\"name\":\"getLockedBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_balance\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_addr\",\"type\":\"address\"}],\"name\":\"getUnlockedBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_balance\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userAddress\",\"type\":\"address\"}],\"name\":\"withdrawAndStakeTokensFrom\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Franklin Richards - powerhousefrank@protonmail.com\",\"details\":\"Only use it if you know what you are doing.\",\"methods\":{\"deposit(address,uint256,uint256)\":{\"params\":{\"_basisPoint\":\"The % (in Basis Point)which determines how much will be unlocked immediately.\",\"_sovAmount\":\"The amount of SOV to be added to the locked and/or unlocked balance.\",\"_userAddress\":\"The user whose locked balance has to be updated with `_sovAmount`.\"}},\"depositSOV(address,uint256)\":{\"params\":{\"_sovAmount\":\"The amount of SOV to be added to the locked balance.\",\"_userAddress\":\"The user whose locked balance has to be updated with _sovAmount.\"}},\"withdrawAndStakeTokensFrom(address)\":{\"params\":{\"_userAddress\":\"The address of user tokens will be withdrawn.\"}}},\"title\":\"The Locked SOV Interface.\"},\"userdoc\":{\"methods\":{\"deposit(address,uint256,uint256)\":{\"notice\":\"Adds SOV to the user balance (Locked and Unlocked Balance based on `_basisPoint`).\"},\"depositSOV(address,uint256)\":{\"notice\":\"Adds SOV to the locked balance of a user.\"},\"withdrawAndStakeTokensFrom(address)\":{\"notice\":\"Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.\"}},\"notice\":\"This interface is an incomplete yet useful for future migration of LockedSOV Contract.\"}},\"settings\":{\"compilationTarget\":{\"contracts/locked/ILockedSOV.sol\":\"ILockedSOV\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/locked/ILockedSOV.sol\":{\"keccak256\":\"0x2ecf9d6c3704b4210b86d15a35650b34a1c44d0fb57795668fd2b2b4eab6104f\",\"urls\":[\"bzz-raw://eaaa0dffb62e76ea397dc90b6a9e5ba497950ee1e57a97e6537a5b02ee045312\",\"dweb:/ipfs/QmaihaZugWsrSQttSprvThscmPrFhUj4gxTry94TNMx386\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "cliff",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_userAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_sovAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_basisPoint",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "deposit"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_userAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_sovAmount",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "depositSOV"
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "duration",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_addr",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "getLockedBalance",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "_balance",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_addr",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "getUnlockedBalance",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "_balance",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_userAddress",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "withdrawAndStakeTokensFrom"
+        }
+      ],
+      "devdoc": {
+        "methods": {
+          "deposit(address,uint256,uint256)": {
+            "params": {
+              "_basisPoint": "The % (in Basis Point)which determines how much will be unlocked immediately.",
+              "_sovAmount": "The amount of SOV to be added to the locked and/or unlocked balance.",
+              "_userAddress": "The user whose locked balance has to be updated with `_sovAmount`."
+            }
+          },
+          "depositSOV(address,uint256)": {
+            "params": {
+              "_sovAmount": "The amount of SOV to be added to the locked balance.",
+              "_userAddress": "The user whose locked balance has to be updated with _sovAmount."
+            }
+          },
+          "withdrawAndStakeTokensFrom(address)": {
+            "params": {
+              "_userAddress": "The address of user tokens will be withdrawn."
+            }
+          }
+        }
+      },
+      "userdoc": {
+        "methods": {
+          "deposit(address,uint256,uint256)": {
+            "notice": "Adds SOV to the user balance (Locked and Unlocked Balance based on `_basisPoint`)."
+          },
+          "depositSOV(address,uint256)": {
+            "notice": "Adds SOV to the locked balance of a user."
+          },
+          "withdrawAndStakeTokensFrom(address)": {
+            "notice": "Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created."
+          }
+        }
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/locked/ILockedSOV.sol": "ILockedSOV"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/locked/ILockedSOV.sol": {
+        "keccak256": "0x2ecf9d6c3704b4210b86d15a35650b34a1c44d0fb57795668fd2b2b4eab6104f",
+        "urls": [
+          "bzz-raw://eaaa0dffb62e76ea397dc90b6a9e5ba497950ee1e57a97e6537a5b02ee045312",
+          "dweb:/ipfs/QmaihaZugWsrSQttSprvThscmPrFhUj4gxTry94TNMx386"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/locked/ILockedSOV.sol",
+    "id": 34084,
+    "exportedSymbols": {
+      "ILockedSOV": [
+        34083
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:1727:116",
+    "nodes": [
+      {
+        "id": 34037,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:116",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 34083,
+        "nodeType": "ContractDefinition",
+        "src": "286:1440:116",
+        "nodes": [
+          {
+            "id": 34046,
+            "nodeType": "FunctionDefinition",
+            "src": "719:119:116",
+            "nodes": [],
+            "documentation": "@notice Adds SOV to the user balance (Locked and Unlocked Balance based on `_basisPoint`).\n@param _userAddress The user whose locked balance has to be updated with `_sovAmount`.\n@param _sovAmount The amount of SOV to be added to the locked and/or unlocked balance.\n@param _basisPoint The % (in Basis Point)which determines how much will be unlocked immediately.",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "deposit",
+            "parameters": {
+              "id": 34044,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 34039,
+                  "name": "_userAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34046,
+                  "src": "745:20:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 34038,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "745:7:116",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 34041,
+                  "name": "_sovAmount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34046,
+                  "src": "775:18:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 34040,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "775:7:116",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 34043,
+                  "name": "_basisPoint",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34046,
+                  "src": "803:19:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 34042,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "803:7:116",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "735:93:116"
+            },
+            "returnParameters": {
+              "id": 34045,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "837:0:116"
+            },
+            "scope": 34083,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 34053,
+            "nodeType": "FunctionDefinition",
+            "src": "1087:71:116",
+            "nodes": [],
+            "documentation": "@notice Adds SOV to the locked balance of a user.\n@param _userAddress The user whose locked balance has to be updated with _sovAmount.\n@param _sovAmount The amount of SOV to be added to the locked balance.",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "depositSOV",
+            "parameters": {
+              "id": 34051,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 34048,
+                  "name": "_userAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34053,
+                  "src": "1107:20:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 34047,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1107:7:116",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 34050,
+                  "name": "_sovAmount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34053,
+                  "src": "1129:18:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 34049,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1129:7:116",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1106:42:116"
+            },
+            "returnParameters": {
+              "id": 34052,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1157:0:116"
+            },
+            "scope": 34083,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 34058,
+            "nodeType": "FunctionDefinition",
+            "src": "1366:67:116",
+            "nodes": [],
+            "documentation": "@notice Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.\n@param _userAddress The address of user tokens will be withdrawn.",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "withdrawAndStakeTokensFrom",
+            "parameters": {
+              "id": 34056,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 34055,
+                  "name": "_userAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34058,
+                  "src": "1402:20:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 34054,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1402:7:116",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1401:22:116"
+            },
+            "returnParameters": {
+              "id": 34057,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1432:0:116"
+            },
+            "scope": 34083,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 34063,
+            "nodeType": "FunctionDefinition",
+            "src": "1439:49:116",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "cliff",
+            "parameters": {
+              "id": 34059,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1453:2:116"
+            },
+            "returnParameters": {
+              "id": 34062,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 34061,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34063,
+                  "src": "1479:7:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 34060,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1479:7:116",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1478:9:116"
+            },
+            "scope": 34083,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 34068,
+            "nodeType": "FunctionDefinition",
+            "src": "1494:52:116",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "duration",
+            "parameters": {
+              "id": 34064,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1511:2:116"
+            },
+            "returnParameters": {
+              "id": 34067,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 34066,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34068,
+                  "src": "1537:7:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 34065,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1537:7:116",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1536:9:116"
+            },
+            "scope": 34083,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 34075,
+            "nodeType": "FunctionDefinition",
+            "src": "1552:82:116",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getLockedBalance",
+            "parameters": {
+              "id": 34071,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 34070,
+                  "name": "_addr",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34075,
+                  "src": "1578:13:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 34069,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1578:7:116",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1577:15:116"
+            },
+            "returnParameters": {
+              "id": 34074,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 34073,
+                  "name": "_balance",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34075,
+                  "src": "1616:16:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 34072,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1616:7:116",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1615:18:116"
+            },
+            "scope": 34083,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 34082,
+            "nodeType": "FunctionDefinition",
+            "src": "1640:84:116",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getUnlockedBalance",
+            "parameters": {
+              "id": 34078,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 34077,
+                  "name": "_addr",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34082,
+                  "src": "1668:13:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 34076,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1668:7:116",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1667:15:116"
+            },
+            "returnParameters": {
+              "id": 34081,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 34080,
+                  "name": "_balance",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 34082,
+                  "src": "1706:16:116",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 34079,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1706:7:116",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1705:18:116"
+            },
+            "scope": 34083,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": " @title The Locked SOV Interface.\n @author Franklin Richards - powerhousefrank@protonmail.com\n @notice This interface is an incomplete yet useful for future migration of LockedSOV Contract.\n @dev Only use it if you know what you are doing.",
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          34083
+        ],
+        "name": "ILockedSOV",
+        "scope": 34084
+      }
+    ]
+  },
+  "id": 116
+}

@@ -1,0 +1,359 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "borrowInterestRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "tokenPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "price",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "totalAssetSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "borrowInterestRate()": "8325a1c0",
+    "tokenPrice()": "7ff9b596",
+    "totalAssetSupply()": "8fb807c5"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"borrowInterestRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"tokenPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"totalAssetSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/interfaces/ILoanPool.sol\":\"ILoanPool\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/interfaces/ILoanPool.sol\":{\"keccak256\":\"0x78945a97739554b1241d0bf972a3d292de4193145b17475e9f2a8f05e6d8df30\",\"urls\":[\"bzz-raw://041bda31706b1e1eed9b71d0c3eb02144d18dc446fbf047ff3509047075ad93a\",\"dweb:/ipfs/QmQGmdjSuQvhQhbNN8tLrRh5bHwQC641Yiyy63AqFYeFj2\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "borrowInterestRate",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "tokenPrice",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "price",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "totalAssetSupply",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/interfaces/ILoanPool.sol": "ILoanPool"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/interfaces/ILoanPool.sol": {
+        "keccak256": "0x78945a97739554b1241d0bf972a3d292de4193145b17475e9f2a8f05e6d8df30",
+        "urls": [
+          "bzz-raw://041bda31706b1e1eed9b71d0c3eb02144d18dc446fbf047ff3509047075ad93a",
+          "dweb:/ipfs/QmQGmdjSuQvhQhbNN8tLrRh5bHwQC641Yiyy63AqFYeFj2"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/interfaces/ILoanPool.sol",
+    "id": 32511,
+    "exportedSymbols": {
+      "ILoanPool": [
+        32510
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "118:256:110",
+    "nodes": [
+      {
+        "id": 32494,
+        "nodeType": "PragmaDirective",
+        "src": "118:31:110",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          ">=",
+          "0.5",
+          ".0",
+          "<",
+          "0.6",
+          ".0"
+        ]
+      },
+      {
+        "id": 32510,
+        "nodeType": "ContractDefinition",
+        "src": "151:222:110",
+        "nodes": [
+          {
+            "id": 32499,
+            "nodeType": "FunctionDefinition",
+            "src": "177:60:110",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "tokenPrice",
+            "parameters": {
+              "id": 32495,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "196:2:110"
+            },
+            "returnParameters": {
+              "id": 32498,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32497,
+                  "name": "price",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32499,
+                  "src": "222:13:110",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32496,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "222:7:110",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "221:15:110"
+            },
+            "scope": 32510,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 32504,
+            "nodeType": "FunctionDefinition",
+            "src": "243:62:110",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "borrowInterestRate",
+            "parameters": {
+              "id": 32500,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "270:2:110"
+            },
+            "returnParameters": {
+              "id": 32503,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32502,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32504,
+                  "src": "296:7:110",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32501,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "296:7:110",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "295:9:110"
+            },
+            "scope": 32510,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 32509,
+            "nodeType": "FunctionDefinition",
+            "src": "311:60:110",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "totalAssetSupply",
+            "parameters": {
+              "id": 32505,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "336:2:110"
+            },
+            "returnParameters": {
+              "id": 32508,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32507,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32509,
+                  "src": "362:7:110",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32506,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "362:7:110",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "361:9:110"
+            },
+            "scope": 32510,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": null,
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          32510
+        ],
+        "name": "ILoanPool",
+        "scope": 32511
+      }
+    ]
+  },
+  "id": 110
+}

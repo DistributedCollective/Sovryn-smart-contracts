@@ -1,0 +1,852 @@
+{
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "SOV",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "cliff",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "duration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "endDate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "feeSharingCollector",
+      "outputs": [
+        {
+          "internalType": "contract IFeeSharingCollector",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "staking",
+      "outputs": [
+        {
+          "internalType": "contract IStaking",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "startDate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "tokenOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405260006100176001600160e01b0361006616565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a35061006a565b3390565b610342806100796000396000f3fe608060405234801561001057600080fd5b50600436106100a95760003560e01c80636b7dbb2d116100715780636b7dbb2d146101045780638da5cb5b1461010c5780638f32d59b14610114578063a3e6761014610130578063c24a0f8b14610138578063f2fde38b14610140576100a9565b806308dcb360146100ae5780630b97bc86146100d25780630fb5a6b4146100ec57806313d033c0146100f45780634cf088d9146100fc575b600080fd5b6100b6610168565b604080516001600160a01b039092168252519081900360200190f35b6100da610177565b60408051918252519081900360200190f35b6100da61017d565b6100da610183565b6100b6610189565b6100b6610198565b6100b66101a7565b61011c6101b6565b604080519115158252519081900360200190f35b6100b66101da565b6100da6101e9565b6101666004803603602081101561015657600080fd5b50356001600160a01b03166101ef565b005b6001546001600160a01b031681565b60075481565b60065481565b60055481565b6002546001600160a01b031681565b6004546001600160a01b031681565b6000546001600160a01b031690565b600080546001600160a01b03166101cb610243565b6001600160a01b031614905090565b6003546001600160a01b031681565b60085481565b6101f76101b6565b610237576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61024081610247565b50565b3390565b6001600160a01b03811661028c5760405162461bcd60e51b81526004018080602001828103825260268152602001806102e86026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a7231582048055e7f509707960d9654aa7f94e8d4e62e335d408e0ba44084eae0aad0767764736f6c63430005110032",
+    "sourceMap": "447:824:97:-;;;701:17:184;721:12;-1:-1:-1;;;;;721:10:184;:12;:::i;:::-;743:6;:18;;-1:-1:-1;;;;;;743:18:184;-1:-1:-1;;;;;743:18:184;;;;;;;776:43;;743:18;;-1:-1:-1;743:18:184;776:43;;743:6;;776:43;668:158;447:824:97;;795:96:179;874:10;795:96;:::o;447:824:97:-;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b50600436106100a95760003560e01c80636b7dbb2d116100715780636b7dbb2d146101045780638da5cb5b1461010c5780638f32d59b14610114578063a3e6761014610130578063c24a0f8b14610138578063f2fde38b14610140576100a9565b806308dcb360146100ae5780630b97bc86146100d25780630fb5a6b4146100ec57806313d033c0146100f45780634cf088d9146100fc575b600080fd5b6100b6610168565b604080516001600160a01b039092168252519081900360200190f35b6100da610177565b60408051918252519081900360200190f35b6100da61017d565b6100da610183565b6100b6610189565b6100b6610198565b6100b66101a7565b61011c6101b6565b604080519115158252519081900360200190f35b6100b66101da565b6100da6101e9565b6101666004803603602081101561015657600080fd5b50356001600160a01b03166101ef565b005b6001546001600160a01b031681565b60075481565b60065481565b60055481565b6002546001600160a01b031681565b6004546001600160a01b031681565b6000546001600160a01b031690565b600080546001600160a01b03166101cb610243565b6001600160a01b031614905090565b6003546001600160a01b031681565b60085481565b6101f76101b6565b610237576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61024081610247565b50565b3390565b6001600160a01b03811661028c5760405162461bcd60e51b81526004018080602001828103825260268152602001806102e86026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a7231582048055e7f509707960d9654aa7f94e8d4e62e335d408e0ba44084eae0aad0767764736f6c63430005110032",
+    "sourceMap": "447:824:97:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;447:824:97;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;528:17;;;:::i;:::-;;;;-1:-1:-1;;;;;528:17:97;;;;;;;;;;;;;;1063:24;;;:::i;:::-;;;;;;;;;;;;;;;;986:23;;;:::i;875:20::-;;;:::i;598:23::-;;;:::i;743:47::-;;;:::i;902:77:184:-;;;:::i;1233:92::-;;;:::i;:::-;;;;;;;;;;;;;;;;;;676:25:97;;;:::i;1139:22::-;;;:::i;1474:107:184:-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1474:107:184;-1:-1:-1;;;;;1474:107:184;;:::i;:::-;;528:17:97;;;-1:-1:-1;;;;;528:17:97;;:::o;1063:24::-;;;;:::o;986:23::-;;;;:::o;875:20::-;;;;:::o;598:23::-;;;-1:-1:-1;;;;;598:23:97;;:::o;743:47::-;;;-1:-1:-1;;;;;743:47:97;;:::o;902:77:184:-;940:7;966:6;-1:-1:-1;;;;;966:6:184;902:77;:::o;1233:92::-;1273:4;1312:6;;-1:-1:-1;;;;;1312:6:184;1296:12;:10;:12::i;:::-;-1:-1:-1;;;;;1296:22:184;;1289:29;;1233:92;:::o;676:25:97:-;;;-1:-1:-1;;;;;676:25:97;;:::o;1139:22::-;;;;:::o;1474:107:184:-;1106:9;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;1546:28;1565:8;1546:18;:28::i;:::-;1474:107;:::o;795:96:179:-;874:10;795:96;:::o;1682:225:184:-;-1:-1:-1;;;;;1755:22:184;;1747:73;;;;-1:-1:-1;;;1747:73:184;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1856:6;;;1835:38;;-1:-1:-1;;;;;1835:38:184;;;;1856:6;;;1835:38;;;1883:6;:17;;-1:-1:-1;;;;;;1883:17:184;-1:-1:-1;;;;;1883:17:184;;;;;;;;;;1682:225::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "SOV()": "08dcb360",
+    "cliff()": "13d033c0",
+    "duration()": "0fb5a6b4",
+    "endDate()": "c24a0f8b",
+    "feeSharingCollector()": "6b7dbb2d",
+    "isOwner()": "8f32d59b",
+    "owner()": "8da5cb5b",
+    "staking()": "4cf088d9",
+    "startDate()": "0b97bc86",
+    "tokenOwner()": "a3e67610",
+    "transferOwnership(address)": "f2fde38b"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOV\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"cliff\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"endDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"feeSharingCollector\",\"outputs\":[{\"internalType\":\"contract IFeeSharingCollector\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"staking\",\"outputs\":[{\"internalType\":\"contract IStaking\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"startDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"tokenOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Use Ownable as a parent to align storage structure for Logic and Proxy contracts.\",\"methods\":{\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Vesting Storage Contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract is just the storage required for vesting. It is parent of VestingLogic and TeamVesting.\"}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/VestingStorage.sol\":\"VestingStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/IFeeSharingCollector.sol\":{\"keccak256\":\"0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40\",\"urls\":[\"bzz-raw://b9ed75fd4b75f120ed265e7b69d86ce6e62388a50f38058e2fa34f5ea3ffcc2e\",\"dweb:/ipfs/QmZbMA6F4FxhcAT4zTc521LLRbZxFVVuD3zzj981awpDmp\"]},\"contracts/governance/Staking/interfaces/IStaking.sol\":{\"keccak256\":\"0x6777e38b4bd5a63e10f3bf7aba355401713bb649811c6dfa1bda40ebd8fee30b\",\"urls\":[\"bzz-raw://676e42641fb1d335dde7bb928779014ff2adf1eb1121f48a4a48e36f571287d4\",\"dweb:/ipfs/QmamokattcaQ6gRGaqUDVZejcv4rridScd9nayGcxxW1BL\"]},\"contracts/governance/Vesting/VestingStorage.sol\":{\"keccak256\":\"0xf70f579d357d8f0aa0839824c1a1d66713c3cd42a58118d2893a35b52baaa140\",\"urls\":[\"bzz-raw://6dba4104db55195a6c46c9aa5121906f09c7db3afbf59bc57ebf4c32301494b5\",\"dweb:/ipfs/QmV1wc6N2Uh5poLXbQC75yr7QP4MdGHsASgxn2mydXHKk1\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "previousOwner",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address",
+              "indexed": true
+            }
+          ],
+          "type": "event",
+          "name": "OwnershipTransferred",
+          "anonymous": false
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "SOV",
+          "outputs": [
+            {
+              "internalType": "contract IERC20",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "cliff",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "duration",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "endDate",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "feeSharingCollector",
+          "outputs": [
+            {
+              "internalType": "contract IFeeSharingCollector",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "isOwner",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "owner",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "staking",
+          "outputs": [
+            {
+              "internalType": "contract IStaking",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "startDate",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "tokenOwner",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "transferOwnership"
+        }
+      ],
+      "devdoc": {
+        "methods": {
+          "isOwner()": {
+            "details": "Returns true if the caller is the current owner."
+          },
+          "owner()": {
+            "details": "Returns the address of the current owner."
+          },
+          "transferOwnership(address)": {
+            "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+          }
+        }
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/governance/Vesting/VestingStorage.sol": "VestingStorage"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/governance/IFeeSharingCollector.sol": {
+        "keccak256": "0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40",
+        "urls": [
+          "bzz-raw://b9ed75fd4b75f120ed265e7b69d86ce6e62388a50f38058e2fa34f5ea3ffcc2e",
+          "dweb:/ipfs/QmZbMA6F4FxhcAT4zTc521LLRbZxFVVuD3zzj981awpDmp"
+        ],
+        "license": null
+      },
+      "contracts/governance/Staking/interfaces/IStaking.sol": {
+        "keccak256": "0x6777e38b4bd5a63e10f3bf7aba355401713bb649811c6dfa1bda40ebd8fee30b",
+        "urls": [
+          "bzz-raw://676e42641fb1d335dde7bb928779014ff2adf1eb1121f48a4a48e36f571287d4",
+          "dweb:/ipfs/QmamokattcaQ6gRGaqUDVZejcv4rridScd9nayGcxxW1BL"
+        ],
+        "license": null
+      },
+      "contracts/governance/Vesting/VestingStorage.sol": {
+        "keccak256": "0xf70f579d357d8f0aa0839824c1a1d66713c3cd42a58118d2893a35b52baaa140",
+        "urls": [
+          "bzz-raw://6dba4104db55195a6c46c9aa5121906f09c7db3afbf59bc57ebf4c32301494b5",
+          "dweb:/ipfs/QmV1wc6N2Uh5poLXbQC75yr7QP4MdGHsASgxn2mydXHKk1"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IERC20.sol": {
+        "keccak256": "0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855",
+        "urls": [
+          "bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40",
+          "dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Context.sol": {
+        "keccak256": "0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b",
+        "urls": [
+          "bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826",
+          "dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Ownable.sol": {
+        "keccak256": "0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a",
+        "urls": [
+          "bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a",
+          "dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/governance/Vesting/VestingStorage.sol",
+    "id": 31028,
+    "exportedSymbols": {
+      "VestingStorage": [
+        31027
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:1272:97",
+    "nodes": [
+      {
+        "id": 31001,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:97",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 31002,
+        "nodeType": "ImportDirective",
+        "src": "26:40:97",
+        "nodes": [],
+        "absolutePath": "contracts/openzeppelin/Ownable.sol",
+        "file": "../../openzeppelin/Ownable.sol",
+        "scope": 31028,
+        "sourceUnit": 55145,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 31003,
+        "nodeType": "ImportDirective",
+        "src": "67:37:97",
+        "nodes": [],
+        "absolutePath": "contracts/interfaces/IERC20.sol",
+        "file": "../../interfaces/IERC20.sol",
+        "scope": 31028,
+        "sourceUnit": 32312,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 31004,
+        "nodeType": "ImportDirective",
+        "src": "105:44:97",
+        "nodes": [],
+        "absolutePath": "contracts/governance/Staking/interfaces/IStaking.sol",
+        "file": "../Staking/interfaces/IStaking.sol",
+        "scope": 31028,
+        "sourceUnit": 16883,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 31005,
+        "nodeType": "ImportDirective",
+        "src": "150:37:97",
+        "nodes": [],
+        "absolutePath": "contracts/governance/IFeeSharingCollector.sol",
+        "file": "../IFeeSharingCollector.sol",
+        "scope": 31028,
+        "sourceUnit": 16048,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 31027,
+        "nodeType": "ContractDefinition",
+        "src": "447:824:97",
+        "nodes": [
+          {
+            "id": 31009,
+            "nodeType": "VariableDeclaration",
+            "src": "528:17:97",
+            "nodes": [],
+            "constant": false,
+            "name": "SOV",
+            "scope": 31027,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_contract$_IERC20_$32311",
+              "typeString": "contract IERC20"
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 31008,
+              "name": "IERC20",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 32311,
+              "src": "528:6:97",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IERC20_$32311",
+                "typeString": "contract IERC20"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 31011,
+            "nodeType": "VariableDeclaration",
+            "src": "598:23:97",
+            "nodes": [],
+            "constant": false,
+            "name": "staking",
+            "scope": 31027,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_contract$_IStaking_$16882",
+              "typeString": "contract IStaking"
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 31010,
+              "name": "IStaking",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 16882,
+              "src": "598:8:97",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IStaking_$16882",
+                "typeString": "contract IStaking"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 31013,
+            "nodeType": "VariableDeclaration",
+            "src": "676:25:97",
+            "nodes": [],
+            "constant": false,
+            "name": "tokenOwner",
+            "scope": 31027,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_address",
+              "typeString": "address"
+            },
+            "typeName": {
+              "id": 31012,
+              "name": "address",
+              "nodeType": "ElementaryTypeName",
+              "src": "676:7:97",
+              "stateMutability": "nonpayable",
+              "typeDescriptions": {
+                "typeIdentifier": "t_address",
+                "typeString": "address"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 31015,
+            "nodeType": "VariableDeclaration",
+            "src": "743:47:97",
+            "nodes": [],
+            "constant": false,
+            "name": "feeSharingCollector",
+            "scope": 31027,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_contract$_IFeeSharingCollector_$16047",
+              "typeString": "contract IFeeSharingCollector"
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 31014,
+              "name": "IFeeSharingCollector",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 16047,
+              "src": "743:20:97",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IFeeSharingCollector_$16047",
+                "typeString": "contract IFeeSharingCollector"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 31017,
+            "nodeType": "VariableDeclaration",
+            "src": "875:20:97",
+            "nodes": [],
+            "constant": false,
+            "name": "cliff",
+            "scope": 31027,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 31016,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "875:7:97",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 31019,
+            "nodeType": "VariableDeclaration",
+            "src": "986:23:97",
+            "nodes": [],
+            "constant": false,
+            "name": "duration",
+            "scope": 31027,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 31018,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "986:7:97",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 31021,
+            "nodeType": "VariableDeclaration",
+            "src": "1063:24:97",
+            "nodes": [],
+            "constant": false,
+            "name": "startDate",
+            "scope": 31027,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 31020,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "1063:7:97",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 31023,
+            "nodeType": "VariableDeclaration",
+            "src": "1139:22:97",
+            "nodes": [],
+            "constant": false,
+            "name": "endDate",
+            "scope": 31027,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 31022,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "1139:7:97",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 31026,
+            "nodeType": "VariableDeclaration",
+            "src": "1231:37:97",
+            "nodes": [],
+            "constant": true,
+            "name": "FOUR_WEEKS",
+            "scope": 31027,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 31024,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "1231:7:97",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "34",
+              "id": 31025,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "1261:7:97",
+              "subdenomination": "weeks",
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_2419200_by_1",
+                "typeString": "int_const 2419200"
+              },
+              "value": "4"
+            },
+            "visibility": "internal"
+          }
+        ],
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 31006,
+              "name": "Ownable",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 55144,
+              "src": "474:7:97",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Ownable_$55144",
+                "typeString": "contract Ownable"
+              }
+            },
+            "id": 31007,
+            "nodeType": "InheritanceSpecifier",
+            "src": "474:7:97"
+          }
+        ],
+        "contractDependencies": [
+          54471,
+          55144
+        ],
+        "contractKind": "contract",
+        "documentation": "@title Vesting Storage Contract.\n * @notice This contract is just the storage required for vesting.\nIt is parent of VestingLogic and TeamVesting.\n * @dev Use Ownable as a parent to align storage structure for Logic and Proxy contracts.\n",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          31027,
+          55144,
+          54471
+        ],
+        "name": "VestingStorage",
+        "scope": 31028
+      }
+    ]
+  },
+  "id": 97
+}

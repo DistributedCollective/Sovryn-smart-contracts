@@ -1,0 +1,452 @@
+{
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_SOV",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_staking",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_tokenOwner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_feeSharing",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_vestingOwnerMultisig",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_fourYearVestingLogic",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_extendDurationFor",
+          "type": "uint256"
+        }
+      ],
+      "name": "deployFourYearVesting",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "deployFourYearVesting(address,address,address,address,address,address,uint256)": "e2be85c1"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_SOV\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_staking\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_tokenOwner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_feeSharing\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_vestingOwnerMultisig\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_fourYearVestingLogic\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_extendDurationFor\",\"type\":\"uint256\"}],\"name\":\"deployFourYearVesting\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interfaces are used to cast a contract address into a callable instance. This interface is used by FourYearVestingFactory contract to override empty implemention of deployFourYearVesting function and use an instance of FourYearVestingFactory.\",\"methods\":{},\"title\":\"Interface for Four Year Vesting Factory contract.\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/fouryear/IFourYearVestingFactory.sol\":\"IFourYearVestingFactory\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/Vesting/fouryear/IFourYearVestingFactory.sol\":{\"keccak256\":\"0x539d84d837576aa6c63904d0d0f76d3a08262b29cf4bc8d1c5efbe46035d9bac\",\"urls\":[\"bzz-raw://833cbf6bf1fb5733b5b2c6be3b069b75e19219e2a84f8a65622f752314b276be\",\"dweb:/ipfs/Qmd8bkpzkRr6J9oZqa2EdWN87aWCNSn5ERQYQH56p7zk8Y\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_SOV",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_staking",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_tokenOwner",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_feeSharing",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_vestingOwnerMultisig",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_fourYearVestingLogic",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_extendDurationFor",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "deployFourYearVesting",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/governance/Vesting/fouryear/IFourYearVestingFactory.sol": "IFourYearVestingFactory"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/governance/Vesting/fouryear/IFourYearVestingFactory.sol": {
+        "keccak256": "0x539d84d837576aa6c63904d0d0f76d3a08262b29cf4bc8d1c5efbe46035d9bac",
+        "urls": [
+          "bzz-raw://833cbf6bf1fb5733b5b2c6be3b069b75e19219e2a84f8a65622f752314b276be",
+          "dweb:/ipfs/Qmd8bkpzkRr6J9oZqa2EdWN87aWCNSn5ERQYQH56p7zk8Y"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/governance/Vesting/fouryear/IFourYearVestingFactory.sol",
+    "id": 32173,
+    "exportedSymbols": {
+      "IFourYearVestingFactory": [
+        32172
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:681:103",
+    "nodes": [
+      {
+        "id": 32152,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:103",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 32172,
+        "nodeType": "ContractDefinition",
+        "src": "354:326:103",
+        "nodes": [
+          {
+            "id": 32171,
+            "nodeType": "FunctionDefinition",
+            "src": "394:284:103",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "deployFourYearVesting",
+            "parameters": {
+              "id": 32167,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32154,
+                  "name": "_SOV",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32171,
+                  "src": "434:12:103",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32153,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "434:7:103",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32156,
+                  "name": "_staking",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32171,
+                  "src": "456:16:103",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32155,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "456:7:103",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32158,
+                  "name": "_tokenOwner",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32171,
+                  "src": "482:19:103",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32157,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "482:7:103",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32160,
+                  "name": "_feeSharing",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32171,
+                  "src": "511:19:103",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32159,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "511:7:103",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32162,
+                  "name": "_vestingOwnerMultisig",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32171,
+                  "src": "540:29:103",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32161,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "540:7:103",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32164,
+                  "name": "_fourYearVestingLogic",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32171,
+                  "src": "579:29:103",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32163,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "579:7:103",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32166,
+                  "name": "_extendDurationFor",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32171,
+                  "src": "618:26:103",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32165,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "618:7:103",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "424:226:103"
+            },
+            "returnParameters": {
+              "id": 32170,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32169,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32171,
+                  "src": "669:7:103",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32168,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "669:7:103",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "668:9:103"
+            },
+            "scope": 32172,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": "@title Interface for Four Year Vesting Factory contract.\n@dev Interfaces are used to cast a contract address into a callable instance.\nThis interface is used by FourYearVestingFactory contract to override empty\nimplemention of deployFourYearVesting function\nand use an instance of FourYearVestingFactory.",
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          32172
+        ],
+        "name": "IFourYearVestingFactory",
+        "scope": 32173
+      }
+    ]
+  },
+  "id": 103
+}

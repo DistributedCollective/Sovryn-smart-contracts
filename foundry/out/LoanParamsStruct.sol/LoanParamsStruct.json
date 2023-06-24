@@ -1,0 +1,326 @@
+{
+  "abi": [],
+  "bytecode": {
+    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a7231582030c6372c9e27221694c236e4d261281d9a5815dd1b2c77f07951e9a72c40c0b164736f6c63430005110032",
+    "sourceMap": "417:786:21:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;417:786:21;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052600080fdfea265627a7a7231582030c6372c9e27221694c236e4d261281d9a5815dd1b2c77f07951e9a72c40c0b164736f6c63430005110032",
+    "sourceMap": "417:786:21:-;;;;;",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {},
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{},\"title\":\"The Loan Parameters.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * This contract contains the storage structure of the Loan Parameters.\"}},\"settings\":{\"compilationTarget\":{\"contracts/core/objects/LoanParamsStruct.sol\":\"LoanParamsStruct\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/core/objects/LoanParamsStruct.sol\":{\"keccak256\":\"0xe15aa97713521da7f501e5225af9d92cf34bd68d286dbfed86aa75aabb323945\",\"urls\":[\"bzz-raw://8ffbf11735ac26f4c1cc8c3403b8b98519cff9a5a16bf690e1c7a8a29449aa39\",\"dweb:/ipfs/QmX6J85sDNbu5Mh553oQNkfNoPRd79sHU8zKLWzNUz3E7U\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/core/objects/LoanParamsStruct.sol": "LoanParamsStruct"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/core/objects/LoanParamsStruct.sol": {
+        "keccak256": "0xe15aa97713521da7f501e5225af9d92cf34bd68d286dbfed86aa75aabb323945",
+        "urls": [
+          "bzz-raw://8ffbf11735ac26f4c1cc8c3403b8b98519cff9a5a16bf690e1c7a8a29449aa39",
+          "dweb:/ipfs/QmX6J85sDNbu5Mh553oQNkfNoPRd79sHU8zKLWzNUz3E7U"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/core/objects/LoanParamsStruct.sol",
+    "id": 6327,
+    "exportedSymbols": {
+      "LoanParamsStruct": [
+        6326
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "118:1086:21",
+    "nodes": [
+      {
+        "id": 6308,
+        "nodeType": "PragmaDirective",
+        "src": "118:23:21",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 6326,
+        "nodeType": "ContractDefinition",
+        "src": "417:786:21",
+        "nodes": [
+          {
+            "id": 6325,
+            "nodeType": "StructDefinition",
+            "src": "449:752:21",
+            "nodes": [],
+            "canonicalName": "LoanParamsStruct.LoanParams",
+            "members": [
+              {
+                "constant": false,
+                "id": 6310,
+                "name": "id",
+                "nodeType": "VariableDeclaration",
+                "scope": 6325,
+                "src": "520:10:21",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                },
+                "typeName": {
+                  "id": 6309,
+                  "name": "bytes32",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "520:7:21",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6312,
+                "name": "active",
+                "nodeType": "VariableDeclaration",
+                "scope": 6325,
+                "src": "660:11:21",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bool",
+                  "typeString": "bool"
+                },
+                "typeName": {
+                  "id": 6311,
+                  "name": "bool",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "660:4:21",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6314,
+                "name": "owner",
+                "nodeType": "VariableDeclaration",
+                "scope": 6325,
+                "src": "720:13:21",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 6313,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "720:7:21",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6316,
+                "name": "loanToken",
+                "nodeType": "VariableDeclaration",
+                "scope": 6325,
+                "src": "784:17:21",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 6315,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "784:7:21",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6318,
+                "name": "collateralToken",
+                "nodeType": "VariableDeclaration",
+                "scope": 6325,
+                "src": "859:23:21",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 6317,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "859:7:21",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6320,
+                "name": "minInitialMargin",
+                "nodeType": "VariableDeclaration",
+                "scope": 6325,
+                "src": "945:24:21",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6319,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "945:7:21",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6322,
+                "name": "maintenanceMargin",
+                "nodeType": "VariableDeclaration",
+                "scope": 6325,
+                "src": "1061:25:21",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6321,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1061:7:21",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 6324,
+                "name": "maxLoanTerm",
+                "nodeType": "VariableDeclaration",
+                "scope": 6325,
+                "src": "1175:19:21",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 6323,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1175:7:21",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "LoanParams",
+            "scope": 6326,
+            "visibility": "public"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@title The Loan Parameters.\n@notice This contract code comes from bZx. bZx is a protocol for tokenized\nmargin trading and lending https://bzx.network similar to the dYdX protocol.\n * This contract contains the storage structure of the Loan Parameters.\n",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          6326
+        ],
+        "name": "LoanParamsStruct",
+        "scope": 6327
+      }
+    ]
+  },
+  "id": 21
+}

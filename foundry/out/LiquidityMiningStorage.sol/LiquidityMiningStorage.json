@@ -1,0 +1,1726 @@
+{
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "AdminAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "AdminRemoved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "SOV",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_admin",
+          "type": "address"
+        }
+      ],
+      "name": "addAdmin",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "admins",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "bonusEndBlock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "endBlock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "lockedSOV",
+      "outputs": [
+        {
+          "internalType": "contract ILockedSOV",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "poolInfoList",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "poolToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint96",
+          "name": "allocationPoint",
+          "type": "uint96"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lastRewardBlock",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "accumulatedRewardPerShare",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "poolTokensUnlockedImmediatelyPercent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_admin",
+          "type": "address"
+        }
+      ],
+      "name": "removeAdmin",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "rewardTokensPerBlock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "startBlock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "totalAllocationPoint",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "totalUsersBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "unlockedImmediatelyPercent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "userInfoMap",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rewardDebt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "accumulatedReward",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "wrapper",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405260006100176001600160e01b0361006616565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a35061006a565b3390565b6106f1806100796000396000f3fe608060405234801561001057600080fd5b50600436106101215760003560e01c806370480275116100ad578063a1a6690f11610071578063a1a6690f146102e6578063ac210cc7146102ee578063f2f46b3b146102f6578063f2fde38b146102fe578063f729a4041461032457610121565b8063704802751461024e578063787b4026146102745780638da5cb5b146102ce5780638f32d59b146102d65780639a13ba29146102de57610121565b80631fc3f004116100f45780631fc3f0041461019457806329d0fa3e146101ba578063429b62e5146101c257806348cd4cb1146101fc5780635f02c1451461020457610121565b8063083c63231461012657806308dcb360146101405780631785f53c146101645780631aed65531461018c575b600080fd5b61012e61032c565b60408051918252519081900360200190f35b610148610332565b604080516001600160a01b039092168252519081900360200190f35b61018a6004803603602081101561017a57600080fd5b50356001600160a01b0316610341565b005b61012e6103e1565b61012e600480360360208110156101aa57600080fd5b50356001600160a01b03166103e7565b61012e6103f9565b6101e8600480360360208110156101d857600080fd5b50356001600160a01b03166103ff565b604080519115158252519081900360200190f35b61012e610414565b6102306004803603604081101561021a57600080fd5b50803590602001356001600160a01b031661041a565b60408051938452602084019290925282820152519081900360600190f35b61018a6004803603602081101561026457600080fd5b50356001600160a01b0316610446565b6102916004803603602081101561028a57600080fd5b50356104ea565b604080516001600160a01b0390951685526bffffffffffffffffffffffff9093166020850152838301919091526060830152519081900360800190f35b61014861053b565b6101e861054a565b61012e61056e565b61012e610574565b61014861057a565b610148610589565b61018a6004803603602081101561031457600080fd5b50356001600160a01b0316610598565b61012e6105ec565b60055481565b600c546001600160a01b031681565b61034961054a565b610389576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020908152604091829020805460ff19169055815192835290517fa3b62bc36326052d97ea62d63c3d60308ed4c3ea8ac079dd8499f1e9c4f80c0f9281900390910190a150565b60045481565b600f6020526000908152604090205481565b60025481565b60016020526000908152604090205460ff1681565b60035481565b600a60209081526000928352604080842090915290825290208054600182015460029092015490919083565b61044e61054a565b61048e576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020818152604092839020805460ff1916909217909155815192835290517f44d6d25963f097ad14f29f06854a01f575648a1ef82f30e562ccd3889717e3399281900390910190a150565b600781815481106104f757fe5b60009182526020909120600390910201805460018201546002909201546001600160a01b0382169350600160a01b9091046bffffffffffffffffffffffff16919084565b6000546001600160a01b031690565b600080546001600160a01b031661055f6105f2565b6001600160a01b031614905090565b600b5481565b60095481565b6006546001600160a01b031681565b600d546001600160a01b031681565b6105a061054a565b6105e0576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6105e9816105f6565b50565b600e5481565b3390565b6001600160a01b03811661063b5760405162461bcd60e51b81526004018080602001828103825260268152602001806106976026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a723158206e4376fa85adaf63aafa5f54f16661914201926a8f721c6522d6d3a9e25d0c2164736f6c63430005110032",
+    "sourceMap": "209:2839:39:-;;;701:17:184;721:12;-1:-1:-1;;;;;721:10:184;:12;:::i;:::-;743:6;:18;;-1:-1:-1;;;;;;743:18:184;-1:-1:-1;;;;;743:18:184;;;;;;;776:43;;743:18;;-1:-1:-1;743:18:184;776:43;;743:6;;776:43;668:158;209:2839:39;;795:96:179;874:10;795:96;:::o;209:2839:39:-;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b50600436106101215760003560e01c806370480275116100ad578063a1a6690f11610071578063a1a6690f146102e6578063ac210cc7146102ee578063f2f46b3b146102f6578063f2fde38b146102fe578063f729a4041461032457610121565b8063704802751461024e578063787b4026146102745780638da5cb5b146102ce5780638f32d59b146102d65780639a13ba29146102de57610121565b80631fc3f004116100f45780631fc3f0041461019457806329d0fa3e146101ba578063429b62e5146101c257806348cd4cb1146101fc5780635f02c1451461020457610121565b8063083c63231461012657806308dcb360146101405780631785f53c146101645780631aed65531461018c575b600080fd5b61012e61032c565b60408051918252519081900360200190f35b610148610332565b604080516001600160a01b039092168252519081900360200190f35b61018a6004803603602081101561017a57600080fd5b50356001600160a01b0316610341565b005b61012e6103e1565b61012e600480360360208110156101aa57600080fd5b50356001600160a01b03166103e7565b61012e6103f9565b6101e8600480360360208110156101d857600080fd5b50356001600160a01b03166103ff565b604080519115158252519081900360200190f35b61012e610414565b6102306004803603604081101561021a57600080fd5b50803590602001356001600160a01b031661041a565b60408051938452602084019290925282820152519081900360600190f35b61018a6004803603602081101561026457600080fd5b50356001600160a01b0316610446565b6102916004803603602081101561028a57600080fd5b50356104ea565b604080516001600160a01b0390951685526bffffffffffffffffffffffff9093166020850152838301919091526060830152519081900360800190f35b61014861053b565b6101e861054a565b61012e61056e565b61012e610574565b61014861057a565b610148610589565b61018a6004803603602081101561031457600080fd5b50356001600160a01b0316610598565b61012e6105ec565b60055481565b600c546001600160a01b031681565b61034961054a565b610389576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020908152604091829020805460ff19169055815192835290517fa3b62bc36326052d97ea62d63c3d60308ed4c3ea8ac079dd8499f1e9c4f80c0f9281900390910190a150565b60045481565b600f6020526000908152604090205481565b60025481565b60016020526000908152604090205460ff1681565b60035481565b600a60209081526000928352604080842090915290825290208054600182015460029092015490919083565b61044e61054a565b61048e576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020818152604092839020805460ff1916909217909155815192835290517f44d6d25963f097ad14f29f06854a01f575648a1ef82f30e562ccd3889717e3399281900390910190a150565b600781815481106104f757fe5b60009182526020909120600390910201805460018201546002909201546001600160a01b0382169350600160a01b9091046bffffffffffffffffffffffff16919084565b6000546001600160a01b031690565b600080546001600160a01b031661055f6105f2565b6001600160a01b031614905090565b600b5481565b60095481565b6006546001600160a01b031681565b600d546001600160a01b031681565b6105a061054a565b6105e0576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6105e9816105f6565b50565b600e5481565b3390565b6001600160a01b03811661063b5760405162461bcd60e51b81526004018080602001828103825260268152602001806106976026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a723158206e4376fa85adaf63aafa5f54f16661914201926a8f721c6522d6d3a9e25d0c2164736f6c63430005110032",
+    "sourceMap": "209:2839:39:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;209:2839:39;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1956:23;;;:::i;:::-;;;;;;;;;;;;;;;;2629:17;;;:::i;:::-;;;;-1:-1:-1;;;;;2629:17:39;;;;;;;;;;;;;;915:128:225;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;915:128:225;-1:-1:-1;;;;;915:128:225;;:::i;:::-;;1871:28:39;;;:::i;2974:71::-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;2974:71:39;-1:-1:-1;;;;;2974:71:39;;:::i;1685:35::-;;;:::i;155:38:225:-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;155:38:225;-1:-1:-1;;;;;155:38:225;;:::i;:::-;;;;;;;;;;;;;;;;;;1783:25:39;;;:::i;2408:67::-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;2408:67:39;;;;;;-1:-1:-1;;;;;2408:67:39;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;656:122:225;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;656:122:225;-1:-1:-1;;;;;656:122:225;;:::i;2106:30:39:-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;2106:30:39;;:::i;:::-;;;;-1:-1:-1;;;;;2106:30:39;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;902:77:184;;;:::i;1233:92::-;;;:::i;2563:32:39:-;;;:::i;2318:35::-;;;:::i;2051:22::-;;;:::i;2722:27::-;;;:::i;1474:107:184:-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1474:107:184;-1:-1:-1;;;;;1474:107:184;;:::i;2852:41:39:-;;;:::i;1956:23::-;;;;:::o;2629:17::-;;;-1:-1:-1;;;;;2629:17:39;;:::o;915:128:225:-;1106:9:184;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;-1:-1:-1;;;;;979:14:225;;996:5;979:14;;;:6;:14;;;;;;;;;:22;;-1:-1:-1;;979:22:225;;;1016:20;;;;;;;;;;;;;;;;;915:128;:::o;1871:28:39:-;;;;:::o;2974:71::-;;;;;;;;;;;;;:::o;1685:35::-;;;;:::o;155:38:225:-;;;;;;;;;;;;;;;:::o;1783:25:39:-;;;;:::o;2408:67::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;656:122:225:-;1106:9:184;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;-1:-1:-1;;;;;717:14:225;;;;;;734:4;717:14;;;;;;;;;:21;;-1:-1:-1;;717:21:225;;;;;;;753:18;;;;;;;;;;;;;;;;;656:122;:::o;2106:30:39:-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;2106:30:39;;;-1:-1:-1;;;;2106:30:39;;;;;;;;:::o;902:77:184:-;940:7;966:6;-1:-1:-1;;;;;966:6:184;902:77;:::o;1233:92::-;1273:4;1312:6;;-1:-1:-1;;;;;1312:6:184;1296:12;:10;:12::i;:::-;-1:-1:-1;;;;;1296:22:184;;1289:29;;1233:92;:::o;2563:32:39:-;;;;:::o;2318:35::-;;;;:::o;2051:22::-;;;-1:-1:-1;;;;;2051:22:39;;:::o;2722:27::-;;;-1:-1:-1;;;;;2722:27:39;;:::o;1474:107:184:-;1106:9;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;1546:28;1565:8;1546:18;:28::i;:::-;1474:107;:::o;2852:41:39:-;;;;:::o;795:96:179:-;874:10;795:96;:::o;1682:225:184:-;-1:-1:-1;;;;;1755:22:184;;1747:73;;;;-1:-1:-1;;;1747:73:184;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1856:6;;;1835:38;;-1:-1:-1;;;;;1835:38:184;;;;1856:6;;;1835:38;;;1883:6;:17;;-1:-1:-1;;;;;;1883:17:184;-1:-1:-1;;;;;1883:17:184;;;;;;;;;;1682:225::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "SOV()": "08dcb360",
+    "addAdmin(address)": "70480275",
+    "admins(address)": "429b62e5",
+    "bonusEndBlock()": "1aed6553",
+    "endBlock()": "083c6323",
+    "isOwner()": "8f32d59b",
+    "lockedSOV()": "f2f46b3b",
+    "owner()": "8da5cb5b",
+    "poolInfoList(uint256)": "787b4026",
+    "poolTokensUnlockedImmediatelyPercent(address)": "1fc3f004",
+    "removeAdmin(address)": "1785f53c",
+    "rewardTokensPerBlock()": "29d0fa3e",
+    "startBlock()": "48cd4cb1",
+    "totalAllocationPoint()": "a1a6690f",
+    "totalUsersBalance()": "9a13ba29",
+    "transferOwnership(address)": "f2fde38b",
+    "unlockedImmediatelyPercent()": "f729a404",
+    "userInfoMap(uint256,address)": "5f02c145",
+    "wrapper()": "ac210cc7"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOV\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"addAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"admins\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"bonusEndBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"endBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lockedSOV\",\"outputs\":[{\"internalType\":\"contract ILockedSOV\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"poolInfoList\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"poolToken\",\"type\":\"address\"},{\"internalType\":\"uint96\",\"name\":\"allocationPoint\",\"type\":\"uint96\"},{\"internalType\":\"uint256\",\"name\":\"lastRewardBlock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"accumulatedRewardPerShare\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"poolTokensUnlockedImmediatelyPercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"removeAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rewardTokensPerBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"startBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"totalAllocationPoint\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"totalUsersBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"unlockedImmediatelyPercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userInfoMap\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rewardDebt\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"accumulatedReward\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"wrapper\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"addAdmin(address)\":{\"params\":{\"_admin\":\"The addresses of the account to grant permissions.\"}},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"removeAdmin(address)\":{\"params\":{\"_admin\":\"The addresses of the account to revoke permissions.\"}},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}}},\"userdoc\":{\"methods\":{\"addAdmin(address)\":{\"notice\":\"Add account to ACL.\"},\"removeAdmin(address)\":{\"notice\":\"Remove account from ACL.\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/farm/LiquidityMiningStorage.sol\":\"LiquidityMiningStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/farm/LiquidityMiningStorage.sol\":{\"keccak256\":\"0x2f910ff0a0e23a4d04be4b0f37a3b8a080fd2d8035cf8e5d979a52dc459d5cdd\",\"urls\":[\"bzz-raw://90b082169f76b659dd0187fb25b7c73a2b48975d761f58d1d7bb2bfe54376cdf\",\"dweb:/ipfs/QmNi87TdhQd9eMFYTctVpNg1BruPKZt5d9ibCe5uGEwYmG\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/locked/ILockedSOV.sol\":{\"keccak256\":\"0x2ecf9d6c3704b4210b86d15a35650b34a1c44d0fb57795668fd2b2b4eab6104f\",\"urls\":[\"bzz-raw://eaaa0dffb62e76ea397dc90b6a9e5ba497950ee1e57a97e6537a5b02ee045312\",\"dweb:/ipfs/QmaihaZugWsrSQttSprvThscmPrFhUj4gxTry94TNMx386\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/ERC20.sol\":{\"keccak256\":\"0x810c04a1a750deb534208b90bde6ada794d7659f2a0ab0a747efbcd04b1ce29b\",\"urls\":[\"bzz-raw://d6f374661570a3258995da1559ba58df7889d2b08107a235ece6cf24adcd2979\",\"dweb:/ipfs/QmUYhfCoTNZPPgnGzMU36qJ6EJpMicpQvoVrYdbob5T6G7\"]},\"contracts/openzeppelin/IERC20_.sol\":{\"keccak256\":\"0x913b27f370c93061abf98b13a872e12bba2fa2707bc5cd4e1e7728944209a88d\",\"urls\":[\"bzz-raw://dfb90a7a2d935e2c4ae70cc458f77e07ceaa6fc8ae6734e621ebf9c039cd962c\",\"dweb:/ipfs/QmTxp7s3uYcQkzfribiyFp6mdgeUY4T3UeWX1YZVK1kint\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/SafeERC20.sol\":{\"keccak256\":\"0xe99b4d979cb976a6b70e297600242afe38b8cd8f1b1ba6ee373f39f7abb3ca79\",\"urls\":[\"bzz-raw://961909a659615705b0fab99627d90562545225715965239e5be6e861ca059e78\",\"dweb:/ipfs/QmeNB4Tb8ReyGrLKvoe7UJWfNRLarhEc52tAZd12wpvWqK\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]},\"contracts/utils/AdminRole.sol\":{\"keccak256\":\"0x7333f56bc6887f53b12ec51d9e6d7f2aae23063000b101e6bb7c3ae684cca51d\",\"urls\":[\"bzz-raw://c7d2462840a56bf06653f868ef64c1e1558e12f1ecf8012ec967ef046152e8ea\",\"dweb:/ipfs/QmcMrLxvVcZpu8PqtgENLXiFqEXBRuTFLBUgVEgDgXgHSo\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "admin",
+              "type": "address",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "AdminAdded",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "admin",
+              "type": "address",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "AdminRemoved",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "previousOwner",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address",
+              "indexed": true
+            }
+          ],
+          "type": "event",
+          "name": "OwnershipTransferred",
+          "anonymous": false
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "SOV",
+          "outputs": [
+            {
+              "internalType": "contract IERC20",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_admin",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "addAdmin"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "admins",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "bonusEndBlock",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "endBlock",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "isOwner",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "lockedSOV",
+          "outputs": [
+            {
+              "internalType": "contract ILockedSOV",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "owner",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "poolInfoList",
+          "outputs": [
+            {
+              "internalType": "contract IERC20",
+              "name": "poolToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint96",
+              "name": "allocationPoint",
+              "type": "uint96"
+            },
+            {
+              "internalType": "uint256",
+              "name": "lastRewardBlock",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "accumulatedRewardPerShare",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "poolTokensUnlockedImmediatelyPercent",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_admin",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "removeAdmin"
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "rewardTokensPerBlock",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "startBlock",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "totalAllocationPoint",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "totalUsersBalance",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "transferOwnership"
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "unlockedImmediatelyPercent",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "userInfoMap",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "rewardDebt",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "accumulatedReward",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "wrapper",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {
+          "addAdmin(address)": {
+            "params": {
+              "_admin": "The addresses of the account to grant permissions."
+            }
+          },
+          "isOwner()": {
+            "details": "Returns true if the caller is the current owner."
+          },
+          "owner()": {
+            "details": "Returns the address of the current owner."
+          },
+          "removeAdmin(address)": {
+            "params": {
+              "_admin": "The addresses of the account to revoke permissions."
+            }
+          },
+          "transferOwnership(address)": {
+            "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+          }
+        }
+      },
+      "userdoc": {
+        "methods": {
+          "addAdmin(address)": {
+            "notice": "Add account to ACL."
+          },
+          "removeAdmin(address)": {
+            "notice": "Remove account from ACL."
+          }
+        }
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/farm/LiquidityMiningStorage.sol": "LiquidityMiningStorage"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/farm/LiquidityMiningStorage.sol": {
+        "keccak256": "0x2f910ff0a0e23a4d04be4b0f37a3b8a080fd2d8035cf8e5d979a52dc459d5cdd",
+        "urls": [
+          "bzz-raw://90b082169f76b659dd0187fb25b7c73a2b48975d761f58d1d7bb2bfe54376cdf",
+          "dweb:/ipfs/QmNi87TdhQd9eMFYTctVpNg1BruPKZt5d9ibCe5uGEwYmG"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IERC20.sol": {
+        "keccak256": "0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855",
+        "urls": [
+          "bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40",
+          "dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt"
+        ],
+        "license": null
+      },
+      "contracts/locked/ILockedSOV.sol": {
+        "keccak256": "0x2ecf9d6c3704b4210b86d15a35650b34a1c44d0fb57795668fd2b2b4eab6104f",
+        "urls": [
+          "bzz-raw://eaaa0dffb62e76ea397dc90b6a9e5ba497950ee1e57a97e6537a5b02ee045312",
+          "dweb:/ipfs/QmaihaZugWsrSQttSprvThscmPrFhUj4gxTry94TNMx386"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Address.sol": {
+        "keccak256": "0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54",
+        "urls": [
+          "bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3",
+          "dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Context.sol": {
+        "keccak256": "0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b",
+        "urls": [
+          "bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826",
+          "dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/ERC20.sol": {
+        "keccak256": "0x810c04a1a750deb534208b90bde6ada794d7659f2a0ab0a747efbcd04b1ce29b",
+        "urls": [
+          "bzz-raw://d6f374661570a3258995da1559ba58df7889d2b08107a235ece6cf24adcd2979",
+          "dweb:/ipfs/QmUYhfCoTNZPPgnGzMU36qJ6EJpMicpQvoVrYdbob5T6G7"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/IERC20_.sol": {
+        "keccak256": "0x913b27f370c93061abf98b13a872e12bba2fa2707bc5cd4e1e7728944209a88d",
+        "urls": [
+          "bzz-raw://dfb90a7a2d935e2c4ae70cc458f77e07ceaa6fc8ae6734e621ebf9c039cd962c",
+          "dweb:/ipfs/QmTxp7s3uYcQkzfribiyFp6mdgeUY4T3UeWX1YZVK1kint"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Ownable.sol": {
+        "keccak256": "0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a",
+        "urls": [
+          "bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a",
+          "dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/SafeERC20.sol": {
+        "keccak256": "0xe99b4d979cb976a6b70e297600242afe38b8cd8f1b1ba6ee373f39f7abb3ca79",
+        "urls": [
+          "bzz-raw://961909a659615705b0fab99627d90562545225715965239e5be6e861ca059e78",
+          "dweb:/ipfs/QmeNB4Tb8ReyGrLKvoe7UJWfNRLarhEc52tAZd12wpvWqK"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/SafeMath.sol": {
+        "keccak256": "0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8",
+        "urls": [
+          "bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719",
+          "dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6"
+        ],
+        "license": null
+      },
+      "contracts/utils/AdminRole.sol": {
+        "keccak256": "0x7333f56bc6887f53b12ec51d9e6d7f2aae23063000b101e6bb7c3ae684cca51d",
+        "urls": [
+          "bzz-raw://c7d2462840a56bf06653f868ef64c1e1558e12f1ecf8012ec967ef046152e8ea",
+          "dweb:/ipfs/QmcMrLxvVcZpu8PqtgENLXiFqEXBRuTFLBUgVEgDgXgHSo"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/farm/LiquidityMiningStorage.sol",
+    "id": 10132,
+    "exportedSymbols": {
+      "LiquidityMiningStorage": [
+        10131
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:3049:39",
+    "nodes": [
+      {
+        "id": 10070,
+        "nodeType": "PragmaDirective",
+        "src": "0:23:39",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 10071,
+        "nodeType": "ImportDirective",
+        "src": "25:35:39",
+        "nodes": [],
+        "absolutePath": "contracts/openzeppelin/ERC20.sol",
+        "file": "../openzeppelin/ERC20.sol",
+        "scope": 10132,
+        "sourceUnit": 54877,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 10072,
+        "nodeType": "ImportDirective",
+        "src": "61:39:39",
+        "nodes": [],
+        "absolutePath": "contracts/openzeppelin/SafeERC20.sol",
+        "file": "../openzeppelin/SafeERC20.sol",
+        "scope": 10132,
+        "sourceUnit": 55477,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 10073,
+        "nodeType": "ImportDirective",
+        "src": "101:38:39",
+        "nodes": [],
+        "absolutePath": "contracts/openzeppelin/SafeMath.sol",
+        "file": "../openzeppelin/SafeMath.sol",
+        "scope": 10132,
+        "sourceUnit": 55737,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 10074,
+        "nodeType": "ImportDirective",
+        "src": "140:34:39",
+        "nodes": [],
+        "absolutePath": "contracts/locked/ILockedSOV.sol",
+        "file": "../locked/ILockedSOV.sol",
+        "scope": 10132,
+        "sourceUnit": 34084,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 10075,
+        "nodeType": "ImportDirective",
+        "src": "175:32:39",
+        "nodes": [],
+        "absolutePath": "contracts/utils/AdminRole.sol",
+        "file": "../utils/AdminRole.sol",
+        "scope": 10132,
+        "sourceUnit": 62767,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 10131,
+        "nodeType": "ContractDefinition",
+        "src": "209:2839:39",
+        "nodes": [
+          {
+            "id": 10084,
+            "nodeType": "StructDefinition",
+            "src": "286:894:39",
+            "nodes": [],
+            "canonicalName": "LiquidityMiningStorage.UserInfo",
+            "members": [
+              {
+                "constant": false,
+                "id": 10079,
+                "name": "amount",
+                "nodeType": "VariableDeclaration",
+                "scope": 10084,
+                "src": "312:14:39",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 10078,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "312:7:39",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 10081,
+                "name": "rewardDebt",
+                "nodeType": "VariableDeclaration",
+                "scope": 10084,
+                "src": "383:18:39",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 10080,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "383:7:39",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 10083,
+                "name": "accumulatedReward",
+                "nodeType": "VariableDeclaration",
+                "scope": 10084,
+                "src": "450:25:39",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 10082,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "450:7:39",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "UserInfo",
+            "scope": 10131,
+            "visibility": "public"
+          },
+          {
+            "id": 10093,
+            "nodeType": "StructDefinition",
+            "src": "1212:426:39",
+            "nodes": [],
+            "canonicalName": "LiquidityMiningStorage.PoolInfo",
+            "members": [
+              {
+                "constant": false,
+                "id": 10086,
+                "name": "poolToken",
+                "nodeType": "VariableDeclaration",
+                "scope": 10093,
+                "src": "1238:16:39",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_contract$_IERC20_$32311",
+                  "typeString": "contract IERC20"
+                },
+                "typeName": {
+                  "contractScope": null,
+                  "id": 10085,
+                  "name": "IERC20",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 32311,
+                  "src": "1238:6:39",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_contract$_IERC20_$32311",
+                    "typeString": "contract IERC20"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 10088,
+                "name": "allocationPoint",
+                "nodeType": "VariableDeclaration",
+                "scope": 10093,
+                "src": "1297:22:39",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint96",
+                  "typeString": "uint96"
+                },
+                "typeName": {
+                  "id": 10087,
+                  "name": "uint96",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1297:6:39",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint96",
+                    "typeString": "uint96"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 10090,
+                "name": "lastRewardBlock",
+                "nodeType": "VariableDeclaration",
+                "scope": 10093,
+                "src": "1431:23:39",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 10089,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1431:7:39",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 10092,
+                "name": "accumulatedRewardPerShare",
+                "nodeType": "VariableDeclaration",
+                "scope": 10093,
+                "src": "1525:33:39",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 10091,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1525:7:39",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "PoolInfo",
+            "scope": 10131,
+            "visibility": "public"
+          },
+          {
+            "id": 10095,
+            "nodeType": "VariableDeclaration",
+            "src": "1685:35:39",
+            "nodes": [],
+            "constant": false,
+            "name": "rewardTokensPerBlock",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 10094,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "1685:7:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10097,
+            "nodeType": "VariableDeclaration",
+            "src": "1783:25:39",
+            "nodes": [],
+            "constant": false,
+            "name": "startBlock",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 10096,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "1783:7:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10099,
+            "nodeType": "VariableDeclaration",
+            "src": "1871:28:39",
+            "nodes": [],
+            "constant": false,
+            "name": "bonusEndBlock",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 10098,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "1871:7:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10101,
+            "nodeType": "VariableDeclaration",
+            "src": "1956:23:39",
+            "nodes": [],
+            "constant": false,
+            "name": "endBlock",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 10100,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "1956:7:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10103,
+            "nodeType": "VariableDeclaration",
+            "src": "2051:22:39",
+            "nodes": [],
+            "constant": false,
+            "name": "wrapper",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_address",
+              "typeString": "address"
+            },
+            "typeName": {
+              "id": 10102,
+              "name": "address",
+              "nodeType": "ElementaryTypeName",
+              "src": "2051:7:39",
+              "stateMutability": "nonpayable",
+              "typeDescriptions": {
+                "typeIdentifier": "t_address",
+                "typeString": "address"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10106,
+            "nodeType": "VariableDeclaration",
+            "src": "2106:30:39",
+            "nodes": [],
+            "constant": false,
+            "name": "poolInfoList",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_array$_t_struct$_PoolInfo_$10093_storage_$dyn_storage",
+              "typeString": "struct LiquidityMiningStorage.PoolInfo[]"
+            },
+            "typeName": {
+              "baseType": {
+                "contractScope": null,
+                "id": 10104,
+                "name": "PoolInfo",
+                "nodeType": "UserDefinedTypeName",
+                "referencedDeclaration": 10093,
+                "src": "2106:8:39",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_PoolInfo_$10093_storage_ptr",
+                  "typeString": "struct LiquidityMiningStorage.PoolInfo"
+                }
+              },
+              "id": 10105,
+              "length": null,
+              "nodeType": "ArrayTypeName",
+              "src": "2106:10:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_array$_t_struct$_PoolInfo_$10093_storage_$dyn_storage_ptr",
+                "typeString": "struct LiquidityMiningStorage.PoolInfo[]"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10110,
+            "nodeType": "VariableDeclaration",
+            "src": "2187:38:39",
+            "nodes": [],
+            "constant": false,
+            "name": "poolIdList",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+              "typeString": "mapping(address => uint256)"
+            },
+            "typeName": {
+              "id": 10109,
+              "keyType": {
+                "id": 10107,
+                "name": "address",
+                "nodeType": "ElementaryTypeName",
+                "src": "2195:7:39",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "2187:27:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                "typeString": "mapping(address => uint256)"
+              },
+              "valueType": {
+                "id": 10108,
+                "name": "uint256",
+                "nodeType": "ElementaryTypeName",
+                "src": "2206:7:39",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                }
+              }
+            },
+            "value": null,
+            "visibility": "internal"
+          },
+          {
+            "id": 10112,
+            "nodeType": "VariableDeclaration",
+            "src": "2318:35:39",
+            "nodes": [],
+            "constant": false,
+            "name": "totalAllocationPoint",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 10111,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "2318:7:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10118,
+            "nodeType": "VariableDeclaration",
+            "src": "2408:67:39",
+            "nodes": [],
+            "constant": false,
+            "name": "userInfoMap",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_uint256_$_t_mapping$_t_address_$_t_struct$_UserInfo_$10084_storage_$_$",
+              "typeString": "mapping(uint256 => mapping(address => struct LiquidityMiningStorage.UserInfo))"
+            },
+            "typeName": {
+              "id": 10117,
+              "keyType": {
+                "id": 10113,
+                "name": "uint256",
+                "nodeType": "ElementaryTypeName",
+                "src": "2416:7:39",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "2408:48:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_uint256_$_t_mapping$_t_address_$_t_struct$_UserInfo_$10084_storage_$_$",
+                "typeString": "mapping(uint256 => mapping(address => struct LiquidityMiningStorage.UserInfo))"
+              },
+              "valueType": {
+                "id": 10116,
+                "keyType": {
+                  "id": 10114,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "2435:7:39",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "nodeType": "Mapping",
+                "src": "2427:28:39",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_mapping$_t_address_$_t_struct$_UserInfo_$10084_storage_$",
+                  "typeString": "mapping(address => struct LiquidityMiningStorage.UserInfo)"
+                },
+                "valueType": {
+                  "contractScope": null,
+                  "id": 10115,
+                  "name": "UserInfo",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 10084,
+                  "src": "2446:8:39",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_UserInfo_$10084_storage_ptr",
+                    "typeString": "struct LiquidityMiningStorage.UserInfo"
+                  }
+                }
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10120,
+            "nodeType": "VariableDeclaration",
+            "src": "2563:32:39",
+            "nodes": [],
+            "constant": false,
+            "name": "totalUsersBalance",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 10119,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "2563:7:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10122,
+            "nodeType": "VariableDeclaration",
+            "src": "2629:17:39",
+            "nodes": [],
+            "constant": false,
+            "name": "SOV",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_contract$_IERC20_$32311",
+              "typeString": "contract IERC20"
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 10121,
+              "name": "IERC20",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 32311,
+              "src": "2629:6:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IERC20_$32311",
+                "typeString": "contract IERC20"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10124,
+            "nodeType": "VariableDeclaration",
+            "src": "2722:27:39",
+            "nodes": [],
+            "constant": false,
+            "name": "lockedSOV",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_contract$_ILockedSOV_$34083",
+              "typeString": "contract ILockedSOV"
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 10123,
+              "name": "ILockedSOV",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 34083,
+              "src": "2722:10:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_ILockedSOV_$34083",
+                "typeString": "contract ILockedSOV"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10126,
+            "nodeType": "VariableDeclaration",
+            "src": "2852:41:39",
+            "nodes": [],
+            "constant": false,
+            "name": "unlockedImmediatelyPercent",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 10125,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "2852:7:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10130,
+            "nodeType": "VariableDeclaration",
+            "src": "2974:71:39",
+            "nodes": [],
+            "constant": false,
+            "name": "poolTokensUnlockedImmediatelyPercent",
+            "scope": 10131,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+              "typeString": "mapping(address => uint256)"
+            },
+            "typeName": {
+              "id": 10129,
+              "keyType": {
+                "id": 10127,
+                "name": "address",
+                "nodeType": "ElementaryTypeName",
+                "src": "2982:7:39",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "2974:27:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
+                "typeString": "mapping(address => uint256)"
+              },
+              "valueType": {
+                "id": 10128,
+                "name": "uint256",
+                "nodeType": "ElementaryTypeName",
+                "src": "2993:7:39",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                }
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          }
+        ],
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 10076,
+              "name": "AdminRole",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 62766,
+              "src": "244:9:39",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_AdminRole_$62766",
+                "typeString": "contract AdminRole"
+              }
+            },
+            "id": 10077,
+            "nodeType": "InheritanceSpecifier",
+            "src": "244:9:39"
+          }
+        ],
+        "contractDependencies": [
+          54471,
+          55144,
+          62766
+        ],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          10131,
+          62766,
+          55144,
+          54471
+        ],
+        "name": "LiquidityMiningStorage",
+        "scope": 10132
+      }
+    ]
+  },
+  "id": 39
+}

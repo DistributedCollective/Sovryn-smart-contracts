@@ -1,0 +1,684 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_tokenOwner",
+          "type": "address"
+        }
+      ],
+      "name": "getTeamVesting",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_tokenOwner",
+          "type": "address"
+        }
+      ],
+      "name": "getVesting",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vestingAddress",
+          "type": "address"
+        }
+      ],
+      "name": "isTeamVesting",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vestingAddress",
+          "type": "address"
+        }
+      ],
+      "name": "isVestingAddress",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vestingRegistryProxy",
+          "type": "address"
+        }
+      ],
+      "name": "setVestingRegistry",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "getTeamVesting(address)": "c810a3e3",
+    "getVesting(address)": "cc49ede7",
+    "isTeamVesting(address)": "f421ed7e",
+    "isVestingAddress(address)": "ca210d8c",
+    "setVestingRegistry(address)": "450b0601"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenOwner\",\"type\":\"address\"}],\"name\":\"getTeamVesting\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenOwner\",\"type\":\"address\"}],\"name\":\"getVesting\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vestingAddress\",\"type\":\"address\"}],\"name\":\"isTeamVesting\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vestingAddress\",\"type\":\"address\"}],\"name\":\"isVestingAddress\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vestingRegistryProxy\",\"type\":\"address\"}],\"name\":\"setVestingRegistry\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interfaces are used to cast a contract address into a callable instance.\",\"methods\":{},\"title\":\"Interface for upgradable Vesting Registry contract.\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/IVestingRegistry.sol\":\"IVestingRegistry\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/Vesting/IVestingRegistry.sol\":{\"keccak256\":\"0x08bf5badf1813b59f8b06d3bb9280f4b35d3d07947c728dad79e43fcc1d4130e\",\"urls\":[\"bzz-raw://9e98ef5dd0d38e3eb94e669ae455c69625b61709b101f5a277b8f2775619561a\",\"dweb:/ipfs/QmdL7isFbApapnLxNJ7UkzAW6AtD2c2SvAEFh5KN3wVqqk\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_tokenOwner",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "getTeamVesting",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_tokenOwner",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "getVesting",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_vestingAddress",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "isTeamVesting",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_vestingAddress",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "isVestingAddress",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_vestingRegistryProxy",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "setVestingRegistry"
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/governance/Vesting/IVestingRegistry.sol": "IVestingRegistry"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/governance/Vesting/IVestingRegistry.sol": {
+        "keccak256": "0x08bf5badf1813b59f8b06d3bb9280f4b35d3d07947c728dad79e43fcc1d4130e",
+        "urls": [
+          "bzz-raw://9e98ef5dd0d38e3eb94e669ae455c69625b61709b101f5a277b8f2775619561a",
+          "dweb:/ipfs/QmdL7isFbApapnLxNJ7UkzAW6AtD2c2SvAEFh5KN3wVqqk"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/governance/Vesting/IVestingRegistry.sol",
+    "id": 25156,
+    "exportedSymbols": {
+      "IVestingRegistry": [
+        25155
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:612:82",
+    "nodes": [
+      {
+        "id": 25121,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:82",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 25155,
+        "nodeType": "ContractDefinition",
+        "src": "177:434:82",
+        "nodes": [
+          {
+            "id": 25128,
+            "nodeType": "FunctionDefinition",
+            "src": "210:73:82",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getVesting",
+            "parameters": {
+              "id": 25124,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25123,
+                  "name": "_tokenOwner",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25128,
+                  "src": "230:19:82",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25122,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "230:7:82",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "229:21:82"
+            },
+            "returnParameters": {
+              "id": 25127,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25126,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25128,
+                  "src": "274:7:82",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25125,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "274:7:82",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "273:9:82"
+            },
+            "scope": 25155,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 25135,
+            "nodeType": "FunctionDefinition",
+            "src": "289:77:82",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getTeamVesting",
+            "parameters": {
+              "id": 25131,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25130,
+                  "name": "_tokenOwner",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25135,
+                  "src": "313:19:82",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25129,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "313:7:82",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "312:21:82"
+            },
+            "returnParameters": {
+              "id": 25134,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25133,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25135,
+                  "src": "357:7:82",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25132,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "357:7:82",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "356:9:82"
+            },
+            "scope": 25155,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 25140,
+            "nodeType": "FunctionDefinition",
+            "src": "372:68:82",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "setVestingRegistry",
+            "parameters": {
+              "id": 25138,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25137,
+                  "name": "_vestingRegistryProxy",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25140,
+                  "src": "400:29:82",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25136,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "400:7:82",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "399:31:82"
+            },
+            "returnParameters": {
+              "id": 25139,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "439:0:82"
+            },
+            "scope": 25155,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 25147,
+            "nodeType": "FunctionDefinition",
+            "src": "446:80:82",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "isVestingAddress",
+            "parameters": {
+              "id": 25143,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25142,
+                  "name": "_vestingAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25147,
+                  "src": "472:23:82",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25141,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "472:7:82",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "471:25:82"
+            },
+            "returnParameters": {
+              "id": 25146,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25145,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25147,
+                  "src": "520:4:82",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 25144,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "520:4:82",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "519:6:82"
+            },
+            "scope": 25155,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 25154,
+            "nodeType": "FunctionDefinition",
+            "src": "532:77:82",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "isTeamVesting",
+            "parameters": {
+              "id": 25150,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25149,
+                  "name": "_vestingAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25154,
+                  "src": "555:23:82",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25148,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "555:7:82",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "554:25:82"
+            },
+            "returnParameters": {
+              "id": 25153,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25152,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25154,
+                  "src": "603:4:82",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 25151,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "603:4:82",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "602:6:82"
+            },
+            "scope": 25155,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": "@title Interface for upgradable Vesting Registry contract.\n@dev Interfaces are used to cast a contract address into a callable instance.",
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          25155
+        ],
+        "name": "IVestingRegistry",
+        "scope": 25156
+      }
+    ]
+  },
+  "id": 82
+}

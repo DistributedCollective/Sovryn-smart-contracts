@@ -1,0 +1,413 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "bproUsdPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_value",
+          "type": "uint256"
+        }
+      ],
+      "name": "setValue",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "value",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405234801561001057600080fd5b5060c18061001f6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c80633fa4f24514604157806355241077146059578063747a5663146075575b600080fd5b6047607b565b60408051918252519081900360200190f35b607360048036036020811015606d57600080fd5b50356081565b005b60476086565b60005481565b600055565b6000549056fea265627a7a72315820e984acaba2da16890264d7692e0d40bfac48dce461ec50429d36a48d3fbf9cfa64736f6c63430005110032",
+    "sourceMap": "25:323:128:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;25:323:128;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052348015600f57600080fd5b5060043610603c5760003560e01c80633fa4f24514604157806355241077146059578063747a5663146075575b600080fd5b6047607b565b60408051918252519081900360200190f35b607360048036036020811015606d57600080fd5b50356081565b005b60476086565b60005481565b600055565b6000549056fea265627a7a72315820e984acaba2da16890264d7692e0d40bfac48dce461ec50429d36a48d3fbf9cfa64736f6c63430005110032",
+    "sourceMap": "25:323:128:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;25:323:128;;;;;;;;;;;;;;;;;;;;;;;;;;;;;60:20;;;:::i;:::-;;;;;;;;;;;;;;;;274:72;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;274:72:128;;:::i;:::-;;185:83;;;:::i;60:20::-;;;;:::o;274:72::-;325:5;:14;274:72::o;185:83::-;230:7;256:5;185:83;:::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "bproUsdPrice()": "747a5663",
+    "setValue(uint256)": "55241077",
+    "value()": "3fa4f245"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"bproUsdPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"setValue\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"value\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"bproUsdPrice()\":{\"details\":\"BPro USD PRICE\",\"return\":\"the BPro USD Price [using mocPrecision]\"}}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/BProPriceFeedMockup.sol\":\"BProPriceFeedMockup\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/mockup/BProPriceFeedMockup.sol\":{\"keccak256\":\"0x6b2429a0876ccfba5b53c4a254937ad52f59e0f0c6b71788c77cac0c03416413\",\"urls\":[\"bzz-raw://bd0451643c4c1b635b04a2641051248b9e89809b75906541b89dc0025ee19da2\",\"dweb:/ipfs/QmRGbifZ5sfSiVnP6HU3rv2QR2ZjaCDYg46eZSfa8mEmWY\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "bproUsdPrice",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "_value",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "setValue"
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "value",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {
+          "bproUsdPrice()": {
+            "details": "BPro USD PRICE",
+            "return": "the BPro USD Price [using mocPrecision]"
+          }
+        }
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/mockup/BProPriceFeedMockup.sol": "BProPriceFeedMockup"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/mockup/BProPriceFeedMockup.sol": {
+        "keccak256": "0x6b2429a0876ccfba5b53c4a254937ad52f59e0f0c6b71788c77cac0c03416413",
+        "urls": [
+          "bzz-raw://bd0451643c4c1b635b04a2641051248b9e89809b75906541b89dc0025ee19da2",
+          "dweb:/ipfs/QmRGbifZ5sfSiVnP6HU3rv2QR2ZjaCDYg46eZSfa8mEmWY"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/mockup/BProPriceFeedMockup.sol",
+    "id": 37029,
+    "exportedSymbols": {
+      "BProPriceFeedMockup": [
+        37028
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:349:128",
+    "nodes": [
+      {
+        "id": 37007,
+        "nodeType": "PragmaDirective",
+        "src": "0:23:128",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 37028,
+        "nodeType": "ContractDefinition",
+        "src": "25:323:128",
+        "nodes": [
+          {
+            "id": 37009,
+            "nodeType": "VariableDeclaration",
+            "src": "60:20:128",
+            "nodes": [],
+            "constant": false,
+            "name": "value",
+            "scope": 37028,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 37008,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "60:7:128",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 37017,
+            "nodeType": "FunctionDefinition",
+            "src": "185:83:128",
+            "nodes": [],
+            "body": {
+              "id": 37016,
+              "nodeType": "Block",
+              "src": "239:29:128",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 37014,
+                    "name": "value",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 37009,
+                    "src": "256:5:128",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 37013,
+                  "id": 37015,
+                  "nodeType": "Return",
+                  "src": "249:12:128"
+                }
+              ]
+            },
+            "documentation": "@dev BPro USD PRICE\n@return the BPro USD Price [using mocPrecision]",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "bproUsdPrice",
+            "parameters": {
+              "id": 37010,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "206:2:128"
+            },
+            "returnParameters": {
+              "id": 37013,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 37012,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 37017,
+                  "src": "230:7:128",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 37011,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "230:7:128",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "229:9:128"
+            },
+            "scope": 37028,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "public"
+          },
+          {
+            "id": 37027,
+            "nodeType": "FunctionDefinition",
+            "src": "274:72:128",
+            "nodes": [],
+            "body": {
+              "id": 37026,
+              "nodeType": "Block",
+              "src": "315:31:128",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 37024,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 37022,
+                      "name": "value",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 37009,
+                      "src": "325:5:128",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "id": 37023,
+                      "name": "_value",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 37019,
+                      "src": "333:6:128",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "325:14:128",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 37025,
+                  "nodeType": "ExpressionStatement",
+                  "src": "325:14:128"
+                }
+              ]
+            },
+            "documentation": null,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "setValue",
+            "parameters": {
+              "id": 37020,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 37019,
+                  "name": "_value",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 37027,
+                  "src": "292:14:128",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 37018,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "292:7:128",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "291:16:128"
+            },
+            "returnParameters": {
+              "id": 37021,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "315:0:128"
+            },
+            "scope": 37028,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          37028
+        ],
+        "name": "BProPriceFeedMockup",
+        "scope": 37029
+      }
+    ]
+  },
+  "id": 128
+}

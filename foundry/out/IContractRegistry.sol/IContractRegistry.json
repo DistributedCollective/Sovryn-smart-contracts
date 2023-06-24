@@ -1,0 +1,229 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "contractName",
+          "type": "bytes32"
+        }
+      ],
+      "name": "addressOf",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "addressOf(bytes32)": "bb34534c"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"contractName\",\"type\":\"bytes32\"}],\"name\":\"addressOf\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/swaps/connectors/interfaces/IContractRegistry.sol\":\"IContractRegistry\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/swaps/connectors/interfaces/IContractRegistry.sol\":{\"keccak256\":\"0x793c4eefa2ee04cbf0a1a9da28676ac310ed7bf60a27ec7d86de7d7236ccf45b\",\"urls\":[\"bzz-raw://e00c82e9b24f9888f20208775ebe48831b65821a800d6acfcd4736346281094d\",\"dweb:/ipfs/QmTCiGW12fu4hZvTT2UTTCVuqJEEE6fiDxbZHmrgTnAvyH\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "contractName",
+              "type": "bytes32"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "addressOf",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/swaps/connectors/interfaces/IContractRegistry.sol": "IContractRegistry"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/swaps/connectors/interfaces/IContractRegistry.sol": {
+        "keccak256": "0x793c4eefa2ee04cbf0a1a9da28676ac310ed7bf60a27ec7d86de7d7236ccf45b",
+        "urls": [
+          "bzz-raw://e00c82e9b24f9888f20208775ebe48831b65821a800d6acfcd4736346281094d",
+          "dweb:/ipfs/QmTCiGW12fu4hZvTT2UTTCVuqJEEE6fiDxbZHmrgTnAvyH"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/swaps/connectors/interfaces/IContractRegistry.sol",
+    "id": 58280,
+    "exportedSymbols": {
+      "IContractRegistry": [
+        58279
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:132:202",
+    "nodes": [
+      {
+        "id": 58271,
+        "nodeType": "PragmaDirective",
+        "src": "0:23:202",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 58279,
+        "nodeType": "ContractDefinition",
+        "src": "25:106:202",
+        "nodes": [
+          {
+            "id": 58278,
+            "nodeType": "FunctionDefinition",
+            "src": "58:71:202",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "addressOf",
+            "parameters": {
+              "id": 58274,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 58273,
+                  "name": "contractName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 58278,
+                  "src": "77:20:202",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 58272,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "77:7:202",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "76:22:202"
+            },
+            "returnParameters": {
+              "id": 58277,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 58276,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 58278,
+                  "src": "120:7:202",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 58275,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "120:7:202",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "119:9:202"
+            },
+            "scope": 58279,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "public"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          58279
+        ],
+        "name": "IContractRegistry",
+        "scope": 58280
+      }
+    ]
+  },
+  "id": 202
+}

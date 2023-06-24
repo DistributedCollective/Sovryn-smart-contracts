@@ -25,3 +25,5 @@ venv/
 deployment/deployments
 tmp/
 out/
+foundry/forge-std
+foundry/forge-cache

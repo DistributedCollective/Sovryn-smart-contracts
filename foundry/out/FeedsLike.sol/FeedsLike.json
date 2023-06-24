@@ -1,0 +1,302 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sourceTokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "destTokenAddress",
+          "type": "address"
+        }
+      ],
+      "name": "queryRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "rate",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "precision",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "queryRate(address,address)": "29d5277c"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"sourceTokenAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"destTokenAddress\",\"type\":\"address\"}],\"name\":\"queryRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"rate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"precision\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/connectors/loantoken/interfaces/FeedsLike.sol\":\"FeedsLike\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/connectors/loantoken/interfaces/FeedsLike.sol\":{\"keccak256\":\"0xc8786f355ccc5a00a4b0985c28f0063cb9480f53468d44b7c17b02c9bf13a970\",\"urls\":[\"bzz-raw://fef80803763be524fcce5500f377d653b4b8e6fd4dab318ea332938203090365\",\"dweb:/ipfs/QmWE4XDFfuKxsESYXbu3H8Bqn8DH2J5zbS5rQiqcigBEHi\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "sourceTokenAddress",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "destTokenAddress",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "queryRate",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "rate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "precision",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/connectors/loantoken/interfaces/FeedsLike.sol": "FeedsLike"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/connectors/loantoken/interfaces/FeedsLike.sol": {
+        "keccak256": "0xc8786f355ccc5a00a4b0985c28f0063cb9480f53468d44b7c17b02c9bf13a970",
+        "urls": [
+          "bzz-raw://fef80803763be524fcce5500f377d653b4b8e6fd4dab318ea332938203090365",
+          "dweb:/ipfs/QmWE4XDFfuKxsESYXbu3H8Bqn8DH2J5zbS5rQiqcigBEHi"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/connectors/loantoken/interfaces/FeedsLike.sol",
+    "id": 4030,
+    "exportedSymbols": {
+      "FeedsLike": [
+        4029
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "118:207:9",
+    "nodes": [
+      {
+        "id": 4017,
+        "nodeType": "PragmaDirective",
+        "src": "118:23:9",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 4029,
+        "nodeType": "ContractDefinition",
+        "src": "143:181:9",
+        "nodes": [
+          {
+            "id": 4028,
+            "nodeType": "FunctionDefinition",
+            "src": "169:153:9",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "queryRate",
+            "parameters": {
+              "id": 4022,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4019,
+                  "name": "sourceTokenAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4028,
+                  "src": "188:26:9",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4018,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "188:7:9",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 4021,
+                  "name": "destTokenAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4028,
+                  "src": "216:24:9",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 4020,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "216:7:9",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "187:54:9"
+            },
+            "returnParameters": {
+              "id": 4027,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 4024,
+                  "name": "rate",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4028,
+                  "src": "289:12:9",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4023,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "289:7:9",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 4026,
+                  "name": "precision",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 4028,
+                  "src": "303:17:9",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 4025,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "303:7:9",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "288:33:9"
+            },
+            "scope": 4029,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": null,
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          4029
+        ],
+        "name": "FeedsLike",
+        "scope": 4030
+      }
+    ]
+  },
+  "id": 9
+}

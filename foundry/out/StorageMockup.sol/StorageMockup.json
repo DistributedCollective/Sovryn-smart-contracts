@@ -1,0 +1,202 @@
+{
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "ValueChanged",
+      "type": "event"
+    }
+  ],
+  "bytecode": {
+    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a72315820f087a80fe17d778962e590729e98e82d40e42dbb43eba00076df9bf82fe29d6b64736f6c63430005110032",
+    "sourceMap": "26:85:162:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;26:85:162;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052600080fdfea265627a7a72315820f087a80fe17d778962e590729e98e82d40e42dbb43eba00076df9bf82fe29d6b64736f6c63430005110032",
+    "sourceMap": "26:85:162:-;;;;;",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {},
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"ValueChanged\",\"type\":\"event\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/proxy/StorageMockup.sol\":\"StorageMockup\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/mockup/proxy/StorageMockup.sol\":{\"keccak256\":\"0x6537490fffc13da1308f07adafc1f2ed9a01af69aecf558b80d96a2c5aaed1a0\",\"urls\":[\"bzz-raw://878534af8830623ee3baca415081b1e8bd6631b053541dc824a016ca6c31535f\",\"dweb:/ipfs/Qmf2rVEmEZDVPRs111Chy4DmYKaxPuW6mY4HBn3DoruRkC\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "ValueChanged",
+          "anonymous": false
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/mockup/proxy/StorageMockup.sol": "StorageMockup"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/mockup/proxy/StorageMockup.sol": {
+        "keccak256": "0x6537490fffc13da1308f07adafc1f2ed9a01af69aecf558b80d96a2c5aaed1a0",
+        "urls": [
+          "bzz-raw://878534af8830623ee3baca415081b1e8bd6631b053541dc824a016ca6c31535f",
+          "dweb:/ipfs/Qmf2rVEmEZDVPRs111Chy4DmYKaxPuW6mY4HBn3DoruRkC"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/mockup/proxy/StorageMockup.sol",
+    "id": 42318,
+    "exportedSymbols": {
+      "StorageMockup": [
+        42317
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:112:162",
+    "nodes": [
+      {
+        "id": 42310,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:162",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 42317,
+        "nodeType": "ContractDefinition",
+        "src": "26:85:162",
+        "nodes": [
+          {
+            "id": 42312,
+            "nodeType": "VariableDeclaration",
+            "src": "55:13:162",
+            "nodes": [],
+            "constant": false,
+            "name": "value",
+            "scope": 42317,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 42311,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "55:7:162",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "internal"
+          },
+          {
+            "id": 42316,
+            "nodeType": "EventDefinition",
+            "src": "75:34:162",
+            "nodes": [],
+            "anonymous": false,
+            "documentation": null,
+            "name": "ValueChanged",
+            "parameters": {
+              "id": 42315,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 42314,
+                  "indexed": false,
+                  "name": "value",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 42316,
+                  "src": "94:13:162",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 42313,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "94:7:162",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "93:15:162"
+            }
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          42317
+        ],
+        "name": "StorageMockup",
+        "scope": 42318
+      }
+    ]
+  },
+  "id": 162
+}

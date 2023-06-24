@@ -1,0 +1,619 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        }
+      ],
+      "name": "RSKAddrValidator_checkPKNotZero",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "addr1",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "addr2",
+          "type": "address"
+        }
+      ],
+      "name": "RSKAddrValidator_safeEquals",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405234801561001057600080fd5b5061018c806100206000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c80630a4aff771461003b5780631340869314610075575b600080fd5b6100616004803603602081101561005157600080fd5b50356001600160a01b03166100a3565b604080519115158252519081900360200190f35b6100616004803603604081101561008b57600080fd5b506001600160a01b03813581169160200135166100b4565b60006100ae826100c7565b92915050565b60006100c08383610100565b9392505050565b600073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b038316148015906100ae5750506001600160a01b0316151590565b6000816001600160a01b0316836001600160a01b0316148015610140575073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b03841614155b80156100c0575050506001600160a01b031615159056fea265627a7a72315820c206aa4f1e76ba60b75b6c2d7bd5175126ef92f6a4c5a9fa2121e40140d8378364736f6c63430005110032",
+    "sourceMap": "99:704:211:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;99:704:211;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b50600436106100365760003560e01c80630a4aff771461003b5780631340869314610075575b600080fd5b6100616004803603602081101561005157600080fd5b50356001600160a01b03166100a3565b604080519115158252519081900360200190f35b6100616004803603604081101561008b57600080fd5b506001600160a01b03813581169160200135166100b4565b60006100ae826100c7565b92915050565b60006100c08383610100565b9392505050565b600073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b038316148015906100ae5750506001600160a01b0316151590565b6000816001600160a01b0316836001600160a01b0316148015610140575073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b03841614155b80156100c0575050506001600160a01b031615159056fea265627a7a72315820c206aa4f1e76ba60b75b6c2d7bd5175126ef92f6a4c5a9fa2121e40140d8378364736f6c63430005110032",
+    "sourceMap": "99:704:211:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;99:704:211;;;;;;;;;;;;;;;;;;;;;;;;374:145;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;374:145:211;-1:-1:-1;;;;;374:145:211;;:::i;:::-;;;;;;;;;;;;;;;;;;640:161;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;;;;;;640:161:211;;;;;;;;;;:::i;374:145::-;450:4;474:37;506:4;474:31;:37::i;:::-;466:46;374:145;-1:-1:-1;;374:145:211:o;640:161::-;728:4;752:41;780:5;787;752:27;:41::i;:::-;744:50;640:161;-1:-1:-1;;;640:161:211:o;336:165:198:-;397:4;429:42;-1:-1:-1;;;;;421:50:198;;;;;;:72;;-1:-1:-1;;;;;;;475:18:198;;;;336:165::o;625:221::-;698:4;731:5;-1:-1:-1;;;;;722:14:198;:5;-1:-1:-1;;;;;722:14:198;;:81;;;;-1:-1:-1;761:42:198;-1:-1:-1;;;;;752:51:198;;;;722:81;:116;;;;-1:-1:-1;;;;;;;;819:19:198;;;;625:221::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "RSKAddrValidator_checkPKNotZero(address)": "0a4aff77",
+    "RSKAddrValidator_safeEquals(address,address)": "13408693"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"RSKAddrValidator_checkPKNotZero\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr1\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"addr2\",\"type\":\"address\"}],\"name\":\"RSKAddrValidator_safeEquals\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/testhelpers/TestLibraries.sol\":\"TestLibraries\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/rsk/RSKAddrValidator.sol\":{\"keccak256\":\"0xf25255f771a734eef130f68e899d00a71e2bcab4e6b109e06f61cff93ab58d74\",\"urls\":[\"bzz-raw://445d86f2dfa2c76c5244df73cc8650e22a71b0202c1e370228786ba3d488c2e0\",\"dweb:/ipfs/QmUaJ3C5vcuj77bZ479ymEhHug1FzhJjEGRZFmsne76MrB\"]},\"contracts/testhelpers/TestLibraries.sol\":{\"keccak256\":\"0xc0b1b8465a90904edd242185fa5171ce0717f10794ca1243a3b09d783f5991bf\",\"urls\":[\"bzz-raw://8b801074f0a6703bfe2d948b648776fac699e94fe4b80098b30ac575a7136798\",\"dweb:/ipfs/QmRZGCvmzG94YD9ktQkdMggzvgGEu3TksBp6AeyD7iBTZi\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "pure",
+          "type": "function",
+          "name": "RSKAddrValidator_checkPKNotZero",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "addr1",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "addr2",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "pure",
+          "type": "function",
+          "name": "RSKAddrValidator_safeEquals",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/testhelpers/TestLibraries.sol": "TestLibraries"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/rsk/RSKAddrValidator.sol": {
+        "keccak256": "0xf25255f771a734eef130f68e899d00a71e2bcab4e6b109e06f61cff93ab58d74",
+        "urls": [
+          "bzz-raw://445d86f2dfa2c76c5244df73cc8650e22a71b0202c1e370228786ba3d488c2e0",
+          "dweb:/ipfs/QmUaJ3C5vcuj77bZ479ymEhHug1FzhJjEGRZFmsne76MrB"
+        ],
+        "license": null
+      },
+      "contracts/testhelpers/TestLibraries.sol": {
+        "keccak256": "0xc0b1b8465a90904edd242185fa5171ce0717f10794ca1243a3b09d783f5991bf",
+        "urls": [
+          "bzz-raw://8b801074f0a6703bfe2d948b648776fac699e94fe4b80098b30ac575a7136798",
+          "dweb:/ipfs/QmRZGCvmzG94YD9ktQkdMggzvgGEu3TksBp6AeyD7iBTZi"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/testhelpers/TestLibraries.sol",
+    "id": 59666,
+    "exportedSymbols": {
+      "TestLibraries": [
+        59665
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:804:211",
+    "nodes": [
+      {
+        "id": 59632,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:211",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 59633,
+        "nodeType": "ImportDirective",
+        "src": "26:37:211",
+        "nodes": [],
+        "absolutePath": "contracts/rsk/RSKAddrValidator.sol",
+        "file": "../rsk/RSKAddrValidator.sol",
+        "scope": 59666,
+        "sourceUnit": 57261,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 59665,
+        "nodeType": "ContractDefinition",
+        "src": "99:704:211",
+        "nodes": [
+          {
+            "id": 59647,
+            "nodeType": "FunctionDefinition",
+            "src": "374:145:211",
+            "nodes": [],
+            "body": {
+              "id": 59646,
+              "nodeType": "Block",
+              "src": "456:63:211",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "components": [
+                      {
+                        "argumentTypes": null,
+                        "arguments": [
+                          {
+                            "argumentTypes": null,
+                            "id": 59642,
+                            "name": "addr",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 59635,
+                            "src": "506:4:211",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": [
+                            {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 59640,
+                            "name": "RSKAddrValidator",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 57260,
+                            "src": "474:16:211",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_contract$_RSKAddrValidator_$57260_$",
+                              "typeString": "type(library RSKAddrValidator)"
+                            }
+                          },
+                          "id": 59641,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "checkPKNotZero",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 57234,
+                          "src": "474:31:211",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_function_internal_pure$_t_address_$returns$_t_bool_$",
+                            "typeString": "function (address) pure returns (bool)"
+                          }
+                        },
+                        "id": 59643,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "functionCall",
+                        "lValueRequested": false,
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "474:37:211",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      }
+                    ],
+                    "id": 59644,
+                    "isConstant": false,
+                    "isInlineArray": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "nodeType": "TupleExpression",
+                    "src": "473:39:211",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 59639,
+                  "id": 59645,
+                  "nodeType": "Return",
+                  "src": "466:46:211"
+                }
+              ]
+            },
+            "documentation": null,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "RSKAddrValidator_checkPKNotZero",
+            "parameters": {
+              "id": 59636,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 59635,
+                  "name": "addr",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 59647,
+                  "src": "415:12:211",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 59634,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "415:7:211",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "414:14:211"
+            },
+            "returnParameters": {
+              "id": 59639,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 59638,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 59647,
+                  "src": "450:4:211",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 59637,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "450:4:211",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "449:6:211"
+            },
+            "scope": 59665,
+            "stateMutability": "pure",
+            "superFunction": null,
+            "visibility": "public"
+          },
+          {
+            "id": 59664,
+            "nodeType": "FunctionDefinition",
+            "src": "640:161:211",
+            "nodes": [],
+            "body": {
+              "id": 59663,
+              "nodeType": "Block",
+              "src": "734:67:211",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "components": [
+                      {
+                        "argumentTypes": null,
+                        "arguments": [
+                          {
+                            "argumentTypes": null,
+                            "id": 59658,
+                            "name": "addr1",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 59649,
+                            "src": "780:5:211",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          },
+                          {
+                            "argumentTypes": null,
+                            "id": 59659,
+                            "name": "addr2",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 59651,
+                            "src": "787:5:211",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": [
+                            {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            },
+                            {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 59656,
+                            "name": "RSKAddrValidator",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 57260,
+                            "src": "752:16:211",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_contract$_RSKAddrValidator_$57260_$",
+                              "typeString": "type(library RSKAddrValidator)"
+                            }
+                          },
+                          "id": 59657,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "safeEquals",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 57259,
+                          "src": "752:27:211",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_function_internal_pure$_t_address_$_t_address_$returns$_t_bool_$",
+                            "typeString": "function (address,address) pure returns (bool)"
+                          }
+                        },
+                        "id": 59660,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "functionCall",
+                        "lValueRequested": false,
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "752:41:211",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      }
+                    ],
+                    "id": 59661,
+                    "isConstant": false,
+                    "isInlineArray": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "nodeType": "TupleExpression",
+                    "src": "751:43:211",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 59655,
+                  "id": 59662,
+                  "nodeType": "Return",
+                  "src": "744:50:211"
+                }
+              ]
+            },
+            "documentation": null,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "RSKAddrValidator_safeEquals",
+            "parameters": {
+              "id": 59652,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 59649,
+                  "name": "addr1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 59664,
+                  "src": "677:13:211",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 59648,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "677:7:211",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 59651,
+                  "name": "addr2",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 59664,
+                  "src": "692:13:211",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 59650,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "692:7:211",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "676:30:211"
+            },
+            "returnParameters": {
+              "id": 59655,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 59654,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 59664,
+                  "src": "728:4:211",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 59653,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "728:4:211",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "727:6:211"
+            },
+            "scope": 59665,
+            "stateMutability": "pure",
+            "superFunction": null,
+            "visibility": "public"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          59665
+        ],
+        "name": "TestLibraries",
+        "scope": 59666
+      }
+    ]
+  },
+  "id": 211
+}

@@ -1,0 +1,4159 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getListFunctionSignatures",
+      "outputs": [
+        {
+          "internalType": "bytes4[]",
+          "name": "",
+          "type": "bytes4[]"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "moduleName",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "getListFunctionSignatures()": "90967de5"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"getListFunctionSignatures\",\"outputs\":[{\"internalType\":\"bytes4[]\",\"name\":\"\",\"type\":\"bytes4[]\"},{\"internalType\":\"bytes32\",\"name\":\"moduleName\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/connectors/loantoken/LoanTokenLogicBeacon.sol\":\"ILoanTokenLogicModules\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/connectors/loantoken/LoanTokenLogicBeacon.sol\":{\"keccak256\":\"0x17863dacfd43ebb75868767405901b4ac33941d45acf4d2a99a75abe9907de72\",\"urls\":[\"bzz-raw://4274be1f026c417fd1aa1ce511312199ff76ce3cd36099609bc50c5cbb2f777e\",\"dweb:/ipfs/QmSS3zaSm6SwW4ia3SPpQ2pvM55S987y93JH2ZeTGPGU14\"]},\"contracts/mixins/EnumerableBytes32Set.sol\":{\"keccak256\":\"0xa2801a585c566e07f21c1ebccd0cd0447dd5fd9fe6c1ff2b58d4d979d88a6db0\",\"urls\":[\"bzz-raw://e3160f5161fb9eb78bac2107c53a6d635182a597515129bf916e955044769cde\",\"dweb:/ipfs/QmTFbJX7qYunXxrRfydVrtdVpN4jTAoC3GeKzv3ChruUdm\"]},\"contracts/mixins/EnumerableBytes4Set.sol\":{\"keccak256\":\"0x9dddffd475e2532204ac1c33ba211788b04d83c59e16416b341ea1f2f3a3fd44\",\"urls\":[\"bzz-raw://f5c622c5f97128b68e180f770f148bb007f99c92559544524b0ab92654f67cef\",\"dweb:/ipfs/QmcWdHR8g8Js4kmKoFozWpw9QxvcaS4Xdgss6z9WNVCppm\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/PausableOz.sol\":{\"keccak256\":\"0x4a5bfd9174a70922a663afdca4ec7462acfcd5642797c1dc7fd830f2bdc233d3\",\"urls\":[\"bzz-raw://65435b30cd9dbc35806ad05f4d4e47c42b9a4672734d6d323a3e725c4f6eb6c3\",\"dweb:/ipfs/QmZhH7dhqMNiUmD9Rg3tHSrP7hN8UyuaUgnaCk3AaoLhcR\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "pure",
+          "type": "function",
+          "name": "getListFunctionSignatures",
+          "outputs": [
+            {
+              "internalType": "bytes4[]",
+              "name": "",
+              "type": "bytes4[]"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "moduleName",
+              "type": "bytes32"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol": "ILoanTokenLogicModules"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol": {
+        "keccak256": "0x17863dacfd43ebb75868767405901b4ac33941d45acf4d2a99a75abe9907de72",
+        "urls": [
+          "bzz-raw://4274be1f026c417fd1aa1ce511312199ff76ce3cd36099609bc50c5cbb2f777e",
+          "dweb:/ipfs/QmSS3zaSm6SwW4ia3SPpQ2pvM55S987y93JH2ZeTGPGU14"
+        ],
+        "license": null
+      },
+      "contracts/mixins/EnumerableBytes32Set.sol": {
+        "keccak256": "0xa2801a585c566e07f21c1ebccd0cd0447dd5fd9fe6c1ff2b58d4d979d88a6db0",
+        "urls": [
+          "bzz-raw://e3160f5161fb9eb78bac2107c53a6d635182a597515129bf916e955044769cde",
+          "dweb:/ipfs/QmTFbJX7qYunXxrRfydVrtdVpN4jTAoC3GeKzv3ChruUdm"
+        ],
+        "license": null
+      },
+      "contracts/mixins/EnumerableBytes4Set.sol": {
+        "keccak256": "0x9dddffd475e2532204ac1c33ba211788b04d83c59e16416b341ea1f2f3a3fd44",
+        "urls": [
+          "bzz-raw://f5c622c5f97128b68e180f770f148bb007f99c92559544524b0ab92654f67cef",
+          "dweb:/ipfs/QmcWdHR8g8Js4kmKoFozWpw9QxvcaS4Xdgss6z9WNVCppm"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Address.sol": {
+        "keccak256": "0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54",
+        "urls": [
+          "bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3",
+          "dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Context.sol": {
+        "keccak256": "0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b",
+        "urls": [
+          "bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826",
+          "dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Ownable.sol": {
+        "keccak256": "0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a",
+        "urls": [
+          "bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a",
+          "dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/PausableOz.sol": {
+        "keccak256": "0x4a5bfd9174a70922a663afdca4ec7462acfcd5642797c1dc7fd830f2bdc233d3",
+        "urls": [
+          "bzz-raw://65435b30cd9dbc35806ad05f4d4e47c42b9a4672734d6d323a3e725c4f6eb6c3",
+          "dweb:/ipfs/QmZhH7dhqMNiUmD9Rg3tHSrP7hN8UyuaUgnaCk3AaoLhcR"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol",
+    "id": 837,
+    "exportedSymbols": {
+      "ILoanTokenLogicModules": [
+        836
+      ],
+      "LoanTokenLogicBeacon": [
+        827
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:6727:4",
+    "nodes": [
+      {
+        "id": 526,
+        "nodeType": "PragmaDirective",
+        "src": "0:23:4",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 527,
+        "nodeType": "PragmaDirective",
+        "src": "24:33:4",
+        "nodes": [],
+        "literals": [
+          "experimental",
+          "ABIEncoderV2"
+        ]
+      },
+      {
+        "id": 528,
+        "nodeType": "ImportDirective",
+        "src": "59:47:4",
+        "nodes": [],
+        "absolutePath": "contracts/mixins/EnumerableBytes32Set.sol",
+        "file": "../../mixins/EnumerableBytes32Set.sol",
+        "scope": 837,
+        "sourceUnit": 35540,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 529,
+        "nodeType": "ImportDirective",
+        "src": "107:46:4",
+        "nodes": [],
+        "absolutePath": "contracts/mixins/EnumerableBytes4Set.sol",
+        "file": "../../mixins/EnumerableBytes4Set.sol",
+        "scope": 837,
+        "sourceUnit": 35796,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 530,
+        "nodeType": "ImportDirective",
+        "src": "154:43:4",
+        "nodes": [],
+        "absolutePath": "contracts/openzeppelin/PausableOz.sol",
+        "file": "../../openzeppelin/PausableOz.sol",
+        "scope": 837,
+        "sourceUnit": 55226,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 531,
+        "nodeType": "ImportDirective",
+        "src": "198:40:4",
+        "nodes": [],
+        "absolutePath": "contracts/openzeppelin/Address.sol",
+        "file": "../../openzeppelin/Address.sol",
+        "scope": 837,
+        "sourceUnit": 54445,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 827,
+        "nodeType": "ContractDefinition",
+        "src": "845:5717:4",
+        "nodes": [
+          {
+            "id": 536,
+            "nodeType": "UsingForDirective",
+            "src": "895:63:4",
+            "nodes": [],
+            "libraryName": {
+              "contractScope": null,
+              "id": 534,
+              "name": "EnumerableBytes32Set",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 35539,
+              "src": "901:20:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_EnumerableBytes32Set_$35539",
+                "typeString": "library EnumerableBytes32Set"
+              }
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 535,
+              "name": "EnumerableBytes32Set.Bytes32Set",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 35234,
+              "src": "926:31:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                "typeString": "struct EnumerableBytes32Set.Bytes32Set"
+              }
+            }
+          },
+          {
+            "id": 539,
+            "nodeType": "UsingForDirective",
+            "src": "1005:60:4",
+            "nodes": [],
+            "libraryName": {
+              "contractScope": null,
+              "id": 537,
+              "name": "EnumerableBytes4Set",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 35795,
+              "src": "1011:19:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_EnumerableBytes4Set_$35795",
+                "typeString": "library EnumerableBytes4Set"
+              }
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 538,
+              "name": "EnumerableBytes4Set.Bytes4Set",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 35549,
+              "src": "1035:29:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage_ptr",
+                "typeString": "struct EnumerableBytes4Set.Bytes4Set"
+              }
+            }
+          },
+          {
+            "id": 543,
+            "nodeType": "VariableDeclaration",
+            "src": "1112:47:4",
+            "nodes": [],
+            "constant": false,
+            "name": "logicTargets",
+            "scope": 827,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_bytes4_$_t_address_$",
+              "typeString": "mapping(bytes4 => address)"
+            },
+            "typeName": {
+              "id": 542,
+              "keyType": {
+                "id": 540,
+                "name": "bytes4",
+                "nodeType": "ElementaryTypeName",
+                "src": "1120:6:4",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes4",
+                  "typeString": "bytes4"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "1112:26:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_bytes4_$_t_address_$",
+                "typeString": "mapping(bytes4 => address)"
+              },
+              "valueType": {
+                "id": 541,
+                "name": "address",
+                "nodeType": "ElementaryTypeName",
+                "src": "1130:7:4",
+                "stateMutability": "nonpayable",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                }
+              }
+            },
+            "value": null,
+            "visibility": "private"
+          },
+          {
+            "id": 548,
+            "nodeType": "StructDefinition",
+            "src": "1166:163:4",
+            "nodes": [],
+            "canonicalName": "LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate",
+            "members": [
+              {
+                "constant": false,
+                "id": 545,
+                "name": "implementation",
+                "nodeType": "VariableDeclaration",
+                "scope": 548,
+                "src": "1210:22:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                },
+                "typeName": {
+                  "id": 544,
+                  "name": "address",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1210:7:4",
+                  "stateMutability": "nonpayable",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 547,
+                "name": "updateTimestamp",
+                "nodeType": "VariableDeclaration",
+                "scope": 548,
+                "src": "1281:23:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 546,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "1281:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "LoanTokenLogicModuleUpdate",
+            "scope": 827,
+            "visibility": "public"
+          },
+          {
+            "id": 553,
+            "nodeType": "VariableDeclaration",
+            "src": "1335:72:4",
+            "nodes": [],
+            "constant": false,
+            "name": "moduleUpgradeLog",
+            "scope": 827,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_bytes32_$_t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage_$",
+              "typeString": "mapping(bytes32 => struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate[])"
+            },
+            "typeName": {
+              "id": 552,
+              "keyType": {
+                "id": 549,
+                "name": "bytes32",
+                "nodeType": "ElementaryTypeName",
+                "src": "1343:7:4",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "1335:48:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_bytes32_$_t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage_$",
+                "typeString": "mapping(bytes32 => struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate[])"
+              },
+              "valueType": {
+                "baseType": {
+                  "contractScope": null,
+                  "id": 550,
+                  "name": "LoanTokenLogicModuleUpdate",
+                  "nodeType": "UserDefinedTypeName",
+                  "referencedDeclaration": 548,
+                  "src": "1354:26:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_LoanTokenLogicModuleUpdate_$548_storage_ptr",
+                    "typeString": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate"
+                  }
+                },
+                "id": 551,
+                "length": null,
+                "nodeType": "ArrayTypeName",
+                "src": "1354:28:4",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage_ptr",
+                  "typeString": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate[]"
+                }
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 557,
+            "nodeType": "VariableDeclaration",
+            "src": "1448:52:4",
+            "nodes": [],
+            "constant": false,
+            "name": "activeModuleIndex",
+            "scope": 827,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_bytes32_$_t_uint256_$",
+              "typeString": "mapping(bytes32 => uint256)"
+            },
+            "typeName": {
+              "id": 556,
+              "keyType": {
+                "id": 554,
+                "name": "bytes32",
+                "nodeType": "ElementaryTypeName",
+                "src": "1456:7:4",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "1448:27:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_bytes32_$_t_uint256_$",
+                "typeString": "mapping(bytes32 => uint256)"
+              },
+              "valueType": {
+                "id": 555,
+                "name": "uint256",
+                "nodeType": "ElementaryTypeName",
+                "src": "1467:7:4",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                }
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 561,
+            "nodeType": "VariableDeclaration",
+            "src": "1563:81:4",
+            "nodes": [],
+            "constant": false,
+            "name": "activeFuncSignatureList",
+            "scope": 827,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+              "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set)"
+            },
+            "typeName": {
+              "id": 560,
+              "keyType": {
+                "id": 558,
+                "name": "bytes32",
+                "nodeType": "ElementaryTypeName",
+                "src": "1571:7:4",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bytes32",
+                  "typeString": "bytes32"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "1563:49:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set)"
+              },
+              "valueType": {
+                "contractScope": null,
+                "id": 559,
+                "name": "EnumerableBytes4Set.Bytes4Set",
+                "nodeType": "UserDefinedTypeName",
+                "referencedDeclaration": 35549,
+                "src": "1582:29:4",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage_ptr",
+                  "typeString": "struct EnumerableBytes4Set.Bytes4Set"
+                }
+              }
+            },
+            "value": null,
+            "visibility": "private"
+          },
+          {
+            "id": 571,
+            "nodeType": "ModifierDefinition",
+            "src": "1913:106:4",
+            "nodes": [],
+            "body": {
+              "id": 570,
+              "nodeType": "Block",
+              "src": "1938:81:4",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 565,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "nodeType": "UnaryOperation",
+                        "operator": "!",
+                        "prefix": true,
+                        "src": "1956:8:4",
+                        "subExpression": {
+                          "argumentTypes": null,
+                          "id": 564,
+                          "name": "_paused",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 55159,
+                          "src": "1957:7:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "4c6f616e546f6b656e4c6f676963426561636f6e3a706175736564206d6f6465",
+                        "id": 566,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1966:34:4",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_03ed2452e5d20b4997d42d772c0134ad6b27f500470d2a9b9c9ab0a1dd11c84b",
+                          "typeString": "literal_string \"LoanTokenLogicBeacon:paused mode\""
+                        },
+                        "value": "LoanTokenLogicBeacon:paused mode"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_03ed2452e5d20b4997d42d772c0134ad6b27f500470d2a9b9c9ab0a1dd11c84b",
+                          "typeString": "literal_string \"LoanTokenLogicBeacon:paused mode\""
+                        }
+                      ],
+                      "id": 563,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        62895,
+                        62896
+                      ],
+                      "referencedDeclaration": 62896,
+                      "src": "1948:7:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 567,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1948:53:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 568,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1948:53:4"
+                },
+                {
+                  "id": 569,
+                  "nodeType": "PlaceholderStatement",
+                  "src": "2011:1:4"
+                }
+              ]
+            },
+            "documentation": "@dev Modifier to make a function callable only when the contract is not paused.\nThis is the overriden function from the pausable contract, so that we can use custom error message.",
+            "name": "whenNotPaused",
+            "parameters": {
+              "id": 562,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1935:2:4"
+            },
+            "visibility": "internal"
+          },
+          {
+            "id": 607,
+            "nodeType": "FunctionDefinition",
+            "src": "2341:426:4",
+            "nodes": [],
+            "body": {
+              "id": 606,
+              "nodeType": "Block",
+              "src": "2425:342:4",
+              "nodes": [],
+              "statements": [
+                {
+                  "assignments": [
+                    579
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 579,
+                      "name": "moduleName",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 606,
+                      "src": "2435:18:4",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes32",
+                        "typeString": "bytes32"
+                      },
+                      "typeName": {
+                        "id": 578,
+                        "name": "bytes32",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "2435:7:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes32",
+                          "typeString": "bytes32"
+                        }
+                      },
+                      "value": null,
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 583,
+                  "initialValue": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 581,
+                        "name": "loanTokenModuleAddress",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 573,
+                        "src": "2481:22:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "id": 580,
+                      "name": "_registerLoanTokenModule",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 743,
+                      "src": "2456:24:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_address_$returns$_t_bytes32_$",
+                        "typeString": "function (address) returns (bytes32)"
+                      }
+                    },
+                    "id": 582,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "2456:48:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "2435:69:4"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "arguments": [
+                          {
+                            "argumentTypes": null,
+                            "id": 589,
+                            "name": "loanTokenModuleAddress",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 573,
+                            "src": "2629:22:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          },
+                          {
+                            "argumentTypes": null,
+                            "expression": {
+                              "argumentTypes": null,
+                              "id": 590,
+                              "name": "block",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 62882,
+                              "src": "2653:5:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_magic_block",
+                                "typeString": "block"
+                              }
+                            },
+                            "id": 591,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "memberName": "timestamp",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": null,
+                            "src": "2653:15:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": [
+                            {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            },
+                            {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          ],
+                          "id": 588,
+                          "name": "LoanTokenLogicModuleUpdate",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 548,
+                          "src": "2602:26:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_type$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_ptr_$",
+                            "typeString": "type(struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage pointer)"
+                          }
+                        },
+                        "id": 592,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "structConstructorCall",
+                        "lValueRequested": false,
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "2602:67:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_LoanTokenLogicModuleUpdate_$548_memory",
+                          "typeString": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate memory"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_struct$_LoanTokenLogicModuleUpdate_$548_memory",
+                          "typeString": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate memory"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "baseExpression": {
+                          "argumentTypes": null,
+                          "id": 584,
+                          "name": "moduleUpgradeLog",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 553,
+                          "src": "2555:16:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_bytes32_$_t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage_$",
+                            "typeString": "mapping(bytes32 => struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage ref[] storage ref)"
+                          }
+                        },
+                        "id": 586,
+                        "indexExpression": {
+                          "argumentTypes": null,
+                          "id": 585,
+                          "name": "moduleName",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 579,
+                          "src": "2572:10:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bytes32",
+                            "typeString": "bytes32"
+                          }
+                        },
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "nodeType": "IndexAccess",
+                        "src": "2555:28:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage",
+                          "typeString": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage ref[] storage ref"
+                        }
+                      },
+                      "id": 587,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "push",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": null,
+                      "src": "2555:33:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_arraypush_nonpayable$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$returns$_t_uint256_$",
+                        "typeString": "function (struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage ref) returns (uint256)"
+                      }
+                    },
+                    "id": 593,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "2555:124:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 594,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2555:124:4"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 604,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "baseExpression": {
+                        "argumentTypes": null,
+                        "id": 595,
+                        "name": "activeModuleIndex",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 557,
+                        "src": "2689:17:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_mapping$_t_bytes32_$_t_uint256_$",
+                          "typeString": "mapping(bytes32 => uint256)"
+                        }
+                      },
+                      "id": 597,
+                      "indexExpression": {
+                        "argumentTypes": null,
+                        "id": 596,
+                        "name": "moduleName",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 579,
+                        "src": "2707:10:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes32",
+                          "typeString": "bytes32"
+                        }
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "IndexAccess",
+                      "src": "2689:29:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "commonType": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "id": 603,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "baseExpression": {
+                            "argumentTypes": null,
+                            "id": 598,
+                            "name": "moduleUpgradeLog",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 553,
+                            "src": "2721:16:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_mapping$_t_bytes32_$_t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage_$",
+                              "typeString": "mapping(bytes32 => struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage ref[] storage ref)"
+                            }
+                          },
+                          "id": 600,
+                          "indexExpression": {
+                            "argumentTypes": null,
+                            "id": 599,
+                            "name": "moduleName",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 579,
+                            "src": "2738:10:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bytes32",
+                              "typeString": "bytes32"
+                            }
+                          },
+                          "isConstant": false,
+                          "isLValue": true,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "nodeType": "IndexAccess",
+                          "src": "2721:28:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage",
+                            "typeString": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage ref[] storage ref"
+                          }
+                        },
+                        "id": 601,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "length",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": null,
+                        "src": "2721:35:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "-",
+                      "rightExpression": {
+                        "argumentTypes": null,
+                        "hexValue": "31",
+                        "id": 602,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "2759:1:4",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        "value": "1"
+                      },
+                      "src": "2721:39:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "2689:71:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 605,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2689:71:4"
+                }
+              ]
+            },
+            "documentation": "@notice Register the loanTokenModule (LoanTokenSettingsLowerAdmin, LoanTokenLogicLM / LoanTokenLogicWrbtc, etc)\n     * @dev This function will store the updated protocol module to the storage (For rollback purposes)\n     * @param loanTokenModuleAddress The module target address",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "arguments": null,
+                "id": 576,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 575,
+                  "name": "onlyOwner",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 55096,
+                  "src": "2415:9:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "2415:9:4"
+              }
+            ],
+            "name": "registerLoanTokenModule",
+            "parameters": {
+              "id": 574,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 573,
+                  "name": "loanTokenModuleAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 607,
+                  "src": "2374:30:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 572,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2374:7:4",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2373:32:4"
+            },
+            "returnParameters": {
+              "id": 577,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "2425:0:4"
+            },
+            "scope": 827,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 743,
+            "nodeType": "FunctionDefinition",
+            "src": "3223:1671:4",
+            "nodes": [],
+            "body": {
+              "id": 742,
+              "nodeType": "Block",
+              "src": "3315:1579:4",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "arguments": [
+                          {
+                            "argumentTypes": null,
+                            "id": 617,
+                            "name": "loanTokenModuleAddress",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 609,
+                            "src": "3365:22:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": [
+                            {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 615,
+                            "name": "Address",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 54444,
+                            "src": "3346:7:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_contract$_Address_$54444_$",
+                              "typeString": "type(library Address)"
+                            }
+                          },
+                          "id": 616,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "isContract",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 54396,
+                          "src": "3346:18:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_function_internal_view$_t_address_$returns$_t_bool_$",
+                            "typeString": "function (address) view returns (bool)"
+                          }
+                        },
+                        "id": 618,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "functionCall",
+                        "lValueRequested": false,
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "3346:42:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "4c6f616e546f6b656e4d6f64756c6541646472657373206973206e6f74206120636f6e7472616374",
+                        "id": 619,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "3402:42:4",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_d6a7642e19741d4526d67fd271779dc2b3674606b8712e0b15dbe1147f758700",
+                          "typeString": "literal_string \"LoanTokenModuleAddress is not a contract\""
+                        },
+                        "value": "LoanTokenModuleAddress is not a contract"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_d6a7642e19741d4526d67fd271779dc2b3674606b8712e0b15dbe1147f758700",
+                          "typeString": "literal_string \"LoanTokenModuleAddress is not a contract\""
+                        }
+                      ],
+                      "id": 614,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        62895,
+                        62896
+                      ],
+                      "referencedDeclaration": 62896,
+                      "src": "3325:7:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 620,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "3325:129:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 621,
+                  "nodeType": "ExpressionStatement",
+                  "src": "3325:129:4"
+                },
+                {
+                  "assignments": [
+                    625,
+                    627
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 625,
+                      "name": "functionSignatureList",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 742,
+                      "src": "3544:37:4",
+                      "stateVariable": false,
+                      "storageLocation": "memory",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                        "typeString": "bytes4[]"
+                      },
+                      "typeName": {
+                        "baseType": {
+                          "id": 623,
+                          "name": "bytes4",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3544:6:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bytes4",
+                            "typeString": "bytes4"
+                          }
+                        },
+                        "id": 624,
+                        "length": null,
+                        "nodeType": "ArrayTypeName",
+                        "src": "3544:8:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_bytes4_$dyn_storage_ptr",
+                          "typeString": "bytes4[]"
+                        }
+                      },
+                      "value": null,
+                      "visibility": "internal"
+                    },
+                    {
+                      "constant": false,
+                      "id": 627,
+                      "name": "moduleName",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 742,
+                      "src": "3583:18:4",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes32",
+                        "typeString": "bytes32"
+                      },
+                      "typeName": {
+                        "id": 626,
+                        "name": "bytes32",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "3583:7:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes32",
+                          "typeString": "bytes32"
+                        }
+                      },
+                      "value": null,
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 633,
+                  "initialValue": {
+                    "argumentTypes": null,
+                    "arguments": [],
+                    "expression": {
+                      "argumentTypes": [],
+                      "expression": {
+                        "argumentTypes": null,
+                        "arguments": [
+                          {
+                            "argumentTypes": null,
+                            "id": 629,
+                            "name": "loanTokenModuleAddress",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 609,
+                            "src": "3640:22:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": [
+                            {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          ],
+                          "id": 628,
+                          "name": "ILoanTokenLogicModules",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 836,
+                          "src": "3617:22:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_type$_t_contract$_ILoanTokenLogicModules_$836_$",
+                            "typeString": "type(contract ILoanTokenLogicModules)"
+                          }
+                        },
+                        "id": 630,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "typeConversion",
+                        "lValueRequested": false,
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "3617:46:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_contract$_ILoanTokenLogicModules_$836",
+                          "typeString": "contract ILoanTokenLogicModules"
+                        }
+                      },
+                      "id": 631,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "getListFunctionSignatures",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 835,
+                      "src": "3617:72:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_external_pure$__$returns$_t_array$_t_bytes4_$dyn_memory_ptr_$_t_bytes32_$",
+                        "typeString": "function () pure external returns (bytes4[] memory,bytes32)"
+                      }
+                    },
+                    "id": 632,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "3617:74:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$_t_array$_t_bytes4_$dyn_memory_ptr_$_t_bytes32_$",
+                      "typeString": "tuple(bytes4[] memory,bytes32)"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "3543:148:4"
+                },
+                {
+                  "body": {
+                    "id": 682,
+                    "nodeType": "Block",
+                    "src": "3840:356:4",
+                    "statements": [
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "commonType": {
+                                "typeIdentifier": "t_bytes4",
+                                "typeString": "bytes4"
+                              },
+                              "id": 651,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "leftExpression": {
+                                "argumentTypes": null,
+                                "baseExpression": {
+                                  "argumentTypes": null,
+                                  "id": 645,
+                                  "name": "functionSignatureList",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 625,
+                                  "src": "3862:21:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                                    "typeString": "bytes4[] memory"
+                                  }
+                                },
+                                "id": 647,
+                                "indexExpression": {
+                                  "argumentTypes": null,
+                                  "id": 646,
+                                  "name": "i",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 635,
+                                  "src": "3884:1:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                },
+                                "isConstant": false,
+                                "isLValue": true,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "nodeType": "IndexAccess",
+                                "src": "3862:24:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_bytes4",
+                                  "typeString": "bytes4"
+                                }
+                              },
+                              "nodeType": "BinaryOperation",
+                              "operator": "!=",
+                              "rightExpression": {
+                                "argumentTypes": null,
+                                "arguments": [
+                                  {
+                                    "argumentTypes": null,
+                                    "hexValue": "307830",
+                                    "id": 649,
+                                    "isConstant": false,
+                                    "isLValue": false,
+                                    "isPure": true,
+                                    "kind": "number",
+                                    "lValueRequested": false,
+                                    "nodeType": "Literal",
+                                    "src": "3897:3:4",
+                                    "subdenomination": null,
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_rational_0_by_1",
+                                      "typeString": "int_const 0"
+                                    },
+                                    "value": "0x0"
+                                  }
+                                ],
+                                "expression": {
+                                  "argumentTypes": [
+                                    {
+                                      "typeIdentifier": "t_rational_0_by_1",
+                                      "typeString": "int_const 0"
+                                    }
+                                  ],
+                                  "id": 648,
+                                  "isConstant": false,
+                                  "isLValue": false,
+                                  "isPure": true,
+                                  "lValueRequested": false,
+                                  "nodeType": "ElementaryTypeNameExpression",
+                                  "src": "3890:6:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_type$_t_bytes4_$",
+                                    "typeString": "type(bytes4)"
+                                  },
+                                  "typeName": "bytes4"
+                                },
+                                "id": 650,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": true,
+                                "kind": "typeConversion",
+                                "lValueRequested": false,
+                                "names": [],
+                                "nodeType": "FunctionCall",
+                                "src": "3890:11:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_bytes4",
+                                  "typeString": "bytes4"
+                                }
+                              },
+                              "src": "3862:39:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              }
+                            },
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "4552525f454d5054595f46554e435f5349474e4154555245",
+                              "id": 652,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "string",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "3903:26:4",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_stringliteral_cc39215ff947e4087550bbcb099ffc1cfd9f8b68c0282583e65cb269698aa2cb",
+                                "typeString": "literal_string \"ERR_EMPTY_FUNC_SIGNATURE\""
+                              },
+                              "value": "ERR_EMPTY_FUNC_SIGNATURE"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_bool",
+                                "typeString": "bool"
+                              },
+                              {
+                                "typeIdentifier": "t_stringliteral_cc39215ff947e4087550bbcb099ffc1cfd9f8b68c0282583e65cb269698aa2cb",
+                                "typeString": "literal_string \"ERR_EMPTY_FUNC_SIGNATURE\""
+                              }
+                            ],
+                            "id": 644,
+                            "name": "require",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [
+                              62895,
+                              62896
+                            ],
+                            "referencedDeclaration": 62896,
+                            "src": "3854:7:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                              "typeString": "function (bool,string memory) pure"
+                            }
+                          },
+                          "id": 653,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "3854:76:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_tuple$__$",
+                            "typeString": "tuple()"
+                          }
+                        },
+                        "id": 654,
+                        "nodeType": "ExpressionStatement",
+                        "src": "3854:76:4"
+                      },
+                      {
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 661,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftHandSide": {
+                            "argumentTypes": null,
+                            "baseExpression": {
+                              "argumentTypes": null,
+                              "id": 655,
+                              "name": "logicTargets",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 543,
+                              "src": "3944:12:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_bytes4_$_t_address_$",
+                                "typeString": "mapping(bytes4 => address)"
+                              }
+                            },
+                            "id": 659,
+                            "indexExpression": {
+                              "argumentTypes": null,
+                              "baseExpression": {
+                                "argumentTypes": null,
+                                "id": 656,
+                                "name": "functionSignatureList",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 625,
+                                "src": "3957:21:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                                  "typeString": "bytes4[] memory"
+                                }
+                              },
+                              "id": 658,
+                              "indexExpression": {
+                                "argumentTypes": null,
+                                "id": 657,
+                                "name": "i",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 635,
+                                "src": "3979:1:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_uint256",
+                                  "typeString": "uint256"
+                                }
+                              },
+                              "isConstant": false,
+                              "isLValue": true,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "nodeType": "IndexAccess",
+                              "src": "3957:24:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bytes4",
+                                "typeString": "bytes4"
+                              }
+                            },
+                            "isConstant": false,
+                            "isLValue": true,
+                            "isPure": false,
+                            "lValueRequested": true,
+                            "nodeType": "IndexAccess",
+                            "src": "3944:38:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          },
+                          "nodeType": "Assignment",
+                          "operator": "=",
+                          "rightHandSide": {
+                            "argumentTypes": null,
+                            "id": 660,
+                            "name": "loanTokenModuleAddress",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 609,
+                            "src": "3985:22:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          },
+                          "src": "3944:63:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "id": 662,
+                        "nodeType": "ExpressionStatement",
+                        "src": "3944:63:4"
+                      },
+                      {
+                        "condition": {
+                          "argumentTypes": null,
+                          "id": 671,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "nodeType": "UnaryOperation",
+                          "operator": "!",
+                          "prefix": true,
+                          "src": "4025:71:4",
+                          "subExpression": {
+                            "argumentTypes": null,
+                            "arguments": [
+                              {
+                                "argumentTypes": null,
+                                "baseExpression": {
+                                  "argumentTypes": null,
+                                  "id": 667,
+                                  "name": "functionSignatureList",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 625,
+                                  "src": "4071:21:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                                    "typeString": "bytes4[] memory"
+                                  }
+                                },
+                                "id": 669,
+                                "indexExpression": {
+                                  "argumentTypes": null,
+                                  "id": 668,
+                                  "name": "i",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 635,
+                                  "src": "4093:1:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                },
+                                "isConstant": false,
+                                "isLValue": true,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "nodeType": "IndexAccess",
+                                "src": "4071:24:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_bytes4",
+                                  "typeString": "bytes4"
+                                }
+                              }
+                            ],
+                            "expression": {
+                              "argumentTypes": [
+                                {
+                                  "typeIdentifier": "t_bytes4",
+                                  "typeString": "bytes4"
+                                }
+                              ],
+                              "expression": {
+                                "argumentTypes": null,
+                                "baseExpression": {
+                                  "argumentTypes": null,
+                                  "id": 663,
+                                  "name": "activeFuncSignatureList",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 561,
+                                  "src": "4026:23:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                                    "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
+                                  }
+                                },
+                                "id": 665,
+                                "indexExpression": {
+                                  "argumentTypes": null,
+                                  "id": 664,
+                                  "name": "moduleName",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 627,
+                                  "src": "4050:10:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_bytes32",
+                                    "typeString": "bytes32"
+                                  }
+                                },
+                                "isConstant": false,
+                                "isLValue": true,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "nodeType": "IndexAccess",
+                                "src": "4026:35:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                                  "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
+                                }
+                              },
+                              "id": 666,
+                              "isConstant": false,
+                              "isLValue": true,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "memberName": "contains",
+                              "nodeType": "MemberAccess",
+                              "referencedDeclaration": 35681,
+                              "src": "4026:44:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35549_storage_ptr_$_t_bytes4_$returns$_t_bool_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                                "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer,bytes4) view returns (bool)"
+                              }
+                            },
+                            "id": 670,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "kind": "functionCall",
+                            "lValueRequested": false,
+                            "names": [],
+                            "nodeType": "FunctionCall",
+                            "src": "4026:70:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            }
+                          },
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "falseBody": null,
+                        "id": 681,
+                        "nodeType": "IfStatement",
+                        "src": "4021:164:4",
+                        "trueBody": {
+                          "expression": {
+                            "argumentTypes": null,
+                            "arguments": [
+                              {
+                                "argumentTypes": null,
+                                "baseExpression": {
+                                  "argumentTypes": null,
+                                  "id": 676,
+                                  "name": "functionSignatureList",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 625,
+                                  "src": "4160:21:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                                    "typeString": "bytes4[] memory"
+                                  }
+                                },
+                                "id": 678,
+                                "indexExpression": {
+                                  "argumentTypes": null,
+                                  "id": 677,
+                                  "name": "i",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 635,
+                                  "src": "4182:1:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_uint256",
+                                    "typeString": "uint256"
+                                  }
+                                },
+                                "isConstant": false,
+                                "isLValue": true,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "nodeType": "IndexAccess",
+                                "src": "4160:24:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_bytes4",
+                                  "typeString": "bytes4"
+                                }
+                              }
+                            ],
+                            "expression": {
+                              "argumentTypes": [
+                                {
+                                  "typeIdentifier": "t_bytes4",
+                                  "typeString": "bytes4"
+                                }
+                              ],
+                              "expression": {
+                                "argumentTypes": null,
+                                "baseExpression": {
+                                  "argumentTypes": null,
+                                  "id": 672,
+                                  "name": "activeFuncSignatureList",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 561,
+                                  "src": "4114:23:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                                    "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
+                                  }
+                                },
+                                "id": 674,
+                                "indexExpression": {
+                                  "argumentTypes": null,
+                                  "id": 673,
+                                  "name": "moduleName",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 627,
+                                  "src": "4138:10:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_bytes32",
+                                    "typeString": "bytes32"
+                                  }
+                                },
+                                "isConstant": false,
+                                "isLValue": true,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "nodeType": "IndexAccess",
+                                "src": "4114:35:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                                  "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
+                                }
+                              },
+                              "id": 675,
+                              "isConstant": false,
+                              "isLValue": true,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "memberName": "addBytes4",
+                              "nodeType": "MemberAccess",
+                              "referencedDeclaration": 35583,
+                              "src": "4114:45:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Bytes4Set_$35549_storage_ptr_$_t_bytes4_$returns$_t_bool_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                                "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer,bytes4) returns (bool)"
+                              }
+                            },
+                            "id": 679,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "kind": "functionCall",
+                            "lValueRequested": false,
+                            "names": [],
+                            "nodeType": "FunctionCall",
+                            "src": "4114:71:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bool",
+                              "typeString": "bool"
+                            }
+                          },
+                          "id": 680,
+                          "nodeType": "ExpressionStatement",
+                          "src": "4114:71:4"
+                        }
+                      }
+                    ]
+                  },
+                  "condition": {
+                    "argumentTypes": null,
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 640,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "argumentTypes": null,
+                      "id": 637,
+                      "name": "i",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 635,
+                      "src": "3801:1:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "<",
+                    "rightExpression": {
+                      "argumentTypes": null,
+                      "expression": {
+                        "argumentTypes": null,
+                        "id": 638,
+                        "name": "functionSignatureList",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 625,
+                        "src": "3805:21:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                          "typeString": "bytes4[] memory"
+                        }
+                      },
+                      "id": 639,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "length",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": null,
+                      "src": "3805:28:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "3801:32:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 683,
+                  "initializationExpression": {
+                    "assignments": [
+                      635
+                    ],
+                    "declarations": [
+                      {
+                        "constant": false,
+                        "id": 635,
+                        "name": "i",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 683,
+                        "src": "3790:9:4",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 634,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3790:7:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "id": 636,
+                    "initialValue": null,
+                    "nodeType": "VariableDeclarationStatement",
+                    "src": "3790:9:4"
+                  },
+                  "loopExpression": {
+                    "expression": {
+                      "argumentTypes": null,
+                      "id": 642,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "nodeType": "UnaryOperation",
+                      "operator": "++",
+                      "prefix": false,
+                      "src": "3835:3:4",
+                      "subExpression": {
+                        "argumentTypes": null,
+                        "id": 641,
+                        "name": "i",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 635,
+                        "src": "3835:1:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "id": 643,
+                    "nodeType": "ExpressionStatement",
+                    "src": "3835:3:4"
+                  },
+                  "nodeType": "ForStatement",
+                  "src": "3785:411:4"
+                },
+                {
+                  "assignments": [
+                    687
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 687,
+                      "name": "activeSignatureListEnum",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 742,
+                      "src": "4295:39:4",
+                      "stateVariable": false,
+                      "storageLocation": "memory",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                        "typeString": "bytes4[]"
+                      },
+                      "typeName": {
+                        "baseType": {
+                          "id": 685,
+                          "name": "bytes4",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "4295:6:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bytes4",
+                            "typeString": "bytes4"
+                          }
+                        },
+                        "id": 686,
+                        "length": null,
+                        "nodeType": "ArrayTypeName",
+                        "src": "4295:8:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_bytes4_$dyn_storage_ptr",
+                          "typeString": "bytes4[]"
+                        }
+                      },
+                      "value": null,
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 699,
+                  "initialValue": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "30",
+                        "id": 692,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "4412:1:4",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_0_by_1",
+                          "typeString": "int_const 0"
+                        },
+                        "value": "0"
+                      },
+                      {
+                        "argumentTypes": null,
+                        "arguments": [],
+                        "expression": {
+                          "argumentTypes": [],
+                          "expression": {
+                            "argumentTypes": null,
+                            "baseExpression": {
+                              "argumentTypes": null,
+                              "id": 693,
+                              "name": "activeFuncSignatureList",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 561,
+                              "src": "4431:23:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                                "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
+                              }
+                            },
+                            "id": 695,
+                            "indexExpression": {
+                              "argumentTypes": null,
+                              "id": 694,
+                              "name": "moduleName",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 627,
+                              "src": "4455:10:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bytes32",
+                                "typeString": "bytes32"
+                              }
+                            },
+                            "isConstant": false,
+                            "isLValue": true,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "nodeType": "IndexAccess",
+                            "src": "4431:35:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                              "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
+                            }
+                          },
+                          "id": 696,
+                          "isConstant": false,
+                          "isLValue": true,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "length",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 35779,
+                          "src": "4431:42:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35549_storage_ptr_$returns$_t_uint256_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                            "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer) view returns (uint256)"
+                          }
+                        },
+                        "id": 697,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "functionCall",
+                        "lValueRequested": false,
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "4431:44:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_rational_0_by_1",
+                          "typeString": "int_const 0"
+                        },
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "baseExpression": {
+                          "argumentTypes": null,
+                          "id": 688,
+                          "name": "activeFuncSignatureList",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 561,
+                          "src": "4349:23:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                            "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
+                          }
+                        },
+                        "id": 690,
+                        "indexExpression": {
+                          "argumentTypes": null,
+                          "id": 689,
+                          "name": "moduleName",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 627,
+                          "src": "4373:10:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bytes32",
+                            "typeString": "bytes32"
+                          }
+                        },
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "nodeType": "IndexAccess",
+                        "src": "4349:35:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                          "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
+                        }
+                      },
+                      "id": 691,
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "enumerate",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 35767,
+                      "src": "4349:45:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35549_storage_ptr_$_t_uint256_$_t_uint256_$returns$_t_array$_t_bytes4_$dyn_memory_ptr_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                        "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer,uint256,uint256) view returns (bytes4[] memory)"
+                      }
+                    },
+                    "id": 698,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "4349:140:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                      "typeString": "bytes4[] memory"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "4295:194:4"
+                },
+                {
+                  "body": {
+                    "id": 738,
+                    "nodeType": "Block",
+                    "src": "4556:304:4",
+                    "statements": [
+                      {
+                        "assignments": [
+                          711
+                        ],
+                        "declarations": [
+                          {
+                            "constant": false,
+                            "id": 711,
+                            "name": "activeSigBytes",
+                            "nodeType": "VariableDeclaration",
+                            "scope": 738,
+                            "src": "4570:21:4",
+                            "stateVariable": false,
+                            "storageLocation": "default",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bytes4",
+                              "typeString": "bytes4"
+                            },
+                            "typeName": {
+                              "id": 710,
+                              "name": "bytes4",
+                              "nodeType": "ElementaryTypeName",
+                              "src": "4570:6:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bytes4",
+                                "typeString": "bytes4"
+                              }
+                            },
+                            "value": null,
+                            "visibility": "internal"
+                          }
+                        ],
+                        "id": 715,
+                        "initialValue": {
+                          "argumentTypes": null,
+                          "baseExpression": {
+                            "argumentTypes": null,
+                            "id": 712,
+                            "name": "activeSignatureListEnum",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 687,
+                            "src": "4594:23:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                              "typeString": "bytes4[] memory"
+                            }
+                          },
+                          "id": 714,
+                          "indexExpression": {
+                            "argumentTypes": null,
+                            "id": 713,
+                            "name": "i",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 701,
+                            "src": "4618:1:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "isConstant": false,
+                          "isLValue": true,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "nodeType": "IndexAccess",
+                          "src": "4594:26:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bytes4",
+                            "typeString": "bytes4"
+                          }
+                        },
+                        "nodeType": "VariableDeclarationStatement",
+                        "src": "4570:50:4"
+                      },
+                      {
+                        "condition": {
+                          "argumentTypes": null,
+                          "commonType": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          },
+                          "id": 720,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "argumentTypes": null,
+                            "baseExpression": {
+                              "argumentTypes": null,
+                              "id": 716,
+                              "name": "logicTargets",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 543,
+                              "src": "4638:12:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_mapping$_t_bytes4_$_t_address_$",
+                                "typeString": "mapping(bytes4 => address)"
+                              }
+                            },
+                            "id": 718,
+                            "indexExpression": {
+                              "argumentTypes": null,
+                              "id": 717,
+                              "name": "activeSigBytes",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 711,
+                              "src": "4651:14:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bytes4",
+                                "typeString": "bytes4"
+                              }
+                            },
+                            "isConstant": false,
+                            "isLValue": true,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "nodeType": "IndexAccess",
+                            "src": "4638:28:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "!=",
+                          "rightExpression": {
+                            "argumentTypes": null,
+                            "id": 719,
+                            "name": "loanTokenModuleAddress",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 609,
+                            "src": "4670:22:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          },
+                          "src": "4638:54:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "falseBody": null,
+                        "id": 737,
+                        "nodeType": "IfStatement",
+                        "src": "4634:216:4",
+                        "trueBody": {
+                          "id": 736,
+                          "nodeType": "Block",
+                          "src": "4694:156:4",
+                          "statements": [
+                            {
+                              "expression": {
+                                "argumentTypes": null,
+                                "id": 727,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "lValueRequested": false,
+                                "leftHandSide": {
+                                  "argumentTypes": null,
+                                  "baseExpression": {
+                                    "argumentTypes": null,
+                                    "id": 721,
+                                    "name": "logicTargets",
+                                    "nodeType": "Identifier",
+                                    "overloadedDeclarations": [],
+                                    "referencedDeclaration": 543,
+                                    "src": "4712:12:4",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_mapping$_t_bytes4_$_t_address_$",
+                                      "typeString": "mapping(bytes4 => address)"
+                                    }
+                                  },
+                                  "id": 723,
+                                  "indexExpression": {
+                                    "argumentTypes": null,
+                                    "id": 722,
+                                    "name": "activeSigBytes",
+                                    "nodeType": "Identifier",
+                                    "overloadedDeclarations": [],
+                                    "referencedDeclaration": 711,
+                                    "src": "4725:14:4",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_bytes4",
+                                      "typeString": "bytes4"
+                                    }
+                                  },
+                                  "isConstant": false,
+                                  "isLValue": true,
+                                  "isPure": false,
+                                  "lValueRequested": true,
+                                  "nodeType": "IndexAccess",
+                                  "src": "4712:28:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_address",
+                                    "typeString": "address"
+                                  }
+                                },
+                                "nodeType": "Assignment",
+                                "operator": "=",
+                                "rightHandSide": {
+                                  "argumentTypes": null,
+                                  "arguments": [
+                                    {
+                                      "argumentTypes": null,
+                                      "hexValue": "30",
+                                      "id": 725,
+                                      "isConstant": false,
+                                      "isLValue": false,
+                                      "isPure": true,
+                                      "kind": "number",
+                                      "lValueRequested": false,
+                                      "nodeType": "Literal",
+                                      "src": "4751:1:4",
+                                      "subdenomination": null,
+                                      "typeDescriptions": {
+                                        "typeIdentifier": "t_rational_0_by_1",
+                                        "typeString": "int_const 0"
+                                      },
+                                      "value": "0"
+                                    }
+                                  ],
+                                  "expression": {
+                                    "argumentTypes": [
+                                      {
+                                        "typeIdentifier": "t_rational_0_by_1",
+                                        "typeString": "int_const 0"
+                                      }
+                                    ],
+                                    "id": 724,
+                                    "isConstant": false,
+                                    "isLValue": false,
+                                    "isPure": true,
+                                    "lValueRequested": false,
+                                    "nodeType": "ElementaryTypeNameExpression",
+                                    "src": "4743:7:4",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_type$_t_address_$",
+                                      "typeString": "type(address)"
+                                    },
+                                    "typeName": "address"
+                                  },
+                                  "id": 726,
+                                  "isConstant": false,
+                                  "isLValue": false,
+                                  "isPure": true,
+                                  "kind": "typeConversion",
+                                  "lValueRequested": false,
+                                  "names": [],
+                                  "nodeType": "FunctionCall",
+                                  "src": "4743:10:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_address_payable",
+                                    "typeString": "address payable"
+                                  }
+                                },
+                                "src": "4712:41:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_address",
+                                  "typeString": "address"
+                                }
+                              },
+                              "id": 728,
+                              "nodeType": "ExpressionStatement",
+                              "src": "4712:41:4"
+                            },
+                            {
+                              "expression": {
+                                "argumentTypes": null,
+                                "arguments": [
+                                  {
+                                    "argumentTypes": null,
+                                    "id": 733,
+                                    "name": "activeSigBytes",
+                                    "nodeType": "Identifier",
+                                    "overloadedDeclarations": [],
+                                    "referencedDeclaration": 711,
+                                    "src": "4820:14:4",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_bytes4",
+                                      "typeString": "bytes4"
+                                    }
+                                  }
+                                ],
+                                "expression": {
+                                  "argumentTypes": [
+                                    {
+                                      "typeIdentifier": "t_bytes4",
+                                      "typeString": "bytes4"
+                                    }
+                                  ],
+                                  "expression": {
+                                    "argumentTypes": null,
+                                    "baseExpression": {
+                                      "argumentTypes": null,
+                                      "id": 729,
+                                      "name": "activeFuncSignatureList",
+                                      "nodeType": "Identifier",
+                                      "overloadedDeclarations": [],
+                                      "referencedDeclaration": 561,
+                                      "src": "4771:23:4",
+                                      "typeDescriptions": {
+                                        "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                                        "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
+                                      }
+                                    },
+                                    "id": 731,
+                                    "indexExpression": {
+                                      "argumentTypes": null,
+                                      "id": 730,
+                                      "name": "moduleName",
+                                      "nodeType": "Identifier",
+                                      "overloadedDeclarations": [],
+                                      "referencedDeclaration": 627,
+                                      "src": "4795:10:4",
+                                      "typeDescriptions": {
+                                        "typeIdentifier": "t_bytes32",
+                                        "typeString": "bytes32"
+                                      }
+                                    },
+                                    "isConstant": false,
+                                    "isLValue": true,
+                                    "isPure": false,
+                                    "lValueRequested": false,
+                                    "nodeType": "IndexAccess",
+                                    "src": "4771:35:4",
+                                    "typeDescriptions": {
+                                      "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                                      "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
+                                    }
+                                  },
+                                  "id": 732,
+                                  "isConstant": false,
+                                  "isLValue": true,
+                                  "isPure": false,
+                                  "lValueRequested": false,
+                                  "memberName": "removeBytes4",
+                                  "nodeType": "MemberAccess",
+                                  "referencedDeclaration": 35664,
+                                  "src": "4771:48:4",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Bytes4Set_$35549_storage_ptr_$_t_bytes4_$returns$_t_bool_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                                    "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer,bytes4) returns (bool)"
+                                  }
+                                },
+                                "id": 734,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": false,
+                                "kind": "functionCall",
+                                "lValueRequested": false,
+                                "names": [],
+                                "nodeType": "FunctionCall",
+                                "src": "4771:64:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_bool",
+                                  "typeString": "bool"
+                                }
+                              },
+                              "id": 735,
+                              "nodeType": "ExpressionStatement",
+                              "src": "4771:64:4"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "condition": {
+                    "argumentTypes": null,
+                    "commonType": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    },
+                    "id": 706,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "argumentTypes": null,
+                      "id": 703,
+                      "name": "i",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 701,
+                      "src": "4515:1:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "<",
+                    "rightExpression": {
+                      "argumentTypes": null,
+                      "expression": {
+                        "argumentTypes": null,
+                        "id": 704,
+                        "name": "activeSignatureListEnum",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 687,
+                        "src": "4519:23:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                          "typeString": "bytes4[] memory"
+                        }
+                      },
+                      "id": 705,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "length",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": null,
+                      "src": "4519:30:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "4515:34:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 739,
+                  "initializationExpression": {
+                    "assignments": [
+                      701
+                    ],
+                    "declarations": [
+                      {
+                        "constant": false,
+                        "id": 701,
+                        "name": "i",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 739,
+                        "src": "4504:9:4",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 700,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "4504:7:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "value": null,
+                        "visibility": "internal"
+                      }
+                    ],
+                    "id": 702,
+                    "initialValue": null,
+                    "nodeType": "VariableDeclarationStatement",
+                    "src": "4504:9:4"
+                  },
+                  "loopExpression": {
+                    "expression": {
+                      "argumentTypes": null,
+                      "id": 708,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "nodeType": "UnaryOperation",
+                      "operator": "++",
+                      "prefix": false,
+                      "src": "4551:3:4",
+                      "subExpression": {
+                        "argumentTypes": null,
+                        "id": 707,
+                        "name": "i",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 701,
+                        "src": "4551:1:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "id": 709,
+                    "nodeType": "ExpressionStatement",
+                    "src": "4551:3:4"
+                  },
+                  "nodeType": "ForStatement",
+                  "src": "4499:361:4"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 740,
+                    "name": "moduleName",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 627,
+                    "src": "4877:10:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "functionReturnParameters": 613,
+                  "id": 741,
+                  "nodeType": "Return",
+                  "src": "4870:17:4"
+                }
+              ]
+            },
+            "documentation": "@notice Register the loanTokenModule (LoanTokenSettingsLowerAdmin, LoanTokenLogicLM / LoanTokenLogicWrbtc, etc)\n     * @dev This registration will require target contract to have the exact function getListFunctionSignatures() which will return functionSignatureList and the moduleName in bytes32\n     * @param loanTokenModuleAddress the target logic of the loan token module\n     * @return the module name",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "_registerLoanTokenModule",
+            "parameters": {
+              "id": 610,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 609,
+                  "name": "loanTokenModuleAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 743,
+                  "src": "3257:30:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 608,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3257:7:4",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3256:32:4"
+            },
+            "returnParameters": {
+              "id": 613,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 612,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 743,
+                  "src": "3306:7:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 611,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3306:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3305:9:4"
+            },
+            "scope": 827,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "private"
+          },
+          {
+            "id": 768,
+            "nodeType": "FunctionDefinition",
+            "src": "5092:327:4",
+            "nodes": [],
+            "body": {
+              "id": 767,
+              "nodeType": "Block",
+              "src": "5228:191:4",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 763,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 751,
+                      "name": "signatureList",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 749,
+                      "src": "5238:13:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                        "typeString": "bytes4[] memory"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "arguments": [
+                        {
+                          "argumentTypes": null,
+                          "hexValue": "30",
+                          "id": 756,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "number",
+                          "lValueRequested": false,
+                          "nodeType": "Literal",
+                          "src": "5313:1:4",
+                          "subdenomination": null,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_rational_0_by_1",
+                            "typeString": "int_const 0"
+                          },
+                          "value": "0"
+                        },
+                        {
+                          "argumentTypes": null,
+                          "arguments": [],
+                          "expression": {
+                            "argumentTypes": [],
+                            "expression": {
+                              "argumentTypes": null,
+                              "baseExpression": {
+                                "argumentTypes": null,
+                                "id": 757,
+                                "name": "activeFuncSignatureList",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 561,
+                                "src": "5328:23:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                                  "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
+                                }
+                              },
+                              "id": 759,
+                              "indexExpression": {
+                                "argumentTypes": null,
+                                "id": 758,
+                                "name": "moduleName",
+                                "nodeType": "Identifier",
+                                "overloadedDeclarations": [],
+                                "referencedDeclaration": 745,
+                                "src": "5352:10:4",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_bytes32",
+                                  "typeString": "bytes32"
+                                }
+                              },
+                              "isConstant": false,
+                              "isLValue": true,
+                              "isPure": false,
+                              "lValueRequested": false,
+                              "nodeType": "IndexAccess",
+                              "src": "5328:35:4",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                                "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
+                              }
+                            },
+                            "id": 760,
+                            "isConstant": false,
+                            "isLValue": true,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "memberName": "length",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": 35779,
+                            "src": "5328:42:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35549_storage_ptr_$returns$_t_uint256_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                              "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer) view returns (uint256)"
+                            }
+                          },
+                          "id": 761,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "5328:44:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_rational_0_by_1",
+                            "typeString": "int_const 0"
+                          },
+                          {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": null,
+                          "baseExpression": {
+                            "argumentTypes": null,
+                            "id": 752,
+                            "name": "activeFuncSignatureList",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 561,
+                            "src": "5254:23:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                              "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
+                            }
+                          },
+                          "id": 754,
+                          "indexExpression": {
+                            "argumentTypes": null,
+                            "id": 753,
+                            "name": "moduleName",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 745,
+                            "src": "5278:10:4",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bytes32",
+                              "typeString": "bytes32"
+                            }
+                          },
+                          "isConstant": false,
+                          "isLValue": true,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "nodeType": "IndexAccess",
+                          "src": "5254:35:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                            "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
+                          }
+                        },
+                        "id": 755,
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "enumerate",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 35767,
+                        "src": "5254:45:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35549_storage_ptr_$_t_uint256_$_t_uint256_$returns$_t_array$_t_bytes4_$dyn_memory_ptr_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                          "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer,uint256,uint256) view returns (bytes4[] memory)"
+                        }
+                      },
+                      "id": 762,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "5254:128:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                        "typeString": "bytes4[] memory"
+                      }
+                    },
+                    "src": "5238:144:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                      "typeString": "bytes4[] memory"
+                    }
+                  },
+                  "id": 764,
+                  "nodeType": "ExpressionStatement",
+                  "src": "5238:144:4"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 765,
+                    "name": "signatureList",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 749,
+                    "src": "5399:13:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                      "typeString": "bytes4[] memory"
+                    }
+                  },
+                  "functionReturnParameters": 750,
+                  "id": 766,
+                  "nodeType": "Return",
+                  "src": "5392:20:4"
+                }
+              ]
+            },
+            "documentation": "@dev get all active function signature list based on the module name.\n     * @param moduleName in bytes32.\n     * @return the array of function signature.",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getActiveFuncSignatureList",
+            "parameters": {
+              "id": 746,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 745,
+                  "name": "moduleName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 768,
+                  "src": "5128:18:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 744,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "5128:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "5127:20:4"
+            },
+            "returnParameters": {
+              "id": 750,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 749,
+                  "name": "signatureList",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 768,
+                  "src": "5193:29:4",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                    "typeString": "bytes4[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 747,
+                      "name": "bytes4",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "5193:6:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes4",
+                        "typeString": "bytes4"
+                      }
+                    },
+                    "id": 748,
+                    "length": null,
+                    "nodeType": "ArrayTypeName",
+                    "src": "5193:8:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_bytes4_$dyn_storage_ptr",
+                      "typeString": "bytes4[]"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "5192:31:4"
+            },
+            "scope": 827,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "public"
+          },
+          {
+            "id": 781,
+            "nodeType": "FunctionDefinition",
+            "src": "5593:146:4",
+            "nodes": [],
+            "body": {
+              "id": 780,
+              "nodeType": "Block",
+              "src": "5680:59:4",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "expression": {
+                      "argumentTypes": null,
+                      "baseExpression": {
+                        "argumentTypes": null,
+                        "id": 775,
+                        "name": "moduleUpgradeLog",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 553,
+                        "src": "5697:16:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_mapping$_t_bytes32_$_t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage_$",
+                          "typeString": "mapping(bytes32 => struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage ref[] storage ref)"
+                        }
+                      },
+                      "id": 777,
+                      "indexExpression": {
+                        "argumentTypes": null,
+                        "id": 776,
+                        "name": "moduleName",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 770,
+                        "src": "5714:10:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes32",
+                          "typeString": "bytes32"
+                        }
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "nodeType": "IndexAccess",
+                      "src": "5697:28:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage",
+                        "typeString": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage ref[] storage ref"
+                      }
+                    },
+                    "id": 778,
+                    "isConstant": false,
+                    "isLValue": true,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "memberName": "length",
+                    "nodeType": "MemberAccess",
+                    "referencedDeclaration": null,
+                    "src": "5697:35:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 774,
+                  "id": 779,
+                  "nodeType": "Return",
+                  "src": "5690:42:4"
+                }
+              ]
+            },
+            "documentation": "@dev Get total length of the module upgrade log.\n     * @param moduleName in bytes32.\n     * @return length of module upgrade log.",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getModuleUpgradeLogLength",
+            "parameters": {
+              "id": 771,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 770,
+                  "name": "moduleName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 781,
+                  "src": "5628:18:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 769,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "5628:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "5627:20:4"
+            },
+            "returnParameters": {
+              "id": 774,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 773,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 781,
+                  "src": "5671:7:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 772,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "5671:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "5670:9:4"
+            },
+            "scope": 827,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 812,
+            "nodeType": "FunctionDefinition",
+            "src": "5992:290:4",
+            "nodes": [],
+            "body": {
+              "id": 811,
+              "nodeType": "Block",
+              "src": "6064:218:4",
+              "nodes": [],
+              "statements": [
+                {
+                  "assignments": [
+                    791
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 791,
+                      "name": "loanTokenModuleAddress",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 811,
+                      "src": "6074:30:4",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      },
+                      "typeName": {
+                        "id": 790,
+                        "name": "address",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "6074:7:4",
+                        "stateMutability": "nonpayable",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "value": null,
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 798,
+                  "initialValue": {
+                    "argumentTypes": null,
+                    "expression": {
+                      "argumentTypes": null,
+                      "baseExpression": {
+                        "argumentTypes": null,
+                        "baseExpression": {
+                          "argumentTypes": null,
+                          "id": 792,
+                          "name": "moduleUpgradeLog",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 553,
+                          "src": "6107:16:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_mapping$_t_bytes32_$_t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage_$",
+                            "typeString": "mapping(bytes32 => struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage ref[] storage ref)"
+                          }
+                        },
+                        "id": 794,
+                        "indexExpression": {
+                          "argumentTypes": null,
+                          "id": 793,
+                          "name": "moduleName",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 783,
+                          "src": "6124:10:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bytes32",
+                            "typeString": "bytes32"
+                          }
+                        },
+                        "isConstant": false,
+                        "isLValue": true,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "nodeType": "IndexAccess",
+                        "src": "6107:28:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_struct$_LoanTokenLogicModuleUpdate_$548_storage_$dyn_storage",
+                          "typeString": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage ref[] storage ref"
+                        }
+                      },
+                      "id": 796,
+                      "indexExpression": {
+                        "argumentTypes": null,
+                        "id": 795,
+                        "name": "index",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 785,
+                        "src": "6136:5:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "nodeType": "IndexAccess",
+                      "src": "6107:35:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_struct$_LoanTokenLogicModuleUpdate_$548_storage",
+                        "typeString": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate storage ref"
+                      }
+                    },
+                    "id": 797,
+                    "isConstant": false,
+                    "isLValue": true,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "memberName": "implementation",
+                    "nodeType": "MemberAccess",
+                    "referencedDeclaration": 545,
+                    "src": "6107:50:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "6074:83:4"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 803,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 799,
+                      "name": "moduleName",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 783,
+                      "src": "6167:10:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes32",
+                        "typeString": "bytes32"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "arguments": [
+                        {
+                          "argumentTypes": null,
+                          "id": 801,
+                          "name": "loanTokenModuleAddress",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 791,
+                          "src": "6205:22:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        ],
+                        "id": 800,
+                        "name": "_registerLoanTokenModule",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 743,
+                        "src": "6180:24:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_internal_nonpayable$_t_address_$returns$_t_bytes32_$",
+                          "typeString": "function (address) returns (bytes32)"
+                        }
+                      },
+                      "id": 802,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "6180:48:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes32",
+                        "typeString": "bytes32"
+                      }
+                    },
+                    "src": "6167:61:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "id": 804,
+                  "nodeType": "ExpressionStatement",
+                  "src": "6167:61:4"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 809,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "baseExpression": {
+                        "argumentTypes": null,
+                        "id": 805,
+                        "name": "activeModuleIndex",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 557,
+                        "src": "6238:17:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_mapping$_t_bytes32_$_t_uint256_$",
+                          "typeString": "mapping(bytes32 => uint256)"
+                        }
+                      },
+                      "id": 807,
+                      "indexExpression": {
+                        "argumentTypes": null,
+                        "id": 806,
+                        "name": "moduleName",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 783,
+                        "src": "6256:10:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bytes32",
+                          "typeString": "bytes32"
+                        }
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "IndexAccess",
+                      "src": "6238:29:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "id": 808,
+                      "name": "index",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 785,
+                      "src": "6270:5:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "src": "6238:37:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "id": 810,
+                  "nodeType": "ExpressionStatement",
+                  "src": "6238:37:4"
+                }
+              ]
+            },
+            "documentation": "@notice This function will rollback particular module to the spesific index / version of deployment\n     * @param moduleName Name of module in bytes32 format\n@param index index / version of previous deployment",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "arguments": null,
+                "id": 788,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 787,
+                  "name": "onlyOwner",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 55096,
+                  "src": "6054:9:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "6054:9:4"
+              }
+            ],
+            "name": "rollback",
+            "parameters": {
+              "id": 786,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 783,
+                  "name": "moduleName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 812,
+                  "src": "6010:18:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 782,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "6010:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 785,
+                  "name": "index",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 812,
+                  "src": "6030:13:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 784,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "6030:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "6009:35:4"
+            },
+            "returnParameters": {
+              "id": 789,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "6064:0:4"
+            },
+            "scope": 827,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 826,
+            "nodeType": "FunctionDefinition",
+            "src": "6442:118:4",
+            "nodes": [],
+            "body": {
+              "id": 825,
+              "nodeType": "Block",
+              "src": "6519:41:4",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "baseExpression": {
+                      "argumentTypes": null,
+                      "id": 821,
+                      "name": "logicTargets",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 543,
+                      "src": "6536:12:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_mapping$_t_bytes4_$_t_address_$",
+                        "typeString": "mapping(bytes4 => address)"
+                      }
+                    },
+                    "id": 823,
+                    "indexExpression": {
+                      "argumentTypes": null,
+                      "id": 822,
+                      "name": "sig",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 814,
+                      "src": "6549:3:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes4",
+                        "typeString": "bytes4"
+                      }
+                    },
+                    "isConstant": false,
+                    "isLValue": true,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "nodeType": "IndexAccess",
+                    "src": "6536:17:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "functionReturnParameters": 820,
+                  "id": 824,
+                  "nodeType": "Return",
+                  "src": "6529:24:4"
+                }
+              ]
+            },
+            "documentation": "@notice External getter for target addresses.\n@param sig The signature.\n@return The address for a given signature.\n",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "arguments": null,
+                "id": 817,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 816,
+                  "name": "whenNotPaused",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 571,
+                  "src": "6487:13:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "6487:13:4"
+              }
+            ],
+            "name": "getTarget",
+            "parameters": {
+              "id": 815,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 814,
+                  "name": "sig",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 826,
+                  "src": "6461:10:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes4",
+                    "typeString": "bytes4"
+                  },
+                  "typeName": {
+                    "id": 813,
+                    "name": "bytes4",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "6461:6:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes4",
+                      "typeString": "bytes4"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "6460:12:4"
+            },
+            "returnParameters": {
+              "id": 820,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 819,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 826,
+                  "src": "6510:7:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 818,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "6510:7:4",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "6509:9:4"
+            },
+            "scope": 827,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 532,
+              "name": "PausableOz",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 55225,
+              "src": "878:10:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_PausableOz_$55225",
+                "typeString": "contract PausableOz"
+              }
+            },
+            "id": 533,
+            "nodeType": "InheritanceSpecifier",
+            "src": "878:10:4"
+          }
+        ],
+        "contractDependencies": [
+          54471,
+          55144,
+          55225
+        ],
+        "contractKind": "contract",
+        "documentation": "@title Loan Token Logic Beacon contract.\n * @notice This contract stored the target logic implementation of LoanTokens which has the same logic implementation (LoanTokenLogicLM / LoanTokenLogicWrbtc)\nApart from storing the target logic implementation, this contract also has a pause functionality.\nBy implementing pause/unpause functionality in this beacon contract, we can pause the loan token that has the same Logic (LoanTokenLogicLM / LoanTokenLogicWrbtc) at one call.\nMeanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause specific LoanToken",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          827,
+          55225,
+          55144,
+          54471
+        ],
+        "name": "LoanTokenLogicBeacon",
+        "scope": 837
+      },
+      {
+        "id": 836,
+        "nodeType": "ContractDefinition",
+        "src": "6564:162:4",
+        "nodes": [
+          {
+            "id": 835,
+            "nodeType": "FunctionDefinition",
+            "src": "6603:121:4",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getListFunctionSignatures",
+            "parameters": {
+              "id": 828,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "6637:2:4"
+            },
+            "returnParameters": {
+              "id": 834,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 831,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 835,
+                  "src": "6687:15:4",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_bytes4_$dyn_memory_ptr",
+                    "typeString": "bytes4[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 829,
+                      "name": "bytes4",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "6687:6:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bytes4",
+                        "typeString": "bytes4"
+                      }
+                    },
+                    "id": 830,
+                    "length": null,
+                    "nodeType": "ArrayTypeName",
+                    "src": "6687:8:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_bytes4_$dyn_storage_ptr",
+                      "typeString": "bytes4[]"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 833,
+                  "name": "moduleName",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 835,
+                  "src": "6704:18:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 832,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "6704:7:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "6686:37:4"
+            },
+            "scope": 836,
+            "stateMutability": "pure",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": null,
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          836
+        ],
+        "name": "ILoanTokenLogicModules",
+        "scope": 837
+      }
+    ]
+  },
+  "id": 4
+}

@@ -1,0 +1,606 @@
+{
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "cliff",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "duration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "endDate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        }
+      ],
+      "name": "governanceWithdrawTokens",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "startDate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "tokenOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "cliff()": "13d033c0",
+    "duration()": "0fb5a6b4",
+    "endDate()": "c24a0f8b",
+    "governanceWithdrawTokens(address)": "78f24bc6",
+    "startDate()": "0b97bc86",
+    "tokenOwner()": "a3e67610"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"cliff\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"endDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"}],\"name\":\"governanceWithdrawTokens\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"startDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"tokenOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interfaces are used to cast a contract address into a callable instance. This interface is used by Staking contract to call governanceWithdrawTokens function having the vesting contract instance address.\",\"methods\":{},\"title\":\"Interface for TeamVesting contract.\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/ITeamVesting.sol\":\"ITeamVesting\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/Vesting/ITeamVesting.sol\":{\"keccak256\":\"0xeb926db5c0681a7bdbc70c3d25df2551a6124e191654b3b8a0f810b0d03ec66f\",\"urls\":[\"bzz-raw://a4883af8c4b65febf5c26400a2fdc0b8576bc2fb46d65acc18898e97fcc77017\",\"dweb:/ipfs/QmdeGnzKeNheqEo3HKUM7coBGDVDDfyFQFftUy3TCF2gkh\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "cliff",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "duration",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "endDate",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "receiver",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "governanceWithdrawTokens"
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "startDate",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "tokenOwner",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/governance/Vesting/ITeamVesting.sol": "ITeamVesting"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/governance/Vesting/ITeamVesting.sol": {
+        "keccak256": "0xeb926db5c0681a7bdbc70c3d25df2551a6124e191654b3b8a0f810b0d03ec66f",
+        "urls": [
+          "bzz-raw://a4883af8c4b65febf5c26400a2fdc0b8576bc2fb46d65acc18898e97fcc77017",
+          "dweb:/ipfs/QmdeGnzKeNheqEo3HKUM7coBGDVDDfyFQFftUy3TCF2gkh"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/governance/Vesting/ITeamVesting.sol",
+    "id": 25061,
+    "exportedSymbols": {
+      "ITeamVesting": [
+        25060
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:680:79",
+    "nodes": [
+      {
+        "id": 25029,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:79",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 25060,
+        "nodeType": "ContractDefinition",
+        "src": "298:381:79",
+        "nodes": [
+          {
+            "id": 25034,
+            "nodeType": "FunctionDefinition",
+            "src": "327:53:79",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "startDate",
+            "parameters": {
+              "id": 25030,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "345:2:79"
+            },
+            "returnParameters": {
+              "id": 25033,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25032,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25034,
+                  "src": "371:7:79",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25031,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "371:7:79",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "370:9:79"
+            },
+            "scope": 25060,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 25039,
+            "nodeType": "FunctionDefinition",
+            "src": "386:49:79",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "cliff",
+            "parameters": {
+              "id": 25035,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "400:2:79"
+            },
+            "returnParameters": {
+              "id": 25038,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25037,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25039,
+                  "src": "426:7:79",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25036,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "426:7:79",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "425:9:79"
+            },
+            "scope": 25060,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 25044,
+            "nodeType": "FunctionDefinition",
+            "src": "441:51:79",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "endDate",
+            "parameters": {
+              "id": 25040,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "457:2:79"
+            },
+            "returnParameters": {
+              "id": 25043,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25042,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25044,
+                  "src": "483:7:79",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25041,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "483:7:79",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "482:9:79"
+            },
+            "scope": 25060,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 25049,
+            "nodeType": "FunctionDefinition",
+            "src": "498:52:79",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "duration",
+            "parameters": {
+              "id": 25045,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "515:2:79"
+            },
+            "returnParameters": {
+              "id": 25048,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25047,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25049,
+                  "src": "541:7:79",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25046,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "541:7:79",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "540:9:79"
+            },
+            "scope": 25060,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 25054,
+            "nodeType": "FunctionDefinition",
+            "src": "556:54:79",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "tokenOwner",
+            "parameters": {
+              "id": 25050,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "575:2:79"
+            },
+            "returnParameters": {
+              "id": 25053,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25052,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25054,
+                  "src": "601:7:79",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25051,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "601:7:79",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "600:9:79"
+            },
+            "scope": 25060,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 25059,
+            "nodeType": "FunctionDefinition",
+            "src": "616:61:79",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "governanceWithdrawTokens",
+            "parameters": {
+              "id": 25057,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25056,
+                  "name": "receiver",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25059,
+                  "src": "650:16:79",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25055,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "650:7:79",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "649:18:79"
+            },
+            "returnParameters": {
+              "id": 25058,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "676:0:79"
+            },
+            "scope": 25060,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": "@title Interface for TeamVesting contract.\n@dev Interfaces are used to cast a contract address into a callable instance.\nThis interface is used by Staking contract to call governanceWithdrawTokens\nfunction having the vesting contract instance address.",
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          25060
+        ],
+        "name": "ITeamVesting",
+        "scope": 25061
+      }
+    ]
+  },
+  "id": 79
+}

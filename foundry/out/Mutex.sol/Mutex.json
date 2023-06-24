@@ -1,0 +1,289 @@
+{
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "incrementAndGetValue",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "value",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x6080604052348015600f57600080fd5b50609e8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80633fa4f245146037578063ed04e1c314604f575b600080fd5b603d6055565b60408051918252519081900360200190f35b603d605b565b60005481565b60008054600101908190559056fea265627a7a723158206599c3ffb32f1d03bd3c286d6ff08c4728ae1d86662e3c1918be4369fea5f24d64736f6c63430005110032",
+    "sourceMap": "315:649:196:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;315:649:196;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052348015600f57600080fd5b506004361060325760003560e01c80633fa4f245146037578063ed04e1c314604f575b600080fd5b603d6055565b60408051918252519081900360200190f35b603d605b565b60005481565b60008054600101908190559056fea265627a7a723158206599c3ffb32f1d03bd3c286d6ff08c4728ae1d86662e3c1918be4369fea5f24d64736f6c63430005110032",
+    "sourceMap": "315:649:196:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;315:649:196;;;;;;;;;;;;;;;;;;;;;;;;399:20;;;:::i;:::-;;;;;;;;;;;;;;;;664:298;;;:::i;399:20::-;;;;:::o;664:298::-;714:7;948;;;;;;;;664:298;:::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "incrementAndGetValue()": "ed04e1c3",
+    "value()": "3fa4f245"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[],\"name\":\"incrementAndGetValue\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"value\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/reentrancy/Mutex.sol\":\"Mutex\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/reentrancy/Mutex.sol\":{\"keccak256\":\"0xd10b0fd07d5fed1ae1237e7c87e6501970fce2a86e2b8862e502258b0d3aeb2c\",\"urls\":[\"bzz-raw://a99cb17e5f05a4eeb80c91d0d00fb9c482502e5acdd0d10727d53f9b68f1e732\",\"dweb:/ipfs/QmZ8Va6t8DJAAHUcSXC4aWmitcgSAhugdeWHCFXJcxJF5S\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "incrementAndGetValue",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "value",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/reentrancy/Mutex.sol": "Mutex"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/reentrancy/Mutex.sol": {
+        "keccak256": "0xd10b0fd07d5fed1ae1237e7c87e6501970fce2a86e2b8862e502258b0d3aeb2c",
+        "urls": [
+          "bzz-raw://a99cb17e5f05a4eeb80c91d0d00fb9c482502e5acdd0d10727d53f9b68f1e732",
+          "dweb:/ipfs/QmZ8Va6t8DJAAHUcSXC4aWmitcgSAhugdeWHCFXJcxJF5S"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/reentrancy/Mutex.sol",
+    "id": 57186,
+    "exportedSymbols": {
+      "Mutex": [
+        57185
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:965:196",
+    "nodes": [
+      {
+        "id": 57173,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:196",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 57185,
+        "nodeType": "ContractDefinition",
+        "src": "315:649:196",
+        "nodes": [
+          {
+            "id": 57175,
+            "nodeType": "VariableDeclaration",
+            "src": "399:20:196",
+            "nodes": [],
+            "constant": false,
+            "name": "value",
+            "scope": 57185,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 57174,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "399:7:196",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 57184,
+            "nodeType": "FunctionDefinition",
+            "src": "664:298:196",
+            "nodes": [],
+            "body": {
+              "id": 57183,
+              "nodeType": "Block",
+              "src": "723:239:196",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 57181,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "nodeType": "UnaryOperation",
+                    "operator": "++",
+                    "prefix": true,
+                    "src": "948:7:196",
+                    "subExpression": {
+                      "argumentTypes": null,
+                      "id": 57180,
+                      "name": "value",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 57175,
+                      "src": "950:5:196",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "functionReturnParameters": 57179,
+                  "id": 57182,
+                  "nodeType": "Return",
+                  "src": "941:14:196"
+                }
+              ]
+            },
+            "documentation": null,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "incrementAndGetValue",
+            "parameters": {
+              "id": 57176,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "693:2:196"
+            },
+            "returnParameters": {
+              "id": 57179,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 57178,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 57184,
+                  "src": "714:7:196",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 57177,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "714:7:196",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "713:9:196"
+            },
+            "scope": 57185,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          57185
+        ],
+        "name": "Mutex",
+        "scope": 57186
+      }
+    ]
+  },
+  "id": 196
+}

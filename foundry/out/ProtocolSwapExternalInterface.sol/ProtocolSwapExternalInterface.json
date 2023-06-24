@@ -1,0 +1,520 @@
+{
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sourceToken",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "destToken",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "returnToSender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "sourceTokenAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "requiredDestTokenAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minReturn",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "swapData",
+          "type": "bytes"
+        }
+      ],
+      "name": "swapExternal",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "destTokenAmountReceived",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "sourceTokenAmountUsed",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "swapExternal(address,address,address,address,uint256,uint256,uint256,bytes)": "e321b540"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"sourceToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"destToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"returnToSender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"sourceTokenAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"requiredDestTokenAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minReturn\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"swapData\",\"type\":\"bytes\"}],\"name\":\"swapExternal\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"destTokenAmountReceived\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"sourceTokenAmountUsed\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/modules/interfaces/ProtocolSwapExternalInterface.sol\":\"ProtocolSwapExternalInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/modules/interfaces/ProtocolSwapExternalInterface.sol\":{\"keccak256\":\"0xf8c7d1e47102501890d6431a3810db9652666c0f12b2c6832c5d505da8142cfe\",\"urls\":[\"bzz-raw://bb27b331b760f675c3118db89a30bfe9c802654605102373c5b9ece883f5da15\",\"dweb:/ipfs/QmRFtLQE6vvRUG8ZAkPWzRbBkSoHWqz4EsotGntwaELgDN\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "sourceToken",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "destToken",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "receiver",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "returnToSender",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "sourceTokenAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "requiredDestTokenAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minReturn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "swapData",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "swapExternal",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "destTokenAmountReceived",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "sourceTokenAmountUsed",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/modules/interfaces/ProtocolSwapExternalInterface.sol": "ProtocolSwapExternalInterface"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/modules/interfaces/ProtocolSwapExternalInterface.sol": {
+        "keccak256": "0xf8c7d1e47102501890d6431a3810db9652666c0f12b2c6832c5d505da8142cfe",
+        "urls": [
+          "bzz-raw://bb27b331b760f675c3118db89a30bfe9c802654605102373c5b9ece883f5da15",
+          "dweb:/ipfs/QmRFtLQE6vvRUG8ZAkPWzRbBkSoHWqz4EsotGntwaELgDN"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/modules/interfaces/ProtocolSwapExternalInterface.sol",
+    "id": 52685,
+    "exportedSymbols": {
+      "ProtocolSwapExternalInterface": [
+        52684
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "115:434:175",
+    "nodes": [
+      {
+        "id": 52660,
+        "nodeType": "PragmaDirective",
+        "src": "115:23:175",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 52684,
+        "nodeType": "ContractDefinition",
+        "src": "140:408:175",
+        "nodes": [
+          {
+            "id": 52683,
+            "nodeType": "FunctionDefinition",
+            "src": "186:360:175",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "swapExternal",
+            "parameters": {
+              "id": 52677,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 52662,
+                  "name": "sourceToken",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 52683,
+                  "src": "217:19:175",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 52661,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "217:7:175",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 52664,
+                  "name": "destToken",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 52683,
+                  "src": "246:17:175",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 52663,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "246:7:175",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 52666,
+                  "name": "receiver",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 52683,
+                  "src": "273:16:175",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 52665,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "273:7:175",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 52668,
+                  "name": "returnToSender",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 52683,
+                  "src": "299:22:175",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 52667,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "299:7:175",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 52670,
+                  "name": "sourceTokenAmount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 52683,
+                  "src": "331:25:175",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 52669,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "331:7:175",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 52672,
+                  "name": "requiredDestTokenAmount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 52683,
+                  "src": "366:31:175",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 52671,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "366:7:175",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 52674,
+                  "name": "minReturn",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 52683,
+                  "src": "407:17:175",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 52673,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "407:7:175",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 52676,
+                  "name": "swapData",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 52683,
+                  "src": "434:23:175",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 52675,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "434:5:175",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "207:256:175"
+            },
+            "returnParameters": {
+              "id": 52682,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 52679,
+                  "name": "destTokenAmountReceived",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 52683,
+                  "src": "482:31:175",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 52678,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "482:7:175",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 52681,
+                  "name": "sourceTokenAmountUsed",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 52683,
+                  "src": "515:29:175",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 52680,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "515:7:175",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "481:64:175"
+            },
+            "scope": 52684,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": null,
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          52684
+        ],
+        "name": "ProtocolSwapExternalInterface",
+        "scope": 52685
+      }
+    ]
+  },
+  "id": 175
+}

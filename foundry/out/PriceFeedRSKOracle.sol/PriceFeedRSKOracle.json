@@ -1,0 +1,1675 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_rskOracleAddress",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "rskOracleAddress",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "changerAddress",
+          "type": "address"
+        }
+      ],
+      "name": "SetRSKOracleAddress",
+      "type": "event"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "latestAnswer",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_price",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "latestTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_timestamp",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "rskOracleAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_rskOracleAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setRSKOracleAddress",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405234801561001057600080fd5b5060405161072f38038061072f8339818101604052602081101561003357600080fd5b505160006100486001600160e01b036100aa16565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a3506100a4816001600160e01b036100ae16565b50610229565b3390565b6100bf6001600160e01b036101c016565b6100ff576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b610112816101ed60201b6103c01760201c565b610163576040805162461bcd60e51b815260206004820181905260248201527f5f72736b4f7261636c6541646472657373206e6f74206120636f6e7472616374604482015290519081900360640190fd5b600180546001600160a01b0319166001600160a01b03838116919091179182905560408051338152905192909116917f94305f79fd34fa915e2815446cd306362132a59408d9f79f071eca99bde86dff916020908290030190a250565b600080546001600160a01b03166101de6001600160e01b036100aa16565b6001600160a01b031614905090565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a47081811480159061022157508115155b949350505050565b6104f7806102386000396000f3fe608060405234801561001057600080fd5b506004361061007d5760003560e01c80638f32d59b1161005b5780638f32d59b146100c8578063a1e60109146100e4578063b4c1e8481461010c578063f2fde38b146101145761007d565b806350d25bcd146100825780638205bf6a1461009c5780638da5cb5b146100a4575b600080fd5b61008a61013a565b60408051918252519081900360200190f35b61008a6101af565b6100ac610227565b604080516001600160a01b039092168252519081900360200190f35b6100d0610236565b604080519115158252519081900360200190f35b61010a600480360360208110156100fa57600080fd5b50356001600160a01b031661025a565b005b6100ac610359565b61010a6004803603602081101561012a57600080fd5b50356001600160a01b0316610368565b600154604080516307169c6760e31b815281516000936001600160a01b03169283926338b4e3389260048083019392829003018186803b15801561017d57600080fd5b505afa158015610191573d6000803e3d6000fd5b505050506040513d60408110156101a757600080fd5b505192915050565b600154604080516307169c6760e31b815281516000936001600160a01b03169283926338b4e3389260048083019392829003018186803b1580156101f257600080fd5b505afa158015610206573d6000803e3d6000fd5b505050506040513d604081101561021c57600080fd5b506020015192915050565b6000546001600160a01b031690565b600080546001600160a01b031661024b6103bc565b6001600160a01b031614905090565b610262610236565b6102a2576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6102ab816103c0565b6102fc576040805162461bcd60e51b815260206004820181905260248201527f5f72736b4f7261636c6541646472657373206e6f74206120636f6e7472616374604482015290519081900360640190fd5b600180546001600160a01b0319166001600160a01b03838116919091179182905560408051338152905192909116917f94305f79fd34fa915e2815446cd306362132a59408d9f79f071eca99bde86dff916020908290030190a250565b6001546001600160a01b031681565b610370610236565b6103b0576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6103b9816103fc565b50565b3390565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4708181148015906103f457508115155b949350505050565b6001600160a01b0381166104415760405162461bcd60e51b815260040180806020018281038252602681526020018061049d6026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a7231582056a9d8e8174502c208f2105d0de4a41ad23aedbaa37b0aed42bb88379895297c64736f6c63430005110032",
+    "sourceMap": "362:1463:45:-;;;734:101;8:9:-1;5:2;;;30:1;27;20:12;5:2;734:101:45;;;;;;;;;;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;734:101:45;701:17:184;721:12;-1:-1:-1;;;;;721:10:184;:12;:::i;:::-;743:6;:18;;-1:-1:-1;;;;;;743:18:184;-1:-1:-1;;;;;743:18:184;;;;;;;776:43;;743:18;;-1:-1:-1;743:18:184;776:43;;743:6;;776:43;-1:-1:-1;790:38:45;810:17;-1:-1:-1;;;;;790:19:45;:38;:::i;:::-;734:101;362:1463;;795:96:179;874:10;795:96;:::o;1541:282:45:-;1106:9:184;-1:-1:-1;;;;;1106:7:184;:9;:::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;1632:37:45;1651:17;1632:18;;;;;:37;;:::i;:::-;1624:82;;;;;-1:-1:-1;;;1624:82:45;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1716:16;:36;;-1:-1:-1;;;;;;1716:36:45;-1:-1:-1;;;;;1716:36:45;;;;;;;;;;;1767:49;;;1805:10;1767:49;;;;1787:16;;;;;1767:49;;;;;;;;;;1541:282;:::o;1233:92:184:-;1273:4;1312:6;;-1:-1:-1;;;;;1312:6:184;1296:12;-1:-1:-1;;;;;1296:10:184;:12;:::i;:::-;-1:-1:-1;;;;;1296:22:184;;1289:29;;1233:92;:::o;693:630:178:-;753:4;1226:20;;1059:66;1273:23;;;;;;:42;;-1:-1:-1;1300:15:178;;;1273:42;1265:51;693:630;-1:-1:-1;;;;693:630:178:o;362:1463:45:-;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b506004361061007d5760003560e01c80638f32d59b1161005b5780638f32d59b146100c8578063a1e60109146100e4578063b4c1e8481461010c578063f2fde38b146101145761007d565b806350d25bcd146100825780638205bf6a1461009c5780638da5cb5b146100a4575b600080fd5b61008a61013a565b60408051918252519081900360200190f35b61008a6101af565b6100ac610227565b604080516001600160a01b039092168252519081900360200190f35b6100d0610236565b604080519115158252519081900360200190f35b61010a600480360360208110156100fa57600080fd5b50356001600160a01b031661025a565b005b6100ac610359565b61010a6004803603602081101561012a57600080fd5b50356001600160a01b0316610368565b600154604080516307169c6760e31b815281516000936001600160a01b03169283926338b4e3389260048083019392829003018186803b15801561017d57600080fd5b505afa158015610191573d6000803e3d6000fd5b505050506040513d60408110156101a757600080fd5b505192915050565b600154604080516307169c6760e31b815281516000936001600160a01b03169283926338b4e3389260048083019392829003018186803b1580156101f257600080fd5b505afa158015610206573d6000803e3d6000fd5b505050506040513d604081101561021c57600080fd5b506020015192915050565b6000546001600160a01b031690565b600080546001600160a01b031661024b6103bc565b6001600160a01b031614905090565b610262610236565b6102a2576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6102ab816103c0565b6102fc576040805162461bcd60e51b815260206004820181905260248201527f5f72736b4f7261636c6541646472657373206e6f74206120636f6e7472616374604482015290519081900360640190fd5b600180546001600160a01b0319166001600160a01b03838116919091179182905560408051338152905192909116917f94305f79fd34fa915e2815446cd306362132a59408d9f79f071eca99bde86dff916020908290030190a250565b6001546001600160a01b031681565b610370610236565b6103b0576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6103b9816103fc565b50565b3390565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4708181148015906103f457508115155b949350505050565b6001600160a01b0381166104415760405162461bcd60e51b815260040180806020018281038252602681526020018061049d6026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a7231582056a9d8e8174502c208f2105d0de4a41ad23aedbaa37b0aed42bb88379895297c64736f6c63430005110032",
+    "sourceMap": "362:1463:45:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;362:1463:45;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;934:178;;;:::i;:::-;;;;;;;;;;;;;;;;1224:189;;;:::i;902:77:184:-;;;:::i;:::-;;;;-1:-1:-1;;;;;902:77:184;;;;;;;;;;;;;;1233:92;;;:::i;:::-;;;;;;;;;;;;;;;;;;1541:282:45;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1541:282:45;-1:-1:-1;;;;;1541:282:45;;:::i;:::-;;442:31;;;:::i;1474:107:184:-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1474:107:184;-1:-1:-1;;;;;1474:107:184;;:::i;934:178:45:-;1042:16;;1082:23;;;-1:-1:-1;;;1082:23:45;;;;981:14;;-1:-1:-1;;;;;1042:16:45;;;;1082:21;;:23;;;;;;;;;;;1042:16;1082:23;;;5:2:-1;;;;30:1;27;20:12;5:2;1082:23:45;;;;8:9:-1;5:2;;;45:16;42:1;39;24:38;77:16;74:1;67:27;5:2;1082:23:45;;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1082:23:45;;934:178;-1:-1:-1;;934:178:45:o;1224:189::-;1339:16;;1383:23;;;-1:-1:-1;;;1383:23:45;;;;1274:18;;-1:-1:-1;;;;;1339:16:45;;;;1383:21;;:23;;;;;;;;;;;1339:16;1383:23;;;5:2:-1;;;;30:1;27;20:12;5:2;1383:23:45;;;;8:9:-1;5:2;;;45:16;42:1;39;24:38;77:16;74:1;67:27;5:2;1383:23:45;;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1383:23:45;;;;1224:189;-1:-1:-1;;1224:189:45:o;902:77:184:-;940:7;966:6;-1:-1:-1;;;;;966:6:184;902:77;:::o;1233:92::-;1273:4;1312:6;;-1:-1:-1;;;;;1312:6:184;1296:12;:10;:12::i;:::-;-1:-1:-1;;;;;1296:22:184;;1289:29;;1233:92;:::o;1541:282:45:-;1106:9:184;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;1632:37:45;1651:17;1632:18;:37::i;:::-;1624:82;;;;;-1:-1:-1;;;1624:82:45;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1716:16;:36;;-1:-1:-1;;;;;;1716:36:45;-1:-1:-1;;;;;1716:36:45;;;;;;;;;;;1767:49;;;1805:10;1767:49;;;;1787:16;;;;;1767:49;;;;;;;;;;1541:282;:::o;442:31::-;;;-1:-1:-1;;;;;442:31:45;;:::o;1474:107:184:-;1106:9;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;1546:28;1565:8;1546:18;:28::i;:::-;1474:107;:::o;795:96:179:-;874:10;795:96;:::o;693:630:178:-;753:4;1226:20;;1059:66;1273:23;;;;;;:42;;-1:-1:-1;1300:15:178;;;1273:42;1265:51;693:630;-1:-1:-1;;;;693:630:178:o;1682:225:184:-;-1:-1:-1;;;;;1755:22:184;;1747:73;;;;-1:-1:-1;;;1747:73:184;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1856:6;;;1835:38;;-1:-1:-1;;;;;1835:38:184;;;;1856:6;;;1835:38;;;1883:6;:17;;-1:-1:-1;;;;;;1883:17:184;-1:-1:-1;;;;;1883:17:184;;;;;;;;;;1682:225::o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "isOwner()": "8f32d59b",
+    "latestAnswer()": "50d25bcd",
+    "latestTimestamp()": "8205bf6a",
+    "owner()": "8da5cb5b",
+    "rskOracleAddress()": "b4c1e848",
+    "setRSKOracleAddress(address)": "a1e60109",
+    "transferOwnership(address)": "f2fde38b"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_rskOracleAddress\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"rskOracleAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"changerAddress\",\"type\":\"address\"}],\"name\":\"SetRSKOracleAddress\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"latestAnswer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"latestTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rskOracleAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_rskOracleAddress\",\"type\":\"address\"}],\"name\":\"setRSKOracleAddress\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"constructor\":{\"params\":{\"_rskOracleAddress\":\"The RSK Oracle address.\"}},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"latestAnswer()\":{\"return\":\"The price from Oracle.\"},\"latestTimestamp()\":{\"return\":\"The latest time.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"setRSKOracleAddress(address)\":{\"params\":{\"_rskOracleAddress\":\"The RSK Oracle address.\"}},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}}},\"userdoc\":{\"methods\":{\"constructor\":\"Initialize a new RSK Oracle.\",\"latestAnswer()\":{\"notice\":\"Get the oracle price.\"},\"latestTimestamp()\":{\"notice\":\"Get the las time oracle updated the price.\"},\"setRSKOracleAddress(address)\":{\"notice\":\"Set the RSK Oracle address.\"}},\"notice\":\"The Price Feed RSK Oracle contract. * This contract implements RSK Oracle query functionality, getting the price and the last timestamp from an external oracle contract.\"}},\"settings\":{\"compilationTarget\":{\"contracts/feeds/PriceFeedRSKOracle.sol\":\"PriceFeedRSKOracle\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/feeds/IRSKOracle.sol\":{\"keccak256\":\"0x4b155c1b20d38a45f245c8400ae84c24b616c6517ff1790ec47b27183014303b\",\"urls\":[\"bzz-raw://adb4de0db0c6c5f6e7344966bd0f7f20c22217cd4a6f0d67edc3cdcacc45ce5c\",\"dweb:/ipfs/QmP7SZ9UbqM2Z4PQhBK7EsAeEvKnc91zSmnQgdJamhd2LC\"]},\"contracts/feeds/PriceFeedRSKOracle.sol\":{\"keccak256\":\"0x0525a742ba01fea7a9ca9d39e376881b1443849fa785ea316c69db015f3c72dc\",\"urls\":[\"bzz-raw://a168d11e6c986f8b2977655df19e9861faab61f87c666f53dfc73f0429ee5a82\",\"dweb:/ipfs/QmYJnZYwcreyHkZQSWTTq4N1ARYuwsiJhg518J3q6DfPSv\"]},\"contracts/feeds/PriceFeeds.sol\":{\"keccak256\":\"0x1c90db64dc36611a0eca6a29a8cb138dac1821864920e6bcd5acb7e5071e2bf1\",\"urls\":[\"bzz-raw://fcad9db567fb499f1b67278be1e99148252fa49a7c64d538499ab5e86605bdd1\",\"dweb:/ipfs/QmY8bgKUHdcQcaiHRnnY5YLYXKXRcg5aWXanCc6GD1Kn8g\"]},\"contracts/feeds/PriceFeedsConstants.sol\":{\"keccak256\":\"0x0fa85c00dd41dff315be51bc3220bd8826430bd1388424eb969fb188e203f0af\",\"urls\":[\"bzz-raw://bfbacbad0daedbb1febbe08f0ea11f702c8ae49f298e998ecf2f200c6fbdb822\",\"dweb:/ipfs/QmQd8w8nEfyim1uQsLnm4Bwf9o3j3NGACkQhp4ZPqt5tzR\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/interfaces/IWrbtc.sol\":{\"keccak256\":\"0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492\",\"urls\":[\"bzz-raw://d1adc3348aded3938e587fead4d4becf8efbed346c9cdc73e1f8ed42cb43b2c9\",\"dweb:/ipfs/QmZPMshLwXDwH2UKkFeV5QPtz129swV354fQ25gqKWAV94\"]},\"contracts/interfaces/IWrbtcERC20.sol\":{\"keccak256\":\"0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5\",\"urls\":[\"bzz-raw://12d22b4d1e74d95f82d2bc84b5e3c978e2341cb7a1b8fc383b64aaef59f13a00\",\"dweb:/ipfs/QmZkPrztJ5nwiKKudgz8aWX6kk3YHKCtmxJndMvV1NJuS6\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_rskOracleAddress",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "previousOwner",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address",
+              "indexed": true
+            }
+          ],
+          "type": "event",
+          "name": "OwnershipTransferred",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "rskOracleAddress",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "changerAddress",
+              "type": "address",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "SetRSKOracleAddress",
+          "anonymous": false
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "isOwner",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "latestAnswer",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "_price",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "latestTimestamp",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "_timestamp",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "owner",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "rskOracleAddress",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_rskOracleAddress",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "setRSKOracleAddress"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "transferOwnership"
+        }
+      ],
+      "devdoc": {
+        "methods": {
+          "constructor": {
+            "params": {
+              "_rskOracleAddress": "The RSK Oracle address."
+            }
+          },
+          "isOwner()": {
+            "details": "Returns true if the caller is the current owner."
+          },
+          "latestAnswer()": {
+            "return": "The price from Oracle."
+          },
+          "latestTimestamp()": {
+            "return": "The latest time."
+          },
+          "owner()": {
+            "details": "Returns the address of the current owner."
+          },
+          "setRSKOracleAddress(address)": {
+            "params": {
+              "_rskOracleAddress": "The RSK Oracle address."
+            }
+          },
+          "transferOwnership(address)": {
+            "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+          }
+        }
+      },
+      "userdoc": {
+        "methods": {
+          "constructor": "Initialize a new RSK Oracle.",
+          "latestAnswer()": {
+            "notice": "Get the oracle price."
+          },
+          "latestTimestamp()": {
+            "notice": "Get the las time oracle updated the price."
+          },
+          "setRSKOracleAddress(address)": {
+            "notice": "Set the RSK Oracle address."
+          }
+        }
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/feeds/PriceFeedRSKOracle.sol": "PriceFeedRSKOracle"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/feeds/IRSKOracle.sol": {
+        "keccak256": "0x4b155c1b20d38a45f245c8400ae84c24b616c6517ff1790ec47b27183014303b",
+        "urls": [
+          "bzz-raw://adb4de0db0c6c5f6e7344966bd0f7f20c22217cd4a6f0d67edc3cdcacc45ce5c",
+          "dweb:/ipfs/QmP7SZ9UbqM2Z4PQhBK7EsAeEvKnc91zSmnQgdJamhd2LC"
+        ],
+        "license": null
+      },
+      "contracts/feeds/PriceFeedRSKOracle.sol": {
+        "keccak256": "0x0525a742ba01fea7a9ca9d39e376881b1443849fa785ea316c69db015f3c72dc",
+        "urls": [
+          "bzz-raw://a168d11e6c986f8b2977655df19e9861faab61f87c666f53dfc73f0429ee5a82",
+          "dweb:/ipfs/QmYJnZYwcreyHkZQSWTTq4N1ARYuwsiJhg518J3q6DfPSv"
+        ],
+        "license": null
+      },
+      "contracts/feeds/PriceFeeds.sol": {
+        "keccak256": "0x1c90db64dc36611a0eca6a29a8cb138dac1821864920e6bcd5acb7e5071e2bf1",
+        "urls": [
+          "bzz-raw://fcad9db567fb499f1b67278be1e99148252fa49a7c64d538499ab5e86605bdd1",
+          "dweb:/ipfs/QmY8bgKUHdcQcaiHRnnY5YLYXKXRcg5aWXanCc6GD1Kn8g"
+        ],
+        "license": null
+      },
+      "contracts/feeds/PriceFeedsConstants.sol": {
+        "keccak256": "0x0fa85c00dd41dff315be51bc3220bd8826430bd1388424eb969fb188e203f0af",
+        "urls": [
+          "bzz-raw://bfbacbad0daedbb1febbe08f0ea11f702c8ae49f298e998ecf2f200c6fbdb822",
+          "dweb:/ipfs/QmQd8w8nEfyim1uQsLnm4Bwf9o3j3NGACkQhp4ZPqt5tzR"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IERC20.sol": {
+        "keccak256": "0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855",
+        "urls": [
+          "bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40",
+          "dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IWrbtc.sol": {
+        "keccak256": "0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492",
+        "urls": [
+          "bzz-raw://d1adc3348aded3938e587fead4d4becf8efbed346c9cdc73e1f8ed42cb43b2c9",
+          "dweb:/ipfs/QmZPMshLwXDwH2UKkFeV5QPtz129swV354fQ25gqKWAV94"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IWrbtcERC20.sol": {
+        "keccak256": "0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5",
+        "urls": [
+          "bzz-raw://12d22b4d1e74d95f82d2bc84b5e3c978e2341cb7a1b8fc383b64aaef59f13a00",
+          "dweb:/ipfs/QmZkPrztJ5nwiKKudgz8aWX6kk3YHKCtmxJndMvV1NJuS6"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Address.sol": {
+        "keccak256": "0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54",
+        "urls": [
+          "bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3",
+          "dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Context.sol": {
+        "keccak256": "0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b",
+        "urls": [
+          "bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826",
+          "dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Ownable.sol": {
+        "keccak256": "0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a",
+        "urls": [
+          "bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a",
+          "dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/SafeMath.sol": {
+        "keccak256": "0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8",
+        "urls": [
+          "bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719",
+          "dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/feeds/PriceFeedRSKOracle.sol",
+    "id": 10567,
+    "exportedSymbols": {
+      "PriceFeedRSKOracle": [
+        10566
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:1826:45",
+    "nodes": [
+      {
+        "id": 10475,
+        "nodeType": "PragmaDirective",
+        "src": "0:31:45",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          ">=",
+          "0.5",
+          ".0",
+          "<",
+          "0.6",
+          ".0"
+        ]
+      },
+      {
+        "id": 10476,
+        "nodeType": "ImportDirective",
+        "src": "33:26:45",
+        "nodes": [],
+        "absolutePath": "contracts/feeds/PriceFeeds.sol",
+        "file": "./PriceFeeds.sol",
+        "scope": 10567,
+        "sourceUnit": 11745,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 10477,
+        "nodeType": "ImportDirective",
+        "src": "60:26:45",
+        "nodes": [],
+        "absolutePath": "contracts/feeds/IRSKOracle.sol",
+        "file": "./IRSKOracle.sol",
+        "scope": 10567,
+        "sourceUnit": 10427,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 10478,
+        "nodeType": "ImportDirective",
+        "src": "87:37:45",
+        "nodes": [],
+        "absolutePath": "contracts/openzeppelin/Ownable.sol",
+        "file": "../openzeppelin/Ownable.sol",
+        "scope": 10567,
+        "sourceUnit": 55145,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 10479,
+        "nodeType": "ImportDirective",
+        "src": "125:37:45",
+        "nodes": [],
+        "absolutePath": "contracts/openzeppelin/Address.sol",
+        "file": "../openzeppelin/Address.sol",
+        "scope": 10567,
+        "sourceUnit": 54445,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 10566,
+        "nodeType": "ContractDefinition",
+        "src": "362:1463:45",
+        "nodes": [
+          {
+            "id": 10485,
+            "nodeType": "VariableDeclaration",
+            "src": "442:31:45",
+            "nodes": [],
+            "constant": false,
+            "name": "rskOracleAddress",
+            "scope": 10566,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_address",
+              "typeString": "address"
+            },
+            "typeName": {
+              "id": 10484,
+              "name": "address",
+              "nodeType": "ElementaryTypeName",
+              "src": "442:7:45",
+              "stateMutability": "nonpayable",
+              "typeDescriptions": {
+                "typeIdentifier": "t_address",
+                "typeString": "address"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10491,
+            "nodeType": "EventDefinition",
+            "src": "498:84:45",
+            "nodes": [],
+            "anonymous": false,
+            "documentation": null,
+            "name": "SetRSKOracleAddress",
+            "parameters": {
+              "id": 10490,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 10487,
+                  "indexed": true,
+                  "name": "rskOracleAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 10491,
+                  "src": "524:32:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 10486,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "524:7:45",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 10489,
+                  "indexed": false,
+                  "name": "changerAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 10491,
+                  "src": "558:22:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 10488,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "558:7:45",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "523:58:45"
+            }
+          },
+          {
+            "id": 10501,
+            "nodeType": "FunctionDefinition",
+            "src": "734:101:45",
+            "nodes": [],
+            "body": {
+              "id": 10500,
+              "nodeType": "Block",
+              "src": "780:55:45",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 10497,
+                        "name": "_rskOracleAddress",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 10493,
+                        "src": "810:17:45",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "id": 10496,
+                      "name": "setRSKOracleAddress",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 10565,
+                      "src": "790:19:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_address_$returns$__$",
+                        "typeString": "function (address)"
+                      }
+                    },
+                    "id": 10498,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "790:38:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 10499,
+                  "nodeType": "ExpressionStatement",
+                  "src": "790:38:45"
+                }
+              ]
+            },
+            "documentation": "@notice Initialize a new RSK Oracle.\n     * @param _rskOracleAddress The RSK Oracle address.\n",
+            "implemented": true,
+            "kind": "constructor",
+            "modifiers": [],
+            "name": "",
+            "parameters": {
+              "id": 10494,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 10493,
+                  "name": "_rskOracleAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 10501,
+                  "src": "746:25:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 10492,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "746:7:45",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "745:27:45"
+            },
+            "returnParameters": {
+              "id": 10495,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "780:0:45"
+            },
+            "scope": 10566,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          },
+          {
+            "id": 10520,
+            "nodeType": "FunctionDefinition",
+            "src": "934:178:45",
+            "nodes": [],
+            "body": {
+              "id": 10519,
+              "nodeType": "Block",
+              "src": "997:115:45",
+              "nodes": [],
+              "statements": [
+                {
+                  "assignments": [
+                    10507
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 10507,
+                      "name": "_rskOracle",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 10519,
+                      "src": "1007:21:45",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_IRSKOracle_$10426",
+                        "typeString": "contract IRSKOracle"
+                      },
+                      "typeName": {
+                        "contractScope": null,
+                        "id": 10506,
+                        "name": "IRSKOracle",
+                        "nodeType": "UserDefinedTypeName",
+                        "referencedDeclaration": 10426,
+                        "src": "1007:10:45",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_contract$_IRSKOracle_$10426",
+                          "typeString": "contract IRSKOracle"
+                        }
+                      },
+                      "value": null,
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 10511,
+                  "initialValue": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 10509,
+                        "name": "rskOracleAddress",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 10485,
+                        "src": "1042:16:45",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "id": 10508,
+                      "name": "IRSKOracle",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 10426,
+                      "src": "1031:10:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_type$_t_contract$_IRSKOracle_$10426_$",
+                        "typeString": "type(contract IRSKOracle)"
+                      }
+                    },
+                    "id": 10510,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "typeConversion",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1031:28:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_IRSKOracle_$10426",
+                      "typeString": "contract IRSKOracle"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "1007:52:45"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 10517,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "components": [
+                        {
+                          "argumentTypes": null,
+                          "id": 10512,
+                          "name": "_price",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 10504,
+                          "src": "1070:6:45",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        null
+                      ],
+                      "id": 10513,
+                      "isConstant": false,
+                      "isInlineArray": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "TupleExpression",
+                      "src": "1069:10:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_tuple$_t_uint256_$__$",
+                        "typeString": "tuple(uint256,)"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "arguments": [],
+                      "expression": {
+                        "argumentTypes": [],
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 10514,
+                          "name": "_rskOracle",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 10507,
+                          "src": "1082:10:45",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_contract$_IRSKOracle_$10426",
+                            "typeString": "contract IRSKOracle"
+                          }
+                        },
+                        "id": 10515,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "getPricing",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 10417,
+                        "src": "1082:21:45",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_external_view$__$returns$_t_uint256_$_t_uint256_$",
+                          "typeString": "function () view external returns (uint256,uint256)"
+                        }
+                      },
+                      "id": 10516,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "1082:23:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_tuple$_t_uint256_$_t_uint256_$",
+                        "typeString": "tuple(uint256,uint256)"
+                      }
+                    },
+                    "src": "1069:36:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 10518,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1069:36:45"
+                }
+              ]
+            },
+            "documentation": "@notice Get the oracle price.\n@return The price from Oracle.\n",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "latestAnswer",
+            "parameters": {
+              "id": 10502,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "955:2:45"
+            },
+            "returnParameters": {
+              "id": 10505,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 10504,
+                  "name": "_price",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 10520,
+                  "src": "981:14:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 10503,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "981:7:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "980:16:45"
+            },
+            "scope": 10566,
+            "stateMutability": "view",
+            "superFunction": 10869,
+            "visibility": "external"
+          },
+          {
+            "id": 10539,
+            "nodeType": "FunctionDefinition",
+            "src": "1224:189:45",
+            "nodes": [],
+            "body": {
+              "id": 10538,
+              "nodeType": "Block",
+              "src": "1294:119:45",
+              "nodes": [],
+              "statements": [
+                {
+                  "assignments": [
+                    10526
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 10526,
+                      "name": "_rskOracle",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 10538,
+                      "src": "1304:21:45",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_IRSKOracle_$10426",
+                        "typeString": "contract IRSKOracle"
+                      },
+                      "typeName": {
+                        "contractScope": null,
+                        "id": 10525,
+                        "name": "IRSKOracle",
+                        "nodeType": "UserDefinedTypeName",
+                        "referencedDeclaration": 10426,
+                        "src": "1304:10:45",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_contract$_IRSKOracle_$10426",
+                          "typeString": "contract IRSKOracle"
+                        }
+                      },
+                      "value": null,
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 10530,
+                  "initialValue": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 10528,
+                        "name": "rskOracleAddress",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 10485,
+                        "src": "1339:16:45",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "id": 10527,
+                      "name": "IRSKOracle",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 10426,
+                      "src": "1328:10:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_type$_t_contract$_IRSKOracle_$10426_$",
+                        "typeString": "type(contract IRSKOracle)"
+                      }
+                    },
+                    "id": 10529,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "typeConversion",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1328:28:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_IRSKOracle_$10426",
+                      "typeString": "contract IRSKOracle"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "1304:52:45"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 10536,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "components": [
+                        null,
+                        {
+                          "argumentTypes": null,
+                          "id": 10531,
+                          "name": "_timestamp",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 10523,
+                          "src": "1369:10:45",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        }
+                      ],
+                      "id": 10532,
+                      "isConstant": false,
+                      "isInlineArray": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "TupleExpression",
+                      "src": "1366:14:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_tuple$__$_t_uint256_$",
+                        "typeString": "tuple(,uint256)"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "arguments": [],
+                      "expression": {
+                        "argumentTypes": [],
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 10533,
+                          "name": "_rskOracle",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 10526,
+                          "src": "1383:10:45",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_contract$_IRSKOracle_$10426",
+                            "typeString": "contract IRSKOracle"
+                          }
+                        },
+                        "id": 10534,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "getPricing",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 10417,
+                        "src": "1383:21:45",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_external_view$__$returns$_t_uint256_$_t_uint256_$",
+                          "typeString": "function () view external returns (uint256,uint256)"
+                        }
+                      },
+                      "id": 10535,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "1383:23:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_tuple$_t_uint256_$_t_uint256_$",
+                        "typeString": "tuple(uint256,uint256)"
+                      }
+                    },
+                    "src": "1366:40:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 10537,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1366:40:45"
+                }
+              ]
+            },
+            "documentation": "@notice Get the las time oracle updated the price.\n@return The latest time.",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "latestTimestamp",
+            "parameters": {
+              "id": 10521,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1248:2:45"
+            },
+            "returnParameters": {
+              "id": 10524,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 10523,
+                  "name": "_timestamp",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 10539,
+                  "src": "1274:18:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 10522,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1274:7:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1273:20:45"
+            },
+            "scope": 10566,
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 10565,
+            "nodeType": "FunctionDefinition",
+            "src": "1541:282:45",
+            "nodes": [],
+            "body": {
+              "id": 10564,
+              "nodeType": "Block",
+              "src": "1614:209:45",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "arguments": [
+                          {
+                            "argumentTypes": null,
+                            "id": 10549,
+                            "name": "_rskOracleAddress",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 10541,
+                            "src": "1651:17:45",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": [
+                            {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": null,
+                            "id": 10547,
+                            "name": "Address",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 54444,
+                            "src": "1632:7:45",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_contract$_Address_$54444_$",
+                              "typeString": "type(library Address)"
+                            }
+                          },
+                          "id": 10548,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "memberName": "isContract",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 54396,
+                          "src": "1632:18:45",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_function_internal_view$_t_address_$returns$_t_bool_$",
+                            "typeString": "function (address) view returns (bool)"
+                          }
+                        },
+                        "id": 10550,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "functionCall",
+                        "lValueRequested": false,
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "1632:37:45",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "5f72736b4f7261636c6541646472657373206e6f74206120636f6e7472616374",
+                        "id": 10551,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1671:34:45",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_1362b137c409fa86212d76eb553fab76dd7aa335761306c54c58dc9fc5b99652",
+                          "typeString": "literal_string \"_rskOracleAddress not a contract\""
+                        },
+                        "value": "_rskOracleAddress not a contract"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_1362b137c409fa86212d76eb553fab76dd7aa335761306c54c58dc9fc5b99652",
+                          "typeString": "literal_string \"_rskOracleAddress not a contract\""
+                        }
+                      ],
+                      "id": 10546,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        62895,
+                        62896
+                      ],
+                      "referencedDeclaration": 62896,
+                      "src": "1624:7:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 10552,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1624:82:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 10553,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1624:82:45"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 10556,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 10554,
+                      "name": "rskOracleAddress",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 10485,
+                      "src": "1716:16:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "id": 10555,
+                      "name": "_rskOracleAddress",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 10541,
+                      "src": "1735:17:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      }
+                    },
+                    "src": "1716:36:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "id": 10557,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1716:36:45"
+                },
+                {
+                  "eventCall": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 10559,
+                        "name": "rskOracleAddress",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 10485,
+                        "src": "1787:16:45",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "expression": {
+                          "argumentTypes": null,
+                          "id": 10560,
+                          "name": "msg",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 62892,
+                          "src": "1805:3:45",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_magic_message",
+                            "typeString": "msg"
+                          }
+                        },
+                        "id": 10561,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "memberName": "sender",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": null,
+                        "src": "1805:10:45",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address_payable",
+                          "typeString": "address payable"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_address_payable",
+                          "typeString": "address payable"
+                        }
+                      ],
+                      "id": 10558,
+                      "name": "SetRSKOracleAddress",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 10491,
+                      "src": "1767:19:45",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_address_$returns$__$",
+                        "typeString": "function (address,address)"
+                      }
+                    },
+                    "id": 10562,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1767:49:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 10563,
+                  "nodeType": "EmitStatement",
+                  "src": "1762:54:45"
+                }
+              ]
+            },
+            "documentation": "@notice Set the RSK Oracle address.\n     * @param _rskOracleAddress The RSK Oracle address.",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "arguments": null,
+                "id": 10544,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 10543,
+                  "name": "onlyOwner",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 55096,
+                  "src": "1604:9:45",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "1604:9:45"
+              }
+            ],
+            "name": "setRSKOracleAddress",
+            "parameters": {
+              "id": 10542,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 10541,
+                  "name": "_rskOracleAddress",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 10565,
+                  "src": "1570:25:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 10540,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1570:7:45",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1569:27:45"
+            },
+            "returnParameters": {
+              "id": 10545,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1614:0:45"
+            },
+            "scope": 10566,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          }
+        ],
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 10480,
+              "name": "IPriceFeedsExt",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 10870,
+              "src": "393:14:45",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IPriceFeedsExt_$10870",
+                "typeString": "contract IPriceFeedsExt"
+              }
+            },
+            "id": 10481,
+            "nodeType": "InheritanceSpecifier",
+            "src": "393:14:45"
+          },
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 10482,
+              "name": "Ownable",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 55144,
+              "src": "409:7:45",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Ownable_$55144",
+                "typeString": "contract Ownable"
+              }
+            },
+            "id": 10483,
+            "nodeType": "InheritanceSpecifier",
+            "src": "409:7:45"
+          }
+        ],
+        "contractDependencies": [
+          10870,
+          54471,
+          55144
+        ],
+        "contractKind": "contract",
+        "documentation": "@notice The Price Feed RSK Oracle contract.\n * This contract implements RSK Oracle query functionality,\ngetting the price and the last timestamp from an external oracle contract.\n",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          10566,
+          55144,
+          54471,
+          10870
+        ],
+        "name": "PriceFeedRSKOracle",
+        "scope": 10567
+      }
+    ]
+  },
+  "id": 45
+}

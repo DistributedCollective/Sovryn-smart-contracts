@@ -1,0 +1,460 @@
+{
+  "abi": [],
+  "bytecode": {
+    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a72315820d68fb9eb582650e03ce543cb063e75382ee2701be57b893fa877fdf5dab97a7164736f6c63430005110032",
+    "sourceMap": "548:1159:197:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;548:1159:197;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052600080fdfea265627a7a72315820d68fb9eb582650e03ce543cb063e75382ee2701be57b893fa877fdf5dab97a7164736f6c63430005110032",
+    "sourceMap": "548:1159:197:-;;;;;",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {},
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/reentrancy/SharedReentrancyGuard.sol\":\"SharedReentrancyGuard\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/reentrancy/Mutex.sol\":{\"keccak256\":\"0xd10b0fd07d5fed1ae1237e7c87e6501970fce2a86e2b8862e502258b0d3aeb2c\",\"urls\":[\"bzz-raw://a99cb17e5f05a4eeb80c91d0d00fb9c482502e5acdd0d10727d53f9b68f1e732\",\"dweb:/ipfs/QmZ8Va6t8DJAAHUcSXC4aWmitcgSAhugdeWHCFXJcxJF5S\"]},\"contracts/reentrancy/SharedReentrancyGuard.sol\":{\"keccak256\":\"0x2d0e61b104b91c1764f20fbeb381ba0f8a8889934ba7f6e8a167ed542ec2c124\",\"urls\":[\"bzz-raw://380369e173ad2b17130b26377df35a13ed3413b65f72f8242dc6e2eb5aca5517\",\"dweb:/ipfs/QmNNRyoKsrU7XsV1B8okhaJpGNgzRixnySebGZYzT3RmC9\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/reentrancy/SharedReentrancyGuard.sol": "SharedReentrancyGuard"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/reentrancy/Mutex.sol": {
+        "keccak256": "0xd10b0fd07d5fed1ae1237e7c87e6501970fce2a86e2b8862e502258b0d3aeb2c",
+        "urls": [
+          "bzz-raw://a99cb17e5f05a4eeb80c91d0d00fb9c482502e5acdd0d10727d53f9b68f1e732",
+          "dweb:/ipfs/QmZ8Va6t8DJAAHUcSXC4aWmitcgSAhugdeWHCFXJcxJF5S"
+        ],
+        "license": null
+      },
+      "contracts/reentrancy/SharedReentrancyGuard.sol": {
+        "keccak256": "0x2d0e61b104b91c1764f20fbeb381ba0f8a8889934ba7f6e8a167ed542ec2c124",
+        "urls": [
+          "bzz-raw://380369e173ad2b17130b26377df35a13ed3413b65f72f8242dc6e2eb5aca5517",
+          "dweb:/ipfs/QmNNRyoKsrU7XsV1B8okhaJpGNgzRixnySebGZYzT3RmC9"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/reentrancy/SharedReentrancyGuard.sol",
+    "id": 57214,
+    "exportedSymbols": {
+      "SharedReentrancyGuard": [
+        57213
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:1708:197",
+    "nodes": [
+      {
+        "id": 57187,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:197",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 57188,
+        "nodeType": "ImportDirective",
+        "src": "26:21:197",
+        "nodes": [],
+        "absolutePath": "contracts/reentrancy/Mutex.sol",
+        "file": "./Mutex.sol",
+        "scope": 57214,
+        "sourceUnit": 57186,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 57213,
+        "nodeType": "ContractDefinition",
+        "src": "548:1159:197",
+        "nodes": [
+          {
+            "id": 57193,
+            "nodeType": "VariableDeclaration",
+            "src": "1006:80:197",
+            "nodes": [],
+            "constant": true,
+            "name": "MUTEX",
+            "scope": 57213,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_contract$_Mutex_$57185",
+              "typeString": "contract Mutex"
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 57189,
+              "name": "Mutex",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 57185,
+              "src": "1006:5:197",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Mutex_$57185",
+                "typeString": "contract Mutex"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "arguments": [
+                {
+                  "argumentTypes": null,
+                  "hexValue": "307862613130656444364142433736393645616536383538333932313742646343343231333936313262",
+                  "id": 57191,
+                  "isConstant": false,
+                  "isLValue": false,
+                  "isPure": true,
+                  "kind": "number",
+                  "lValueRequested": false,
+                  "nodeType": "Literal",
+                  "src": "1043:42:197",
+                  "subdenomination": null,
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address_payable",
+                    "typeString": "address payable"
+                  },
+                  "value": "0xba10edD6ABC7696Eae685839217BdcC42139612b"
+                }
+              ],
+              "expression": {
+                "argumentTypes": [
+                  {
+                    "typeIdentifier": "t_address_payable",
+                    "typeString": "address payable"
+                  }
+                ],
+                "id": 57190,
+                "name": "Mutex",
+                "nodeType": "Identifier",
+                "overloadedDeclarations": [],
+                "referencedDeclaration": 57185,
+                "src": "1037:5:197",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_type$_t_contract$_Mutex_$57185_$",
+                  "typeString": "type(contract Mutex)"
+                }
+              },
+              "id": 57192,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "typeConversion",
+              "lValueRequested": false,
+              "names": [],
+              "nodeType": "FunctionCall",
+              "src": "1037:49:197",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Mutex_$57185",
+                "typeString": "contract Mutex"
+              }
+            },
+            "visibility": "private"
+          },
+          {
+            "id": 57212,
+            "nodeType": "ModifierDefinition",
+            "src": "1345:360:197",
+            "nodes": [],
+            "body": {
+              "id": 57211,
+              "nodeType": "Block",
+              "src": "1377:328:197",
+              "nodes": [],
+              "statements": [
+                {
+                  "assignments": [
+                    57196
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 57196,
+                      "name": "previous",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 57211,
+                      "src": "1387:16:197",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 57195,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "1387:7:197",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "value": null,
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 57200,
+                  "initialValue": {
+                    "argumentTypes": null,
+                    "arguments": [],
+                    "expression": {
+                      "argumentTypes": [],
+                      "expression": {
+                        "argumentTypes": null,
+                        "id": 57197,
+                        "name": "MUTEX",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 57193,
+                        "src": "1406:5:197",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_contract$_Mutex_$57185",
+                          "typeString": "contract Mutex"
+                        }
+                      },
+                      "id": 57198,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "incrementAndGetValue",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 57184,
+                      "src": "1406:26:197",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_external_nonpayable$__$returns$_t_uint256_$",
+                        "typeString": "function () external returns (uint256)"
+                      }
+                    },
+                    "id": 57199,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1406:28:197",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "1387:47:197"
+                },
+                {
+                  "id": 57201,
+                  "nodeType": "PlaceholderStatement",
+                  "src": "1445:1:197"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "commonType": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "id": 57207,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "argumentTypes": null,
+                          "id": 57203,
+                          "name": "previous",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 57196,
+                          "src": "1648:8:197",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "==",
+                        "rightExpression": {
+                          "argumentTypes": null,
+                          "arguments": [],
+                          "expression": {
+                            "argumentTypes": [],
+                            "expression": {
+                              "argumentTypes": null,
+                              "id": 57204,
+                              "name": "MUTEX",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 57193,
+                              "src": "1660:5:197",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_contract$_Mutex_$57185",
+                                "typeString": "contract Mutex"
+                              }
+                            },
+                            "id": 57205,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "memberName": "value",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": 57175,
+                            "src": "1660:11:197",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_function_external_view$__$returns$_t_uint256_$",
+                              "typeString": "function () view external returns (uint256)"
+                            }
+                          },
+                          "id": 57206,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "kind": "functionCall",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "1660:13:197",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "src": "1648:25:197",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "7265656e7472616e63792076696f6c6174696f6e",
+                        "id": 57208,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1675:22:197",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_0a8f19e061e4c2190d919a1e8d50695289d14afa40e0a163a09c256c00802e93",
+                          "typeString": "literal_string \"reentrancy violation\""
+                        },
+                        "value": "reentrancy violation"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_0a8f19e061e4c2190d919a1e8d50695289d14afa40e0a163a09c256c00802e93",
+                          "typeString": "literal_string \"reentrancy violation\""
+                        }
+                      ],
+                      "id": 57202,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        62895,
+                        62896
+                      ],
+                      "referencedDeclaration": 62896,
+                      "src": "1640:7:197",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 57209,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1640:58:197",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 57210,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1640:58:197"
+                }
+              ]
+            },
+            "documentation": null,
+            "name": "globallyNonReentrant",
+            "parameters": {
+              "id": 57194,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1374:2:197"
+            },
+            "visibility": "internal"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          57213
+        ],
+        "name": "SharedReentrancyGuard",
+        "scope": 57214
+      }
+    ]
+  },
+  "id": 197
+}

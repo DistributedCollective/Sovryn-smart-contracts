@@ -1,0 +1,312 @@
+{
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_sender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_data",
+          "type": "bytes"
+        }
+      ],
+      "name": "receiveApproval",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "receiveApproval(address,uint256,address,bytes)": "8f4ffcb1"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"receiveApproval\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interfaces are used to cast a contract address into a callable instance.\",\"methods\":{\"receiveApproval(address,uint256,address,bytes)\":{\"params\":{\"_amount\":\"The amount was approved.\",\"_data\":\"The data will be used for low level call.\",\"_sender\":\"The sender of SOV.approveAndCall function.\",\"_token\":\"The address of token.\"}}},\"title\":\"Interface for contract governance/ApprovalReceiver.sol\"},\"userdoc\":{\"methods\":{\"receiveApproval(address,uint256,address,bytes)\":{\"notice\":\"Receives approval from SOV token.\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/token/IApproveAndCall.sol\":\"IApproveAndCall\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/token/IApproveAndCall.sol\":{\"keccak256\":\"0x0ca93f8436a4d81d80de5ea9214139b490d96f708f09c975a0869ce9abc61635\",\"urls\":[\"bzz-raw://75cbb5a7f183ddae4f4cbe8afac44e56be521f491e740761fca9d55698a14e68\",\"dweb:/ipfs/QmS8Z6LNQZAgAdRL1tF1emQgsD2DWk9h3EvXXkrayE8jFJ\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_sender",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "_token",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes",
+              "name": "_data",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "receiveApproval"
+        }
+      ],
+      "devdoc": {
+        "methods": {
+          "receiveApproval(address,uint256,address,bytes)": {
+            "params": {
+              "_amount": "The amount was approved.",
+              "_data": "The data will be used for low level call.",
+              "_sender": "The sender of SOV.approveAndCall function.",
+              "_token": "The address of token."
+            }
+          }
+        }
+      },
+      "userdoc": {
+        "methods": {
+          "receiveApproval(address,uint256,address,bytes)": {
+            "notice": "Receives approval from SOV token."
+          }
+        }
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/token/IApproveAndCall.sol": "IApproveAndCall"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/token/IApproveAndCall.sol": {
+        "keccak256": "0x0ca93f8436a4d81d80de5ea9214139b490d96f708f09c975a0869ce9abc61635",
+        "urls": [
+          "bzz-raw://75cbb5a7f183ddae4f4cbe8afac44e56be521f491e740761fca9d55698a14e68",
+          "dweb:/ipfs/QmS8Z6LNQZAgAdRL1tF1emQgsD2DWk9h3EvXXkrayE8jFJ"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/token/IApproveAndCall.sol",
+    "id": 62611,
+    "exportedSymbols": {
+      "IApproveAndCall": [
+        62610
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:643:223",
+    "nodes": [
+      {
+        "id": 62598,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:223",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 62610,
+        "nodeType": "ContractDefinition",
+        "src": "180:462:223",
+        "nodes": [
+          {
+            "id": 62609,
+            "nodeType": "FunctionDefinition",
+            "src": "496:144:223",
+            "nodes": [],
+            "documentation": "@notice Receives approval from SOV token.\n@param _sender The sender of SOV.approveAndCall function.\n@param _amount The amount was approved.\n@param _token The address of token.\n@param _data The data will be used for low level call.\n",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "receiveApproval",
+            "parameters": {
+              "id": 62607,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 62600,
+                  "name": "_sender",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 62609,
+                  "src": "530:15:223",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 62599,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "530:7:223",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 62602,
+                  "name": "_amount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 62609,
+                  "src": "555:15:223",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 62601,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "555:7:223",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 62604,
+                  "name": "_token",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 62609,
+                  "src": "580:14:223",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 62603,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "580:7:223",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 62606,
+                  "name": "_data",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 62609,
+                  "src": "604:20:223",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 62605,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "604:5:223",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "520:110:223"
+            },
+            "returnParameters": {
+              "id": 62608,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "639:0:223"
+            },
+            "scope": 62610,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": "@title Interface for contract governance/ApprovalReceiver.sol\n@dev Interfaces are used to cast a contract address into a callable instance.",
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          62610
+        ],
+        "name": "IApproveAndCall",
+        "scope": 62611
+      }
+    ]
+  },
+  "id": 223
+}

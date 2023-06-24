@@ -1,0 +1,795 @@
+{
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_SOV",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_staking",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_tokenOwner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_cliff",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_duration",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_feeSharing",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "deployTeamVesting",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_SOV",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_staking",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_tokenOwner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_cliff",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_duration",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_feeSharing",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "deployVesting",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "deployTeamVesting(address,address,address,uint256,uint256,address,address)": "546344f0",
+    "deployVesting(address,address,address,uint256,uint256,address,address)": "fa5f771e"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_SOV\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_staking\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_tokenOwner\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_cliff\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_duration\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_feeSharing\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"deployTeamVesting\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_SOV\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_staking\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_tokenOwner\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_cliff\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_duration\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_feeSharing\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"deployVesting\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interfaces are used to cast a contract address into a callable instance. This interface is used by VestingFactory contract to override empty implemention of deployVesting and deployTeamVesting functions and on VestingRegistry contract to use an instance of VestingFactory.\",\"methods\":{},\"title\":\"Interface for Vesting Factory contract.\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/IVestingFactory.sol\":\"IVestingFactory\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/Vesting/IVestingFactory.sol\":{\"keccak256\":\"0xc77e276b71ec23ca6d4eead9a842bc01cc37bcfe55a88528190f1f6106773175\",\"urls\":[\"bzz-raw://8d67ede1c3d38fb7a77c4a3e8ea7848f2689e1cb0b8ddbc5087c20ab2e00afdc\",\"dweb:/ipfs/QmcMxkQTCKN8gakHqKx4ZXHGKEyAYoEqDKEshk519gQtAz\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_SOV",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_staking",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_tokenOwner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_cliff",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_duration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "_feeSharing",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_owner",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "deployTeamVesting",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_SOV",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_staking",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_tokenOwner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_cliff",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_duration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "_feeSharing",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_owner",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "deployVesting",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/governance/Vesting/IVestingFactory.sol": "IVestingFactory"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/governance/Vesting/IVestingFactory.sol": {
+        "keccak256": "0xc77e276b71ec23ca6d4eead9a842bc01cc37bcfe55a88528190f1f6106773175",
+        "urls": [
+          "bzz-raw://8d67ede1c3d38fb7a77c4a3e8ea7848f2689e1cb0b8ddbc5087c20ab2e00afdc",
+          "dweb:/ipfs/QmcMxkQTCKN8gakHqKx4ZXHGKEyAYoEqDKEshk519gQtAz"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/governance/Vesting/IVestingFactory.sol",
+    "id": 25120,
+    "exportedSymbols": {
+      "IVestingFactory": [
+        25119
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:893:81",
+    "nodes": [
+      {
+        "id": 25080,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:81",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 25119,
+        "nodeType": "ContractDefinition",
+        "src": "374:518:81",
+        "nodes": [
+          {
+            "id": 25099,
+            "nodeType": "FunctionDefinition",
+            "src": "406:237:81",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "deployVesting",
+            "parameters": {
+              "id": 25095,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25082,
+                  "name": "_SOV",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25099,
+                  "src": "438:12:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25081,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "438:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25084,
+                  "name": "_staking",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25099,
+                  "src": "460:16:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25083,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "460:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25086,
+                  "name": "_tokenOwner",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25099,
+                  "src": "486:19:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25085,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "486:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25088,
+                  "name": "_cliff",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25099,
+                  "src": "515:14:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25087,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "515:7:81",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25090,
+                  "name": "_duration",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25099,
+                  "src": "539:17:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25089,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "539:7:81",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25092,
+                  "name": "_feeSharing",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25099,
+                  "src": "566:19:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25091,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "566:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25094,
+                  "name": "_owner",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25099,
+                  "src": "595:14:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25093,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "595:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "428:187:81"
+            },
+            "returnParameters": {
+              "id": 25098,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25097,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25099,
+                  "src": "634:7:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25096,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "634:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "633:9:81"
+            },
+            "scope": 25119,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 25118,
+            "nodeType": "FunctionDefinition",
+            "src": "649:241:81",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "deployTeamVesting",
+            "parameters": {
+              "id": 25114,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25101,
+                  "name": "_SOV",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25118,
+                  "src": "685:12:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25100,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "685:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25103,
+                  "name": "_staking",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25118,
+                  "src": "707:16:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25102,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "707:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25105,
+                  "name": "_tokenOwner",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25118,
+                  "src": "733:19:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25104,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "733:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25107,
+                  "name": "_cliff",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25118,
+                  "src": "762:14:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25106,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "762:7:81",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25109,
+                  "name": "_duration",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25118,
+                  "src": "786:17:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25108,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "786:7:81",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25111,
+                  "name": "_feeSharing",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25118,
+                  "src": "813:19:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25110,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "813:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25113,
+                  "name": "_owner",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25118,
+                  "src": "842:14:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25112,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "842:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "675:187:81"
+            },
+            "returnParameters": {
+              "id": 25117,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25116,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25118,
+                  "src": "881:7:81",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25115,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "881:7:81",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "880:9:81"
+            },
+            "scope": 25119,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": "@title Interface for Vesting Factory contract.\n@dev Interfaces are used to cast a contract address into a callable instance.\nThis interface is used by VestingFactory contract to override empty\nimplemention of deployVesting and deployTeamVesting functions\nand on VestingRegistry contract to use an instance of VestingFactory.",
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          25119
+        ],
+        "name": "IVestingFactory",
+        "scope": 25120
+      }
+    ]
+  },
+  "id": 81
+}

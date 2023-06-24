@@ -1,0 +1,692 @@
+{
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sourceToken",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "destToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "sourceAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "destAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "ExternalSwap",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "loanId",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sourceToken",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "destToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "borrower",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "sourceAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "destAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "LoanSwap",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "prevModuleContractAddress",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newModuleContractAddress",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "module",
+          "type": "bytes32"
+        }
+      ],
+      "name": "ProtocolModuleContractReplaced",
+      "type": "event"
+    }
+  ],
+  "bytecode": {
+    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a723158200ce343ee0df0a40c60054c6b8b86dc1c3761134a09edf34510d0464f78381e6764736f6c63430005110032",
+    "sourceMap": "446:452:34:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;446:452:34;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052600080fdfea265627a7a723158200ce343ee0df0a40c60054c6b8b86dc1c3761134a09edf34510d0464f78381e6764736f6c63430005110032",
+    "sourceMap": "446:452:34:-;;;;;",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {},
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sourceToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"sourceAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"destAmount\",\"type\":\"uint256\"}],\"name\":\"ExternalSwap\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"loanId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sourceToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"destToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"borrower\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"sourceAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"destAmount\",\"type\":\"uint256\"}],\"name\":\"LoanSwap\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"prevModuleContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newModuleContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"module\",\"type\":\"bytes32\"}],\"name\":\"ProtocolModuleContractReplaced\",\"type\":\"event\"}],\"devdoc\":{\"methods\":{},\"title\":\"The Swaps Events contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * This contract contains the events for swap operations.\"}},\"settings\":{\"compilationTarget\":{\"contracts/events/SwapsEvents.sol\":\"SwapsEvents\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/events/ModulesCommonEvents.sol\":{\"keccak256\":\"0xb07af42d7e6b0fe983889b883691b662a58d2ef8d75b3f32f17faff1871c8b8f\",\"urls\":[\"bzz-raw://b7bbee73c1e0165d8953fa5c93a5d929f69a47203327d96cc8963f3b50e624fd\",\"dweb:/ipfs/QmQFA7qZmHHMR5aFgkpQUa2VKFnTwe3EkU15CZdfNZSZAF\"]},\"contracts/events/SwapsEvents.sol\":{\"keccak256\":\"0x0a1cd289076675980b916941ed923146160d34a8669fc3fb4a06610f285dfbd1\",\"urls\":[\"bzz-raw://5ea54f493fde1c2741eac44a72289e2db9f5071b3dd8399c71ab1169f35633c2\",\"dweb:/ipfs/QmSr6WCorAntmRSjtYpfQx29VvexWy8CY9D8G31kW44H1g\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "user",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "sourceToken",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "destToken",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "uint256",
+              "name": "sourceAmount",
+              "type": "uint256",
+              "indexed": false
+            },
+            {
+              "internalType": "uint256",
+              "name": "destAmount",
+              "type": "uint256",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "ExternalSwap",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "loanId",
+              "type": "bytes32",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "sourceToken",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "destToken",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "borrower",
+              "type": "address",
+              "indexed": false
+            },
+            {
+              "internalType": "uint256",
+              "name": "sourceAmount",
+              "type": "uint256",
+              "indexed": false
+            },
+            {
+              "internalType": "uint256",
+              "name": "destAmount",
+              "type": "uint256",
+              "indexed": false
+            }
+          ],
+          "type": "event",
+          "name": "LoanSwap",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "prevModuleContractAddress",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "newModuleContractAddress",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "bytes32",
+              "name": "module",
+              "type": "bytes32",
+              "indexed": true
+            }
+          ],
+          "type": "event",
+          "name": "ProtocolModuleContractReplaced",
+          "anonymous": false
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/events/SwapsEvents.sol": "SwapsEvents"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/events/ModulesCommonEvents.sol": {
+        "keccak256": "0xb07af42d7e6b0fe983889b883691b662a58d2ef8d75b3f32f17faff1871c8b8f",
+        "urls": [
+          "bzz-raw://b7bbee73c1e0165d8953fa5c93a5d929f69a47203327d96cc8963f3b50e624fd",
+          "dweb:/ipfs/QmQFA7qZmHHMR5aFgkpQUa2VKFnTwe3EkU15CZdfNZSZAF"
+        ],
+        "license": null
+      },
+      "contracts/events/SwapsEvents.sol": {
+        "keccak256": "0x0a1cd289076675980b916941ed923146160d34a8669fc3fb4a06610f285dfbd1",
+        "urls": [
+          "bzz-raw://5ea54f493fde1c2741eac44a72289e2db9f5071b3dd8399c71ab1169f35633c2",
+          "dweb:/ipfs/QmSr6WCorAntmRSjtYpfQx29VvexWy8CY9D8G31kW44H1g"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/events/SwapsEvents.sol",
+    "id": 7834,
+    "exportedSymbols": {
+      "SwapsEvents": [
+        7833
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "118:781:34",
+    "nodes": [
+      {
+        "id": 7803,
+        "nodeType": "PragmaDirective",
+        "src": "118:23:34",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 7804,
+        "nodeType": "ImportDirective",
+        "src": "143:35:34",
+        "nodes": [],
+        "absolutePath": "contracts/events/ModulesCommonEvents.sol",
+        "file": "./ModulesCommonEvents.sol",
+        "scope": 7834,
+        "sourceUnit": 7515,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 7833,
+        "nodeType": "ContractDefinition",
+        "src": "446:452:34",
+        "nodes": [
+          {
+            "id": 7820,
+            "nodeType": "EventDefinition",
+            "src": "496:209:34",
+            "nodes": [],
+            "anonymous": false,
+            "documentation": null,
+            "name": "LoanSwap",
+            "parameters": {
+              "id": 7819,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7808,
+                  "indexed": true,
+                  "name": "loanId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7820,
+                  "src": "520:22:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 7807,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "520:7:34",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7810,
+                  "indexed": true,
+                  "name": "sourceToken",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7820,
+                  "src": "552:27:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 7809,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "552:7:34",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7812,
+                  "indexed": true,
+                  "name": "destToken",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7820,
+                  "src": "589:25:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 7811,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "589:7:34",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7814,
+                  "indexed": false,
+                  "name": "borrower",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7820,
+                  "src": "624:16:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 7813,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "624:7:34",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7816,
+                  "indexed": false,
+                  "name": "sourceAmount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7820,
+                  "src": "650:20:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7815,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "650:7:34",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7818,
+                  "indexed": false,
+                  "name": "destAmount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7820,
+                  "src": "680:18:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7817,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "680:7:34",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "510:194:34"
+            }
+          },
+          {
+            "id": 7832,
+            "nodeType": "EventDefinition",
+            "src": "711:185:34",
+            "nodes": [],
+            "anonymous": false,
+            "documentation": null,
+            "name": "ExternalSwap",
+            "parameters": {
+              "id": 7831,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7822,
+                  "indexed": true,
+                  "name": "user",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7832,
+                  "src": "739:20:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 7821,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "739:7:34",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7824,
+                  "indexed": true,
+                  "name": "sourceToken",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7832,
+                  "src": "769:27:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 7823,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "769:7:34",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7826,
+                  "indexed": true,
+                  "name": "destToken",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7832,
+                  "src": "806:25:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 7825,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "806:7:34",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7828,
+                  "indexed": false,
+                  "name": "sourceAmount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7832,
+                  "src": "841:20:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7827,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "841:7:34",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7830,
+                  "indexed": false,
+                  "name": "destAmount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7832,
+                  "src": "871:18:34",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 7829,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "871:7:34",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "729:166:34"
+            }
+          }
+        ],
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 7805,
+              "name": "ModulesCommonEvents",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 7514,
+              "src": "470:19:34",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_ModulesCommonEvents_$7514",
+                "typeString": "contract ModulesCommonEvents"
+              }
+            },
+            "id": 7806,
+            "nodeType": "InheritanceSpecifier",
+            "src": "470:19:34"
+          }
+        ],
+        "contractDependencies": [
+          7514
+        ],
+        "contractKind": "contract",
+        "documentation": "@title The Swaps Events contract.\n@notice This contract code comes from bZx. bZx is a protocol for tokenized\nmargin trading and lending https://bzx.network similar to the dYdX protocol.\n * This contract contains the events for swap operations.\n",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          7833,
+          7514
+        ],
+        "name": "SwapsEvents",
+        "scope": 7834
+      }
+    ]
+  },
+  "id": 34
+}

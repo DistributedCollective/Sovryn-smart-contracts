@@ -1,0 +1,1546 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vestingRegistry",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_tokenOwner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_cliff",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_duration",
+          "type": "uint256"
+        }
+      ],
+      "name": "createVesting",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "vestingRegistry",
+      "outputs": [
+        {
+          "internalType": "contract VestingRegistry",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405234801561001057600080fd5b5060405161080138038061080183398101604081905261002f916100c6565b60006100426001600160e01b036100b116565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a350600180546001600160a01b0319166001600160a01b0392909216919091179055610114565b3390565b80516100c0816100fd565b92915050565b6000602082840312156100d857600080fd5b60006100e484846100b5565b949350505050565b60006001600160a01b0382166100c0565b610106816100ec565b811461011157600080fd5b50565b6106de806101236000396000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c80630665a06f1461005c5780638da5cb5b146100715780638f32d59b1461008f578063904c5b8f146100a4578063f2fde38b146100b9575b600080fd5b61006f61006a36600461042e565b6100cc565b005b6100796102cc565b6040516100869190610581565b60405180910390f35b6100976102db565b60405161008691906105ef565b6100ac6102ff565b60405161008691906105fd565b61006f6100c73660046103ea565b61030e565b6100d46102db565b6100f95760405162461bcd60e51b81526004016100f09061062b565b60405180910390fd5b6001600160a01b03841661011f5760405162461bcd60e51b81526004016100f09061060b565b6001600160a01b03841660009081526002602052604090205460ff16156101585760405162461bcd60e51b81526004016100f09061063b565b6001600160a01b0380851660009081526002602052604090819020805460ff19166001908117909155549051630665a06f60e01b8152911690630665a06f906101ab9087908790879087906004016105b1565b600060405180830381600087803b1580156101c557600080fd5b505af11580156101d9573d6000803e3d6000fd5b505060015460405163cc49ede760e01b8152600093506001600160a01b03909116915063cc49ede790610210908890600401610581565b60206040518083038186803b15801561022857600080fd5b505afa15801561023c573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052506102609190810190610410565b600154604051633cd41fad60e11b81529192506001600160a01b0316906379a83f5a90610293908490889060040161058f565b600060405180830381600087803b1580156102ad57600080fd5b505af11580156102c1573d6000803e3d6000fd5b505050505050505050565b6000546001600160a01b031690565b600080546001600160a01b03166102f061033e565b6001600160a01b031614905090565b6001546001600160a01b031681565b6103166102db565b6103325760405162461bcd60e51b81526004016100f09061062b565b61033b81610342565b50565b3390565b6001600160a01b0381166103685760405162461bcd60e51b81526004016100f09061061b565b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b80356103ce8161067e565b92915050565b80516103ce8161067e565b80356103ce81610692565b6000602082840312156103fc57600080fd5b600061040884846103c3565b949350505050565b60006020828403121561042257600080fd5b600061040884846103d4565b6000806000806080858703121561044457600080fd5b600061045087876103c3565b9450506020610461878288016103df565b9350506040610472878288016103df565b9250506060610483878288016103df565b91505092959194509250565b61049881610654565b82525050565b6104988161065f565b61049881610673565b60006104bd600f8361064b565b6e496e76616c6964206164647265737360881b815260200192915050565b60006104e860268361064b565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b6000610530600c8361064b565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b600061055860118361064b565b70105b1c9958591e481c1c9bd8d95cdcd959607a1b815260200192915050565b61049881610670565b602081016103ce828461048f565b6040810161059d828561048f565b6105aa6020830184610578565b9392505050565b608081016105bf828761048f565b6105cc6020830186610578565b6105d96040830185610578565b6105e66060830184610578565b95945050505050565b602081016103ce828461049e565b602081016103ce82846104a7565b602080825281016103ce816104b0565b602080825281016103ce816104db565b602080825281016103ce81610523565b602080825281016103ce8161054b565b90815260200190565b60006103ce82610664565b151590565b6001600160a01b031690565b90565b60006103ce82610654565b61068781610654565b811461033b57600080fd5b6106878161067056fea365627a7a723158200c63a563308ff3d06a1846ad90dabce8ed412ac3db56f3c907328e3b45cd71936c6578706572696d656e74616cf564736f6c63430005110040",
+    "sourceMap": "379:1127:84:-;;;517:113;8:9:-1;5:2;;;30:1;27;20:12;5:2;517:113:84;;;;;;;;;;;;;;;;;;;;;701:17:184;721:12;-1:-1:-1;;;;;721:10:184;:12;:::i;:::-;743:6;:18;;-1:-1:-1;;;;;;743:18:184;-1:-1:-1;;;;;743:18:184;;;;;;;776:43;;743:18;;-1:-1:-1;743:18:184;776:43;;743:6;;776:43;-1:-1:-1;572:15:84;:51;;-1:-1:-1;;;;;;572:51:84;-1:-1:-1;;;;;572:51:84;;;;;;;;;;379:1127;;795:96:179;874:10;795:96;:::o;5:134:-1:-;83:13;;101:33;83:13;101:33;;;68:71;;;;;146:263;;261:2;249:9;240:7;236:23;232:32;229:2;;;277:1;274;267:12;229:2;312:1;329:64;385:7;365:9;329:64;;;319:74;223:186;-1:-1;;;;223:186;416:91;;-1:-1;;;;;576:54;;478:24;559:76;642:117;711:24;729:5;711:24;;;704:5;701:35;691:2;;750:1;747;740:12;691:2;685:74;;;379:1127:84;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b50600436106100575760003560e01c80630665a06f1461005c5780638da5cb5b146100715780638f32d59b1461008f578063904c5b8f146100a4578063f2fde38b146100b9575b600080fd5b61006f61006a36600461042e565b6100cc565b005b6100796102cc565b6040516100869190610581565b60405180910390f35b6100976102db565b60405161008691906105ef565b6100ac6102ff565b60405161008691906105fd565b61006f6100c73660046103ea565b61030e565b6100d46102db565b6100f95760405162461bcd60e51b81526004016100f09061062b565b60405180910390fd5b6001600160a01b03841661011f5760405162461bcd60e51b81526004016100f09061060b565b6001600160a01b03841660009081526002602052604090205460ff16156101585760405162461bcd60e51b81526004016100f09061063b565b6001600160a01b0380851660009081526002602052604090819020805460ff19166001908117909155549051630665a06f60e01b8152911690630665a06f906101ab9087908790879087906004016105b1565b600060405180830381600087803b1580156101c557600080fd5b505af11580156101d9573d6000803e3d6000fd5b505060015460405163cc49ede760e01b8152600093506001600160a01b03909116915063cc49ede790610210908890600401610581565b60206040518083038186803b15801561022857600080fd5b505afa15801561023c573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052506102609190810190610410565b600154604051633cd41fad60e11b81529192506001600160a01b0316906379a83f5a90610293908490889060040161058f565b600060405180830381600087803b1580156102ad57600080fd5b505af11580156102c1573d6000803e3d6000fd5b505050505050505050565b6000546001600160a01b031690565b600080546001600160a01b03166102f061033e565b6001600160a01b031614905090565b6001546001600160a01b031681565b6103166102db565b6103325760405162461bcd60e51b81526004016100f09061062b565b61033b81610342565b50565b3390565b6001600160a01b0381166103685760405162461bcd60e51b81526004016100f09061061b565b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b80356103ce8161067e565b92915050565b80516103ce8161067e565b80356103ce81610692565b6000602082840312156103fc57600080fd5b600061040884846103c3565b949350505050565b60006020828403121561042257600080fd5b600061040884846103d4565b6000806000806080858703121561044457600080fd5b600061045087876103c3565b9450506020610461878288016103df565b9350506040610472878288016103df565b9250506060610483878288016103df565b91505092959194509250565b61049881610654565b82525050565b6104988161065f565b61049881610673565b60006104bd600f8361064b565b6e496e76616c6964206164647265737360881b815260200192915050565b60006104e860268361064b565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b6000610530600c8361064b565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b600061055860118361064b565b70105b1c9958591e481c1c9bd8d95cdcd959607a1b815260200192915050565b61049881610670565b602081016103ce828461048f565b6040810161059d828561048f565b6105aa6020830184610578565b9392505050565b608081016105bf828761048f565b6105cc6020830186610578565b6105d96040830185610578565b6105e66060830184610578565b95945050505050565b602081016103ce828461049e565b602081016103ce82846104a7565b602080825281016103ce816104b0565b602080825281016103ce816104db565b602080825281016103ce81610523565b602080825281016103ce8161054b565b90815260200190565b60006103ce82610664565b151590565b6001600160a01b031690565b90565b60006103ce82610654565b61068781610654565b811461033b57600080fd5b6106878161067056fea365627a7a723158200c63a563308ff3d06a1846ad90dabce8ed412ac3db56f3c907328e3b45cd71936c6578706572696d656e74616cf564736f6c63430005110040",
+    "sourceMap": "379:1127:84:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;379:1127:84;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;969:535;;;;;;;;;:::i;:::-;;902:77:184;;;:::i;:::-;;;;;;;;;;;;;;;;1233:92;;;:::i;:::-;;;;;;;;427:38:84;;;:::i;:::-;;;;;;;;1474:107:184;;;;;;;;;:::i;969:535:84:-;1106:9:184;:7;:9::i;:::-;1098:34;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;1138:25:84;;1130:53;;;;-1:-1:-1;;;1130:53:84;;;;;;;;;-1:-1:-1;;;;;1202:26:84;;;;;;:13;:26;;;;;;;;1201:27;1193:57;;;;-1:-1:-1;;;1193:57:84;;;;;;;;;-1:-1:-1;;;;;1261:26:84;;;;;;;:13;:26;;;;;;;:33;;-1:-1:-1;;1261:33:84;1290:4;1261:33;;;;;;1305:15;:70;;-1:-1:-1;;;1305:70:84;;:15;;;:29;;:70;;1275:11;;1348:7;;1357:6;;1365:9;;1305:70;;;;;;;;;;;;;;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1305:70:84;;;;8:9:-1;5:2;;;45:16;42:1;39;24:38;77:16;74:1;67:27;5:2;-1:-1;;1403:15:84;;:39;;-1:-1:-1;;;1403:39:84;;1385:15;;-1:-1:-1;;;;;;1403:15:84;;;;-1:-1:-1;1403:26:84;;:39;;1430:11;;1403:39;;;;;;;;;;;;;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1403:39:84;;;;8:9:-1;5:2;;;45:16;42:1;39;24:38;77:16;74:1;67:27;5:2;1403:39:84;;;;;;;101:4:-1;97:9;90:4;84;80:15;76:31;69:5;65:43;126:6;120:4;113:20;0:138;1403:39:84;;;;;;;;;1452:15;;:45;;-1:-1:-1;;;1452:45:84;;1385:57;;-1:-1:-1;;;;;;1452:15:84;;:27;;:45;;1385:57;;1489:7;;1452:45;;;;;;;;;;;;;;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1452:45:84;;;;8:9:-1;5:2;;;45:16;42:1;39;24:38;77:16;74:1;67:27;5:2;1452:45:84;;;;1142:1:184;969:535:84;;;;:::o;902:77:184:-;940:7;966:6;-1:-1:-1;;;;;966:6:184;902:77;:::o;1233:92::-;1273:4;1312:6;;-1:-1:-1;;;;;1312:6:184;1296:12;:10;:12::i;:::-;-1:-1:-1;;;;;1296:22:184;;1289:29;;1233:92;:::o;427:38:84:-;;;-1:-1:-1;;;;;427:38:84;;:::o;1474:107:184:-;1106:9;:7;:9::i;:::-;1098:34;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;1546:28;1565:8;1546:18;:28::i;:::-;1474:107;:::o;795:96:179:-;874:10;795:96;:::o;1682:225:184:-;-1:-1:-1;;;;;1755:22:184;;1747:73;;;;-1:-1:-1;;;1747:73:184;;;;;;;;;1856:6;;;1835:38;;-1:-1:-1;;;;;1835:38:184;;;;1856:6;;;1835:38;;;1883:6;:17;;-1:-1:-1;;;;;;1883:17:184;-1:-1:-1;;;;;1883:17:184;;;;;;;;;;1682:225::o;5:130:-1:-;72:20;;97:33;72:20;97:33;;;57:78;;;;;142:134;220:13;;238:33;220:13;238:33;;283:130;350:20;;375:33;350:20;375:33;;420:241;;524:2;512:9;503:7;499:23;495:32;492:2;;;540:1;537;530:12;492:2;575:1;592:53;637:7;617:9;592:53;;;582:63;486:175;-1:-1;;;;486:175;668:263;;783:2;771:9;762:7;758:23;754:32;751:2;;;799:1;796;789:12;751:2;834:1;851:64;907:7;887:9;851:64;;938:617;;;;;1093:3;1081:9;1072:7;1068:23;1064:33;1061:2;;;1110:1;1107;1100:12;1061:2;1145:1;1162:53;1207:7;1187:9;1162:53;;;1152:63;;1124:97;1252:2;1270:53;1315:7;1306:6;1295:9;1291:22;1270:53;;;1260:63;;1231:98;1360:2;1378:53;1423:7;1414:6;1403:9;1399:22;1378:53;;;1368:63;;1339:98;1468:2;1486:53;1531:7;1522:6;1511:9;1507:22;1486:53;;;1476:63;;1447:98;1055:500;;;;;;;;1562:113;1645:24;1663:5;1645:24;;;1640:3;1633:37;1627:48;;;1682:104;1759:21;1774:5;1759:21;;1793:176;1901:62;1957:5;1901:62;;1977:315;;2137:67;2201:2;2196:3;2137:67;;;-1:-1;;;2217:38;;2283:2;2274:12;;2123:169;-1:-1;;2123:169;2301:375;;2461:67;2525:2;2520:3;2461:67;;;2561:34;2541:55;;-1:-1;;;2625:2;2616:12;;2609:30;2667:2;2658:12;;2447:229;-1:-1;;2447:229;2685:312;;2845:67;2909:2;2904:3;2845:67;;;-1:-1;;;2925:35;;2988:2;2979:12;;2831:166;-1:-1;;2831:166;3006:317;;3166:67;3230:2;3225:3;3166:67;;;-1:-1;;;3246:40;;3314:2;3305:12;;3152:171;-1:-1;;3152:171;3331:113;3414:24;3432:5;3414:24;;3451:213;3569:2;3554:18;;3583:71;3558:9;3627:6;3583:71;;3671:324;3817:2;3802:18;;3831:71;3806:9;3875:6;3831:71;;;3913:72;3981:2;3970:9;3966:18;3957:6;3913:72;;;3788:207;;;;;;4002:547;4204:3;4189:19;;4219:71;4193:9;4263:6;4219:71;;;4301:72;4369:2;4358:9;4354:18;4345:6;4301:72;;;4384;4452:2;4441:9;4437:18;4428:6;4384:72;;;4467;4535:2;4524:9;4520:18;4511:6;4467:72;;;4175:374;;;;;;;;4556:201;4668:2;4653:18;;4682:65;4657:9;4720:6;4682:65;;4764:263;4907:2;4892:18;;4921:96;4896:9;4990:6;4921:96;;5034:407;5225:2;5239:47;;;5210:18;;5300:131;5210:18;5300:131;;5448:407;5639:2;5653:47;;;5624:18;;5714:131;5624:18;5714:131;;5862:407;6053:2;6067:47;;;6038:18;;6128:131;6038:18;6128:131;;6276:407;6467:2;6481:47;;;6452:18;;6542:131;6452:18;6542:131;;6691:163;6794:19;;;6843:4;6834:14;;6787:67;6862:91;;6924:24;6942:5;6924:24;;6960:85;7026:13;7019:21;;7002:43;7052:121;-1:-1;;;;;7114:54;;7097:76;7180:72;7242:5;7225:27;7259:171;;7363:62;7419:5;7363:62;;7577:117;7646:24;7664:5;7646:24;;;7639:5;7636:35;7626:2;;7685:1;7682;7675:12;7701:117;7770:24;7788:5;7770:24;",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "createVesting(address,uint256,uint256,uint256)": "0665a06f",
+    "isOwner()": "8f32d59b",
+    "owner()": "8da5cb5b",
+    "transferOwnership(address)": "f2fde38b",
+    "vestingRegistry()": "904c5b8f"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vestingRegistry\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tokenOwner\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_cliff\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_duration\",\"type\":\"uint256\"}],\"name\":\"createVesting\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"vestingRegistry\",\"outputs\":[{\"internalType\":\"contract VestingRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"createVesting(address,uint256,uint256,uint256)\":{\"params\":{\"_amount\":\"The amount of tokens to be vested.\",\"_cliff\":\"The time interval to the first withdraw in seconds.\",\"_duration\":\"The total duration in seconds.\",\"_tokenOwner\":\"The owner of the tokens.\"}},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Temp contract for checking address, creating and staking tokens.\"},\"userdoc\":{\"methods\":{\"createVesting(address,uint256,uint256,uint256)\":{\"notice\":\"Create a vesting, get it and stake some tokens w/ this vesting.\"}},\"notice\":\"It casts an instance of vestingRegistry and by using createVesting function it creates a vesting, gets it and stakes some tokens w/ this vesting.\"}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/OrigingVestingCreator.sol\":\"OrigingVestingCreator\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/IFeeSharingCollector.sol\":{\"keccak256\":\"0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40\",\"urls\":[\"bzz-raw://b9ed75fd4b75f120ed265e7b69d86ce6e62388a50f38058e2fa34f5ea3ffcc2e\",\"dweb:/ipfs/QmZbMA6F4FxhcAT4zTc521LLRbZxFVVuD3zzj981awpDmp\"]},\"contracts/governance/Staking/interfaces/IStaking.sol\":{\"keccak256\":\"0x6777e38b4bd5a63e10f3bf7aba355401713bb649811c6dfa1bda40ebd8fee30b\",\"urls\":[\"bzz-raw://676e42641fb1d335dde7bb928779014ff2adf1eb1121f48a4a48e36f571287d4\",\"dweb:/ipfs/QmamokattcaQ6gRGaqUDVZejcv4rridScd9nayGcxxW1BL\"]},\"contracts/governance/Vesting/ITeamVesting.sol\":{\"keccak256\":\"0xeb926db5c0681a7bdbc70c3d25df2551a6124e191654b3b8a0f810b0d03ec66f\",\"urls\":[\"bzz-raw://a4883af8c4b65febf5c26400a2fdc0b8576bc2fb46d65acc18898e97fcc77017\",\"dweb:/ipfs/QmdeGnzKeNheqEo3HKUM7coBGDVDDfyFQFftUy3TCF2gkh\"]},\"contracts/governance/Vesting/IVesting.sol\":{\"keccak256\":\"0x373d8b2669d69d57ed11f1caf345e3a818f5c60019b3fff91acb01d323c0600c\",\"urls\":[\"bzz-raw://dc21afdda9d4ab2f586da1d3ee940439cc2b5c51247a9737fc657b7e8e287604\",\"dweb:/ipfs/QmXT9L2kdcqmMRz2zLeq48RC22e1fB1PRkyw6bnR5sqc7f\"]},\"contracts/governance/Vesting/IVestingFactory.sol\":{\"keccak256\":\"0xc77e276b71ec23ca6d4eead9a842bc01cc37bcfe55a88528190f1f6106773175\",\"urls\":[\"bzz-raw://8d67ede1c3d38fb7a77c4a3e8ea7848f2689e1cb0b8ddbc5087c20ab2e00afdc\",\"dweb:/ipfs/QmcMxkQTCKN8gakHqKx4ZXHGKEyAYoEqDKEshk519gQtAz\"]},\"contracts/governance/Vesting/OrigingVestingCreator.sol\":{\"keccak256\":\"0xe455f40f198f9d6b857b297867df079a1d1338e8ace79619980e343392b15e3c\",\"urls\":[\"bzz-raw://d034d03933e6a6b17c66d0cf497f53b59e97b93b10498d47e87417e88197534a\",\"dweb:/ipfs/QmVr4RsVugsJXajaSaDpHCDT15EQDpi5NRhTPEtufmfPsJ\"]},\"contracts/governance/Vesting/VestingRegistry.sol\":{\"keccak256\":\"0xd691de2f5a675394f19be5264b659a646b4bc45752a59055484aa80f25c08a57\",\"urls\":[\"bzz-raw://4d94e8b2bb827125347b4e643d1234bcc4d40698bb99f9da5ad21c42aa29db09\",\"dweb:/ipfs/QmdG6SLDE8EPqZXmPTmDMUioDnuGRUkfPJ8eMUBg2B1egh\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_vestingRegistry",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "previousOwner",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address",
+              "indexed": true
+            }
+          ],
+          "type": "event",
+          "name": "OwnershipTransferred",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_tokenOwner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_cliff",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_duration",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "createVesting"
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "isOwner",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "owner",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "transferOwnership"
+        },
+        {
+          "inputs": [],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "vestingRegistry",
+          "outputs": [
+            {
+              "internalType": "contract VestingRegistry",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {
+          "createVesting(address,uint256,uint256,uint256)": {
+            "params": {
+              "_amount": "The amount of tokens to be vested.",
+              "_cliff": "The time interval to the first withdraw in seconds.",
+              "_duration": "The total duration in seconds.",
+              "_tokenOwner": "The owner of the tokens."
+            }
+          },
+          "isOwner()": {
+            "details": "Returns true if the caller is the current owner."
+          },
+          "owner()": {
+            "details": "Returns the address of the current owner."
+          },
+          "transferOwnership(address)": {
+            "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+          }
+        }
+      },
+      "userdoc": {
+        "methods": {
+          "createVesting(address,uint256,uint256,uint256)": {
+            "notice": "Create a vesting, get it and stake some tokens w/ this vesting."
+          }
+        }
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/governance/Vesting/OrigingVestingCreator.sol": "OrigingVestingCreator"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/governance/IFeeSharingCollector.sol": {
+        "keccak256": "0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40",
+        "urls": [
+          "bzz-raw://b9ed75fd4b75f120ed265e7b69d86ce6e62388a50f38058e2fa34f5ea3ffcc2e",
+          "dweb:/ipfs/QmZbMA6F4FxhcAT4zTc521LLRbZxFVVuD3zzj981awpDmp"
+        ],
+        "license": null
+      },
+      "contracts/governance/Staking/interfaces/IStaking.sol": {
+        "keccak256": "0x6777e38b4bd5a63e10f3bf7aba355401713bb649811c6dfa1bda40ebd8fee30b",
+        "urls": [
+          "bzz-raw://676e42641fb1d335dde7bb928779014ff2adf1eb1121f48a4a48e36f571287d4",
+          "dweb:/ipfs/QmamokattcaQ6gRGaqUDVZejcv4rridScd9nayGcxxW1BL"
+        ],
+        "license": null
+      },
+      "contracts/governance/Vesting/ITeamVesting.sol": {
+        "keccak256": "0xeb926db5c0681a7bdbc70c3d25df2551a6124e191654b3b8a0f810b0d03ec66f",
+        "urls": [
+          "bzz-raw://a4883af8c4b65febf5c26400a2fdc0b8576bc2fb46d65acc18898e97fcc77017",
+          "dweb:/ipfs/QmdeGnzKeNheqEo3HKUM7coBGDVDDfyFQFftUy3TCF2gkh"
+        ],
+        "license": null
+      },
+      "contracts/governance/Vesting/IVesting.sol": {
+        "keccak256": "0x373d8b2669d69d57ed11f1caf345e3a818f5c60019b3fff91acb01d323c0600c",
+        "urls": [
+          "bzz-raw://dc21afdda9d4ab2f586da1d3ee940439cc2b5c51247a9737fc657b7e8e287604",
+          "dweb:/ipfs/QmXT9L2kdcqmMRz2zLeq48RC22e1fB1PRkyw6bnR5sqc7f"
+        ],
+        "license": null
+      },
+      "contracts/governance/Vesting/IVestingFactory.sol": {
+        "keccak256": "0xc77e276b71ec23ca6d4eead9a842bc01cc37bcfe55a88528190f1f6106773175",
+        "urls": [
+          "bzz-raw://8d67ede1c3d38fb7a77c4a3e8ea7848f2689e1cb0b8ddbc5087c20ab2e00afdc",
+          "dweb:/ipfs/QmcMxkQTCKN8gakHqKx4ZXHGKEyAYoEqDKEshk519gQtAz"
+        ],
+        "license": null
+      },
+      "contracts/governance/Vesting/OrigingVestingCreator.sol": {
+        "keccak256": "0xe455f40f198f9d6b857b297867df079a1d1338e8ace79619980e343392b15e3c",
+        "urls": [
+          "bzz-raw://d034d03933e6a6b17c66d0cf497f53b59e97b93b10498d47e87417e88197534a",
+          "dweb:/ipfs/QmVr4RsVugsJXajaSaDpHCDT15EQDpi5NRhTPEtufmfPsJ"
+        ],
+        "license": null
+      },
+      "contracts/governance/Vesting/VestingRegistry.sol": {
+        "keccak256": "0xd691de2f5a675394f19be5264b659a646b4bc45752a59055484aa80f25c08a57",
+        "urls": [
+          "bzz-raw://4d94e8b2bb827125347b4e643d1234bcc4d40698bb99f9da5ad21c42aa29db09",
+          "dweb:/ipfs/QmdG6SLDE8EPqZXmPTmDMUioDnuGRUkfPJ8eMUBg2B1egh"
+        ],
+        "license": null
+      },
+      "contracts/interfaces/IERC20.sol": {
+        "keccak256": "0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855",
+        "urls": [
+          "bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40",
+          "dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Context.sol": {
+        "keccak256": "0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b",
+        "urls": [
+          "bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826",
+          "dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/Ownable.sol": {
+        "keccak256": "0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a",
+        "urls": [
+          "bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a",
+          "dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y"
+        ],
+        "license": null
+      },
+      "contracts/openzeppelin/SafeMath.sol": {
+        "keccak256": "0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8",
+        "urls": [
+          "bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719",
+          "dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/governance/Vesting/OrigingVestingCreator.sol",
+    "id": 25735,
+    "exportedSymbols": {
+      "OrigingVestingCreator": [
+        25734
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:1507:84",
+    "nodes": [
+      {
+        "id": 25650,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:84",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 25651,
+        "nodeType": "PragmaDirective",
+        "src": "25:33:84",
+        "nodes": [],
+        "literals": [
+          "experimental",
+          "ABIEncoderV2"
+        ]
+      },
+      {
+        "id": 25652,
+        "nodeType": "ImportDirective",
+        "src": "60:40:84",
+        "nodes": [],
+        "absolutePath": "contracts/openzeppelin/Ownable.sol",
+        "file": "../../openzeppelin/Ownable.sol",
+        "scope": 25735,
+        "sourceUnit": 55145,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 25653,
+        "nodeType": "ImportDirective",
+        "src": "101:31:84",
+        "nodes": [],
+        "absolutePath": "contracts/governance/Vesting/VestingRegistry.sol",
+        "file": "./VestingRegistry.sol",
+        "scope": 25735,
+        "sourceUnit": 28432,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 25734,
+        "nodeType": "ContractDefinition",
+        "src": "379:1127:84",
+        "nodes": [
+          {
+            "id": 25657,
+            "nodeType": "VariableDeclaration",
+            "src": "427:38:84",
+            "nodes": [],
+            "constant": false,
+            "name": "vestingRegistry",
+            "scope": 25734,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_contract$_VestingRegistry_$28431",
+              "typeString": "contract VestingRegistry"
+            },
+            "typeName": {
+              "contractScope": null,
+              "id": 25656,
+              "name": "VestingRegistry",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 28431,
+              "src": "427:15:84",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_VestingRegistry_$28431",
+                "typeString": "contract VestingRegistry"
+              }
+            },
+            "value": null,
+            "visibility": "public"
+          },
+          {
+            "id": 25661,
+            "nodeType": "VariableDeclaration",
+            "src": "472:38:84",
+            "nodes": [],
+            "constant": false,
+            "name": "processedList",
+            "scope": 25734,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+              "typeString": "mapping(address => bool)"
+            },
+            "typeName": {
+              "id": 25660,
+              "keyType": {
+                "id": 25658,
+                "name": "address",
+                "nodeType": "ElementaryTypeName",
+                "src": "480:7:84",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "472:24:84",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                "typeString": "mapping(address => bool)"
+              },
+              "valueType": {
+                "id": 25659,
+                "name": "bool",
+                "nodeType": "ElementaryTypeName",
+                "src": "491:4:84",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_bool",
+                  "typeString": "bool"
+                }
+              }
+            },
+            "value": null,
+            "visibility": "internal"
+          },
+          {
+            "id": 25673,
+            "nodeType": "FunctionDefinition",
+            "src": "517:113:84",
+            "nodes": [],
+            "body": {
+              "id": 25672,
+              "nodeType": "Block",
+              "src": "562:68:84",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 25670,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 25666,
+                      "name": "vestingRegistry",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 25657,
+                      "src": "572:15:84",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_VestingRegistry_$28431",
+                        "typeString": "contract VestingRegistry"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "arguments": [
+                        {
+                          "argumentTypes": null,
+                          "id": 25668,
+                          "name": "_vestingRegistry",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 25663,
+                          "src": "606:16:84",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        ],
+                        "id": 25667,
+                        "name": "VestingRegistry",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 28431,
+                        "src": "590:15:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_contract$_VestingRegistry_$28431_$",
+                          "typeString": "type(contract VestingRegistry)"
+                        }
+                      },
+                      "id": 25669,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "kind": "typeConversion",
+                      "lValueRequested": false,
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "590:33:84",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_contract$_VestingRegistry_$28431",
+                        "typeString": "contract VestingRegistry"
+                      }
+                    },
+                    "src": "572:51:84",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_contract$_VestingRegistry_$28431",
+                      "typeString": "contract VestingRegistry"
+                    }
+                  },
+                  "id": 25671,
+                  "nodeType": "ExpressionStatement",
+                  "src": "572:51:84"
+                }
+              ]
+            },
+            "documentation": null,
+            "implemented": true,
+            "kind": "constructor",
+            "modifiers": [],
+            "name": "",
+            "parameters": {
+              "id": 25664,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25663,
+                  "name": "_vestingRegistry",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25673,
+                  "src": "529:24:84",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25662,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "529:7:84",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "528:26:84"
+            },
+            "returnParameters": {
+              "id": 25665,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "562:0:84"
+            },
+            "scope": 25734,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          },
+          {
+            "id": 25733,
+            "nodeType": "FunctionDefinition",
+            "src": "969:535:84",
+            "nodes": [],
+            "body": {
+              "id": 25732,
+              "nodeType": "Block",
+              "src": "1120:384:84",
+              "nodes": [],
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "commonType": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "id": 25691,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "argumentTypes": null,
+                          "id": 25687,
+                          "name": "_tokenOwner",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 25675,
+                          "src": "1138:11:84",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "!=",
+                        "rightExpression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "30",
+                              "id": 25689,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "number",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "1161:1:84",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_rational_0_by_1",
+                                "typeString": "int_const 0"
+                              },
+                              "value": "0"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_rational_0_by_1",
+                                "typeString": "int_const 0"
+                              }
+                            ],
+                            "id": 25688,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "lValueRequested": false,
+                            "nodeType": "ElementaryTypeNameExpression",
+                            "src": "1153:7:84",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_address_$",
+                              "typeString": "type(address)"
+                            },
+                            "typeName": "address"
+                          },
+                          "id": 25690,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "typeConversion",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "1153:10:84",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address_payable",
+                            "typeString": "address payable"
+                          }
+                        },
+                        "src": "1138:25:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "496e76616c69642061646472657373",
+                        "id": 25692,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1165:17:84",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_1462473b7a4b33d32b109b815fd2324d00c9e5839b707ecf16d0ab5744f99226",
+                          "typeString": "literal_string \"Invalid address\""
+                        },
+                        "value": "Invalid address"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_1462473b7a4b33d32b109b815fd2324d00c9e5839b707ecf16d0ab5744f99226",
+                          "typeString": "literal_string \"Invalid address\""
+                        }
+                      ],
+                      "id": 25686,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        62895,
+                        62896
+                      ],
+                      "referencedDeclaration": 62896,
+                      "src": "1130:7:84",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 25693,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1130:53:84",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 25694,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1130:53:84"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 25699,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "nodeType": "UnaryOperation",
+                        "operator": "!",
+                        "prefix": true,
+                        "src": "1201:27:84",
+                        "subExpression": {
+                          "argumentTypes": null,
+                          "baseExpression": {
+                            "argumentTypes": null,
+                            "id": 25696,
+                            "name": "processedList",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 25661,
+                            "src": "1202:13:84",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                              "typeString": "mapping(address => bool)"
+                            }
+                          },
+                          "id": 25698,
+                          "indexExpression": {
+                            "argumentTypes": null,
+                            "id": 25697,
+                            "name": "_tokenOwner",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 25675,
+                            "src": "1216:11:84",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_address",
+                              "typeString": "address"
+                            }
+                          },
+                          "isConstant": false,
+                          "isLValue": true,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "nodeType": "IndexAccess",
+                          "src": "1202:26:84",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "416c72656164792070726f636573736564",
+                        "id": 25700,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "1230:19:84",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_98177e42a8d32100da8516f5feb71c1912405e1679aea7324bbc1b876c567fe3",
+                          "typeString": "literal_string \"Already processed\""
+                        },
+                        "value": "Already processed"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_98177e42a8d32100da8516f5feb71c1912405e1679aea7324bbc1b876c567fe3",
+                          "typeString": "literal_string \"Already processed\""
+                        }
+                      ],
+                      "id": 25695,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        62895,
+                        62896
+                      ],
+                      "referencedDeclaration": 62896,
+                      "src": "1193:7:84",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 25701,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1193:57:84",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 25702,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1193:57:84"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 25707,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "baseExpression": {
+                        "argumentTypes": null,
+                        "id": 25703,
+                        "name": "processedList",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25661,
+                        "src": "1261:13:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
+                          "typeString": "mapping(address => bool)"
+                        }
+                      },
+                      "id": 25705,
+                      "indexExpression": {
+                        "argumentTypes": null,
+                        "id": 25704,
+                        "name": "_tokenOwner",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25675,
+                        "src": "1275:11:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "IndexAccess",
+                      "src": "1261:26:84",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "hexValue": "74727565",
+                      "id": 25706,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "bool",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "1290:4:84",
+                      "subdenomination": null,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      },
+                      "value": "true"
+                    },
+                    "src": "1261:33:84",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 25708,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1261:33:84"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 25712,
+                        "name": "_tokenOwner",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25675,
+                        "src": "1335:11:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 25713,
+                        "name": "_amount",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25677,
+                        "src": "1348:7:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 25714,
+                        "name": "_cliff",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25679,
+                        "src": "1357:6:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 25715,
+                        "name": "_duration",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25681,
+                        "src": "1365:9:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "id": 25709,
+                        "name": "vestingRegistry",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25657,
+                        "src": "1305:15:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_contract$_VestingRegistry_$28431",
+                          "typeString": "contract VestingRegistry"
+                        }
+                      },
+                      "id": 25711,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "createVesting",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 28206,
+                      "src": "1305:29:84",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_external_nonpayable$_t_address_$_t_uint256_$_t_uint256_$_t_uint256_$returns$__$",
+                        "typeString": "function (address,uint256,uint256,uint256) external"
+                      }
+                    },
+                    "id": 25716,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1305:70:84",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 25717,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1305:70:84"
+                },
+                {
+                  "assignments": [
+                    25719
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 25719,
+                      "name": "vesting",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 25732,
+                      "src": "1385:15:84",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_address",
+                        "typeString": "address"
+                      },
+                      "typeName": {
+                        "id": 25718,
+                        "name": "address",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "1385:7:84",
+                        "stateMutability": "nonpayable",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      "value": null,
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 25724,
+                  "initialValue": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 25722,
+                        "name": "_tokenOwner",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25675,
+                        "src": "1430:11:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "id": 25720,
+                        "name": "vestingRegistry",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25657,
+                        "src": "1403:15:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_contract$_VestingRegistry_$28431",
+                          "typeString": "contract VestingRegistry"
+                        }
+                      },
+                      "id": 25721,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "getVesting",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 28299,
+                      "src": "1403:26:84",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_external_view$_t_address_$returns$_t_address_$",
+                        "typeString": "function (address) view external returns (address)"
+                      }
+                    },
+                    "id": 25723,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1403:39:84",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "1385:57:84"
+                },
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "id": 25728,
+                        "name": "vesting",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25719,
+                        "src": "1480:7:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 25729,
+                        "name": "_amount",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25677,
+                        "src": "1489:7:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": null,
+                        "id": 25725,
+                        "name": "vestingRegistry",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 25657,
+                        "src": "1452:15:84",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_contract$_VestingRegistry_$28431",
+                          "typeString": "contract VestingRegistry"
+                        }
+                      },
+                      "id": 25727,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "memberName": "stakeTokens",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 28282,
+                      "src": "1452:27:84",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_external_nonpayable$_t_address_$_t_uint256_$returns$__$",
+                        "typeString": "function (address,uint256) external"
+                      }
+                    },
+                    "id": 25730,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1452:45:84",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 25731,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1452:45:84"
+                }
+              ]
+            },
+            "documentation": "@notice Create a vesting, get it and stake some tokens w/ this vesting.\n@param _tokenOwner The owner of the tokens.\n@param _amount The amount of tokens to be vested.\n@param _cliff The time interval to the first withdraw in seconds.\n@param _duration The total duration in seconds.\n",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "arguments": null,
+                "id": 25684,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 25683,
+                  "name": "onlyOwner",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 55096,
+                  "src": "1110:9:84",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "1110:9:84"
+              }
+            ],
+            "name": "createVesting",
+            "parameters": {
+              "id": 25682,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 25675,
+                  "name": "_tokenOwner",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25733,
+                  "src": "1001:19:84",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 25674,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1001:7:84",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25677,
+                  "name": "_amount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25733,
+                  "src": "1030:15:84",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25676,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1030:7:84",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25679,
+                  "name": "_cliff",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25733,
+                  "src": "1055:14:84",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25678,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1055:7:84",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 25681,
+                  "name": "_duration",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 25733,
+                  "src": "1079:17:84",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 25680,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1079:7:84",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "991:111:84"
+            },
+            "returnParameters": {
+              "id": 25685,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1120:0:84"
+            },
+            "scope": 25734,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          }
+        ],
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 25654,
+              "name": "Ownable",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 55144,
+              "src": "413:7:84",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Ownable_$55144",
+                "typeString": "contract Ownable"
+              }
+            },
+            "id": 25655,
+            "nodeType": "InheritanceSpecifier",
+            "src": "413:7:84"
+          }
+        ],
+        "contractDependencies": [
+          54471,
+          55144
+        ],
+        "contractKind": "contract",
+        "documentation": "@title Temp contract for checking address, creating and staking tokens.\n@notice It casts an instance of vestingRegistry and by using createVesting\nfunction it creates a vesting, gets it and stakes some tokens w/ this vesting.\n",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          25734,
+          55144,
+          54471
+        ],
+        "name": "OrigingVestingCreator",
+        "scope": 25735
+      }
+    ]
+  },
+  "id": 84
+}

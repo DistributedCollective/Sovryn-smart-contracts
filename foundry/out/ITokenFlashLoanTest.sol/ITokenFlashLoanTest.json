@@ -1,0 +1,385 @@
+{
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "borrowAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "borrower",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "signature",
+          "type": "string"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "flashBorrow",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "flashBorrow(uint256,address,address,string,bytes)": "c5bf0e9d"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"borrowAmount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"borrower\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"signature\",\"type\":\"string\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"flashBorrow\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/testhelpers/ITokenFlashLoanTest.sol\":\"ITokenFlashLoanTest\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/testhelpers/ITokenFlashLoanTest.sol\":{\"keccak256\":\"0x107bff4152e2b6a83c16a6c2b6eea8922b31cf51efdd64c5b71793242370ab9f\",\"urls\":[\"bzz-raw://ccceb9d773671965dd99c75ecb187aa395932c7a9389f463007fe4b1b24f1cd2\",\"dweb:/ipfs/Qmd28jR47ct9LpzAfFz4WnwpxbaSCFkjg4MUC1rKU9QU6Y\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "borrowAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "borrower",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "target",
+              "type": "address"
+            },
+            {
+              "internalType": "string",
+              "name": "signature",
+              "type": "string"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "payable",
+          "type": "function",
+          "name": "flashBorrow",
+          "outputs": [
+            {
+              "internalType": "bytes",
+              "name": "",
+              "type": "bytes"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/testhelpers/ITokenFlashLoanTest.sol": "ITokenFlashLoanTest"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/testhelpers/ITokenFlashLoanTest.sol": {
+        "keccak256": "0x107bff4152e2b6a83c16a6c2b6eea8922b31cf51efdd64c5b71793242370ab9f",
+        "urls": [
+          "bzz-raw://ccceb9d773671965dd99c75ecb187aa395932c7a9389f463007fe4b1b24f1cd2",
+          "dweb:/ipfs/Qmd28jR47ct9LpzAfFz4WnwpxbaSCFkjg4MUC1rKU9QU6Y"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/testhelpers/ITokenFlashLoanTest.sol",
+    "id": 58751,
+    "exportedSymbols": {
+      "ITokenFlashLoanTest": [
+        58750
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:352:206",
+    "nodes": [
+      {
+        "id": 58733,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:206",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 58734,
+        "nodeType": "PragmaDirective",
+        "src": "25:33:206",
+        "nodes": [],
+        "literals": [
+          "experimental",
+          "ABIEncoderV2"
+        ]
+      },
+      {
+        "id": 58750,
+        "nodeType": "ContractDefinition",
+        "src": "102:249:206",
+        "nodes": [
+          {
+            "id": 58749,
+            "nodeType": "FunctionDefinition",
+            "src": "138:211:206",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "flashBorrow",
+            "parameters": {
+              "id": 58745,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 58736,
+                  "name": "borrowAmount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 58749,
+                  "src": "168:20:206",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 58735,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "168:7:206",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 58738,
+                  "name": "borrower",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 58749,
+                  "src": "198:16:206",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 58737,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "198:7:206",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 58740,
+                  "name": "target",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 58749,
+                  "src": "224:14:206",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 58739,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "224:7:206",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 58742,
+                  "name": "signature",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 58749,
+                  "src": "248:25:206",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_calldata_ptr",
+                    "typeString": "string"
+                  },
+                  "typeName": {
+                    "id": 58741,
+                    "name": "string",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "248:6:206",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_string_storage_ptr",
+                      "typeString": "string"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 58744,
+                  "name": "data",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 58749,
+                  "src": "283:19:206",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 58743,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "283:5:206",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "158:150:206"
+            },
+            "returnParameters": {
+              "id": 58748,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 58747,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 58749,
+                  "src": "335:12:206",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 58746,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "335:5:206",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "334:14:206"
+            },
+            "scope": 58750,
+            "stateMutability": "payable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": null,
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          58750
+        ],
+        "name": "ITokenFlashLoanTest",
+        "scope": 58751
+      }
+    ]
+  },
+  "id": 206
+}

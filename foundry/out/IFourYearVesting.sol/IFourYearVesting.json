@@ -1,0 +1,384 @@
+{
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "endDate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_restartStakeSchedule",
+          "type": "uint256"
+        }
+      ],
+      "name": "stakeTokens",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "lastSchedule",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "remainingAmount",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "endDate()": "c24a0f8b",
+    "stakeTokens(uint256,uint256)": "3b7b6188"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[],\"name\":\"endDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_restartStakeSchedule\",\"type\":\"uint256\"}],\"name\":\"stakeTokens\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"lastSchedule\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"remainingAmount\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interfaces are used to cast a contract address into a callable instance. This interface is used by FourYearVestingLogic contract to implement stakeTokens function and on VestingRegistry contract to call IFourYearVesting(vesting).stakeTokens function at a vesting instance.\",\"methods\":{},\"title\":\"Interface for Four Year Vesting contract.\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/fouryear/IFourYearVesting.sol\":\"IFourYearVesting\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/Vesting/fouryear/IFourYearVesting.sol\":{\"keccak256\":\"0x0ad1709b497fee70a9a018ee2ecbfc48f764802409efa9b1397a955551dae977\",\"urls\":[\"bzz-raw://f6e7ea43d769447463e59c04b5a53dbb18959841a6c020d5f58be2ee93e11699\",\"dweb:/ipfs/QmSjYKmV4Lar6kzxegDwiqXZo6tDt2knDCn67YNZyFwmga\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.5.17+commit.d19bba13"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "endDate",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "_amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_restartStakeSchedule",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "stakeTokens",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "lastSchedule",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "remainingAmount",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "methods": {}
+      },
+      "userdoc": {
+        "methods": {}
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@ensdomains/=node_modules/@ensdomains/",
+        ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
+        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
+        ":forge-std/=foundry/forge-std/src/",
+        ":hardhat-deploy/=node_modules/hardhat-deploy/",
+        ":hardhat/=node_modules/hardhat/",
+        ":truffle/=node_modules/truffle/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "compilationTarget": {
+        "contracts/governance/Vesting/fouryear/IFourYearVesting.sol": "IFourYearVesting"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "contracts/governance/Vesting/fouryear/IFourYearVesting.sol": {
+        "keccak256": "0x0ad1709b497fee70a9a018ee2ecbfc48f764802409efa9b1397a955551dae977",
+        "urls": [
+          "bzz-raw://f6e7ea43d769447463e59c04b5a53dbb18959841a6c020d5f58be2ee93e11699",
+          "dweb:/ipfs/QmSjYKmV4Lar6kzxegDwiqXZo6tDt2knDCn67YNZyFwmga"
+        ],
+        "license": null
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "contracts/governance/Vesting/fouryear/IFourYearVesting.sol",
+    "id": 32151,
+    "exportedSymbols": {
+      "IFourYearVesting": [
+        32150
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "0:614:102",
+    "nodes": [
+      {
+        "id": 32133,
+        "nodeType": "PragmaDirective",
+        "src": "0:24:102",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".17"
+        ]
+      },
+      {
+        "id": 32150,
+        "nodeType": "ContractDefinition",
+        "src": "376:237:102",
+        "nodes": [
+          {
+            "id": 32138,
+            "nodeType": "FunctionDefinition",
+            "src": "409:46:102",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "endDate",
+            "parameters": {
+              "id": 32134,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "425:2:102"
+            },
+            "returnParameters": {
+              "id": 32137,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32136,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32138,
+                  "src": "446:7:102",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32135,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "446:7:102",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "445:9:102"
+            },
+            "scope": 32150,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          },
+          {
+            "id": 32149,
+            "nodeType": "FunctionDefinition",
+            "src": "461:150:102",
+            "nodes": [],
+            "documentation": null,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "stakeTokens",
+            "parameters": {
+              "id": 32143,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32140,
+                  "name": "_amount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32149,
+                  "src": "482:15:102",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32139,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "482:7:102",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32142,
+                  "name": "_restartStakeSchedule",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32149,
+                  "src": "499:29:102",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32141,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "499:7:102",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "481:48:102"
+            },
+            "returnParameters": {
+              "id": 32148,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32145,
+                  "name": "lastSchedule",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32149,
+                  "src": "564:20:102",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32144,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "564:7:102",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32147,
+                  "name": "remainingAmount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32149,
+                  "src": "586:23:102",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32146,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "586:7:102",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "563:47:102"
+            },
+            "scope": 32150,
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "external"
+          }
+        ],
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": "@title Interface for Four Year Vesting contract.\n@dev Interfaces are used to cast a contract address into a callable instance.\nThis interface is used by FourYearVestingLogic contract to implement stakeTokens function\nand on VestingRegistry contract to call IFourYearVesting(vesting).stakeTokens function\nat a vesting instance.",
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          32150
+        ],
+        "name": "IFourYearVesting",
+        "scope": 32151
+      }
+    ]
+  },
+  "id": 102
+}
