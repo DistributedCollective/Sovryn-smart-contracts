@@ -26,8 +26,6 @@ const func = async function (hre) {
     const loanTokenModuleNames = Object.keys(modulesList).filter(
         (k) => !dontDeployModules.hasOwnProperty(k)
     );
-    let modulesToAdd = {};
-    let modulesToReplace = {};
     for (let i = 0; i < loanTokenModuleNames.length; i++) {
         const tx = await deploy(loanTokenModuleNames[i], {
             from: deployer,
