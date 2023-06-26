@@ -24,7 +24,9 @@ const func = async function (hre) {
     const loanTokenSettingsLowerAdminDeployment = await get("LoanTokenSettingsLowerAdmin");
 
     const loanTokenLogicBeaconLMContract = await ethers.getContract("LoanTokenLogicBeaconLM");
-    const loanTokenLogicBeaconWRBTCContract = await ethers.getContract("LoanTokenLogicBeaconWRBTC");
+    const loanTokenLogicBeaconWRBTCContract = await ethers.getContract(
+        "LoanTokenLogicBeaconWRBTC"
+    );
 
     const loanTokenLogicBeaconLMInterface = new ethers.utils.Interface(
         loanTokenLogicBeaconLMDeployment.abi
