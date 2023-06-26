@@ -427,7 +427,7 @@ async function createFourYearVestings(hre, path, dryRun) {
     console.log(balanceBefore.sub(balanceAfter).div(ethers.BigNumber.from(10).pow(18)).toString());
 }
 
-task("create4YVestings", "Create vestings")
+task("createFourYearVestings", "Create vestings")
     .addParam("path", "The file path")
     .addOptionalParam("dryRun", "Dry run flag (default: true)", true, types.boolean)
     .setAction(async ({ path, dryRun }, hre) => {
