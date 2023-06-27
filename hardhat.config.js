@@ -83,18 +83,36 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
 
 module.exports = {
     solidity: {
-        version: "0.5.17",
-        settings: {
-            optimizer: {
-                enabled: true,
-                runs: 200,
-            },
-            outputSelection: {
-                "*": {
-                    "*": ["storageLayout"],
+        compilers: [
+            {
+                version: "0.5.17",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 200,
+                    },
+                    outputSelection: {
+                        "*": {
+                            "*": ["storageLayout"],
+                        },
+                    },
                 },
             },
-        },
+            {
+                version: "0.8.13",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 200,
+                    },
+                    outputSelection: {
+                        "*": {
+                            "*": ["storageLayout"],
+                        },
+                    },
+                },
+            },
+        ],
     },
     abiExporter: {
         clear: true,
