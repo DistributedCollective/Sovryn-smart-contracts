@@ -4,5 +4,6 @@ out = 'foundry/out'
 libs = ['node_modules', 'lib']
 test = 'foundry/test'
 cache_path  = 'foundry/forge-cache'
+match_path = 'foundry/test/*'
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
