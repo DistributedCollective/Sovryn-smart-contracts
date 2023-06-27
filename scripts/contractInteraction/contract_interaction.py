@@ -46,7 +46,7 @@ def main():
 
     #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 300000e18)
     #sendTokensFromMultisig(conf.contracts['SOV'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 250000e18)
-    #sendFromMultisig(conf.acct, 2.51e18)
+    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
     #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
     #sendFromMultisig('0xc0AAcbDB9Ce627A348B91CfDB67eC6b2FBC3dCbd', 0.1e18)
 
@@ -80,11 +80,17 @@ def main():
     #checkTxOnAny(8, conf.contracts["BFMultisigDeposit"])
     
     #for i in range(13,17):
-    #    confirmWithAnyMS(i, conf.contracts["NewMultisigBF"])
-    #    checkTxOnAny(i, conf.contracts["NewMultisigBF"])
+    #confirmWithAnyMS(17, conf.contracts["NewMultisigBF"])
+    #checkTxOnAny(17, conf.contracts["NewMultisigBF"])
+    #queueProposal(30)
 
-    #confirmWithBFMS(29) # "BFmultisig"
-    #checkTxOnBF(29)   # "BFmultisig"
+    confirmWithBFMS(36) # "BFmultisig"
+    checkTxOnBF(36)   # "BFmultisig"
+
+    #confirmWithBFMS(32)
+
+    #sendToWatcher(conf.contracts['DLLR'], 70000e18)
+    #transferTokensFromWallet(conf.contracts['DLLR'], '0x1bB2b1BeeDa1fB25EE5DA9caE6c0F12ced831128', 10000e18)
     #testTradeOpeningAndClosing(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['WRBTC'], 100e18, 2e18, False, 0)
     #tokenIsSupported(conf.contracts['DLLR'])
     #tokenIsSupported(conf.contracts['WRBTC'])
@@ -93,6 +99,7 @@ def main():
    # executeOnMultisig(1339)
     #executeOnMultisig(1343)
     #executeOnMultisig(1352)
+    #checkTx(1463)
    
     #addAmmPoolTokenToLM('(WR)BTC/DLLR')
 
@@ -106,7 +113,8 @@ def main():
     getFeeSharingState(conf.contracts['iRBTC'])
     getFeeSharingState(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT())
     '''
-    
+    #readOwner(conf.contracts['FeeSharingCollectorProxy'])
+    #setMaxTransferSatoshi(300000000)
     #bal = getBalance(conf.contracts['iRBTC'], conf.contracts['multisig'])
     #transferTokens(conf.contracts['iRBTC'], bal)
     
@@ -178,7 +186,7 @@ def main():
     #addFeeStructure(2,21400,20)
     #setCurrentFeeStructure(2)
 
-    readTokenOwnerFromFunds()
+    #readTokenOwnerFromFunds()
 
 
 def governanceTransfer():

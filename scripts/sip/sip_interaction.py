@@ -19,12 +19,12 @@ def main():
     balanceBefore = acct.balance()
 
     # Shows the current voting power
-    # currentVotingPower(acct)
+    currentVotingPower(acct)
 
     # Call the function you want here
 
     createProposalSIP0065()
-    #createProposalSIP0050()
+
 
     balanceAfter = acct.balance()
 
@@ -54,8 +54,8 @@ def loadConfig():
         print("acct:", acct)
         configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
-        #acct = accounts.load("proposer")
-        acct = accounts.load("rskdeployer")
+        acct = accounts.load("proposer")
+        #acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif thisNetwork == "rsk-mainnet-ws":
         acct = accounts.load("rskdeployer")
@@ -563,5 +563,5 @@ def createProposalSIP0065():
     print(signatures)
     print(datas)
     print(description)
-    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
+    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
