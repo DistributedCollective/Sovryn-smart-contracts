@@ -20,12 +20,12 @@ task("multisig:sign-tx", "Sign multisig tx")
     .setAction(async ({ id, signer, multisig }, hre) => {
         const {
             deployments: { get },
+            ethers,
         } = hre;
         const signerAcc = (await hre.getNamedAccounts())[signer];
         if (!ethers.utils.isAddress(multisig)) {
             multisig = ethers.constants.AddressZero;
         }
-        const { ethers } = hre;
         const code = await ethers.provider.getCode(multisig);
         if (code === "0x") {
             multisig = ethers.constants.AddressZero;
@@ -49,9 +49,9 @@ task("multisig:sign-txs", "Sign multiple multisig tx")
     .setAction(async ({ ids, signer, multisig }, hre) => {
         const {
             deployments: { get },
+            ethers,
         } = hre;
         const signerAcc = (await hre.getNamedAccounts())[signer];
-        const { ethers } = hre;
         if (!ethers.utils.isAddress(multisig)) {
             multisig = ethers.constants.AddressZero;
         }

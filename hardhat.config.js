@@ -171,6 +171,7 @@ module.exports = {
             accounts: mainnetAccounts,
             url: "http://127.0.0.1:8545",
             blockGasLimit: 6800000,
+            gasPrice: 66000010,
             live: true,
             tags: ["mainnet", "forked"],
             timeout: 1000000,
