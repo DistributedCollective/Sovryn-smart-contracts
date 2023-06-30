@@ -180,19 +180,19 @@ async function createVestings(hre, path, dryRun, multiplier) {
             console.log("Staking ...");
             const vesting = await ethers.getContractAt("VestingLogic", vestingAddress, signer);
             await (
-                await vesting.stakeTokens(
-                    amount
-                    // {
-                    //     gasLimit: 6800000,
-                    //     gasPrice: 65e6,
-                    // }
-                )
+                await vesting.stakeTokens(amount, {
+                    gasLimit: 6800000,
+                    gasPrice: 65e6,
+                })
             ).wait();
         }
 
         const stakes = await staking.getStakes(vestingAddress);
         console.log("Stakes:");
-        console.log(stakes);
+        logger.warn(
+            stakes.stakes.map((stake) => stake.div(ethers.constants.WeiPerEther).toString())
+        );
+        logger.warn(stakes.dates.map((date) => new Date(date.toNumber() * 1000)));
     }
 
     console.log("=======================================");
