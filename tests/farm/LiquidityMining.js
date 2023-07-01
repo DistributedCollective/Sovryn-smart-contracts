@@ -59,6 +59,7 @@ contract("LiquidityMining", (accounts) => {
         token1 = await TestToken.new("Test token 1", "TST-1", 18, TOTAL_SUPPLY);
         token2 = await TestToken.new("Test token 2", "TST-2", 18, TOTAL_SUPPLY);
         token3 = await TestToken.new("Test token 3", "TST-3", 18, TOTAL_SUPPLY);
+        token4 = await TestToken.new("Test token 4", "TST-4", 18, TOTAL_SUPPLY);
         liquidityMiningConfigToken = await LiquidityMiningConfigToken.new();
         lockedSOVAdmins = [account1, account2];
 
@@ -625,7 +626,6 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("should be able to add 2 pool tokens and update pools", async () => {
-            // await deploymentAndInit();
             let allocationPoint1 = new BN(1);
             let tx1 = await liquidityMining.add(token3.address, allocationPoint1, false);
 
@@ -659,7 +659,7 @@ contract("LiquidityMining", (accounts) => {
 
         it("fails if the 0 allocation point is passed", async () => {
             await expectRevert(
-                liquidityMining.add(token1.address, new BN(0), false),
+                liquidityMining.add(token4.address, new BN(0), false),
                 "Invalid allocation point"
             );
         });
@@ -674,14 +674,21 @@ contract("LiquidityMining", (accounts) => {
 
     describe("deletePoolInfo", () => {
         it("only owner or admin should be able to remove pool token", async () => {
-            // await deploymentAndInit();
             await expectRevert(
                 liquidityMining.deletePoolInfo(0, { from: account1 }),
                 "unauthorized"
             );
 
             await liquidityMining.addAdmin(account1);
-            await liquidityMining.deletePoolInfo(0, { from: account1 });
+            let tx = await liquidityMining.deletePoolInfo(0, { from: account1 });
+            expectEvent(tx, "PoolTokenRemoved", {
+                user: account1,
+                poolToken: token1.address,
+            });
+        });
+
+        it("fails if index surpass the poolInfoList array", async () => {
+            await expectRevert(liquidityMining.deletePoolInfo(2), "Invalid index");
         });
 
         it("should be able to remove pool token", async () => {
@@ -698,13 +705,18 @@ contract("LiquidityMining", (accounts) => {
 
             expectEvent(tx, "PoolTokenRemoved", {
                 user: root,
+                // as expected, in the previous removal: token2 info passed from position "2" to position "0".
                 poolToken: token2.address,
             });
         });
 
         it("should be able to remove the last pool token", async () => {
-            await liquidityMining.deletePoolInfo(0);
+            let tx = await liquidityMining.deletePoolInfo(0);
             expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(0));
+            expectEvent(tx, "PoolTokenRemoved", {
+                user: root,
+                poolToken: token3.address,
+            });
         });
     });
 
