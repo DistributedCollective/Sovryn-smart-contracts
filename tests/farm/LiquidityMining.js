@@ -49,6 +49,7 @@ contract("LiquidityMining", (accounts) => {
     const unlockedImmediatelyPercent = new BN(1000); // 10%
 
     let root, account1, account2, account3, account4, lmAdmin;
+    let allocationPoint;
     let SOVToken, token1, token2, token3, liquidityMiningConfigToken;
     let liquidityMining, wrapper;
     let lockedSOVAdmins, lockedSOV;
@@ -577,11 +578,34 @@ contract("LiquidityMining", (accounts) => {
         it("fails if the 0 is passed as an amount", async () => {
             await expectRevert(liquidityMining.transferSOV(account1, 0), "Amount invalid");
         });
+
     });
 
     describe("add", () => {
+
+        it("only owner or admin should be able to add pool token", async () => {
+            await deploymentAndInit();
+            await expectRevert(
+                liquidityMining.add(token2.address, new BN(1), false, { from: account1 }),
+                "unauthorized"
+            );
+    
+            await liquidityMining.addAdmin(account1);
+            await liquidityMining.add(token2.address, new BN(1), false, { from: account1 });
+        });    
+
+        it("fails if token already added", async () => {
+            await deploymentAndInit();
+            await liquidityMining.add(token1.address, new BN(1), false);
+            await expectRevert(
+                liquidityMining.add(token1.address, new BN(1), false),
+                "Token already added"
+            );    
+        });    
+
         it("should be able to add pool token", async () => {
-            let allocationPoint = new BN(1);
+            await deploymentAndInit();
+            allocationPoint = new BN(1);
             let tx = await liquidityMining.add(token1.address, allocationPoint, false);
 
             expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint);
@@ -603,15 +627,17 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("should be able to add 2 pool tokens and update pools", async () => {
-            await deploymentAndInit();
+            // await deploymentAndInit();
             let allocationPoint1 = new BN(1);
-            let tx1 = await liquidityMining.add(token1.address, allocationPoint1, false);
+            let tx1 = await liquidityMining.add(token3.address, allocationPoint1, false);
 
-            expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(allocationPoint1);
+            expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(
+                allocationPoint1.add(allocationPoint)
+            );
 
             expectEvent(tx1, "PoolTokenAdded", {
                 user: root,
-                poolToken: token1.address,
+                poolToken: token3.address,
                 allocationPoint: allocationPoint1,
             });
 
@@ -619,7 +645,7 @@ contract("LiquidityMining", (accounts) => {
             let tx2 = await liquidityMining.add(token2.address, allocationPoint2, true);
 
             expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(
-                allocationPoint1.add(allocationPoint2)
+                allocationPoint.add(allocationPoint1).add(allocationPoint2)
             );
 
             expectEvent(tx2, "PoolTokenAdded", {
@@ -647,26 +673,47 @@ contract("LiquidityMining", (accounts) => {
             );
         });
 
-        it("fails if token already added", async () => {
-            await deploymentAndInit();
-            await liquidityMining.add(token1.address, new BN(1), false);
-            await expectRevert(
-                liquidityMining.add(token1.address, new BN(1), false),
-                "Token already added"
-            );
-        });
+    });
 
-        it("only owner or admin should be able to add pool token", async () => {
-            await deploymentAndInit();
+    describe("deletePoolInfo", () => {
+
+        it("only owner or admin should be able to remove pool token", async () => {
+            // await deploymentAndInit();
             await expectRevert(
-                liquidityMining.add(token2.address, new BN(1), false, { from: account1 }),
+                liquidityMining.deletePoolInfo(0, { from: account1 }),
                 "unauthorized"
             );
 
             await liquidityMining.addAdmin(account1);
-            await liquidityMining.add(token2.address, new BN(1), false, { from: account1 });
+            await liquidityMining.deletePoolInfo(0, { from: account1 });
         });
-    });
+
+        it("should be able to remove pool token", async () => {
+
+            let PoolInfoSizeBefore = await liquidityMining.getPoolLength();
+            let AssetsBefore = await liquidityMining.getPoolInfoList();
+
+            let tx = await liquidityMining.deletePoolInfo(0);
+
+            let PoolInfoSizeAfter = await liquidityMining.getPoolLength();
+            let AssetsAfter = await liquidityMining.getPoolInfoList();
+
+            expect(PoolInfoSizeBefore).to.be.bignumber.equal(PoolInfoSizeAfter.add(new BN(1)));
+            expect(AssetsBefore[1]).to.be.deep.equal(AssetsAfter[0]);
+
+            expectEvent(tx, "PoolTokenRemoved", {
+                user: root,
+                poolToken: token2.address,
+            });
+
+        });
+
+        it("should be able to remove the last pool token", async () => {
+            await liquidityMining.deletePoolInfo(0);
+            expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(0));
+        });        
+
+    });    
 
     describe("update", () => {
         it("should be able to update pool token", async () => {

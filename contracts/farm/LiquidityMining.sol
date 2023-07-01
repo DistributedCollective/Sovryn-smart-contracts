@@ -24,6 +24,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
 
     event SOVTransferred(address indexed receiver, uint256 amount);
     event PoolTokenAdded(address indexed user, address indexed poolToken, uint256 allocationPoint);
+    event PoolTokenRemoved(address indexed user, address indexed poolToken);
     event PoolTokenUpdated(
         address indexed user,
         address indexed poolToken,
@@ -827,4 +828,28 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
                 ? poolTokenUnlockedImmediatelyPercent
                 : unlockedImmediatelyPercent;
     }
+
+    /**
+     * @notice removes an asset from the pool of lp's. Can only be called by the owner or an admin
+     * @param i the position of the asset in the poolInfoList array
+     */
+    function deletePoolInfo(uint256 i) external onlyAuthorized {
+
+        require(i < poolInfoList.length, "Invalid index");
+        IERC20 _poolToken = poolInfoList[i].poolToken;
+
+        if(i != poolInfoList.length - 1) {
+
+            // Move the last element to the index i
+            poolInfoList[i] = poolInfoList[poolInfoList.length - 1];
+
+        }
+
+            // Decrease the length of the array
+            poolInfoList.pop();
+
+        emit PoolTokenRemoved(msg.sender, address(_poolToken));
+
+    }
+
 }
