@@ -685,6 +685,7 @@ contract("LiquidityMining", (accounts) => {
                 user: account1,
                 poolToken: token1.address,
             });
+            expect(await liquidityMining.getPoolId(token2.address)).bignumber.equal(new BN(0));
         });
 
         it("fails if index surpass the poolInfoList array", async () => {
@@ -708,6 +709,7 @@ contract("LiquidityMining", (accounts) => {
                 // as expected, in the previous removal: token2 info passed from position "2" to position "0".
                 poolToken: token2.address,
             });
+            expect(await liquidityMining.getPoolId(token3.address)).bignumber.equal(new BN(0));
         });
 
         it("should be able to remove the last pool token", async () => {

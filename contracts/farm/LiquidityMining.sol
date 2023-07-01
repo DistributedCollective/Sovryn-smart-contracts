@@ -840,10 +840,14 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         if (i != poolInfoList.length - 1) {
             // Move the last element to the index i
             poolInfoList[i] = poolInfoList[poolInfoList.length - 1];
+            // update the PoolIdList mapping
+            poolIdList[address(poolInfoList[i].poolToken)] = i + 1;
         }
 
         // Decrease the length of the array
         poolInfoList.pop();
+        // update the PoolIdList mapping
+        poolIdList[address(_poolToken)] = 0;
 
         emit PoolTokenRemoved(msg.sender, address(_poolToken));
     }
