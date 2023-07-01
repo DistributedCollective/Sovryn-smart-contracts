@@ -834,22 +834,17 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @param i the position of the asset in the poolInfoList array
      */
     function deletePoolInfo(uint256 i) external onlyAuthorized {
-
         require(i < poolInfoList.length, "Invalid index");
         IERC20 _poolToken = poolInfoList[i].poolToken;
 
-        if(i != poolInfoList.length - 1) {
-
+        if (i != poolInfoList.length - 1) {
             // Move the last element to the index i
             poolInfoList[i] = poolInfoList[poolInfoList.length - 1];
-
         }
 
-            // Decrease the length of the array
-            poolInfoList.pop();
+        // Decrease the length of the array
+        poolInfoList.pop();
 
         emit PoolTokenRemoved(msg.sender, address(_poolToken));
-
     }
-
 }

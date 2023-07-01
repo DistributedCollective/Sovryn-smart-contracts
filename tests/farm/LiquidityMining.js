@@ -578,21 +578,19 @@ contract("LiquidityMining", (accounts) => {
         it("fails if the 0 is passed as an amount", async () => {
             await expectRevert(liquidityMining.transferSOV(account1, 0), "Amount invalid");
         });
-
     });
 
     describe("add", () => {
-
         it("only owner or admin should be able to add pool token", async () => {
             await deploymentAndInit();
             await expectRevert(
                 liquidityMining.add(token2.address, new BN(1), false, { from: account1 }),
                 "unauthorized"
             );
-    
+
             await liquidityMining.addAdmin(account1);
             await liquidityMining.add(token2.address, new BN(1), false, { from: account1 });
-        });    
+        });
 
         it("fails if token already added", async () => {
             await deploymentAndInit();
@@ -600,8 +598,8 @@ contract("LiquidityMining", (accounts) => {
             await expectRevert(
                 liquidityMining.add(token1.address, new BN(1), false),
                 "Token already added"
-            );    
-        });    
+            );
+        });
 
         it("should be able to add pool token", async () => {
             await deploymentAndInit();
@@ -672,11 +670,9 @@ contract("LiquidityMining", (accounts) => {
                 "Invalid token address"
             );
         });
-
     });
 
     describe("deletePoolInfo", () => {
-
         it("only owner or admin should be able to remove pool token", async () => {
             // await deploymentAndInit();
             await expectRevert(
@@ -689,7 +685,6 @@ contract("LiquidityMining", (accounts) => {
         });
 
         it("should be able to remove pool token", async () => {
-
             let PoolInfoSizeBefore = await liquidityMining.getPoolLength();
             let AssetsBefore = await liquidityMining.getPoolInfoList();
 
@@ -705,15 +700,13 @@ contract("LiquidityMining", (accounts) => {
                 user: root,
                 poolToken: token2.address,
             });
-
         });
 
         it("should be able to remove the last pool token", async () => {
             await liquidityMining.deletePoolInfo(0);
             expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(0));
-        });        
-
-    });    
+        });
+    });
 
     describe("update", () => {
         it("should be able to update pool token", async () => {
