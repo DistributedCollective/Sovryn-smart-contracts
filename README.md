@@ -643,6 +643,15 @@ Out of the box, Hardhat's [mainnet forking mode](https://hardhat.org/hardhat-net
 not work with RSK. This package uses `patch-package` to patch the installed version of Hardhat to enable support for
 forking from RSK. For more details, see [HARDHAT_FORKING.md](HARDHAT_FORKING.md).
 
+## Slither (pre-requisite)
+Slither is enabled as the static analyzer. Currently we introduce the static anlysis to the staking modules `npm run analyze:staking-modules`. <br/>
+Before run this command, make sure that we have:
+
+- [Slither](https://github.com/crytic/slither) insttalled
+- The solc version 0.5.17 installed.
+We can use [`solc-select`](https://github.com/crytic/solc-select) for managing the solc version.
+
+
 ## Contributing
 
 <a href="https://github.com/DistributedCollective/Sovryn-smart-contracts/graphs/contributors">
