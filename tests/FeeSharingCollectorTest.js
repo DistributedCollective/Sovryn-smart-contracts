@@ -25,10 +25,11 @@
 // const { expect } = require("chai");
 const { loadFixture, takeSnapshot, mine } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
+const { smock } = require("@defi-wonderland/smock");
 
 const { ZERO_ADDRESS } = constants;
 
-const { etherMantissa, mineBlock, increaseTime } = require("./Utils/Ethereum");
+const { etherMantissa, mineBlock, increaseTime, etherGasCost } = require("./Utils/Ethereum");
 
 const {
     deployAndGetIStaking,
@@ -3293,6 +3294,90 @@ contract("FeeSharingCollector:", (accounts) => {
             );
             block = await web3.eth.getBlock(tx.receipt.blockNumber);
             expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
+        });
+    });
+
+    describe("recover incorrect allocated fees", async () => {
+        let mockSOV, mockZUSD;
+        let rbtcAmount = new BN(wei("878778886164898400", "wei"));
+
+        beforeEach(async () => {
+            mockSOV = await smock.fake("TestToken", {
+                address: "0xEFc78fc7d48b64958315949279Ba181c2114ABBd",
+            });
+
+            mockZUSD = await smock.fake("TestToken", {
+                address: "0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d",
+            });
+
+            mockSOV.transfer.returns(true);
+            mockZUSD.transfer.returns(true);
+
+            await web3.eth.sendTransaction({
+                from: accounts[2].toString(),
+                to: feeSharingCollector.address,
+                value: rbtcAmount,
+                gas: 50000,
+            });
+        });
+
+        it("recoverIncorrectAllocatedFees() can only be called by the owner", async () => {
+            await protocolDeploymentFixture();
+            await expectRevert(
+                feeSharingCollector.recoverIncorrectAllocatedFees({ from: accounts[1] }),
+                "unauthorized"
+            );
+        });
+
+        it("recoverIncorrectAllocatedFees() can only be executed once", async () => {
+            const owner = root;
+            await protocolDeploymentFixture();
+            await feeSharingCollector.recoverIncorrectAllocatedFees({ from: owner });
+            await expectRevert(
+                feeSharingCollector.recoverIncorrectAllocatedFees({ from: owner }),
+                "FeeSharingCollector: function can only be called once"
+            );
+        });
+
+        it("Should be able to withdraw the incorrect allocated fees properly", async () => {
+            await protocolDeploymentFixture();
+            const owner = await feeSharingCollector.owner();
+            const previousBalanceOwner = new BN(await web3.eth.getBalance(owner));
+            const tx = await feeSharingCollector.recoverIncorrectAllocatedFees();
+            const latestBalanceOwner = new BN(await web3.eth.getBalance(owner));
+            const txFee = new BN((await etherGasCost(tx.receipt)).toString());
+
+            expect(previousBalanceOwner.add(rbtcAmount).sub(txFee).toString()).to.be.equal(
+                latestBalanceOwner.toString()
+            );
+        });
+
+        it("Should revert if sov or zusd transfer failed", async () => {
+            await protocolDeploymentFixture();
+            mockSOV.transfer.returns(false);
+            await expectRevert(
+                feeSharingCollector.recoverIncorrectAllocatedFees(),
+                "SafeERC20: ERC20 operation did not succeed"
+            );
+            mockSOV.transfer.returns(true);
+            mockZUSD.transfer.returns(false);
+            await expectRevert(
+                feeSharingCollector.recoverIncorrectAllocatedFees(),
+                "SafeERC20: ERC20 operation did not succeed"
+            );
+        });
+
+        it("Should revert if rbtc transfer failed", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            /** Should revert because feeSharingCollector does not have enough balance of rbtc */
+            await expectRevert(
+                feeSharingCollector.recoverIncorrectAllocatedFees(),
+                "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
+            );
         });
     });
 

@@ -69,6 +69,8 @@ contract FeeSharingCollectorStorage is Ownable {
      */
     EnumerableAddressSet.AddressSet internal whitelistedConverterList;
 
+    mapping(bytes4 => bool) public isFunctionExecuted;
+
     /**
      * @dev Prevents a contract from calling itself, directly or indirectly.
      * If you mark a function `nonReentrant`, you should also
