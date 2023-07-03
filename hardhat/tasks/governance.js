@@ -85,7 +85,7 @@ async function createVestings(hre, path, dryRun, multiplier) {
         } else if (teamVesting[3] === 26) {
             vestingCreationType = 1;
         } else if (teamVesting[3] === 39) {
-            vestingCreationType = 4;
+            vestingCreationType = 0;
             console.log("Make sure 4 year vesting is really expected!");
         } else {
             console.log("ALERT!!!! ZERO VESTING CREATION TYPE FALLBACK!!!");
@@ -123,13 +123,15 @@ async function createVestings(hre, path, dryRun, multiplier) {
         if (isTeam) {
             if (!dryRun) {
                 console.log("Create or get Team Vesting...");
-                await vestingRegistry.createTeamVesting(
-                    tokenOwner,
-                    amount,
-                    cliff,
-                    duration,
-                    vestingCreationType
-                );
+                await (
+                    await vestingRegistry.createTeamVesting(
+                        tokenOwner,
+                        amount,
+                        cliff,
+                        duration,
+                        vestingCreationType
+                    )
+                ).wait();
             }
             vestingAddress = await vestingRegistry.getTeamVesting(
                 tokenOwner,
@@ -141,13 +143,15 @@ async function createVestings(hre, path, dryRun, multiplier) {
         } else {
             if (!dryRun) {
                 console.log("Create or get Vesting contract...");
-                await vestingRegistry.createVestingAddr(
-                    tokenOwner,
-                    amount,
-                    cliff,
-                    duration,
-                    vestingCreationType
-                );
+                await (
+                    await vestingRegistry.createVestingAddr(
+                        tokenOwner,
+                        amount,
+                        cliff,
+                        duration,
+                        vestingCreationType
+                    )
+                ).wait();
             }
             vestingAddress = await vestingRegistry.getVestingAddr(
                 tokenOwner,
@@ -163,17 +167,27 @@ async function createVestings(hre, path, dryRun, multiplier) {
                 throw new Error("Vesting address is zero!");
             }
             if ((await SOVtoken.allowance(deployerAcc, vestingAddress)) < amount) {
-                console.log("Approving amount", amount, "to Vesting contract", vestingAddress);
+                console.log(
+                    "Approving amount",
+                    amount.div(ethers.utils.parseEther("1")).toNumber(),
+                    "to Vesting contract",
+                    vestingAddress
+                );
                 await SOVtoken.approve(vestingAddress, amount);
-                console.log("Approved:", amount);
+                console.log("Approved:", amount.div(ethers.utils.parseEther("1")).toNumber());
             }
 
             console.log("Staking ...");
             const vesting = await ethers.getContractAt("VestingLogic", vestingAddress, signer);
-            await vesting.stakeTokens(amount, {
-                gasLimit: 6790000,
-                gasPrice: 65e6,
-            });
+            await (
+                await vesting.stakeTokens(
+                    amount
+                    // {
+                    //     gasLimit: 6800000,
+                    //     gasPrice: 65e6,
+                    // }
+                )
+            ).wait();
         }
 
         const stakes = await staking.getStakes(vestingAddress);
@@ -238,7 +252,7 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
     });
 }
 
-task("createVestings", "Create vestings")
+task("governance:createVestings", "Create vestings")
     .addParam("path", "The file path")
     .addOptionalParam("dryRun", "Dry run flag (default: true)", true, types.boolean)
     .setAction(async ({ path, dryRun }, hre) => {
@@ -379,7 +393,7 @@ async function createFourYearVestings(hre, path, dryRun) {
         logger.info("Registering new vestings...");
         logger.warn(Object.keys(vestingsToRegister));
         logger.warn(Object.values(vestingsToRegister));
-        (
+        await (
             await vestingRegistry.addFourYearVestings(
                 Object.keys(vestingsToRegister),
                 Object.values(vestingsToRegister)
@@ -396,7 +410,11 @@ async function createFourYearVestings(hre, path, dryRun) {
             vestingAddress,
             signer
         );
-        logger.info(`Approving amount ${amount} for vesting ${vestingAddress}`);
+        logger.info(
+            `Approving amount ${amount
+                .div(ethers.utils.parseEther("1"))
+                .toNumber()} for vesting ${vestingAddress}`
+        );
         await SOVtoken.approve(vestingAddress, amount);
         logger.info("Approved");
 
@@ -404,7 +422,7 @@ async function createFourYearVestings(hre, path, dryRun) {
         let lastSchedule = ethers.BigNumber.from(0);
         while (remainingAmount.gt(0)) {
             console.log("remainingAmount before:", remainingAmount.toString());
-            (await fourYearVesting.stakeTokens(remainingAmount, lastSchedule)).wait();
+            await (await fourYearVesting.stakeTokens(remainingAmount, lastSchedule)).wait();
             lastSchedule = await fourYearVesting.lastStakingSchedule();
             console.log("lastSchedule:", lastSchedule.toString());
             remainingAmount = await fourYearVesting.remainingStakeAmount();
@@ -427,7 +445,7 @@ async function createFourYearVestings(hre, path, dryRun) {
     console.log(balanceBefore.sub(balanceAfter).div(ethers.BigNumber.from(10).pow(18)).toString());
 }
 
-task("create4YVestings", "Create vestings")
+task("governance:createFourYearVestings", "Create vestings")
     .addParam("path", "The file path")
     .addOptionalParam("dryRun", "Dry run flag (default: true)", true, types.boolean)
     .setAction(async ({ path, dryRun }, hre) => {
