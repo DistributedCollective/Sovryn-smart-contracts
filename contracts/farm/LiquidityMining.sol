@@ -832,10 +832,13 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
     /**
      * @notice removes an asset from the pool of lp's. Can only be called by the owner or an admin
      * @param i the position of the asset in the poolInfoList array
+     * @dev WARNING: This function is only meant to be executed if a wrong contract is added as a new LP asset
      */
     function deletePoolInfo(uint256 i) external onlyAuthorized {
         require(i < poolInfoList.length, "Invalid index");
         IERC20 _poolToken = poolInfoList[i].poolToken;
+        // also we need to revert totalAllocationPoint to its original value
+        uint256 _allocationPoint = poolInfoList[i].allocationPoint;
 
         if (i != poolInfoList.length - 1) {
             // Move the last element to the index i
@@ -848,6 +851,8 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         poolInfoList.pop();
         // update the PoolIdList mapping
         poolIdList[address(_poolToken)] = 0;
+        // restotre totalAllocationPoint value
+        totalAllocationPoint = totalAllocationPoint.sub(_allocationPoint);
 
         emit PoolTokenRemoved(msg.sender, address(_poolToken));
     }
