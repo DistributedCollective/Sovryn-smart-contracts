@@ -678,7 +678,7 @@ contract("LiquidityMining", (accounts) => {
                 liquidityMining.deletePoolInfo(0, { from: account1 }),
                 "unauthorized"
             );
-            const totalAllocationPoint = (await liquidityMining.totalAllocationPoint());
+            const totalAllocationPoint = await liquidityMining.totalAllocationPoint();
             const poolAllocationPoint = (await liquidityMining.poolInfoList(0)).allocationPoint;
             await liquidityMining.addAdmin(account1);
             let tx = await liquidityMining.deletePoolInfo(0, { from: account1 });
@@ -716,12 +716,12 @@ contract("LiquidityMining", (accounts) => {
             expect(await liquidityMining.getPoolId(token3.address)).bignumber.equal(new BN(0));
             expect(await liquidityMining.totalAllocationPoint()).bignumber.equal(
                 totalAllocationPoint.sub(poolAllocationPoint)
-            );            
+            );
         });
 
         it("should be able to remove the last pool token", async () => {
             const totalAllocationPoint = await liquidityMining.totalAllocationPoint();
-            const poolAllocationPoint = (await liquidityMining.poolInfoList(0)).allocationPoint;            
+            const poolAllocationPoint = (await liquidityMining.poolInfoList(0)).allocationPoint;
             let tx = await liquidityMining.deletePoolInfo(0);
             expect(await liquidityMining.getPoolLength()).bignumber.equal(new BN(0));
             expectEvent(tx, "PoolTokenRemoved", {
