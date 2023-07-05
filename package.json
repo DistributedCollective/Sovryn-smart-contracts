@@ -96,7 +96,7 @@
 		"hh:console-fork-mainnet": "hardhat console --network rskForkedMainnet",
 		"hh:console-fork-testnet": "hardhat console --network rskForkedTestnet",
 		"deploy:staking-modules": "hardhat deploy --tags StakingModules",
-		"analyze:staking-modules": "slither contracts/governance/Staking/modules/"
+		"analyze:staking-modules": "slither contracts/governance/Staking/modules/ --exclude naming-convention"
 	},
 	"husky": {
 		"hooks": {
