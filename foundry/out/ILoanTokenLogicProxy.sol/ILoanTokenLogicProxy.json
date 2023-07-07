@@ -45,7 +45,7 @@
     "beaconAddress()": "7e2ec6d0",
     "setBeaconAddress(address)": "92130344"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"beaconAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_newBeaconAddress\",\"type\":\"address\"}],\"name\":\"setBeaconAddress\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/interfaces/ILoanTokenLogicProxy.sol\":\"ILoanTokenLogicProxy\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/interfaces/ILoanTokenLogicProxy.sol\":{\"keccak256\":\"0x5680fa9235c49ccec0d20989e86e92c2b3ef10ae70d98661ed0e56b32ae7ec3e\",\"urls\":[\"bzz-raw://e9b6a77f27ef01a025f9b18fcf3dcbba471d872cef3f49de08ce8356017053f2\",\"dweb:/ipfs/QmRTH6AbCpN1yPMyefnDCvNwaYW6fveunfQV63kNAAMVay\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"beaconAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_newBeaconAddress\",\"type\":\"address\"}],\"name\":\"setBeaconAddress\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/interfaces/ILoanTokenLogicProxy.sol\":\"ILoanTokenLogicProxy\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/interfaces/ILoanTokenLogicProxy.sol\":{\"keccak256\":\"0x5680fa9235c49ccec0d20989e86e92c2b3ef10ae70d98661ed0e56b32ae7ec3e\",\"urls\":[\"bzz-raw://e9b6a77f27ef01a025f9b18fcf3dcbba471d872cef3f49de08ce8356017053f2\",\"dweb:/ipfs/QmRTH6AbCpN1yPMyefnDCvNwaYW6fveunfQV63kNAAMVay\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -90,9 +90,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -120,17 +120,17 @@
   },
   "ast": {
     "absolutePath": "contracts/interfaces/ILoanTokenLogicProxy.sol",
-    "id": 32524,
+    "id": 32623,
     "exportedSymbols": {
       "ILoanTokenLogicProxy": [
-        32523
+        32622
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:190:111",
     "nodes": [
       {
-        "id": 32512,
+        "id": 32611,
         "nodeType": "PragmaDirective",
         "src": "0:23:111",
         "nodes": [],
@@ -141,12 +141,12 @@
         ]
       },
       {
-        "id": 32523,
+        "id": 32622,
         "nodeType": "ContractDefinition",
         "src": "25:164:111",
         "nodes": [
           {
-            "id": 32517,
+            "id": 32616,
             "nodeType": "FunctionDefinition",
             "src": "62:57:111",
             "nodes": [],
@@ -156,21 +156,21 @@
             "modifiers": [],
             "name": "beaconAddress",
             "parameters": {
-              "id": 32513,
+              "id": 32612,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "84:2:111"
             },
             "returnParameters": {
-              "id": 32516,
+              "id": 32615,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 32515,
+                  "id": 32614,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 32517,
+                  "scope": 32616,
                   "src": "110:7:111",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -179,7 +179,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 32514,
+                    "id": 32613,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "110:7:111",
@@ -195,13 +195,13 @@
               ],
               "src": "109:9:111"
             },
-            "scope": 32523,
+            "scope": 32622,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 32522,
+            "id": 32621,
             "nodeType": "FunctionDefinition",
             "src": "125:62:111",
             "nodes": [],
@@ -211,15 +211,15 @@
             "modifiers": [],
             "name": "setBeaconAddress",
             "parameters": {
-              "id": 32520,
+              "id": 32619,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 32519,
+                  "id": 32618,
                   "name": "_newBeaconAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 32522,
+                  "scope": 32621,
                   "src": "151:25:111",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -228,7 +228,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 32518,
+                    "id": 32617,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "151:7:111",
@@ -245,12 +245,12 @@
               "src": "150:27:111"
             },
             "returnParameters": {
-              "id": 32521,
+              "id": 32620,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "186:0:111"
             },
-            "scope": 32523,
+            "scope": 32622,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
@@ -262,10 +262,10 @@
         "documentation": null,
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          32523
+          32622
         ],
         "name": "ILoanTokenLogicProxy",
-        "scope": 32524
+        "scope": 32623
       }
     ]
   },

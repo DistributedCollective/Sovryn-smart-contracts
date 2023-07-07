@@ -229,7 +229,7 @@
     "setDelegateStake(address,uint256,uint96)": "fbbb8ec6",
     "weightedStakeByDate(address,uint256,uint256,uint256)": "8dae1b16"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"internalType\":\"uint96\",\"name\":\"_priorWeightedStake\",\"type\":\"uint96\"}],\"name\":\"MOCK_priorWeightedStake\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint96\",\"name\":\"_priorWeightedStake\",\"type\":\"uint96\"},{\"internalType\":\"uint256\",\"name\":\"_block\",\"type\":\"uint256\"}],\"name\":\"MOCK_priorWeightedStakeAtBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"date\",\"type\":\"uint256\"}],\"name\":\"calculatePriorWeightedStake\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"date\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startDate\",\"type\":\"uint256\"}],\"name\":\"computeWeightByDate\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"weight\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"date\",\"type\":\"uint256\"}],\"name\":\"getPriorWeightedStake\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"receiveApproval\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"delegatee\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"lockedTS\",\"type\":\"uint256\"},{\"internalType\":\"uint96\",\"name\":\"value\",\"type\":\"uint96\"}],\"name\":\"setDelegateStake\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"date\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startDate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"}],\"name\":\"weightedStakeByDate\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"power\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"computeWeightByDate(uint256,uint256)\":{\"params\":{\"date\":\"The unlocking date.\",\"startDate\":\"We compute the weight for the tokens staked until 'date' on 'startDate'.\"},\"return\":\"The weighted stake the account had as of the given block.\"},\"receiveApproval(address,uint256,address,bytes)\":{\"params\":{\"_data\":\"The data will be used for low level call.\"}},\"setDelegateStake(address,uint256,uint96)\":{\"details\":\"We need this function to simulate zero delegate checkpoint value.\"},\"weightedStakeByDate(address,uint256,uint256,uint256)\":{\"params\":{\"account\":\"The user address.\",\"blockNumber\":\"The block number, needed for checkpointing.\",\"date\":\"The staking date to compute the power for.\",\"startDate\":\"The date for which we need to know the power of the stake.\"},\"return\":\"The stacking power.\"}}},\"userdoc\":{\"methods\":{\"computeWeightByDate(uint256,uint256)\":{\"notice\":\"Compute the weight for a specific date.\"},\"receiveApproval(address,uint256,address,bytes)\":{\"notice\":\"Receives approval from SOV token.\"},\"weightedStakeByDate(address,uint256,uint256,uint256)\":{\"notice\":\"Compute the voting power for a specific date. Power = stake * weight be internal instead of a public function.\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/modules/IWeightedStakingModuleMockup.sol\":\"IWeightedStakingModuleMockup\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/IFeeSharingCollector.sol\":{\"keccak256\":\"0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40\",\"urls\":[\"bzz-raw://b9ed75fd4b75f120ed265e7b69d86ce6e62388a50f38058e2fa34f5ea3ffcc2e\",\"dweb:/ipfs/QmZbMA6F4FxhcAT4zTc521LLRbZxFVVuD3zzj981awpDmp\"]},\"contracts/governance/Staking/SafeMath96.sol\":{\"keccak256\":\"0xc37b24a41212f26435849813104568112c9e151a60018f53d76c7d06e74782ce\",\"urls\":[\"bzz-raw://42eb729b7431af9043219ab82ea976ec0ff4e14331c8d631550cdcbf94aa31d4\",\"dweb:/ipfs/QmYCNdpsi4Pr8ehv4WpAdU6nVt6enoJ3pAetmkt4Cbq9AQ\"]},\"contracts/governance/Staking/modules/WeightedStakingModule.sol\":{\"keccak256\":\"0x7917d2dc19f20d9d1e8601bde861cd62cbf9c5b73d594451a89e66e465daab0d\",\"urls\":[\"bzz-raw://1f1d31c6be9386596929642521bf24c4ac65723a99fb5e2aaa65e60266aa81ac\",\"dweb:/ipfs/QmS4uLzFfC6F1RLvRat4JWHvc7VQ3aN25CaM1qvAGTRD9C\"]},\"contracts/governance/Staking/modules/shared/CheckpointsShared.sol\":{\"keccak256\":\"0x0008c67cca18adda882118e4543045905e7e75d8536034ffcc97526065784036\",\"urls\":[\"bzz-raw://0e61b0b53adfdfbbd2cd4a17578e5949fe213594aedc9a8f8bdf40f1466c6fb4\",\"dweb:/ipfs/QmYtkqMYZaxnVERMiE5B6Ua2Rpt4QYvW6wXsvQitUFbysH\"]},\"contracts/governance/Staking/modules/shared/StakingShared.sol\":{\"keccak256\":\"0x4032aa3828ef2fefc034188429ac376f760f0a74cb002a724aef5e270adc0098\",\"urls\":[\"bzz-raw://aab590a5282ac36c5d25fe56a6e26dd66de51b7be509f10e22487682daaee427\",\"dweb:/ipfs/QmYgNLvc8dGbjCxjjKFk5yjEBojLvtrbie92poooXhrGLc\"]},\"contracts/governance/Staking/modules/shared/StakingStorageShared.sol\":{\"keccak256\":\"0xf83eb462825c77f9c0629d15a52c8248cd1e9ce1e947c6ea93102d952790dca4\",\"urls\":[\"bzz-raw://63c116dca4d445b7a3a438bc675f52085c7d7e6707806d6afd6e1c3bf14163c4\",\"dweb:/ipfs/QmZUwXcooxSBy1KWa1A8b13DYoNs4caZyjqGYLLdDGM3TZ\"]},\"contracts/governance/Vesting/IVestingRegistry.sol\":{\"keccak256\":\"0x08bf5badf1813b59f8b06d3bb9280f4b35d3d07947c728dad79e43fcc1d4130e\",\"urls\":[\"bzz-raw://9e98ef5dd0d38e3eb94e669ae455c69625b61709b101f5a277b8f2775619561a\",\"dweb:/ipfs/QmdL7isFbApapnLxNJ7UkzAW6AtD2c2SvAEFh5KN3wVqqk\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/mockup/modules/IWeightedStakingModuleMockup.sol\":{\"keccak256\":\"0x2fcfc73b3719b68762528d4e62b445f2c3d86514e79044c1cf34446b289cb24a\",\"urls\":[\"bzz-raw://3972ef1c3c627f43b1778e1e3d11ec84f6723e6108c8c7ac80939185ec7907a7\",\"dweb:/ipfs/QmVQpCEZ3bnDkY85KaZdpu9yWHSU4srX4qnUet4N1Ys1gG\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]},\"contracts/proxy/modules/interfaces/IFunctionsList.sol\":{\"keccak256\":\"0x38fb0166042329bc9ffcab69742f215efd135cdcf2d48b2202cb7f1546709101\",\"urls\":[\"bzz-raw://61565cf5dc5f2b0f4e3ab8adfd3712407b98867db727571189740cdced968b8c\",\"dweb:/ipfs/QmNPXSFJ871trycqCMArkQmtBEZFNhuHmeVuQQzzHWe73K\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"internalType\":\"uint96\",\"name\":\"_priorWeightedStake\",\"type\":\"uint96\"}],\"name\":\"MOCK_priorWeightedStake\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint96\",\"name\":\"_priorWeightedStake\",\"type\":\"uint96\"},{\"internalType\":\"uint256\",\"name\":\"_block\",\"type\":\"uint256\"}],\"name\":\"MOCK_priorWeightedStakeAtBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"date\",\"type\":\"uint256\"}],\"name\":\"calculatePriorWeightedStake\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"date\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startDate\",\"type\":\"uint256\"}],\"name\":\"computeWeightByDate\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"weight\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"date\",\"type\":\"uint256\"}],\"name\":\"getPriorWeightedStake\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"receiveApproval\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"delegatee\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"lockedTS\",\"type\":\"uint256\"},{\"internalType\":\"uint96\",\"name\":\"value\",\"type\":\"uint96\"}],\"name\":\"setDelegateStake\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"date\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startDate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"}],\"name\":\"weightedStakeByDate\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"power\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"computeWeightByDate(uint256,uint256)\":{\"params\":{\"date\":\"The unlocking date.\",\"startDate\":\"We compute the weight for the tokens staked until 'date' on 'startDate'.\"},\"return\":\"The weighted stake the account had as of the given block.\"},\"receiveApproval(address,uint256,address,bytes)\":{\"params\":{\"_data\":\"The data will be used for low level call.\"}},\"setDelegateStake(address,uint256,uint96)\":{\"details\":\"We need this function to simulate zero delegate checkpoint value.\"},\"weightedStakeByDate(address,uint256,uint256,uint256)\":{\"params\":{\"account\":\"The user address.\",\"blockNumber\":\"The block number, needed for checkpointing.\",\"date\":\"The staking date to compute the power for.\",\"startDate\":\"The date for which we need to know the power of the stake.\"},\"return\":\"The stacking power.\"}}},\"userdoc\":{\"methods\":{\"computeWeightByDate(uint256,uint256)\":{\"notice\":\"Compute the weight for a specific date.\"},\"receiveApproval(address,uint256,address,bytes)\":{\"notice\":\"Receives approval from SOV token.\"},\"weightedStakeByDate(address,uint256,uint256,uint256)\":{\"notice\":\"Compute the voting power for a specific date. Power = stake * weight be internal instead of a public function.\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/modules/IWeightedStakingModuleMockup.sol\":\"IWeightedStakingModuleMockup\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/IFeeSharingCollector.sol\":{\"keccak256\":\"0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40\",\"urls\":[\"bzz-raw://b9ed75fd4b75f120ed265e7b69d86ce6e62388a50f38058e2fa34f5ea3ffcc2e\",\"dweb:/ipfs/QmZbMA6F4FxhcAT4zTc521LLRbZxFVVuD3zzj981awpDmp\"]},\"contracts/governance/Staking/SafeMath96.sol\":{\"keccak256\":\"0xc37b24a41212f26435849813104568112c9e151a60018f53d76c7d06e74782ce\",\"urls\":[\"bzz-raw://42eb729b7431af9043219ab82ea976ec0ff4e14331c8d631550cdcbf94aa31d4\",\"dweb:/ipfs/QmYCNdpsi4Pr8ehv4WpAdU6nVt6enoJ3pAetmkt4Cbq9AQ\"]},\"contracts/governance/Staking/modules/WeightedStakingModule.sol\":{\"keccak256\":\"0x7917d2dc19f20d9d1e8601bde861cd62cbf9c5b73d594451a89e66e465daab0d\",\"urls\":[\"bzz-raw://1f1d31c6be9386596929642521bf24c4ac65723a99fb5e2aaa65e60266aa81ac\",\"dweb:/ipfs/QmS4uLzFfC6F1RLvRat4JWHvc7VQ3aN25CaM1qvAGTRD9C\"]},\"contracts/governance/Staking/modules/shared/CheckpointsShared.sol\":{\"keccak256\":\"0x0008c67cca18adda882118e4543045905e7e75d8536034ffcc97526065784036\",\"urls\":[\"bzz-raw://0e61b0b53adfdfbbd2cd4a17578e5949fe213594aedc9a8f8bdf40f1466c6fb4\",\"dweb:/ipfs/QmYtkqMYZaxnVERMiE5B6Ua2Rpt4QYvW6wXsvQitUFbysH\"]},\"contracts/governance/Staking/modules/shared/StakingShared.sol\":{\"keccak256\":\"0x4032aa3828ef2fefc034188429ac376f760f0a74cb002a724aef5e270adc0098\",\"urls\":[\"bzz-raw://aab590a5282ac36c5d25fe56a6e26dd66de51b7be509f10e22487682daaee427\",\"dweb:/ipfs/QmYgNLvc8dGbjCxjjKFk5yjEBojLvtrbie92poooXhrGLc\"]},\"contracts/governance/Staking/modules/shared/StakingStorageShared.sol\":{\"keccak256\":\"0xf83eb462825c77f9c0629d15a52c8248cd1e9ce1e947c6ea93102d952790dca4\",\"urls\":[\"bzz-raw://63c116dca4d445b7a3a438bc675f52085c7d7e6707806d6afd6e1c3bf14163c4\",\"dweb:/ipfs/QmZUwXcooxSBy1KWa1A8b13DYoNs4caZyjqGYLLdDGM3TZ\"]},\"contracts/governance/Vesting/IVestingRegistry.sol\":{\"keccak256\":\"0x08bf5badf1813b59f8b06d3bb9280f4b35d3d07947c728dad79e43fcc1d4130e\",\"urls\":[\"bzz-raw://9e98ef5dd0d38e3eb94e669ae455c69625b61709b101f5a277b8f2775619561a\",\"dweb:/ipfs/QmdL7isFbApapnLxNJ7UkzAW6AtD2c2SvAEFh5KN3wVqqk\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/mockup/modules/IWeightedStakingModuleMockup.sol\":{\"keccak256\":\"0x2fcfc73b3719b68762528d4e62b445f2c3d86514e79044c1cf34446b289cb24a\",\"urls\":[\"bzz-raw://3972ef1c3c627f43b1778e1e3d11ec84f6723e6108c8c7ac80939185ec7907a7\",\"dweb:/ipfs/QmVQpCEZ3bnDkY85KaZdpu9yWHSU4srX4qnUet4N1Ys1gG\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]},\"contracts/proxy/modules/interfaces/IFunctionsList.sol\":{\"keccak256\":\"0x38fb0166042329bc9ffcab69742f215efd135cdcf2d48b2202cb7f1546709101\",\"urls\":[\"bzz-raw://61565cf5dc5f2b0f4e3ab8adfd3712407b98867db727571189740cdced968b8c\",\"dweb:/ipfs/QmNPXSFJ871trycqCMArkQmtBEZFNhuHmeVuQQzzHWe73K\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -471,9 +471,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -597,17 +597,17 @@
   },
   "ast": {
     "absolutePath": "contracts/mockup/modules/IWeightedStakingModuleMockup.sol",
-    "id": 40618,
+    "id": 40717,
     "exportedSymbols": {
       "IWeightedStakingModuleMockup": [
-        40617
+        40716
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:2130:153",
     "nodes": [
       {
-        "id": 40541,
+        "id": 40640,
         "nodeType": "PragmaDirective",
         "src": "0:24:153",
         "nodes": [],
@@ -619,24 +619,24 @@
         ]
       },
       {
-        "id": 40542,
+        "id": 40641,
         "nodeType": "ImportDirective",
         "src": "26:68:153",
         "nodes": [],
         "absolutePath": "contracts/governance/Staking/modules/WeightedStakingModule.sol",
         "file": "../../governance/Staking/modules/WeightedStakingModule.sol",
-        "scope": 40618,
-        "sourceUnit": 21504,
+        "scope": 40717,
+        "sourceUnit": 21603,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 40617,
+        "id": 40716,
         "nodeType": "ContractDefinition",
         "src": "96:2033:153",
         "nodes": [
           {
-            "id": 40547,
+            "id": 40646,
             "nodeType": "FunctionDefinition",
             "src": "140:70:153",
             "nodes": [],
@@ -646,15 +646,15 @@
             "modifiers": [],
             "name": "MOCK_priorWeightedStake",
             "parameters": {
-              "id": 40545,
+              "id": 40644,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40544,
+                  "id": 40643,
                   "name": "_priorWeightedStake",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40547,
+                  "scope": 40646,
                   "src": "173:26:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -663,7 +663,7 @@
                     "typeString": "uint96"
                   },
                   "typeName": {
-                    "id": 40543,
+                    "id": 40642,
                     "name": "uint96",
                     "nodeType": "ElementaryTypeName",
                     "src": "173:6:153",
@@ -679,18 +679,18 @@
               "src": "172:28:153"
             },
             "returnParameters": {
-              "id": 40546,
+              "id": 40645,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "209:0:153"
             },
-            "scope": 40617,
+            "scope": 40716,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 40554,
+            "id": 40653,
             "nodeType": "FunctionDefinition",
             "src": "216:93:153",
             "nodes": [],
@@ -700,15 +700,15 @@
             "modifiers": [],
             "name": "MOCK_priorWeightedStakeAtBlock",
             "parameters": {
-              "id": 40552,
+              "id": 40651,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40549,
+                  "id": 40648,
                   "name": "_priorWeightedStake",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40554,
+                  "scope": 40653,
                   "src": "256:26:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -717,7 +717,7 @@
                     "typeString": "uint96"
                   },
                   "typeName": {
-                    "id": 40548,
+                    "id": 40647,
                     "name": "uint96",
                     "nodeType": "ElementaryTypeName",
                     "src": "256:6:153",
@@ -731,10 +731,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40551,
+                  "id": 40650,
                   "name": "_block",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40554,
+                  "scope": 40653,
                   "src": "284:14:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -743,7 +743,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40550,
+                    "id": 40649,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "284:7:153",
@@ -759,18 +759,18 @@
               "src": "255:44:153"
             },
             "returnParameters": {
-              "id": 40553,
+              "id": 40652,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "308:0:153"
             },
-            "scope": 40617,
+            "scope": 40716,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 40565,
+            "id": 40664,
             "nodeType": "FunctionDefinition",
             "src": "315:144:153",
             "nodes": [],
@@ -780,15 +780,15 @@
             "modifiers": [],
             "name": "getPriorWeightedStake",
             "parameters": {
-              "id": 40561,
+              "id": 40660,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40556,
+                  "id": 40655,
                   "name": "account",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40565,
+                  "scope": 40664,
                   "src": "355:15:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -797,7 +797,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 40555,
+                    "id": 40654,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "355:7:153",
@@ -812,10 +812,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40558,
+                  "id": 40657,
                   "name": "blockNumber",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40565,
+                  "scope": 40664,
                   "src": "380:19:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -824,7 +824,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40557,
+                    "id": 40656,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "380:7:153",
@@ -838,10 +838,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40560,
+                  "id": 40659,
                   "name": "date",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40565,
+                  "scope": 40664,
                   "src": "409:12:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -850,7 +850,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40559,
+                    "id": 40658,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "409:7:153",
@@ -866,15 +866,15 @@
               "src": "345:82:153"
             },
             "returnParameters": {
-              "id": 40564,
+              "id": 40663,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40563,
+                  "id": 40662,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40565,
+                  "scope": 40664,
                   "src": "451:6:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -883,7 +883,7 @@
                     "typeString": "uint96"
                   },
                   "typeName": {
-                    "id": 40562,
+                    "id": 40661,
                     "name": "uint96",
                     "nodeType": "ElementaryTypeName",
                     "src": "451:6:153",
@@ -898,13 +898,13 @@
               ],
               "src": "450:8:153"
             },
-            "scope": 40617,
+            "scope": 40716,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 40574,
+            "id": 40673,
             "nodeType": "FunctionDefinition",
             "src": "465:128:153",
             "nodes": [],
@@ -914,15 +914,15 @@
             "modifiers": [],
             "name": "calculatePriorWeightedStake",
             "parameters": {
-              "id": 40572,
+              "id": 40671,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40567,
+                  "id": 40666,
                   "name": "account",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40574,
+                  "scope": 40673,
                   "src": "511:15:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -931,7 +931,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 40566,
+                    "id": 40665,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "511:7:153",
@@ -946,10 +946,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40569,
+                  "id": 40668,
                   "name": "blockNumber",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40574,
+                  "scope": 40673,
                   "src": "536:19:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -958,7 +958,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40568,
+                    "id": 40667,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "536:7:153",
@@ -972,10 +972,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40571,
+                  "id": 40670,
                   "name": "date",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40574,
+                  "scope": 40673,
                   "src": "565:12:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -984,7 +984,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40570,
+                    "id": 40669,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "565:7:153",
@@ -1000,18 +1000,18 @@
               "src": "501:82:153"
             },
             "returnParameters": {
-              "id": 40573,
+              "id": 40672,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "592:0:153"
             },
-            "scope": 40617,
+            "scope": 40716,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 40583,
+            "id": 40682,
             "nodeType": "FunctionDefinition",
             "src": "693:116:153",
             "nodes": [],
@@ -1021,15 +1021,15 @@
             "modifiers": [],
             "name": "setDelegateStake",
             "parameters": {
-              "id": 40581,
+              "id": 40680,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40576,
+                  "id": 40675,
                   "name": "delegatee",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40583,
+                  "scope": 40682,
                   "src": "728:17:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1038,7 +1038,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 40575,
+                    "id": 40674,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "728:7:153",
@@ -1053,10 +1053,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40578,
+                  "id": 40677,
                   "name": "lockedTS",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40583,
+                  "scope": 40682,
                   "src": "755:16:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1065,7 +1065,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40577,
+                    "id": 40676,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "755:7:153",
@@ -1079,10 +1079,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40580,
+                  "id": 40679,
                   "name": "value",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40583,
+                  "scope": 40682,
                   "src": "781:12:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1091,7 +1091,7 @@
                     "typeString": "uint96"
                   },
                   "typeName": {
-                    "id": 40579,
+                    "id": 40678,
                     "name": "uint96",
                     "nodeType": "ElementaryTypeName",
                     "src": "781:6:153",
@@ -1107,18 +1107,18 @@
               "src": "718:81:153"
             },
             "returnParameters": {
-              "id": 40582,
+              "id": 40681,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "808:0:153"
             },
-            "scope": 40617,
+            "scope": 40716,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 40596,
+            "id": 40695,
             "nodeType": "FunctionDefinition",
             "src": "1263:175:153",
             "nodes": [],
@@ -1128,15 +1128,15 @@
             "modifiers": [],
             "name": "weightedStakeByDate",
             "parameters": {
-              "id": 40592,
+              "id": 40691,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40585,
+                  "id": 40684,
                   "name": "account",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40596,
+                  "scope": 40695,
                   "src": "1301:15:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1145,7 +1145,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 40584,
+                    "id": 40683,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1301:7:153",
@@ -1160,10 +1160,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40587,
+                  "id": 40686,
                   "name": "date",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40596,
+                  "scope": 40695,
                   "src": "1326:12:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1172,7 +1172,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40586,
+                    "id": 40685,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1326:7:153",
@@ -1186,10 +1186,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40589,
+                  "id": 40688,
                   "name": "startDate",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40596,
+                  "scope": 40695,
                   "src": "1348:17:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1198,7 +1198,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40588,
+                    "id": 40687,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1348:7:153",
@@ -1212,10 +1212,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40591,
+                  "id": 40690,
                   "name": "blockNumber",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40596,
+                  "scope": 40695,
                   "src": "1375:19:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1224,7 +1224,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40590,
+                    "id": 40689,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1375:7:153",
@@ -1240,15 +1240,15 @@
               "src": "1291:109:153"
             },
             "returnParameters": {
-              "id": 40595,
+              "id": 40694,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40594,
+                  "id": 40693,
                   "name": "power",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40596,
+                  "scope": 40695,
                   "src": "1424:12:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1257,7 +1257,7 @@
                     "typeString": "uint96"
                   },
                   "typeName": {
-                    "id": 40593,
+                    "id": 40692,
                     "name": "uint96",
                     "nodeType": "ElementaryTypeName",
                     "src": "1424:6:153",
@@ -1272,13 +1272,13 @@
               ],
               "src": "1423:14:153"
             },
-            "scope": 40617,
+            "scope": 40716,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 40605,
+            "id": 40704,
             "nodeType": "FunctionDefinition",
             "src": "1726:124:153",
             "nodes": [],
@@ -1288,15 +1288,15 @@
             "modifiers": [],
             "name": "computeWeightByDate",
             "parameters": {
-              "id": 40601,
+              "id": 40700,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40598,
+                  "id": 40697,
                   "name": "date",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40605,
+                  "scope": 40704,
                   "src": "1755:12:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1305,7 +1305,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40597,
+                    "id": 40696,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1755:7:153",
@@ -1319,10 +1319,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40600,
+                  "id": 40699,
                   "name": "startDate",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40605,
+                  "scope": 40704,
                   "src": "1769:17:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1331,7 +1331,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40599,
+                    "id": 40698,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1769:7:153",
@@ -1347,15 +1347,15 @@
               "src": "1754:33:153"
             },
             "returnParameters": {
-              "id": 40604,
+              "id": 40703,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40603,
+                  "id": 40702,
                   "name": "weight",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40605,
+                  "scope": 40704,
                   "src": "1835:13:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1364,7 +1364,7 @@
                     "typeString": "uint96"
                   },
                   "typeName": {
-                    "id": 40602,
+                    "id": 40701,
                     "name": "uint96",
                     "nodeType": "ElementaryTypeName",
                     "src": "1835:6:153",
@@ -1379,13 +1379,13 @@
               ],
               "src": "1834:15:153"
             },
-            "scope": 40617,
+            "scope": 40716,
             "stateMutability": "pure",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 40616,
+            "id": 40715,
             "nodeType": "FunctionDefinition",
             "src": "1983:144:153",
             "nodes": [],
@@ -1395,15 +1395,15 @@
             "modifiers": [],
             "name": "receiveApproval",
             "parameters": {
-              "id": 40614,
+              "id": 40713,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 40607,
+                  "id": 40706,
                   "name": "_sender",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40616,
+                  "scope": 40715,
                   "src": "2017:15:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1412,7 +1412,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 40606,
+                    "id": 40705,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2017:7:153",
@@ -1427,10 +1427,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40609,
+                  "id": 40708,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40616,
+                  "scope": 40715,
                   "src": "2042:15:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1439,7 +1439,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 40608,
+                    "id": 40707,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "2042:7:153",
@@ -1453,10 +1453,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40611,
+                  "id": 40710,
                   "name": "_token",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40616,
+                  "scope": 40715,
                   "src": "2067:14:153",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1465,7 +1465,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 40610,
+                    "id": 40709,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2067:7:153",
@@ -1480,10 +1480,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 40613,
+                  "id": 40712,
                   "name": "_data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 40616,
+                  "scope": 40715,
                   "src": "2091:20:153",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1492,7 +1492,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 40612,
+                    "id": 40711,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2091:5:153",
@@ -1508,12 +1508,12 @@
               "src": "2007:110:153"
             },
             "returnParameters": {
-              "id": 40615,
+              "id": 40714,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2126:0:153"
             },
-            "scope": 40617,
+            "scope": 40716,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
@@ -1525,10 +1525,10 @@
         "documentation": null,
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          40617
+          40716
         ],
         "name": "IWeightedStakingModuleMockup",
-        "scope": 40618
+        "scope": 40717
       }
     ]
   },

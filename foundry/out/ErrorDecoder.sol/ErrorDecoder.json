@@ -1,17 +1,17 @@
 {
   "abi": [],
   "bytecode": {
-    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a7231582015b4b95375770d048070c128ad00f5be2bee6177809059adbbb5fb309d8fef7064736f6c63430005110032",
+    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a72315820538ae82577c2661e7dfecd08b13e69337328b8e87917def05ae863f6863864bf64736f6c63430005110032",
     "sourceMap": "1322:1113:53:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1322:1113:53;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x6080604052600080fdfea265627a7a7231582015b4b95375770d048070c128ad00f5be2bee6177809059adbbb5fb309d8fef7064736f6c63430005110032",
+    "object": "0x6080604052600080fdfea265627a7a72315820538ae82577c2661e7dfecd08b13e69337328b8e87917def05ae863f6863864bf64736f6c63430005110032",
     "sourceMap": "1322:1113:53:-;;;;;",
     "linkReferences": {}
   },
   "methodIdentifiers": {},
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"details\":\"On EVM if the return data length of a call is less than 68, then the transaction fails silently without a revert message! * As described in the Solidity documentation https://solidity.readthedocs.io/en/v0.5.17/control-structures.html#revert the revert reason is an ABI-encoded string consisting of: 0x08c379a0 // Function selector (method id) for \\\"Error(string)\\\" signature 0x0000000000000000000000000000000000000000000000000000000000000020 // Data offset 0x000000000000000000000000000000000000000000000000000000000000001a // String length 0x4e6f7420656e6f7567682045746865722070726f76696465642e000000000000 // String data * Another example, debug data from test:  0x08c379a0  0000000000000000000000000000000000000000000000000000000000000020  0000000000000000000000000000000000000000000000000000000000000034  54696d656c6f636b3a3a73657444656c61793a2044656c6179206d7573742065  7863656564206d696e696d756d2064656c61792e000000000000000000000000 * Parsed into:  Data offset: 20  Length: 34  Error message:    54696d656c6f636b3a3a73657444656c61793a2044656c6179206d7573742065    7863656564206d696e696d756d2064656c61792e000000000000000000000000\",\"methods\":{},\"title\":\"Base contract to properly handle returned data on failed calls\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/ErrorDecoder.sol\":\"ErrorDecoder\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/ErrorDecoder.sol\":{\"keccak256\":\"0xa0fa7986924aab574ca9e7c265f8c7bf00671ba1d86dbad143df7c14455f1c6a\",\"urls\":[\"bzz-raw://69dda1ed604f442ea96682ed8c6cd5fcbad4677f5a6acf362444c6cfdbd1bab8\",\"dweb:/ipfs/QmdtCaJjVeCeTc2QigPRs52b9iScS73RFAvj6mJVMmkhit\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"details\":\"On EVM if the return data length of a call is less than 68, then the transaction fails silently without a revert message! * As described in the Solidity documentation https://solidity.readthedocs.io/en/v0.5.17/control-structures.html#revert the revert reason is an ABI-encoded string consisting of: 0x08c379a0 // Function selector (method id) for \\\"Error(string)\\\" signature 0x0000000000000000000000000000000000000000000000000000000000000020 // Data offset 0x000000000000000000000000000000000000000000000000000000000000001a // String length 0x4e6f7420656e6f7567682045746865722070726f76696465642e000000000000 // String data * Another example, debug data from test:  0x08c379a0  0000000000000000000000000000000000000000000000000000000000000020  0000000000000000000000000000000000000000000000000000000000000034  54696d656c6f636b3a3a73657444656c61793a2044656c6179206d7573742065  7863656564206d696e696d756d2064656c61792e000000000000000000000000 * Parsed into:  Data offset: 20  Length: 34  Error message:    54696d656c6f636b3a3a73657444656c61793a2044656c6179206d7573742065    7863656564206d696e696d756d2064656c61792e000000000000000000000000\",\"methods\":{},\"title\":\"Base contract to properly handle returned data on failed calls\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/ErrorDecoder.sol\":\"ErrorDecoder\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/ErrorDecoder.sol\":{\"keccak256\":\"0xa0fa7986924aab574ca9e7c265f8c7bf00671ba1d86dbad143df7c14455f1c6a\",\"urls\":[\"bzz-raw://69dda1ed604f442ea96682ed8c6cd5fcbad4677f5a6acf362444c6cfdbd1bab8\",\"dweb:/ipfs/QmdtCaJjVeCeTc2QigPRs52b9iScS73RFAvj6mJVMmkhit\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -30,9 +30,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"

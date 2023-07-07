@@ -35,7 +35,7 @@
   "methodIdentifiers": {
     "getTarget(bytes4)": "374e4047"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"functionSignature\",\"type\":\"bytes4\"}],\"name\":\"getTarget\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"logicTargetAddress\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/connectors/loantoken/LoanTokenLogicProxy.sol\":\"ILoanTokenLogicBeacon\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/connectors/loantoken/AdvancedTokenStorage.sol\":{\"keccak256\":\"0x08afb0584442da1baf29938b6ff797e22fc8b7e493e51fd26358e7be3b73fa32\",\"urls\":[\"bzz-raw://6cd1144ca50579200cd44c1bd9498549b73889959322894fb89abb598ee9ea03\",\"dweb:/ipfs/QmW6U3TsN4y781X5n7bMt3PGtiMQyAdPyBgVFTNTnewxuL\"]},\"contracts/connectors/loantoken/LoanTokenBase.sol\":{\"keccak256\":\"0x9cb501d26d27b5bc143085b6d38261323426741857e49ff5dea0ea1325b5fab8\",\"urls\":[\"bzz-raw://20d89f7140a2efd14434fe7389e9ef05fd6d14ce8e939d4c34aac10bbcd08702\",\"dweb:/ipfs/QmfQ6QBwH7Tw7oDVj4R71Q96o3ycFEkqrVzJKwuciS3Ty9\"]},\"contracts/connectors/loantoken/LoanTokenLogicProxy.sol\":{\"keccak256\":\"0x42071b614a048bb0b77525ec08db2a0b4b37bc9ea1e660a3dbee87c93052838c\",\"urls\":[\"bzz-raw://6720a305aa44a3297a64b13456028fef0c9e76e7373417dcd53189e40ffaf129\",\"dweb:/ipfs/QmRKF7VGg18LwCmaP4dPkEYUxYDZ3StDx16Fx1U7g2WpfH\"]},\"contracts/connectors/loantoken/Pausable.sol\":{\"keccak256\":\"0x54f95b041e66fbcadb867bfba626373b681e0000ecea2b19f521de89c3020690\",\"urls\":[\"bzz-raw://4e7ef0893bfcad7960c84dc41504218cf65edb7cb44263055eccc321b515df13\",\"dweb:/ipfs/QmPk7qj658ha5SvWLtsrS5okGaYWwuPHVaL86pJr6hQyjX\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/interfaces/IWrbtc.sol\":{\"keccak256\":\"0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492\",\"urls\":[\"bzz-raw://d1adc3348aded3938e587fead4d4becf8efbed346c9cdc73e1f8ed42cb43b2c9\",\"dweb:/ipfs/QmZPMshLwXDwH2UKkFeV5QPtz129swV354fQ25gqKWAV94\"]},\"contracts/interfaces/IWrbtcERC20.sol\":{\"keccak256\":\"0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5\",\"urls\":[\"bzz-raw://12d22b4d1e74d95f82d2bc84b5e3c978e2341cb7a1b8fc383b64aaef59f13a00\",\"dweb:/ipfs/QmZkPrztJ5nwiKKudgz8aWX6kk3YHKCtmxJndMvV1NJuS6\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Initializable.sol\":{\"keccak256\":\"0xa5064e2730ae1037f4efc83654676174484b827890d30ee618048004a04d6b51\",\"urls\":[\"bzz-raw://800313aace6973b861dbb3377dbba02e0ebac124ea5d7d44b8117dfa75f85416\",\"dweb:/ipfs/QmU34Zhi99bs94s9DerPNnrJiESXdn1gthxeNqZma4fAoi\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/ReentrancyGuard.sol\":{\"keccak256\":\"0xd347de96ad57d1e45b07a2efe3050c1bd4b809236bbf354acb593de56d21a5c9\",\"urls\":[\"bzz-raw://ad45ba93d472a3c4f7092e34d6f1cdca11c9e64a5918bf848d497c7f49427ec5\",\"dweb:/ipfs/QmPC5tnpnpv67NfTDb7rZVgBvvLXoJmiuBzUgjz3MAUeFk\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]},\"contracts/openzeppelin/SignedSafeMath.sol\":{\"keccak256\":\"0x449606d22a41bbeaeee8775d66b2bd179b6964b65fd3380b22ef837634e7523b\",\"urls\":[\"bzz-raw://f13fe82aab8ae79842e617c9c77155f2f46ec21670887c2e037d9d42b50062f8\",\"dweb:/ipfs/QmZJPTQmcVm6XWq5LJsouTwC71KzkjawN8UgqyQbPyUpkx\"]},\"contracts/reentrancy/Mutex.sol\":{\"keccak256\":\"0xd10b0fd07d5fed1ae1237e7c87e6501970fce2a86e2b8862e502258b0d3aeb2c\",\"urls\":[\"bzz-raw://a99cb17e5f05a4eeb80c91d0d00fb9c482502e5acdd0d10727d53f9b68f1e732\",\"dweb:/ipfs/QmZ8Va6t8DJAAHUcSXC4aWmitcgSAhugdeWHCFXJcxJF5S\"]},\"contracts/reentrancy/SharedReentrancyGuard.sol\":{\"keccak256\":\"0x2d0e61b104b91c1764f20fbeb381ba0f8a8889934ba7f6e8a167ed542ec2c124\",\"urls\":[\"bzz-raw://380369e173ad2b17130b26377df35a13ed3413b65f72f8242dc6e2eb5aca5517\",\"dweb:/ipfs/QmNNRyoKsrU7XsV1B8okhaJpGNgzRixnySebGZYzT3RmC9\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"functionSignature\",\"type\":\"bytes4\"}],\"name\":\"getTarget\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"logicTargetAddress\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/connectors/loantoken/LoanTokenLogicProxy.sol\":\"ILoanTokenLogicBeacon\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/connectors/loantoken/AdvancedTokenStorage.sol\":{\"keccak256\":\"0x08afb0584442da1baf29938b6ff797e22fc8b7e493e51fd26358e7be3b73fa32\",\"urls\":[\"bzz-raw://6cd1144ca50579200cd44c1bd9498549b73889959322894fb89abb598ee9ea03\",\"dweb:/ipfs/QmW6U3TsN4y781X5n7bMt3PGtiMQyAdPyBgVFTNTnewxuL\"]},\"contracts/connectors/loantoken/LoanTokenBase.sol\":{\"keccak256\":\"0x9cb501d26d27b5bc143085b6d38261323426741857e49ff5dea0ea1325b5fab8\",\"urls\":[\"bzz-raw://20d89f7140a2efd14434fe7389e9ef05fd6d14ce8e939d4c34aac10bbcd08702\",\"dweb:/ipfs/QmfQ6QBwH7Tw7oDVj4R71Q96o3ycFEkqrVzJKwuciS3Ty9\"]},\"contracts/connectors/loantoken/LoanTokenLogicProxy.sol\":{\"keccak256\":\"0x42071b614a048bb0b77525ec08db2a0b4b37bc9ea1e660a3dbee87c93052838c\",\"urls\":[\"bzz-raw://6720a305aa44a3297a64b13456028fef0c9e76e7373417dcd53189e40ffaf129\",\"dweb:/ipfs/QmRKF7VGg18LwCmaP4dPkEYUxYDZ3StDx16Fx1U7g2WpfH\"]},\"contracts/connectors/loantoken/Pausable.sol\":{\"keccak256\":\"0x54f95b041e66fbcadb867bfba626373b681e0000ecea2b19f521de89c3020690\",\"urls\":[\"bzz-raw://4e7ef0893bfcad7960c84dc41504218cf65edb7cb44263055eccc321b515df13\",\"dweb:/ipfs/QmPk7qj658ha5SvWLtsrS5okGaYWwuPHVaL86pJr6hQyjX\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/interfaces/IWrbtc.sol\":{\"keccak256\":\"0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492\",\"urls\":[\"bzz-raw://d1adc3348aded3938e587fead4d4becf8efbed346c9cdc73e1f8ed42cb43b2c9\",\"dweb:/ipfs/QmZPMshLwXDwH2UKkFeV5QPtz129swV354fQ25gqKWAV94\"]},\"contracts/interfaces/IWrbtcERC20.sol\":{\"keccak256\":\"0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5\",\"urls\":[\"bzz-raw://12d22b4d1e74d95f82d2bc84b5e3c978e2341cb7a1b8fc383b64aaef59f13a00\",\"dweb:/ipfs/QmZkPrztJ5nwiKKudgz8aWX6kk3YHKCtmxJndMvV1NJuS6\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Initializable.sol\":{\"keccak256\":\"0xa5064e2730ae1037f4efc83654676174484b827890d30ee618048004a04d6b51\",\"urls\":[\"bzz-raw://800313aace6973b861dbb3377dbba02e0ebac124ea5d7d44b8117dfa75f85416\",\"dweb:/ipfs/QmU34Zhi99bs94s9DerPNnrJiESXdn1gthxeNqZma4fAoi\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/ReentrancyGuard.sol\":{\"keccak256\":\"0xd347de96ad57d1e45b07a2efe3050c1bd4b809236bbf354acb593de56d21a5c9\",\"urls\":[\"bzz-raw://ad45ba93d472a3c4f7092e34d6f1cdca11c9e64a5918bf848d497c7f49427ec5\",\"dweb:/ipfs/QmPC5tnpnpv67NfTDb7rZVgBvvLXoJmiuBzUgjz3MAUeFk\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]},\"contracts/openzeppelin/SignedSafeMath.sol\":{\"keccak256\":\"0x449606d22a41bbeaeee8775d66b2bd179b6964b65fd3380b22ef837634e7523b\",\"urls\":[\"bzz-raw://f13fe82aab8ae79842e617c9c77155f2f46ec21670887c2e037d9d42b50062f8\",\"dweb:/ipfs/QmZJPTQmcVm6XWq5LJsouTwC71KzkjawN8UgqyQbPyUpkx\"]},\"contracts/reentrancy/Mutex.sol\":{\"keccak256\":\"0xd10b0fd07d5fed1ae1237e7c87e6501970fce2a86e2b8862e502258b0d3aeb2c\",\"urls\":[\"bzz-raw://a99cb17e5f05a4eeb80c91d0d00fb9c482502e5acdd0d10727d53f9b68f1e732\",\"dweb:/ipfs/QmZ8Va6t8DJAAHUcSXC4aWmitcgSAhugdeWHCFXJcxJF5S\"]},\"contracts/reentrancy/SharedReentrancyGuard.sol\":{\"keccak256\":\"0x2d0e61b104b91c1764f20fbeb381ba0f8a8889934ba7f6e8a167ed542ec2c124\",\"urls\":[\"bzz-raw://380369e173ad2b17130b26377df35a13ed3413b65f72f8242dc6e2eb5aca5517\",\"dweb:/ipfs/QmNNRyoKsrU7XsV1B8okhaJpGNgzRixnySebGZYzT3RmC9\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -74,9 +74,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -277,7 +277,7 @@
         "absolutePath": "contracts/openzeppelin/Initializable.sol",
         "file": "../../openzeppelin/Initializable.sol",
         "scope": 957,
-        "sourceUnit": 55046,
+        "sourceUnit": 55145,
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -455,7 +455,7 @@
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 62886,
+                "referencedDeclaration": 62985,
                 "src": "1125:9:5",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_keccak256_pure$_t_bytes_memory_ptr_$returns$_t_bytes32_$",
@@ -502,7 +502,7 @@
                           "name": "isOwner",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 55107,
+                          "referencedDeclaration": 55206,
                           "src": "1220:7:5",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_view$__$returns$_t_bool_$",
@@ -557,10 +557,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        62895,
-                        62896
+                        62994,
+                        62995
                       ],
-                      "referencedDeclaration": 62896,
+                      "referencedDeclaration": 62995,
                       "src": "1212:7:5",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -658,7 +658,7 @@
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 62892,
+                          "referencedDeclaration": 62991,
                           "src": "1716:3:5",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
@@ -910,10 +910,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        62895,
-                        62896
+                        62994,
+                        62995
                       ],
-                      "referencedDeclaration": 62896,
+                      "referencedDeclaration": 62995,
                       "src": "1734:7:5",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -979,7 +979,7 @@
                       "name": "msg",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 62892,
+                      "referencedDeclaration": 62991,
                       "src": "1835:3:5",
                       "typeDescriptions": {
                         "typeIdentifier": "t_magic_message",
@@ -1344,10 +1344,10 @@
                             "name": "Address",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 54444,
+                            "referencedDeclaration": 54543,
                             "src": "3038:7:5",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_type$_t_contract$_Address_$54444_$",
+                              "typeIdentifier": "t_type$_t_contract$_Address_$54543_$",
                               "typeString": "type(library Address)"
                             }
                           },
@@ -1358,7 +1358,7 @@
                           "lValueRequested": false,
                           "memberName": "isContract",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 54396,
+                          "referencedDeclaration": 54495,
                           "src": "3038:18:5",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_view$_t_address_$returns$_t_bool_$",
@@ -1413,10 +1413,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        62895,
-                        62896
+                        62994,
+                        62995
                       ],
-                      "referencedDeclaration": 62896,
+                      "referencedDeclaration": 62995,
                       "src": "3017:7:5",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1730,10 +1730,10 @@
           281,
           524,
           4015,
-          54471,
-          55144,
-          55256,
-          57213
+          54570,
+          55243,
+          55355,
+          57312
         ],
         "contractKind": "contract",
         "documentation": "@title Loan Token Logic Proxy contract.\n * @notice This contract contains the proxy functionality and it will query the logic target from LoanTokenLogicBeacon\nThis contract will also has the pause/unpause functionality. The purpose of this pausability is so that we can pause/unpause from the loan token level.\n ",
@@ -1743,10 +1743,10 @@
           281,
           524,
           4015,
-          55144,
-          54471,
-          57213,
-          55256
+          55243,
+          54570,
+          57312,
+          55355
         ],
         "name": "LoanTokenLogicProxy",
         "scope": 957

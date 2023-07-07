@@ -1,17 +1,17 @@
 {
   "abi": [],
   "bytecode": {
-    "object": "0x60556023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a72315820ee72ea8d8e8fde04fff4cca20de5ea8fbfe430d1a94e934642a8a7364ba45cc064736f6c63430005110032",
+    "object": "0x60556023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a7231582023065476f0fc0ae27cd19bf2735a1a108187d6ca1b46a7d4fde171aad0b5030764736f6c63430005110032",
     "sourceMap": "500:5626:119:-;;132:2:-1;166:7;155:9;146:7;137:37;255:7;249:14;246:1;241:23;235:4;232:33;222:2;;269:9;222:2;293:9;290:1;283:20;323:4;314:7;306:22;347:7;338;331:24",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a72315820ee72ea8d8e8fde04fff4cca20de5ea8fbfe430d1a94e934642a8a7364ba45cc064736f6c63430005110032",
+    "object": "0x73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a7231582023065476f0fc0ae27cd19bf2735a1a108187d6ca1b46a7d4fde171aad0b5030764736f6c63430005110032",
     "sourceMap": "500:5626:119:-;;;;;;;;",
     "linkReferences": {}
   },
   "methodIdentifiers": {},
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{},\"title\":\"Library for managing loan sets.\"},\"userdoc\":{\"methods\":{},\"notice\":\"Sets have the following properties: * - Elements are added, removed, and checked for existence in constant time (O(1)). - Elements are enumerated in O(n). No guarantees are made on the ordering. * Include with `using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;`.\"}},\"settings\":{\"compilationTarget\":{\"contracts/mixins/EnumerableBytes32Set.sol\":\"EnumerableBytes32Set\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/mixins/EnumerableBytes32Set.sol\":{\"keccak256\":\"0xa2801a585c566e07f21c1ebccd0cd0447dd5fd9fe6c1ff2b58d4d979d88a6db0\",\"urls\":[\"bzz-raw://e3160f5161fb9eb78bac2107c53a6d635182a597515129bf916e955044769cde\",\"dweb:/ipfs/QmTFbJX7qYunXxrRfydVrtdVpN4jTAoC3GeKzv3ChruUdm\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{},\"title\":\"Library for managing loan sets.\"},\"userdoc\":{\"methods\":{},\"notice\":\"Sets have the following properties: * - Elements are added, removed, and checked for existence in constant time (O(1)). - Elements are enumerated in O(n). No guarantees are made on the ordering. * Include with `using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;`.\"}},\"settings\":{\"compilationTarget\":{\"contracts/mixins/EnumerableBytes32Set.sol\":\"EnumerableBytes32Set\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/mixins/EnumerableBytes32Set.sol\":{\"keccak256\":\"0xa2801a585c566e07f21c1ebccd0cd0447dd5fd9fe6c1ff2b58d4d979d88a6db0\",\"urls\":[\"bzz-raw://e3160f5161fb9eb78bac2107c53a6d635182a597515129bf916e955044769cde\",\"dweb:/ipfs/QmTFbJX7qYunXxrRfydVrtdVpN4jTAoC3GeKzv3ChruUdm\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -30,9 +30,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -60,17 +60,17 @@
   },
   "ast": {
     "absolutePath": "contracts/mixins/EnumerableBytes32Set.sol",
-    "id": 35540,
+    "id": 35639,
     "exportedSymbols": {
       "EnumerableBytes32Set": [
-        35539
+        35638
       ]
     },
     "nodeType": "SourceUnit",
     "src": "118:6009:119",
     "nodes": [
       {
-        "id": 35226,
+        "id": 35325,
         "nodeType": "PragmaDirective",
         "src": "118:23:119",
         "nodes": [],
@@ -81,12 +81,12 @@
         ]
       },
       {
-        "id": 35539,
+        "id": 35638,
         "nodeType": "ContractDefinition",
         "src": "500:5626:119",
         "nodes": [
           {
-            "id": 35234,
+            "id": 35333,
             "nodeType": "StructDefinition",
             "src": "535:219:119",
             "nodes": [],
@@ -94,10 +94,10 @@
             "members": [
               {
                 "constant": false,
-                "id": 35230,
+                "id": 35329,
                 "name": "index",
                 "nodeType": "VariableDeclaration",
-                "scope": 35234,
+                "scope": 35333,
                 "src": "688:33:119",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -106,9 +106,9 @@
                   "typeString": "mapping(bytes32 => uint256)"
                 },
                 "typeName": {
-                  "id": 35229,
+                  "id": 35328,
                   "keyType": {
-                    "id": 35227,
+                    "id": 35326,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "696:7:119",
@@ -124,7 +124,7 @@
                     "typeString": "mapping(bytes32 => uint256)"
                   },
                   "valueType": {
-                    "id": 35228,
+                    "id": 35327,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "707:7:119",
@@ -139,10 +139,10 @@
               },
               {
                 "constant": false,
-                "id": 35233,
+                "id": 35332,
                 "name": "values",
                 "nodeType": "VariableDeclaration",
-                "scope": 35234,
+                "scope": 35333,
                 "src": "731:16:119",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -152,7 +152,7 @@
                 },
                 "typeName": {
                   "baseType": {
-                    "id": 35231,
+                    "id": 35330,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "731:7:119",
@@ -161,7 +161,7 @@
                       "typeString": "bytes32"
                     }
                   },
-                  "id": 35232,
+                  "id": 35331,
                   "length": null,
                   "nodeType": "ArrayTypeName",
                   "src": "731:9:119",
@@ -175,31 +175,31 @@
               }
             ],
             "name": "Bytes32Set",
-            "scope": 35539,
+            "scope": 35638,
             "visibility": "public"
           },
           {
-            "id": 35253,
+            "id": 35352,
             "nodeType": "FunctionDefinition",
             "src": "981:216:119",
             "nodes": [],
             "body": {
-              "id": 35252,
+              "id": 35351,
               "nodeType": "Block",
               "src": "1068:129:119",
               "nodes": [],
               "statements": [
                 {
                   "assignments": [
-                    35244
+                    35343
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 35244,
+                      "id": 35343,
                       "name": "value",
                       "nodeType": "VariableDeclaration",
-                      "scope": 35252,
+                      "scope": 35351,
                       "src": "1078:13:119",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -208,7 +208,7 @@
                         "typeString": "bytes32"
                       },
                       "typeName": {
-                        "id": 35243,
+                        "id": 35342,
                         "name": "bytes32",
                         "nodeType": "ElementaryTypeName",
                         "src": "1078:7:119",
@@ -221,7 +221,7 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 35245,
+                  "id": 35344,
                   "initialValue": null,
                   "nodeType": "VariableDeclarationStatement",
                   "src": "1078:13:119"
@@ -230,7 +230,7 @@
                   "externalReferences": [
                     {
                       "value": {
-                        "declaration": 35244,
+                        "declaration": 35343,
                         "isOffset": false,
                         "isSlot": false,
                         "src": "1124:5:119",
@@ -239,7 +239,7 @@
                     },
                     {
                       "addrvalue": {
-                        "declaration": 35238,
+                        "declaration": 35337,
                         "isOffset": false,
                         "isSlot": false,
                         "src": "1133:9:119",
@@ -247,7 +247,7 @@
                       }
                     }
                   ],
-                  "id": 35246,
+                  "id": 35345,
                   "nodeType": "InlineAssembly",
                   "operations": "{ value := addrvalue }",
                   "src": "1101:51:119"
@@ -258,24 +258,24 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 35248,
+                        "id": 35347,
                         "name": "set",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35236,
+                        "referencedDeclaration": 35335,
                         "src": "1179:3:119",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                          "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                           "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                         }
                       },
                       {
                         "argumentTypes": null,
-                        "id": 35249,
+                        "id": 35348,
                         "name": "value",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35244,
+                        "referencedDeclaration": 35343,
                         "src": "1184:5:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -286,7 +286,7 @@
                     "expression": {
                       "argumentTypes": [
                         {
-                          "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                          "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                           "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                         },
                         {
@@ -294,18 +294,18 @@
                           "typeString": "bytes32"
                         }
                       ],
-                      "id": 35247,
+                      "id": 35346,
                       "name": "addBytes32",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35287,
+                      "referencedDeclaration": 35386,
                       "src": "1168:10:119",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Bytes32Set_$35234_storage_ptr_$_t_bytes32_$returns$_t_bool_$",
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Bytes32Set_$35333_storage_ptr_$_t_bytes32_$returns$_t_bool_$",
                         "typeString": "function (struct EnumerableBytes32Set.Bytes32Set storage pointer,bytes32) returns (bool)"
                       }
                     },
-                    "id": 35250,
+                    "id": 35349,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -319,8 +319,8 @@
                       "typeString": "bool"
                     }
                   },
-                  "functionReturnParameters": 35242,
-                  "id": 35251,
+                  "functionReturnParameters": 35341,
+                  "id": 35350,
                   "nodeType": "Return",
                   "src": "1161:29:119"
                 }
@@ -332,31 +332,31 @@
             "modifiers": [],
             "name": "addAddress",
             "parameters": {
-              "id": 35239,
+              "id": 35338,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35236,
+                  "id": 35335,
                   "name": "set",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35253,
+                  "scope": 35352,
                   "src": "1001:22:119",
                   "stateVariable": false,
                   "storageLocation": "storage",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                    "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                     "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 35235,
+                    "id": 35334,
                     "name": "Bytes32Set",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 35234,
+                    "referencedDeclaration": 35333,
                     "src": "1001:10:119",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                      "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                       "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                     }
                   },
@@ -365,10 +365,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 35238,
+                  "id": 35337,
                   "name": "addrvalue",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35253,
+                  "scope": 35352,
                   "src": "1025:17:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -377,7 +377,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 35237,
+                    "id": 35336,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1025:7:119",
@@ -394,15 +394,15 @@
               "src": "1000:43:119"
             },
             "returnParameters": {
-              "id": 35242,
+              "id": 35341,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35241,
+                  "id": 35340,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35253,
+                  "scope": 35352,
                   "src": "1062:4:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -411,7 +411,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 35240,
+                    "id": 35339,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1062:4:119",
@@ -426,18 +426,18 @@
               ],
               "src": "1061:6:119"
             },
-            "scope": 35539,
+            "scope": 35638,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           },
           {
-            "id": 35287,
+            "id": 35386,
             "nodeType": "FunctionDefinition",
             "src": "1413:260:119",
             "nodes": [],
             "body": {
-              "id": 35286,
+              "id": 35385,
               "nodeType": "Block",
               "src": "1496:177:119",
               "nodes": [],
@@ -445,7 +445,7 @@
                 {
                   "condition": {
                     "argumentTypes": null,
-                    "id": 35266,
+                    "id": 35365,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -459,24 +459,24 @@
                       "arguments": [
                         {
                           "argumentTypes": null,
-                          "id": 35263,
+                          "id": 35362,
                           "name": "set",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 35255,
+                          "referencedDeclaration": 35354,
                           "src": "1520:3:119",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                            "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                             "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                           }
                         },
                         {
                           "argumentTypes": null,
-                          "id": 35264,
+                          "id": 35363,
                           "name": "value",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 35257,
+                          "referencedDeclaration": 35356,
                           "src": "1525:5:119",
                           "typeDescriptions": {
                             "typeIdentifier": "t_bytes32",
@@ -487,7 +487,7 @@
                       "expression": {
                         "argumentTypes": [
                           {
-                            "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                            "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                             "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                           },
                           {
@@ -495,18 +495,18 @@
                             "typeString": "bytes32"
                           }
                         ],
-                        "id": 35262,
+                        "id": 35361,
                         "name": "contains",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35404,
+                        "referencedDeclaration": 35503,
                         "src": "1511:8:119",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes32Set_$35234_storage_ptr_$_t_bytes32_$returns$_t_bool_$",
+                          "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes32Set_$35333_storage_ptr_$_t_bytes32_$returns$_t_bool_$",
                           "typeString": "function (struct EnumerableBytes32Set.Bytes32Set storage pointer,bytes32) view returns (bool)"
                         }
                       },
-                      "id": 35265,
+                      "id": 35364,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -526,7 +526,7 @@
                     }
                   },
                   "falseBody": {
-                    "id": 35284,
+                    "id": 35383,
                     "nodeType": "Block",
                     "src": "1630:37:119",
                     "statements": [
@@ -534,7 +534,7 @@
                         "expression": {
                           "argumentTypes": null,
                           "hexValue": "66616c7365",
-                          "id": 35282,
+                          "id": 35381,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -549,25 +549,25 @@
                           },
                           "value": "false"
                         },
-                        "functionReturnParameters": 35261,
-                        "id": 35283,
+                        "functionReturnParameters": 35360,
+                        "id": 35382,
                         "nodeType": "Return",
                         "src": "1644:12:119"
                       }
                     ]
                   },
-                  "id": 35285,
+                  "id": 35384,
                   "nodeType": "IfStatement",
                   "src": "1506:161:119",
                   "trueBody": {
-                    "id": 35281,
+                    "id": 35380,
                     "nodeType": "Block",
                     "src": "1533:91:119",
                     "statements": [
                       {
                         "expression": {
                           "argumentTypes": null,
-                          "id": 35277,
+                          "id": 35376,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -578,39 +578,39 @@
                               "argumentTypes": null,
                               "expression": {
                                 "argumentTypes": null,
-                                "id": 35267,
+                                "id": 35366,
                                 "name": "set",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 35255,
+                                "referencedDeclaration": 35354,
                                 "src": "1547:3:119",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                  "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                   "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                                 }
                               },
-                              "id": 35270,
+                              "id": 35369,
                               "isConstant": false,
                               "isLValue": true,
                               "isPure": false,
                               "lValueRequested": false,
                               "memberName": "index",
                               "nodeType": "MemberAccess",
-                              "referencedDeclaration": 35230,
+                              "referencedDeclaration": 35329,
                               "src": "1547:9:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_mapping$_t_bytes32_$_t_uint256_$",
                                 "typeString": "mapping(bytes32 => uint256)"
                               }
                             },
-                            "id": 35271,
+                            "id": 35370,
                             "indexExpression": {
                               "argumentTypes": null,
-                              "id": 35269,
+                              "id": 35368,
                               "name": "value",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 35257,
+                              "referencedDeclaration": 35356,
                               "src": "1557:5:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_bytes32",
@@ -635,11 +635,11 @@
                             "arguments": [
                               {
                                 "argumentTypes": null,
-                                "id": 35275,
+                                "id": 35374,
                                 "name": "value",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 35257,
+                                "referencedDeclaration": 35356,
                                 "src": "1582:5:119",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_bytes32",
@@ -658,32 +658,32 @@
                                 "argumentTypes": null,
                                 "expression": {
                                   "argumentTypes": null,
-                                  "id": 35272,
+                                  "id": 35371,
                                   "name": "set",
                                   "nodeType": "Identifier",
                                   "overloadedDeclarations": [],
-                                  "referencedDeclaration": 35255,
+                                  "referencedDeclaration": 35354,
                                   "src": "1566:3:119",
                                   "typeDescriptions": {
-                                    "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                    "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                     "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                                   }
                                 },
-                                "id": 35273,
+                                "id": 35372,
                                 "isConstant": false,
                                 "isLValue": true,
                                 "isPure": false,
                                 "lValueRequested": false,
                                 "memberName": "values",
                                 "nodeType": "MemberAccess",
-                                "referencedDeclaration": 35233,
+                                "referencedDeclaration": 35332,
                                 "src": "1566:10:119",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_array$_t_bytes32_$dyn_storage",
                                   "typeString": "bytes32[] storage ref"
                                 }
                               },
-                              "id": 35274,
+                              "id": 35373,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": false,
@@ -697,7 +697,7 @@
                                 "typeString": "function (bytes32) returns (uint256)"
                               }
                             },
-                            "id": 35276,
+                            "id": 35375,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
@@ -717,7 +717,7 @@
                             "typeString": "uint256"
                           }
                         },
-                        "id": 35278,
+                        "id": 35377,
                         "nodeType": "ExpressionStatement",
                         "src": "1547:41:119"
                       },
@@ -725,7 +725,7 @@
                         "expression": {
                           "argumentTypes": null,
                           "hexValue": "74727565",
-                          "id": 35279,
+                          "id": 35378,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -740,8 +740,8 @@
                           },
                           "value": "true"
                         },
-                        "functionReturnParameters": 35261,
-                        "id": 35280,
+                        "functionReturnParameters": 35360,
+                        "id": 35379,
                         "nodeType": "Return",
                         "src": "1602:11:119"
                       }
@@ -756,31 +756,31 @@
             "modifiers": [],
             "name": "addBytes32",
             "parameters": {
-              "id": 35258,
+              "id": 35357,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35255,
+                  "id": 35354,
                   "name": "set",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35287,
+                  "scope": 35386,
                   "src": "1433:22:119",
                   "stateVariable": false,
                   "storageLocation": "storage",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                    "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                     "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 35254,
+                    "id": 35353,
                     "name": "Bytes32Set",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 35234,
+                    "referencedDeclaration": 35333,
                     "src": "1433:10:119",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                      "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                       "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                     }
                   },
@@ -789,10 +789,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 35257,
+                  "id": 35356,
                   "name": "value",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35287,
+                  "scope": 35386,
                   "src": "1457:13:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -801,7 +801,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 35256,
+                    "id": 35355,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "1457:7:119",
@@ -817,15 +817,15 @@
               "src": "1432:39:119"
             },
             "returnParameters": {
-              "id": 35261,
+              "id": 35360,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35260,
+                  "id": 35359,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35287,
+                  "scope": 35386,
                   "src": "1490:4:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -834,7 +834,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 35259,
+                    "id": 35358,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1490:4:119",
@@ -849,33 +849,33 @@
               ],
               "src": "1489:6:119"
             },
-            "scope": 35539,
+            "scope": 35638,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           },
           {
-            "id": 35306,
+            "id": 35405,
             "nodeType": "FunctionDefinition",
             "src": "1914:222:119",
             "nodes": [],
             "body": {
-              "id": 35305,
+              "id": 35404,
               "nodeType": "Block",
               "src": "2004:132:119",
               "nodes": [],
               "statements": [
                 {
                   "assignments": [
-                    35297
+                    35396
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 35297,
+                      "id": 35396,
                       "name": "value",
                       "nodeType": "VariableDeclaration",
-                      "scope": 35305,
+                      "scope": 35404,
                       "src": "2014:13:119",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -884,7 +884,7 @@
                         "typeString": "bytes32"
                       },
                       "typeName": {
-                        "id": 35296,
+                        "id": 35395,
                         "name": "bytes32",
                         "nodeType": "ElementaryTypeName",
                         "src": "2014:7:119",
@@ -897,7 +897,7 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 35298,
+                  "id": 35397,
                   "initialValue": null,
                   "nodeType": "VariableDeclarationStatement",
                   "src": "2014:13:119"
@@ -906,7 +906,7 @@
                   "externalReferences": [
                     {
                       "value": {
-                        "declaration": 35297,
+                        "declaration": 35396,
                         "isOffset": false,
                         "isSlot": false,
                         "src": "2060:5:119",
@@ -915,7 +915,7 @@
                     },
                     {
                       "addrvalue": {
-                        "declaration": 35291,
+                        "declaration": 35390,
                         "isOffset": false,
                         "isSlot": false,
                         "src": "2069:9:119",
@@ -923,7 +923,7 @@
                       }
                     }
                   ],
-                  "id": 35299,
+                  "id": 35398,
                   "nodeType": "InlineAssembly",
                   "operations": "{ value := addrvalue }",
                   "src": "2037:51:119"
@@ -934,24 +934,24 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 35301,
+                        "id": 35400,
                         "name": "set",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35289,
+                        "referencedDeclaration": 35388,
                         "src": "2118:3:119",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                          "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                           "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                         }
                       },
                       {
                         "argumentTypes": null,
-                        "id": 35302,
+                        "id": 35401,
                         "name": "value",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35297,
+                        "referencedDeclaration": 35396,
                         "src": "2123:5:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -962,7 +962,7 @@
                     "expression": {
                       "argumentTypes": [
                         {
-                          "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                          "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                           "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                         },
                         {
@@ -970,18 +970,18 @@
                           "typeString": "bytes32"
                         }
                       ],
-                      "id": 35300,
+                      "id": 35399,
                       "name": "removeBytes32",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35387,
+                      "referencedDeclaration": 35486,
                       "src": "2104:13:119",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Bytes32Set_$35234_storage_ptr_$_t_bytes32_$returns$_t_bool_$",
+                        "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Bytes32Set_$35333_storage_ptr_$_t_bytes32_$returns$_t_bool_$",
                         "typeString": "function (struct EnumerableBytes32Set.Bytes32Set storage pointer,bytes32) returns (bool)"
                       }
                     },
-                    "id": 35303,
+                    "id": 35402,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -995,8 +995,8 @@
                       "typeString": "bool"
                     }
                   },
-                  "functionReturnParameters": 35295,
-                  "id": 35304,
+                  "functionReturnParameters": 35394,
+                  "id": 35403,
                   "nodeType": "Return",
                   "src": "2097:32:119"
                 }
@@ -1008,31 +1008,31 @@
             "modifiers": [],
             "name": "removeAddress",
             "parameters": {
-              "id": 35292,
+              "id": 35391,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35289,
+                  "id": 35388,
                   "name": "set",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35306,
+                  "scope": 35405,
                   "src": "1937:22:119",
                   "stateVariable": false,
                   "storageLocation": "storage",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                    "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                     "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 35288,
+                    "id": 35387,
                     "name": "Bytes32Set",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 35234,
+                    "referencedDeclaration": 35333,
                     "src": "1937:10:119",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                      "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                       "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                     }
                   },
@@ -1041,10 +1041,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 35291,
+                  "id": 35390,
                   "name": "addrvalue",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35306,
+                  "scope": 35405,
                   "src": "1961:17:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1053,7 +1053,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 35290,
+                    "id": 35389,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1961:7:119",
@@ -1070,15 +1070,15 @@
               "src": "1936:43:119"
             },
             "returnParameters": {
-              "id": 35295,
+              "id": 35394,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35294,
+                  "id": 35393,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35306,
+                  "scope": 35405,
                   "src": "1998:4:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1087,7 +1087,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 35293,
+                    "id": 35392,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1998:4:119",
@@ -1102,18 +1102,18 @@
               ],
               "src": "1997:6:119"
             },
-            "scope": 35539,
+            "scope": 35638,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           },
           {
-            "id": 35387,
+            "id": 35486,
             "nodeType": "FunctionDefinition",
             "src": "2360:1034:119",
             "nodes": [],
             "body": {
-              "id": 35386,
+              "id": 35485,
               "nodeType": "Block",
               "src": "2446:948:119",
               "nodes": [],
@@ -1124,24 +1124,24 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 35316,
+                        "id": 35415,
                         "name": "set",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35308,
+                        "referencedDeclaration": 35407,
                         "src": "2469:3:119",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                          "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                           "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                         }
                       },
                       {
                         "argumentTypes": null,
-                        "id": 35317,
+                        "id": 35416,
                         "name": "value",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35310,
+                        "referencedDeclaration": 35409,
                         "src": "2474:5:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -1152,7 +1152,7 @@
                     "expression": {
                       "argumentTypes": [
                         {
-                          "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                          "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                           "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                         },
                         {
@@ -1160,18 +1160,18 @@
                           "typeString": "bytes32"
                         }
                       ],
-                      "id": 35315,
+                      "id": 35414,
                       "name": "contains",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35404,
+                      "referencedDeclaration": 35503,
                       "src": "2460:8:119",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes32Set_$35234_storage_ptr_$_t_bytes32_$returns$_t_bool_$",
+                        "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes32Set_$35333_storage_ptr_$_t_bytes32_$returns$_t_bool_$",
                         "typeString": "function (struct EnumerableBytes32Set.Bytes32Set storage pointer,bytes32) view returns (bool)"
                       }
                     },
-                    "id": 35318,
+                    "id": 35417,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1186,7 +1186,7 @@
                     }
                   },
                   "falseBody": {
-                    "id": 35384,
+                    "id": 35483,
                     "nodeType": "Block",
                     "src": "3351:37:119",
                     "statements": [
@@ -1194,7 +1194,7 @@
                         "expression": {
                           "argumentTypes": null,
                           "hexValue": "66616c7365",
-                          "id": 35382,
+                          "id": 35481,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -1209,32 +1209,32 @@
                           },
                           "value": "false"
                         },
-                        "functionReturnParameters": 35314,
-                        "id": 35383,
+                        "functionReturnParameters": 35413,
+                        "id": 35482,
                         "nodeType": "Return",
                         "src": "3365:12:119"
                       }
                     ]
                   },
-                  "id": 35385,
+                  "id": 35484,
                   "nodeType": "IfStatement",
                   "src": "2456:932:119",
                   "trueBody": {
-                    "id": 35381,
+                    "id": 35480,
                     "nodeType": "Block",
                     "src": "2482:863:119",
                     "statements": [
                       {
                         "assignments": [
-                          35320
+                          35419
                         ],
                         "declarations": [
                           {
                             "constant": false,
-                            "id": 35320,
+                            "id": 35419,
                             "name": "toDeleteIndex",
                             "nodeType": "VariableDeclaration",
-                            "scope": 35381,
+                            "scope": 35480,
                             "src": "2496:21:119",
                             "stateVariable": false,
                             "storageLocation": "default",
@@ -1243,7 +1243,7 @@
                               "typeString": "uint256"
                             },
                             "typeName": {
-                              "id": 35319,
+                              "id": 35418,
                               "name": "uint256",
                               "nodeType": "ElementaryTypeName",
                               "src": "2496:7:119",
@@ -1256,14 +1256,14 @@
                             "visibility": "internal"
                           }
                         ],
-                        "id": 35327,
+                        "id": 35426,
                         "initialValue": {
                           "argumentTypes": null,
                           "commonType": {
                             "typeIdentifier": "t_uint256",
                             "typeString": "uint256"
                           },
-                          "id": 35326,
+                          "id": 35425,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -1274,39 +1274,39 @@
                               "argumentTypes": null,
                               "expression": {
                                 "argumentTypes": null,
-                                "id": 35321,
+                                "id": 35420,
                                 "name": "set",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 35308,
+                                "referencedDeclaration": 35407,
                                 "src": "2520:3:119",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                  "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                   "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                                 }
                               },
-                              "id": 35322,
+                              "id": 35421,
                               "isConstant": false,
                               "isLValue": true,
                               "isPure": false,
                               "lValueRequested": false,
                               "memberName": "index",
                               "nodeType": "MemberAccess",
-                              "referencedDeclaration": 35230,
+                              "referencedDeclaration": 35329,
                               "src": "2520:9:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_mapping$_t_bytes32_$_t_uint256_$",
                                 "typeString": "mapping(bytes32 => uint256)"
                               }
                             },
-                            "id": 35324,
+                            "id": 35423,
                             "indexExpression": {
                               "argumentTypes": null,
-                              "id": 35323,
+                              "id": 35422,
                               "name": "value",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 35310,
+                              "referencedDeclaration": 35409,
                               "src": "2530:5:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_bytes32",
@@ -1329,7 +1329,7 @@
                           "rightExpression": {
                             "argumentTypes": null,
                             "hexValue": "31",
-                            "id": 35325,
+                            "id": 35424,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -1355,15 +1355,15 @@
                       },
                       {
                         "assignments": [
-                          35329
+                          35428
                         ],
                         "declarations": [
                           {
                             "constant": false,
-                            "id": 35329,
+                            "id": 35428,
                             "name": "lastIndex",
                             "nodeType": "VariableDeclaration",
-                            "scope": 35381,
+                            "scope": 35480,
                             "src": "2554:17:119",
                             "stateVariable": false,
                             "storageLocation": "default",
@@ -1372,7 +1372,7 @@
                               "typeString": "uint256"
                             },
                             "typeName": {
-                              "id": 35328,
+                              "id": 35427,
                               "name": "uint256",
                               "nodeType": "ElementaryTypeName",
                               "src": "2554:7:119",
@@ -1385,14 +1385,14 @@
                             "visibility": "internal"
                           }
                         ],
-                        "id": 35335,
+                        "id": 35434,
                         "initialValue": {
                           "argumentTypes": null,
                           "commonType": {
                             "typeIdentifier": "t_uint256",
                             "typeString": "uint256"
                           },
-                          "id": 35334,
+                          "id": 35433,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -1403,32 +1403,32 @@
                               "argumentTypes": null,
                               "expression": {
                                 "argumentTypes": null,
-                                "id": 35330,
+                                "id": 35429,
                                 "name": "set",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 35308,
+                                "referencedDeclaration": 35407,
                                 "src": "2574:3:119",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                  "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                   "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                                 }
                               },
-                              "id": 35331,
+                              "id": 35430,
                               "isConstant": false,
                               "isLValue": true,
                               "isPure": false,
                               "lValueRequested": false,
                               "memberName": "values",
                               "nodeType": "MemberAccess",
-                              "referencedDeclaration": 35233,
+                              "referencedDeclaration": 35332,
                               "src": "2574:10:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_array$_t_bytes32_$dyn_storage",
                                 "typeString": "bytes32[] storage ref"
                               }
                             },
-                            "id": 35332,
+                            "id": 35431,
                             "isConstant": false,
                             "isLValue": true,
                             "isPure": false,
@@ -1447,7 +1447,7 @@
                           "rightExpression": {
                             "argumentTypes": null,
                             "hexValue": "31",
-                            "id": 35333,
+                            "id": 35432,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -1478,18 +1478,18 @@
                             "typeIdentifier": "t_uint256",
                             "typeString": "uint256"
                           },
-                          "id": 35338,
+                          "id": 35437,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "argumentTypes": null,
-                            "id": 35336,
+                            "id": 35435,
                             "name": "lastIndex",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 35329,
+                            "referencedDeclaration": 35428,
                             "src": "2737:9:119",
                             "typeDescriptions": {
                               "typeIdentifier": "t_uint256",
@@ -1500,11 +1500,11 @@
                           "operator": "!=",
                           "rightExpression": {
                             "argumentTypes": null,
-                            "id": 35337,
+                            "id": 35436,
                             "name": "toDeleteIndex",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 35320,
+                            "referencedDeclaration": 35419,
                             "src": "2750:13:119",
                             "typeDescriptions": {
                               "typeIdentifier": "t_uint256",
@@ -1518,25 +1518,25 @@
                           }
                         },
                         "falseBody": null,
-                        "id": 35365,
+                        "id": 35464,
                         "nodeType": "IfStatement",
                         "src": "2733:387:119",
                         "trueBody": {
-                          "id": 35364,
+                          "id": 35463,
                           "nodeType": "Block",
                           "src": "2765:355:119",
                           "statements": [
                             {
                               "assignments": [
-                                35340
+                                35439
                               ],
                               "declarations": [
                                 {
                                   "constant": false,
-                                  "id": 35340,
+                                  "id": 35439,
                                   "name": "lastValue",
                                   "nodeType": "VariableDeclaration",
-                                  "scope": 35364,
+                                  "scope": 35463,
                                   "src": "2783:17:119",
                                   "stateVariable": false,
                                   "storageLocation": "default",
@@ -1545,7 +1545,7 @@
                                     "typeString": "bytes32"
                                   },
                                   "typeName": {
-                                    "id": 35339,
+                                    "id": 35438,
                                     "name": "bytes32",
                                     "nodeType": "ElementaryTypeName",
                                     "src": "2783:7:119",
@@ -1558,46 +1558,46 @@
                                   "visibility": "internal"
                                 }
                               ],
-                              "id": 35345,
+                              "id": 35444,
                               "initialValue": {
                                 "argumentTypes": null,
                                 "baseExpression": {
                                   "argumentTypes": null,
                                   "expression": {
                                     "argumentTypes": null,
-                                    "id": 35341,
+                                    "id": 35440,
                                     "name": "set",
                                     "nodeType": "Identifier",
                                     "overloadedDeclarations": [],
-                                    "referencedDeclaration": 35308,
+                                    "referencedDeclaration": 35407,
                                     "src": "2803:3:119",
                                     "typeDescriptions": {
-                                      "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                      "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                       "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                                     }
                                   },
-                                  "id": 35342,
+                                  "id": 35441,
                                   "isConstant": false,
                                   "isLValue": true,
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "memberName": "values",
                                   "nodeType": "MemberAccess",
-                                  "referencedDeclaration": 35233,
+                                  "referencedDeclaration": 35332,
                                   "src": "2803:10:119",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_array$_t_bytes32_$dyn_storage",
                                     "typeString": "bytes32[] storage ref"
                                   }
                                 },
-                                "id": 35344,
+                                "id": 35443,
                                 "indexExpression": {
                                   "argumentTypes": null,
-                                  "id": 35343,
+                                  "id": 35442,
                                   "name": "lastIndex",
                                   "nodeType": "Identifier",
                                   "overloadedDeclarations": [],
-                                  "referencedDeclaration": 35329,
+                                  "referencedDeclaration": 35428,
                                   "src": "2814:9:119",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_uint256",
@@ -1621,7 +1621,7 @@
                             {
                               "expression": {
                                 "argumentTypes": null,
-                                "id": 35352,
+                                "id": 35451,
                                 "isConstant": false,
                                 "isLValue": false,
                                 "isPure": false,
@@ -1632,39 +1632,39 @@
                                     "argumentTypes": null,
                                     "expression": {
                                       "argumentTypes": null,
-                                      "id": 35346,
+                                      "id": 35445,
                                       "name": "set",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [],
-                                      "referencedDeclaration": 35308,
+                                      "referencedDeclaration": 35407,
                                       "src": "2924:3:119",
                                       "typeDescriptions": {
-                                        "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                        "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                         "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                                       }
                                     },
-                                    "id": 35349,
+                                    "id": 35448,
                                     "isConstant": false,
                                     "isLValue": true,
                                     "isPure": false,
                                     "lValueRequested": false,
                                     "memberName": "values",
                                     "nodeType": "MemberAccess",
-                                    "referencedDeclaration": 35233,
+                                    "referencedDeclaration": 35332,
                                     "src": "2924:10:119",
                                     "typeDescriptions": {
                                       "typeIdentifier": "t_array$_t_bytes32_$dyn_storage",
                                       "typeString": "bytes32[] storage ref"
                                     }
                                   },
-                                  "id": 35350,
+                                  "id": 35449,
                                   "indexExpression": {
                                     "argumentTypes": null,
-                                    "id": 35348,
+                                    "id": 35447,
                                     "name": "toDeleteIndex",
                                     "nodeType": "Identifier",
                                     "overloadedDeclarations": [],
-                                    "referencedDeclaration": 35320,
+                                    "referencedDeclaration": 35419,
                                     "src": "2935:13:119",
                                     "typeDescriptions": {
                                       "typeIdentifier": "t_uint256",
@@ -1686,11 +1686,11 @@
                                 "operator": "=",
                                 "rightHandSide": {
                                   "argumentTypes": null,
-                                  "id": 35351,
+                                  "id": 35450,
                                   "name": "lastValue",
                                   "nodeType": "Identifier",
                                   "overloadedDeclarations": [],
-                                  "referencedDeclaration": 35340,
+                                  "referencedDeclaration": 35439,
                                   "src": "2952:9:119",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_bytes32",
@@ -1703,14 +1703,14 @@
                                   "typeString": "bytes32"
                                 }
                               },
-                              "id": 35353,
+                              "id": 35452,
                               "nodeType": "ExpressionStatement",
                               "src": "2924:37:119"
                             },
                             {
                               "expression": {
                                 "argumentTypes": null,
-                                "id": 35362,
+                                "id": 35461,
                                 "isConstant": false,
                                 "isLValue": false,
                                 "isPure": false,
@@ -1721,39 +1721,39 @@
                                     "argumentTypes": null,
                                     "expression": {
                                       "argumentTypes": null,
-                                      "id": 35354,
+                                      "id": 35453,
                                       "name": "set",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [],
-                                      "referencedDeclaration": 35308,
+                                      "referencedDeclaration": 35407,
                                       "src": "3038:3:119",
                                       "typeDescriptions": {
-                                        "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                        "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                         "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                                       }
                                     },
-                                    "id": 35357,
+                                    "id": 35456,
                                     "isConstant": false,
                                     "isLValue": true,
                                     "isPure": false,
                                     "lValueRequested": false,
                                     "memberName": "index",
                                     "nodeType": "MemberAccess",
-                                    "referencedDeclaration": 35230,
+                                    "referencedDeclaration": 35329,
                                     "src": "3038:9:119",
                                     "typeDescriptions": {
                                       "typeIdentifier": "t_mapping$_t_bytes32_$_t_uint256_$",
                                       "typeString": "mapping(bytes32 => uint256)"
                                     }
                                   },
-                                  "id": 35358,
+                                  "id": 35457,
                                   "indexExpression": {
                                     "argumentTypes": null,
-                                    "id": 35356,
+                                    "id": 35455,
                                     "name": "lastValue",
                                     "nodeType": "Identifier",
                                     "overloadedDeclarations": [],
-                                    "referencedDeclaration": 35340,
+                                    "referencedDeclaration": 35439,
                                     "src": "3048:9:119",
                                     "typeDescriptions": {
                                       "typeIdentifier": "t_bytes32",
@@ -1779,18 +1779,18 @@
                                     "typeIdentifier": "t_uint256",
                                     "typeString": "uint256"
                                   },
-                                  "id": 35361,
+                                  "id": 35460,
                                   "isConstant": false,
                                   "isLValue": false,
                                   "isPure": false,
                                   "lValueRequested": false,
                                   "leftExpression": {
                                     "argumentTypes": null,
-                                    "id": 35359,
+                                    "id": 35458,
                                     "name": "toDeleteIndex",
                                     "nodeType": "Identifier",
                                     "overloadedDeclarations": [],
-                                    "referencedDeclaration": 35320,
+                                    "referencedDeclaration": 35419,
                                     "src": "3061:13:119",
                                     "typeDescriptions": {
                                       "typeIdentifier": "t_uint256",
@@ -1802,7 +1802,7 @@
                                   "rightExpression": {
                                     "argumentTypes": null,
                                     "hexValue": "31",
-                                    "id": 35360,
+                                    "id": 35459,
                                     "isConstant": false,
                                     "isLValue": false,
                                     "isPure": true,
@@ -1829,7 +1829,7 @@
                                   "typeString": "uint256"
                                 }
                               },
-                              "id": 35363,
+                              "id": 35462,
                               "nodeType": "ExpressionStatement",
                               "src": "3038:40:119"
                             }
@@ -1839,7 +1839,7 @@
                       {
                         "expression": {
                           "argumentTypes": null,
-                          "id": 35370,
+                          "id": 35469,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -1854,39 +1854,39 @@
                               "argumentTypes": null,
                               "expression": {
                                 "argumentTypes": null,
-                                "id": 35366,
+                                "id": 35465,
                                 "name": "set",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 35308,
+                                "referencedDeclaration": 35407,
                                 "src": "3203:3:119",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                  "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                   "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                                 }
                               },
-                              "id": 35367,
+                              "id": 35466,
                               "isConstant": false,
                               "isLValue": true,
                               "isPure": false,
                               "lValueRequested": false,
                               "memberName": "index",
                               "nodeType": "MemberAccess",
-                              "referencedDeclaration": 35230,
+                              "referencedDeclaration": 35329,
                               "src": "3203:9:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_mapping$_t_bytes32_$_t_uint256_$",
                                 "typeString": "mapping(bytes32 => uint256)"
                               }
                             },
-                            "id": 35369,
+                            "id": 35468,
                             "indexExpression": {
                               "argumentTypes": null,
-                              "id": 35368,
+                              "id": 35467,
                               "name": "value",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 35310,
+                              "referencedDeclaration": 35409,
                               "src": "3213:5:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_bytes32",
@@ -1909,7 +1909,7 @@
                             "typeString": "tuple()"
                           }
                         },
-                        "id": 35371,
+                        "id": 35470,
                         "nodeType": "ExpressionStatement",
                         "src": "3196:23:119"
                       },
@@ -1923,32 +1923,32 @@
                               "argumentTypes": null,
                               "expression": {
                                 "argumentTypes": null,
-                                "id": 35372,
+                                "id": 35471,
                                 "name": "set",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 35308,
+                                "referencedDeclaration": 35407,
                                 "src": "3292:3:119",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                  "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                   "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                                 }
                               },
-                              "id": 35375,
+                              "id": 35474,
                               "isConstant": false,
                               "isLValue": true,
                               "isPure": false,
                               "lValueRequested": false,
                               "memberName": "values",
                               "nodeType": "MemberAccess",
-                              "referencedDeclaration": 35233,
+                              "referencedDeclaration": 35332,
                               "src": "3292:10:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_array$_t_bytes32_$dyn_storage",
                                 "typeString": "bytes32[] storage ref"
                               }
                             },
-                            "id": 35376,
+                            "id": 35475,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
@@ -1962,7 +1962,7 @@
                               "typeString": "function ()"
                             }
                           },
-                          "id": 35377,
+                          "id": 35476,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -1976,7 +1976,7 @@
                             "typeString": "tuple()"
                           }
                         },
-                        "id": 35378,
+                        "id": 35477,
                         "nodeType": "ExpressionStatement",
                         "src": "3292:16:119"
                       },
@@ -1984,7 +1984,7 @@
                         "expression": {
                           "argumentTypes": null,
                           "hexValue": "74727565",
-                          "id": 35379,
+                          "id": 35478,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -1999,8 +1999,8 @@
                           },
                           "value": "true"
                         },
-                        "functionReturnParameters": 35314,
-                        "id": 35380,
+                        "functionReturnParameters": 35413,
+                        "id": 35479,
                         "nodeType": "Return",
                         "src": "3323:11:119"
                       }
@@ -2015,31 +2015,31 @@
             "modifiers": [],
             "name": "removeBytes32",
             "parameters": {
-              "id": 35311,
+              "id": 35410,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35308,
+                  "id": 35407,
                   "name": "set",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35387,
+                  "scope": 35486,
                   "src": "2383:22:119",
                   "stateVariable": false,
                   "storageLocation": "storage",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                    "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                     "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 35307,
+                    "id": 35406,
                     "name": "Bytes32Set",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 35234,
+                    "referencedDeclaration": 35333,
                     "src": "2383:10:119",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                      "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                       "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                     }
                   },
@@ -2048,10 +2048,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 35310,
+                  "id": 35409,
                   "name": "value",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35387,
+                  "scope": 35486,
                   "src": "2407:13:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2060,7 +2060,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 35309,
+                    "id": 35408,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "2407:7:119",
@@ -2076,15 +2076,15 @@
               "src": "2382:39:119"
             },
             "returnParameters": {
-              "id": 35314,
+              "id": 35413,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35313,
+                  "id": 35412,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35387,
+                  "scope": 35486,
                   "src": "2440:4:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2093,7 +2093,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 35312,
+                    "id": 35411,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "2440:4:119",
@@ -2108,18 +2108,18 @@
               ],
               "src": "2439:6:119"
             },
-            "scope": 35539,
+            "scope": 35638,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           },
           {
-            "id": 35404,
+            "id": 35503,
             "nodeType": "FunctionDefinition",
             "src": "3619:131:119",
             "nodes": [],
             "body": {
-              "id": 35403,
+              "id": 35502,
               "nodeType": "Block",
               "src": "3705:45:119",
               "nodes": [],
@@ -2131,7 +2131,7 @@
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     },
-                    "id": 35401,
+                    "id": 35500,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -2142,39 +2142,39 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 35396,
+                          "id": 35495,
                           "name": "set",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 35389,
+                          "referencedDeclaration": 35488,
                           "src": "3722:3:119",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                            "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                             "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                           }
                         },
-                        "id": 35397,
+                        "id": 35496,
                         "isConstant": false,
                         "isLValue": true,
                         "isPure": false,
                         "lValueRequested": false,
                         "memberName": "index",
                         "nodeType": "MemberAccess",
-                        "referencedDeclaration": 35230,
+                        "referencedDeclaration": 35329,
                         "src": "3722:9:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_bytes32_$_t_uint256_$",
                           "typeString": "mapping(bytes32 => uint256)"
                         }
                       },
-                      "id": 35399,
+                      "id": 35498,
                       "indexExpression": {
                         "argumentTypes": null,
-                        "id": 35398,
+                        "id": 35497,
                         "name": "value",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35391,
+                        "referencedDeclaration": 35490,
                         "src": "3732:5:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -2197,7 +2197,7 @@
                     "rightExpression": {
                       "argumentTypes": null,
                       "hexValue": "30",
-                      "id": 35400,
+                      "id": 35499,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -2218,8 +2218,8 @@
                       "typeString": "bool"
                     }
                   },
-                  "functionReturnParameters": 35395,
-                  "id": 35402,
+                  "functionReturnParameters": 35494,
+                  "id": 35501,
                   "nodeType": "Return",
                   "src": "3715:28:119"
                 }
@@ -2231,31 +2231,31 @@
             "modifiers": [],
             "name": "contains",
             "parameters": {
-              "id": 35392,
+              "id": 35491,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35389,
+                  "id": 35488,
                   "name": "set",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35404,
+                  "scope": 35503,
                   "src": "3637:22:119",
                   "stateVariable": false,
                   "storageLocation": "storage",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                    "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                     "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 35388,
+                    "id": 35487,
                     "name": "Bytes32Set",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 35234,
+                    "referencedDeclaration": 35333,
                     "src": "3637:10:119",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                      "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                       "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                     }
                   },
@@ -2264,10 +2264,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 35391,
+                  "id": 35490,
                   "name": "value",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35404,
+                  "scope": 35503,
                   "src": "3661:13:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2276,7 +2276,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 35390,
+                    "id": 35489,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "3661:7:119",
@@ -2292,15 +2292,15 @@
               "src": "3636:39:119"
             },
             "returnParameters": {
-              "id": 35395,
+              "id": 35494,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35394,
+                  "id": 35493,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35404,
+                  "scope": 35503,
                   "src": "3699:4:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2309,7 +2309,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 35393,
+                    "id": 35492,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "3699:4:119",
@@ -2324,33 +2324,33 @@
               ],
               "src": "3698:6:119"
             },
-            "scope": 35539,
+            "scope": 35638,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "internal"
           },
           {
-            "id": 35425,
+            "id": 35524,
             "nodeType": "FunctionDefinition",
             "src": "3831:253:119",
             "nodes": [],
             "body": {
-              "id": 35424,
+              "id": 35523,
               "nodeType": "Block",
               "src": "3956:128:119",
               "nodes": [],
               "statements": [
                 {
                   "assignments": [
-                    35414
+                    35513
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 35414,
+                      "id": 35513,
                       "name": "value",
                       "nodeType": "VariableDeclaration",
-                      "scope": 35424,
+                      "scope": 35523,
                       "src": "3966:13:119",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -2359,7 +2359,7 @@
                         "typeString": "bytes32"
                       },
                       "typeName": {
-                        "id": 35413,
+                        "id": 35512,
                         "name": "bytes32",
                         "nodeType": "ElementaryTypeName",
                         "src": "3966:7:119",
@@ -2372,7 +2372,7 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 35415,
+                  "id": 35514,
                   "initialValue": null,
                   "nodeType": "VariableDeclarationStatement",
                   "src": "3966:13:119"
@@ -2381,7 +2381,7 @@
                   "externalReferences": [
                     {
                       "value": {
-                        "declaration": 35414,
+                        "declaration": 35513,
                         "isOffset": false,
                         "isSlot": false,
                         "src": "4012:5:119",
@@ -2390,7 +2390,7 @@
                     },
                     {
                       "addrvalue": {
-                        "declaration": 35408,
+                        "declaration": 35507,
                         "isOffset": false,
                         "isSlot": false,
                         "src": "4021:9:119",
@@ -2398,7 +2398,7 @@
                       }
                     }
                   ],
-                  "id": 35416,
+                  "id": 35515,
                   "nodeType": "InlineAssembly",
                   "operations": "{ value := addrvalue }",
                   "src": "3989:51:119"
@@ -2410,7 +2410,7 @@
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     },
-                    "id": 35422,
+                    "id": 35521,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -2421,39 +2421,39 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 35417,
+                          "id": 35516,
                           "name": "set",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 35406,
+                          "referencedDeclaration": 35505,
                           "src": "4056:3:119",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                            "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                             "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                           }
                         },
-                        "id": 35418,
+                        "id": 35517,
                         "isConstant": false,
                         "isLValue": true,
                         "isPure": false,
                         "lValueRequested": false,
                         "memberName": "index",
                         "nodeType": "MemberAccess",
-                        "referencedDeclaration": 35230,
+                        "referencedDeclaration": 35329,
                         "src": "4056:9:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_mapping$_t_bytes32_$_t_uint256_$",
                           "typeString": "mapping(bytes32 => uint256)"
                         }
                       },
-                      "id": 35420,
+                      "id": 35519,
                       "indexExpression": {
                         "argumentTypes": null,
-                        "id": 35419,
+                        "id": 35518,
                         "name": "value",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35414,
+                        "referencedDeclaration": 35513,
                         "src": "4066:5:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bytes32",
@@ -2476,7 +2476,7 @@
                     "rightExpression": {
                       "argumentTypes": null,
                       "hexValue": "30",
-                      "id": 35421,
+                      "id": 35520,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -2497,8 +2497,8 @@
                       "typeString": "bool"
                     }
                   },
-                  "functionReturnParameters": 35412,
-                  "id": 35423,
+                  "functionReturnParameters": 35511,
+                  "id": 35522,
                   "nodeType": "Return",
                   "src": "4049:28:119"
                 }
@@ -2510,31 +2510,31 @@
             "modifiers": [],
             "name": "containsAddress",
             "parameters": {
-              "id": 35409,
+              "id": 35508,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35406,
+                  "id": 35505,
                   "name": "set",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35425,
+                  "scope": 35524,
                   "src": "3856:22:119",
                   "stateVariable": false,
                   "storageLocation": "storage",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                    "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                     "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 35405,
+                    "id": 35504,
                     "name": "Bytes32Set",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 35234,
+                    "referencedDeclaration": 35333,
                     "src": "3856:10:119",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                      "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                       "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                     }
                   },
@@ -2543,10 +2543,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 35408,
+                  "id": 35507,
                   "name": "addrvalue",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35425,
+                  "scope": 35524,
                   "src": "3880:17:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2555,7 +2555,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 35407,
+                    "id": 35506,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "3880:7:119",
@@ -2572,15 +2572,15 @@
               "src": "3855:43:119"
             },
             "returnParameters": {
-              "id": 35412,
+              "id": 35511,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35411,
+                  "id": 35510,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35425,
+                  "scope": 35524,
                   "src": "3946:4:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2589,7 +2589,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 35410,
+                    "id": 35509,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "3946:4:119",
@@ -2604,33 +2604,33 @@
               ],
               "src": "3945:6:119"
             },
-            "scope": 35539,
+            "scope": 35638,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "internal"
           },
           {
-            "id": 35511,
+            "id": 35610,
             "nodeType": "FunctionDefinition",
             "src": "4650:563:119",
             "nodes": [],
             "body": {
-              "id": 35510,
+              "id": 35609,
               "nodeType": "Block",
               "src": "4801:412:119",
               "nodes": [],
               "statements": [
                 {
                   "assignments": [
-                    35438
+                    35537
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 35438,
+                      "id": 35537,
                       "name": "end",
                       "nodeType": "VariableDeclaration",
-                      "scope": 35510,
+                      "scope": 35609,
                       "src": "4811:11:119",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -2639,7 +2639,7 @@
                         "typeString": "uint256"
                       },
                       "typeName": {
-                        "id": 35437,
+                        "id": 35536,
                         "name": "uint256",
                         "nodeType": "ElementaryTypeName",
                         "src": "4811:7:119",
@@ -2652,25 +2652,25 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 35442,
+                  "id": 35541,
                   "initialValue": {
                     "argumentTypes": null,
                     "commonType": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     },
-                    "id": 35441,
+                    "id": 35540,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftExpression": {
                       "argumentTypes": null,
-                      "id": 35439,
+                      "id": 35538,
                       "name": "start",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35429,
+                      "referencedDeclaration": 35528,
                       "src": "4825:5:119",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -2681,11 +2681,11 @@
                     "operator": "+",
                     "rightExpression": {
                       "argumentTypes": null,
-                      "id": 35440,
+                      "id": 35539,
                       "name": "count",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35431,
+                      "referencedDeclaration": 35530,
                       "src": "4833:5:119",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -2711,18 +2711,18 @@
                           "typeIdentifier": "t_uint256",
                           "typeString": "uint256"
                         },
-                        "id": 35446,
+                        "id": 35545,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
                         "lValueRequested": false,
                         "leftExpression": {
                           "argumentTypes": null,
-                          "id": 35444,
+                          "id": 35543,
                           "name": "end",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 35438,
+                          "referencedDeclaration": 35537,
                           "src": "4856:3:119",
                           "typeDescriptions": {
                             "typeIdentifier": "t_uint256",
@@ -2733,11 +2733,11 @@
                         "operator": ">=",
                         "rightExpression": {
                           "argumentTypes": null,
-                          "id": 35445,
+                          "id": 35544,
                           "name": "start",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 35429,
+                          "referencedDeclaration": 35528,
                           "src": "4863:5:119",
                           "typeDescriptions": {
                             "typeIdentifier": "t_uint256",
@@ -2753,7 +2753,7 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "6164646974696f6e206f766572666c6f77",
-                        "id": 35447,
+                        "id": 35546,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -2780,21 +2780,21 @@
                           "typeString": "literal_string \"addition overflow\""
                         }
                       ],
-                      "id": 35443,
+                      "id": 35542,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        62895,
-                        62896
+                        62994,
+                        62995
                       ],
-                      "referencedDeclaration": 62896,
+                      "referencedDeclaration": 62995,
                       "src": "4848:7:119",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 35448,
+                    "id": 35547,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -2808,25 +2808,25 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 35449,
+                  "id": 35548,
                   "nodeType": "ExpressionStatement",
                   "src": "4848:42:119"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 35461,
+                    "id": 35560,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 35450,
+                      "id": 35549,
                       "name": "end",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35438,
+                      "referencedDeclaration": 35537,
                       "src": "4900:3:119",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -2843,7 +2843,7 @@
                           "typeIdentifier": "t_uint256",
                           "typeString": "uint256"
                         },
-                        "id": 35455,
+                        "id": 35554,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -2854,32 +2854,32 @@
                             "argumentTypes": null,
                             "expression": {
                               "argumentTypes": null,
-                              "id": 35451,
+                              "id": 35550,
                               "name": "set",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 35427,
+                              "referencedDeclaration": 35526,
                               "src": "4906:3:119",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                 "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                               }
                             },
-                            "id": 35452,
+                            "id": 35551,
                             "isConstant": false,
                             "isLValue": true,
                             "isPure": false,
                             "lValueRequested": false,
                             "memberName": "values",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 35233,
+                            "referencedDeclaration": 35332,
                             "src": "4906:10:119",
                             "typeDescriptions": {
                               "typeIdentifier": "t_array$_t_bytes32_$dyn_storage",
                               "typeString": "bytes32[] storage ref"
                             }
                           },
-                          "id": 35453,
+                          "id": 35552,
                           "isConstant": false,
                           "isLValue": true,
                           "isPure": false,
@@ -2897,11 +2897,11 @@
                         "operator": "<",
                         "rightExpression": {
                           "argumentTypes": null,
-                          "id": 35454,
+                          "id": 35553,
                           "name": "end",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 35438,
+                          "referencedDeclaration": 35537,
                           "src": "4926:3:119",
                           "typeDescriptions": {
                             "typeIdentifier": "t_uint256",
@@ -2916,18 +2916,18 @@
                       },
                       "falseExpression": {
                         "argumentTypes": null,
-                        "id": 35459,
+                        "id": 35558,
                         "name": "end",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35438,
+                        "referencedDeclaration": 35537,
                         "src": "4952:3:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
                           "typeString": "uint256"
                         }
                       },
-                      "id": 35460,
+                      "id": 35559,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -2940,32 +2940,32 @@
                           "argumentTypes": null,
                           "expression": {
                             "argumentTypes": null,
-                            "id": 35456,
+                            "id": 35555,
                             "name": "set",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 35427,
+                            "referencedDeclaration": 35526,
                             "src": "4932:3:119",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                              "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                               "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                             }
                           },
-                          "id": 35457,
+                          "id": 35556,
                           "isConstant": false,
                           "isLValue": true,
                           "isPure": false,
                           "lValueRequested": false,
                           "memberName": "values",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 35233,
+                          "referencedDeclaration": 35332,
                           "src": "4932:10:119",
                           "typeDescriptions": {
                             "typeIdentifier": "t_array$_t_bytes32_$dyn_storage",
                             "typeString": "bytes32[] storage ref"
                           }
                         },
-                        "id": 35458,
+                        "id": 35557,
                         "isConstant": false,
                         "isLValue": true,
                         "isPure": false,
@@ -2990,7 +2990,7 @@
                       "typeString": "uint256"
                     }
                   },
-                  "id": 35462,
+                  "id": 35561,
                   "nodeType": "ExpressionStatement",
                   "src": "4900:55:119"
                 },
@@ -3001,7 +3001,7 @@
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
                     },
-                    "id": 35469,
+                    "id": 35568,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3012,18 +3012,18 @@
                         "typeIdentifier": "t_uint256",
                         "typeString": "uint256"
                       },
-                      "id": 35465,
+                      "id": 35564,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
                       "lValueRequested": false,
                       "leftExpression": {
                         "argumentTypes": null,
-                        "id": 35463,
+                        "id": 35562,
                         "name": "end",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35438,
+                        "referencedDeclaration": 35537,
                         "src": "4969:3:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -3035,7 +3035,7 @@
                       "rightExpression": {
                         "argumentTypes": null,
                         "hexValue": "30",
-                        "id": 35464,
+                        "id": 35563,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -3064,18 +3064,18 @@
                         "typeIdentifier": "t_uint256",
                         "typeString": "uint256"
                       },
-                      "id": 35468,
+                      "id": 35567,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
                       "lValueRequested": false,
                       "leftExpression": {
                         "argumentTypes": null,
-                        "id": 35466,
+                        "id": 35565,
                         "name": "start",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35429,
+                        "referencedDeclaration": 35528,
                         "src": "4981:5:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -3086,11 +3086,11 @@
                       "operator": ">=",
                       "rightExpression": {
                         "argumentTypes": null,
-                        "id": 35467,
+                        "id": 35566,
                         "name": "end",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35438,
+                        "referencedDeclaration": 35537,
                         "src": "4990:3:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -3110,30 +3110,30 @@
                     }
                   },
                   "falseBody": null,
-                  "id": 35473,
+                  "id": 35572,
                   "nodeType": "IfStatement",
                   "src": "4965:68:119",
                   "trueBody": {
-                    "id": 35472,
+                    "id": 35571,
                     "nodeType": "Block",
                     "src": "4995:38:119",
                     "statements": [
                       {
                         "expression": {
                           "argumentTypes": null,
-                          "id": 35470,
+                          "id": 35569,
                           "name": "output",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 35435,
+                          "referencedDeclaration": 35534,
                           "src": "5016:6:119",
                           "typeDescriptions": {
                             "typeIdentifier": "t_array$_t_bytes32_$dyn_memory_ptr",
                             "typeString": "bytes32[] memory"
                           }
                         },
-                        "functionReturnParameters": 35436,
-                        "id": 35471,
+                        "functionReturnParameters": 35535,
+                        "id": 35570,
                         "nodeType": "Return",
                         "src": "5009:13:119"
                       }
@@ -3143,18 +3143,18 @@
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 35482,
+                    "id": 35581,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 35474,
+                      "id": 35573,
                       "name": "output",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35435,
+                      "referencedDeclaration": 35534,
                       "src": "5043:6:119",
                       "typeDescriptions": {
                         "typeIdentifier": "t_array$_t_bytes32_$dyn_memory_ptr",
@@ -3172,18 +3172,18 @@
                             "typeIdentifier": "t_uint256",
                             "typeString": "uint256"
                           },
-                          "id": 35480,
+                          "id": 35579,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "argumentTypes": null,
-                            "id": 35478,
+                            "id": 35577,
                             "name": "end",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 35438,
+                            "referencedDeclaration": 35537,
                             "src": "5066:3:119",
                             "typeDescriptions": {
                               "typeIdentifier": "t_uint256",
@@ -3194,11 +3194,11 @@
                           "operator": "-",
                           "rightExpression": {
                             "argumentTypes": null,
-                            "id": 35479,
+                            "id": 35578,
                             "name": "start",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 35429,
+                            "referencedDeclaration": 35528,
                             "src": "5072:5:119",
                             "typeDescriptions": {
                               "typeIdentifier": "t_uint256",
@@ -3219,7 +3219,7 @@
                             "typeString": "uint256"
                           }
                         ],
-                        "id": 35477,
+                        "id": 35576,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -3232,7 +3232,7 @@
                         },
                         "typeName": {
                           "baseType": {
-                            "id": 35475,
+                            "id": 35574,
                             "name": "bytes32",
                             "nodeType": "ElementaryTypeName",
                             "src": "5056:7:119",
@@ -3241,7 +3241,7 @@
                               "typeString": "bytes32"
                             }
                           },
-                          "id": 35476,
+                          "id": 35575,
                           "length": null,
                           "nodeType": "ArrayTypeName",
                           "src": "5056:9:119",
@@ -3251,7 +3251,7 @@
                           }
                         }
                       },
-                      "id": 35481,
+                      "id": 35580,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3271,20 +3271,20 @@
                       "typeString": "bytes32[] memory"
                     }
                   },
-                  "id": 35483,
+                  "id": 35582,
                   "nodeType": "ExpressionStatement",
                   "src": "5043:35:119"
                 },
                 {
                   "body": {
-                    "id": 35506,
+                    "id": 35605,
                     "nodeType": "Block",
                     "src": "5126:58:119",
                     "statements": [
                       {
                         "expression": {
                           "argumentTypes": null,
-                          "id": 35504,
+                          "id": 35603,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -3293,25 +3293,25 @@
                             "argumentTypes": null,
                             "baseExpression": {
                               "argumentTypes": null,
-                              "id": 35495,
+                              "id": 35594,
                               "name": "output",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 35435,
+                              "referencedDeclaration": 35534,
                               "src": "5140:6:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_array$_t_bytes32_$dyn_memory_ptr",
                                 "typeString": "bytes32[] memory"
                               }
                             },
-                            "id": 35497,
+                            "id": 35596,
                             "indexExpression": {
                               "argumentTypes": null,
-                              "id": 35496,
+                              "id": 35595,
                               "name": "i",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 35485,
+                              "referencedDeclaration": 35584,
                               "src": "5147:1:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_uint256",
@@ -3337,50 +3337,50 @@
                               "argumentTypes": null,
                               "expression": {
                                 "argumentTypes": null,
-                                "id": 35498,
+                                "id": 35597,
                                 "name": "set",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 35427,
+                                "referencedDeclaration": 35526,
                                 "src": "5152:3:119",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                                  "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                                   "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                                 }
                               },
-                              "id": 35499,
+                              "id": 35598,
                               "isConstant": false,
                               "isLValue": true,
                               "isPure": false,
                               "lValueRequested": false,
                               "memberName": "values",
                               "nodeType": "MemberAccess",
-                              "referencedDeclaration": 35233,
+                              "referencedDeclaration": 35332,
                               "src": "5152:10:119",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_array$_t_bytes32_$dyn_storage",
                                 "typeString": "bytes32[] storage ref"
                               }
                             },
-                            "id": 35503,
+                            "id": 35602,
                             "indexExpression": {
                               "argumentTypes": null,
                               "commonType": {
                                 "typeIdentifier": "t_uint256",
                                 "typeString": "uint256"
                               },
-                              "id": 35502,
+                              "id": 35601,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": false,
                               "lValueRequested": false,
                               "leftExpression": {
                                 "argumentTypes": null,
-                                "id": 35500,
+                                "id": 35599,
                                 "name": "i",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 35485,
+                                "referencedDeclaration": 35584,
                                 "src": "5163:1:119",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_uint256",
@@ -3391,11 +3391,11 @@
                               "operator": "+",
                               "rightExpression": {
                                 "argumentTypes": null,
-                                "id": 35501,
+                                "id": 35600,
                                 "name": "start",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 35429,
+                                "referencedDeclaration": 35528,
                                 "src": "5167:5:119",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_uint256",
@@ -3425,7 +3425,7 @@
                             "typeString": "bytes32"
                           }
                         },
-                        "id": 35505,
+                        "id": 35604,
                         "nodeType": "ExpressionStatement",
                         "src": "5140:33:119"
                       }
@@ -3437,18 +3437,18 @@
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     },
-                    "id": 35491,
+                    "id": 35590,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftExpression": {
                       "argumentTypes": null,
-                      "id": 35487,
+                      "id": 35586,
                       "name": "i",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35485,
+                      "referencedDeclaration": 35584,
                       "src": "5104:1:119",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -3463,18 +3463,18 @@
                         "typeIdentifier": "t_uint256",
                         "typeString": "uint256"
                       },
-                      "id": 35490,
+                      "id": 35589,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
                       "lValueRequested": false,
                       "leftExpression": {
                         "argumentTypes": null,
-                        "id": 35488,
+                        "id": 35587,
                         "name": "end",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35438,
+                        "referencedDeclaration": 35537,
                         "src": "5108:3:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -3485,11 +3485,11 @@
                       "operator": "-",
                       "rightExpression": {
                         "argumentTypes": null,
-                        "id": 35489,
+                        "id": 35588,
                         "name": "start",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35429,
+                        "referencedDeclaration": 35528,
                         "src": "5114:5:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -3508,18 +3508,18 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 35507,
+                  "id": 35606,
                   "initializationExpression": {
                     "assignments": [
-                      35485
+                      35584
                     ],
                     "declarations": [
                       {
                         "constant": false,
-                        "id": 35485,
+                        "id": 35584,
                         "name": "i",
                         "nodeType": "VariableDeclaration",
-                        "scope": 35507,
+                        "scope": 35606,
                         "src": "5093:9:119",
                         "stateVariable": false,
                         "storageLocation": "default",
@@ -3528,7 +3528,7 @@
                           "typeString": "uint256"
                         },
                         "typeName": {
-                          "id": 35484,
+                          "id": 35583,
                           "name": "uint256",
                           "nodeType": "ElementaryTypeName",
                           "src": "5093:7:119",
@@ -3541,7 +3541,7 @@
                         "visibility": "internal"
                       }
                     ],
-                    "id": 35486,
+                    "id": 35585,
                     "initialValue": null,
                     "nodeType": "VariableDeclarationStatement",
                     "src": "5093:9:119"
@@ -3549,7 +3549,7 @@
                   "loopExpression": {
                     "expression": {
                       "argumentTypes": null,
-                      "id": 35493,
+                      "id": 35592,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3560,11 +3560,11 @@
                       "src": "5121:3:119",
                       "subExpression": {
                         "argumentTypes": null,
-                        "id": 35492,
+                        "id": 35591,
                         "name": "i",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35485,
+                        "referencedDeclaration": 35584,
                         "src": "5121:1:119",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -3576,7 +3576,7 @@
                         "typeString": "uint256"
                       }
                     },
-                    "id": 35494,
+                    "id": 35593,
                     "nodeType": "ExpressionStatement",
                     "src": "5121:3:119"
                   },
@@ -3586,19 +3586,19 @@
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 35508,
+                    "id": 35607,
                     "name": "output",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 35435,
+                    "referencedDeclaration": 35534,
                     "src": "5200:6:119",
                     "typeDescriptions": {
                       "typeIdentifier": "t_array$_t_bytes32_$dyn_memory_ptr",
                       "typeString": "bytes32[] memory"
                     }
                   },
-                  "functionReturnParameters": 35436,
-                  "id": 35509,
+                  "functionReturnParameters": 35535,
+                  "id": 35608,
                   "nodeType": "Return",
                   "src": "5193:13:119"
                 }
@@ -3610,31 +3610,31 @@
             "modifiers": [],
             "name": "enumerate",
             "parameters": {
-              "id": 35432,
+              "id": 35531,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35427,
+                  "id": 35526,
                   "name": "set",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35511,
+                  "scope": 35610,
                   "src": "4678:22:119",
                   "stateVariable": false,
                   "storageLocation": "storage",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                    "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                     "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 35426,
+                    "id": 35525,
                     "name": "Bytes32Set",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 35234,
+                    "referencedDeclaration": 35333,
                     "src": "4678:10:119",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                      "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                       "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                     }
                   },
@@ -3643,10 +3643,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 35429,
+                  "id": 35528,
                   "name": "start",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35511,
+                  "scope": 35610,
                   "src": "4710:13:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3655,7 +3655,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 35428,
+                    "id": 35527,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "4710:7:119",
@@ -3669,10 +3669,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 35431,
+                  "id": 35530,
                   "name": "count",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35511,
+                  "scope": 35610,
                   "src": "4733:13:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3681,7 +3681,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 35430,
+                    "id": 35529,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "4733:7:119",
@@ -3697,15 +3697,15 @@
               "src": "4668:84:119"
             },
             "returnParameters": {
-              "id": 35436,
+              "id": 35535,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35435,
+                  "id": 35534,
                   "name": "output",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35511,
+                  "scope": 35610,
                   "src": "4776:23:119",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -3715,7 +3715,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 35433,
+                      "id": 35532,
                       "name": "bytes32",
                       "nodeType": "ElementaryTypeName",
                       "src": "4776:7:119",
@@ -3724,7 +3724,7 @@
                         "typeString": "bytes32"
                       }
                     },
-                    "id": 35434,
+                    "id": 35533,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "4776:9:119",
@@ -3739,18 +3739,18 @@
               ],
               "src": "4775:25:119"
             },
-            "scope": 35539,
+            "scope": 35638,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "internal"
           },
           {
-            "id": 35523,
+            "id": 35622,
             "nodeType": "FunctionDefinition",
             "src": "5383:113:119",
             "nodes": [],
             "body": {
-              "id": 35522,
+              "id": 35621,
               "nodeType": "Block",
               "src": "5455:41:119",
               "nodes": [],
@@ -3762,32 +3762,32 @@
                       "argumentTypes": null,
                       "expression": {
                         "argumentTypes": null,
-                        "id": 35518,
+                        "id": 35617,
                         "name": "set",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35513,
+                        "referencedDeclaration": 35612,
                         "src": "5472:3:119",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                          "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                           "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                         }
                       },
-                      "id": 35519,
+                      "id": 35618,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": false,
                       "memberName": "values",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 35233,
+                      "referencedDeclaration": 35332,
                       "src": "5472:10:119",
                       "typeDescriptions": {
                         "typeIdentifier": "t_array$_t_bytes32_$dyn_storage",
                         "typeString": "bytes32[] storage ref"
                       }
                     },
-                    "id": 35520,
+                    "id": 35619,
                     "isConstant": false,
                     "isLValue": true,
                     "isPure": false,
@@ -3801,8 +3801,8 @@
                       "typeString": "uint256"
                     }
                   },
-                  "functionReturnParameters": 35517,
-                  "id": 35521,
+                  "functionReturnParameters": 35616,
+                  "id": 35620,
                   "nodeType": "Return",
                   "src": "5465:24:119"
                 }
@@ -3814,31 +3814,31 @@
             "modifiers": [],
             "name": "length",
             "parameters": {
-              "id": 35514,
+              "id": 35613,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35513,
+                  "id": 35612,
                   "name": "set",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35523,
+                  "scope": 35622,
                   "src": "5399:22:119",
                   "stateVariable": false,
                   "storageLocation": "storage",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                    "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                     "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 35512,
+                    "id": 35611,
                     "name": "Bytes32Set",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 35234,
+                    "referencedDeclaration": 35333,
                     "src": "5399:10:119",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                      "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                       "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                     }
                   },
@@ -3849,15 +3849,15 @@
               "src": "5398:24:119"
             },
             "returnParameters": {
-              "id": 35517,
+              "id": 35616,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35516,
+                  "id": 35615,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35523,
+                  "scope": 35622,
                   "src": "5446:7:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3866,7 +3866,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 35515,
+                    "id": 35614,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "5446:7:119",
@@ -3881,18 +3881,18 @@
               ],
               "src": "5445:9:119"
             },
-            "scope": 35539,
+            "scope": 35638,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "internal"
           },
           {
-            "id": 35538,
+            "id": 35637,
             "nodeType": "FunctionDefinition",
             "src": "5999:125:119",
             "nodes": [],
             "body": {
-              "id": 35537,
+              "id": 35636,
               "nodeType": "Block",
               "src": "6083:41:119",
               "nodes": [],
@@ -3904,39 +3904,39 @@
                       "argumentTypes": null,
                       "expression": {
                         "argumentTypes": null,
-                        "id": 35532,
+                        "id": 35631,
                         "name": "set",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35525,
+                        "referencedDeclaration": 35624,
                         "src": "6100:3:119",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                          "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                           "typeString": "struct EnumerableBytes32Set.Bytes32Set storage pointer"
                         }
                       },
-                      "id": 35533,
+                      "id": 35632,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": false,
                       "memberName": "values",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 35233,
+                      "referencedDeclaration": 35332,
                       "src": "6100:10:119",
                       "typeDescriptions": {
                         "typeIdentifier": "t_array$_t_bytes32_$dyn_storage",
                         "typeString": "bytes32[] storage ref"
                       }
                     },
-                    "id": 35535,
+                    "id": 35634,
                     "indexExpression": {
                       "argumentTypes": null,
-                      "id": 35534,
+                      "id": 35633,
                       "name": "index",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35527,
+                      "referencedDeclaration": 35626,
                       "src": "6111:5:119",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -3954,8 +3954,8 @@
                       "typeString": "bytes32"
                     }
                   },
-                  "functionReturnParameters": 35531,
-                  "id": 35536,
+                  "functionReturnParameters": 35630,
+                  "id": 35635,
                   "nodeType": "Return",
                   "src": "6093:24:119"
                 }
@@ -3967,31 +3967,31 @@
             "modifiers": [],
             "name": "get",
             "parameters": {
-              "id": 35528,
+              "id": 35627,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35525,
+                  "id": 35624,
                   "name": "set",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35538,
+                  "scope": 35637,
                   "src": "6012:22:119",
                   "stateVariable": false,
                   "storageLocation": "storage",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                    "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                     "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 35524,
+                    "id": 35623,
                     "name": "Bytes32Set",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 35234,
+                    "referencedDeclaration": 35333,
                     "src": "6012:10:119",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                      "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                       "typeString": "struct EnumerableBytes32Set.Bytes32Set"
                     }
                   },
@@ -4000,10 +4000,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 35527,
+                  "id": 35626,
                   "name": "index",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35538,
+                  "scope": 35637,
                   "src": "6036:13:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -4012,7 +4012,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 35526,
+                    "id": 35625,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "6036:7:119",
@@ -4028,15 +4028,15 @@
               "src": "6011:39:119"
             },
             "returnParameters": {
-              "id": 35531,
+              "id": 35630,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35530,
+                  "id": 35629,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35538,
+                  "scope": 35637,
                   "src": "6074:7:119",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -4045,7 +4045,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 35529,
+                    "id": 35628,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "6074:7:119",
@@ -4060,7 +4060,7 @@
               ],
               "src": "6073:9:119"
             },
-            "scope": 35539,
+            "scope": 35638,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "internal"
@@ -4072,10 +4072,10 @@
         "documentation": "@title Library for managing loan sets.\n * @notice Sets have the following properties:\n * - Elements are added, removed, and checked for existence in constant time\n(O(1)).\n- Elements are enumerated in O(n). No guarantees are made on the ordering.\n * Include with `using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;`.\n",
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          35539
+          35638
         ],
         "name": "EnumerableBytes32Set",
-        "scope": 35540
+        "scope": 35639
       }
     ]
   },

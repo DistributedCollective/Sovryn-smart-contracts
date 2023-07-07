@@ -287,7 +287,7 @@
     "replaceModule(address,address)": "1694ef26",
     "replaceModules(address[],address[])": "e11abe96"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"moduleAddress\",\"type\":\"address\"}],\"name\":\"AddModule\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"moduleAddress\",\"type\":\"address\"}],\"name\":\"RemoveModule\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"oldAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"name\":\"ReplaceModule\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes4\",\"name\":\"_funcSig\",\"type\":\"bytes4\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldImplementation\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newImplementation\",\"type\":\"address\"}],\"name\":\"SetModuleFuncImplementation\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_impl\",\"type\":\"address\"}],\"name\":\"addModule\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementations\",\"type\":\"address[]\"}],\"name\":\"addModules\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_impl\",\"type\":\"address\"}],\"name\":\"canAddModule\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementations\",\"type\":\"address[]\"}],\"name\":\"canNotAddModules\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"modules\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_newModule\",\"type\":\"address\"}],\"name\":\"checkClashingFuncSelectors\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"clashingModules\",\"type\":\"address[]\"},{\"internalType\":\"bytes4[]\",\"name\":\"clashingModulesFuncSelectors\",\"type\":\"bytes4[]\"},{\"internalType\":\"bytes4[]\",\"name\":\"clashingProxyRegistryFuncSelectors\",\"type\":\"bytes4[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"_sig\",\"type\":\"bytes4\"}],\"name\":\"getFuncImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_impl\",\"type\":\"address\"}],\"name\":\"removeModule\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementations\",\"type\":\"address[]\"}],\"name\":\"removeModules\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_oldModuleImpl\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_newModuleImpl\",\"type\":\"address\"}],\"name\":\"replaceModule\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementationsFrom\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"_implementationsTo\",\"type\":\"address[]\"}],\"name\":\"replaceModules\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"addModule(address)\":{\"params\":{\"_impl\":\"Module implementation address\"}},\"addModules(address[])\":{\"params\":{\"_implementations\":\"Modules implementation addresses\"}},\"canAddModule(address)\":{\"params\":{\"_impl\":\"module implementation address to verify\"},\"return\":\"true if module can be added\"},\"canNotAddModules(address[])\":{\"params\":{\"_implementations\":\"modules implementation addresses to verify\"},\"return\":\"True if all modules can be added, false otherwise\"},\"checkClashingFuncSelectors(address)\":{\"params\":{\"_newModule\":\"module implementation which functions to verify\"},\"return\":\"clashing functions signatures and corresponding modules (contracts) addresses\"},\"getFuncImplementation(bytes4)\":{\"params\":{\"_sig\":\"function signature to get impmementation address for\"},\"return\":\"function's contract implelementation address\"},\"removeModule(address)\":{\"params\":{\"_impl\":\"implementation address\"}},\"removeModules(address[])\":{\"params\":{\"_implementations\":\"Modules implementation addresses\"}},\"replaceModule(address,address)\":{\"params\":{\"_newModuleImpl\":\"Module implementation address to add\",\"_oldModuleImpl\":\"Module implementation address to remove\"}},\"replaceModules(address[],address[])\":{\"params\":{\"_implementationsFrom\":\"Modules to replace\",\"_implementationsTo\":\"Replacing modules\"}}}},\"userdoc\":{\"methods\":{\"addModule(address)\":{\"notice\":\"Add module functions. Overriding functions is not allowed. To replace modules use ReplaceModule function.\"},\"addModules(address[])\":{\"notice\":\"Add modules functions.\"},\"canAddModule(address)\":{\"notice\":\"verifies if no functions from the module deployed already registered\"},\"canNotAddModules(address[])\":{\"notice\":\"Multiple modules verification if no functions from the modules already registered\"},\"checkClashingFuncSelectors(address)\":{\"notice\":\"used externally to verify module being added for clashing\"},\"removeModule(address)\":{\"notice\":\"to disable module - set all its functions implementation to address(0)\"},\"removeModules(address[])\":{\"notice\":\"Add modules functions.\"},\"replaceModule(address,address)\":{\"notice\":\"Replace module - remove the previous, add the new one\"},\"replaceModules(address[],address[])\":{\"notice\":\"Add modules functions.\"}},\"notice\":\"ModulesProxyRegistry Interface\"}},\"settings\":{\"compilationTarget\":{\"contracts/proxy/modules/interfaces/IModulesProxyRegistry.sol\":\"IModulesProxyRegistry\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/proxy/modules/interfaces/IModulesProxyRegistry.sol\":{\"keccak256\":\"0xad25d2ce678fbd44d5358480a22d37a6747da3af5375d7d764e5487c9ff6f69e\",\"urls\":[\"bzz-raw://dd4b55705071e57ec1ab022a809a9e56708762f9c2895669b49df249bcd28a97\",\"dweb:/ipfs/QmVjGuUCETATcviudmUoTWMnJgXT3KSuAJYSq1oLYbVEQL\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"moduleAddress\",\"type\":\"address\"}],\"name\":\"AddModule\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"moduleAddress\",\"type\":\"address\"}],\"name\":\"RemoveModule\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"oldAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"name\":\"ReplaceModule\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes4\",\"name\":\"_funcSig\",\"type\":\"bytes4\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldImplementation\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newImplementation\",\"type\":\"address\"}],\"name\":\"SetModuleFuncImplementation\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_impl\",\"type\":\"address\"}],\"name\":\"addModule\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementations\",\"type\":\"address[]\"}],\"name\":\"addModules\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_impl\",\"type\":\"address\"}],\"name\":\"canAddModule\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementations\",\"type\":\"address[]\"}],\"name\":\"canNotAddModules\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"modules\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_newModule\",\"type\":\"address\"}],\"name\":\"checkClashingFuncSelectors\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"clashingModules\",\"type\":\"address[]\"},{\"internalType\":\"bytes4[]\",\"name\":\"clashingModulesFuncSelectors\",\"type\":\"bytes4[]\"},{\"internalType\":\"bytes4[]\",\"name\":\"clashingProxyRegistryFuncSelectors\",\"type\":\"bytes4[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"_sig\",\"type\":\"bytes4\"}],\"name\":\"getFuncImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_impl\",\"type\":\"address\"}],\"name\":\"removeModule\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementations\",\"type\":\"address[]\"}],\"name\":\"removeModules\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_oldModuleImpl\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_newModuleImpl\",\"type\":\"address\"}],\"name\":\"replaceModule\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_implementationsFrom\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"_implementationsTo\",\"type\":\"address[]\"}],\"name\":\"replaceModules\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"addModule(address)\":{\"params\":{\"_impl\":\"Module implementation address\"}},\"addModules(address[])\":{\"params\":{\"_implementations\":\"Modules implementation addresses\"}},\"canAddModule(address)\":{\"params\":{\"_impl\":\"module implementation address to verify\"},\"return\":\"true if module can be added\"},\"canNotAddModules(address[])\":{\"params\":{\"_implementations\":\"modules implementation addresses to verify\"},\"return\":\"True if all modules can be added, false otherwise\"},\"checkClashingFuncSelectors(address)\":{\"params\":{\"_newModule\":\"module implementation which functions to verify\"},\"return\":\"clashing functions signatures and corresponding modules (contracts) addresses\"},\"getFuncImplementation(bytes4)\":{\"params\":{\"_sig\":\"function signature to get impmementation address for\"},\"return\":\"function's contract implelementation address\"},\"removeModule(address)\":{\"params\":{\"_impl\":\"implementation address\"}},\"removeModules(address[])\":{\"params\":{\"_implementations\":\"Modules implementation addresses\"}},\"replaceModule(address,address)\":{\"params\":{\"_newModuleImpl\":\"Module implementation address to add\",\"_oldModuleImpl\":\"Module implementation address to remove\"}},\"replaceModules(address[],address[])\":{\"params\":{\"_implementationsFrom\":\"Modules to replace\",\"_implementationsTo\":\"Replacing modules\"}}}},\"userdoc\":{\"methods\":{\"addModule(address)\":{\"notice\":\"Add module functions. Overriding functions is not allowed. To replace modules use ReplaceModule function.\"},\"addModules(address[])\":{\"notice\":\"Add modules functions.\"},\"canAddModule(address)\":{\"notice\":\"verifies if no functions from the module deployed already registered\"},\"canNotAddModules(address[])\":{\"notice\":\"Multiple modules verification if no functions from the modules already registered\"},\"checkClashingFuncSelectors(address)\":{\"notice\":\"used externally to verify module being added for clashing\"},\"removeModule(address)\":{\"notice\":\"to disable module - set all its functions implementation to address(0)\"},\"removeModules(address[])\":{\"notice\":\"Add modules functions.\"},\"replaceModule(address,address)\":{\"notice\":\"Replace module - remove the previous, add the new one\"},\"replaceModules(address[],address[])\":{\"notice\":\"Add modules functions.\"}},\"notice\":\"ModulesProxyRegistry Interface\"}},\"settings\":{\"compilationTarget\":{\"contracts/proxy/modules/interfaces/IModulesProxyRegistry.sol\":\"IModulesProxyRegistry\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/proxy/modules/interfaces/IModulesProxyRegistry.sol\":{\"keccak256\":\"0xad25d2ce678fbd44d5358480a22d37a6747da3af5375d7d764e5487c9ff6f69e\",\"urls\":[\"bzz-raw://dd4b55705071e57ec1ab022a809a9e56708762f9c2895669b49df249bcd28a97\",\"dweb:/ipfs/QmVjGuUCETATcviudmUoTWMnJgXT3KSuAJYSq1oLYbVEQL\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -630,9 +630,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -660,17 +660,17 @@
   },
   "ast": {
     "absolutePath": "contracts/proxy/modules/interfaces/IModulesProxyRegistry.sol",
-    "id": 57172,
+    "id": 57271,
     "exportedSymbols": {
       "IModulesProxyRegistry": [
-        57171
+        57270
       ]
     },
     "nodeType": "SourceUnit",
     "src": "32:3193:195",
     "nodes": [
       {
-        "id": 57073,
+        "id": 57172,
         "nodeType": "PragmaDirective",
         "src": "32:23:195",
         "nodes": [],
@@ -681,12 +681,12 @@
         ]
       },
       {
-        "id": 57171,
+        "id": 57270,
         "nodeType": "ContractDefinition",
         "src": "100:3124:195",
         "nodes": [
           {
-            "id": 57077,
+            "id": 57176,
             "nodeType": "EventDefinition",
             "src": "137:47:195",
             "nodes": [],
@@ -694,16 +694,16 @@
             "documentation": null,
             "name": "AddModule",
             "parameters": {
-              "id": 57076,
+              "id": 57175,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57075,
+                  "id": 57174,
                   "indexed": true,
                   "name": "moduleAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57077,
+                  "scope": 57176,
                   "src": "153:29:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -712,7 +712,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57074,
+                    "id": 57173,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "153:7:195",
@@ -730,7 +730,7 @@
             }
           },
           {
-            "id": 57083,
+            "id": 57182,
             "nodeType": "EventDefinition",
             "src": "189:76:195",
             "nodes": [],
@@ -738,16 +738,16 @@
             "documentation": null,
             "name": "ReplaceModule",
             "parameters": {
-              "id": 57082,
+              "id": 57181,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57079,
+                  "id": 57178,
                   "indexed": true,
                   "name": "oldAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57083,
+                  "scope": 57182,
                   "src": "209:26:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -756,7 +756,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57078,
+                    "id": 57177,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "209:7:195",
@@ -771,11 +771,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 57081,
+                  "id": 57180,
                   "indexed": true,
                   "name": "newAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57083,
+                  "scope": 57182,
                   "src": "237:26:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -784,7 +784,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57080,
+                    "id": 57179,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "237:7:195",
@@ -802,7 +802,7 @@
             }
           },
           {
-            "id": 57087,
+            "id": 57186,
             "nodeType": "EventDefinition",
             "src": "270:50:195",
             "nodes": [],
@@ -810,16 +810,16 @@
             "documentation": null,
             "name": "RemoveModule",
             "parameters": {
-              "id": 57086,
+              "id": 57185,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57085,
+                  "id": 57184,
                   "indexed": true,
                   "name": "moduleAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57087,
+                  "scope": 57186,
                   "src": "289:29:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -828,7 +828,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57084,
+                    "id": 57183,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "289:7:195",
@@ -846,7 +846,7 @@
             }
           },
           {
-            "id": 57095,
+            "id": 57194,
             "nodeType": "EventDefinition",
             "src": "325:161:195",
             "nodes": [],
@@ -854,16 +854,16 @@
             "documentation": null,
             "name": "SetModuleFuncImplementation",
             "parameters": {
-              "id": 57094,
+              "id": 57193,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57089,
+                  "id": 57188,
                   "indexed": true,
                   "name": "_funcSig",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57095,
+                  "scope": 57194,
                   "src": "368:23:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -872,7 +872,7 @@
                     "typeString": "bytes4"
                   },
                   "typeName": {
-                    "id": 57088,
+                    "id": 57187,
                     "name": "bytes4",
                     "nodeType": "ElementaryTypeName",
                     "src": "368:6:195",
@@ -886,11 +886,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 57091,
+                  "id": 57190,
                   "indexed": true,
                   "name": "_oldImplementation",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57095,
+                  "scope": 57194,
                   "src": "401:34:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -899,7 +899,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57090,
+                    "id": 57189,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "401:7:195",
@@ -914,11 +914,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 57093,
+                  "id": 57192,
                   "indexed": true,
                   "name": "_newImplementation",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57095,
+                  "scope": 57194,
                   "src": "445:34:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -927,7 +927,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57092,
+                    "id": 57191,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "445:7:195",
@@ -945,7 +945,7 @@
             }
           },
           {
-            "id": 57100,
+            "id": 57199,
             "nodeType": "FunctionDefinition",
             "src": "673:43:195",
             "nodes": [],
@@ -955,15 +955,15 @@
             "modifiers": [],
             "name": "addModule",
             "parameters": {
-              "id": 57098,
+              "id": 57197,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57097,
+                  "id": 57196,
                   "name": "_impl",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57100,
+                  "scope": 57199,
                   "src": "692:13:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -972,7 +972,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57096,
+                    "id": 57195,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "692:7:195",
@@ -989,18 +989,18 @@
               "src": "691:15:195"
             },
             "returnParameters": {
-              "id": 57099,
+              "id": 57198,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "715:0:195"
             },
-            "scope": 57171,
+            "scope": 57270,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 57106,
+            "id": 57205,
             "nodeType": "FunctionDefinition",
             "src": "826:66:195",
             "nodes": [],
@@ -1010,15 +1010,15 @@
             "modifiers": [],
             "name": "addModules",
             "parameters": {
-              "id": 57104,
+              "id": 57203,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57103,
+                  "id": 57202,
                   "name": "_implementations",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57106,
+                  "scope": 57205,
                   "src": "846:35:195",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1028,7 +1028,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 57101,
+                      "id": 57200,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "846:7:195",
@@ -1038,7 +1038,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 57102,
+                    "id": 57201,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "846:9:195",
@@ -1054,18 +1054,18 @@
               "src": "845:37:195"
             },
             "returnParameters": {
-              "id": 57105,
+              "id": 57204,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "891:0:195"
             },
-            "scope": 57171,
+            "scope": 57270,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 57113,
+            "id": 57212,
             "nodeType": "FunctionDefinition",
             "src": "1105:80:195",
             "nodes": [],
@@ -1075,15 +1075,15 @@
             "modifiers": [],
             "name": "replaceModule",
             "parameters": {
-              "id": 57111,
+              "id": 57210,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57108,
+                  "id": 57207,
                   "name": "_oldModuleImpl",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57113,
+                  "scope": 57212,
                   "src": "1128:22:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1092,7 +1092,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57107,
+                    "id": 57206,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1128:7:195",
@@ -1107,10 +1107,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 57110,
+                  "id": 57209,
                   "name": "_newModuleImpl",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57113,
+                  "scope": 57212,
                   "src": "1152:22:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1119,7 +1119,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57109,
+                    "id": 57208,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1152:7:195",
@@ -1136,18 +1136,18 @@
               "src": "1127:48:195"
             },
             "returnParameters": {
-              "id": 57112,
+              "id": 57211,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1184:0:195"
             },
-            "scope": 57171,
+            "scope": 57270,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 57122,
+            "id": 57221,
             "nodeType": "FunctionDefinition",
             "src": "1337:135:195",
             "nodes": [],
@@ -1157,15 +1157,15 @@
             "modifiers": [],
             "name": "replaceModules",
             "parameters": {
-              "id": 57120,
+              "id": 57219,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57116,
+                  "id": 57215,
                   "name": "_implementationsFrom",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57122,
+                  "scope": 57221,
                   "src": "1370:39:195",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1175,7 +1175,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 57114,
+                      "id": 57213,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "1370:7:195",
@@ -1185,7 +1185,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 57115,
+                    "id": 57214,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "1370:9:195",
@@ -1199,10 +1199,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 57119,
+                  "id": 57218,
                   "name": "_implementationsTo",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57122,
+                  "scope": 57221,
                   "src": "1419:37:195",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1212,7 +1212,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 57117,
+                      "id": 57216,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "1419:7:195",
@@ -1222,7 +1222,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 57118,
+                    "id": 57217,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "1419:9:195",
@@ -1238,18 +1238,18 @@
               "src": "1360:102:195"
             },
             "returnParameters": {
-              "id": 57121,
+              "id": 57220,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1471:0:195"
             },
-            "scope": 57171,
+            "scope": 57270,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 57127,
+            "id": 57226,
             "nodeType": "FunctionDefinition",
             "src": "1609:46:195",
             "nodes": [],
@@ -1259,15 +1259,15 @@
             "modifiers": [],
             "name": "removeModule",
             "parameters": {
-              "id": 57125,
+              "id": 57224,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57124,
+                  "id": 57223,
                   "name": "_impl",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57127,
+                  "scope": 57226,
                   "src": "1631:13:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1276,7 +1276,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57123,
+                    "id": 57222,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1631:7:195",
@@ -1293,18 +1293,18 @@
               "src": "1630:15:195"
             },
             "returnParameters": {
-              "id": 57126,
+              "id": 57225,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1654:0:195"
             },
-            "scope": 57171,
+            "scope": 57270,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 57133,
+            "id": 57232,
             "nodeType": "FunctionDefinition",
             "src": "1765:69:195",
             "nodes": [],
@@ -1314,15 +1314,15 @@
             "modifiers": [],
             "name": "removeModules",
             "parameters": {
-              "id": 57131,
+              "id": 57230,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57130,
+                  "id": 57229,
                   "name": "_implementations",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57133,
+                  "scope": 57232,
                   "src": "1788:35:195",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1332,7 +1332,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 57128,
+                      "id": 57227,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "1788:7:195",
@@ -1342,7 +1342,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 57129,
+                    "id": 57228,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "1788:9:195",
@@ -1358,18 +1358,18 @@
               "src": "1787:37:195"
             },
             "returnParameters": {
-              "id": 57132,
+              "id": 57231,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1833:0:195"
             },
-            "scope": 57171,
+            "scope": 57270,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 57140,
+            "id": 57239,
             "nodeType": "FunctionDefinition",
             "src": "1974:76:195",
             "nodes": [],
@@ -1379,15 +1379,15 @@
             "modifiers": [],
             "name": "getFuncImplementation",
             "parameters": {
-              "id": 57136,
+              "id": 57235,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57135,
+                  "id": 57234,
                   "name": "_sig",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57140,
+                  "scope": 57239,
                   "src": "2005:11:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1396,7 +1396,7 @@
                     "typeString": "bytes4"
                   },
                   "typeName": {
-                    "id": 57134,
+                    "id": 57233,
                     "name": "bytes4",
                     "nodeType": "ElementaryTypeName",
                     "src": "2005:6:195",
@@ -1412,15 +1412,15 @@
               "src": "2004:13:195"
             },
             "returnParameters": {
-              "id": 57139,
+              "id": 57238,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57138,
+                  "id": 57237,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57140,
+                  "scope": 57239,
                   "src": "2041:7:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1429,7 +1429,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57137,
+                    "id": 57236,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2041:7:195",
@@ -1445,13 +1445,13 @@
               ],
               "src": "2040:9:195"
             },
-            "scope": 57171,
+            "scope": 57270,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 57147,
+            "id": 57246,
             "nodeType": "FunctionDefinition",
             "src": "2246:66:195",
             "nodes": [],
@@ -1461,15 +1461,15 @@
             "modifiers": [],
             "name": "canAddModule",
             "parameters": {
-              "id": 57143,
+              "id": 57242,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57142,
+                  "id": 57241,
                   "name": "_impl",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57147,
+                  "scope": 57246,
                   "src": "2268:13:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1478,7 +1478,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57141,
+                    "id": 57240,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2268:7:195",
@@ -1495,15 +1495,15 @@
               "src": "2267:15:195"
             },
             "returnParameters": {
-              "id": 57146,
+              "id": 57245,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57145,
+                  "id": 57244,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57147,
+                  "scope": 57246,
                   "src": "2306:4:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1512,7 +1512,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 57144,
+                    "id": 57243,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "2306:4:195",
@@ -1527,13 +1527,13 @@
               ],
               "src": "2305:6:195"
             },
-            "scope": 57171,
+            "scope": 57270,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 57156,
+            "id": 57255,
             "nodeType": "FunctionDefinition",
             "src": "2557:136:195",
             "nodes": [],
@@ -1543,15 +1543,15 @@
             "modifiers": [],
             "name": "canNotAddModules",
             "parameters": {
-              "id": 57151,
+              "id": 57250,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57150,
+                  "id": 57249,
                   "name": "_implementations",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57156,
+                  "scope": 57255,
                   "src": "2583:35:195",
                   "stateVariable": false,
                   "storageLocation": "calldata",
@@ -1561,7 +1561,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 57148,
+                      "id": 57247,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "2583:7:195",
@@ -1571,7 +1571,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 57149,
+                    "id": 57248,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "2583:9:195",
@@ -1587,15 +1587,15 @@
               "src": "2582:37:195"
             },
             "returnParameters": {
-              "id": 57155,
+              "id": 57254,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57154,
+                  "id": 57253,
                   "name": "modules",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57156,
+                  "scope": 57255,
                   "src": "2667:24:195",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -1605,7 +1605,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 57152,
+                      "id": 57251,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "2667:7:195",
@@ -1615,7 +1615,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 57153,
+                    "id": 57252,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "2667:9:195",
@@ -1630,13 +1630,13 @@
               ],
               "src": "2666:26:195"
             },
-            "scope": 57171,
+            "scope": 57270,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 57170,
+            "id": 57269,
             "nodeType": "FunctionDefinition",
             "src": "2941:281:195",
             "nodes": [],
@@ -1646,15 +1646,15 @@
             "modifiers": [],
             "name": "checkClashingFuncSelectors",
             "parameters": {
-              "id": 57159,
+              "id": 57258,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57158,
+                  "id": 57257,
                   "name": "_newModule",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57170,
+                  "scope": 57269,
                   "src": "2977:18:195",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1663,7 +1663,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57157,
+                    "id": 57256,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2977:7:195",
@@ -1680,15 +1680,15 @@
               "src": "2976:20:195"
             },
             "returnParameters": {
-              "id": 57169,
+              "id": 57268,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57162,
+                  "id": 57261,
                   "name": "clashingModules",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57170,
+                  "scope": 57269,
                   "src": "3057:32:195",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -1698,7 +1698,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 57160,
+                      "id": 57259,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "3057:7:195",
@@ -1708,7 +1708,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 57161,
+                    "id": 57260,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "3057:9:195",
@@ -1722,10 +1722,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 57165,
+                  "id": 57264,
                   "name": "clashingModulesFuncSelectors",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57170,
+                  "scope": 57269,
                   "src": "3103:44:195",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -1735,7 +1735,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 57163,
+                      "id": 57262,
                       "name": "bytes4",
                       "nodeType": "ElementaryTypeName",
                       "src": "3103:6:195",
@@ -1744,7 +1744,7 @@
                         "typeString": "bytes4"
                       }
                     },
-                    "id": 57164,
+                    "id": 57263,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "3103:8:195",
@@ -1758,10 +1758,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 57168,
+                  "id": 57267,
                   "name": "clashingProxyRegistryFuncSelectors",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57170,
+                  "scope": 57269,
                   "src": "3161:50:195",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -1771,7 +1771,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 57166,
+                      "id": 57265,
                       "name": "bytes4",
                       "nodeType": "ElementaryTypeName",
                       "src": "3161:6:195",
@@ -1780,7 +1780,7 @@
                         "typeString": "bytes4"
                       }
                     },
-                    "id": 57167,
+                    "id": 57266,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "3161:8:195",
@@ -1795,7 +1795,7 @@
               ],
               "src": "3043:178:195"
             },
-            "scope": 57171,
+            "scope": 57270,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
@@ -1807,10 +1807,10 @@
         "documentation": "ModulesProxyRegistry Interface",
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          57171
+          57270
         ],
         "name": "IModulesProxyRegistry",
-        "scope": 57172
+        "scope": 57271
       }
     ]
   },

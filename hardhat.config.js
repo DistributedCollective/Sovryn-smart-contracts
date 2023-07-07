@@ -12,6 +12,7 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
+require("@nomicfoundation/hardhat-foundry");
 
 require("./hardhat/tasks");
 
@@ -100,6 +101,20 @@ module.exports = {
             },
             {
                 version: "0.8.13",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 200,
+                    },
+                    outputSelection: {
+                        "*": {
+                            "*": ["storageLayout"],
+                        },
+                    },
+                },
+            },
+            {
+                version: "0.8.17",
                 settings: {
                     optimizer: {
                         enabled: true,

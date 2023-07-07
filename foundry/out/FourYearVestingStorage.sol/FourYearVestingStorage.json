@@ -321,12 +321,12 @@
     }
   ],
   "bytecode": {
-    "object": "0x608060405260006100176001600160e01b0361006616565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a35061006a565b3390565b61044a806100796000396000f3fe608060405234801561001057600080fd5b506004361061012c5760003560e01c80638da5cb5b116100ad578063cae774b311610071578063cae774b3146101eb578063d0e60a6a146101f3578063d38bd9f0146101fb578063f2fde38b14610203578063f6d6189e146101775761012c565b80638da5cb5b146101af5780638f32d59b146101b7578063a3e67610146101d3578063b06a470c146101db578063c24a0f8b146101e35761012c565b806341c632a6116100f457806341c632a6146101875780634cf088d91461018f578063533a386c146101975780636b7dbb2d1461019f5780638b677b03146101a75761012c565b806308dcb360146101315780630b97bc86146101555780630fb5a6b41461016f57806313d033c0146101775780633c4efe011461017f575b600080fd5b61013961022b565b604080516001600160a01b039092168252519081900360200190f35b61015d61023a565b60408051918252519081900360200190f35b61015d610240565b61015d610248565b61015d61024f565b61015d610255565b61013961025b565b61015d61026a565b610139610270565b61013961027f565b61013961028e565b6101bf61029d565b604080519115158252519081900360200190f35b6101396102c1565b61015d6102d0565b61015d6102d6565b61015d6102dc565b61015d6102e2565b6101396102e8565b6102296004803603602081101561021957600080fd5b50356001600160a01b03166102f7565b005b6001546001600160a01b031681565b60055481565b63059fa60081565b6224ea0081565b60095481565b60085481565b6002546001600160a01b031681565b600a5481565b6004546001600160a01b031681565b600d546001600160a01b031681565b6000546001600160a01b031690565b600080546001600160a01b03166102b261034b565b6001600160a01b031614905090565b6003546001600160a01b031681565b600b5481565b60065481565b60075481565b600e5481565b600c546001600160a01b031681565b6102ff61029d565b61033f576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6103488161034f565b50565b3390565b6001600160a01b0381166103945760405162461bcd60e51b81526004018080602001828103825260268152602001806103f06026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a72315820be6a6916c60a8f149e303ff362301df1c9495b2b183d3ddc2788577d02da17ea64736f6c63430005110032",
+    "object": "0x608060405260006100176001600160e01b0361006616565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a35061006a565b3390565b61044a806100796000396000f3fe608060405234801561001057600080fd5b506004361061012c5760003560e01c80638da5cb5b116100ad578063cae774b311610071578063cae774b3146101eb578063d0e60a6a146101f3578063d38bd9f0146101fb578063f2fde38b14610203578063f6d6189e146101775761012c565b80638da5cb5b146101af5780638f32d59b146101b7578063a3e67610146101d3578063b06a470c146101db578063c24a0f8b146101e35761012c565b806341c632a6116100f457806341c632a6146101875780634cf088d91461018f578063533a386c146101975780636b7dbb2d1461019f5780638b677b03146101a75761012c565b806308dcb360146101315780630b97bc86146101555780630fb5a6b41461016f57806313d033c0146101775780633c4efe011461017f575b600080fd5b61013961022b565b604080516001600160a01b039092168252519081900360200190f35b61015d61023a565b60408051918252519081900360200190f35b61015d610240565b61015d610248565b61015d61024f565b61015d610255565b61013961025b565b61015d61026a565b610139610270565b61013961027f565b61013961028e565b6101bf61029d565b604080519115158252519081900360200190f35b6101396102c1565b61015d6102d0565b61015d6102d6565b61015d6102dc565b61015d6102e2565b6101396102e8565b6102296004803603602081101561021957600080fd5b50356001600160a01b03166102f7565b005b6001546001600160a01b031681565b60055481565b63059fa60081565b6224ea0081565b60095481565b60085481565b6002546001600160a01b031681565b600a5481565b6004546001600160a01b031681565b600d546001600160a01b031681565b6000546001600160a01b031690565b600080546001600160a01b03166102b261034b565b6001600160a01b031614905090565b6003546001600160a01b031681565b600b5481565b60065481565b60075481565b600e5481565b600c546001600160a01b031681565b6102ff61029d565b61033f576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6103488161034f565b50565b3390565b6001600160a01b0381166103945760405162461bcd60e51b81526004018080602001828103825260268152602001806103f06026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a7231582045318b78d45b5547355fbfdd5e1a39d6b16137c678351816bbb034a73318061564736f6c63430005110032",
     "sourceMap": "491:1817:101:-;;;701:17:184;721:12;-1:-1:-1;;;;;721:10:184;:12;:::i;:::-;743:6;:18;;-1:-1:-1;;;;;;743:18:184;-1:-1:-1;;;;;743:18:184;;;;;;;776:43;;743:18;;-1:-1:-1;743:18:184;776:43;;743:6;;776:43;668:158;491:1817:101;;795:96:179;874:10;795:96;:::o;491:1817:101:-;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x608060405234801561001057600080fd5b506004361061012c5760003560e01c80638da5cb5b116100ad578063cae774b311610071578063cae774b3146101eb578063d0e60a6a146101f3578063d38bd9f0146101fb578063f2fde38b14610203578063f6d6189e146101775761012c565b80638da5cb5b146101af5780638f32d59b146101b7578063a3e67610146101d3578063b06a470c146101db578063c24a0f8b146101e35761012c565b806341c632a6116100f457806341c632a6146101875780634cf088d91461018f578063533a386c146101975780636b7dbb2d1461019f5780638b677b03146101a75761012c565b806308dcb360146101315780630b97bc86146101555780630fb5a6b41461016f57806313d033c0146101775780633c4efe011461017f575b600080fd5b61013961022b565b604080516001600160a01b039092168252519081900360200190f35b61015d61023a565b60408051918252519081900360200190f35b61015d610240565b61015d610248565b61015d61024f565b61015d610255565b61013961025b565b61015d61026a565b610139610270565b61013961027f565b61013961028e565b6101bf61029d565b604080519115158252519081900360200190f35b6101396102c1565b61015d6102d0565b61015d6102d6565b61015d6102dc565b61015d6102e2565b6101396102e8565b6102296004803603602081101561021957600080fd5b50356001600160a01b03166102f7565b005b6001546001600160a01b031681565b60055481565b63059fa60081565b6224ea0081565b60095481565b60085481565b6002546001600160a01b031681565b600a5481565b6004546001600160a01b031681565b600d546001600160a01b031681565b6000546001600160a01b031690565b600080546001600160a01b03166102b261034b565b6001600160a01b031614905090565b6003546001600160a01b031681565b600b5481565b60065481565b60075481565b600e5481565b600c546001600160a01b031681565b6102ff61029d565b61033f576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6103488161034f565b50565b3390565b6001600160a01b0381166103945760405162461bcd60e51b81526004018080602001828103825260268152602001806103f06026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a72315820be6a6916c60a8f149e303ff362301df1c9495b2b183d3ddc2788577d02da17ea64736f6c63430005110032",
+    "object": "0x608060405234801561001057600080fd5b506004361061012c5760003560e01c80638da5cb5b116100ad578063cae774b311610071578063cae774b3146101eb578063d0e60a6a146101f3578063d38bd9f0146101fb578063f2fde38b14610203578063f6d6189e146101775761012c565b80638da5cb5b146101af5780638f32d59b146101b7578063a3e67610146101d3578063b06a470c146101db578063c24a0f8b146101e35761012c565b806341c632a6116100f457806341c632a6146101875780634cf088d91461018f578063533a386c146101975780636b7dbb2d1461019f5780638b677b03146101a75761012c565b806308dcb360146101315780630b97bc86146101555780630fb5a6b41461016f57806313d033c0146101775780633c4efe011461017f575b600080fd5b61013961022b565b604080516001600160a01b039092168252519081900360200190f35b61015d61023a565b60408051918252519081900360200190f35b61015d610240565b61015d610248565b61015d61024f565b61015d610255565b61013961025b565b61015d61026a565b610139610270565b61013961027f565b61013961028e565b6101bf61029d565b604080519115158252519081900360200190f35b6101396102c1565b61015d6102d0565b61015d6102d6565b61015d6102dc565b61015d6102e2565b6101396102e8565b6102296004803603602081101561021957600080fd5b50356001600160a01b03166102f7565b005b6001546001600160a01b031681565b60055481565b63059fa60081565b6224ea0081565b60095481565b60085481565b6002546001600160a01b031681565b600a5481565b6004546001600160a01b031681565b600d546001600160a01b031681565b6000546001600160a01b031690565b600080546001600160a01b03166102b261034b565b6001600160a01b031614905090565b6003546001600160a01b031681565b600b5481565b60065481565b60075481565b600e5481565b600c546001600160a01b031681565b6102ff61029d565b61033f576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6103488161034f565b50565b3390565b6001600160a01b0381166103945760405162461bcd60e51b81526004018080602001828103825260268152602001806103f06026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a7231582045318b78d45b5547355fbfdd5e1a39d6b16137c678351816bbb034a73318061564736f6c63430005110032",
     "sourceMap": "491:1817:101:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;491:1817:101;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;580:17;;;:::i;:::-;;;;-1:-1:-1;;;;;580:17:101;;;;;;;;;;;;;;1245:24;;;:::i;:::-;;;;;;;;;;;;;;;;1147:44;;;:::i;1017:39::-;;;:::i;1699:35::-;;;:::i;1606:34::-;;;:::i;650:23::-;;;:::i;1773:27::-;;;:::i;795:47::-;;;:::i;1995:32::-;;;:::i;902:77:184:-;;;:::i;1233:92::-;;;:::i;:::-;;;;;;;;;;;;;;;;;;728:25:101;;;:::i;1837:::-;;;:::i;1321:22::-;;;:::i;1523:26::-;;;:::i;2127:32::-;;;:::i;1913:28::-;;;:::i;1474:107:184:-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1474:107:184;-1:-1:-1;;;;;1474:107:184;;:::i;:::-;;580:17:101;;;-1:-1:-1;;;;;580:17:101;;:::o;1245:24::-;;;;:::o;1147:44::-;1182:9;1147:44;:::o;1017:39::-;1049:7;1017:39;:::o;1699:35::-;;;;:::o;1606:34::-;;;;:::o;650:23::-;;;-1:-1:-1;;;;;650:23:101;;:::o;1773:27::-;;;;:::o;795:47::-;;;-1:-1:-1;;;;;795:47:101;;:::o;1995:32::-;;;-1:-1:-1;;;;;1995:32:101;;:::o;902:77:184:-;940:7;966:6;-1:-1:-1;;;;;966:6:184;902:77;:::o;1233:92::-;1273:4;1312:6;;-1:-1:-1;;;;;1312:6:184;1296:12;:10;:12::i;:::-;-1:-1:-1;;;;;1296:22:184;;1289:29;;1233:92;:::o;728:25:101:-;;;-1:-1:-1;;;;;728:25:101;;:::o;1837:::-;;;;:::o;1321:22::-;;;;:::o;1523:26::-;;;;:::o;2127:32::-;;;;:::o;1913:28::-;;;-1:-1:-1;;;;;1913:28:101;;:::o;1474:107:184:-;1106:9;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;1546:28;1565:8;1546:18;:28::i;:::-;1474:107;:::o;795:96:179:-;874:10;795:96;:::o;1682:225:184:-;-1:-1:-1;;;;;1755:22:184;;1747:73;;;;-1:-1:-1;;;1747:73:184;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1856:6;;;1835:38;;-1:-1:-1;;;;;1835:38:184;;;;1856:6;;;1835:38;;;1883:6;:17;;-1:-1:-1;;;;;;1883:17:184;-1:-1:-1;;;;;1883:17:184;;;;;;;;;;1682:225::o",
     "linkReferences": {}
   },
@@ -352,7 +352,7 @@
     "tokenOwner()": "a3e67610",
     "transferOwnership(address)": "f2fde38b"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"FOUR_WEEKS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOV\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"cliff\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"cliffAdded\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"durationLeft\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"endDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"extendDurationFor\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"feeSharingCollector\",\"outputs\":[{\"internalType\":\"contract IFeeSharingCollector\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lastStakingSchedule\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"maxInterval\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"newImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"newTokenOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"remainingStakeAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"staking\",\"outputs\":[{\"internalType\":\"contract IStaking\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"startDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"tokenOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Use Ownable as a parent to align storage structure for Logic and Proxy contracts.\",\"methods\":{\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Four Year Vesting Storage Contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract is just the storage required for four year vesting. It is parent of FourYearVestingLogic and FourYearVesting.\"}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/fouryear/FourYearVestingStorage.sol\":\"FourYearVestingStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/IFeeSharingCollector.sol\":{\"keccak256\":\"0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40\",\"urls\":[\"bzz-raw://b9ed75fd4b75f120ed265e7b69d86ce6e62388a50f38058e2fa34f5ea3ffcc2e\",\"dweb:/ipfs/QmZbMA6F4FxhcAT4zTc521LLRbZxFVVuD3zzj981awpDmp\"]},\"contracts/governance/Staking/interfaces/IStaking.sol\":{\"keccak256\":\"0x6777e38b4bd5a63e10f3bf7aba355401713bb649811c6dfa1bda40ebd8fee30b\",\"urls\":[\"bzz-raw://676e42641fb1d335dde7bb928779014ff2adf1eb1121f48a4a48e36f571287d4\",\"dweb:/ipfs/QmamokattcaQ6gRGaqUDVZejcv4rridScd9nayGcxxW1BL\"]},\"contracts/governance/Vesting/fouryear/FourYearVestingStorage.sol\":{\"keccak256\":\"0xaa0878f6e0b832a33b5cf8b56a516eb39272d3e1e5434ce798b30a346ab66cc0\",\"urls\":[\"bzz-raw://a45ea8d65613edeb5c1c8ac66e8f401c203da73437dbe02eb566d2c074ccb0f3\",\"dweb:/ipfs/QmYkBxWZ9W78bRsEtSKHTpANAJyGgEisBwEPmc73M6XSkk\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"FOUR_WEEKS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOV\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"cliff\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"cliffAdded\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"durationLeft\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"endDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"extendDurationFor\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"feeSharingCollector\",\"outputs\":[{\"internalType\":\"contract IFeeSharingCollector\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lastStakingSchedule\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"maxInterval\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"newImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"newTokenOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"remainingStakeAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"staking\",\"outputs\":[{\"internalType\":\"contract IStaking\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"startDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"tokenOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Use Ownable as a parent to align storage structure for Logic and Proxy contracts.\",\"methods\":{\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Four Year Vesting Storage Contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract is just the storage required for four year vesting. It is parent of FourYearVestingLogic and FourYearVesting.\"}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/fouryear/FourYearVestingStorage.sol\":\"FourYearVestingStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/IFeeSharingCollector.sol\":{\"keccak256\":\"0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40\",\"urls\":[\"bzz-raw://b9ed75fd4b75f120ed265e7b69d86ce6e62388a50f38058e2fa34f5ea3ffcc2e\",\"dweb:/ipfs/QmZbMA6F4FxhcAT4zTc521LLRbZxFVVuD3zzj981awpDmp\"]},\"contracts/governance/Staking/interfaces/IStaking.sol\":{\"keccak256\":\"0x91c38931d2bc625ced52bfe0bedd0d9ad412d032d9841124a98e17cfcb9f646b\",\"urls\":[\"bzz-raw://d5a533e8c8ee3a08689d9a2c2975ee35b53fa75ed2078821e718019b0b63f861\",\"dweb:/ipfs/QmdT45TJBwSrD6vL87kN1hWSXdujM85sQcejWeRr4L1ztr\"]},\"contracts/governance/Vesting/fouryear/FourYearVestingStorage.sol\":{\"keccak256\":\"0xaa0878f6e0b832a33b5cf8b56a516eb39272d3e1e5434ce798b30a346ab66cc0\",\"urls\":[\"bzz-raw://a45ea8d65613edeb5c1c8ac66e8f401c203da73437dbe02eb566d2c074ccb0f3\",\"dweb:/ipfs/QmYkBxWZ9W78bRsEtSKHTpANAJyGgEisBwEPmc73M6XSkk\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -660,9 +660,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -686,10 +686,10 @@
         "license": null
       },
       "contracts/governance/Staking/interfaces/IStaking.sol": {
-        "keccak256": "0x6777e38b4bd5a63e10f3bf7aba355401713bb649811c6dfa1bda40ebd8fee30b",
+        "keccak256": "0x91c38931d2bc625ced52bfe0bedd0d9ad412d032d9841124a98e17cfcb9f646b",
         "urls": [
-          "bzz-raw://676e42641fb1d335dde7bb928779014ff2adf1eb1121f48a4a48e36f571287d4",
-          "dweb:/ipfs/QmamokattcaQ6gRGaqUDVZejcv4rridScd9nayGcxxW1BL"
+          "bzz-raw://d5a533e8c8ee3a08689d9a2c2975ee35b53fa75ed2078821e718019b0b63f861",
+          "dweb:/ipfs/QmdT45TJBwSrD6vL87kN1hWSXdujM85sQcejWeRr4L1ztr"
         ],
         "license": null
       },
@@ -730,17 +730,17 @@
   },
   "ast": {
     "absolutePath": "contracts/governance/Vesting/fouryear/FourYearVestingStorage.sol",
-    "id": 32132,
+    "id": 32231,
     "exportedSymbols": {
       "FourYearVestingStorage": [
-        32131
+        32230
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:2309:101",
     "nodes": [
       {
-        "id": 32087,
+        "id": 32186,
         "nodeType": "PragmaDirective",
         "src": "0:24:101",
         "nodes": [],
@@ -752,81 +752,81 @@
         ]
       },
       {
-        "id": 32088,
+        "id": 32187,
         "nodeType": "ImportDirective",
         "src": "26:43:101",
         "nodes": [],
         "absolutePath": "contracts/openzeppelin/Ownable.sol",
         "file": "../../../openzeppelin/Ownable.sol",
-        "scope": 32132,
-        "sourceUnit": 55145,
+        "scope": 32231,
+        "sourceUnit": 55244,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 32089,
+        "id": 32188,
         "nodeType": "ImportDirective",
         "src": "70:40:101",
         "nodes": [],
         "absolutePath": "contracts/interfaces/IERC20.sol",
         "file": "../../../interfaces/IERC20.sol",
-        "scope": 32132,
-        "sourceUnit": 32312,
+        "scope": 32231,
+        "sourceUnit": 32411,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 32090,
+        "id": 32189,
         "nodeType": "ImportDirective",
         "src": "111:47:101",
         "nodes": [],
         "absolutePath": "contracts/governance/Staking/interfaces/IStaking.sol",
         "file": "../../Staking/interfaces/IStaking.sol",
-        "scope": 32132,
-        "sourceUnit": 16883,
+        "scope": 32231,
+        "sourceUnit": 16982,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 32091,
+        "id": 32190,
         "nodeType": "ImportDirective",
         "src": "159:40:101",
         "nodes": [],
         "absolutePath": "contracts/governance/IFeeSharingCollector.sol",
         "file": "../../IFeeSharingCollector.sol",
-        "scope": 32132,
-        "sourceUnit": 16048,
+        "scope": 32231,
+        "sourceUnit": 16137,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 32131,
+        "id": 32230,
         "nodeType": "ContractDefinition",
         "src": "491:1817:101",
         "nodes": [
           {
-            "id": 32095,
+            "id": 32194,
             "nodeType": "VariableDeclaration",
             "src": "580:17:101",
             "nodes": [],
             "constant": false,
             "name": "SOV",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IERC20_$32311",
+              "typeIdentifier": "t_contract$_IERC20_$32410",
               "typeString": "contract IERC20"
             },
             "typeName": {
               "contractScope": null,
-              "id": 32094,
+              "id": 32193,
               "name": "IERC20",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 32311,
+              "referencedDeclaration": 32410,
               "src": "580:6:101",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IERC20_$32311",
+                "typeIdentifier": "t_contract$_IERC20_$32410",
                 "typeString": "contract IERC20"
               }
             },
@@ -834,28 +834,28 @@
             "visibility": "public"
           },
           {
-            "id": 32097,
+            "id": 32196,
             "nodeType": "VariableDeclaration",
             "src": "650:23:101",
             "nodes": [],
             "constant": false,
             "name": "staking",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IStaking_$16882",
+              "typeIdentifier": "t_contract$_IStaking_$16981",
               "typeString": "contract IStaking"
             },
             "typeName": {
               "contractScope": null,
-              "id": 32096,
+              "id": 32195,
               "name": "IStaking",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 16882,
+              "referencedDeclaration": 16981,
               "src": "650:8:101",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IStaking_$16882",
+                "typeIdentifier": "t_contract$_IStaking_$16981",
                 "typeString": "contract IStaking"
               }
             },
@@ -863,13 +863,13 @@
             "visibility": "public"
           },
           {
-            "id": 32099,
+            "id": 32198,
             "nodeType": "VariableDeclaration",
             "src": "728:25:101",
             "nodes": [],
             "constant": false,
             "name": "tokenOwner",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -877,7 +877,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 32098,
+              "id": 32197,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "728:7:101",
@@ -891,28 +891,28 @@
             "visibility": "public"
           },
           {
-            "id": 32101,
+            "id": 32200,
             "nodeType": "VariableDeclaration",
             "src": "795:47:101",
             "nodes": [],
             "constant": false,
             "name": "feeSharingCollector",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IFeeSharingCollector_$16047",
+              "typeIdentifier": "t_contract$_IFeeSharingCollector_$16136",
               "typeString": "contract IFeeSharingCollector"
             },
             "typeName": {
               "contractScope": null,
-              "id": 32100,
+              "id": 32199,
               "name": "IFeeSharingCollector",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 16047,
+              "referencedDeclaration": 16136,
               "src": "795:20:101",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IFeeSharingCollector_$16047",
+                "typeIdentifier": "t_contract$_IFeeSharingCollector_$16136",
                 "typeString": "contract IFeeSharingCollector"
               }
             },
@@ -920,13 +920,13 @@
             "visibility": "public"
           },
           {
-            "id": 32104,
+            "id": 32203,
             "nodeType": "VariableDeclaration",
             "src": "1017:39:101",
             "nodes": [],
             "constant": true,
             "name": "cliff",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -934,7 +934,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32102,
+              "id": 32201,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1017:7:101",
@@ -946,7 +946,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "34",
-              "id": 32103,
+              "id": 32202,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -964,13 +964,13 @@
             "visibility": "public"
           },
           {
-            "id": 32107,
+            "id": 32206,
             "nodeType": "VariableDeclaration",
             "src": "1147:44:101",
             "nodes": [],
             "constant": true,
             "name": "duration",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -978,7 +978,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32105,
+              "id": 32204,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1147:7:101",
@@ -990,7 +990,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "313536",
-              "id": 32106,
+              "id": 32205,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1008,13 +1008,13 @@
             "visibility": "public"
           },
           {
-            "id": 32109,
+            "id": 32208,
             "nodeType": "VariableDeclaration",
             "src": "1245:24:101",
             "nodes": [],
             "constant": false,
             "name": "startDate",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1022,7 +1022,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32108,
+              "id": 32207,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1245:7:101",
@@ -1035,13 +1035,13 @@
             "visibility": "public"
           },
           {
-            "id": 32111,
+            "id": 32210,
             "nodeType": "VariableDeclaration",
             "src": "1321:22:101",
             "nodes": [],
             "constant": false,
             "name": "endDate",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1049,7 +1049,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32110,
+              "id": 32209,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1321:7:101",
@@ -1062,13 +1062,13 @@
             "visibility": "public"
           },
           {
-            "id": 32114,
+            "id": 32213,
             "nodeType": "VariableDeclaration",
             "src": "1413:44:101",
             "nodes": [],
             "constant": true,
             "name": "FOUR_WEEKS",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1076,7 +1076,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32112,
+              "id": 32211,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1413:7:101",
@@ -1088,7 +1088,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "34",
-              "id": 32113,
+              "id": 32212,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1106,13 +1106,13 @@
             "visibility": "public"
           },
           {
-            "id": 32116,
+            "id": 32215,
             "nodeType": "VariableDeclaration",
             "src": "1523:26:101",
             "nodes": [],
             "constant": false,
             "name": "maxInterval",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1120,7 +1120,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32115,
+              "id": 32214,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1523:7:101",
@@ -1133,13 +1133,13 @@
             "visibility": "public"
           },
           {
-            "id": 32118,
+            "id": 32217,
             "nodeType": "VariableDeclaration",
             "src": "1606:34:101",
             "nodes": [],
             "constant": false,
             "name": "lastStakingSchedule",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1147,7 +1147,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32117,
+              "id": 32216,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1606:7:101",
@@ -1160,13 +1160,13 @@
             "visibility": "public"
           },
           {
-            "id": 32120,
+            "id": 32219,
             "nodeType": "VariableDeclaration",
             "src": "1699:35:101",
             "nodes": [],
             "constant": false,
             "name": "remainingStakeAmount",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1174,7 +1174,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32119,
+              "id": 32218,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1699:7:101",
@@ -1187,13 +1187,13 @@
             "visibility": "public"
           },
           {
-            "id": 32122,
+            "id": 32221,
             "nodeType": "VariableDeclaration",
             "src": "1773:27:101",
             "nodes": [],
             "constant": false,
             "name": "durationLeft",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1201,7 +1201,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32121,
+              "id": 32220,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1773:7:101",
@@ -1214,13 +1214,13 @@
             "visibility": "public"
           },
           {
-            "id": 32124,
+            "id": 32223,
             "nodeType": "VariableDeclaration",
             "src": "1837:25:101",
             "nodes": [],
             "constant": false,
             "name": "cliffAdded",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1228,7 +1228,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32123,
+              "id": 32222,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1837:7:101",
@@ -1241,13 +1241,13 @@
             "visibility": "public"
           },
           {
-            "id": 32126,
+            "id": 32225,
             "nodeType": "VariableDeclaration",
             "src": "1913:28:101",
             "nodes": [],
             "constant": false,
             "name": "newTokenOwner",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1255,7 +1255,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 32125,
+              "id": 32224,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "1913:7:101",
@@ -1269,13 +1269,13 @@
             "visibility": "public"
           },
           {
-            "id": 32128,
+            "id": 32227,
             "nodeType": "VariableDeclaration",
             "src": "1995:32:101",
             "nodes": [],
             "constant": false,
             "name": "newImplementation",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1283,7 +1283,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 32127,
+              "id": 32226,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "1995:7:101",
@@ -1297,13 +1297,13 @@
             "visibility": "public"
           },
           {
-            "id": 32130,
+            "id": 32229,
             "nodeType": "VariableDeclaration",
             "src": "2127:32:101",
             "nodes": [],
             "constant": false,
             "name": "extendDurationFor",
-            "scope": 32131,
+            "scope": 32230,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1311,7 +1311,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 32129,
+              "id": 32228,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "2127:7:101",
@@ -1329,35 +1329,35 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 32092,
+              "id": 32191,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 55144,
+              "referencedDeclaration": 55243,
               "src": "526:7:101",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$55144",
+                "typeIdentifier": "t_contract$_Ownable_$55243",
                 "typeString": "contract Ownable"
               }
             },
-            "id": 32093,
+            "id": 32192,
             "nodeType": "InheritanceSpecifier",
             "src": "526:7:101"
           }
         ],
         "contractDependencies": [
-          54471,
-          55144
+          54570,
+          55243
         ],
         "contractKind": "contract",
         "documentation": "@title Four Year Vesting Storage Contract.\n * @notice This contract is just the storage required for four year vesting.\nIt is parent of FourYearVestingLogic and FourYearVesting.\n * @dev Use Ownable as a parent to align storage structure for Logic and Proxy contracts.\n",
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          32131,
-          55144,
-          54471
+          32230,
+          55243,
+          54570
         ],
         "name": "FourYearVestingStorage",
-        "scope": 32132
+        "scope": 32231
       }
     ]
   },

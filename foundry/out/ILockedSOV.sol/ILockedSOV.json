@@ -152,7 +152,7 @@
     "getUnlockedBalance(address)": "129de5bf",
     "withdrawAndStakeTokensFrom(address)": "2b6df82a"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"cliff\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_sovAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_basisPoint\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_sovAmount\",\"type\":\"uint256\"}],\"name\":\"depositSOV\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_addr\",\"type\":\"address\"}],\"name\":\"getLockedBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_balance\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_addr\",\"type\":\"address\"}],\"name\":\"getUnlockedBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_balance\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userAddress\",\"type\":\"address\"}],\"name\":\"withdrawAndStakeTokensFrom\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Franklin Richards - powerhousefrank@protonmail.com\",\"details\":\"Only use it if you know what you are doing.\",\"methods\":{\"deposit(address,uint256,uint256)\":{\"params\":{\"_basisPoint\":\"The % (in Basis Point)which determines how much will be unlocked immediately.\",\"_sovAmount\":\"The amount of SOV to be added to the locked and/or unlocked balance.\",\"_userAddress\":\"The user whose locked balance has to be updated with `_sovAmount`.\"}},\"depositSOV(address,uint256)\":{\"params\":{\"_sovAmount\":\"The amount of SOV to be added to the locked balance.\",\"_userAddress\":\"The user whose locked balance has to be updated with _sovAmount.\"}},\"withdrawAndStakeTokensFrom(address)\":{\"params\":{\"_userAddress\":\"The address of user tokens will be withdrawn.\"}}},\"title\":\"The Locked SOV Interface.\"},\"userdoc\":{\"methods\":{\"deposit(address,uint256,uint256)\":{\"notice\":\"Adds SOV to the user balance (Locked and Unlocked Balance based on `_basisPoint`).\"},\"depositSOV(address,uint256)\":{\"notice\":\"Adds SOV to the locked balance of a user.\"},\"withdrawAndStakeTokensFrom(address)\":{\"notice\":\"Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.\"}},\"notice\":\"This interface is an incomplete yet useful for future migration of LockedSOV Contract.\"}},\"settings\":{\"compilationTarget\":{\"contracts/locked/ILockedSOV.sol\":\"ILockedSOV\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/locked/ILockedSOV.sol\":{\"keccak256\":\"0x2ecf9d6c3704b4210b86d15a35650b34a1c44d0fb57795668fd2b2b4eab6104f\",\"urls\":[\"bzz-raw://eaaa0dffb62e76ea397dc90b6a9e5ba497950ee1e57a97e6537a5b02ee045312\",\"dweb:/ipfs/QmaihaZugWsrSQttSprvThscmPrFhUj4gxTry94TNMx386\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"cliff\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_sovAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_basisPoint\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_sovAmount\",\"type\":\"uint256\"}],\"name\":\"depositSOV\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_addr\",\"type\":\"address\"}],\"name\":\"getLockedBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_balance\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_addr\",\"type\":\"address\"}],\"name\":\"getUnlockedBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_balance\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userAddress\",\"type\":\"address\"}],\"name\":\"withdrawAndStakeTokensFrom\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Franklin Richards - powerhousefrank@protonmail.com\",\"details\":\"Only use it if you know what you are doing.\",\"methods\":{\"deposit(address,uint256,uint256)\":{\"params\":{\"_basisPoint\":\"The % (in Basis Point)which determines how much will be unlocked immediately.\",\"_sovAmount\":\"The amount of SOV to be added to the locked and/or unlocked balance.\",\"_userAddress\":\"The user whose locked balance has to be updated with `_sovAmount`.\"}},\"depositSOV(address,uint256)\":{\"params\":{\"_sovAmount\":\"The amount of SOV to be added to the locked balance.\",\"_userAddress\":\"The user whose locked balance has to be updated with _sovAmount.\"}},\"withdrawAndStakeTokensFrom(address)\":{\"params\":{\"_userAddress\":\"The address of user tokens will be withdrawn.\"}}},\"title\":\"The Locked SOV Interface.\"},\"userdoc\":{\"methods\":{\"deposit(address,uint256,uint256)\":{\"notice\":\"Adds SOV to the user balance (Locked and Unlocked Balance based on `_basisPoint`).\"},\"depositSOV(address,uint256)\":{\"notice\":\"Adds SOV to the locked balance of a user.\"},\"withdrawAndStakeTokensFrom(address)\":{\"notice\":\"Withdraws unlocked tokens and Stakes Locked tokens for a user who already have a vesting created.\"}},\"notice\":\"This interface is an incomplete yet useful for future migration of LockedSOV Contract.\"}},\"settings\":{\"compilationTarget\":{\"contracts/locked/ILockedSOV.sol\":\"ILockedSOV\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/locked/ILockedSOV.sol\":{\"keccak256\":\"0x2ecf9d6c3704b4210b86d15a35650b34a1c44d0fb57795668fd2b2b4eab6104f\",\"urls\":[\"bzz-raw://eaaa0dffb62e76ea397dc90b6a9e5ba497950ee1e57a97e6537a5b02ee045312\",\"dweb:/ipfs/QmaihaZugWsrSQttSprvThscmPrFhUj4gxTry94TNMx386\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -316,9 +316,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -346,17 +346,17 @@
   },
   "ast": {
     "absolutePath": "contracts/locked/ILockedSOV.sol",
-    "id": 34084,
+    "id": 34183,
     "exportedSymbols": {
       "ILockedSOV": [
-        34083
+        34182
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:1727:116",
     "nodes": [
       {
-        "id": 34037,
+        "id": 34136,
         "nodeType": "PragmaDirective",
         "src": "0:24:116",
         "nodes": [],
@@ -368,12 +368,12 @@
         ]
       },
       {
-        "id": 34083,
+        "id": 34182,
         "nodeType": "ContractDefinition",
         "src": "286:1440:116",
         "nodes": [
           {
-            "id": 34046,
+            "id": 34145,
             "nodeType": "FunctionDefinition",
             "src": "719:119:116",
             "nodes": [],
@@ -383,15 +383,15 @@
             "modifiers": [],
             "name": "deposit",
             "parameters": {
-              "id": 34044,
+              "id": 34143,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 34039,
+                  "id": 34138,
                   "name": "_userAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34046,
+                  "scope": 34145,
                   "src": "745:20:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -400,7 +400,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 34038,
+                    "id": 34137,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "745:7:116",
@@ -415,10 +415,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 34041,
+                  "id": 34140,
                   "name": "_sovAmount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34046,
+                  "scope": 34145,
                   "src": "775:18:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -427,7 +427,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 34040,
+                    "id": 34139,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "775:7:116",
@@ -441,10 +441,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 34043,
+                  "id": 34142,
                   "name": "_basisPoint",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34046,
+                  "scope": 34145,
                   "src": "803:19:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -453,7 +453,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 34042,
+                    "id": 34141,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "803:7:116",
@@ -469,18 +469,18 @@
               "src": "735:93:116"
             },
             "returnParameters": {
-              "id": 34045,
+              "id": 34144,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "837:0:116"
             },
-            "scope": 34083,
+            "scope": 34182,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 34053,
+            "id": 34152,
             "nodeType": "FunctionDefinition",
             "src": "1087:71:116",
             "nodes": [],
@@ -490,15 +490,15 @@
             "modifiers": [],
             "name": "depositSOV",
             "parameters": {
-              "id": 34051,
+              "id": 34150,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 34048,
+                  "id": 34147,
                   "name": "_userAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34053,
+                  "scope": 34152,
                   "src": "1107:20:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -507,7 +507,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 34047,
+                    "id": 34146,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1107:7:116",
@@ -522,10 +522,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 34050,
+                  "id": 34149,
                   "name": "_sovAmount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34053,
+                  "scope": 34152,
                   "src": "1129:18:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -534,7 +534,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 34049,
+                    "id": 34148,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1129:7:116",
@@ -550,18 +550,18 @@
               "src": "1106:42:116"
             },
             "returnParameters": {
-              "id": 34052,
+              "id": 34151,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1157:0:116"
             },
-            "scope": 34083,
+            "scope": 34182,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 34058,
+            "id": 34157,
             "nodeType": "FunctionDefinition",
             "src": "1366:67:116",
             "nodes": [],
@@ -571,15 +571,15 @@
             "modifiers": [],
             "name": "withdrawAndStakeTokensFrom",
             "parameters": {
-              "id": 34056,
+              "id": 34155,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 34055,
+                  "id": 34154,
                   "name": "_userAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34058,
+                  "scope": 34157,
                   "src": "1402:20:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -588,7 +588,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 34054,
+                    "id": 34153,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1402:7:116",
@@ -605,18 +605,18 @@
               "src": "1401:22:116"
             },
             "returnParameters": {
-              "id": 34057,
+              "id": 34156,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1432:0:116"
             },
-            "scope": 34083,
+            "scope": 34182,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 34063,
+            "id": 34162,
             "nodeType": "FunctionDefinition",
             "src": "1439:49:116",
             "nodes": [],
@@ -626,21 +626,21 @@
             "modifiers": [],
             "name": "cliff",
             "parameters": {
-              "id": 34059,
+              "id": 34158,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1453:2:116"
             },
             "returnParameters": {
-              "id": 34062,
+              "id": 34161,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 34061,
+                  "id": 34160,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34063,
+                  "scope": 34162,
                   "src": "1479:7:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -649,7 +649,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 34060,
+                    "id": 34159,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1479:7:116",
@@ -664,13 +664,13 @@
               ],
               "src": "1478:9:116"
             },
-            "scope": 34083,
+            "scope": 34182,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 34068,
+            "id": 34167,
             "nodeType": "FunctionDefinition",
             "src": "1494:52:116",
             "nodes": [],
@@ -680,21 +680,21 @@
             "modifiers": [],
             "name": "duration",
             "parameters": {
-              "id": 34064,
+              "id": 34163,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1511:2:116"
             },
             "returnParameters": {
-              "id": 34067,
+              "id": 34166,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 34066,
+                  "id": 34165,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34068,
+                  "scope": 34167,
                   "src": "1537:7:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -703,7 +703,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 34065,
+                    "id": 34164,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1537:7:116",
@@ -718,13 +718,13 @@
               ],
               "src": "1536:9:116"
             },
-            "scope": 34083,
+            "scope": 34182,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 34075,
+            "id": 34174,
             "nodeType": "FunctionDefinition",
             "src": "1552:82:116",
             "nodes": [],
@@ -734,15 +734,15 @@
             "modifiers": [],
             "name": "getLockedBalance",
             "parameters": {
-              "id": 34071,
+              "id": 34170,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 34070,
+                  "id": 34169,
                   "name": "_addr",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34075,
+                  "scope": 34174,
                   "src": "1578:13:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -751,7 +751,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 34069,
+                    "id": 34168,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1578:7:116",
@@ -768,15 +768,15 @@
               "src": "1577:15:116"
             },
             "returnParameters": {
-              "id": 34074,
+              "id": 34173,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 34073,
+                  "id": 34172,
                   "name": "_balance",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34075,
+                  "scope": 34174,
                   "src": "1616:16:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -785,7 +785,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 34072,
+                    "id": 34171,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1616:7:116",
@@ -800,13 +800,13 @@
               ],
               "src": "1615:18:116"
             },
-            "scope": 34083,
+            "scope": 34182,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 34082,
+            "id": 34181,
             "nodeType": "FunctionDefinition",
             "src": "1640:84:116",
             "nodes": [],
@@ -816,15 +816,15 @@
             "modifiers": [],
             "name": "getUnlockedBalance",
             "parameters": {
-              "id": 34078,
+              "id": 34177,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 34077,
+                  "id": 34176,
                   "name": "_addr",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34082,
+                  "scope": 34181,
                   "src": "1668:13:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -833,7 +833,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 34076,
+                    "id": 34175,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1668:7:116",
@@ -850,15 +850,15 @@
               "src": "1667:15:116"
             },
             "returnParameters": {
-              "id": 34081,
+              "id": 34180,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 34080,
+                  "id": 34179,
                   "name": "_balance",
                   "nodeType": "VariableDeclaration",
-                  "scope": 34082,
+                  "scope": 34181,
                   "src": "1706:16:116",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -867,7 +867,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 34079,
+                    "id": 34178,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1706:7:116",
@@ -882,7 +882,7 @@
               ],
               "src": "1705:18:116"
             },
-            "scope": 34083,
+            "scope": 34182,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
@@ -894,10 +894,10 @@
         "documentation": " @title The Locked SOV Interface.\n @author Franklin Richards - powerhousefrank@protonmail.com\n @notice This interface is an incomplete yet useful for future migration of LockedSOV Contract.\n @dev Only use it if you know what you are doing.",
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          34083
+          34182
         ],
         "name": "ILockedSOV",
-        "scope": 34084
+        "scope": 34183
       }
     ]
   },

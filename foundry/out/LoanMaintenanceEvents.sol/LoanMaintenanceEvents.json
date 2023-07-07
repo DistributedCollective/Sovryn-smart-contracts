@@ -52,17 +52,17 @@
     }
   ],
   "bytecode": {
-    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a72315820c78602e24674e289ab3e231cd0d260ecf07096ec83d8578bc077ed60fb3bfd2e64736f6c63430005110032",
+    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a72315820b8a4e1367b2d914270764917c2fb27b7c5d642384c1b4a2639c4263f33d202ac64736f6c63430005110032",
     "sourceMap": "351:147:29:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;351:147:29;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x6080604052600080fdfea265627a7a72315820c78602e24674e289ab3e231cd0d260ecf07096ec83d8578bc077ed60fb3bfd2e64736f6c63430005110032",
+    "object": "0x6080604052600080fdfea265627a7a72315820b8a4e1367b2d914270764917c2fb27b7c5d642384c1b4a2639c4263f33d202ac64736f6c63430005110032",
     "sourceMap": "351:147:29:-;;;;;",
     "linkReferences": {}
   },
   "methodIdentifiers": {},
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"loanId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"depositAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"rate\",\"type\":\"uint256\"}],\"name\":\"DepositCollateral\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"prevModuleContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newModuleContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"module\",\"type\":\"bytes32\"}],\"name\":\"ProtocolModuleContractReplaced\",\"type\":\"event\"}],\"devdoc\":{\"methods\":{},\"title\":\"The Loan Maintenance Events contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * This contract contains the events for loan maintenance operations.\"}},\"settings\":{\"compilationTarget\":{\"contracts/events/LoanMaintenanceEvents.sol\":\"LoanMaintenanceEvents\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/events/LoanMaintenanceEvents.sol\":{\"keccak256\":\"0xdee5098b947c22bcef6e38ecaf62bae6941572d1c245d2065ad41ea4f494c61d\",\"urls\":[\"bzz-raw://6215ec6db624bd23f9d97b31cc099f8ecb5728bfb7a7c87753de33bb48146d99\",\"dweb:/ipfs/QmVrfcdynNAcrT669SS5sY1Wy5pRNDVigFZo87NqGqkHs4\"]},\"contracts/events/ModulesCommonEvents.sol\":{\"keccak256\":\"0xb07af42d7e6b0fe983889b883691b662a58d2ef8d75b3f32f17faff1871c8b8f\",\"urls\":[\"bzz-raw://b7bbee73c1e0165d8953fa5c93a5d929f69a47203327d96cc8963f3b50e624fd\",\"dweb:/ipfs/QmQFA7qZmHHMR5aFgkpQUa2VKFnTwe3EkU15CZdfNZSZAF\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"loanId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"depositAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"rate\",\"type\":\"uint256\"}],\"name\":\"DepositCollateral\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"prevModuleContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newModuleContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"module\",\"type\":\"bytes32\"}],\"name\":\"ProtocolModuleContractReplaced\",\"type\":\"event\"}],\"devdoc\":{\"methods\":{},\"title\":\"The Loan Maintenance Events contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * This contract contains the events for loan maintenance operations.\"}},\"settings\":{\"compilationTarget\":{\"contracts/events/LoanMaintenanceEvents.sol\":\"LoanMaintenanceEvents\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/events/LoanMaintenanceEvents.sol\":{\"keccak256\":\"0xdee5098b947c22bcef6e38ecaf62bae6941572d1c245d2065ad41ea4f494c61d\",\"urls\":[\"bzz-raw://6215ec6db624bd23f9d97b31cc099f8ecb5728bfb7a7c87753de33bb48146d99\",\"dweb:/ipfs/QmVrfcdynNAcrT669SS5sY1Wy5pRNDVigFZo87NqGqkHs4\"]},\"contracts/events/ModulesCommonEvents.sol\":{\"keccak256\":\"0xb07af42d7e6b0fe983889b883691b662a58d2ef8d75b3f32f17faff1871c8b8f\",\"urls\":[\"bzz-raw://b7bbee73c1e0165d8953fa5c93a5d929f69a47203327d96cc8963f3b50e624fd\",\"dweb:/ipfs/QmQFA7qZmHHMR5aFgkpQUa2VKFnTwe3EkU15CZdfNZSZAF\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -132,9 +132,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"

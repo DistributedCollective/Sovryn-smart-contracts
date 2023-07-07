@@ -363,12 +363,12 @@
     }
   ],
   "bytecode": {
-    "object": "0x608060405260006100176001600160e01b0361007016565b6000805462010000600160b01b031916620100006001600160a01b038416908102919091178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a350610074565b3390565b61074f806100836000396000f3fe608060405234801561001057600080fd5b506004361061010b5760003560e01c8063842a49d5116100a2578063c0e0985211610071578063c0e0985214610299578063dfb9366d146102bf578063f2f46b3b146102fd578063f2fde38b14610305578063f60826ee1461032b5761010b565b8063842a49d5146102645780638da5cb5b146102815780638f32d59b14610289578063bd7b5908146102915761010b565b80636b7dbb2d116100de5780636b7dbb2d1461019e57806370480275146101a657806380fcb992146101cc578063821bee73146102205761010b565b806308dcb360146101105780631785f53c14610134578063429b62e51461015c5780634cf088d914610196575b600080fd5b610118610333565b604080516001600160a01b039092168252519081900360200190f35b61015a6004803603602081101561014a57600080fd5b50356001600160a01b0316610342565b005b6101826004803603602081101561017257600080fd5b50356001600160a01b03166103e2565b604080519115158252519081900360200190f35b6101186103f7565b610118610406565b61015a600480360360208110156101bc57600080fd5b50356001600160a01b0316610415565b6101f2600480360360208110156101e257600080fd5b50356001600160a01b03166104b9565b60408051931515845263ffffffff90921660208401526001600160801b031682820152519081900360600190f35b61023d6004803603602081101561023657600080fd5b50356104ee565b6040805193845260208401929092526001600160a01b031682820152519081900360600190f35b6101186004803603602081101561027a57600080fd5b5035610518565b61011861053f565b610182610554565b61011861057e565b610182600480360360208110156102af57600080fd5b50356001600160a01b031661058d565b6102eb600480360360408110156102d557600080fd5b506001600160a01b0381351690602001356105a2565b60408051918252519081900360200190f35b6101186105d0565b61015a6004803603602081101561031b57600080fd5b50356001600160a01b03166105df565b610118610633565b6005546001600160a01b031681565b61034a610554565b61038a576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020908152604091829020805460ff19169055815192835290517fa3b62bc36326052d97ea62d63c3d60308ed4c3ea8ac079dd8499f1e9c4f80c0f9281900390910190a150565b60016020526000908152604090205460ff1681565b6006546001600160a01b031681565b6007546001600160a01b031681565b61041d610554565b61045d576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020818152604092839020805460ff1916909217909155815192835290517f44d6d25963f097ad14f29f06854a01f575648a1ef82f30e562ccd3889717e3399281900390910190a150565b600c6020526000908152604090205460ff811690610100810463ffffffff16906501000000000090046001600160801b031683565b6009602052600090815260409020805460018201546002909201549091906001600160a01b031683565b6004818154811061052557fe5b6000918252602090912001546001600160a01b0316905081565b6000546201000090046001600160a01b031690565b600080546201000090046001600160a01b031661056f610642565b6001600160a01b031614905090565b6008546001600160a01b031681565b600b6020526000908152604090205460ff1681565b600a60205281600052604060002081815481106105bb57fe5b90600052602060002001600091509150505481565b6003546001600160a01b031681565b6105e7610554565b610627576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61063081610646565b50565b6002546001600160a01b031681565b3390565b6001600160a01b03811661068b5760405162461bcd60e51b81526004018080602001828103825260268152602001806106f56026913960400191505060405180910390fd5b600080546040516001600160a01b03808516936201000090930416917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b03909216620100000262010000600160b01b031990921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a72315820e7d1295161e78a5a7506db90aac45ea97dde989f12360be76658395feb8d506464736f6c63430005110032",
+    "object": "0x608060405260006100176001600160e01b0361007016565b6000805462010000600160b01b031916620100006001600160a01b038416908102919091178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a350610074565b3390565b61074f806100836000396000f3fe608060405234801561001057600080fd5b506004361061010b5760003560e01c8063842a49d5116100a2578063c0e0985211610071578063c0e0985214610299578063dfb9366d146102bf578063f2f46b3b146102fd578063f2fde38b14610305578063f60826ee1461032b5761010b565b8063842a49d5146102645780638da5cb5b146102815780638f32d59b14610289578063bd7b5908146102915761010b565b80636b7dbb2d116100de5780636b7dbb2d1461019e57806370480275146101a657806380fcb992146101cc578063821bee73146102205761010b565b806308dcb360146101105780631785f53c14610134578063429b62e51461015c5780634cf088d914610196575b600080fd5b610118610333565b604080516001600160a01b039092168252519081900360200190f35b61015a6004803603602081101561014a57600080fd5b50356001600160a01b0316610342565b005b6101826004803603602081101561017257600080fd5b50356001600160a01b03166103e2565b604080519115158252519081900360200190f35b6101186103f7565b610118610406565b61015a600480360360208110156101bc57600080fd5b50356001600160a01b0316610415565b6101f2600480360360208110156101e257600080fd5b50356001600160a01b03166104b9565b60408051931515845263ffffffff90921660208401526001600160801b031682820152519081900360600190f35b61023d6004803603602081101561023657600080fd5b50356104ee565b6040805193845260208401929092526001600160a01b031682820152519081900360600190f35b6101186004803603602081101561027a57600080fd5b5035610518565b61011861053f565b610182610554565b61011861057e565b610182600480360360208110156102af57600080fd5b50356001600160a01b031661058d565b6102eb600480360360408110156102d557600080fd5b506001600160a01b0381351690602001356105a2565b60408051918252519081900360200190f35b6101186105d0565b61015a6004803603602081101561031b57600080fd5b50356001600160a01b03166105df565b610118610633565b6005546001600160a01b031681565b61034a610554565b61038a576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020908152604091829020805460ff19169055815192835290517fa3b62bc36326052d97ea62d63c3d60308ed4c3ea8ac079dd8499f1e9c4f80c0f9281900390910190a150565b60016020526000908152604090205460ff1681565b6006546001600160a01b031681565b6007546001600160a01b031681565b61041d610554565b61045d576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020818152604092839020805460ff1916909217909155815192835290517f44d6d25963f097ad14f29f06854a01f575648a1ef82f30e562ccd3889717e3399281900390910190a150565b600c6020526000908152604090205460ff811690610100810463ffffffff16906501000000000090046001600160801b031683565b6009602052600090815260409020805460018201546002909201549091906001600160a01b031683565b6004818154811061052557fe5b6000918252602090912001546001600160a01b0316905081565b6000546201000090046001600160a01b031690565b600080546201000090046001600160a01b031661056f610642565b6001600160a01b031614905090565b6008546001600160a01b031681565b600b6020526000908152604090205460ff1681565b600a60205281600052604060002081815481106105bb57fe5b90600052602060002001600091509150505481565b6003546001600160a01b031681565b6105e7610554565b610627576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61063081610646565b50565b6002546001600160a01b031681565b3390565b6001600160a01b03811661068b5760405162461bcd60e51b81526004018080602001828103825260268152602001806106f56026913960400191505060405180910390fd5b600080546040516001600160a01b03808516936201000090930416917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b03909216620100000262010000600160b01b031990921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a7231582077b6d86bd20f7544c743e987b533da4c5053fa0bcad55e8d1c9bcd23cb99d41964736f6c63430005110032",
     "sourceMap": "544:2022:96:-;;;701:17:184;721:12;-1:-1:-1;;;;;721:10:184;:12;:::i;:::-;743:6;:18;;-1:-1:-1;;;;;;743:18:184;;-1:-1:-1;;;;;743:18:184;;;;;;;;;;;776:43;;743:18;;-1:-1:-1;743:18:184;776:43;;743:6;;776:43;668:158;544:2022:96;;795:96:179;874:10;795:96;:::o;544:2022:96:-;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x608060405234801561001057600080fd5b506004361061010b5760003560e01c8063842a49d5116100a2578063c0e0985211610071578063c0e0985214610299578063dfb9366d146102bf578063f2f46b3b146102fd578063f2fde38b14610305578063f60826ee1461032b5761010b565b8063842a49d5146102645780638da5cb5b146102815780638f32d59b14610289578063bd7b5908146102915761010b565b80636b7dbb2d116100de5780636b7dbb2d1461019e57806370480275146101a657806380fcb992146101cc578063821bee73146102205761010b565b806308dcb360146101105780631785f53c14610134578063429b62e51461015c5780634cf088d914610196575b600080fd5b610118610333565b604080516001600160a01b039092168252519081900360200190f35b61015a6004803603602081101561014a57600080fd5b50356001600160a01b0316610342565b005b6101826004803603602081101561017257600080fd5b50356001600160a01b03166103e2565b604080519115158252519081900360200190f35b6101186103f7565b610118610406565b61015a600480360360208110156101bc57600080fd5b50356001600160a01b0316610415565b6101f2600480360360208110156101e257600080fd5b50356001600160a01b03166104b9565b60408051931515845263ffffffff90921660208401526001600160801b031682820152519081900360600190f35b61023d6004803603602081101561023657600080fd5b50356104ee565b6040805193845260208401929092526001600160a01b031682820152519081900360600190f35b6101186004803603602081101561027a57600080fd5b5035610518565b61011861053f565b610182610554565b61011861057e565b610182600480360360208110156102af57600080fd5b50356001600160a01b031661058d565b6102eb600480360360408110156102d557600080fd5b506001600160a01b0381351690602001356105a2565b60408051918252519081900360200190f35b6101186105d0565b61015a6004803603602081101561031b57600080fd5b50356001600160a01b03166105df565b610118610633565b6005546001600160a01b031681565b61034a610554565b61038a576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020908152604091829020805460ff19169055815192835290517fa3b62bc36326052d97ea62d63c3d60308ed4c3ea8ac079dd8499f1e9c4f80c0f9281900390910190a150565b60016020526000908152604090205460ff1681565b6006546001600160a01b031681565b6007546001600160a01b031681565b61041d610554565b61045d576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020818152604092839020805460ff1916909217909155815192835290517f44d6d25963f097ad14f29f06854a01f575648a1ef82f30e562ccd3889717e3399281900390910190a150565b600c6020526000908152604090205460ff811690610100810463ffffffff16906501000000000090046001600160801b031683565b6009602052600090815260409020805460018201546002909201549091906001600160a01b031683565b6004818154811061052557fe5b6000918252602090912001546001600160a01b0316905081565b6000546201000090046001600160a01b031690565b600080546201000090046001600160a01b031661056f610642565b6001600160a01b031614905090565b6008546001600160a01b031681565b600b6020526000908152604090205460ff1681565b600a60205281600052604060002081815481106105bb57fe5b90600052602060002001600091509150505481565b6003546001600160a01b031681565b6105e7610554565b610627576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61063081610646565b50565b6002546001600160a01b031681565b3390565b6001600160a01b03811661068b5760405162461bcd60e51b81526004018080602001828103825260268152602001806106f56026913960400191505060405180910390fd5b600080546040516001600160a01b03808516936201000090930416917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b03909216620100000262010000600160b01b031990921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a72315820e7d1295161e78a5a7506db90aac45ea97dde989f12360be76658395feb8d506464736f6c63430005110032",
+    "object": "0x608060405234801561001057600080fd5b506004361061010b5760003560e01c8063842a49d5116100a2578063c0e0985211610071578063c0e0985214610299578063dfb9366d146102bf578063f2f46b3b146102fd578063f2fde38b14610305578063f60826ee1461032b5761010b565b8063842a49d5146102645780638da5cb5b146102815780638f32d59b14610289578063bd7b5908146102915761010b565b80636b7dbb2d116100de5780636b7dbb2d1461019e57806370480275146101a657806380fcb992146101cc578063821bee73146102205761010b565b806308dcb360146101105780631785f53c14610134578063429b62e51461015c5780634cf088d914610196575b600080fd5b610118610333565b604080516001600160a01b039092168252519081900360200190f35b61015a6004803603602081101561014a57600080fd5b50356001600160a01b0316610342565b005b6101826004803603602081101561017257600080fd5b50356001600160a01b03166103e2565b604080519115158252519081900360200190f35b6101186103f7565b610118610406565b61015a600480360360208110156101bc57600080fd5b50356001600160a01b0316610415565b6101f2600480360360208110156101e257600080fd5b50356001600160a01b03166104b9565b60408051931515845263ffffffff90921660208401526001600160801b031682820152519081900360600190f35b61023d6004803603602081101561023657600080fd5b50356104ee565b6040805193845260208401929092526001600160a01b031682820152519081900360600190f35b6101186004803603602081101561027a57600080fd5b5035610518565b61011861053f565b610182610554565b61011861057e565b610182600480360360208110156102af57600080fd5b50356001600160a01b031661058d565b6102eb600480360360408110156102d557600080fd5b506001600160a01b0381351690602001356105a2565b60408051918252519081900360200190f35b6101186105d0565b61015a6004803603602081101561031b57600080fd5b50356001600160a01b03166105df565b610118610633565b6005546001600160a01b031681565b61034a610554565b61038a576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020908152604091829020805460ff19169055815192835290517fa3b62bc36326052d97ea62d63c3d60308ed4c3ea8ac079dd8499f1e9c4f80c0f9281900390910190a150565b60016020526000908152604090205460ff1681565b6006546001600160a01b031681565b6007546001600160a01b031681565b61041d610554565b61045d576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020818152604092839020805460ff1916909217909155815192835290517f44d6d25963f097ad14f29f06854a01f575648a1ef82f30e562ccd3889717e3399281900390910190a150565b600c6020526000908152604090205460ff811690610100810463ffffffff16906501000000000090046001600160801b031683565b6009602052600090815260409020805460018201546002909201549091906001600160a01b031683565b6004818154811061052557fe5b6000918252602090912001546001600160a01b0316905081565b6000546201000090046001600160a01b031690565b600080546201000090046001600160a01b031661056f610642565b6001600160a01b031614905090565b6008546001600160a01b031681565b600b6020526000908152604090205460ff1681565b600a60205281600052604060002081815481106105bb57fe5b90600052602060002001600091509150505481565b6003546001600160a01b031681565b6105e7610554565b610627576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61063081610646565b50565b6002546001600160a01b031681565b3390565b6001600160a01b03811661068b5760405162461bcd60e51b81526004018080602001828103825260268152602001806106f56026913960400191505060405180910390fd5b600080546040516001600160a01b03808516936201000090930416917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b03909216620100000262010000600160b01b031990921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a7231582077b6d86bd20f7544c743e987b533da4c5053fa0bcad55e8d1c9bcd23cb99d41964736f6c63430005110032",
     "sourceMap": "544:2022:96:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;544:2022:96;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;905:18;;;:::i;:::-;;;;-1:-1:-1;;;;;905:18:96;;;;;;;;;;;;;;915:128:225;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;915:128:225;-1:-1:-1;;;;;915:128:225;;:::i;:::-;;155:38;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;155:38:225;-1:-1:-1;;;;;155:38:225;;:::i;:::-;;;;;;;;;;;;;;;;;;974:22:96;;;:::i;1036:34::-;;;:::i;656:122:225:-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;656:122:225;-1:-1:-1;;;;;656:122:225;;:::i;2483:80:96:-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;2483:80:96;-1:-1:-1;;;;;2483:80:96;;:::i;:::-;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;2483:80:96;;;;;;;;;;;;;;1548:43;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1548:43:96;;:::i;:::-;;;;;;;;;;;;;;-1:-1:-1;;;;;1548:43:96;;;;;;;;;;;;;;817;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;817:43:96;;:::i;902:77:184:-;;;:::i;1233:92::-;;;:::i;1145:27:96:-;;;:::i;1910:41::-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1910:41:96;-1:-1:-1;;;;;1910:41:96;;:::i;1732:47::-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;;;;;;1732:47:96;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;737:27;;;:::i;1474:107:184:-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1474:107:184;-1:-1:-1;;;;;1474:107:184;;:::i;654:37:96:-;;;:::i;905:18::-;;;-1:-1:-1;;;;;905:18:96;;:::o;915:128:225:-;1106:9:184;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;-1:-1:-1;;;;;979:14:225;;996:5;979:14;;;:6;:14;;;;;;;;;:22;;-1:-1:-1;;979:22:225;;;1016:20;;;;;;;;;;;;;;;;;915:128;:::o;155:38::-;;;;;;;;;;;;;;;:::o;974:22:96:-;;;-1:-1:-1;;;;;974:22:96;;:::o;1036:34::-;;;-1:-1:-1;;;;;1036:34:96;;:::o;656:122:225:-;1106:9:184;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;-1:-1:-1;;;;;717:14:225;;;;;;734:4;717:14;;;;;;;;;:21;;-1:-1:-1;;717:21:225;;;;;;;753:18;;;;;;;;;;;;;;;;;656:122;:::o;2483:80:96:-;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;2483:80:96;;:::o;1548:43::-;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;1548:43:96;;:::o;817:::-;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;817:43:96;;-1:-1:-1;817:43:96;:::o;902:77:184:-;940:7;966:6;;;;-1:-1:-1;;;;;966:6:184;;902:77::o;1233:92::-;1273:4;1312:6;;;;;-1:-1:-1;;;;;1312:6:184;1296:12;:10;:12::i;:::-;-1:-1:-1;;;;;1296:22:184;;1289:29;;1233:92;:::o;1145:27:96:-;;;-1:-1:-1;;;;;1145:27:96;;:::o;1910:41::-;;;;;;;;;;;;;;;:::o;1732:47::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;737:27::-;;;-1:-1:-1;;;;;737:27:96;;:::o;1474:107:184:-;1106:9;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;1546:28;1565:8;1546:18;:28::i;:::-;1474:107;:::o;654:37:96:-;;;-1:-1:-1;;;;;654:37:96;;:::o;795:96:179:-;874:10;795:96;:::o;1682:225:184:-;-1:-1:-1;;;;;1755:22:184;;1747:73;;;;-1:-1:-1;;;1747:73:184;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1856:6;;;1835:38;;-1:-1:-1;;;;;1835:38:184;;;;1856:6;;;;;;1835:38;;;1883:6;:17;;-1:-1:-1;;;;;1883:17:184;;;;;-1:-1:-1;;;;;;1883:17:184;;;;;;;;;1682:225::o",
     "linkReferences": {}
   },
@@ -391,7 +391,7 @@
     "vestings(uint256)": "821bee73",
     "vestingsOf(address,uint256)": "dfb9366d"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOV\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"addAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"admins\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"feeSharingCollector\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"isVesting\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lockedSOV\",\"outputs\":[{\"internalType\":\"contract ILockedSOV\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"removeAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"staking\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"vestingCreationAndTypes\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"isSet\",\"type\":\"bool\"},{\"internalType\":\"uint32\",\"name\":\"vestingType\",\"type\":\"uint32\"},{\"internalType\":\"uint128\",\"name\":\"vestingCreationType\",\"type\":\"uint128\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"vestingFactory\",\"outputs\":[{\"internalType\":\"contract IVestingFactory\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"vestingOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"vestingRegistries\",\"outputs\":[{\"internalType\":\"contract IVestingRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"vestings\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"vestingType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"vestingCreationType\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"vestingAddress\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"vestingsOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Use Ownable as a parent to align storage structure for Logic and Proxy contracts.\",\"methods\":{\"addAdmin(address)\":{\"params\":{\"_admin\":\"The addresses of the account to grant permissions.\"}},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"removeAdmin(address)\":{\"params\":{\"_admin\":\"The addresses of the account to revoke permissions.\"}},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Vesting Registry Storage Contract.\"},\"userdoc\":{\"methods\":{\"addAdmin(address)\":{\"notice\":\"Add account to ACL.\"},\"removeAdmin(address)\":{\"notice\":\"Remove account from ACL.\"}},\"notice\":\"This contract is just the storage required for vesting registry. It is parent of VestingRegistryProxy and VestingRegistryLogic.\"}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/VestingRegistryStorage.sol\":\"VestingRegistryStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/ApprovalReceiver.sol\":{\"keccak256\":\"0xfec344456774fa83b0885dd71825ccb6780be8db63c394f3ca09107977c65429\",\"urls\":[\"bzz-raw://d2b34a6db2f36feda3a4a89e051a960a1b67c4241ca1ab4ae2c18f18fb8e56ce\",\"dweb:/ipfs/QmUMjUiDQ1M1P6iBerRcDzMw4zzs968LsMqkhF3SKftjkX\"]},\"contracts/governance/ErrorDecoder.sol\":{\"keccak256\":\"0xa0fa7986924aab574ca9e7c265f8c7bf00671ba1d86dbad143df7c14455f1c6a\",\"urls\":[\"bzz-raw://69dda1ed604f442ea96682ed8c6cd5fcbad4677f5a6acf362444c6cfdbd1bab8\",\"dweb:/ipfs/QmdtCaJjVeCeTc2QigPRs52b9iScS73RFAvj6mJVMmkhit\"]},\"contracts/governance/IFeeSharingCollector.sol\":{\"keccak256\":\"0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40\",\"urls\":[\"bzz-raw://b9ed75fd4b75f120ed265e7b69d86ce6e62388a50f38058e2fa34f5ea3ffcc2e\",\"dweb:/ipfs/QmZbMA6F4FxhcAT4zTc521LLRbZxFVVuD3zzj981awpDmp\"]},\"contracts/governance/Staking/interfaces/IStaking.sol\":{\"keccak256\":\"0x6777e38b4bd5a63e10f3bf7aba355401713bb649811c6dfa1bda40ebd8fee30b\",\"urls\":[\"bzz-raw://676e42641fb1d335dde7bb928779014ff2adf1eb1121f48a4a48e36f571287d4\",\"dweb:/ipfs/QmamokattcaQ6gRGaqUDVZejcv4rridScd9nayGcxxW1BL\"]},\"contracts/governance/Vesting/ITeamVesting.sol\":{\"keccak256\":\"0xeb926db5c0681a7bdbc70c3d25df2551a6124e191654b3b8a0f810b0d03ec66f\",\"urls\":[\"bzz-raw://a4883af8c4b65febf5c26400a2fdc0b8576bc2fb46d65acc18898e97fcc77017\",\"dweb:/ipfs/QmdeGnzKeNheqEo3HKUM7coBGDVDDfyFQFftUy3TCF2gkh\"]},\"contracts/governance/Vesting/IVesting.sol\":{\"keccak256\":\"0x373d8b2669d69d57ed11f1caf345e3a818f5c60019b3fff91acb01d323c0600c\",\"urls\":[\"bzz-raw://dc21afdda9d4ab2f586da1d3ee940439cc2b5c51247a9737fc657b7e8e287604\",\"dweb:/ipfs/QmXT9L2kdcqmMRz2zLeq48RC22e1fB1PRkyw6bnR5sqc7f\"]},\"contracts/governance/Vesting/IVestingFactory.sol\":{\"keccak256\":\"0xc77e276b71ec23ca6d4eead9a842bc01cc37bcfe55a88528190f1f6106773175\",\"urls\":[\"bzz-raw://8d67ede1c3d38fb7a77c4a3e8ea7848f2689e1cb0b8ddbc5087c20ab2e00afdc\",\"dweb:/ipfs/QmcMxkQTCKN8gakHqKx4ZXHGKEyAYoEqDKEshk519gQtAz\"]},\"contracts/governance/Vesting/IVestingRegistry.sol\":{\"keccak256\":\"0x08bf5badf1813b59f8b06d3bb9280f4b35d3d07947c728dad79e43fcc1d4130e\",\"urls\":[\"bzz-raw://9e98ef5dd0d38e3eb94e669ae455c69625b61709b101f5a277b8f2775619561a\",\"dweb:/ipfs/QmdL7isFbApapnLxNJ7UkzAW6AtD2c2SvAEFh5KN3wVqqk\"]},\"contracts/governance/Vesting/VestingLogic.sol\":{\"keccak256\":\"0x44622e8c7eef783fc97fb37c59262d448b05c72f02076428cbff18177ed3b3ac\",\"urls\":[\"bzz-raw://afa43f4262d619391bcb8ddbc88fa7dc344d8ea8a0ac5b5dc51ea5b2202257d1\",\"dweb:/ipfs/QmTum9bdL2p7mDDwPGY4EeVmbH92D7ejBenMXkKWdzvPH3\"]},\"contracts/governance/Vesting/VestingRegistry.sol\":{\"keccak256\":\"0xd691de2f5a675394f19be5264b659a646b4bc45752a59055484aa80f25c08a57\",\"urls\":[\"bzz-raw://4d94e8b2bb827125347b4e643d1234bcc4d40698bb99f9da5ad21c42aa29db09\",\"dweb:/ipfs/QmdG6SLDE8EPqZXmPTmDMUioDnuGRUkfPJ8eMUBg2B1egh\"]},\"contracts/governance/Vesting/VestingRegistryStorage.sol\":{\"keccak256\":\"0x4f657748626f68c2a6fb82f10a54f7a5e9d2971e92de318c66c9ecb6acf0c1ed\",\"urls\":[\"bzz-raw://0976bd620772c514f37c2ecf08fde714336b270c497aabae2336dd4668f7845d\",\"dweb:/ipfs/QmPWjFep5YWtTVtiEweXNcZUUojH8mJHtiJEz3UrCnjV1P\"]},\"contracts/governance/Vesting/VestingStorage.sol\":{\"keccak256\":\"0xf70f579d357d8f0aa0839824c1a1d66713c3cd42a58118d2893a35b52baaa140\",\"urls\":[\"bzz-raw://6dba4104db55195a6c46c9aa5121906f09c7db3afbf59bc57ebf4c32301494b5\",\"dweb:/ipfs/QmV1wc6N2Uh5poLXbQC75yr7QP4MdGHsASgxn2mydXHKk1\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/locked/ILockedSOV.sol\":{\"keccak256\":\"0x2ecf9d6c3704b4210b86d15a35650b34a1c44d0fb57795668fd2b2b4eab6104f\",\"urls\":[\"bzz-raw://eaaa0dffb62e76ea397dc90b6a9e5ba497950ee1e57a97e6537a5b02ee045312\",\"dweb:/ipfs/QmaihaZugWsrSQttSprvThscmPrFhUj4gxTry94TNMx386\"]},\"contracts/locked/LockedSOV.sol\":{\"keccak256\":\"0xadc3b976d89a409f04644071a9f40c57d5e96a0b13d364f1aa4324e648607999\",\"urls\":[\"bzz-raw://5e169ba79593a2561fb4cff4fda9f794a9948cae8fc1b9de7c2dbdbe758c3bfd\",\"dweb:/ipfs/QmezjtcTgzVpV9gUBJFPSKyn1sYfvqsSrvYQTKXJ51m72V\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Initializable.sol\":{\"keccak256\":\"0xa5064e2730ae1037f4efc83654676174484b827890d30ee618048004a04d6b51\",\"urls\":[\"bzz-raw://800313aace6973b861dbb3377dbba02e0ebac124ea5d7d44b8117dfa75f85416\",\"dweb:/ipfs/QmU34Zhi99bs94s9DerPNnrJiESXdn1gthxeNqZma4fAoi\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]},\"contracts/token/IApproveAndCall.sol\":{\"keccak256\":\"0x0ca93f8436a4d81d80de5ea9214139b490d96f708f09c975a0869ce9abc61635\",\"urls\":[\"bzz-raw://75cbb5a7f183ddae4f4cbe8afac44e56be521f491e740761fca9d55698a14e68\",\"dweb:/ipfs/QmS8Z6LNQZAgAdRL1tF1emQgsD2DWk9h3EvXXkrayE8jFJ\"]},\"contracts/utils/AdminRole.sol\":{\"keccak256\":\"0x7333f56bc6887f53b12ec51d9e6d7f2aae23063000b101e6bb7c3ae684cca51d\",\"urls\":[\"bzz-raw://c7d2462840a56bf06653f868ef64c1e1558e12f1ecf8012ec967ef046152e8ea\",\"dweb:/ipfs/QmcMrLxvVcZpu8PqtgENLXiFqEXBRuTFLBUgVEgDgXgHSo\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOV\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"addAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"admins\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"feeSharingCollector\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"isVesting\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lockedSOV\",\"outputs\":[{\"internalType\":\"contract ILockedSOV\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"removeAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"staking\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"vestingCreationAndTypes\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"isSet\",\"type\":\"bool\"},{\"internalType\":\"uint32\",\"name\":\"vestingType\",\"type\":\"uint32\"},{\"internalType\":\"uint128\",\"name\":\"vestingCreationType\",\"type\":\"uint128\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"vestingFactory\",\"outputs\":[{\"internalType\":\"contract IVestingFactory\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"vestingOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"vestingRegistries\",\"outputs\":[{\"internalType\":\"contract IVestingRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"vestings\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"vestingType\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"vestingCreationType\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"vestingAddress\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"vestingsOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Use Ownable as a parent to align storage structure for Logic and Proxy contracts.\",\"methods\":{\"addAdmin(address)\":{\"params\":{\"_admin\":\"The addresses of the account to grant permissions.\"}},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"removeAdmin(address)\":{\"params\":{\"_admin\":\"The addresses of the account to revoke permissions.\"}},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Vesting Registry Storage Contract.\"},\"userdoc\":{\"methods\":{\"addAdmin(address)\":{\"notice\":\"Add account to ACL.\"},\"removeAdmin(address)\":{\"notice\":\"Remove account from ACL.\"}},\"notice\":\"This contract is just the storage required for vesting registry. It is parent of VestingRegistryProxy and VestingRegistryLogic.\"}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/VestingRegistryStorage.sol\":\"VestingRegistryStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/ApprovalReceiver.sol\":{\"keccak256\":\"0xfec344456774fa83b0885dd71825ccb6780be8db63c394f3ca09107977c65429\",\"urls\":[\"bzz-raw://d2b34a6db2f36feda3a4a89e051a960a1b67c4241ca1ab4ae2c18f18fb8e56ce\",\"dweb:/ipfs/QmUMjUiDQ1M1P6iBerRcDzMw4zzs968LsMqkhF3SKftjkX\"]},\"contracts/governance/ErrorDecoder.sol\":{\"keccak256\":\"0xa0fa7986924aab574ca9e7c265f8c7bf00671ba1d86dbad143df7c14455f1c6a\",\"urls\":[\"bzz-raw://69dda1ed604f442ea96682ed8c6cd5fcbad4677f5a6acf362444c6cfdbd1bab8\",\"dweb:/ipfs/QmdtCaJjVeCeTc2QigPRs52b9iScS73RFAvj6mJVMmkhit\"]},\"contracts/governance/IFeeSharingCollector.sol\":{\"keccak256\":\"0x7794cb434d9395ea983dcf8ded48db5b68897a338429320f60172c4caa47fb40\",\"urls\":[\"bzz-raw://b9ed75fd4b75f120ed265e7b69d86ce6e62388a50f38058e2fa34f5ea3ffcc2e\",\"dweb:/ipfs/QmZbMA6F4FxhcAT4zTc521LLRbZxFVVuD3zzj981awpDmp\"]},\"contracts/governance/Staking/interfaces/IStaking.sol\":{\"keccak256\":\"0x91c38931d2bc625ced52bfe0bedd0d9ad412d032d9841124a98e17cfcb9f646b\",\"urls\":[\"bzz-raw://d5a533e8c8ee3a08689d9a2c2975ee35b53fa75ed2078821e718019b0b63f861\",\"dweb:/ipfs/QmdT45TJBwSrD6vL87kN1hWSXdujM85sQcejWeRr4L1ztr\"]},\"contracts/governance/Vesting/ITeamVesting.sol\":{\"keccak256\":\"0xeb926db5c0681a7bdbc70c3d25df2551a6124e191654b3b8a0f810b0d03ec66f\",\"urls\":[\"bzz-raw://a4883af8c4b65febf5c26400a2fdc0b8576bc2fb46d65acc18898e97fcc77017\",\"dweb:/ipfs/QmdeGnzKeNheqEo3HKUM7coBGDVDDfyFQFftUy3TCF2gkh\"]},\"contracts/governance/Vesting/IVesting.sol\":{\"keccak256\":\"0x373d8b2669d69d57ed11f1caf345e3a818f5c60019b3fff91acb01d323c0600c\",\"urls\":[\"bzz-raw://dc21afdda9d4ab2f586da1d3ee940439cc2b5c51247a9737fc657b7e8e287604\",\"dweb:/ipfs/QmXT9L2kdcqmMRz2zLeq48RC22e1fB1PRkyw6bnR5sqc7f\"]},\"contracts/governance/Vesting/IVestingFactory.sol\":{\"keccak256\":\"0xc77e276b71ec23ca6d4eead9a842bc01cc37bcfe55a88528190f1f6106773175\",\"urls\":[\"bzz-raw://8d67ede1c3d38fb7a77c4a3e8ea7848f2689e1cb0b8ddbc5087c20ab2e00afdc\",\"dweb:/ipfs/QmcMxkQTCKN8gakHqKx4ZXHGKEyAYoEqDKEshk519gQtAz\"]},\"contracts/governance/Vesting/IVestingRegistry.sol\":{\"keccak256\":\"0x08bf5badf1813b59f8b06d3bb9280f4b35d3d07947c728dad79e43fcc1d4130e\",\"urls\":[\"bzz-raw://9e98ef5dd0d38e3eb94e669ae455c69625b61709b101f5a277b8f2775619561a\",\"dweb:/ipfs/QmdL7isFbApapnLxNJ7UkzAW6AtD2c2SvAEFh5KN3wVqqk\"]},\"contracts/governance/Vesting/VestingLogic.sol\":{\"keccak256\":\"0x44622e8c7eef783fc97fb37c59262d448b05c72f02076428cbff18177ed3b3ac\",\"urls\":[\"bzz-raw://afa43f4262d619391bcb8ddbc88fa7dc344d8ea8a0ac5b5dc51ea5b2202257d1\",\"dweb:/ipfs/QmTum9bdL2p7mDDwPGY4EeVmbH92D7ejBenMXkKWdzvPH3\"]},\"contracts/governance/Vesting/VestingRegistry.sol\":{\"keccak256\":\"0xd691de2f5a675394f19be5264b659a646b4bc45752a59055484aa80f25c08a57\",\"urls\":[\"bzz-raw://4d94e8b2bb827125347b4e643d1234bcc4d40698bb99f9da5ad21c42aa29db09\",\"dweb:/ipfs/QmdG6SLDE8EPqZXmPTmDMUioDnuGRUkfPJ8eMUBg2B1egh\"]},\"contracts/governance/Vesting/VestingRegistryStorage.sol\":{\"keccak256\":\"0x4f657748626f68c2a6fb82f10a54f7a5e9d2971e92de318c66c9ecb6acf0c1ed\",\"urls\":[\"bzz-raw://0976bd620772c514f37c2ecf08fde714336b270c497aabae2336dd4668f7845d\",\"dweb:/ipfs/QmPWjFep5YWtTVtiEweXNcZUUojH8mJHtiJEz3UrCnjV1P\"]},\"contracts/governance/Vesting/VestingStorage.sol\":{\"keccak256\":\"0xf70f579d357d8f0aa0839824c1a1d66713c3cd42a58118d2893a35b52baaa140\",\"urls\":[\"bzz-raw://6dba4104db55195a6c46c9aa5121906f09c7db3afbf59bc57ebf4c32301494b5\",\"dweb:/ipfs/QmV1wc6N2Uh5poLXbQC75yr7QP4MdGHsASgxn2mydXHKk1\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/locked/ILockedSOV.sol\":{\"keccak256\":\"0x2ecf9d6c3704b4210b86d15a35650b34a1c44d0fb57795668fd2b2b4eab6104f\",\"urls\":[\"bzz-raw://eaaa0dffb62e76ea397dc90b6a9e5ba497950ee1e57a97e6537a5b02ee045312\",\"dweb:/ipfs/QmaihaZugWsrSQttSprvThscmPrFhUj4gxTry94TNMx386\"]},\"contracts/locked/LockedSOV.sol\":{\"keccak256\":\"0xadc3b976d89a409f04644071a9f40c57d5e96a0b13d364f1aa4324e648607999\",\"urls\":[\"bzz-raw://5e169ba79593a2561fb4cff4fda9f794a9948cae8fc1b9de7c2dbdbe758c3bfd\",\"dweb:/ipfs/QmezjtcTgzVpV9gUBJFPSKyn1sYfvqsSrvYQTKXJ51m72V\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Initializable.sol\":{\"keccak256\":\"0xa5064e2730ae1037f4efc83654676174484b827890d30ee618048004a04d6b51\",\"urls\":[\"bzz-raw://800313aace6973b861dbb3377dbba02e0ebac124ea5d7d44b8117dfa75f85416\",\"dweb:/ipfs/QmU34Zhi99bs94s9DerPNnrJiESXdn1gthxeNqZma4fAoi\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]},\"contracts/token/IApproveAndCall.sol\":{\"keccak256\":\"0x0ca93f8436a4d81d80de5ea9214139b490d96f708f09c975a0869ce9abc61635\",\"urls\":[\"bzz-raw://75cbb5a7f183ddae4f4cbe8afac44e56be521f491e740761fca9d55698a14e68\",\"dweb:/ipfs/QmS8Z6LNQZAgAdRL1tF1emQgsD2DWk9h3EvXXkrayE8jFJ\"]},\"contracts/utils/AdminRole.sol\":{\"keccak256\":\"0x7333f56bc6887f53b12ec51d9e6d7f2aae23063000b101e6bb7c3ae684cca51d\",\"urls\":[\"bzz-raw://c7d2462840a56bf06653f868ef64c1e1558e12f1ecf8012ec967ef046152e8ea\",\"dweb:/ipfs/QmcMrLxvVcZpu8PqtgENLXiFqEXBRuTFLBUgVEgDgXgHSo\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -762,9 +762,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -804,10 +804,10 @@
         "license": null
       },
       "contracts/governance/Staking/interfaces/IStaking.sol": {
-        "keccak256": "0x6777e38b4bd5a63e10f3bf7aba355401713bb649811c6dfa1bda40ebd8fee30b",
+        "keccak256": "0x91c38931d2bc625ced52bfe0bedd0d9ad412d032d9841124a98e17cfcb9f646b",
         "urls": [
-          "bzz-raw://676e42641fb1d335dde7bb928779014ff2adf1eb1121f48a4a48e36f571287d4",
-          "dweb:/ipfs/QmamokattcaQ6gRGaqUDVZejcv4rridScd9nayGcxxW1BL"
+          "bzz-raw://d5a533e8c8ee3a08689d9a2c2975ee35b53fa75ed2078821e718019b0b63f861",
+          "dweb:/ipfs/QmdT45TJBwSrD6vL87kN1hWSXdujM85sQcejWeRr4L1ztr"
         ],
         "license": null
       },
@@ -952,17 +952,17 @@
   },
   "ast": {
     "absolutePath": "contracts/governance/Vesting/VestingRegistryStorage.sol",
-    "id": 31000,
+    "id": 31099,
     "exportedSymbols": {
       "VestingRegistryStorage": [
-        30999
+        31098
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:2567:96",
     "nodes": [
       {
-        "id": 30939,
+        "id": 31038,
         "nodeType": "PragmaDirective",
         "src": "0:24:96",
         "nodes": [],
@@ -974,105 +974,105 @@
         ]
       },
       {
-        "id": 30940,
+        "id": 31039,
         "nodeType": "ImportDirective",
         "src": "26:46:96",
         "nodes": [],
         "absolutePath": "contracts/openzeppelin/Initializable.sol",
         "file": "../../openzeppelin/Initializable.sol",
-        "scope": 31000,
-        "sourceUnit": 55046,
+        "scope": 31099,
+        "sourceUnit": 55145,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 30941,
+        "id": 31040,
         "nodeType": "ImportDirective",
         "src": "73:35:96",
         "nodes": [],
         "absolutePath": "contracts/utils/AdminRole.sol",
         "file": "../../utils/AdminRole.sol",
-        "scope": 31000,
-        "sourceUnit": 62767,
+        "scope": 31099,
+        "sourceUnit": 62866,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 30942,
+        "id": 31041,
         "nodeType": "ImportDirective",
         "src": "109:37:96",
         "nodes": [],
         "absolutePath": "contracts/interfaces/IERC20.sol",
         "file": "../../interfaces/IERC20.sol",
-        "scope": 31000,
-        "sourceUnit": 32312,
+        "scope": 31099,
+        "sourceUnit": 32411,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 30943,
+        "id": 31042,
         "nodeType": "ImportDirective",
         "src": "147:31:96",
         "nodes": [],
         "absolutePath": "contracts/governance/Vesting/IVestingFactory.sol",
         "file": "./IVestingFactory.sol",
-        "scope": 31000,
-        "sourceUnit": 25120,
+        "scope": 31099,
+        "sourceUnit": 25219,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 30944,
+        "id": 31043,
         "nodeType": "ImportDirective",
         "src": "179:36:96",
         "nodes": [],
         "absolutePath": "contracts/locked/LockedSOV.sol",
         "file": "../../locked/LockedSOV.sol",
-        "scope": 31000,
-        "sourceUnit": 34919,
+        "scope": 31099,
+        "sourceUnit": 35018,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 30945,
+        "id": 31044,
         "nodeType": "ImportDirective",
         "src": "216:32:96",
         "nodes": [],
         "absolutePath": "contracts/governance/Vesting/IVestingRegistry.sol",
         "file": "./IVestingRegistry.sol",
-        "scope": 31000,
-        "sourceUnit": 25156,
+        "scope": 31099,
+        "sourceUnit": 25255,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 30999,
+        "id": 31098,
         "nodeType": "ContractDefinition",
         "src": "544:2022:96",
         "nodes": [
           {
-            "id": 30951,
+            "id": 31050,
             "nodeType": "VariableDeclaration",
             "src": "654:37:96",
             "nodes": [],
             "constant": false,
             "name": "vestingFactory",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IVestingFactory_$25119",
+              "typeIdentifier": "t_contract$_IVestingFactory_$25218",
               "typeString": "contract IVestingFactory"
             },
             "typeName": {
               "contractScope": null,
-              "id": 30950,
+              "id": 31049,
               "name": "IVestingFactory",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 25119,
+              "referencedDeclaration": 25218,
               "src": "654:15:96",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IVestingFactory_$25119",
+                "typeIdentifier": "t_contract$_IVestingFactory_$25218",
                 "typeString": "contract IVestingFactory"
               }
             },
@@ -1080,28 +1080,28 @@
             "visibility": "public"
           },
           {
-            "id": 30953,
+            "id": 31052,
             "nodeType": "VariableDeclaration",
             "src": "737:27:96",
             "nodes": [],
             "constant": false,
             "name": "lockedSOV",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_ILockedSOV_$34083",
+              "typeIdentifier": "t_contract$_ILockedSOV_$34182",
               "typeString": "contract ILockedSOV"
             },
             "typeName": {
               "contractScope": null,
-              "id": 30952,
+              "id": 31051,
               "name": "ILockedSOV",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 34083,
+              "referencedDeclaration": 34182,
               "src": "737:10:96",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_ILockedSOV_$34083",
+                "typeIdentifier": "t_contract$_ILockedSOV_$34182",
                 "typeString": "contract ILockedSOV"
               }
             },
@@ -1109,38 +1109,38 @@
             "visibility": "public"
           },
           {
-            "id": 30956,
+            "id": 31055,
             "nodeType": "VariableDeclaration",
             "src": "817:43:96",
             "nodes": [],
             "constant": false,
             "name": "vestingRegistries",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_array$_t_contract$_IVestingRegistry_$25155_$dyn_storage",
+              "typeIdentifier": "t_array$_t_contract$_IVestingRegistry_$25254_$dyn_storage",
               "typeString": "contract IVestingRegistry[]"
             },
             "typeName": {
               "baseType": {
                 "contractScope": null,
-                "id": 30954,
+                "id": 31053,
                 "name": "IVestingRegistry",
                 "nodeType": "UserDefinedTypeName",
-                "referencedDeclaration": 25155,
+                "referencedDeclaration": 25254,
                 "src": "817:16:96",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_contract$_IVestingRegistry_$25155",
+                  "typeIdentifier": "t_contract$_IVestingRegistry_$25254",
                   "typeString": "contract IVestingRegistry"
                 }
               },
-              "id": 30955,
+              "id": 31054,
               "length": null,
               "nodeType": "ArrayTypeName",
               "src": "817:18:96",
               "typeDescriptions": {
-                "typeIdentifier": "t_array$_t_contract$_IVestingRegistry_$25155_$dyn_storage_ptr",
+                "typeIdentifier": "t_array$_t_contract$_IVestingRegistry_$25254_$dyn_storage_ptr",
                 "typeString": "contract IVestingRegistry[]"
               }
             },
@@ -1148,13 +1148,13 @@
             "visibility": "public"
           },
           {
-            "id": 30958,
+            "id": 31057,
             "nodeType": "VariableDeclaration",
             "src": "905:18:96",
             "nodes": [],
             "constant": false,
             "name": "SOV",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1162,7 +1162,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 30957,
+              "id": 31056,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "905:7:96",
@@ -1176,13 +1176,13 @@
             "visibility": "public"
           },
           {
-            "id": 30960,
+            "id": 31059,
             "nodeType": "VariableDeclaration",
             "src": "974:22:96",
             "nodes": [],
             "constant": false,
             "name": "staking",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1190,7 +1190,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 30959,
+              "id": 31058,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "974:7:96",
@@ -1204,13 +1204,13 @@
             "visibility": "public"
           },
           {
-            "id": 30962,
+            "id": 31061,
             "nodeType": "VariableDeclaration",
             "src": "1036:34:96",
             "nodes": [],
             "constant": false,
             "name": "feeSharingCollector",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1218,7 +1218,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 30961,
+              "id": 31060,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "1036:7:96",
@@ -1232,13 +1232,13 @@
             "visibility": "public"
           },
           {
-            "id": 30964,
+            "id": 31063,
             "nodeType": "VariableDeclaration",
             "src": "1145:27:96",
             "nodes": [],
             "constant": false,
             "name": "vestingOwner",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1246,7 +1246,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 30963,
+              "id": 31062,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "1145:7:96",
@@ -1260,20 +1260,20 @@
             "visibility": "public"
           },
           {
-            "id": 30967,
+            "id": 31066,
             "nodeType": "EnumDefinition",
             "src": "1179:100:96",
             "nodes": [],
             "canonicalName": "VestingRegistryStorage.VestingType",
             "members": [
               {
-                "id": 30965,
+                "id": 31064,
                 "name": "TeamVesting",
                 "nodeType": "EnumValue",
                 "src": "1206:11:96"
               },
               {
-                "id": 30966,
+                "id": 31065,
                 "name": "Vesting",
                 "nodeType": "EnumValue",
                 "src": "1245:7:96"
@@ -1282,7 +1282,7 @@
             "name": "VestingType"
           },
           {
-            "id": 30974,
+            "id": 31073,
             "nodeType": "StructDefinition",
             "src": "1316:120:96",
             "nodes": [],
@@ -1290,10 +1290,10 @@
             "members": [
               {
                 "constant": false,
-                "id": 30969,
+                "id": 31068,
                 "name": "vestingType",
                 "nodeType": "VariableDeclaration",
-                "scope": 30974,
+                "scope": 31073,
                 "src": "1341:19:96",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1302,7 +1302,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 30968,
+                  "id": 31067,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "1341:7:96",
@@ -1316,10 +1316,10 @@
               },
               {
                 "constant": false,
-                "id": 30971,
+                "id": 31070,
                 "name": "vestingCreationType",
                 "nodeType": "VariableDeclaration",
-                "scope": 30974,
+                "scope": 31073,
                 "src": "1370:27:96",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1328,7 +1328,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 30970,
+                  "id": 31069,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "1370:7:96",
@@ -1342,10 +1342,10 @@
               },
               {
                 "constant": false,
-                "id": 30973,
+                "id": 31072,
                 "name": "vestingAddress",
                 "nodeType": "VariableDeclaration",
-                "scope": 30974,
+                "scope": 31073,
                 "src": "1407:22:96",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1354,7 +1354,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 30972,
+                  "id": 31071,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "1407:7:96",
@@ -1369,27 +1369,27 @@
               }
             ],
             "name": "Vesting",
-            "scope": 30999,
+            "scope": 31098,
             "visibility": "public"
           },
           {
-            "id": 30978,
+            "id": 31077,
             "nodeType": "VariableDeclaration",
             "src": "1548:43:96",
             "nodes": [],
             "constant": false,
             "name": "vestings",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_Vesting_$30974_storage_$",
+              "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_Vesting_$31073_storage_$",
               "typeString": "mapping(uint256 => struct VestingRegistryStorage.Vesting)"
             },
             "typeName": {
-              "id": 30977,
+              "id": 31076,
               "keyType": {
-                "id": 30975,
+                "id": 31074,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "1556:7:96",
@@ -1401,18 +1401,18 @@
               "nodeType": "Mapping",
               "src": "1548:27:96",
               "typeDescriptions": {
-                "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_Vesting_$30974_storage_$",
+                "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_Vesting_$31073_storage_$",
                 "typeString": "mapping(uint256 => struct VestingRegistryStorage.Vesting)"
               },
               "valueType": {
                 "contractScope": null,
-                "id": 30976,
+                "id": 31075,
                 "name": "Vesting",
                 "nodeType": "UserDefinedTypeName",
-                "referencedDeclaration": 30974,
+                "referencedDeclaration": 31073,
                 "src": "1567:7:96",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_Vesting_$30974_storage_ptr",
+                  "typeIdentifier": "t_struct$_Vesting_$31073_storage_ptr",
                   "typeString": "struct VestingRegistryStorage.Vesting"
                 }
               }
@@ -1421,13 +1421,13 @@
             "visibility": "public"
           },
           {
-            "id": 30983,
+            "id": 31082,
             "nodeType": "VariableDeclaration",
             "src": "1732:47:96",
             "nodes": [],
             "constant": false,
             "name": "vestingsOf",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1435,9 +1435,9 @@
               "typeString": "mapping(address => uint256[])"
             },
             "typeName": {
-              "id": 30982,
+              "id": 31081,
               "keyType": {
-                "id": 30979,
+                "id": 31078,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "1740:7:96",
@@ -1454,7 +1454,7 @@
               },
               "valueType": {
                 "baseType": {
-                  "id": 30980,
+                  "id": 31079,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "1751:7:96",
@@ -1463,7 +1463,7 @@
                     "typeString": "uint256"
                   }
                 },
-                "id": 30981,
+                "id": 31080,
                 "length": null,
                 "nodeType": "ArrayTypeName",
                 "src": "1751:9:96",
@@ -1477,13 +1477,13 @@
             "visibility": "public"
           },
           {
-            "id": 30987,
+            "id": 31086,
             "nodeType": "VariableDeclaration",
             "src": "1910:41:96",
             "nodes": [],
             "constant": false,
             "name": "isVesting",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1491,9 +1491,9 @@
               "typeString": "mapping(address => bool)"
             },
             "typeName": {
-              "id": 30986,
+              "id": 31085,
               "keyType": {
-                "id": 30984,
+                "id": 31083,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "1918:7:96",
@@ -1509,7 +1509,7 @@
                 "typeString": "mapping(address => bool)"
               },
               "valueType": {
-                "id": 30985,
+                "id": 31084,
                 "name": "bool",
                 "nodeType": "ElementaryTypeName",
                 "src": "1929:4:96",
@@ -1523,7 +1523,7 @@
             "visibility": "public"
           },
           {
-            "id": 30994,
+            "id": 31093,
             "nodeType": "StructDefinition",
             "src": "2104:129:96",
             "nodes": [],
@@ -1531,10 +1531,10 @@
             "members": [
               {
                 "constant": false,
-                "id": 30989,
+                "id": 31088,
                 "name": "isSet",
                 "nodeType": "VariableDeclaration",
-                "scope": 30994,
+                "scope": 31093,
                 "src": "2151:10:96",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1543,7 +1543,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 30988,
+                  "id": 31087,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "2151:4:96",
@@ -1557,10 +1557,10 @@
               },
               {
                 "constant": false,
-                "id": 30991,
+                "id": 31090,
                 "name": "vestingType",
                 "nodeType": "VariableDeclaration",
-                "scope": 30994,
+                "scope": 31093,
                 "src": "2171:18:96",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1569,7 +1569,7 @@
                   "typeString": "uint32"
                 },
                 "typeName": {
-                  "id": 30990,
+                  "id": 31089,
                   "name": "uint32",
                   "nodeType": "ElementaryTypeName",
                   "src": "2171:6:96",
@@ -1583,10 +1583,10 @@
               },
               {
                 "constant": false,
-                "id": 30993,
+                "id": 31092,
                 "name": "vestingCreationType",
                 "nodeType": "VariableDeclaration",
-                "scope": 30994,
+                "scope": 31093,
                 "src": "2199:27:96",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -1595,7 +1595,7 @@
                   "typeString": "uint128"
                 },
                 "typeName": {
-                  "id": 30992,
+                  "id": 31091,
                   "name": "uint128",
                   "nodeType": "ElementaryTypeName",
                   "src": "2199:7:96",
@@ -1609,27 +1609,27 @@
               }
             ],
             "name": "VestingCreationAndTypeDetails",
-            "scope": 30999,
+            "scope": 31098,
             "visibility": "public"
           },
           {
-            "id": 30998,
+            "id": 31097,
             "nodeType": "VariableDeclaration",
             "src": "2483:80:96",
             "nodes": [],
             "constant": false,
             "name": "vestingCreationAndTypes",
-            "scope": 30999,
+            "scope": 31098,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_mapping$_t_address_$_t_struct$_VestingCreationAndTypeDetails_$30994_storage_$",
+              "typeIdentifier": "t_mapping$_t_address_$_t_struct$_VestingCreationAndTypeDetails_$31093_storage_$",
               "typeString": "mapping(address => struct VestingRegistryStorage.VestingCreationAndTypeDetails)"
             },
             "typeName": {
-              "id": 30997,
+              "id": 31096,
               "keyType": {
-                "id": 30995,
+                "id": 31094,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "2491:7:96",
@@ -1641,18 +1641,18 @@
               "nodeType": "Mapping",
               "src": "2483:49:96",
               "typeDescriptions": {
-                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_VestingCreationAndTypeDetails_$30994_storage_$",
+                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_VestingCreationAndTypeDetails_$31093_storage_$",
                 "typeString": "mapping(address => struct VestingRegistryStorage.VestingCreationAndTypeDetails)"
               },
               "valueType": {
                 "contractScope": null,
-                "id": 30996,
+                "id": 31095,
                 "name": "VestingCreationAndTypeDetails",
                 "nodeType": "UserDefinedTypeName",
-                "referencedDeclaration": 30994,
+                "referencedDeclaration": 31093,
                 "src": "2502:29:96",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_VestingCreationAndTypeDetails_$30994_storage_ptr",
+                  "typeIdentifier": "t_struct$_VestingCreationAndTypeDetails_$31093_storage_ptr",
                   "typeString": "struct VestingRegistryStorage.VestingCreationAndTypeDetails"
                 }
               }
@@ -1666,17 +1666,17 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 30946,
+              "id": 31045,
               "name": "Initializable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 55045,
+              "referencedDeclaration": 55144,
               "src": "579:13:96",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Initializable_$55045",
+                "typeIdentifier": "t_contract$_Initializable_$55144",
                 "typeString": "contract Initializable"
               }
             },
-            "id": 30947,
+            "id": 31046,
             "nodeType": "InheritanceSpecifier",
             "src": "579:13:96"
           },
@@ -1684,39 +1684,39 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 30948,
+              "id": 31047,
               "name": "AdminRole",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 62766,
+              "referencedDeclaration": 62865,
               "src": "594:9:96",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_AdminRole_$62766",
+                "typeIdentifier": "t_contract$_AdminRole_$62865",
                 "typeString": "contract AdminRole"
               }
             },
-            "id": 30949,
+            "id": 31048,
             "nodeType": "InheritanceSpecifier",
             "src": "594:9:96"
           }
         ],
         "contractDependencies": [
-          54471,
-          55045,
+          54570,
           55144,
-          62766
+          55243,
+          62865
         ],
         "contractKind": "contract",
         "documentation": "@title Vesting Registry Storage Contract.\n * @notice This contract is just the storage required for vesting registry.\nIt is parent of VestingRegistryProxy and VestingRegistryLogic.\n * @dev Use Ownable as a parent to align storage structure for Logic and Proxy contracts.\n",
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          30999,
-          62766,
-          55144,
-          54471,
-          55045
+          31098,
+          62865,
+          55243,
+          54570,
+          55144
         ],
         "name": "VestingRegistryStorage",
-        "scope": 31000
+        "scope": 31099
       }
     ]
   },

@@ -197,12 +197,12 @@
     }
   ],
   "bytecode": {
-    "object": "0x608060405234801561001057600080fd5b50610198806100206000396000f3fe608060405234801561001057600080fd5b50600436106100625760003560e01c8063095ea7b31461006757806318160ddd146100a757806323b872dd146100c157806370a08231146100f7578063a9059cbb14610067578063dd62ed3e1461011d575b600080fd5b6100936004803603604081101561007d57600080fd5b506001600160a01b038135169060200135610147565b604080519115158252519081900360200190f35b6100af61014f565b60408051918252519081900360200190f35b610093600480360360608110156100d757600080fd5b506001600160a01b03813581169160208101359091169060400135610154565b6100af6004803603602081101561010d57600080fd5b50356001600160a01b031661015d565b6100af6004803603604081101561013357600080fd5b506001600160a01b03813581169160200135165b600092915050565b600090565b60009392505050565b5060009056fea265627a7a72315820210cf789521b1b379ee57f5496bdaa6c1fa3be6999e4a927ea5d37fe3b7aa13464736f6c63430005110032",
+    "object": "0x608060405234801561001057600080fd5b50610198806100206000396000f3fe608060405234801561001057600080fd5b50600436106100625760003560e01c8063095ea7b31461006757806318160ddd146100a757806323b872dd146100c157806370a08231146100f7578063a9059cbb14610067578063dd62ed3e1461011d575b600080fd5b6100936004803603604081101561007d57600080fd5b506001600160a01b038135169060200135610147565b604080519115158252519081900360200190f35b6100af61014f565b60408051918252519081900360200190f35b610093600480360360608110156100d757600080fd5b506001600160a01b03813581169160208101359091169060400135610154565b6100af6004803603602081101561010d57600080fd5b50356001600160a01b031661015d565b6100af6004803603604081101561013357600080fd5b506001600160a01b03813581169160200135165b600092915050565b600090565b60009392505050565b5060009056fea265627a7a7231582076ef1d0f293ea035857a8f7c011a7ae9a4ec798b4473a955626f283ef7197b4e64736f6c63430005110032",
     "sourceMap": "206:731:37:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;206:731:37;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x608060405234801561001057600080fd5b50600436106100625760003560e01c8063095ea7b31461006757806318160ddd146100a757806323b872dd146100c157806370a08231146100f7578063a9059cbb14610067578063dd62ed3e1461011d575b600080fd5b6100936004803603604081101561007d57600080fd5b506001600160a01b038135169060200135610147565b604080519115158252519081900360200190f35b6100af61014f565b60408051918252519081900360200190f35b610093600480360360608110156100d757600080fd5b506001600160a01b03813581169160208101359091169060400135610154565b6100af6004803603602081101561010d57600080fd5b50356001600160a01b031661015d565b6100af6004803603604081101561013357600080fd5b506001600160a01b03813581169160200135165b600092915050565b600090565b60009392505050565b5060009056fea265627a7a72315820210cf789521b1b379ee57f5496bdaa6c1fa3be6999e4a927ea5d37fe3b7aa13464736f6c63430005110032",
+    "object": "0x608060405234801561001057600080fd5b50600436106100625760003560e01c8063095ea7b31461006757806318160ddd146100a757806323b872dd146100c157806370a08231146100f7578063a9059cbb14610067578063dd62ed3e1461011d575b600080fd5b6100936004803603604081101561007d57600080fd5b506001600160a01b038135169060200135610147565b604080519115158252519081900360200190f35b6100af61014f565b60408051918252519081900360200190f35b610093600480360360608110156100d757600080fd5b506001600160a01b03813581169160208101359091169060400135610154565b6100af6004803603602081101561010d57600080fd5b50356001600160a01b031661015d565b6100af6004803603604081101561013357600080fd5b506001600160a01b03813581169160200135165b600092915050565b600090565b60009392505050565b5060009056fea265627a7a7231582076ef1d0f293ea035857a8f7c011a7ae9a4ec798b4473a955626f283ef7197b4e64736f6c63430005110032",
     "sourceMap": "206:731:37:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;206:731:37;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;670:103;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;;;;;;670:103:37;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;259:80;;;:::i;:::-;;;;;;;;;;;;;;;;779:156;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;;;;;;779:156:37;;;;;;;;;;;;;;;;;:::i;345:93::-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;345:93:37;-1:-1:-1;;;;;345:93:37;;:::i;556:108::-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;;;;;;556:108:37;;;;;;;;;670:103;738:4;670:103;;;;:::o;259:80::-;305:7;259:80;:::o;779:156::-;900:4;779:156;;;;;:::o;345:93::-;-1:-1:-1;404:7:37;;345:93::o",
     "linkReferences": {}
   },
@@ -214,7 +214,7 @@
     "transfer(address,uint256)": "a9059cbb",
     "transferFrom(address,address,uint256)": "23b872dd"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"We need this token for having a flexibility with LiquidityMining configuration\",\"methods\":{},\"title\":\"Dummy token with 0 total supply.\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/farm/LiquidityMiningConfigToken.sol\":\"LiquidityMiningConfigToken\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/farm/LiquidityMiningConfigToken.sol\":{\"keccak256\":\"0x74cfbec8876eeb683b3b299f53f7dd30df843f89e001f371933f415b8a589a34\",\"urls\":[\"bzz-raw://16ca11b23cccdc52c862e414d7e46acc5f13ba932b20f614ee2da69fbe2a0282\",\"dweb:/ipfs/QmfEV3tCV29BGfi3fkvTiXtTYwRh1y9Dkos8pKDvsDUp9R\"]},\"contracts/openzeppelin/IERC20_.sol\":{\"keccak256\":\"0x913b27f370c93061abf98b13a872e12bba2fa2707bc5cd4e1e7728944209a88d\",\"urls\":[\"bzz-raw://dfb90a7a2d935e2c4ae70cc458f77e07ceaa6fc8ae6734e621ebf9c039cd962c\",\"dweb:/ipfs/QmTxp7s3uYcQkzfribiyFp6mdgeUY4T3UeWX1YZVK1kint\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"We need this token for having a flexibility with LiquidityMining configuration\",\"methods\":{},\"title\":\"Dummy token with 0 total supply.\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/farm/LiquidityMiningConfigToken.sol\":\"LiquidityMiningConfigToken\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/farm/LiquidityMiningConfigToken.sol\":{\"keccak256\":\"0x74cfbec8876eeb683b3b299f53f7dd30df843f89e001f371933f415b8a589a34\",\"urls\":[\"bzz-raw://16ca11b23cccdc52c862e414d7e46acc5f13ba932b20f614ee2da69fbe2a0282\",\"dweb:/ipfs/QmfEV3tCV29BGfi3fkvTiXtTYwRh1y9Dkos8pKDvsDUp9R\"]},\"contracts/openzeppelin/IERC20_.sol\":{\"keccak256\":\"0x913b27f370c93061abf98b13a872e12bba2fa2707bc5cd4e1e7728944209a88d\",\"urls\":[\"bzz-raw://dfb90a7a2d935e2c4ae70cc458f77e07ceaa6fc8ae6734e621ebf9c039cd962c\",\"dweb:/ipfs/QmTxp7s3uYcQkzfribiyFp6mdgeUY4T3UeWX1YZVK1kint\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -417,9 +417,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -484,7 +484,7 @@
         "absolutePath": "contracts/openzeppelin/IERC20_.sol",
         "file": "../openzeppelin/IERC20_.sol",
         "scope": 10060,
-        "sourceUnit": 55004,
+        "sourceUnit": 55103,
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -576,7 +576,7 @@
             },
             "scope": 10059,
             "stateMutability": "view",
-            "superFunction": 54941,
+            "superFunction": 55040,
             "visibility": "external"
           },
           {
@@ -690,7 +690,7 @@
             },
             "scope": 10059,
             "stateMutability": "view",
-            "superFunction": 54948,
+            "superFunction": 55047,
             "visibility": "external"
           },
           {
@@ -830,7 +830,7 @@
             },
             "scope": 10059,
             "stateMutability": "nonpayable",
-            "superFunction": 54957,
+            "superFunction": 55056,
             "visibility": "external"
           },
           {
@@ -971,7 +971,7 @@
             },
             "scope": 10059,
             "stateMutability": "view",
-            "superFunction": 54966,
+            "superFunction": 55065,
             "visibility": "external"
           },
           {
@@ -1111,7 +1111,7 @@
             },
             "scope": 10059,
             "stateMutability": "nonpayable",
-            "superFunction": 54975,
+            "superFunction": 55074,
             "visibility": "external"
           },
           {
@@ -1278,7 +1278,7 @@
             },
             "scope": 10059,
             "stateMutability": "nonpayable",
-            "superFunction": 54986,
+            "superFunction": 55085,
             "visibility": "external"
           }
         ],
@@ -1290,10 +1290,10 @@
               "id": 9989,
               "name": "IERC20_",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 55003,
+              "referencedDeclaration": 55102,
               "src": "245:7:37",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IERC20__$55003",
+                "typeIdentifier": "t_contract$_IERC20__$55102",
                 "typeString": "contract IERC20_"
               }
             },
@@ -1303,14 +1303,14 @@
           }
         ],
         "contractDependencies": [
-          55003
+          55102
         ],
         "contractKind": "contract",
         "documentation": "@title Dummy token with 0 total supply.\n * @dev We need this token for having a flexibility with LiquidityMining configuration",
         "fullyImplemented": true,
         "linearizedBaseContracts": [
           10059,
-          55003
+          55102
         ],
         "name": "LiquidityMiningConfigToken",
         "scope": 10060

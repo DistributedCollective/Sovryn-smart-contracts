@@ -1,17 +1,17 @@
 {
   "abi": [],
   "bytecode": {
-    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a7231582030c6372c9e27221694c236e4d261281d9a5815dd1b2c77f07951e9a72c40c0b164736f6c63430005110032",
+    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a7231582012e4aaa74276b6eec77085a67bfb8b75ae9ca4c226720a9a15c4257f9195e02664736f6c63430005110032",
     "sourceMap": "417:786:21:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;417:786:21;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x6080604052600080fdfea265627a7a7231582030c6372c9e27221694c236e4d261281d9a5815dd1b2c77f07951e9a72c40c0b164736f6c63430005110032",
+    "object": "0x6080604052600080fdfea265627a7a7231582012e4aaa74276b6eec77085a67bfb8b75ae9ca4c226720a9a15c4257f9195e02664736f6c63430005110032",
     "sourceMap": "417:786:21:-;;;;;",
     "linkReferences": {}
   },
   "methodIdentifiers": {},
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{},\"title\":\"The Loan Parameters.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * This contract contains the storage structure of the Loan Parameters.\"}},\"settings\":{\"compilationTarget\":{\"contracts/core/objects/LoanParamsStruct.sol\":\"LoanParamsStruct\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/core/objects/LoanParamsStruct.sol\":{\"keccak256\":\"0xe15aa97713521da7f501e5225af9d92cf34bd68d286dbfed86aa75aabb323945\",\"urls\":[\"bzz-raw://8ffbf11735ac26f4c1cc8c3403b8b98519cff9a5a16bf690e1c7a8a29449aa39\",\"dweb:/ipfs/QmX6J85sDNbu5Mh553oQNkfNoPRd79sHU8zKLWzNUz3E7U\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{},\"title\":\"The Loan Parameters.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * This contract contains the storage structure of the Loan Parameters.\"}},\"settings\":{\"compilationTarget\":{\"contracts/core/objects/LoanParamsStruct.sol\":\"LoanParamsStruct\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/core/objects/LoanParamsStruct.sol\":{\"keccak256\":\"0xe15aa97713521da7f501e5225af9d92cf34bd68d286dbfed86aa75aabb323945\",\"urls\":[\"bzz-raw://8ffbf11735ac26f4c1cc8c3403b8b98519cff9a5a16bf690e1c7a8a29449aa39\",\"dweb:/ipfs/QmX6J85sDNbu5Mh553oQNkfNoPRd79sHU8zKLWzNUz3E7U\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -30,9 +30,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"

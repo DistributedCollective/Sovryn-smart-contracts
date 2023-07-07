@@ -1,17 +1,17 @@
 {
   "abi": [],
   "bytecode": {
-    "object": "0x60556023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a723158208f5cc1b41f2d55117d68f48156990cec0868a0ea342bacf08fac59195de8cff964736f6c63430005110032",
+    "object": "0x60556023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a72315820adffa89aca54bcb242e726a17576af943db4f4f4c89d2260196ff75e03d5aeb264736f6c63430005110032",
     "sourceMap": "57:791:198:-;;132:2:-1;166:7;155:9;146:7;137:37;255:7;249:14;246:1;241:23;235:4;232:33;222:2;;269:9;222:2;293:9;290:1;283:20;323:4;314:7;306:22;347:7;338;331:24",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a723158208f5cc1b41f2d55117d68f48156990cec0868a0ea342bacf08fac59195de8cff964736f6c63430005110032",
+    "object": "0x73000000000000000000000000000000000000000030146080604052600080fdfea265627a7a72315820adffa89aca54bcb242e726a17576af943db4f4f4c89d2260196ff75e03d5aeb264736f6c63430005110032",
     "sourceMap": "57:791:198:-;;;;;;;;",
     "linkReferences": {}
   },
   "methodIdentifiers": {},
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/rsk/RSKAddrValidator.sol\":\"RSKAddrValidator\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/rsk/RSKAddrValidator.sol\":{\"keccak256\":\"0xf25255f771a734eef130f68e899d00a71e2bcab4e6b109e06f61cff93ab58d74\",\"urls\":[\"bzz-raw://445d86f2dfa2c76c5244df73cc8650e22a71b0202c1e370228786ba3d488c2e0\",\"dweb:/ipfs/QmUaJ3C5vcuj77bZ479ymEhHug1FzhJjEGRZFmsne76MrB\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/rsk/RSKAddrValidator.sol\":\"RSKAddrValidator\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/rsk/RSKAddrValidator.sol\":{\"keccak256\":\"0xf25255f771a734eef130f68e899d00a71e2bcab4e6b109e06f61cff93ab58d74\",\"urls\":[\"bzz-raw://445d86f2dfa2c76c5244df73cc8650e22a71b0202c1e370228786ba3d488c2e0\",\"dweb:/ipfs/QmUaJ3C5vcuj77bZ479ymEhHug1FzhJjEGRZFmsne76MrB\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -30,9 +30,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -60,17 +60,17 @@
   },
   "ast": {
     "absolutePath": "contracts/rsk/RSKAddrValidator.sol",
-    "id": 57261,
+    "id": 57360,
     "exportedSymbols": {
       "RSKAddrValidator": [
-        57260
+        57359
       ]
     },
     "nodeType": "SourceUnit",
     "src": "31:818:198",
     "nodes": [
       {
-        "id": 57215,
+        "id": 57314,
         "nodeType": "PragmaDirective",
         "src": "31:24:198",
         "nodes": [],
@@ -82,17 +82,17 @@
         ]
       },
       {
-        "id": 57260,
+        "id": 57359,
         "nodeType": "ContractDefinition",
         "src": "57:791:198",
         "nodes": [
           {
-            "id": 57234,
+            "id": 57333,
             "nodeType": "FunctionDefinition",
             "src": "336:165:198",
             "nodes": [],
             "body": {
-              "id": 57233,
+              "id": 57332,
               "nodeType": "Block",
               "src": "403:98:198",
               "nodes": [],
@@ -107,7 +107,7 @@
                           "typeIdentifier": "t_bool",
                           "typeString": "bool"
                         },
-                        "id": 57230,
+                        "id": 57329,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -118,18 +118,18 @@
                             "typeIdentifier": "t_address",
                             "typeString": "address"
                           },
-                          "id": 57224,
+                          "id": 57323,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "argumentTypes": null,
-                            "id": 57222,
+                            "id": 57321,
                             "name": "addr",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 57217,
+                            "referencedDeclaration": 57316,
                             "src": "421:4:198",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -141,7 +141,7 @@
                           "rightExpression": {
                             "argumentTypes": null,
                             "hexValue": "307864636337303363304535303042363533436138323237334237424641643830343544383561343730",
-                            "id": 57223,
+                            "id": 57322,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -170,18 +170,18 @@
                             "typeIdentifier": "t_address",
                             "typeString": "address"
                           },
-                          "id": 57229,
+                          "id": 57328,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "argumentTypes": null,
-                            "id": 57225,
+                            "id": 57324,
                             "name": "addr",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 57217,
+                            "referencedDeclaration": 57316,
                             "src": "475:4:198",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -196,7 +196,7 @@
                               {
                                 "argumentTypes": null,
                                 "hexValue": "30",
-                                "id": 57227,
+                                "id": 57326,
                                 "isConstant": false,
                                 "isLValue": false,
                                 "isPure": true,
@@ -219,7 +219,7 @@
                                   "typeString": "int_const 0"
                                 }
                               ],
-                              "id": 57226,
+                              "id": 57325,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -232,7 +232,7 @@
                               },
                               "typeName": "address"
                             },
-                            "id": 57228,
+                            "id": 57327,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -259,7 +259,7 @@
                         }
                       }
                     ],
-                    "id": 57231,
+                    "id": 57330,
                     "isConstant": false,
                     "isInlineArray": false,
                     "isLValue": false,
@@ -272,8 +272,8 @@
                       "typeString": "bool"
                     }
                   },
-                  "functionReturnParameters": 57221,
-                  "id": 57232,
+                  "functionReturnParameters": 57320,
+                  "id": 57331,
                   "nodeType": "Return",
                   "src": "413:81:198"
                 }
@@ -285,15 +285,15 @@
             "modifiers": [],
             "name": "checkPKNotZero",
             "parameters": {
-              "id": 57218,
+              "id": 57317,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57217,
+                  "id": 57316,
                   "name": "addr",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57234,
+                  "scope": 57333,
                   "src": "360:12:198",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -302,7 +302,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57216,
+                    "id": 57315,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "360:7:198",
@@ -319,15 +319,15 @@
               "src": "359:14:198"
             },
             "returnParameters": {
-              "id": 57221,
+              "id": 57320,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57220,
+                  "id": 57319,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57234,
+                  "scope": 57333,
                   "src": "397:4:198",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -336,7 +336,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 57219,
+                    "id": 57318,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "397:4:198",
@@ -351,18 +351,18 @@
               ],
               "src": "396:6:198"
             },
-            "scope": 57260,
+            "scope": 57359,
             "stateMutability": "pure",
             "superFunction": null,
             "visibility": "internal"
           },
           {
-            "id": 57259,
+            "id": 57358,
             "nodeType": "FunctionDefinition",
             "src": "625:221:198",
             "nodes": [],
             "body": {
-              "id": 57258,
+              "id": 57357,
               "nodeType": "Block",
               "src": "704:142:198",
               "nodes": [],
@@ -377,7 +377,7 @@
                           "typeIdentifier": "t_bool",
                           "typeString": "bool"
                         },
-                        "id": 57255,
+                        "id": 57354,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -388,7 +388,7 @@
                             "typeIdentifier": "t_bool",
                             "typeString": "bool"
                           },
-                          "id": 57249,
+                          "id": 57348,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -399,18 +399,18 @@
                               "typeIdentifier": "t_address",
                               "typeString": "address"
                             },
-                            "id": 57245,
+                            "id": 57344,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
                             "lValueRequested": false,
                             "leftExpression": {
                               "argumentTypes": null,
-                              "id": 57243,
+                              "id": 57342,
                               "name": "addr1",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 57236,
+                              "referencedDeclaration": 57335,
                               "src": "722:5:198",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_address",
@@ -421,11 +421,11 @@
                             "operator": "==",
                             "rightExpression": {
                               "argumentTypes": null,
-                              "id": 57244,
+                              "id": 57343,
                               "name": "addr2",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 57238,
+                              "referencedDeclaration": 57337,
                               "src": "731:5:198",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_address",
@@ -446,18 +446,18 @@
                               "typeIdentifier": "t_address",
                               "typeString": "address"
                             },
-                            "id": 57248,
+                            "id": 57347,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
                             "lValueRequested": false,
                             "leftExpression": {
                               "argumentTypes": null,
-                              "id": 57246,
+                              "id": 57345,
                               "name": "addr1",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 57236,
+                              "referencedDeclaration": 57335,
                               "src": "752:5:198",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_address",
@@ -469,7 +469,7 @@
                             "rightExpression": {
                               "argumentTypes": null,
                               "hexValue": "307864636337303363304535303042363533436138323237334237424641643830343544383561343730",
-                              "id": 57247,
+                              "id": 57346,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -504,18 +504,18 @@
                             "typeIdentifier": "t_address",
                             "typeString": "address"
                           },
-                          "id": 57254,
+                          "id": 57353,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "argumentTypes": null,
-                            "id": 57250,
+                            "id": 57349,
                             "name": "addr1",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 57236,
+                            "referencedDeclaration": 57335,
                             "src": "819:5:198",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -530,7 +530,7 @@
                               {
                                 "argumentTypes": null,
                                 "hexValue": "30",
-                                "id": 57252,
+                                "id": 57351,
                                 "isConstant": false,
                                 "isLValue": false,
                                 "isPure": true,
@@ -553,7 +553,7 @@
                                   "typeString": "int_const 0"
                                 }
                               ],
-                              "id": 57251,
+                              "id": 57350,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -566,7 +566,7 @@
                               },
                               "typeName": "address"
                             },
-                            "id": 57253,
+                            "id": 57352,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -593,7 +593,7 @@
                         }
                       }
                     ],
-                    "id": 57256,
+                    "id": 57355,
                     "isConstant": false,
                     "isInlineArray": false,
                     "isLValue": false,
@@ -606,8 +606,8 @@
                       "typeString": "bool"
                     }
                   },
-                  "functionReturnParameters": 57242,
-                  "id": 57257,
+                  "functionReturnParameters": 57341,
+                  "id": 57356,
                   "nodeType": "Return",
                   "src": "714:125:198"
                 }
@@ -619,15 +619,15 @@
             "modifiers": [],
             "name": "safeEquals",
             "parameters": {
-              "id": 57239,
+              "id": 57338,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57236,
+                  "id": 57335,
                   "name": "addr1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57259,
+                  "scope": 57358,
                   "src": "645:13:198",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -636,7 +636,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57235,
+                    "id": 57334,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "645:7:198",
@@ -651,10 +651,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 57238,
+                  "id": 57337,
                   "name": "addr2",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57259,
+                  "scope": 57358,
                   "src": "660:13:198",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -663,7 +663,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 57237,
+                    "id": 57336,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "660:7:198",
@@ -680,15 +680,15 @@
               "src": "644:30:198"
             },
             "returnParameters": {
-              "id": 57242,
+              "id": 57341,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 57241,
+                  "id": 57340,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 57259,
+                  "scope": 57358,
                   "src": "698:4:198",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -697,7 +697,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 57240,
+                    "id": 57339,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "698:4:198",
@@ -712,7 +712,7 @@
               ],
               "src": "697:6:198"
             },
-            "scope": 57260,
+            "scope": 57359,
             "stateMutability": "pure",
             "superFunction": null,
             "visibility": "internal"
@@ -724,10 +724,10 @@
         "documentation": null,
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          57260
+          57359
         ],
         "name": "RSKAddrValidator",
-        "scope": 57261
+        "scope": 57360
       }
     ]
   },

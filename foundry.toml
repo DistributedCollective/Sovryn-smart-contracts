@@ -1,9 +1,22 @@
 [profile.default]
 src = 'contracts'
 out = 'foundry/out'
-libs = ['node_modules', 'lib']
-test = 'foundry/test'
-cache_path  = 'foundry/forge-cache'
-match_path = 'foundry/test/*'
+libs = ['node_modules', 'foundry/lib']
+test = 'tests-foundry'
+match_path = 'tests-foundry/*'
+cache_path  = 'cache_forge'
+fs_permissions = [{ access = "read-write", path = "./"}, { access = "read-write", path = "foundry/out/"}]
+# gas_limit = "Max"
+# gas_price = 66000010
+# block_base_fee_per_gas = 0
+# block_gas_limit = 30000000
 
+[rpc_endpoints]
+localhost = "http://127.0.0.1:8545/"
+rskSovrynMainnet = "https://mainnet4.sovryn.app/rpc"
+rskSovrynTestnet = "https://testnet.sovryn.app/rpc"
+rskTestnet = "https://public-node.testnet.rsk.co/"
+rskMainnet = "https://public-node.rsk.co/"
+
+# @todo https://github.com/foundry-rs/foundry/tree/master/config#additional-model-checker-settings
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

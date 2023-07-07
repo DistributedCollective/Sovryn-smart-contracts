@@ -61,7 +61,7 @@
     "endDate()": "c24a0f8b",
     "stakeTokens(uint256)": "7547c7a3"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"endDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"stakeTokens\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interfaces are used to cast a contract address into a callable instance. This interface is used by VestingLogic contract to implement stakeTokens function and on VestingRegistry contract to call IVesting(vesting).stakeTokens function at a vesting instance.\",\"methods\":{},\"title\":\"Interface for Vesting contract.\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/IVesting.sol\":\"IVesting\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/Vesting/IVesting.sol\":{\"keccak256\":\"0x373d8b2669d69d57ed11f1caf345e3a818f5c60019b3fff91acb01d323c0600c\",\"urls\":[\"bzz-raw://dc21afdda9d4ab2f586da1d3ee940439cc2b5c51247a9737fc657b7e8e287604\",\"dweb:/ipfs/QmXT9L2kdcqmMRz2zLeq48RC22e1fB1PRkyw6bnR5sqc7f\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[],\"name\":\"duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"endDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"stakeTokens\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interfaces are used to cast a contract address into a callable instance. This interface is used by VestingLogic contract to implement stakeTokens function and on VestingRegistry contract to call IVesting(vesting).stakeTokens function at a vesting instance.\",\"methods\":{},\"title\":\"Interface for Vesting contract.\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/IVesting.sol\":\"IVesting\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/Vesting/IVesting.sol\":{\"keccak256\":\"0x373d8b2669d69d57ed11f1caf345e3a818f5c60019b3fff91acb01d323c0600c\",\"urls\":[\"bzz-raw://dc21afdda9d4ab2f586da1d3ee940439cc2b5c51247a9737fc657b7e8e287604\",\"dweb:/ipfs/QmXT9L2kdcqmMRz2zLeq48RC22e1fB1PRkyw6bnR5sqc7f\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -119,9 +119,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -149,17 +149,17 @@
   },
   "ast": {
     "absolutePath": "contracts/governance/Vesting/IVesting.sol",
-    "id": 25079,
+    "id": 25178,
     "exportedSymbols": {
       "IVesting": [
-        25078
+        25177
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:529:80",
     "nodes": [
       {
-        "id": 25062,
+        "id": 25161,
         "nodeType": "PragmaDirective",
         "src": "0:24:80",
         "nodes": [],
@@ -171,12 +171,12 @@
         ]
       },
       {
-        "id": 25078,
+        "id": 25177,
         "nodeType": "ContractDefinition",
         "src": "350:178:80",
         "nodes": [
           {
-            "id": 25067,
+            "id": 25166,
             "nodeType": "FunctionDefinition",
             "src": "375:47:80",
             "nodes": [],
@@ -186,21 +186,21 @@
             "modifiers": [],
             "name": "duration",
             "parameters": {
-              "id": 25063,
+              "id": 25162,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "392:2:80"
             },
             "returnParameters": {
-              "id": 25066,
+              "id": 25165,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 25065,
+                  "id": 25164,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 25067,
+                  "scope": 25166,
                   "src": "413:7:80",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -209,7 +209,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 25064,
+                    "id": 25163,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "413:7:80",
@@ -224,13 +224,13 @@
               ],
               "src": "412:9:80"
             },
-            "scope": 25078,
+            "scope": 25177,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 25072,
+            "id": 25171,
             "nodeType": "FunctionDefinition",
             "src": "428:46:80",
             "nodes": [],
@@ -240,21 +240,21 @@
             "modifiers": [],
             "name": "endDate",
             "parameters": {
-              "id": 25068,
+              "id": 25167,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "444:2:80"
             },
             "returnParameters": {
-              "id": 25071,
+              "id": 25170,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 25070,
+                  "id": 25169,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 25072,
+                  "scope": 25171,
                   "src": "465:7:80",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -263,7 +263,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 25069,
+                    "id": 25168,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "465:7:80",
@@ -278,13 +278,13 @@
               ],
               "src": "464:9:80"
             },
-            "scope": 25078,
+            "scope": 25177,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 25077,
+            "id": 25176,
             "nodeType": "FunctionDefinition",
             "src": "480:46:80",
             "nodes": [],
@@ -294,15 +294,15 @@
             "modifiers": [],
             "name": "stakeTokens",
             "parameters": {
-              "id": 25075,
+              "id": 25174,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 25074,
+                  "id": 25173,
                   "name": "amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 25077,
+                  "scope": 25176,
                   "src": "501:14:80",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -311,7 +311,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 25073,
+                    "id": 25172,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "501:7:80",
@@ -327,12 +327,12 @@
               "src": "500:16:80"
             },
             "returnParameters": {
-              "id": 25076,
+              "id": 25175,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "525:0:80"
             },
-            "scope": 25078,
+            "scope": 25177,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
@@ -344,10 +344,10 @@
         "documentation": "@title Interface for Vesting contract.\n@dev Interfaces are used to cast a contract address into a callable instance.\nThis interface is used by VestingLogic contract to implement stakeTokens function\nand on VestingRegistry contract to call IVesting(vesting).stakeTokens function\nat a vesting instance.",
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          25078
+          25177
         ],
         "name": "IVesting",
-        "scope": 25079
+        "scope": 25178
       }
     ]
   },

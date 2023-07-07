@@ -49,12 +49,12 @@
     }
   ],
   "bytecode": {
-    "object": "0x608060405234801561001057600080fd5b5061018c806100206000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c80630a4aff771461003b5780631340869314610075575b600080fd5b6100616004803603602081101561005157600080fd5b50356001600160a01b03166100a3565b604080519115158252519081900360200190f35b6100616004803603604081101561008b57600080fd5b506001600160a01b03813581169160200135166100b4565b60006100ae826100c7565b92915050565b60006100c08383610100565b9392505050565b600073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b038316148015906100ae5750506001600160a01b0316151590565b6000816001600160a01b0316836001600160a01b0316148015610140575073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b03841614155b80156100c0575050506001600160a01b031615159056fea265627a7a72315820c206aa4f1e76ba60b75b6c2d7bd5175126ef92f6a4c5a9fa2121e40140d8378364736f6c63430005110032",
+    "object": "0x608060405234801561001057600080fd5b5061018c806100206000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c80630a4aff771461003b5780631340869314610075575b600080fd5b6100616004803603602081101561005157600080fd5b50356001600160a01b03166100a3565b604080519115158252519081900360200190f35b6100616004803603604081101561008b57600080fd5b506001600160a01b03813581169160200135166100b4565b60006100ae826100c7565b92915050565b60006100c08383610100565b9392505050565b600073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b038316148015906100ae5750506001600160a01b0316151590565b6000816001600160a01b0316836001600160a01b0316148015610140575073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b03841614155b80156100c0575050506001600160a01b031615159056fea265627a7a72315820489ac4e5a45b9fdb5b8a25d46bffb63372d32048c8c393f3d9b6e39e09d3be2f64736f6c63430005110032",
     "sourceMap": "99:704:211:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;99:704:211;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x608060405234801561001057600080fd5b50600436106100365760003560e01c80630a4aff771461003b5780631340869314610075575b600080fd5b6100616004803603602081101561005157600080fd5b50356001600160a01b03166100a3565b604080519115158252519081900360200190f35b6100616004803603604081101561008b57600080fd5b506001600160a01b03813581169160200135166100b4565b60006100ae826100c7565b92915050565b60006100c08383610100565b9392505050565b600073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b038316148015906100ae5750506001600160a01b0316151590565b6000816001600160a01b0316836001600160a01b0316148015610140575073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b03841614155b80156100c0575050506001600160a01b031615159056fea265627a7a72315820c206aa4f1e76ba60b75b6c2d7bd5175126ef92f6a4c5a9fa2121e40140d8378364736f6c63430005110032",
+    "object": "0x608060405234801561001057600080fd5b50600436106100365760003560e01c80630a4aff771461003b5780631340869314610075575b600080fd5b6100616004803603602081101561005157600080fd5b50356001600160a01b03166100a3565b604080519115158252519081900360200190f35b6100616004803603604081101561008b57600080fd5b506001600160a01b03813581169160200135166100b4565b60006100ae826100c7565b92915050565b60006100c08383610100565b9392505050565b600073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b038316148015906100ae5750506001600160a01b0316151590565b6000816001600160a01b0316836001600160a01b0316148015610140575073dcc703c0e500b653ca82273b7bfad8045d85a4706001600160a01b03841614155b80156100c0575050506001600160a01b031615159056fea265627a7a72315820489ac4e5a45b9fdb5b8a25d46bffb63372d32048c8c393f3d9b6e39e09d3be2f64736f6c63430005110032",
     "sourceMap": "99:704:211:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;99:704:211;;;;;;;;;;;;;;;;;;;;;;;;374:145;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;374:145:211;-1:-1:-1;;;;;374:145:211;;:::i;:::-;;;;;;;;;;;;;;;;;;640:161;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;;;;;;640:161:211;;;;;;;;;;:::i;374:145::-;450:4;474:37;506:4;474:31;:37::i;:::-;466:46;374:145;-1:-1:-1;;374:145:211:o;640:161::-;728:4;752:41;780:5;787;752:27;:41::i;:::-;744:50;640:161;-1:-1:-1;;;640:161:211:o;336:165:198:-;397:4;429:42;-1:-1:-1;;;;;421:50:198;;;;;;:72;;-1:-1:-1;;;;;;;475:18:198;;;;336:165::o;625:221::-;698:4;731:5;-1:-1:-1;;;;;722:14:198;:5;-1:-1:-1;;;;;722:14:198;;:81;;;;-1:-1:-1;761:42:198;-1:-1:-1;;;;;752:51:198;;;;722:81;:116;;;;-1:-1:-1;;;;;;;;819:19:198;;;;625:221::o",
     "linkReferences": {}
   },
@@ -62,7 +62,7 @@
     "RSKAddrValidator_checkPKNotZero(address)": "0a4aff77",
     "RSKAddrValidator_safeEquals(address,address)": "13408693"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"RSKAddrValidator_checkPKNotZero\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr1\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"addr2\",\"type\":\"address\"}],\"name\":\"RSKAddrValidator_safeEquals\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/testhelpers/TestLibraries.sol\":\"TestLibraries\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/rsk/RSKAddrValidator.sol\":{\"keccak256\":\"0xf25255f771a734eef130f68e899d00a71e2bcab4e6b109e06f61cff93ab58d74\",\"urls\":[\"bzz-raw://445d86f2dfa2c76c5244df73cc8650e22a71b0202c1e370228786ba3d488c2e0\",\"dweb:/ipfs/QmUaJ3C5vcuj77bZ479ymEhHug1FzhJjEGRZFmsne76MrB\"]},\"contracts/testhelpers/TestLibraries.sol\":{\"keccak256\":\"0xc0b1b8465a90904edd242185fa5171ce0717f10794ca1243a3b09d783f5991bf\",\"urls\":[\"bzz-raw://8b801074f0a6703bfe2d948b648776fac699e94fe4b80098b30ac575a7136798\",\"dweb:/ipfs/QmRZGCvmzG94YD9ktQkdMggzvgGEu3TksBp6AeyD7iBTZi\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"RSKAddrValidator_checkPKNotZero\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr1\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"addr2\",\"type\":\"address\"}],\"name\":\"RSKAddrValidator_safeEquals\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/testhelpers/TestLibraries.sol\":\"TestLibraries\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/rsk/RSKAddrValidator.sol\":{\"keccak256\":\"0xf25255f771a734eef130f68e899d00a71e2bcab4e6b109e06f61cff93ab58d74\",\"urls\":[\"bzz-raw://445d86f2dfa2c76c5244df73cc8650e22a71b0202c1e370228786ba3d488c2e0\",\"dweb:/ipfs/QmUaJ3C5vcuj77bZ479ymEhHug1FzhJjEGRZFmsne76MrB\"]},\"contracts/testhelpers/TestLibraries.sol\":{\"keccak256\":\"0xc0b1b8465a90904edd242185fa5171ce0717f10794ca1243a3b09d783f5991bf\",\"urls\":[\"bzz-raw://8b801074f0a6703bfe2d948b648776fac699e94fe4b80098b30ac575a7136798\",\"dweb:/ipfs/QmRZGCvmzG94YD9ktQkdMggzvgGEu3TksBp6AeyD7iBTZi\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -125,9 +125,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -163,17 +163,17 @@
   },
   "ast": {
     "absolutePath": "contracts/testhelpers/TestLibraries.sol",
-    "id": 59666,
+    "id": 59765,
     "exportedSymbols": {
       "TestLibraries": [
-        59665
+        59764
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:804:211",
     "nodes": [
       {
-        "id": 59632,
+        "id": 59731,
         "nodeType": "PragmaDirective",
         "src": "0:24:211",
         "nodes": [],
@@ -185,29 +185,29 @@
         ]
       },
       {
-        "id": 59633,
+        "id": 59732,
         "nodeType": "ImportDirective",
         "src": "26:37:211",
         "nodes": [],
         "absolutePath": "contracts/rsk/RSKAddrValidator.sol",
         "file": "../rsk/RSKAddrValidator.sol",
-        "scope": 59666,
-        "sourceUnit": 57261,
+        "scope": 59765,
+        "sourceUnit": 57360,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 59665,
+        "id": 59764,
         "nodeType": "ContractDefinition",
         "src": "99:704:211",
         "nodes": [
           {
-            "id": 59647,
+            "id": 59746,
             "nodeType": "FunctionDefinition",
             "src": "374:145:211",
             "nodes": [],
             "body": {
-              "id": 59646,
+              "id": 59745,
               "nodeType": "Block",
               "src": "456:63:211",
               "nodes": [],
@@ -221,11 +221,11 @@
                         "arguments": [
                           {
                             "argumentTypes": null,
-                            "id": 59642,
+                            "id": 59741,
                             "name": "addr",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 59635,
+                            "referencedDeclaration": 59734,
                             "src": "506:4:211",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -242,32 +242,32 @@
                           ],
                           "expression": {
                             "argumentTypes": null,
-                            "id": 59640,
+                            "id": 59739,
                             "name": "RSKAddrValidator",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 57260,
+                            "referencedDeclaration": 57359,
                             "src": "474:16:211",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_type$_t_contract$_RSKAddrValidator_$57260_$",
+                              "typeIdentifier": "t_type$_t_contract$_RSKAddrValidator_$57359_$",
                               "typeString": "type(library RSKAddrValidator)"
                             }
                           },
-                          "id": 59641,
+                          "id": 59740,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "memberName": "checkPKNotZero",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 57234,
+                          "referencedDeclaration": 57333,
                           "src": "474:31:211",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_pure$_t_address_$returns$_t_bool_$",
                             "typeString": "function (address) pure returns (bool)"
                           }
                         },
-                        "id": 59643,
+                        "id": 59742,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -282,7 +282,7 @@
                         }
                       }
                     ],
-                    "id": 59644,
+                    "id": 59743,
                     "isConstant": false,
                     "isInlineArray": false,
                     "isLValue": false,
@@ -295,8 +295,8 @@
                       "typeString": "bool"
                     }
                   },
-                  "functionReturnParameters": 59639,
-                  "id": 59645,
+                  "functionReturnParameters": 59738,
+                  "id": 59744,
                   "nodeType": "Return",
                   "src": "466:46:211"
                 }
@@ -308,15 +308,15 @@
             "modifiers": [],
             "name": "RSKAddrValidator_checkPKNotZero",
             "parameters": {
-              "id": 59636,
+              "id": 59735,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 59635,
+                  "id": 59734,
                   "name": "addr",
                   "nodeType": "VariableDeclaration",
-                  "scope": 59647,
+                  "scope": 59746,
                   "src": "415:12:211",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -325,7 +325,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 59634,
+                    "id": 59733,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "415:7:211",
@@ -342,15 +342,15 @@
               "src": "414:14:211"
             },
             "returnParameters": {
-              "id": 59639,
+              "id": 59738,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 59638,
+                  "id": 59737,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 59647,
+                  "scope": 59746,
                   "src": "450:4:211",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -359,7 +359,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 59637,
+                    "id": 59736,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "450:4:211",
@@ -374,18 +374,18 @@
               ],
               "src": "449:6:211"
             },
-            "scope": 59665,
+            "scope": 59764,
             "stateMutability": "pure",
             "superFunction": null,
             "visibility": "public"
           },
           {
-            "id": 59664,
+            "id": 59763,
             "nodeType": "FunctionDefinition",
             "src": "640:161:211",
             "nodes": [],
             "body": {
-              "id": 59663,
+              "id": 59762,
               "nodeType": "Block",
               "src": "734:67:211",
               "nodes": [],
@@ -399,11 +399,11 @@
                         "arguments": [
                           {
                             "argumentTypes": null,
-                            "id": 59658,
+                            "id": 59757,
                             "name": "addr1",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 59649,
+                            "referencedDeclaration": 59748,
                             "src": "780:5:211",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -412,11 +412,11 @@
                           },
                           {
                             "argumentTypes": null,
-                            "id": 59659,
+                            "id": 59758,
                             "name": "addr2",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 59651,
+                            "referencedDeclaration": 59750,
                             "src": "787:5:211",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -437,32 +437,32 @@
                           ],
                           "expression": {
                             "argumentTypes": null,
-                            "id": 59656,
+                            "id": 59755,
                             "name": "RSKAddrValidator",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 57260,
+                            "referencedDeclaration": 57359,
                             "src": "752:16:211",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_type$_t_contract$_RSKAddrValidator_$57260_$",
+                              "typeIdentifier": "t_type$_t_contract$_RSKAddrValidator_$57359_$",
                               "typeString": "type(library RSKAddrValidator)"
                             }
                           },
-                          "id": 59657,
+                          "id": 59756,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "memberName": "safeEquals",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 57259,
+                          "referencedDeclaration": 57358,
                           "src": "752:27:211",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_pure$_t_address_$_t_address_$returns$_t_bool_$",
                             "typeString": "function (address,address) pure returns (bool)"
                           }
                         },
-                        "id": 59660,
+                        "id": 59759,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -477,7 +477,7 @@
                         }
                       }
                     ],
-                    "id": 59661,
+                    "id": 59760,
                     "isConstant": false,
                     "isInlineArray": false,
                     "isLValue": false,
@@ -490,8 +490,8 @@
                       "typeString": "bool"
                     }
                   },
-                  "functionReturnParameters": 59655,
-                  "id": 59662,
+                  "functionReturnParameters": 59754,
+                  "id": 59761,
                   "nodeType": "Return",
                   "src": "744:50:211"
                 }
@@ -503,15 +503,15 @@
             "modifiers": [],
             "name": "RSKAddrValidator_safeEquals",
             "parameters": {
-              "id": 59652,
+              "id": 59751,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 59649,
+                  "id": 59748,
                   "name": "addr1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 59664,
+                  "scope": 59763,
                   "src": "677:13:211",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -520,7 +520,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 59648,
+                    "id": 59747,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "677:7:211",
@@ -535,10 +535,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 59651,
+                  "id": 59750,
                   "name": "addr2",
                   "nodeType": "VariableDeclaration",
-                  "scope": 59664,
+                  "scope": 59763,
                   "src": "692:13:211",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -547,7 +547,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 59650,
+                    "id": 59749,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "692:7:211",
@@ -564,15 +564,15 @@
               "src": "676:30:211"
             },
             "returnParameters": {
-              "id": 59655,
+              "id": 59754,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 59654,
+                  "id": 59753,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 59664,
+                  "scope": 59763,
                   "src": "728:4:211",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -581,7 +581,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 59653,
+                    "id": 59752,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "728:4:211",
@@ -596,7 +596,7 @@
               ],
               "src": "727:6:211"
             },
-            "scope": 59665,
+            "scope": 59764,
             "stateMutability": "pure",
             "superFunction": null,
             "visibility": "public"
@@ -608,10 +608,10 @@
         "documentation": null,
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          59665
+          59764
         ],
         "name": "TestLibraries",
-        "scope": 59666
+        "scope": 59765
       }
     ]
   },

@@ -34,7 +34,7 @@
   "methodIdentifiers": {
     "getListFunctionSignatures()": "90967de5"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"getListFunctionSignatures\",\"outputs\":[{\"internalType\":\"bytes4[]\",\"name\":\"\",\"type\":\"bytes4[]\"},{\"internalType\":\"bytes32\",\"name\":\"moduleName\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/connectors/loantoken/LoanTokenLogicBeacon.sol\":\"ILoanTokenLogicModules\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/connectors/loantoken/LoanTokenLogicBeacon.sol\":{\"keccak256\":\"0x17863dacfd43ebb75868767405901b4ac33941d45acf4d2a99a75abe9907de72\",\"urls\":[\"bzz-raw://4274be1f026c417fd1aa1ce511312199ff76ce3cd36099609bc50c5cbb2f777e\",\"dweb:/ipfs/QmSS3zaSm6SwW4ia3SPpQ2pvM55S987y93JH2ZeTGPGU14\"]},\"contracts/mixins/EnumerableBytes32Set.sol\":{\"keccak256\":\"0xa2801a585c566e07f21c1ebccd0cd0447dd5fd9fe6c1ff2b58d4d979d88a6db0\",\"urls\":[\"bzz-raw://e3160f5161fb9eb78bac2107c53a6d635182a597515129bf916e955044769cde\",\"dweb:/ipfs/QmTFbJX7qYunXxrRfydVrtdVpN4jTAoC3GeKzv3ChruUdm\"]},\"contracts/mixins/EnumerableBytes4Set.sol\":{\"keccak256\":\"0x9dddffd475e2532204ac1c33ba211788b04d83c59e16416b341ea1f2f3a3fd44\",\"urls\":[\"bzz-raw://f5c622c5f97128b68e180f770f148bb007f99c92559544524b0ab92654f67cef\",\"dweb:/ipfs/QmcWdHR8g8Js4kmKoFozWpw9QxvcaS4Xdgss6z9WNVCppm\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/PausableOz.sol\":{\"keccak256\":\"0x4a5bfd9174a70922a663afdca4ec7462acfcd5642797c1dc7fd830f2bdc233d3\",\"urls\":[\"bzz-raw://65435b30cd9dbc35806ad05f4d4e47c42b9a4672734d6d323a3e725c4f6eb6c3\",\"dweb:/ipfs/QmZhH7dhqMNiUmD9Rg3tHSrP7hN8UyuaUgnaCk3AaoLhcR\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"getListFunctionSignatures\",\"outputs\":[{\"internalType\":\"bytes4[]\",\"name\":\"\",\"type\":\"bytes4[]\"},{\"internalType\":\"bytes32\",\"name\":\"moduleName\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/connectors/loantoken/LoanTokenLogicBeacon.sol\":\"ILoanTokenLogicModules\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/connectors/loantoken/LoanTokenLogicBeacon.sol\":{\"keccak256\":\"0x17863dacfd43ebb75868767405901b4ac33941d45acf4d2a99a75abe9907de72\",\"urls\":[\"bzz-raw://4274be1f026c417fd1aa1ce511312199ff76ce3cd36099609bc50c5cbb2f777e\",\"dweb:/ipfs/QmSS3zaSm6SwW4ia3SPpQ2pvM55S987y93JH2ZeTGPGU14\"]},\"contracts/mixins/EnumerableBytes32Set.sol\":{\"keccak256\":\"0xa2801a585c566e07f21c1ebccd0cd0447dd5fd9fe6c1ff2b58d4d979d88a6db0\",\"urls\":[\"bzz-raw://e3160f5161fb9eb78bac2107c53a6d635182a597515129bf916e955044769cde\",\"dweb:/ipfs/QmTFbJX7qYunXxrRfydVrtdVpN4jTAoC3GeKzv3ChruUdm\"]},\"contracts/mixins/EnumerableBytes4Set.sol\":{\"keccak256\":\"0x9dddffd475e2532204ac1c33ba211788b04d83c59e16416b341ea1f2f3a3fd44\",\"urls\":[\"bzz-raw://f5c622c5f97128b68e180f770f148bb007f99c92559544524b0ab92654f67cef\",\"dweb:/ipfs/QmcWdHR8g8Js4kmKoFozWpw9QxvcaS4Xdgss6z9WNVCppm\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/PausableOz.sol\":{\"keccak256\":\"0x4a5bfd9174a70922a663afdca4ec7462acfcd5642797c1dc7fd830f2bdc233d3\",\"urls\":[\"bzz-raw://65435b30cd9dbc35806ad05f4d4e47c42b9a4672734d6d323a3e725c4f6eb6c3\",\"dweb:/ipfs/QmZhH7dhqMNiUmD9Rg3tHSrP7hN8UyuaUgnaCk3AaoLhcR\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -72,9 +72,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -191,7 +191,7 @@
         "absolutePath": "contracts/mixins/EnumerableBytes32Set.sol",
         "file": "../../mixins/EnumerableBytes32Set.sol",
         "scope": 837,
-        "sourceUnit": 35540,
+        "sourceUnit": 35639,
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -203,7 +203,7 @@
         "absolutePath": "contracts/mixins/EnumerableBytes4Set.sol",
         "file": "../../mixins/EnumerableBytes4Set.sol",
         "scope": 837,
-        "sourceUnit": 35796,
+        "sourceUnit": 35895,
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -215,7 +215,7 @@
         "absolutePath": "contracts/openzeppelin/PausableOz.sol",
         "file": "../../openzeppelin/PausableOz.sol",
         "scope": 837,
-        "sourceUnit": 55226,
+        "sourceUnit": 55325,
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -227,7 +227,7 @@
         "absolutePath": "contracts/openzeppelin/Address.sol",
         "file": "../../openzeppelin/Address.sol",
         "scope": 837,
-        "sourceUnit": 54445,
+        "sourceUnit": 54544,
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -246,10 +246,10 @@
               "id": 534,
               "name": "EnumerableBytes32Set",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 35539,
+              "referencedDeclaration": 35638,
               "src": "901:20:4",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_EnumerableBytes32Set_$35539",
+                "typeIdentifier": "t_contract$_EnumerableBytes32Set_$35638",
                 "typeString": "library EnumerableBytes32Set"
               }
             },
@@ -258,10 +258,10 @@
               "id": 535,
               "name": "EnumerableBytes32Set.Bytes32Set",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 35234,
+              "referencedDeclaration": 35333,
               "src": "926:31:4",
               "typeDescriptions": {
-                "typeIdentifier": "t_struct$_Bytes32Set_$35234_storage_ptr",
+                "typeIdentifier": "t_struct$_Bytes32Set_$35333_storage_ptr",
                 "typeString": "struct EnumerableBytes32Set.Bytes32Set"
               }
             }
@@ -276,10 +276,10 @@
               "id": 537,
               "name": "EnumerableBytes4Set",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 35795,
+              "referencedDeclaration": 35894,
               "src": "1011:19:4",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_EnumerableBytes4Set_$35795",
+                "typeIdentifier": "t_contract$_EnumerableBytes4Set_$35894",
                 "typeString": "library EnumerableBytes4Set"
               }
             },
@@ -288,10 +288,10 @@
               "id": 538,
               "name": "EnumerableBytes4Set.Bytes4Set",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 35549,
+              "referencedDeclaration": 35648,
               "src": "1035:29:4",
               "typeDescriptions": {
-                "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage_ptr",
+                "typeIdentifier": "t_struct$_Bytes4Set_$35648_storage_ptr",
                 "typeString": "struct EnumerableBytes4Set.Bytes4Set"
               }
             }
@@ -523,7 +523,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+              "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35648_storage_$",
               "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set)"
             },
             "typeName": {
@@ -541,7 +541,7 @@
               "nodeType": "Mapping",
               "src": "1563:49:4",
               "typeDescriptions": {
-                "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35648_storage_$",
                 "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set)"
               },
               "valueType": {
@@ -549,10 +549,10 @@
                 "id": 559,
                 "name": "EnumerableBytes4Set.Bytes4Set",
                 "nodeType": "UserDefinedTypeName",
-                "referencedDeclaration": 35549,
+                "referencedDeclaration": 35648,
                 "src": "1582:29:4",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage_ptr",
+                  "typeIdentifier": "t_struct$_Bytes4Set_$35648_storage_ptr",
                   "typeString": "struct EnumerableBytes4Set.Bytes4Set"
                 }
               }
@@ -592,7 +592,7 @@
                           "name": "_paused",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 55159,
+                          "referencedDeclaration": 55258,
                           "src": "1957:7:4",
                           "typeDescriptions": {
                             "typeIdentifier": "t_bool",
@@ -638,10 +638,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        62895,
-                        62896
+                        62994,
+                        62995
                       ],
-                      "referencedDeclaration": 62896,
+                      "referencedDeclaration": 62995,
                       "src": "1948:7:4",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -807,7 +807,7 @@
                               "name": "block",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 62882,
+                              "referencedDeclaration": 62981,
                               "src": "2653:5:4",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_block",
@@ -1113,7 +1113,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 55096,
+                  "referencedDeclaration": 55195,
                   "src": "2415:9:4",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -1215,10 +1215,10 @@
                             "name": "Address",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 54444,
+                            "referencedDeclaration": 54543,
                             "src": "3346:7:4",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_type$_t_contract$_Address_$54444_$",
+                              "typeIdentifier": "t_type$_t_contract$_Address_$54543_$",
                               "typeString": "type(library Address)"
                             }
                           },
@@ -1229,7 +1229,7 @@
                           "lValueRequested": false,
                           "memberName": "isContract",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 54396,
+                          "referencedDeclaration": 54495,
                           "src": "3346:18:4",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_view$_t_address_$returns$_t_bool_$",
@@ -1284,10 +1284,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        62895,
-                        62896
+                        62994,
+                        62995
                       ],
-                      "referencedDeclaration": 62896,
+                      "referencedDeclaration": 62995,
                       "src": "3325:7:4",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1626,10 +1626,10 @@
                             "name": "require",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [
-                              62895,
-                              62896
+                              62994,
+                              62995
                             ],
-                            "referencedDeclaration": 62896,
+                            "referencedDeclaration": 62995,
                             "src": "3854:7:4",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1828,7 +1828,7 @@
                                   "referencedDeclaration": 561,
                                   "src": "4026:23:4",
                                   "typeDescriptions": {
-                                    "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                                    "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35648_storage_$",
                                     "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
                                   }
                                 },
@@ -1853,7 +1853,7 @@
                                 "nodeType": "IndexAccess",
                                 "src": "4026:35:4",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                                  "typeIdentifier": "t_struct$_Bytes4Set_$35648_storage",
                                   "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
                                 }
                               },
@@ -1864,10 +1864,10 @@
                               "lValueRequested": false,
                               "memberName": "contains",
                               "nodeType": "MemberAccess",
-                              "referencedDeclaration": 35681,
+                              "referencedDeclaration": 35780,
                               "src": "4026:44:4",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35549_storage_ptr_$_t_bytes4_$returns$_t_bool_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                                "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35648_storage_ptr_$_t_bytes4_$returns$_t_bool_$bound_to$_t_struct$_Bytes4Set_$35648_storage_ptr_$",
                                 "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer,bytes4) view returns (bool)"
                               }
                             },
@@ -1957,7 +1957,7 @@
                                   "referencedDeclaration": 561,
                                   "src": "4114:23:4",
                                   "typeDescriptions": {
-                                    "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                                    "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35648_storage_$",
                                     "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
                                   }
                                 },
@@ -1982,7 +1982,7 @@
                                 "nodeType": "IndexAccess",
                                 "src": "4114:35:4",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                                  "typeIdentifier": "t_struct$_Bytes4Set_$35648_storage",
                                   "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
                                 }
                               },
@@ -1993,10 +1993,10 @@
                               "lValueRequested": false,
                               "memberName": "addBytes4",
                               "nodeType": "MemberAccess",
-                              "referencedDeclaration": 35583,
+                              "referencedDeclaration": 35682,
                               "src": "4114:45:4",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Bytes4Set_$35549_storage_ptr_$_t_bytes4_$returns$_t_bool_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                                "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Bytes4Set_$35648_storage_ptr_$_t_bytes4_$returns$_t_bool_$bound_to$_t_struct$_Bytes4Set_$35648_storage_ptr_$",
                                 "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer,bytes4) returns (bool)"
                               }
                             },
@@ -2237,7 +2237,7 @@
                               "referencedDeclaration": 561,
                               "src": "4431:23:4",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                                "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35648_storage_$",
                                 "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
                               }
                             },
@@ -2262,7 +2262,7 @@
                             "nodeType": "IndexAccess",
                             "src": "4431:35:4",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                              "typeIdentifier": "t_struct$_Bytes4Set_$35648_storage",
                               "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
                             }
                           },
@@ -2273,10 +2273,10 @@
                           "lValueRequested": false,
                           "memberName": "length",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 35779,
+                          "referencedDeclaration": 35878,
                           "src": "4431:42:4",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35549_storage_ptr_$returns$_t_uint256_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                            "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35648_storage_ptr_$returns$_t_uint256_$bound_to$_t_struct$_Bytes4Set_$35648_storage_ptr_$",
                             "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer) view returns (uint256)"
                           }
                         },
@@ -2317,7 +2317,7 @@
                           "referencedDeclaration": 561,
                           "src": "4349:23:4",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                            "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35648_storage_$",
                             "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
                           }
                         },
@@ -2342,7 +2342,7 @@
                         "nodeType": "IndexAccess",
                         "src": "4349:35:4",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                          "typeIdentifier": "t_struct$_Bytes4Set_$35648_storage",
                           "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
                         }
                       },
@@ -2353,10 +2353,10 @@
                       "lValueRequested": false,
                       "memberName": "enumerate",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 35767,
+                      "referencedDeclaration": 35866,
                       "src": "4349:45:4",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35549_storage_ptr_$_t_uint256_$_t_uint256_$returns$_t_array$_t_bytes4_$dyn_memory_ptr_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                        "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35648_storage_ptr_$_t_uint256_$_t_uint256_$returns$_t_array$_t_bytes4_$dyn_memory_ptr_$bound_to$_t_struct$_Bytes4Set_$35648_storage_ptr_$",
                         "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer,uint256,uint256) view returns (bytes4[] memory)"
                       }
                     },
@@ -2693,7 +2693,7 @@
                                       "referencedDeclaration": 561,
                                       "src": "4771:23:4",
                                       "typeDescriptions": {
-                                        "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                                        "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35648_storage_$",
                                         "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
                                       }
                                     },
@@ -2718,7 +2718,7 @@
                                     "nodeType": "IndexAccess",
                                     "src": "4771:35:4",
                                     "typeDescriptions": {
-                                      "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                                      "typeIdentifier": "t_struct$_Bytes4Set_$35648_storage",
                                       "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
                                     }
                                   },
@@ -2729,10 +2729,10 @@
                                   "lValueRequested": false,
                                   "memberName": "removeBytes4",
                                   "nodeType": "MemberAccess",
-                                  "referencedDeclaration": 35664,
+                                  "referencedDeclaration": 35763,
                                   "src": "4771:48:4",
                                   "typeDescriptions": {
-                                    "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Bytes4Set_$35549_storage_ptr_$_t_bytes4_$returns$_t_bool_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                                    "typeIdentifier": "t_function_internal_nonpayable$_t_struct$_Bytes4Set_$35648_storage_ptr_$_t_bytes4_$returns$_t_bool_$bound_to$_t_struct$_Bytes4Set_$35648_storage_ptr_$",
                                     "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer,bytes4) returns (bool)"
                                   }
                                 },
@@ -3064,7 +3064,7 @@
                                 "referencedDeclaration": 561,
                                 "src": "5328:23:4",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                                  "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35648_storage_$",
                                   "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
                                 }
                               },
@@ -3089,7 +3089,7 @@
                               "nodeType": "IndexAccess",
                               "src": "5328:35:4",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                                "typeIdentifier": "t_struct$_Bytes4Set_$35648_storage",
                                 "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
                               }
                             },
@@ -3100,10 +3100,10 @@
                             "lValueRequested": false,
                             "memberName": "length",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 35779,
+                            "referencedDeclaration": 35878,
                             "src": "5328:42:4",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35549_storage_ptr_$returns$_t_uint256_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                              "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35648_storage_ptr_$returns$_t_uint256_$bound_to$_t_struct$_Bytes4Set_$35648_storage_ptr_$",
                               "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer) view returns (uint256)"
                             }
                           },
@@ -3144,7 +3144,7 @@
                             "referencedDeclaration": 561,
                             "src": "5254:23:4",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35549_storage_$",
+                              "typeIdentifier": "t_mapping$_t_bytes32_$_t_struct$_Bytes4Set_$35648_storage_$",
                               "typeString": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set storage ref)"
                             }
                           },
@@ -3169,7 +3169,7 @@
                           "nodeType": "IndexAccess",
                           "src": "5254:35:4",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_struct$_Bytes4Set_$35549_storage",
+                            "typeIdentifier": "t_struct$_Bytes4Set_$35648_storage",
                             "typeString": "struct EnumerableBytes4Set.Bytes4Set storage ref"
                           }
                         },
@@ -3180,10 +3180,10 @@
                         "lValueRequested": false,
                         "memberName": "enumerate",
                         "nodeType": "MemberAccess",
-                        "referencedDeclaration": 35767,
+                        "referencedDeclaration": 35866,
                         "src": "5254:45:4",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35549_storage_ptr_$_t_uint256_$_t_uint256_$returns$_t_array$_t_bytes4_$dyn_memory_ptr_$bound_to$_t_struct$_Bytes4Set_$35549_storage_ptr_$",
+                          "typeIdentifier": "t_function_internal_view$_t_struct$_Bytes4Set_$35648_storage_ptr_$_t_uint256_$_t_uint256_$returns$_t_array$_t_bytes4_$dyn_memory_ptr_$bound_to$_t_struct$_Bytes4Set_$35648_storage_ptr_$",
                           "typeString": "function (struct EnumerableBytes4Set.Bytes4Set storage pointer,uint256,uint256) view returns (bytes4[] memory)"
                         }
                       },
@@ -3770,7 +3770,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 55096,
+                  "referencedDeclaration": 55195,
                   "src": "6054:9:4",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -4017,10 +4017,10 @@
               "id": 532,
               "name": "PausableOz",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 55225,
+              "referencedDeclaration": 55324,
               "src": "878:10:4",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_PausableOz_$55225",
+                "typeIdentifier": "t_contract$_PausableOz_$55324",
                 "typeString": "contract PausableOz"
               }
             },
@@ -4030,18 +4030,18 @@
           }
         ],
         "contractDependencies": [
-          54471,
-          55144,
-          55225
+          54570,
+          55243,
+          55324
         ],
         "contractKind": "contract",
         "documentation": "@title Loan Token Logic Beacon contract.\n * @notice This contract stored the target logic implementation of LoanTokens which has the same logic implementation (LoanTokenLogicLM / LoanTokenLogicWrbtc)\nApart from storing the target logic implementation, this contract also has a pause functionality.\nBy implementing pause/unpause functionality in this beacon contract, we can pause the loan token that has the same Logic (LoanTokenLogicLM / LoanTokenLogicWrbtc) at one call.\nMeanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause specific LoanToken",
         "fullyImplemented": true,
         "linearizedBaseContracts": [
           827,
-          55225,
-          55144,
-          54471
+          55324,
+          55243,
+          54570
         ],
         "name": "LoanTokenLogicBeacon",
         "scope": 837

@@ -279,12 +279,12 @@
     }
   ],
   "bytecode": {
-    "object": "0x608060405260006100176001600160e01b0361006616565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a35061006a565b3390565b610444806100796000396000f3fe608060405234801561001057600080fd5b50600436106101005760003560e01c806378e97925116100975780638f32d59b116100665780638f32d59b146101c6578063934d1fa4146101e2578063d42b779d146101ea578063f2fde38b1461021057610100565b806378e97925146101885780637a9262a21461019057806382100e3f146101b65780638da5cb5b146101be57610100565b806341910f90116100d357806341910f901461016857806344bb3b2f146101705780634cf088d9146101785780636db5c8fd1461018057610100565b806308dcb3601461010557806312671c2614610129578063233dedf1146101585780633410fe6e14610160575b600080fd5b61010d610238565b604080516001600160a01b039092168252519081900360200190f35b6101466004803603602081101561013f57600080fd5b5035610247565b60408051918252519081900360200190f35b610146610259565b61014661025f565b610146610266565b61014661026c565b61010d610272565b610146610281565b610146610287565b610146600480360360208110156101a657600080fd5b50356001600160a01b031661028d565b61014661029f565b61010d6102a5565b6101ce6102b4565b604080519115158252519081900360200190f35b6101466102d8565b6101466004803603602081101561020057600080fd5b50356001600160a01b03166102df565b6102366004803603602081101561022657600080fd5b50356001600160a01b03166102f1565b005b6001546001600160a01b031681565b600a6020526000908152604090205481565b600b5481565b6227ac4081565b610b9f81565b60055481565b6002546001600160a01b031681565b60035481565b60045481565b60066020526000908152604090205481565b60085481565b6000546001600160a01b031690565b600080546001600160a01b03166102c9610345565b6001600160a01b031614905090565b6212750081565b60076020526000908152604090205481565b6102f96102b4565b610339576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61034281610349565b50565b3390565b6001600160a01b03811661038e5760405162461bcd60e51b81526004018080602001828103825260268152602001806103ea6026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a723158204a2ed378518cde15961895029e22335c643cf80b696269cbdd5e4ebbde13911f64736f6c63430005110032",
+    "object": "0x608060405260006100176001600160e01b0361006616565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a35061006a565b3390565b610444806100796000396000f3fe608060405234801561001057600080fd5b50600436106101005760003560e01c806378e97925116100975780638f32d59b116100665780638f32d59b146101c6578063934d1fa4146101e2578063d42b779d146101ea578063f2fde38b1461021057610100565b806378e97925146101885780637a9262a21461019057806382100e3f146101b65780638da5cb5b146101be57610100565b806341910f90116100d357806341910f901461016857806344bb3b2f146101705780634cf088d9146101785780636db5c8fd1461018057610100565b806308dcb3601461010557806312671c2614610129578063233dedf1146101585780633410fe6e14610160575b600080fd5b61010d610238565b604080516001600160a01b039092168252519081900360200190f35b6101466004803603602081101561013f57600080fd5b5035610247565b60408051918252519081900360200190f35b610146610259565b61014661025f565b610146610266565b61014661026c565b61010d610272565b610146610281565b610146610287565b610146600480360360208110156101a657600080fd5b50356001600160a01b031661028d565b61014661029f565b61010d6102a5565b6101ce6102b4565b604080519115158252519081900360200190f35b6101466102d8565b6101466004803603602081101561020057600080fd5b50356001600160a01b03166102df565b6102366004803603602081101561022657600080fd5b50356001600160a01b03166102f1565b005b6001546001600160a01b031681565b600a6020526000908152604090205481565b600b5481565b6227ac4081565b610b9f81565b60055481565b6002546001600160a01b031681565b60035481565b60045481565b60066020526000908152604090205481565b60085481565b6000546001600160a01b031690565b600080546001600160a01b03166102c9610345565b6001600160a01b031614905090565b6212750081565b60076020526000908152604090205481565b6102f96102b4565b610339576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61034281610349565b50565b3390565b6001600160a01b03811661038e5760405162461bcd60e51b81526004018080602001828103825260268152602001806103ea6026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a7231582002401de63d69dc7d22820148ca73cead29758d8c94cc22508168eaf872ce3ca964736f6c63430005110032",
     "sourceMap": "626:1769:75:-;;;701:17:184;721:12;-1:-1:-1;;;;;721:10:184;:12;:::i;:::-;743:6;:18;;-1:-1:-1;;;;;;743:18:184;-1:-1:-1;;;;;743:18:184;;;;;;;776:43;;743:18;;-1:-1:-1;743:18:184;776:43;;743:6;;776:43;668:158;626:1769:75;;795:96:179;874:10;795:96;:::o;626:1769:75:-;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x608060405234801561001057600080fd5b50600436106101005760003560e01c806378e97925116100975780638f32d59b116100665780638f32d59b146101c6578063934d1fa4146101e2578063d42b779d146101ea578063f2fde38b1461021057610100565b806378e97925146101885780637a9262a21461019057806382100e3f146101b65780638da5cb5b146101be57610100565b806341910f90116100d357806341910f901461016857806344bb3b2f146101705780634cf088d9146101785780636db5c8fd1461018057610100565b806308dcb3601461010557806312671c2614610129578063233dedf1146101585780633410fe6e14610160575b600080fd5b61010d610238565b604080516001600160a01b039092168252519081900360200190f35b6101466004803603602081101561013f57600080fd5b5035610247565b60408051918252519081900360200190f35b610146610259565b61014661025f565b610146610266565b61014661026c565b61010d610272565b610146610281565b610146610287565b610146600480360360208110156101a657600080fd5b50356001600160a01b031661028d565b61014661029f565b61010d6102a5565b6101ce6102b4565b604080519115158252519081900360200190f35b6101466102d8565b6101466004803603602081101561020057600080fd5b50356001600160a01b03166102df565b6102366004803603602081101561022657600080fd5b50356001600160a01b03166102f1565b005b6001546001600160a01b031681565b600a6020526000908152604090205481565b600b5481565b6227ac4081565b610b9f81565b60055481565b6002546001600160a01b031681565b60035481565b60045481565b60066020526000908152604090205481565b60085481565b6000546001600160a01b031690565b600080546001600160a01b03166102c9610345565b6001600160a01b031614905090565b6212750081565b60076020526000908152604090205481565b6102f96102b4565b610339576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61034281610349565b50565b3390565b6001600160a01b03811661038e5760405162461bcd60e51b81526004018080602001828103825260268152602001806103ea6026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a723158204a2ed378518cde15961895029e22335c643cf80b696269cbdd5e4ebbde13911f64736f6c63430005110032",
+    "object": "0x608060405234801561001057600080fd5b50600436106101005760003560e01c806378e97925116100975780638f32d59b116100665780638f32d59b146101c6578063934d1fa4146101e2578063d42b779d146101ea578063f2fde38b1461021057610100565b806378e97925146101885780637a9262a21461019057806382100e3f146101b65780638da5cb5b146101be57610100565b806341910f90116100d357806341910f901461016857806344bb3b2f146101705780634cf088d9146101785780636db5c8fd1461018057610100565b806308dcb3601461010557806312671c2614610129578063233dedf1146101585780633410fe6e14610160575b600080fd5b61010d610238565b604080516001600160a01b039092168252519081900360200190f35b6101466004803603602081101561013f57600080fd5b5035610247565b60408051918252519081900360200190f35b610146610259565b61014661025f565b610146610266565b61014661026c565b61010d610272565b610146610281565b610146610287565b610146600480360360208110156101a657600080fd5b50356001600160a01b031661028d565b61014661029f565b61010d6102a5565b6101ce6102b4565b604080519115158252519081900360200190f35b6101466102d8565b6101466004803603602081101561020057600080fd5b50356001600160a01b03166102df565b6102366004803603602081101561022657600080fd5b50356001600160a01b03166102f1565b005b6001546001600160a01b031681565b600a6020526000908152604090205481565b600b5481565b6227ac4081565b610b9f81565b60055481565b6002546001600160a01b031681565b60035481565b60045481565b60066020526000908152604090205481565b60085481565b6000546001600160a01b031690565b600080546001600160a01b03166102c9610345565b6001600160a01b031614905090565b6212750081565b60076020526000908152604090205481565b6102f96102b4565b610339576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61034281610349565b50565b3390565b6001600160a01b03811661038e5760405162461bcd60e51b81526004018080602001828103825260268152602001806103ea6026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a7231582002401de63d69dc7d22820148ca73cead29758d8c94cc22508168eaf872ce3ca964736f6c63430005110032",
     "sourceMap": "626:1769:75:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;626:1769:75;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;714:17;;;:::i;:::-;;;;-1:-1:-1;;;;;714:17:75;;;;;;;;;;;;;;2241:57;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;2241:57:75;;:::i;:::-;;;;;;;;;;;;;;;;2361:31;;;:::i;1143:41::-;;;:::i;976:40::-;;;:::i;1463:24::-;;;:::i;788:23::-;;;:::i;1253:26::-;;;:::i;1352:24::-;;;:::i;1551:46::-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1551:46:75;-1:-1:-1;;;;;1551:46:75;;:::i;1788:30::-;;;:::i;902:77:184:-;;;:::i;1233:92::-;;;:::i;:::-;;;;;;;;;;;;;;;;;;854:43:75;;;:::i;1652:50::-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1652:50:75;-1:-1:-1;;;;;1652:50:75;;:::i;1474:107:184:-;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1474:107:184;-1:-1:-1;;;;;1474:107:184;;:::i;:::-;;714:17:75;;;-1:-1:-1;;;;;714:17:75;;:::o;2241:57::-;;;;;;;;;;;;;:::o;2361:31::-;;;;:::o;1143:41::-;1177:7;1143:41;:::o;976:40::-;1012:4;976:40;:::o;1463:24::-;;;;:::o;788:23::-;;;-1:-1:-1;;;;;788:23:75;;:::o;1253:26::-;;;;:::o;1352:24::-;;;;:::o;1551:46::-;;;;;;;;;;;;;:::o;1788:30::-;;;;:::o;902:77:184:-;940:7;966:6;-1:-1:-1;;;;;966:6:184;902:77;:::o;1233:92::-;1273:4;1312:6;;-1:-1:-1;;;;;1312:6:184;1296:12;:10;:12::i;:::-;-1:-1:-1;;;;;1296:22:184;;1289:29;;1233:92;:::o;854:43:75:-;890:7;854:43;:::o;1652:50::-;;;;;;;;;;;;;:::o;1474:107:184:-;1106:9;:7;:9::i;:::-;1098:34;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;-1:-1:-1;;;1098:34:184;;;;;;;;;;;;;;;1546:28;1565:8;1546:18;:28::i;:::-;1474:107;:::o;795:96:179:-;874:10;795:96;:::o;1682:225:184:-;-1:-1:-1;;;;;1755:22:184;;1747:73;;;;-1:-1:-1;;;1747:73:184;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1856:6;;;1835:38;;-1:-1:-1;;;;;1835:38:184;;;;1856:6;;;1835:38;;;1883:6;:17;;-1:-1:-1;;;;;;1883:17:184;-1:-1:-1;;;;;1883:17:184;;;;;;;;;;1682:225::o",
     "linkReferences": {}
   },
@@ -306,7 +306,7 @@
     "transferOwnership(address)": "f2fde38b",
     "withdrawals(address)": "7a9262a2"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"BASE_RATE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"DIVISOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOV\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"TWO_WEEKS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"averageBlockTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"checkpointBlockDetails\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"claimedBalances\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"deploymentBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"maxDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"staking\",\"outputs\":[{\"internalType\":\"contract IStaking\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"startTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"stopBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"withdrawals\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Staking Rewards Storage Contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"Just the storage part of staking rewards contract, no functions, only constant, variables and required structures (mappings). Used by StackingRewardsProxy. * What is SOV staking rewards - SIP-0024? The purpose of the SOV staking rewards - SIP-0024 is to reward, \\\"marginal stakers\\\" (ie, stakers by choice, not currently vesting) with liquid SOV at the beginning of each new staking interval.\"}},\"settings\":{\"compilationTarget\":{\"contracts/governance/StakingRewards/StakingRewardsStorage.sol\":\"StakingRewardsStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/Staking/interfaces/IStaking.sol\":{\"keccak256\":\"0x6777e38b4bd5a63e10f3bf7aba355401713bb649811c6dfa1bda40ebd8fee30b\",\"urls\":[\"bzz-raw://676e42641fb1d335dde7bb928779014ff2adf1eb1121f48a4a48e36f571287d4\",\"dweb:/ipfs/QmamokattcaQ6gRGaqUDVZejcv4rridScd9nayGcxxW1BL\"]},\"contracts/governance/StakingRewards/StakingRewardsStorage.sol\":{\"keccak256\":\"0xb0f1c61332b0e083be1812f0729bde43e40d40e03d4bbff4141f1784ee4b4b5c\",\"urls\":[\"bzz-raw://37db108d711b1e4ef23dfa3f5aa8db7b5c2da71a6ac7a9326d9de66c16afe308\",\"dweb:/ipfs/QmPZuidFnjbSa2aqmdsW6qGLpD3pWCqrhQHZzJ4t3miCpU\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"BASE_RATE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"DIVISOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOV\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"TWO_WEEKS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"averageBlockTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"checkpointBlockDetails\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"claimedBalances\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"deploymentBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"maxDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"staking\",\"outputs\":[{\"internalType\":\"contract IStaking\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"startTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"stopBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"withdrawals\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Staking Rewards Storage Contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"Just the storage part of staking rewards contract, no functions, only constant, variables and required structures (mappings). Used by StackingRewardsProxy. * What is SOV staking rewards - SIP-0024? The purpose of the SOV staking rewards - SIP-0024 is to reward, \\\"marginal stakers\\\" (ie, stakers by choice, not currently vesting) with liquid SOV at the beginning of each new staking interval.\"}},\"settings\":{\"compilationTarget\":{\"contracts/governance/StakingRewards/StakingRewardsStorage.sol\":\"StakingRewardsStorage\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/governance/Staking/interfaces/IStaking.sol\":{\"keccak256\":\"0x91c38931d2bc625ced52bfe0bedd0d9ad412d032d9841124a98e17cfcb9f646b\",\"urls\":[\"bzz-raw://d5a533e8c8ee3a08689d9a2c2975ee35b53fa75ed2078821e718019b0b63f861\",\"dweb:/ipfs/QmdT45TJBwSrD6vL87kN1hWSXdujM85sQcejWeRr4L1ztr\"]},\"contracts/governance/StakingRewards/StakingRewardsStorage.sol\":{\"keccak256\":\"0xb0f1c61332b0e083be1812f0729bde43e40d40e03d4bbff4141f1784ee4b4b5c\",\"urls\":[\"bzz-raw://37db108d711b1e4ef23dfa3f5aa8db7b5c2da71a6ac7a9326d9de66c16afe308\",\"dweb:/ipfs/QmPZuidFnjbSa2aqmdsW6qGLpD3pWCqrhQHZzJ4t3miCpU\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -580,9 +580,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -598,10 +598,10 @@
     },
     "sources": {
       "contracts/governance/Staking/interfaces/IStaking.sol": {
-        "keccak256": "0x6777e38b4bd5a63e10f3bf7aba355401713bb649811c6dfa1bda40ebd8fee30b",
+        "keccak256": "0x91c38931d2bc625ced52bfe0bedd0d9ad412d032d9841124a98e17cfcb9f646b",
         "urls": [
-          "bzz-raw://676e42641fb1d335dde7bb928779014ff2adf1eb1121f48a4a48e36f571287d4",
-          "dweb:/ipfs/QmamokattcaQ6gRGaqUDVZejcv4rridScd9nayGcxxW1BL"
+          "bzz-raw://d5a533e8c8ee3a08689d9a2c2975ee35b53fa75ed2078821e718019b0b63f861",
+          "dweb:/ipfs/QmdT45TJBwSrD6vL87kN1hWSXdujM85sQcejWeRr4L1ztr"
         ],
         "license": null
       },
@@ -642,17 +642,17 @@
   },
   "ast": {
     "absolutePath": "contracts/governance/StakingRewards/StakingRewardsStorage.sol",
-    "id": 23509,
+    "id": 23608,
     "exportedSymbols": {
       "StakingRewardsStorage": [
-        23508
+        23607
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:2396:75",
     "nodes": [
       {
-        "id": 23463,
+        "id": 23562,
         "nodeType": "PragmaDirective",
         "src": "0:24:75",
         "nodes": [],
@@ -664,69 +664,69 @@
         ]
       },
       {
-        "id": 23464,
+        "id": 23563,
         "nodeType": "ImportDirective",
         "src": "26:37:75",
         "nodes": [],
         "absolutePath": "contracts/interfaces/IERC20.sol",
         "file": "../../interfaces/IERC20.sol",
-        "scope": 23509,
-        "sourceUnit": 32312,
+        "scope": 23608,
+        "sourceUnit": 32411,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 23465,
+        "id": 23564,
         "nodeType": "ImportDirective",
         "src": "64:44:75",
         "nodes": [],
         "absolutePath": "contracts/governance/Staking/interfaces/IStaking.sol",
         "file": "../Staking/interfaces/IStaking.sol",
-        "scope": 23509,
-        "sourceUnit": 16883,
+        "scope": 23608,
+        "sourceUnit": 16982,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 23466,
+        "id": 23565,
         "nodeType": "ImportDirective",
         "src": "109:40:75",
         "nodes": [],
         "absolutePath": "contracts/openzeppelin/Ownable.sol",
         "file": "../../openzeppelin/Ownable.sol",
-        "scope": 23509,
-        "sourceUnit": 55145,
+        "scope": 23608,
+        "sourceUnit": 55244,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 23508,
+        "id": 23607,
         "nodeType": "ContractDefinition",
         "src": "626:1769:75",
         "nodes": [
           {
-            "id": 23470,
+            "id": 23569,
             "nodeType": "VariableDeclaration",
             "src": "714:17:75",
             "nodes": [],
             "constant": false,
             "name": "SOV",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IERC20_$32311",
+              "typeIdentifier": "t_contract$_IERC20_$32410",
               "typeString": "contract IERC20"
             },
             "typeName": {
               "contractScope": null,
-              "id": 23469,
+              "id": 23568,
               "name": "IERC20",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 32311,
+              "referencedDeclaration": 32410,
               "src": "714:6:75",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IERC20_$32311",
+                "typeIdentifier": "t_contract$_IERC20_$32410",
                 "typeString": "contract IERC20"
               }
             },
@@ -734,28 +734,28 @@
             "visibility": "public"
           },
           {
-            "id": 23472,
+            "id": 23571,
             "nodeType": "VariableDeclaration",
             "src": "788:23:75",
             "nodes": [],
             "constant": false,
             "name": "staking",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IStaking_$16882",
+              "typeIdentifier": "t_contract$_IStaking_$16981",
               "typeString": "contract IStaking"
             },
             "typeName": {
               "contractScope": null,
-              "id": 23471,
+              "id": 23570,
               "name": "IStaking",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 16882,
+              "referencedDeclaration": 16981,
               "src": "788:8:75",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IStaking_$16882",
+                "typeIdentifier": "t_contract$_IStaking_$16981",
                 "typeString": "contract IStaking"
               }
             },
@@ -763,13 +763,13 @@
             "visibility": "public"
           },
           {
-            "id": 23475,
+            "id": 23574,
             "nodeType": "VariableDeclaration",
             "src": "854:43:75",
             "nodes": [],
             "constant": true,
             "name": "TWO_WEEKS",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -777,7 +777,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 23473,
+              "id": 23572,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "854:7:75",
@@ -789,7 +789,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "31323039363030",
-              "id": 23474,
+              "id": 23573,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -807,13 +807,13 @@
             "visibility": "public"
           },
           {
-            "id": 23478,
+            "id": 23577,
             "nodeType": "VariableDeclaration",
             "src": "976:40:75",
             "nodes": [],
             "constant": true,
             "name": "BASE_RATE",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -821,7 +821,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 23476,
+              "id": 23575,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "976:7:75",
@@ -833,7 +833,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "32393735",
-              "id": 23477,
+              "id": 23576,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -851,13 +851,13 @@
             "visibility": "public"
           },
           {
-            "id": 23481,
+            "id": 23580,
             "nodeType": "VariableDeclaration",
             "src": "1143:41:75",
             "nodes": [],
             "constant": true,
             "name": "DIVISOR",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -865,7 +865,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 23479,
+              "id": 23578,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1143:7:75",
@@ -877,7 +877,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "32363030303030",
-              "id": 23480,
+              "id": 23579,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -895,13 +895,13 @@
             "visibility": "public"
           },
           {
-            "id": 23483,
+            "id": 23582,
             "nodeType": "VariableDeclaration",
             "src": "1253:26:75",
             "nodes": [],
             "constant": false,
             "name": "maxDuration",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -909,7 +909,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 23482,
+              "id": 23581,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1253:7:75",
@@ -922,13 +922,13 @@
             "visibility": "public"
           },
           {
-            "id": 23485,
+            "id": 23584,
             "nodeType": "VariableDeclaration",
             "src": "1352:24:75",
             "nodes": [],
             "constant": false,
             "name": "startTime",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -936,7 +936,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 23484,
+              "id": 23583,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1352:7:75",
@@ -949,13 +949,13 @@
             "visibility": "public"
           },
           {
-            "id": 23487,
+            "id": 23586,
             "nodeType": "VariableDeclaration",
             "src": "1463:24:75",
             "nodes": [],
             "constant": false,
             "name": "stopBlock",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -963,7 +963,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 23486,
+              "id": 23585,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1463:7:75",
@@ -976,13 +976,13 @@
             "visibility": "public"
           },
           {
-            "id": 23491,
+            "id": 23590,
             "nodeType": "VariableDeclaration",
             "src": "1551:46:75",
             "nodes": [],
             "constant": false,
             "name": "withdrawals",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -990,9 +990,9 @@
               "typeString": "mapping(address => uint256)"
             },
             "typeName": {
-              "id": 23490,
+              "id": 23589,
               "keyType": {
-                "id": 23488,
+                "id": 23587,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "1559:7:75",
@@ -1008,7 +1008,7 @@
                 "typeString": "mapping(address => uint256)"
               },
               "valueType": {
-                "id": 23489,
+                "id": 23588,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "1570:7:75",
@@ -1022,13 +1022,13 @@
             "visibility": "public"
           },
           {
-            "id": 23495,
+            "id": 23594,
             "nodeType": "VariableDeclaration",
             "src": "1652:50:75",
             "nodes": [],
             "constant": false,
             "name": "claimedBalances",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1036,9 +1036,9 @@
               "typeString": "mapping(address => uint256)"
             },
             "typeName": {
-              "id": 23494,
+              "id": 23593,
               "keyType": {
-                "id": 23492,
+                "id": 23591,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "1660:7:75",
@@ -1054,7 +1054,7 @@
                 "typeString": "mapping(address => uint256)"
               },
               "valueType": {
-                "id": 23493,
+                "id": 23592,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "1671:7:75",
@@ -1068,13 +1068,13 @@
             "visibility": "public"
           },
           {
-            "id": 23497,
+            "id": 23596,
             "nodeType": "VariableDeclaration",
             "src": "1788:30:75",
             "nodes": [],
             "constant": false,
             "name": "deploymentBlock",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1082,7 +1082,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 23496,
+              "id": 23595,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1788:7:75",
@@ -1095,13 +1095,13 @@
             "visibility": "public"
           },
           {
-            "id": 23499,
+            "id": 23598,
             "nodeType": "VariableDeclaration",
             "src": "2014:25:75",
             "nodes": [],
             "constant": false,
             "name": "_initialized",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1109,7 +1109,7 @@
               "typeString": "bool"
             },
             "typeName": {
-              "id": 23498,
+              "id": 23597,
               "name": "bool",
               "nodeType": "ElementaryTypeName",
               "src": "2014:4:75",
@@ -1122,13 +1122,13 @@
             "visibility": "private"
           },
           {
-            "id": 23501,
+            "id": 23600,
             "nodeType": "VariableDeclaration",
             "src": "2142:26:75",
             "nodes": [],
             "constant": false,
             "name": "_initializing",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1136,7 +1136,7 @@
               "typeString": "bool"
             },
             "typeName": {
-              "id": 23500,
+              "id": 23599,
               "name": "bool",
               "nodeType": "ElementaryTypeName",
               "src": "2142:4:75",
@@ -1149,13 +1149,13 @@
             "visibility": "private"
           },
           {
-            "id": 23505,
+            "id": 23604,
             "nodeType": "VariableDeclaration",
             "src": "2241:57:75",
             "nodes": [],
             "constant": false,
             "name": "checkpointBlockDetails",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1163,9 +1163,9 @@
               "typeString": "mapping(uint256 => uint256)"
             },
             "typeName": {
-              "id": 23504,
+              "id": 23603,
               "keyType": {
-                "id": 23502,
+                "id": 23601,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "2249:7:75",
@@ -1181,7 +1181,7 @@
                 "typeString": "mapping(uint256 => uint256)"
               },
               "valueType": {
-                "id": 23503,
+                "id": 23602,
                 "name": "uint256",
                 "nodeType": "ElementaryTypeName",
                 "src": "2260:7:75",
@@ -1195,13 +1195,13 @@
             "visibility": "public"
           },
           {
-            "id": 23507,
+            "id": 23606,
             "nodeType": "VariableDeclaration",
             "src": "2361:31:75",
             "nodes": [],
             "constant": false,
             "name": "averageBlockTime",
-            "scope": 23508,
+            "scope": 23607,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -1209,7 +1209,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 23506,
+              "id": 23605,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "2361:7:75",
@@ -1227,35 +1227,35 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 23467,
+              "id": 23566,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 55144,
+              "referencedDeclaration": 55243,
               "src": "660:7:75",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$55144",
+                "typeIdentifier": "t_contract$_Ownable_$55243",
                 "typeString": "contract Ownable"
               }
             },
-            "id": 23468,
+            "id": 23567,
             "nodeType": "InheritanceSpecifier",
             "src": "660:7:75"
           }
         ],
         "contractDependencies": [
-          54471,
-          55144
+          54570,
+          55243
         ],
         "contractKind": "contract",
         "documentation": "@title Staking Rewards Storage Contract.\n@notice Just the storage part of staking rewards contract, no functions,\nonly constant, variables and required structures (mappings).\nUsed by StackingRewardsProxy.\n * What is SOV staking rewards - SIP-0024?\nThe purpose of the SOV staking rewards - SIP-0024 is to reward,\n\"marginal stakers\" (ie, stakers by choice, not currently vesting) with liquid SOV\nat the beginning of each new staking interval.\n",
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          23508,
-          55144,
-          54471
+          23607,
+          55243,
+          54570
         ],
         "name": "StakingRewardsStorage",
-        "scope": 23509
+        "scope": 23608
       }
     ]
   },

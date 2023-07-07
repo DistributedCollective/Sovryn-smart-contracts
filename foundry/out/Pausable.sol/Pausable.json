@@ -1,17 +1,17 @@
 {
   "abi": [],
   "bytecode": {
-    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a723158202e3bc42d698a444c59fcefaf7d4ce76d055e1c131d5365003e1bc608ef87fb3764736f6c63430005110032",
+    "object": "0x6080604052348015600f57600080fd5b50603e80601d6000396000f3fe6080604052600080fdfea265627a7a72315820d1d796120235836854f14c5cd86e0f81cfcd7000893785c64a805c89bde4777b64736f6c63430005110032",
     "sourceMap": "455:849:8:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;455:849:8;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x6080604052600080fdfea265627a7a723158202e3bc42d698a444c59fcefaf7d4ce76d055e1c131d5365003e1bc608ef87fb3764736f6c63430005110032",
+    "object": "0x6080604052600080fdfea265627a7a72315820d1d796120235836854f14c5cd86e0f81cfcd7000893785c64a805c89bde4777b64736f6c63430005110032",
     "sourceMap": "455:849:8:-;;;;;",
     "linkReferences": {}
   },
   "methodIdentifiers": {},
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{},\"title\":\"Pausable contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * The contract implements pausable functionality by reading on slots the pause state of contract functions.\"}},\"settings\":{\"compilationTarget\":{\"contracts/connectors/loantoken/Pausable.sol\":\"Pausable\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/connectors/loantoken/Pausable.sol\":{\"keccak256\":\"0x54f95b041e66fbcadb867bfba626373b681e0000ecea2b19f521de89c3020690\",\"urls\":[\"bzz-raw://4e7ef0893bfcad7960c84dc41504218cf65edb7cb44263055eccc321b515df13\",\"dweb:/ipfs/QmPk7qj658ha5SvWLtsrS5okGaYWwuPHVaL86pJr6hQyjX\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{},\"title\":\"Pausable contract.\"},\"userdoc\":{\"methods\":{},\"notice\":\"This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * The contract implements pausable functionality by reading on slots the pause state of contract functions.\"}},\"settings\":{\"compilationTarget\":{\"contracts/connectors/loantoken/Pausable.sol\":\"Pausable\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/connectors/loantoken/Pausable.sol\":{\"keccak256\":\"0x54f95b041e66fbcadb867bfba626373b681e0000ecea2b19f521de89c3020690\",\"urls\":[\"bzz-raw://4e7ef0893bfcad7960c84dc41504218cf65edb7cb44263055eccc321b515df13\",\"dweb:/ipfs/QmPk7qj658ha5SvWLtsrS5okGaYWwuPHVaL86pJr6hQyjX\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -30,9 +30,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -243,10 +243,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        62895,
-                        62896
+                        62994,
+                        62995
                       ],
-                      "referencedDeclaration": 62896,
+                      "referencedDeclaration": 62995,
                       "src": "695:7:8",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -409,7 +409,7 @@
                             "name": "abi",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 62879,
+                            "referencedDeclaration": 62978,
                             "src": "1184:3:8",
                             "typeDescriptions": {
                               "typeIdentifier": "t_magic_abi",
@@ -456,7 +456,7 @@
                       "name": "keccak256",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 62886,
+                      "referencedDeclaration": 62985,
                       "src": "1174:9:8",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_keccak256_pure$_t_bytes_memory_ptr_$returns$_t_bytes32_$",

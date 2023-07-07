@@ -118,12 +118,12 @@
     }
   ],
   "bytecode": {
-    "object": "0x6080604052610016336001600160e01b0361001b16565b6100ff565b6001600160a01b0381166100605760405162461bcd60e51b81526004018080602001828103825260258152602001806105b26025913960400191505060405180910390fd5b6001600160a01b03811661007b6001600160e01b036100d716565b6001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6104a48061010e6000396000f3fe60806040526004361061003f5760003560e01c80631ab7710d146100b5578063aaf10f42146100e6578063caaee91c146100fb578063d784d42614610130575b6000610049610163565b90506001600160a01b0381166100905760405162461bcd60e51b81526004018080602001828103825260238152602001806104286023913960400191505060405180910390fd5b60405136600082376000803683855af43d806000843e8180156100b1578184f35b8184fd5b3480156100c157600080fd5b506100ca61018e565b604080516001600160a01b039092168252519081900360200190f35b3480156100f257600080fd5b506100ca610163565b34801561010757600080fd5b5061012e6004803603602081101561011e57600080fd5b50356001600160a01b03166101b6565b005b34801561013c57600080fd5b5061012e6004803603602081101561015357600080fd5b50356001600160a01b0316610227565b604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205490565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6101be61018e565b6001600160a01b0316336001600160a01b03161461021b576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61022481610295565b50565b61022f61018e565b6001600160a01b0316336001600160a01b03161461028c576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61022481610348565b6001600160a01b0381166102da5760405162461bcd60e51b815260040180806020018281038252602581526020018061044b6025913960400191505060405180910390fd5b806001600160a01b03166102ec61018e565b6001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b6001600160a01b03811661038d5760405162461bcd60e51b81526004018080602001828103825260298152602001806103ff6029913960400191505060405180910390fd5b806001600160a01b031661039f610163565b6001600160a01b03167fcfbf4028add9318bbf716f08c348595afb063b0e9feed1f86d33681a4b3ed4d360405160405180910390a3604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205556fe50726f78793a3a736574496d706c656d656e746174696f6e3a20696e76616c6964206164647265737350726f78793a3a28293a20696d706c656d656e746174696f6e206e6f7420666f756e6450726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373a265627a7a72315820db916edee71cd17af78992f2875abb733de18e4c373faa85a116c8bdeb32324264736f6c6343000511003250726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373",
+    "object": "0x6080604052610016336001600160e01b0361001b16565b6100ff565b6001600160a01b0381166100605760405162461bcd60e51b81526004018080602001828103825260258152602001806105b26025913960400191505060405180910390fd5b6001600160a01b03811661007b6001600160e01b036100d716565b6001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6104a48061010e6000396000f3fe60806040526004361061003f5760003560e01c80631ab7710d146100b5578063aaf10f42146100e6578063caaee91c146100fb578063d784d42614610130575b6000610049610163565b90506001600160a01b0381166100905760405162461bcd60e51b81526004018080602001828103825260238152602001806104286023913960400191505060405180910390fd5b60405136600082376000803683855af43d806000843e8180156100b1578184f35b8184fd5b3480156100c157600080fd5b506100ca61018e565b604080516001600160a01b039092168252519081900360200190f35b3480156100f257600080fd5b506100ca610163565b34801561010757600080fd5b5061012e6004803603602081101561011e57600080fd5b50356001600160a01b03166101b6565b005b34801561013c57600080fd5b5061012e6004803603602081101561015357600080fd5b50356001600160a01b0316610227565b604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205490565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6101be61018e565b6001600160a01b0316336001600160a01b03161461021b576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61022481610295565b50565b61022f61018e565b6001600160a01b0316336001600160a01b03161461028c576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61022481610348565b6001600160a01b0381166102da5760405162461bcd60e51b815260040180806020018281038252602581526020018061044b6025913960400191505060405180910390fd5b806001600160a01b03166102ec61018e565b6001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b6001600160a01b03811661038d5760405162461bcd60e51b81526004018080602001828103825260298152602001806103ff6029913960400191505060405180910390fd5b806001600160a01b031661039f610163565b6001600160a01b03167fcfbf4028add9318bbf716f08c348595afb063b0e9feed1f86d33681a4b3ed4d360405160405180910390a3604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205556fe50726f78793a3a736574496d706c656d656e746174696f6e3a20696e76616c6964206164647265737350726f78793a3a28293a20696d706c656d656e746174696f6e206e6f7420666f756e6450726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373a265627a7a7231582063bee21219761e081f1f66ed0fd6e24b10e401d91aaab4e508d80ffbbd624e9364736f6c6343000511003250726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373",
     "sourceMap": "99:57:161:-;;;1705:26:190;1720:10;-1:-1:-1;;;;;1705:14:190;:26;:::i;:::-;99:57:161;;2843:291:190;-1:-1:-1;;;;;2910:20:190;;2902:70;;;;-1:-1:-1;;;2902:70:190;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;;;;2987:45:190;;3008:15;-1:-1:-1;;;;;3008:13:190;:15;:::i;:::-;-1:-1:-1;;;;;2987:45:190;;;;;;;;;;;1368:28;;;-1:-1:-1;;;1368:28:190;;;;;;;;;;;;3099:19;3085:43::o;3239:164::-;1368:28;;;-1:-1:-1;;;1368:28:190;;;;;;;;;;;;3377:10;;3353:44::o;99:57:161:-;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x60806040526004361061003f5760003560e01c80631ab7710d146100b5578063aaf10f42146100e6578063caaee91c146100fb578063d784d42614610130575b6000610049610163565b90506001600160a01b0381166100905760405162461bcd60e51b81526004018080602001828103825260238152602001806104286023913960400191505060405180910390fd5b60405136600082376000803683855af43d806000843e8180156100b1578184f35b8184fd5b3480156100c157600080fd5b506100ca61018e565b604080516001600160a01b039092168252519081900360200190f35b3480156100f257600080fd5b506100ca610163565b34801561010757600080fd5b5061012e6004803603602081101561011e57600080fd5b50356001600160a01b03166101b6565b005b34801561013c57600080fd5b5061012e6004803603602081101561015357600080fd5b50356001600160a01b0316610227565b604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205490565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6101be61018e565b6001600160a01b0316336001600160a01b03161461021b576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61022481610295565b50565b61022f61018e565b6001600160a01b0316336001600160a01b03161461028c576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61022481610348565b6001600160a01b0381166102da5760405162461bcd60e51b815260040180806020018281038252602581526020018061044b6025913960400191505060405180910390fd5b806001600160a01b03166102ec61018e565b6001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b6001600160a01b03811661038d5760405162461bcd60e51b81526004018080602001828103825260298152602001806103ff6029913960400191505060405180910390fd5b806001600160a01b031661039f610163565b6001600160a01b03167fcfbf4028add9318bbf716f08c348595afb063b0e9feed1f86d33681a4b3ed4d360405160405180910390a3604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205556fe50726f78793a3a736574496d706c656d656e746174696f6e3a20696e76616c6964206164647265737350726f78793a3a28293a20696d706c656d656e746174696f6e206e6f7420666f756e6450726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373a265627a7a72315820db916edee71cd17af78992f2875abb733de18e4c373faa85a116c8bdeb32324264736f6c63430005110032",
+    "object": "0x60806040526004361061003f5760003560e01c80631ab7710d146100b5578063aaf10f42146100e6578063caaee91c146100fb578063d784d42614610130575b6000610049610163565b90506001600160a01b0381166100905760405162461bcd60e51b81526004018080602001828103825260238152602001806104286023913960400191505060405180910390fd5b60405136600082376000803683855af43d806000843e8180156100b1578184f35b8184fd5b3480156100c157600080fd5b506100ca61018e565b604080516001600160a01b039092168252519081900360200190f35b3480156100f257600080fd5b506100ca610163565b34801561010757600080fd5b5061012e6004803603602081101561011e57600080fd5b50356001600160a01b03166101b6565b005b34801561013c57600080fd5b5061012e6004803603602081101561015357600080fd5b50356001600160a01b0316610227565b604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205490565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6101be61018e565b6001600160a01b0316336001600160a01b03161461021b576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61022481610295565b50565b61022f61018e565b6001600160a01b0316336001600160a01b03161461028c576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61022481610348565b6001600160a01b0381166102da5760405162461bcd60e51b815260040180806020018281038252602581526020018061044b6025913960400191505060405180910390fd5b806001600160a01b03166102ec61018e565b6001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b6001600160a01b03811661038d5760405162461bcd60e51b81526004018080602001828103825260298152602001806103ff6029913960400191505060405180910390fd5b806001600160a01b031661039f610163565b6001600160a01b03167fcfbf4028add9318bbf716f08c348595afb063b0e9feed1f86d33681a4b3ed4d360405160405180910390a3604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205556fe50726f78793a3a736574496d706c656d656e746174696f6e3a20696e76616c6964206164647265737350726f78793a3a28293a20696d706c656d656e746174696f6e206e6f7420666f756e6450726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373a265627a7a7231582063bee21219761e081f1f66ed0fd6e24b10e401d91aaab4e508d80ffbbd624e9364736f6c63430005110032",
     "sourceMap": "99:57:161:-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;3648:22:190;3673:19;:17;:19::i;:::-;3648:44;-1:-1:-1;;;;;;3710:28:190;;3702:76;;;;-1:-1:-1;;;3702:76:190;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;3833:4;3827:11;3876:12;3873:1;3864:7;3851:38;3976:1;3973;3959:12;3950:7;3934:14;3929:3;3916:62;4003:14;4057:4;4054:1;4045:7;4030:32;4083:6;4106:68;;;;4237:4;4228:7;4221:21;4106:68;4151:4;4142:7;4135:21;3239:164;;8:9:-1;5:2;;;30:1;27;20:12;5:2;3239:164:190;;;:::i;:::-;;;;-1:-1:-1;;;;;3239:164:190;;;;;;;;;;;;;;2540:195;;8:9:-1;5:2;;;30:1;27;20:12;5:2;2540:195:190;;;:::i;1452:100:191:-;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1452:100:191;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1452:100:191;-1:-1:-1;;;;;1452:100:191;;:::i;:::-;;1218:126;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1218:126:191;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;1218:126:191;-1:-1:-1;;;;;1218:126:191;;:::i;2540:195:190:-;1294:31;;;-1:-1:-1;;;1294:31:190;;;;;;;;;;;;2709:10;;2676:53::o;3239:164::-;1368:28;;;-1:-1:-1;;;1368:28:190;;;;;;;;;;;;3377:10;;3353:44::o;1452:100:191:-;1874:15:190;:13;:15::i;:::-;-1:-1:-1;;;;;1860:29:190;:10;-1:-1:-1;;;;;1860:29:190;;1852:63;;;;;-1:-1:-1;;;1852:63:190;;;;;;;;;;;;-1:-1:-1;;;1852:63:190;;;;;;;;;;;;;;;1523:22:191;1538:6;1523:14;:22::i;:::-;1452:100;:::o;1218:126::-;1874:15:190;:13;:15::i;:::-;-1:-1:-1;;;;;1860:29:190;:10;-1:-1:-1;;;;;1860:29:190;;1852:63;;;;;-1:-1:-1;;;1852:63:190;;;;;;;;;;;;-1:-1:-1;;;1852:63:190;;;;;;;;;;;;;;;1302:35:191;1321:15;1302:18;:35::i;2843:291:190:-;-1:-1:-1;;;;;2910:20:190;;2902:70;;;;-1:-1:-1;;;2902:70:190;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;3025:6;-1:-1:-1;;;;;2987:45:190;3008:15;:13;:15::i;:::-;-1:-1:-1;;;;;2987:45:190;;;;;;;;;;;1368:28;;;-1:-1:-1;;;1368:28:190;;;;;;;;;;;;3099:19;3085:43::o;2068:349::-;-1:-1:-1;;;;;2148:29:190;;2140:83;;;;-1:-1:-1;;;2140:83:190;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2281:15;-1:-1:-1;;;;;2238:59:190;2260:19;:17;:19::i;:::-;-1:-1:-1;;;;;2238:59:190;;;;;;;;;;;1294:31;;;-1:-1:-1;;;1294:31:190;;;;;;;;;;;;2373:28;2359:52::o",
     "linkReferences": {}
   },
@@ -133,7 +133,7 @@
     "setImplementation(address)": "d784d426",
     "setProxyOwner(address)": "caaee91c"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldImplementation\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newImplementation\",\"type\":\"address\"}],\"name\":\"ImplementationChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"ValueChanged\",\"type\":\"event\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"constant\":true,\"inputs\":[],\"name\":\"getImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_implementation\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getProxyOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_implementation\",\"type\":\"address\"}],\"name\":\"setImplementation\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"setProxyOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"getImplementation()\":{\"return\":\"Address of the implementation.\"},\"getProxyOwner()\":{\"return\":\"Address of the owner.\"},\"setImplementation(address)\":{\"details\":\"Wrapper for _setImplementation that exposes the function as public for owner to be able to set a new version of the contract as current pointing implementation.\",\"params\":{\"_implementation\":\"Address of the implementation.\"}},\"setProxyOwner(address)\":{\"params\":{\"_owner\":\"Address of the owner.\"}}}},\"userdoc\":{\"methods\":{\"getImplementation()\":{\"notice\":\"Return address of the implementation.\"},\"getProxyOwner()\":{\"notice\":\"Return address of the owner.\"},\"setImplementation(address)\":{\"notice\":\"Set address of the implementation.\"},\"setProxyOwner(address)\":{\"notice\":\"Set address of the owner.\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/proxy/ProxyMockup.sol\":\"ProxyMockup\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/mockup/proxy/ProxyMockup.sol\":{\"keccak256\":\"0x21b3c9ab8c4e6afd253498deb3fe194614b25e407b23db17efd485b6468a8a5a\",\"urls\":[\"bzz-raw://38c8f14c5fbcc5506e76b28557fcacf5b9faf200b085c767786427909b4ed44c\",\"dweb:/ipfs/QmPpXDL9kui62V3A5NM8VZELr7fnH1j69JfR6bPDi1jjDb\"]},\"contracts/mockup/proxy/StorageMockup.sol\":{\"keccak256\":\"0x6537490fffc13da1308f07adafc1f2ed9a01af69aecf558b80d96a2c5aaed1a0\",\"urls\":[\"bzz-raw://878534af8830623ee3baca415081b1e8bd6631b053541dc824a016ca6c31535f\",\"dweb:/ipfs/Qmf2rVEmEZDVPRs111Chy4DmYKaxPuW6mY4HBn3DoruRkC\"]},\"contracts/proxy/Proxy.sol\":{\"keccak256\":\"0x8574814d1ea5b04efc8ef1e629e04e5783d4c106ff73a47c72e279c027a6a403\",\"urls\":[\"bzz-raw://63d5b54995b6c17679664647700e5ec427eb48c49c2ff845722a77b6aae1adc2\",\"dweb:/ipfs/QmVvYVtFuHr84Z43XJe5SMM2fmeFUXPrQ9VdkAtRoLnjcK\"]},\"contracts/proxy/UpgradableProxy.sol\":{\"keccak256\":\"0xc876883361bd3b675041b1c01c2be94a994f8ba6af516f01b171235a360b96ed\",\"urls\":[\"bzz-raw://bbfe495a953d615eb4b2bf606b3b7c2a365ee74a3805f5e7f508f4b92963b04d\",\"dweb:/ipfs/QmQmoog5tFt7TeBWFGLpjEdeSP5uXsHpVcNzXcTAkTi7ud\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldImplementation\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newImplementation\",\"type\":\"address\"}],\"name\":\"ImplementationChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"ValueChanged\",\"type\":\"event\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"constant\":true,\"inputs\":[],\"name\":\"getImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_implementation\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getProxyOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_implementation\",\"type\":\"address\"}],\"name\":\"setImplementation\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"setProxyOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"getImplementation()\":{\"return\":\"Address of the implementation.\"},\"getProxyOwner()\":{\"return\":\"Address of the owner.\"},\"setImplementation(address)\":{\"details\":\"Wrapper for _setImplementation that exposes the function as public for owner to be able to set a new version of the contract as current pointing implementation.\",\"params\":{\"_implementation\":\"Address of the implementation.\"}},\"setProxyOwner(address)\":{\"params\":{\"_owner\":\"Address of the owner.\"}}}},\"userdoc\":{\"methods\":{\"getImplementation()\":{\"notice\":\"Return address of the implementation.\"},\"getProxyOwner()\":{\"notice\":\"Return address of the owner.\"},\"setImplementation(address)\":{\"notice\":\"Set address of the implementation.\"},\"setProxyOwner(address)\":{\"notice\":\"Set address of the owner.\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/proxy/ProxyMockup.sol\":\"ProxyMockup\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/mockup/proxy/ProxyMockup.sol\":{\"keccak256\":\"0x21b3c9ab8c4e6afd253498deb3fe194614b25e407b23db17efd485b6468a8a5a\",\"urls\":[\"bzz-raw://38c8f14c5fbcc5506e76b28557fcacf5b9faf200b085c767786427909b4ed44c\",\"dweb:/ipfs/QmPpXDL9kui62V3A5NM8VZELr7fnH1j69JfR6bPDi1jjDb\"]},\"contracts/mockup/proxy/StorageMockup.sol\":{\"keccak256\":\"0x6537490fffc13da1308f07adafc1f2ed9a01af69aecf558b80d96a2c5aaed1a0\",\"urls\":[\"bzz-raw://878534af8830623ee3baca415081b1e8bd6631b053541dc824a016ca6c31535f\",\"dweb:/ipfs/Qmf2rVEmEZDVPRs111Chy4DmYKaxPuW6mY4HBn3DoruRkC\"]},\"contracts/proxy/Proxy.sol\":{\"keccak256\":\"0x8574814d1ea5b04efc8ef1e629e04e5783d4c106ff73a47c72e279c027a6a403\",\"urls\":[\"bzz-raw://63d5b54995b6c17679664647700e5ec427eb48c49c2ff845722a77b6aae1adc2\",\"dweb:/ipfs/QmVvYVtFuHr84Z43XJe5SMM2fmeFUXPrQ9VdkAtRoLnjcK\"]},\"contracts/proxy/UpgradableProxy.sol\":{\"keccak256\":\"0xc876883361bd3b675041b1c01c2be94a994f8ba6af516f01b171235a360b96ed\",\"urls\":[\"bzz-raw://bbfe495a953d615eb4b2bf606b3b7c2a365ee74a3805f5e7f508f4b92963b04d\",\"dweb:/ipfs/QmQmoog5tFt7TeBWFGLpjEdeSP5uXsHpVcNzXcTAkTi7ud\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -290,9 +290,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -344,17 +344,17 @@
   },
   "ast": {
     "absolutePath": "contracts/mockup/proxy/ProxyMockup.sol",
-    "id": 42309,
+    "id": 42408,
     "exportedSymbols": {
       "ProxyMockup": [
-        42308
+        42407
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:157:161",
     "nodes": [
       {
-        "id": 42301,
+        "id": 42400,
         "nodeType": "PragmaDirective",
         "src": "0:24:161",
         "nodes": [],
@@ -366,31 +366,31 @@
         ]
       },
       {
-        "id": 42302,
+        "id": 42401,
         "nodeType": "ImportDirective",
         "src": "26:29:161",
         "nodes": [],
         "absolutePath": "contracts/mockup/proxy/StorageMockup.sol",
         "file": "./StorageMockup.sol",
-        "scope": 42309,
-        "sourceUnit": 42318,
+        "scope": 42408,
+        "sourceUnit": 42417,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42303,
+        "id": 42402,
         "nodeType": "ImportDirective",
         "src": "56:41:161",
         "nodes": [],
         "absolutePath": "contracts/proxy/UpgradableProxy.sol",
         "file": "../../proxy/UpgradableProxy.sol",
-        "scope": 42309,
-        "sourceUnit": 56081,
+        "scope": 42408,
+        "sourceUnit": 56180,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42308,
+        "id": 42407,
         "nodeType": "ContractDefinition",
         "src": "99:57:161",
         "nodes": [],
@@ -399,17 +399,17 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 42304,
+              "id": 42403,
               "name": "StorageMockup",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 42317,
+              "referencedDeclaration": 42416,
               "src": "123:13:161",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_StorageMockup_$42317",
+                "typeIdentifier": "t_contract$_StorageMockup_$42416",
                 "typeString": "contract StorageMockup"
               }
             },
-            "id": 42305,
+            "id": 42404,
             "nodeType": "InheritanceSpecifier",
             "src": "123:13:161"
           },
@@ -417,37 +417,37 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 42306,
+              "id": 42405,
               "name": "UpgradableProxy",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 56080,
+              "referencedDeclaration": 56179,
               "src": "138:15:161",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_UpgradableProxy_$56080",
+                "typeIdentifier": "t_contract$_UpgradableProxy_$56179",
                 "typeString": "contract UpgradableProxy"
               }
             },
-            "id": 42307,
+            "id": 42406,
             "nodeType": "InheritanceSpecifier",
             "src": "138:15:161"
           }
         ],
         "contractDependencies": [
-          42317,
-          56050,
-          56080
+          42416,
+          56149,
+          56179
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          42308,
-          56080,
-          56050,
-          42317
+          42407,
+          56179,
+          56149,
+          42416
         ],
         "name": "ProxyMockup",
-        "scope": 42309
+        "scope": 42408
       }
     ]
   },

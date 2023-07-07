@@ -114,7 +114,7 @@
     "setAffiliatesReferrer(address,address)": "c9ddf448",
     "setUserNotFirstTradeFlag(address)": "f06a9c6b"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"user_\",\"type\":\"address\"}],\"name\":\"getUserNotFirstTradeFlag\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"affiliate\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"trader\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"payTradingFeeToAffiliatesReferrer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"affiliatesBonusSOVAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"affiliatesBonusTokenAmount\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"referrer\",\"type\":\"address\"}],\"name\":\"setAffiliatesReferrer\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"user_\",\"type\":\"address\"}],\"name\":\"setUserNotFirstTradeFlag\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/modules/interfaces/ProtocolAffiliatesInterface.sol\":\"ProtocolAffiliatesInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/modules/interfaces/ProtocolAffiliatesInterface.sol\":{\"keccak256\":\"0x42f259156db09a06e3dcdf0ab9c6774712616b35e6baff97999a2a534d1c9c64\",\"urls\":[\"bzz-raw://54555f2049d372e0b52b6020f1459c5d8ee27ac9430ec6e329a3c74810933387\",\"dweb:/ipfs/Qme6jqbycF9LtMFvMpMHoGnLBeRk7B1rF5bZVAYK15GisV\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"user_\",\"type\":\"address\"}],\"name\":\"getUserNotFirstTradeFlag\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"affiliate\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"trader\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"payTradingFeeToAffiliatesReferrer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"affiliatesBonusSOVAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"affiliatesBonusTokenAmount\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"referrer\",\"type\":\"address\"}],\"name\":\"setAffiliatesReferrer\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"user_\",\"type\":\"address\"}],\"name\":\"setUserNotFirstTradeFlag\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/modules/interfaces/ProtocolAffiliatesInterface.sol\":\"ProtocolAffiliatesInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/modules/interfaces/ProtocolAffiliatesInterface.sol\":{\"keccak256\":\"0x42f259156db09a06e3dcdf0ab9c6774712616b35e6baff97999a2a534d1c9c64\",\"urls\":[\"bzz-raw://54555f2049d372e0b52b6020f1459c5d8ee27ac9430ec6e329a3c74810933387\",\"dweb:/ipfs/Qme6jqbycF9LtMFvMpMHoGnLBeRk7B1rF5bZVAYK15GisV\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -221,9 +221,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -251,17 +251,17 @@
   },
   "ast": {
     "absolutePath": "contracts/modules/interfaces/ProtocolAffiliatesInterface.sol",
-    "id": 52659,
+    "id": 52758,
     "exportedSymbols": {
       "ProtocolAffiliatesInterface": [
-        52658
+        52757
       ]
     },
     "nodeType": "SourceUnit",
     "src": "115:528:174",
     "nodes": [
       {
-        "id": 52623,
+        "id": 52722,
         "nodeType": "PragmaDirective",
         "src": "115:23:174",
         "nodes": [],
@@ -272,12 +272,12 @@
         ]
       },
       {
-        "id": 52658,
+        "id": 52757,
         "nodeType": "ContractDefinition",
         "src": "140:502:174",
         "nodes": [
           {
-            "id": 52630,
+            "id": 52729,
             "nodeType": "FunctionDefinition",
             "src": "184:72:174",
             "nodes": [],
@@ -287,15 +287,15 @@
             "modifiers": [],
             "name": "setAffiliatesReferrer",
             "parameters": {
-              "id": 52628,
+              "id": 52727,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 52625,
+                  "id": 52724,
                   "name": "user",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52630,
+                  "scope": 52729,
                   "src": "215:12:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -304,7 +304,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 52624,
+                    "id": 52723,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "215:7:174",
@@ -319,10 +319,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 52627,
+                  "id": 52726,
                   "name": "referrer",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52630,
+                  "scope": 52729,
                   "src": "229:16:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -331,7 +331,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 52626,
+                    "id": 52725,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "229:7:174",
@@ -348,18 +348,18 @@
               "src": "214:32:174"
             },
             "returnParameters": {
-              "id": 52629,
+              "id": 52728,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "255:0:174"
             },
-            "scope": 52658,
+            "scope": 52757,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 52635,
+            "id": 52734,
             "nodeType": "FunctionDefinition",
             "src": "262:58:174",
             "nodes": [],
@@ -369,15 +369,15 @@
             "modifiers": [],
             "name": "setUserNotFirstTradeFlag",
             "parameters": {
-              "id": 52633,
+              "id": 52732,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 52632,
+                  "id": 52731,
                   "name": "user_",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52635,
+                  "scope": 52734,
                   "src": "296:13:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -386,7 +386,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 52631,
+                    "id": 52730,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "296:7:174",
@@ -403,18 +403,18 @@
               "src": "295:15:174"
             },
             "returnParameters": {
-              "id": 52634,
+              "id": 52733,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "319:0:174"
             },
-            "scope": 52658,
+            "scope": 52757,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 52642,
+            "id": 52741,
             "nodeType": "FunctionDefinition",
             "src": "326:73:174",
             "nodes": [],
@@ -424,15 +424,15 @@
             "modifiers": [],
             "name": "getUserNotFirstTradeFlag",
             "parameters": {
-              "id": 52638,
+              "id": 52737,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 52637,
+                  "id": 52736,
                   "name": "user_",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52642,
+                  "scope": 52741,
                   "src": "360:13:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -441,7 +441,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 52636,
+                    "id": 52735,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "360:7:174",
@@ -458,15 +458,15 @@
               "src": "359:15:174"
             },
             "returnParameters": {
-              "id": 52641,
+              "id": 52740,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 52640,
+                  "id": 52739,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52642,
+                  "scope": 52741,
                   "src": "393:4:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -475,7 +475,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 52639,
+                    "id": 52738,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "393:4:174",
@@ -490,13 +490,13 @@
               ],
               "src": "392:6:174"
             },
-            "scope": 52658,
+            "scope": 52757,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           },
           {
-            "id": 52657,
+            "id": 52756,
             "nodeType": "FunctionDefinition",
             "src": "405:235:174",
             "nodes": [],
@@ -506,15 +506,15 @@
             "modifiers": [],
             "name": "payTradingFeeToAffiliatesReferrer",
             "parameters": {
-              "id": 52651,
+              "id": 52750,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 52644,
+                  "id": 52743,
                   "name": "affiliate",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52657,
+                  "scope": 52756,
                   "src": "457:17:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -523,7 +523,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 52643,
+                    "id": 52742,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "457:7:174",
@@ -538,10 +538,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 52646,
+                  "id": 52745,
                   "name": "trader",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52657,
+                  "scope": 52756,
                   "src": "484:14:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -550,7 +550,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 52645,
+                    "id": 52744,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "484:7:174",
@@ -565,10 +565,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 52648,
+                  "id": 52747,
                   "name": "token",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52657,
+                  "scope": 52756,
                   "src": "508:13:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -577,7 +577,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 52647,
+                    "id": 52746,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "508:7:174",
@@ -592,10 +592,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 52650,
+                  "id": 52749,
                   "name": "amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52657,
+                  "scope": 52756,
                   "src": "531:14:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -604,7 +604,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 52649,
+                    "id": 52748,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "531:7:174",
@@ -620,15 +620,15 @@
               "src": "447:104:174"
             },
             "returnParameters": {
-              "id": 52656,
+              "id": 52755,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 52653,
+                  "id": 52752,
                   "name": "affiliatesBonusSOVAmount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52657,
+                  "scope": 52756,
                   "src": "570:32:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -637,7 +637,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 52652,
+                    "id": 52751,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "570:7:174",
@@ -651,10 +651,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 52655,
+                  "id": 52754,
                   "name": "affiliatesBonusTokenAmount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 52657,
+                  "scope": 52756,
                   "src": "604:34:174",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -663,7 +663,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 52654,
+                    "id": 52753,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "604:7:174",
@@ -678,7 +678,7 @@
               ],
               "src": "569:70:174"
             },
-            "scope": 52658,
+            "scope": 52757,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
@@ -690,10 +690,10 @@
         "documentation": null,
         "fullyImplemented": false,
         "linearizedBaseContracts": [
-          52658
+          52757
         ],
         "name": "ProtocolAffiliatesInterface",
-        "scope": 52659
+        "scope": 52758
       }
     ]
   },

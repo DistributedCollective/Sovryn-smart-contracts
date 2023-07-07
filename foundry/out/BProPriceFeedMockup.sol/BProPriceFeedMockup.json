@@ -47,12 +47,12 @@
     }
   ],
   "bytecode": {
-    "object": "0x608060405234801561001057600080fd5b5060c18061001f6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c80633fa4f24514604157806355241077146059578063747a5663146075575b600080fd5b6047607b565b60408051918252519081900360200190f35b607360048036036020811015606d57600080fd5b50356081565b005b60476086565b60005481565b600055565b6000549056fea265627a7a72315820e984acaba2da16890264d7692e0d40bfac48dce461ec50429d36a48d3fbf9cfa64736f6c63430005110032",
+    "object": "0x608060405234801561001057600080fd5b5060c18061001f6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c80633fa4f24514604157806355241077146059578063747a5663146075575b600080fd5b6047607b565b60408051918252519081900360200190f35b607360048036036020811015606d57600080fd5b50356081565b005b60476086565b60005481565b600055565b6000549056fea265627a7a723158209624990cebf4516e350561b08a32841b1ccdf050a2f684a5362c451b5069c7e564736f6c63430005110032",
     "sourceMap": "25:323:128:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;25:323:128;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x6080604052348015600f57600080fd5b5060043610603c5760003560e01c80633fa4f24514604157806355241077146059578063747a5663146075575b600080fd5b6047607b565b60408051918252519081900360200190f35b607360048036036020811015606d57600080fd5b50356081565b005b60476086565b60005481565b600055565b6000549056fea265627a7a72315820e984acaba2da16890264d7692e0d40bfac48dce461ec50429d36a48d3fbf9cfa64736f6c63430005110032",
+    "object": "0x6080604052348015600f57600080fd5b5060043610603c5760003560e01c80633fa4f24514604157806355241077146059578063747a5663146075575b600080fd5b6047607b565b60408051918252519081900360200190f35b607360048036036020811015606d57600080fd5b50356081565b005b60476086565b60005481565b600055565b6000549056fea265627a7a723158209624990cebf4516e350561b08a32841b1ccdf050a2f684a5362c451b5069c7e564736f6c63430005110032",
     "sourceMap": "25:323:128:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;25:323:128;;;;;;;;;;;;;;;;;;;;;;;;;;;;;60:20;;;:::i;:::-;;;;;;;;;;;;;;;;274:72;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;274:72:128;;:::i;:::-;;185:83;;;:::i;60:20::-;;;;:::o;274:72::-;325:5;:14;274:72::o;185:83::-;230:7;256:5;185:83;:::o",
     "linkReferences": {}
   },
@@ -61,7 +61,7 @@
     "setValue(uint256)": "55241077",
     "value()": "3fa4f245"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"bproUsdPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"setValue\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"value\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"bproUsdPrice()\":{\"details\":\"BPro USD PRICE\",\"return\":\"the BPro USD Price [using mocPrecision]\"}}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/BProPriceFeedMockup.sol\":\"BProPriceFeedMockup\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/mockup/BProPriceFeedMockup.sol\":{\"keccak256\":\"0x6b2429a0876ccfba5b53c4a254937ad52f59e0f0c6b71788c77cac0c03416413\",\"urls\":[\"bzz-raw://bd0451643c4c1b635b04a2641051248b9e89809b75906541b89dc0025ee19da2\",\"dweb:/ipfs/QmRGbifZ5sfSiVnP6HU3rv2QR2ZjaCDYg46eZSfa8mEmWY\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"bproUsdPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"setValue\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"value\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"bproUsdPrice()\":{\"details\":\"BPro USD PRICE\",\"return\":\"the BPro USD Price [using mocPrecision]\"}}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/BProPriceFeedMockup.sol\":\"BProPriceFeedMockup\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/mockup/BProPriceFeedMockup.sol\":{\"keccak256\":\"0x6b2429a0876ccfba5b53c4a254937ad52f59e0f0c6b71788c77cac0c03416413\",\"urls\":[\"bzz-raw://bd0451643c4c1b635b04a2641051248b9e89809b75906541b89dc0025ee19da2\",\"dweb:/ipfs/QmRGbifZ5sfSiVnP6HU3rv2QR2ZjaCDYg46eZSfa8mEmWY\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -124,9 +124,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -154,17 +154,17 @@
   },
   "ast": {
     "absolutePath": "contracts/mockup/BProPriceFeedMockup.sol",
-    "id": 37029,
+    "id": 37128,
     "exportedSymbols": {
       "BProPriceFeedMockup": [
-        37028
+        37127
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:349:128",
     "nodes": [
       {
-        "id": 37007,
+        "id": 37106,
         "nodeType": "PragmaDirective",
         "src": "0:23:128",
         "nodes": [],
@@ -175,18 +175,18 @@
         ]
       },
       {
-        "id": 37028,
+        "id": 37127,
         "nodeType": "ContractDefinition",
         "src": "25:323:128",
         "nodes": [
           {
-            "id": 37009,
+            "id": 37108,
             "nodeType": "VariableDeclaration",
             "src": "60:20:128",
             "nodes": [],
             "constant": false,
             "name": "value",
-            "scope": 37028,
+            "scope": 37127,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -194,7 +194,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 37008,
+              "id": 37107,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "60:7:128",
@@ -207,12 +207,12 @@
             "visibility": "public"
           },
           {
-            "id": 37017,
+            "id": 37116,
             "nodeType": "FunctionDefinition",
             "src": "185:83:128",
             "nodes": [],
             "body": {
-              "id": 37016,
+              "id": 37115,
               "nodeType": "Block",
               "src": "239:29:128",
               "nodes": [],
@@ -220,19 +220,19 @@
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 37014,
+                    "id": 37113,
                     "name": "value",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 37009,
+                    "referencedDeclaration": 37108,
                     "src": "256:5:128",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     }
                   },
-                  "functionReturnParameters": 37013,
-                  "id": 37015,
+                  "functionReturnParameters": 37112,
+                  "id": 37114,
                   "nodeType": "Return",
                   "src": "249:12:128"
                 }
@@ -244,21 +244,21 @@
             "modifiers": [],
             "name": "bproUsdPrice",
             "parameters": {
-              "id": 37010,
+              "id": 37109,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "206:2:128"
             },
             "returnParameters": {
-              "id": 37013,
+              "id": 37112,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 37012,
+                  "id": 37111,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 37017,
+                  "scope": 37116,
                   "src": "230:7:128",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -267,7 +267,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 37011,
+                    "id": 37110,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "230:7:128",
@@ -282,18 +282,18 @@
               ],
               "src": "229:9:128"
             },
-            "scope": 37028,
+            "scope": 37127,
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "public"
           },
           {
-            "id": 37027,
+            "id": 37126,
             "nodeType": "FunctionDefinition",
             "src": "274:72:128",
             "nodes": [],
             "body": {
-              "id": 37026,
+              "id": 37125,
               "nodeType": "Block",
               "src": "315:31:128",
               "nodes": [],
@@ -301,18 +301,18 @@
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 37024,
+                    "id": 37123,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 37022,
+                      "id": 37121,
                       "name": "value",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 37009,
+                      "referencedDeclaration": 37108,
                       "src": "325:5:128",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -323,11 +323,11 @@
                     "operator": "=",
                     "rightHandSide": {
                       "argumentTypes": null,
-                      "id": 37023,
+                      "id": 37122,
                       "name": "_value",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 37019,
+                      "referencedDeclaration": 37118,
                       "src": "333:6:128",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -340,7 +340,7 @@
                       "typeString": "uint256"
                     }
                   },
-                  "id": 37025,
+                  "id": 37124,
                   "nodeType": "ExpressionStatement",
                   "src": "325:14:128"
                 }
@@ -352,15 +352,15 @@
             "modifiers": [],
             "name": "setValue",
             "parameters": {
-              "id": 37020,
+              "id": 37119,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 37019,
+                  "id": 37118,
                   "name": "_value",
                   "nodeType": "VariableDeclaration",
-                  "scope": 37027,
+                  "scope": 37126,
                   "src": "292:14:128",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -369,7 +369,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 37018,
+                    "id": 37117,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "292:7:128",
@@ -385,12 +385,12 @@
               "src": "291:16:128"
             },
             "returnParameters": {
-              "id": 37021,
+              "id": 37120,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "315:0:128"
             },
-            "scope": 37028,
+            "scope": 37127,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
@@ -402,10 +402,10 @@
         "documentation": null,
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          37028
+          37127
         ],
         "name": "BProPriceFeedMockup",
-        "scope": 37029
+        "scope": 37128
       }
     ]
   },

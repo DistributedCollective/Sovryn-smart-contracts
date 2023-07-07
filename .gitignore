@@ -35,6 +35,7 @@ cache
 node_modules
 artifacts/
 cache/
+cache_forge/
 contracts_bzx/
 tmp/
 tmp

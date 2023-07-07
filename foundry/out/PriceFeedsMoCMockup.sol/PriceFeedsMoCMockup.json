@@ -82,12 +82,12 @@
     }
   ],
   "bytecode": {
-    "object": "0x608060405234801561001057600080fd5b5061015a806100206000396000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c80633fa4f2451461005c578063552410771461007657806359e02dd71461009557806361da0693146100b6578063b689d5ac146100d5575b600080fd5b6100646100f1565b60408051918252519081900360200190f35b6100936004803603602081101561008c57600080fd5b50356100f7565b005b61009d6100fc565b6040805192835290151560208301528051918290030190f35b610093600480360360208110156100cc57600080fd5b50351515610109565b6100dd61011c565b604080519115158252519081900360200190f35b60005481565b600055565b60005460015460ff169091565b6001805460ff1916911515919091179055565b60015460ff168156fea265627a7a72315820410eb0f263b9adf9bf042fbcda186e2001006b7e60476b09b21a3c7e6da94f1f64736f6c63430005110032",
+    "object": "0x608060405234801561001057600080fd5b5061015a806100206000396000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c80633fa4f2451461005c578063552410771461007657806359e02dd71461009557806361da0693146100b6578063b689d5ac146100d5575b600080fd5b6100646100f1565b60408051918252519081900360200190f35b6100936004803603602081101561008c57600080fd5b50356100f7565b005b61009d6100fc565b6040805192835290151560208301528051918290030190f35b610093600480360360208110156100cc57600080fd5b50351515610109565b6100dd61011c565b604080519115158252519081900360200190f35b60005481565b600055565b60005460015460ff169091565b6001805460ff1916911515919091179055565b60015460ff168156fea265627a7a7231582055cf448c541848916bc34fc35ca506ff74c73a4305ac8e3f9b759d2ddd39ee2864736f6c63430005110032",
     "sourceMap": "216:343:144:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;216:343:144;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x608060405234801561001057600080fd5b50600436106100575760003560e01c80633fa4f2451461005c578063552410771461007657806359e02dd71461009557806361da0693146100b6578063b689d5ac146100d5575b600080fd5b6100646100f1565b60408051918252519081900360200190f35b6100936004803603602081101561008c57600080fd5b50356100f7565b005b61009d6100fc565b6040805192835290151560208301528051918290030190f35b610093600480360360208110156100cc57600080fd5b50351515610109565b6100dd61011c565b604080519115158252519081900360200190f35b60005481565b600055565b60005460015460ff169091565b6001805460ff1916911515919091179055565b60015460ff168156fea265627a7a72315820410eb0f263b9adf9bf042fbcda186e2001006b7e60476b09b21a3c7e6da94f1f64736f6c63430005110032",
+    "object": "0x608060405234801561001057600080fd5b50600436106100575760003560e01c80633fa4f2451461005c578063552410771461007657806359e02dd71461009557806361da0693146100b6578063b689d5ac146100d5575b600080fd5b6100646100f1565b60408051918252519081900360200190f35b6100936004803603602081101561008c57600080fd5b50356100f7565b005b61009d6100fc565b6040805192835290151560208301528051918290030190f35b610093600480360360208110156100cc57600080fd5b50351515610109565b6100dd61011c565b604080519115158252519081900360200190f35b60005481565b600055565b60005460015460ff169091565b6001805460ff1916911515919091179055565b60015460ff168156fea265627a7a7231582055cf448c541848916bc34fc35ca506ff74c73a4305ac8e3f9b759d2ddd39ee2864736f6c63430005110032",
     "sourceMap": "216:343:144:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;216:343:144;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;265:20;;;:::i;:::-;;;;;;;;;;;;;;;;418:72;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;418:72:144;;:::i;:::-;;313:99;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;496:61;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;-1:-1;496:61:144;;;;:::i;291:15::-;;;:::i;:::-;;;;;;;;;;;;;;;;;;265:20;;;;:::o;418:72::-;469:5;:14;418:72::o;313:99::-;352:7;393:5;401:3;;;;313:99;;:::o;496:61::-;540:3;:10;;-1:-1:-1;;540:10:144;;;;;;;;;;496:61::o;291:15::-;;;;;;:::o",
     "linkReferences": {}
   },
@@ -98,7 +98,7 @@
     "setValue(uint256)": "55241077",
     "value()": "3fa4f245"
   },
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"has\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"peek\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bool\",\"name\":\"_has\",\"type\":\"bool\"}],\"name\":\"setHas\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"setValue\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"value\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/PriceFeedsMoCMockup.sol\":\"PriceFeedsMoCMockup\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/feeds/IRSKOracle.sol\":{\"keccak256\":\"0x4b155c1b20d38a45f245c8400ae84c24b616c6517ff1790ec47b27183014303b\",\"urls\":[\"bzz-raw://adb4de0db0c6c5f6e7344966bd0f7f20c22217cd4a6f0d67edc3cdcacc45ce5c\",\"dweb:/ipfs/QmP7SZ9UbqM2Z4PQhBK7EsAeEvKnc91zSmnQgdJamhd2LC\"]},\"contracts/feeds/PriceFeeds.sol\":{\"keccak256\":\"0x1c90db64dc36611a0eca6a29a8cb138dac1821864920e6bcd5acb7e5071e2bf1\",\"urls\":[\"bzz-raw://fcad9db567fb499f1b67278be1e99148252fa49a7c64d538499ab5e86605bdd1\",\"dweb:/ipfs/QmY8bgKUHdcQcaiHRnnY5YLYXKXRcg5aWXanCc6GD1Kn8g\"]},\"contracts/feeds/PriceFeedsConstants.sol\":{\"keccak256\":\"0x0fa85c00dd41dff315be51bc3220bd8826430bd1388424eb969fb188e203f0af\",\"urls\":[\"bzz-raw://bfbacbad0daedbb1febbe08f0ea11f702c8ae49f298e998ecf2f200c6fbdb822\",\"dweb:/ipfs/QmQd8w8nEfyim1uQsLnm4Bwf9o3j3NGACkQhp4ZPqt5tzR\"]},\"contracts/feeds/testnet/PriceFeedsMoC.sol\":{\"keccak256\":\"0x4057ab81f86d058f2b22644905864bd1adc6762f968cc8938bbb0bd447b4120e\",\"urls\":[\"bzz-raw://9d044b3963724b25efca08ed5c1730f3383b36ad49425b6331a305adce6580af\",\"dweb:/ipfs/QmVTvopq1QTeLPBRoBtr9yVAKPFtDevdYyLkDnEyYnGdSi\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/interfaces/IWrbtc.sol\":{\"keccak256\":\"0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492\",\"urls\":[\"bzz-raw://d1adc3348aded3938e587fead4d4becf8efbed346c9cdc73e1f8ed42cb43b2c9\",\"dweb:/ipfs/QmZPMshLwXDwH2UKkFeV5QPtz129swV354fQ25gqKWAV94\"]},\"contracts/interfaces/IWrbtcERC20.sol\":{\"keccak256\":\"0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5\",\"urls\":[\"bzz-raw://12d22b4d1e74d95f82d2bc84b5e3c978e2341cb7a1b8fc383b64aaef59f13a00\",\"dweb:/ipfs/QmZkPrztJ5nwiKKudgz8aWX6kk3YHKCtmxJndMvV1NJuS6\"]},\"contracts/mockup/PriceFeedsMoCMockup.sol\":{\"keccak256\":\"0xfa5c5fa3caa6da0b8cfc12bdb234405a16d4fbf3e1b6c7ce6f1479d8a9245b72\",\"urls\":[\"bzz-raw://1216cb85086b70bff72fc70794858eb9d8d211ddcfef76c70b44a6ab291a9a0a\",\"dweb:/ipfs/QmXU3L3j5pgN43cCQAS5XU78vZRuoBK97hbNyEFifyZuMm\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"has\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"peek\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bool\",\"name\":\"_has\",\"type\":\"bool\"}],\"name\":\"setHas\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"setValue\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"value\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/mockup/PriceFeedsMoCMockup.sol\":\"PriceFeedsMoCMockup\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@ensdomains/=node_modules/@ensdomains/\",\":@ethereum-waffle/=node_modules/@ethereum-waffle/\",\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":eth-gas-reporter/=node_modules/eth-gas-reporter/\",\":forge-std/=foundry/lib/forge-std/src/\",\":hardhat-deploy/=node_modules/hardhat-deploy/\",\":hardhat/=node_modules/hardhat/\",\":truffle/=node_modules/truffle/\"]},\"sources\":{\"contracts/feeds/IRSKOracle.sol\":{\"keccak256\":\"0x4b155c1b20d38a45f245c8400ae84c24b616c6517ff1790ec47b27183014303b\",\"urls\":[\"bzz-raw://adb4de0db0c6c5f6e7344966bd0f7f20c22217cd4a6f0d67edc3cdcacc45ce5c\",\"dweb:/ipfs/QmP7SZ9UbqM2Z4PQhBK7EsAeEvKnc91zSmnQgdJamhd2LC\"]},\"contracts/feeds/PriceFeeds.sol\":{\"keccak256\":\"0x1c90db64dc36611a0eca6a29a8cb138dac1821864920e6bcd5acb7e5071e2bf1\",\"urls\":[\"bzz-raw://fcad9db567fb499f1b67278be1e99148252fa49a7c64d538499ab5e86605bdd1\",\"dweb:/ipfs/QmY8bgKUHdcQcaiHRnnY5YLYXKXRcg5aWXanCc6GD1Kn8g\"]},\"contracts/feeds/PriceFeedsConstants.sol\":{\"keccak256\":\"0x0fa85c00dd41dff315be51bc3220bd8826430bd1388424eb969fb188e203f0af\",\"urls\":[\"bzz-raw://bfbacbad0daedbb1febbe08f0ea11f702c8ae49f298e998ecf2f200c6fbdb822\",\"dweb:/ipfs/QmQd8w8nEfyim1uQsLnm4Bwf9o3j3NGACkQhp4ZPqt5tzR\"]},\"contracts/feeds/testnet/PriceFeedsMoC.sol\":{\"keccak256\":\"0x4057ab81f86d058f2b22644905864bd1adc6762f968cc8938bbb0bd447b4120e\",\"urls\":[\"bzz-raw://9d044b3963724b25efca08ed5c1730f3383b36ad49425b6331a305adce6580af\",\"dweb:/ipfs/QmVTvopq1QTeLPBRoBtr9yVAKPFtDevdYyLkDnEyYnGdSi\"]},\"contracts/interfaces/IERC20.sol\":{\"keccak256\":\"0xea0bb1bf7d022130bb42a4efdfd875ef76ac5ac730a94ddd7b8c9949d4253855\",\"urls\":[\"bzz-raw://2050b03a2a1d4203698261daf2f46749bf5b72e3d23c272553e047e6bea4af40\",\"dweb:/ipfs/QmPY8bbNv3KxnyQ4Z6DtHkYu2U1Kfd7ooRDRUWNuw6v4Jt\"]},\"contracts/interfaces/IWrbtc.sol\":{\"keccak256\":\"0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492\",\"urls\":[\"bzz-raw://d1adc3348aded3938e587fead4d4becf8efbed346c9cdc73e1f8ed42cb43b2c9\",\"dweb:/ipfs/QmZPMshLwXDwH2UKkFeV5QPtz129swV354fQ25gqKWAV94\"]},\"contracts/interfaces/IWrbtcERC20.sol\":{\"keccak256\":\"0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5\",\"urls\":[\"bzz-raw://12d22b4d1e74d95f82d2bc84b5e3c978e2341cb7a1b8fc383b64aaef59f13a00\",\"dweb:/ipfs/QmZkPrztJ5nwiKKudgz8aWX6kk3YHKCtmxJndMvV1NJuS6\"]},\"contracts/mockup/PriceFeedsMoCMockup.sol\":{\"keccak256\":\"0xfa5c5fa3caa6da0b8cfc12bdb234405a16d4fbf3e1b6c7ce6f1479d8a9245b72\",\"urls\":[\"bzz-raw://1216cb85086b70bff72fc70794858eb9d8d211ddcfef76c70b44a6ab291a9a0a\",\"dweb:/ipfs/QmXU3L3j5pgN43cCQAS5XU78vZRuoBK97hbNyEFifyZuMm\"]},\"contracts/openzeppelin/Address.sol\":{\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\",\"urls\":[\"bzz-raw://0928673cfdca6f6917432e1cff628b726b4396ed0f4b08d3281a7ebbdb2380e3\",\"dweb:/ipfs/QmY12enUUEaE7sC5PZAdqJo63JxaH2FqVJtHZxxB9HzVYE\"]},\"contracts/openzeppelin/Context.sol\":{\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\",\"urls\":[\"bzz-raw://79e480eab5cb03c034f7fb2c177f23874fddebbb3514d773729bb094a0fda826\",\"dweb:/ipfs/QmTfDHE4fnQE3gfycu7NePREWfWFgJgmaEmHDn4uyTnMBP\"]},\"contracts/openzeppelin/Ownable.sol\":{\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\",\"urls\":[\"bzz-raw://ea268f87bc9d256b99aae4d98f23931f485295b5720f505e0554223c9b54431a\",\"dweb:/ipfs/QmWCLqTijearegiDuWyhrkRQXXACT1sVUG6cF3L9pszb6Y\"]},\"contracts/openzeppelin/SafeMath.sol\":{\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\",\"urls\":[\"bzz-raw://379880c293771d9db34b4db282bd22f0536d41f1db2a7fb887124984a5bcd719\",\"dweb:/ipfs/QmUrUzEJPp9WxyvFFZSaqv7qjnSwrkApNUkMny5cCcY2a6\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.5.17+commit.d19bba13"
@@ -186,9 +186,9 @@
       "remappings": [
         ":@ensdomains/=node_modules/@ensdomains/",
         ":@ethereum-waffle/=node_modules/@ethereum-waffle/",
-        ":ds-test/=foundry/forge-std/lib/ds-test/src/",
+        ":ds-test/=foundry/lib/forge-std/lib/ds-test/src/",
         ":eth-gas-reporter/=node_modules/eth-gas-reporter/",
-        ":forge-std/=foundry/forge-std/src/",
+        ":forge-std/=foundry/lib/forge-std/src/",
         ":hardhat-deploy/=node_modules/hardhat-deploy/",
         ":hardhat/=node_modules/hardhat/",
         ":truffle/=node_modules/truffle/"
@@ -304,17 +304,17 @@
   },
   "ast": {
     "absolutePath": "contracts/mockup/PriceFeedsMoCMockup.sol",
-    "id": 39077,
+    "id": 39176,
     "exportedSymbols": {
       "PriceFeedsMoCMockup": [
-        39076
+        39175
       ]
     },
     "nodeType": "SourceUnit",
     "src": "0:560:144",
     "nodes": [
       {
-        "id": 39034,
+        "id": 39133,
         "nodeType": "PragmaDirective",
         "src": "0:23:144",
         "nodes": [],
@@ -325,30 +325,30 @@
         ]
       },
       {
-        "id": 39035,
+        "id": 39134,
         "nodeType": "ImportDirective",
         "src": "25:44:144",
         "nodes": [],
         "absolutePath": "contracts/feeds/testnet/PriceFeedsMoC.sol",
         "file": "../feeds/testnet/PriceFeedsMoC.sol",
-        "scope": 39077,
+        "scope": 39176,
         "sourceUnit": 12183,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 39076,
+        "id": 39175,
         "nodeType": "ContractDefinition",
         "src": "216:343:144",
         "nodes": [
           {
-            "id": 39039,
+            "id": 39138,
             "nodeType": "VariableDeclaration",
             "src": "265:20:144",
             "nodes": [],
             "constant": false,
             "name": "value",
-            "scope": 39076,
+            "scope": 39175,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -356,7 +356,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 39038,
+              "id": 39137,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "265:7:144",
@@ -369,13 +369,13 @@
             "visibility": "public"
           },
           {
-            "id": 39041,
+            "id": 39140,
             "nodeType": "VariableDeclaration",
             "src": "291:15:144",
             "nodes": [],
             "constant": false,
             "name": "has",
-            "scope": 39076,
+            "scope": 39175,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -383,7 +383,7 @@
               "typeString": "bool"
             },
             "typeName": {
-              "id": 39040,
+              "id": 39139,
               "name": "bool",
               "nodeType": "ElementaryTypeName",
               "src": "291:4:144",
@@ -396,12 +396,12 @@
             "visibility": "public"
           },
           {
-            "id": 39055,
+            "id": 39154,
             "nodeType": "FunctionDefinition",
             "src": "313:99:144",
             "nodes": [],
             "body": {
-              "id": 39054,
+              "id": 39153,
               "nodeType": "Block",
               "src": "367:45:144",
               "nodes": [],
@@ -415,11 +415,11 @@
                         "arguments": [
                           {
                             "argumentTypes": null,
-                            "id": 39049,
+                            "id": 39148,
                             "name": "value",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 39039,
+                            "referencedDeclaration": 39138,
                             "src": "393:5:144",
                             "typeDescriptions": {
                               "typeIdentifier": "t_uint256",
@@ -434,7 +434,7 @@
                               "typeString": "uint256"
                             }
                           ],
-                          "id": 39048,
+                          "id": 39147,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -447,7 +447,7 @@
                           },
                           "typeName": "bytes32"
                         },
-                        "id": 39050,
+                        "id": 39149,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -463,11 +463,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 39051,
+                        "id": 39150,
                         "name": "has",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 39041,
+                        "referencedDeclaration": 39140,
                         "src": "401:3:144",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bool",
@@ -475,7 +475,7 @@
                         }
                       }
                     ],
-                    "id": 39052,
+                    "id": 39151,
                     "isConstant": false,
                     "isInlineArray": false,
                     "isLValue": false,
@@ -488,8 +488,8 @@
                       "typeString": "tuple(bytes32,bool)"
                     }
                   },
-                  "functionReturnParameters": 39047,
-                  "id": 39053,
+                  "functionReturnParameters": 39146,
+                  "id": 39152,
                   "nodeType": "Return",
                   "src": "377:28:144"
                 }
@@ -501,21 +501,21 @@
             "modifiers": [],
             "name": "peek",
             "parameters": {
-              "id": 39042,
+              "id": 39141,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "326:2:144"
             },
             "returnParameters": {
-              "id": 39047,
+              "id": 39146,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 39044,
+                  "id": 39143,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 39055,
+                  "scope": 39154,
                   "src": "352:7:144",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -524,7 +524,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 39043,
+                    "id": 39142,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "352:7:144",
@@ -538,10 +538,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 39046,
+                  "id": 39145,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 39055,
+                  "scope": 39154,
                   "src": "361:4:144",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -550,7 +550,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 39045,
+                    "id": 39144,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "361:4:144",
@@ -565,18 +565,18 @@
               ],
               "src": "351:15:144"
             },
-            "scope": 39076,
+            "scope": 39175,
             "stateMutability": "view",
             "superFunction": 12058,
             "visibility": "external"
           },
           {
-            "id": 39065,
+            "id": 39164,
             "nodeType": "FunctionDefinition",
             "src": "418:72:144",
             "nodes": [],
             "body": {
-              "id": 39064,
+              "id": 39163,
               "nodeType": "Block",
               "src": "459:31:144",
               "nodes": [],
@@ -584,18 +584,18 @@
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 39062,
+                    "id": 39161,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 39060,
+                      "id": 39159,
                       "name": "value",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 39039,
+                      "referencedDeclaration": 39138,
                       "src": "469:5:144",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -606,11 +606,11 @@
                     "operator": "=",
                     "rightHandSide": {
                       "argumentTypes": null,
-                      "id": 39061,
+                      "id": 39160,
                       "name": "_value",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 39057,
+                      "referencedDeclaration": 39156,
                       "src": "477:6:144",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -623,7 +623,7 @@
                       "typeString": "uint256"
                     }
                   },
-                  "id": 39063,
+                  "id": 39162,
                   "nodeType": "ExpressionStatement",
                   "src": "469:14:144"
                 }
@@ -635,15 +635,15 @@
             "modifiers": [],
             "name": "setValue",
             "parameters": {
-              "id": 39058,
+              "id": 39157,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 39057,
+                  "id": 39156,
                   "name": "_value",
                   "nodeType": "VariableDeclaration",
-                  "scope": 39065,
+                  "scope": 39164,
                   "src": "436:14:144",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -652,7 +652,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 39056,
+                    "id": 39155,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "436:7:144",
@@ -668,23 +668,23 @@
               "src": "435:16:144"
             },
             "returnParameters": {
-              "id": 39059,
+              "id": 39158,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "459:0:144"
             },
-            "scope": 39076,
+            "scope": 39175,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
           },
           {
-            "id": 39075,
+            "id": 39174,
             "nodeType": "FunctionDefinition",
             "src": "496:61:144",
             "nodes": [],
             "body": {
-              "id": 39074,
+              "id": 39173,
               "nodeType": "Block",
               "src": "530:27:144",
               "nodes": [],
@@ -692,18 +692,18 @@
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 39072,
+                    "id": 39171,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 39070,
+                      "id": 39169,
                       "name": "has",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 39041,
+                      "referencedDeclaration": 39140,
                       "src": "540:3:144",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
@@ -714,11 +714,11 @@
                     "operator": "=",
                     "rightHandSide": {
                       "argumentTypes": null,
-                      "id": 39071,
+                      "id": 39170,
                       "name": "_has",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 39067,
+                      "referencedDeclaration": 39166,
                       "src": "546:4:144",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
@@ -731,7 +731,7 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 39073,
+                  "id": 39172,
                   "nodeType": "ExpressionStatement",
                   "src": "540:10:144"
                 }
@@ -743,15 +743,15 @@
             "modifiers": [],
             "name": "setHas",
             "parameters": {
-              "id": 39068,
+              "id": 39167,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 39067,
+                  "id": 39166,
                   "name": "_has",
                   "nodeType": "VariableDeclaration",
-                  "scope": 39075,
+                  "scope": 39174,
                   "src": "512:9:144",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -760,7 +760,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 39066,
+                    "id": 39165,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "512:4:144",
@@ -776,12 +776,12 @@
               "src": "511:11:144"
             },
             "returnParameters": {
-              "id": 39069,
+              "id": 39168,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "530:0:144"
             },
-            "scope": 39076,
+            "scope": 39175,
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
@@ -792,7 +792,7 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 39036,
+              "id": 39135,
               "name": "Medianizer",
               "nodeType": "UserDefinedTypeName",
               "referencedDeclaration": 12059,
@@ -802,7 +802,7 @@
                 "typeString": "contract Medianizer"
               }
             },
-            "id": 39037,
+            "id": 39136,
             "nodeType": "InheritanceSpecifier",
             "src": "248:10:144"
           }
@@ -814,11 +814,11 @@
         "documentation": null,
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          39076,
+          39175,
           12059
         ],
         "name": "PriceFeedsMoCMockup",
-        "scope": 39077
+        "scope": 39176
       }
     ]
   },
