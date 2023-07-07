@@ -2,8 +2,7 @@
   "_format": "hh-sol-artifact-1",
   "contractName": "LoanTokenLogicBeacon",
   "sourceName": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol",
-  "address":"0xE13B1eEf35296d3b9e7bfd0Ac06756a752dA3c90",
-  "implementation":"0xd7FB11F4b71C6bFE9Db50f3C02c821Af8F616501",
+  "address":"0xd7FB11F4b71C6bFE9Db50f3C02c821Af8F616501",
   "abi": [
     {
       "anonymous": false,
