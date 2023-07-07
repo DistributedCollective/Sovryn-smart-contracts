@@ -197,6 +197,13 @@ interface IStaking {
 
     /*************************** StakingStakeModule ***************************/
 
+    event TokensStaked(
+        address indexed staker,
+        uint256 amount,
+        uint256 lockedUntil,
+        uint256 totalStaked
+    );
+
     /**
      * @notice Stake the given amount for the given duration of time.
      * @param amount The number of tokens to stake.
