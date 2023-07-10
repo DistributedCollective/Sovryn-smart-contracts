@@ -41,6 +41,7 @@ tmp/
 tmp
 /temp/
 /out/
+foundry/out/
 abi
 types/
 typechain/
