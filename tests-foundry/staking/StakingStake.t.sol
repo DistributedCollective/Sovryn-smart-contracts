@@ -247,7 +247,7 @@ contract StakingFuzzTest is Test {
         }
     */
 
-    function testFuzz_AdjustLockDateAndStake(uint256 _randomLockTimestamp) external {
+    function testFuzz_AdjustLockDate(uint256 _randomLockTimestamp) external {
         vm.startPrank(user);
         sov.approve(address(staking), amount);
         mineBlocks(1);
@@ -259,8 +259,8 @@ contract StakingFuzzTest is Test {
             uint256 calculatedExpectedTimestamp =
                 kickoffTS +
                     ((
-                        _randomLockTimestamp > kickoffTS + maxDuration
-                            ? kickoffTS + maxDuration
+                        _randomLockTimestamp > block.timestamp + maxDuration
+                            ? block.timestamp - kickoffTS + maxDuration
                             : _randomLockTimestamp - kickoffTS
                     ) / TWO_WEEKS) *
                     TWO_WEEKS;
@@ -313,6 +313,65 @@ contract StakingFuzzTest is Test {
                 assertEq(priorUserStakeAfter - priorUserStakeBefore, amount);
             }
         }
+        vm.stopPrank();
+    }
+
+    function testFuzz_Stake(uint256 _randomLockTimestamp, uint256 _amount) external {
+        _randomLockTimestamp = bound(
+            _randomLockTimestamp,
+            kickoffTS + TWO_WEEKS,
+            block.timestamp + staking.MAX_DURATION()
+        );
+        _amount = bound(_amount, 0, sov.totalSupply());
+        amount = _amount;
+        deal(address(sov), user, amount);
+        mineBlocks(1);
+        vm.startPrank(user);
+        sov.approve(address(staking), amount);
+        mineBlocks(1);
+        uint256 timestampToLockDate = staking.timestampToLockDate(_randomLockTimestamp);
+
+        uint256 userBalanceBefore = sov.balanceOf(user);
+        uint256 stakingBalanceBefore = sov.balanceOf(address(staking));
+
+        uint256 blockBefore = block.number;
+        mineBlocks(1);
+
+        if (amount == 0) {
+            vm.expectRevert("amount needs to be bigger than 0");
+            staking.stake(uint96(amount), _randomLockTimestamp, address(0), address(0));
+            return;
+        }
+
+        vm.expectEmit(true, true, true, true);
+        emit TokensStaked(user, amount, timestampToLockDate, amount);
+        staking.stake(uint96(amount), _randomLockTimestamp, address(0), address(0));
+        mineBlocks(1);
+        uint256 blockAfter = block.number;
+
+        // Get final balances
+        uint256 userBalanceAfter = sov.balanceOf(user);
+        uint256 stakingBalanceAfter = sov.balanceOf(address(staking));
+
+        // Check balances
+        assertEq(userBalanceBefore - userBalanceAfter, amount);
+        assertEq(stakingBalanceAfter - stakingBalanceBefore, amount);
+
+        mineBlocks((timestampToLockDate - block.timestamp) / 30 + 10);
+        // Check getPriorUserStakeByDate
+
+        uint256 priorUserStakeBefore =
+            staking.getPriorUserStakeByDate(user, timestampToLockDate, blockBefore);
+        uint256 priorUserStakeAfter =
+            staking.getPriorUserStakeByDate(user, timestampToLockDate, blockAfter);
+
+        (uint256[] memory dates, uint96[] memory stakes) = staking.getStakes(user);
+        for (uint256 i = 0; i < stakes.length; i++) {
+            console.log("stake %s @ date %s", uint256(stakes[i]), dates[i]);
+        }
+
+        assertEq(priorUserStakeAfter - priorUserStakeBefore, amount);
+
         vm.stopPrank();
     }
 }
