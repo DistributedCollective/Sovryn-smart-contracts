@@ -735,3 +735,11 @@ interface IStaking {
      */
     function setMaxVestingWithdrawIterations(uint256 maxIterations) external;
 }
+
+interface IStakingProxy {
+    function setImplementation(address _implementation) external;
+}
+
+interface IStakingModulesProxy {
+    function addModule(address _implementation) external;
+}
