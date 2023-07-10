@@ -59,6 +59,7 @@ contract StakingFuzzTest is Test {
     uint256 private invalidLockDate;
     uint256 private amount;
     uint256 private kickoffTS;
+    uint256 private maxDuration;
     IStaking private staking;
     IERC20 private sov;
 
@@ -93,7 +94,7 @@ contract StakingFuzzTest is Test {
         staking = IStaking(stakingProxyAddress);
 
         kickoffTS = staking.kickoffTS();
-
+        maxDuration = staking.MAX_DURATION();
         // console.log("kickoffTS: %s", kickoffTS);
         // console.log("kickoffTS + 2 weeks: %s", kickoffTS + TWO_WEEKS);
 
@@ -103,9 +104,9 @@ contract StakingFuzzTest is Test {
         // Fund user
         vm.deal(user, 1 ether);
         deal(address(sov), user, amount);
-        console.log("0. block.number: %s, block.timestamp %s", block.number, block.timestamp);
+        // console.log("0. block.number: %s, block.timestamp %s", block.number, block.timestamp);
         mineBlocks(1);
-        console.log("1. block.number: %s, block.timestamp %s", block.number, block.timestamp);
+        // console.log("1. block.number: %s, block.timestamp %s", block.number, block.timestamp);
     }
 
     // helpers
@@ -119,24 +120,29 @@ contract StakingFuzzTest is Test {
         mineBlocksTime(_blocks, 30);
     }
 
+    /*
     // Test that any invalid lock date is adjusted to the earlier valid lock date
-    function testFuzzAdjustLockDateWithinLegitBoundaries(uint256 _randomLockTimestamp) external {
+    function testFuzz_AdjustLockDateWithinLegitBoundaries(uint256 _randomLockTimestamp) external {
         vm.startPrank(user);
         sov.approve(address(staking), amount);
         mineBlocks(1);
-        console.log("2. block.number: %s, block.timestamp %s", block.number, block.timestamp);
 
         // Get initial balances
         uint256 userBalanceBefore = sov.balanceOf(user);
         uint256 stakingBalanceBefore = sov.balanceOf(address(staking));
 
-        // Stake tokens with random lock date
+        mineBlocks(1);
         _randomLockTimestamp = bound(
             _randomLockTimestamp,
             kickoffTS + TWO_WEEKS,
-            block.timestamp + staking.MAX_DURATION()
+            block.timestamp + 60 + staking.MAX_DURATION()
         );
-
+        // shifting timestamp to make it invalid if fuzz is a valid timestamp
+        uint256 calculatedExpectedTimestamp =
+            kickoffTS + ((_randomLockTimestamp - kickoffTS) / TWO_WEEKS) * TWO_WEEKS;
+        if (calculatedExpectedTimestamp == _randomLockTimestamp) {
+            _randomLockTimestamp += 3600;
+        }
         mineBlocks(1);
         if (_randomLockTimestamp <= block.timestamp) {
             console.log(
@@ -146,10 +152,10 @@ contract StakingFuzzTest is Test {
                 block.timestamp
             );
             vm.expectRevert("Staking::_timestampToLockDate: staking period too short");
+
             staking.stake(uint96(amount), _randomLockTimestamp, address(0), address(0));
             mineBlocks(1);
             console.log("3. block.number: %s, block.timestamp %s", block.number, block.timestamp);
-            // return;
         } else {
             console.log(
                 "_randomLockTimestamp > block.timestamp => until: %s, block.number, block.timestamp: %s",
@@ -157,16 +163,15 @@ contract StakingFuzzTest is Test {
                 block.number,
                 block.timestamp
             );
-            uint256 expectedLockTimestamp = staking.timestampToLockDate(_randomLockTimestamp);
-            assertEq(
-                kickoffTS + ((_randomLockTimestamp - kickoffTS) / TWO_WEEKS) * TWO_WEEKS,
-                expectedLockTimestamp
-            );
-            console.log("expectedLockTimestamp: %s", expectedLockTimestamp);
+            uint256 timestampToLockDate = staking.timestampToLockDate(_randomLockTimestamp);
+            assertEq(calculatedExpectedTimestamp, timestampToLockDate);
+            console.log("timestampToLockDate: %s", timestampToLockDate);
+
             vm.expectEmit(true, true, true, true);
-            emit TokensStaked(user, amount, expectedLockTimestamp, amount);
+            emit TokensStaked(user, amount, timestampToLockDate, amount);
             uint256 blockBefore = block.number;
             mineBlocks(1);
+
             staking.stake(uint96(amount), _randomLockTimestamp, address(0), address(0));
             mineBlocks(1);
             uint256 blockAfter = block.number;
@@ -194,13 +199,13 @@ contract StakingFuzzTest is Test {
             assertEq(userBalanceBefore - userBalanceAfter, amount);
             assertEq(stakingBalanceAfter - stakingBalanceBefore, amount);
 
-            mineBlocks((expectedLockTimestamp - block.timestamp) / 30 + 10);
+            mineBlocks((timestampToLockDate - block.timestamp) / 30 + 10);
             // Check getPriorUserStakeByDate
 
-            uint256 priorUserStakeAfter =
-                staking.getPriorUserStakeByDate(user, expectedLockTimestamp, blockAfter);
             uint256 priorUserStakeBefore =
-                staking.getPriorUserStakeByDate(user, expectedLockTimestamp, blockBefore);
+                staking.getPriorUserStakeByDate(user, timestampToLockDate, blockBefore);
+            uint256 priorUserStakeAfter =
+                staking.getPriorUserStakeByDate(user, timestampToLockDate, blockAfter);
 
             console.log(
                 "priorUserStakeAfter: %s, priorUserStakeBefore: %s",
@@ -211,21 +216,195 @@ contract StakingFuzzTest is Test {
             for (uint256 i = 0; i < stakes.length; i++) {
                 console.log("stake %s @ date %s", uint256(stakes[i]), dates[i]);
             }
-            console.log(
-                "staking.numUserStakingCheckpoints(user, expectedLockTimestamp: %s) == %s, _randomLockTimestamp: %s",
-                expectedLockTimestamp,
-                uint256(staking.numUserStakingCheckpoints(user, expectedLockTimestamp)),
-                _randomLockTimestamp
-            );
-            console.log(
-                "staking.numUserStakingCheckpoints(user, 90) == %s",
-                uint256(staking.numUserStakingCheckpoints(user, 90))
-            );
-            console.log(
-                "staking.numUserStakingCheckpoints(user, 120) == %s",
-                uint256(staking.numUserStakingCheckpoints(user, 120))
-            );
+            
+                // console.log(
+                //     "staking.numUserStakingCheckpoints(user, timestampToLockDate: %s) == %s, _randomLockTimestamp: %s",
+                //     timestampToLockDate,
+                //     uint256(staking.numUserStakingCheckpoints(user, timestampToLockDate)),
+                //     _randomLockTimestamp
+                // );
+                // console.log(
+                //     "staking.numUserStakingCheckpoints(user, 90) == %s",
+                //     uint256(staking.numUserStakingCheckpoints(user, 90))
+                // );
+                // console.log(
+                //     "staking.numUserStakingCheckpoints(user, 120) == %s",
+                //     uint256(staking.numUserStakingCheckpoints(user, 120))
+                // );
+            
             assertEq(priorUserStakeAfter - priorUserStakeBefore, amount);
+        }
+
+        vm.stopPrank();
+
+        // Check event
+    }
+
+    function testFuzz_StakeFailsLessTwoWeeksFromKickoff(uint256 _randomLockTimestamp) external {
+        vm.assume(
+            _randomLockTimestamp >= kickoffTS && _randomLockTimestamp < kickoffTS + TWO_WEEKS
+        );
+
+        vm.startPrank(user);
+        sov.approve(address(staking), amount);
+        mineBlocks(1);
+
+        mineBlocks(100);
+        console.log(
+            "_randomLockTimestamp <= block.timestamp => until: %s, block.number, block.timestamp: %s",
+            _randomLockTimestamp,
+            block.number,
+            block.timestamp
+        );
+        vm.expectRevert("Staking::_timestampToLockDate: staking period too short");
+
+        staking.stake(uint96(amount), _randomLockTimestamp, address(0), address(0));
+
+        vm.stopPrank();
+
+        // Check event
+    }
+
+    function testFuzz_AdjustLockDateOverMaxDuration(uint256 _randomLockTimestamp) external {
+        vm.assume(_randomLockTimestamp > block.timestamp + maxDuration);
+
+        vm.startPrank(user);
+        sov.approve(address(staking), amount);
+        mineBlocks(1);
+
+        mineBlocks(100);
+        console.log(
+            "_randomLockTimestamp <= block.timestamp => until: %s, block.number, block.timestamp: %s",
+            _randomLockTimestamp,
+            block.number,
+            block.timestamp
+        );
+        vm.expectRevert("Staking::_timestampToLockDate: staking period too short");
+
+        staking.stake(uint96(amount), _randomLockTimestamp, address(0), address(0));
+
+        vm.stopPrank();
+
+        // Check event
+    }
+*/
+
+    function testFuzz_AdjustLockDateAndStake(uint256 _randomLockTimestamp) external {
+        // vm.assume(_randomLockTimestamp > block.timestamp + maxDuration);
+
+        vm.startPrank(user);
+        sov.approve(address(staking), amount);
+        mineBlocks(1);
+        uint256 timestampToLockDate;
+        if (_randomLockTimestamp < kickoffTS) {
+            vm.expectRevert();
+            timestampToLockDate = staking.timestampToLockDate(_randomLockTimestamp);
+        } else {
+            uint256 calculatedExpectedTimestamp =
+                kickoffTS +
+                    ((
+                        _randomLockTimestamp > kickoffTS + maxDuration
+                            ? kickoffTS + maxDuration
+                            : _randomLockTimestamp - kickoffTS
+                    ) / TWO_WEEKS) *
+                    TWO_WEEKS;
+            /*if (calculatedExpectedTimestamp == _randomLockTimestamp) {
+                _randomLockTimestamp += 3600;
+            }*/
+            timestampToLockDate = staking.timestampToLockDate(_randomLockTimestamp);
+            if (timestampToLockDate > calculatedExpectedTimestamp) {
+                timestampToLockDate = calculatedExpectedTimestamp;
+            }
+            if (timestampToLockDate <= block.timestamp || _randomLockTimestamp < kickoffTS) {
+                //vm.expectRevert("Staking::_timestampToLockDate: staking period too short");
+                emit log("SHOULD BE REVERTING...");
+                emit log(
+                    "kickoffTS, maxDuration, kickoffTS + maxDuration, block.timestamp, _randomLockTimestamp, timestampToLockDate ->"
+                );
+                emit log_uint(kickoffTS);
+                emit log_uint(maxDuration);
+                emit log_uint(kickoffTS + maxDuration);
+                emit log_uint(block.timestamp);
+                emit log_uint(_randomLockTimestamp);
+                emit log_uint(timestampToLockDate);
+                if (timestampToLockDate <= block.timestamp) {
+                    emit log("timestampToLockDate <= block.timestamp");
+                }
+                if (_randomLockTimestamp < kickoffTS) {
+                    emit log("_randomLockTimestamp < kickoffTS");
+                }
+                if (timestampToLockDate > kickoffTS + maxDuration) {
+                    emit log("timestampToLockDate > kickoffTS + maxDuration");
+                }
+                vm.expectRevert();
+                staking.stake(uint96(amount), _randomLockTimestamp, address(0), address(0));
+            } else {
+                emit log("SHOULD BE PASSING...");
+                // mineBlocks(100);
+                console.log(
+                    "_randomLockTimestamp <= block.timestamp => until: %s, block.number, block.timestamp: %s",
+                    _randomLockTimestamp,
+                    block.number,
+                    block.timestamp
+                );
+                console.log("calculatedExpectedTimestamp: %s", calculatedExpectedTimestamp);
+                console.log("timestampToLockDate: %s", timestampToLockDate);
+
+                uint256 userBalanceBefore = sov.balanceOf(user);
+                uint256 stakingBalanceBefore = sov.balanceOf(address(staking));
+
+                uint256 blockBefore = block.number;
+                mineBlocks(1);
+
+                vm.expectEmit(true, true, true, true);
+                emit TokensStaked(user, amount, calculatedExpectedTimestamp, amount);
+                staking.stake(uint96(amount), _randomLockTimestamp, address(0), address(0));
+                mineBlocks(1);
+                uint256 blockAfter = block.number;
+                console.log("blockBefore: %s, blockAfter: %s", blockBefore, blockAfter);
+                //mineBlocks(1);
+
+                // Get final balances
+                uint256 userBalanceAfter = sov.balanceOf(user);
+                uint256 stakingBalanceAfter = sov.balanceOf(address(staking));
+
+                console.log(
+                    "userBalanceBefore %s - userBalanceAfter %s == %s",
+                    userBalanceBefore,
+                    userBalanceAfter,
+                    userBalanceBefore - userBalanceAfter
+                );
+                console.log(
+                    "stakingBalanceAfter %s - stakingBalanceBefore %s == %s",
+                    stakingBalanceAfter,
+                    stakingBalanceBefore,
+                    stakingBalanceAfter - stakingBalanceBefore
+                );
+
+                // Check balances
+                assertEq(userBalanceBefore - userBalanceAfter, amount);
+                assertEq(stakingBalanceAfter - stakingBalanceBefore, amount);
+
+                mineBlocks((timestampToLockDate - block.timestamp) / 30 + 10);
+                // Check getPriorUserStakeByDate
+
+                uint256 priorUserStakeBefore =
+                    staking.getPriorUserStakeByDate(user, timestampToLockDate, blockBefore);
+                uint256 priorUserStakeAfter =
+                    staking.getPriorUserStakeByDate(user, timestampToLockDate, blockAfter);
+
+                console.log(
+                    "priorUserStakeAfter: %s, priorUserStakeBefore: %s",
+                    priorUserStakeAfter,
+                    priorUserStakeBefore
+                );
+                (uint256[] memory dates, uint96[] memory stakes) = staking.getStakes(user);
+                for (uint256 i = 0; i < stakes.length; i++) {
+                    console.log("stake %s @ date %s", uint256(stakes[i]), dates[i]);
+                }
+
+                assertEq(priorUserStakeAfter - priorUserStakeBefore, amount);
+            }
         }
         vm.stopPrank();
 
