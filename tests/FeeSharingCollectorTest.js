@@ -300,7 +300,7 @@ contract("FeeSharingCollector:", (accounts) => {
         await loadFixture(protocolDeploymentFixture);
     });
 
-    describe("withdrawStartingFromCheckpoint, withdrawRBTCStartingFromCheckpoint and getNextPositiveUserCheckpoint", () => {
+    describe("withdrawStartingFromCheckpoint, withdrawRBTCStartingFromCheckpoint, withdrawSpecificRBTCStartingFromCheckpoint and getNextPositiveUserCheckpoint", () => {
         let snapshot;
         before(async () => {
             await loadFixture(protocolDeploymentFixture);
@@ -431,6 +431,46 @@ contract("FeeSharingCollector:", (accounts) => {
             );
 
             let tx = await feeSharingCollector.withdrawRBTCStartingFromCheckpoint(
+                nextPositive.checkpointNum.toNumber(),
+                3,
+                ZERO_ADDRESS,
+                { from: account1 }
+            );
+
+            expectEvent(tx, "RBTCWithdrawn", {
+                sender: account1,
+                amount: new BN(60),
+            });
+
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            expect(processedCheckpoints.toNumber()).to.equal(10);
+        });
+
+        it("withdrawSpecificRBTCStartingFromCheckpoint calculates fees correctly", async () => {
+            // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawSpecificRBTCStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
+
+            /// RBTC
+            await stake(900, root);
+            const userStake = 100;
+
+            await SOVToken.transfer(account1, userStake);
+            await createCheckpoints(9);
+
+            await stake(userStake, account1);
+            await createCheckpoints(1);
+
+            let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+
+            let tx = await feeSharingCollector.withdrawSpecificRBTCStartingFromCheckpoint(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 nextPositive.checkpointNum.toNumber(),
                 3,
                 ZERO_ADDRESS,
@@ -2040,6 +2080,223 @@ contract("FeeSharingCollector:", (accounts) => {
                 receiver: account1,
                 token: loanToken.address,
                 amount: amountLend.mul(new BN(3)).div(new BN(10)),
+            });
+        });
+
+        it("Should be able to withdraw to another account using withdrawSpecificRBTC()", async () => {
+            await protocolDeploymentFixture();
+            // stake - getPriorTotalVotingPower
+            let rootStake = 700;
+            await stake(rootStake, root);
+
+            let userStake = 300;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            // mock data
+            let lendingFeeTokensHeld = new BN(wei("1", "ether"));
+            let tradingFeeTokensHeld = new BN(wei("2", "ether"));
+            let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
+            let totalFeeTokensHeld = lendingFeeTokensHeld
+                .add(tradingFeeTokensHeld)
+                .add(borrowingFeeTokensHeld);
+            let feeAmount = await setFeeTokensHeld(
+                lendingFeeTokensHeld,
+                tradingFeeTokensHeld,
+                borrowingFeeTokensHeld
+            );
+
+            await feeSharingCollector.withdrawFees([SUSD.address]);
+
+            let fees = await feeSharingCollector.getAccumulatedFees(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
+
+            let tx = await feeSharingCollector.withdrawSpecificRBTC(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                1000,
+                account2,
+                {
+                    from: account1,
+                }
+            );
+
+            // processedCheckpoints
+            let [processedCheckpointsRBTC, processedCheckpointsWRBTC, processedCheckpointsIWRBTC] =
+                await Promise.all([
+                    feeSharingCollector.processedCheckpoints.call(
+                        account1,
+                        RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+                    ),
+                    feeSharingCollector.processedCheckpoints.call(account1, WRBTC.address),
+                    feeSharingCollector.processedCheckpoints.call(
+                        account1,
+                        loanTokenWrbtc.address
+                    ),
+                ]);
+
+            expect(processedCheckpointsRBTC.toNumber()).to.be.equal(1);
+            expect(processedCheckpointsWRBTC.toNumber()).to.be.equal(0);
+            expect(processedCheckpointsIWRBTC.toNumber()).to.be.equal(0);
+
+            expectEvent(tx, "RBTCWithdrawn", {
+                sender: account1,
+                receiver: account2,
+                amount: new BN(feeAmount).mul(new BN(3)).div(new BN(10)),
+            });
+        });
+
+        it("Should be able to withdraw to another account (WRBTC) - using withdrawSpecificRBTC()", async () => {
+            await protocolDeploymentFixture();
+
+            // FeeSharingCollectorProxy
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            await sovryn.setFeesController(feeSharingCollector.address);
+
+            await WRBTC.mint(feeSharingCollector.address, wei("2", "ether"));
+
+            // stake - getPriorTotalVotingPower
+            let rootStake = 700;
+            await stake(rootStake, root);
+
+            let userStake = 300;
+            let userStakePercentage = (userStake / (userStake + rootStake)) * 10;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            // mock data
+            let lendingFeeTokensHeld = new BN(wei("1", "ether"));
+            let tradingFeeTokensHeld = new BN(wei("2", "ether"));
+            let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
+            let totalFeeTokensHeld = lendingFeeTokensHeld
+                .add(tradingFeeTokensHeld)
+                .add(borrowingFeeTokensHeld);
+            let feeAmount = await setFeeTokensHeld(
+                lendingFeeTokensHeld,
+                tradingFeeTokensHeld,
+                borrowingFeeTokensHeld
+            );
+
+            /** Add checkpoint for WRBTC */
+            await feeSharingCollector.addCheckPoint(WRBTC.address, totalFeeTokensHeld.toString());
+
+            /** Add checkpoint for iWRBTC */
+            await feeSharingCollector.addCheckPoint(
+                loanTokenWrbtc.address,
+                totalFeeTokensHeld.toString()
+            );
+
+            await loanTokenWrbtc.mintWithBTC(feeSharingCollector.address, false, {
+                value: totalFeeTokensHeld,
+            });
+
+            await feeSharingCollector.withdrawFees([SUSD.address]);
+
+            const accumulatedFeesRBTC = await feeSharingCollector.getAccumulatedFees.call(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            const accumulatedFeesWRBTC = await feeSharingCollector.getAccumulatedFees.call(
+                account1,
+                WRBTC.address
+            );
+            const accumulatedFeesIRBTC = await feeSharingCollector.getAccumulatedFees.call(
+                account1,
+                loanTokenWrbtc.address
+            );
+
+            expect(accumulatedFeesRBTC.toString()).to.equal(accumulatedFeesWRBTC.toString());
+            expect(accumulatedFeesRBTC.toString()).to.equal(accumulatedFeesIRBTC.toString());
+
+            let fees = await feeSharingCollector.getAccumulatedFees(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            expect(fees).to.be.bignumber.equal(
+                new BN(feeAmount).mul(new BN(userStakePercentage)).div(new BN(10))
+            );
+
+            /** Withdraw RBTC */
+            let tx1 = await feeSharingCollector.withdrawSpecificRBTC(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                1000,
+                account2,
+                {
+                    from: account1,
+                }
+            );
+            /** Withdraw WRBTC */
+            let tx2 = await feeSharingCollector.withdrawSpecificRBTC(
+                WRBTC.address,
+                1000,
+                account2,
+                {
+                    from: account1,
+                }
+            );
+
+            /** Withdraw IWRBTC */
+            let tx3 = await feeSharingCollector.withdrawSpecificRBTC(
+                loanTokenWrbtc.address,
+                1000,
+                account2,
+                {
+                    from: account1,
+                }
+            );
+
+            // processedCheckpoints
+            let [processedCheckpointsRBTC, processedCheckpointsWRBTC, processedCheckpointsIWRBTC] =
+                await Promise.all([
+                    feeSharingCollector.processedCheckpoints.call(
+                        account1,
+                        RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+                    ),
+                    feeSharingCollector.processedCheckpoints.call(account1, WRBTC.address),
+                    feeSharingCollector.processedCheckpoints.call(
+                        account1,
+                        loanTokenWrbtc.address
+                    ),
+                ]);
+
+            expect(processedCheckpointsRBTC.toNumber()).to.be.equal(1);
+            expect(processedCheckpointsWRBTC.toNumber()).to.be.equal(1);
+            expect(processedCheckpointsIWRBTC.toNumber()).to.be.equal(1);
+
+            expectEvent(tx1, "RBTCWithdrawn", {
+                sender: account1,
+                receiver: account2,
+                amount: new BN(feeAmount)
+                    .mul(new BN(userStakePercentage).mul(new BN(1)))
+                    .div(new BN(10)), // need multiple by 1 only since we only withdraw RBTC in tx1
+            });
+
+            expectEvent(tx2, "RBTCWithdrawn", {
+                sender: account1,
+                receiver: account2,
+                amount: new BN(feeAmount)
+                    .mul(new BN(userStakePercentage).mul(new BN(1)))
+                    .div(new BN(10)), // need multiple by 1 only since we only withdraw WRBTC in tx2
+            });
+
+            expectEvent(tx3, "RBTCWithdrawn", {
+                sender: account1,
+                receiver: account2,
+                amount: new BN(feeAmount)
+                    .mul(new BN(userStakePercentage).mul(new BN(1)))
+                    .div(new BN(10)), // need multiple by 1 only since we only withdraw IWRBTC in tx3
             });
         });
 

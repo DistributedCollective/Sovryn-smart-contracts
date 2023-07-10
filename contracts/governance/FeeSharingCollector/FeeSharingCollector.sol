@@ -414,7 +414,11 @@ contract FeeSharingCollector is
         _withdraw(_token, _maxCheckpoints, _receiver);
     }
 
-    function _withdrawRBTC(uint32 _maxCheckpoints, address _receiver) internal {
+    function _withdrawRBTC(
+        address _token,
+        uint32 _maxCheckpoints,
+        address _receiver
+    ) internal {
         uint256 wrbtcAmount;
         uint256 rbtcAmount;
         uint256 iWrbtcAmount;
@@ -433,6 +437,7 @@ contract FeeSharingCollector is
         }
 
         (rbtcAmount, wrbtcAmount, iWrbtcAmount, endRBTC, endWRBTC, endIWRBTC) = _getRBTCBalances(
+            _token,
             user,
             _maxCheckpoints
         );
@@ -479,14 +484,22 @@ contract FeeSharingCollector is
      * @param _receiver An optional tokens receiver (msg.sender used if 0)
      */
     function withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonReentrant {
-        _withdrawRBTC(_maxCheckpoints, _receiver);
+        _withdrawRBTC(address(0), _maxCheckpoints, _receiver);
+    }
+
+    function withdrawSpecificRBTC(
+        address _token,
+        uint32 _maxCheckpoints,
+        address _receiver
+    ) external nonReentrant {
+        _withdrawRBTC(_token, _maxCheckpoints, _receiver);
     }
 
     /**
      * @dev Withdraw all of the RBTC balance based starting from a specific checkpoint
      * The function was designed to skip checkpoints with no fees for users
      *
-     * RBTC balance consists of:
+     * This function will withdraw RBTC balance consists of:
      * - rbtc balance
      * - wrbtc balance which will be unwrapped to rbtc
      * - iwrbtc balance which will be unwrapped to rbtc
@@ -507,6 +520,55 @@ contract FeeSharingCollector is
         validFromCheckpointParam(_fromCheckpoint, msg.sender, RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
         nonReentrant
     {
+        _withdrawRBTCStartingFromCheckpoint(
+            address(0),
+            _fromCheckpoint,
+            _maxCheckpoints,
+            _receiver
+        );
+    }
+
+    /**
+     * @dev Withdraw all of the RBTC balance based starting from a specific checkpoint
+     * The function was designed to skip checkpoints with no fees for users
+     *
+     * This function will withdraw RBTC balance which is passed as _token param, so it could be either of these:
+     * - rbtc balance or
+     * - wrbtc balance which will be unwrapped to rbtc or
+     * - iwrbtc balance which will be unwrapped to rbtc or
+     *
+     * @dev WARNING! This function skips all the checkpoints before '_fromCheckpoint' irreversibly, use with care
+     *
+     * @param _token either RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT or wrbtc address or iwrbtc address
+     * @param _fromCheckpoint Skips all the checkpoints before '_fromCheckpoint'
+     *        should be calculated offchain with getNextPositiveUserCheckpoint function
+     * @param _maxCheckpoints  Maximum number of checkpoints to be processed to workaround block gas limit
+     * @param _receiver An optional tokens receiver (msg.sender used if 0)
+     */
+    function withdrawSpecificRBTCStartingFromCheckpoint(
+        address _token,
+        uint256 _fromCheckpoint,
+        uint32 _maxCheckpoints,
+        address _receiver
+    )
+        external
+        validFromCheckpointParam(_fromCheckpoint, msg.sender, RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
+        nonReentrant
+    {
+        _withdrawRBTCStartingFromCheckpoint(_token, _fromCheckpoint, _maxCheckpoints, _receiver);
+    }
+
+    /**
+     * @dev Withdraw all of the RBTC related balance.
+     * RBTC related here means, it could be either rbtc, wrbtc, or iwrbtc, depends on the _token param.
+     * If 0 address is passed, it will withdraw all of them.
+     */
+    function _withdrawRBTCStartingFromCheckpoint(
+        address _token,
+        uint256 _fromCheckpoint,
+        uint32 _maxCheckpoints,
+        address _receiver
+    ) private {
         // @dev e.g. _fromCheckpoint == 10
         // after _withdraw() user's processedCheckpoints should be 10 =>
         // set processed checkpoints = 9, next maping index = 9 (10th checkpoint)
@@ -519,7 +581,7 @@ contract FeeSharingCollector is
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             ] = prevFromCheckpoint;
         }
-        _withdrawRBTC(_maxCheckpoints, _receiver);
+        _withdrawRBTC(_token, _maxCheckpoints, _receiver);
     }
 
     /**
@@ -879,7 +941,7 @@ contract FeeSharingCollector is
      */
     function getAccumulatedRBTCFeeBalances(address _user) external view returns (uint256) {
         (uint256 _rbtcAmount, uint256 _wrbtcAmount, uint256 _iWrbtcAmount, , , ) =
-            _getRBTCBalances(_user, 0);
+            _getRBTCBalances(address(0), _user, 0);
         IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
         address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
         uint256 iWRBTCAmountInRBTC =
@@ -900,7 +962,11 @@ contract FeeSharingCollector is
      * @return _endWRBTC end time of accumulated fee calculation for wrbtc
      * @return _endIWRBTC end time of accumulated fee calculation for iwrbtc
      */
-    function _getRBTCBalances(address _user, uint32 _maxCheckpoints)
+    function _getRBTCBalances(
+        address _token,
+        address _user,
+        uint32 _maxCheckpoints
+    )
         private
         view
         returns (
@@ -916,25 +982,32 @@ contract FeeSharingCollector is
 
         address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
 
-        (_rbtcAmount, _endRBTC) = _getAccumulatedFees({
-            _user: _user,
-            _token: RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-            _startFrom: 0,
-            _maxCheckpoints: _maxCheckpoints
-        });
+        if (_token == address(0) || _token == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT) {
+            (_rbtcAmount, _endRBTC) = _getAccumulatedFees({
+                _user: _user,
+                _token: RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                _startFrom: 0,
+                _maxCheckpoints: _maxCheckpoints
+            });
+        }
 
-        (_wrbtcAmount, _endWRBTC) = _getAccumulatedFees({
-            _user: _user,
-            _token: address(wrbtcToken),
-            _startFrom: 0,
-            _maxCheckpoints: _maxCheckpoints
-        });
-        (_iWrbtcAmount, _endIWRBTC) = _getAccumulatedFees({
-            _user: _user,
-            _token: loanPoolTokenWRBTC,
-            _startFrom: 0,
-            _maxCheckpoints: _maxCheckpoints
-        });
+        if (_token == address(0) || _token == address(wrbtcToken)) {
+            (_wrbtcAmount, _endWRBTC) = _getAccumulatedFees({
+                _user: _user,
+                _token: address(wrbtcToken),
+                _startFrom: 0,
+                _maxCheckpoints: _maxCheckpoints
+            });
+        }
+
+        if (_token == address(0) || _token == loanPoolTokenWRBTC) {
+            (_iWrbtcAmount, _endIWRBTC) = _getAccumulatedFees({
+                _user: _user,
+                _token: loanPoolTokenWRBTC,
+                _startFrom: 0,
+                _maxCheckpoints: _maxCheckpoints
+            });
+        }
     }
 
     /**
