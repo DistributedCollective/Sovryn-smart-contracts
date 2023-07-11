@@ -11,6 +11,12 @@ fs_permissions = [{ access = "read-write", path = "./"}, { access = "read-write"
 # block_base_fee_per_gas = 0
 # block_gas_limit = 30000000
 
+[fuzz]
+runs = 1000
+
+[invariant]
+fail_on_revert = true
+
 [rpc_endpoints]
 localhost = "http://127.0.0.1:8545/"
 rskSovrynMainnet = "https://mainnet4.sovryn.app/rpc"
