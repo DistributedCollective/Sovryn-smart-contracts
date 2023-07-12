@@ -84,9 +84,9 @@ async function createVestings(hre, path, dryRun, multiplier) {
             vestingCreationType = 3;
         } else if (teamVesting[3] === 26) {
             vestingCreationType = 1;
-        } else if (teamVesting[3] === 39) {
-            vestingCreationType = 0;
-            console.log("Make sure 4 year vesting is really expected!");
+        } else if (teamVesting[3] === 39 || teamVesting[3] === 22) {
+            vestingCreationType = 5;
+            console.log("Make sure 3 year team 2 vesting split is really expected!");
         } else {
             console.log("ALERT!!!! ZERO VESTING CREATION TYPE FALLBACK!!!");
         }
@@ -261,7 +261,7 @@ task("governance:createVestings", "Create vestings")
     });
 
 const VestingType = {
-    TeamVesting: 0,
+    TeamVesting: 5,
     Vesting: 1,
 };
 
