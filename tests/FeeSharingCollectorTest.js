@@ -469,7 +469,7 @@ contract("FeeSharingCollector:", (accounts) => {
                 MAX_NEXT_POSITIVE_CHECKPOINT
             );
 
-            let tx = await feeSharingCollector.withdrawSpecificRBTCStartingFromCheckpoint(
+            let tx = await feeSharingCollector.withdrawRbtcTokenStartingFromCheckpoint(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 nextPositive.checkpointNum.toNumber(),
                 3,
@@ -2117,7 +2117,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
             expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
 
-            let tx = await feeSharingCollector.withdrawSpecificRBTC(
+            let tx = await feeSharingCollector.withdrawRbtcToken(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 1000,
                 account2,
@@ -2229,7 +2229,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
 
             /** Withdraw RBTC */
-            let tx1 = await feeSharingCollector.withdrawSpecificRBTC(
+            let tx1 = await feeSharingCollector.withdrawRbtcToken(
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
                 1000,
                 account2,
@@ -2238,17 +2238,12 @@ contract("FeeSharingCollector:", (accounts) => {
                 }
             );
             /** Withdraw WRBTC */
-            let tx2 = await feeSharingCollector.withdrawSpecificRBTC(
-                WRBTC.address,
-                1000,
-                account2,
-                {
-                    from: account1,
-                }
-            );
+            let tx2 = await feeSharingCollector.withdrawRbtcToken(WRBTC.address, 1000, account2, {
+                from: account1,
+            });
 
             /** Withdraw IWRBTC */
-            let tx3 = await feeSharingCollector.withdrawSpecificRBTC(
+            let tx3 = await feeSharingCollector.withdrawRbtcToken(
                 loanTokenWrbtc.address,
                 1000,
                 account2,
