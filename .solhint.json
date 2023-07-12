@@ -5,6 +5,7 @@
         "prettier/prettier": "error",
         "max-line-length": ["warn", 140],
         "compiler-version": ["warn"],
-        "no-global-import": "warn"
+        "no-global-import": "off",
+        "no-console": "warn"
     }
 }
