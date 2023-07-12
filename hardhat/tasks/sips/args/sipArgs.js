@@ -170,7 +170,77 @@ const getArgsSip0058 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0063 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+
+    const modulesFrom = [
+        "0xdf41bD1F610d0DBe9D990e3eb04fd983777f1966", // StakingStakeModule
+    ];
+    const modulesTo = [(await get("StakingStakeModule")).address];
+
+    console.log([modulesFrom], "->", [modulesTo]);
+
+    const args = {
+        targets: [(await get("StakingProxy")).address],
+        values: [0],
+        signatures: ["replaceModules(address[],address[])"],
+        data: [
+            ethers.utils.defaultAbiCoder.encode(
+                ["address[]", "address[]"],
+                [modulesFrom, modulesTo]
+            ),
+        ],
+        description:
+            "SIP-0063: Fix Staking Bug to Prevent Reverting Delegated Voting Power, Details: https://github.com/DistributedCollective/SIPS/blob/12f2600/SIP-0063.md, sha256: c56786f8bd6907c844720a127136b6ee0189360790f3e87f1490b23e2ddd614a",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSip0065 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+
+    const contracts = require("../../../../scripts/contractInteraction/mainnet_contracts.json");
+    const AdoptionFundAddress = contracts["AdoptionFund"];
+    const DevelopmentFundAddress = contracts["DevelopmentFund"];
+    const SovAddress = contracts["SOV"];
+    const multiSigAddress = contracts["multisig"];
+    const amountFromAdoption = ethers.utils.parseEther("1000000");
+    const amountFromDevelopment = ethers.utils.parseEther("2000000");
+    const amountToTransfer = ethers.utils.parseEther("3000000");
+
+    const args = {
+        targets: [AdoptionFundAddress, DevelopmentFundAddress, SovAddress],
+        values: [0, 0, 0],
+        signatures: [
+            "withdrawTokensByUnlockedTokenOwner(uint256)",
+            "withdrawTokensByUnlockedTokenOwner(uint256)",
+            "transfer(address,uint256)",
+        ],
+        data: [
+            ethers.utils.defaultAbiCoder.encode(["uint256"], [amountFromAdoption]),
+            ethers.utils.defaultAbiCoder.encode(["uint256"], [amountFromDevelopment]),
+            ethers.utils.defaultAbiCoder.encode(
+                ["address", "uint256"],
+                [multiSigAddress, amountToTransfer]
+            ),
+        ],
+        description:
+            "SIP-0065: Transfer of SOV from Adoption and Development Funds to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/cd3d249cddb6a5d0af59209c337c6864ad922007/SIP-0065.md, sha256: d6a703af4d3866ff6a7f927b680da23f450338d5346dca5d3d1e6b5751c45550",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     getArgsSip0058,
     getArgsSip0049,
+    getArgsSip0063,
+    getArgsSip0065,
 };

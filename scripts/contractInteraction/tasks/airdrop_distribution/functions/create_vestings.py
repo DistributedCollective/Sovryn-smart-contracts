@@ -41,12 +41,12 @@ def createVestings(path, dryRun, multiplier):
         print('duration', duration)
         print('(duration - cliff) / FOUR_WEEKS + 1', (duration - cliff) / FOUR_WEEKS + 1)
 
-        if teamVesting[3] == 10:
+        if teamVesting[3] == 10: 
             vestingCreationType = 3
-        elif teamVesting[3] == 26:
+        elif teamVesting[3] == 26: # 2 year vestings
             vestingCreationType = 1
-        elif teamVesting[3] == 39:
-            vestingCreationType = 4
+        elif teamVesting[3] == 39: # 3 year vestings. if cliff < 6 use FourYearVesting
+            vestingCreationType = 0
             print("Make sure 4 year vesting is really expected!")
         else:
             vestingCreationType = 0

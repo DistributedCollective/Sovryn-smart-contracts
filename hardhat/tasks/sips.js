@@ -69,6 +69,46 @@ task("sips:create", "Create SIP to Sovryn Governance")
         logger.success(`============================================================='`);
     });
 
+task("sips:populate", "Create SIP tx object to Propose to Sovryn Governance")
+    .addParam(
+        "argsFunc",
+        "Function name from tasks/sips/args/sipArgs.ts which returns the sip arguments"
+    )
+    .setAction(async ({ argsFunc }, hre) => {
+        const { governor: governorName, args: sipArgs } = await sipArgsList[argsFunc](hre);
+        const {
+            ethers,
+            deployments: { get },
+        } = hre;
+
+        const governorDeployment = await get(governorName);
+        const governor = await ethers.getContract(governorName);
+
+        logger.info("=== Creating SIP ===");
+        logger.info(`Governor Address:    ${governorDeployment.address}`);
+        logger.info(`Targets:             ${sipArgs.targets}`);
+        logger.info(`Values:              ${sipArgs.values}`);
+        logger.info(`Signatures:          ${sipArgs.signatures}`);
+        logger.info(`Data:                ${sipArgs.data}`);
+        logger.info(`Description:         ${sipArgs.description}`);
+        logger.info(`=============================================================`);
+
+        let tx = await governor.populateTransaction.propose(
+            sipArgs.targets,
+            sipArgs.values,
+            sipArgs.signatures,
+            sipArgs.data,
+            sipArgs.description,
+            { gasLimit: 6500000, gasPrice: 66e6 }
+        );
+
+        delete tx.from;
+        logger.warning("==================== populated tx start ====================");
+        logger.info(tx);
+        logger.warning("==================== populated tx end   =================");
+        return tx;
+    });
+
 task("sips:queue", "Queue proposal in the Governor Owner contract")
     .addParam("proposal", "Proposal Id", undefined, types.string)
     .addParam(

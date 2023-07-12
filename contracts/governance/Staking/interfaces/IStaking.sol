@@ -469,6 +469,8 @@ interface IStaking {
 
     /*************************** StakingVestingModule ***************************/
 
+    event VestingStakeSet(uint256 lockedTS, uint96 value);
+
     /**
      * @notice Return flag whether the given address is a registered vesting contract.
      * @param stakerAddress the address to check
