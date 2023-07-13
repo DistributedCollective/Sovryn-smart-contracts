@@ -35,6 +35,10 @@ const getEthersLog = async (contract, filter) => {
     return parsedEvents;
 };
 
+async function getVestingsOf(hre, address) {
+    return await (await ethers.getContract("VestingRegistry")).getVestingsOf(address);
+}
+
 async function createVestings(hre, path, dryRun, multiplier) {
     /*
      * vested token sender script - takes addresses from the file by path
@@ -450,6 +454,12 @@ task("governance:createFourYearVestings", "Create vestings")
     .addOptionalParam("dryRun", "Dry run flag (default: true)", true, types.boolean)
     .setAction(async ({ path, dryRun }, hre) => {
         await createFourYearVestings(hre, path, dryRun);
+    });
+
+task("governance:getVestingsOf", "Get vesting contracts of an address")
+    .addParam("address", "The address to get vestings of")
+    .setAction(async ({ address }, hre) => {
+        logger.warn(await getVestingsOf(hre, address));
     });
 
 /*// Usage
