@@ -602,13 +602,12 @@ contract FeeSharingCollector is
         // after _withdraw() user's processedCheckpoints should be 10 =>
         // set processed checkpoints = 9, next maping index = 9 (10th checkpoint)
         uint256 prevFromCheckpoint = _fromCheckpoint.sub(1);
-        if (
-            prevFromCheckpoint >
-            processedCheckpoints[msg.sender][RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT]
-        ) {
-            processedCheckpoints[msg.sender][
-                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
-            ] = prevFromCheckpoint;
+        address processedToken = _token;
+        if (_token == address(0)) {
+            processedToken = RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT;
+        }
+        if (prevFromCheckpoint > processedCheckpoints[msg.sender][processedToken]) {
+            processedCheckpoints[msg.sender][processedToken] = prevFromCheckpoint;
         }
         _withdrawRBTC(_token, _maxCheckpoints, _receiver);
     }
