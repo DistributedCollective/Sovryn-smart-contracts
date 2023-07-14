@@ -27,6 +27,13 @@ contract StakingFuzzTest is Test {
         uint256 totalStaked
     );
 
+    event ExtendedStakingDuration(
+        address indexed staker,
+        uint256 previousDate,
+        uint256 newDate,
+        uint256 amountStaked
+    );
+
     // Test Setup
     function setUp() public virtual {
         // Initialize test variables
@@ -35,8 +42,16 @@ contract StakingFuzzTest is Test {
         );
         // console.log("SOV total supply:", sov.totalSupply());
 
-        address[2] memory stakingModules =
-            [deployCode("StakingStakeModule.sol"), deployCode("StakingVestingModule.sol")];
+        address[7] memory stakingModules =
+            [
+                deployCode("StakingAdminModule.sol"),
+                deployCode("StakingGovernanceModule.sol"),
+                deployCode("StakingStakeModule.sol"),
+                deployCode("StakingStorageModule.sol"),
+                deployCode("StakingVestingModule.sol"),
+                deployCode("StakingWithdrawModule.sol"),
+                deployCode("WeightedStakingModule.sol")
+            ];
 
         IStakingProxy stakingProxy =
             IStakingProxy(deployCode("StakingProxy.sol", abi.encode(address(sov))));
@@ -248,6 +263,7 @@ contract StakingFuzzTest is Test {
     */
 
     function testFuzz_AdjustLockDate(uint256 _randomLockTimestamp) external {
+        // vm.skip(true); not working here
         vm.startPrank(user);
         sov.approve(address(staking), amount);
         mineBlocks(1);
@@ -317,6 +333,7 @@ contract StakingFuzzTest is Test {
     }
 
     function testFuzz_Stake(uint256 _randomLockTimestamp, uint256 _amount) external {
+        // vm.skip(true); not working here
         _randomLockTimestamp = bound(
             _randomLockTimestamp,
             kickoffTS + TWO_WEEKS,
@@ -371,6 +388,112 @@ contract StakingFuzzTest is Test {
         }
 
         assertEq(priorUserStakeAfter - priorUserStakeBefore, amount);
+
+        vm.stopPrank();
+    }
+
+    function testFuzz_ExtendStakingDuration(uint256 _extendUntil) external {
+        /*@todo remove
+        _randomLockTimestamp = bound(
+            _randomLockTimestamp,
+            kickoffTS + TWO_WEEKS,
+            block.timestamp + staking.MAX_DURATION()
+        );*/
+        // _amount = bound(_amount, 0, sov.totalSupply());
+        deal(address(sov), user, amount);
+        mineBlocks(1);
+        vm.startPrank(user);
+        sov.approve(address(staking), amount);
+        mineBlocks(1);
+        uint256 lockedDate = kickoffTS + TWO_WEEKS * 2;
+
+        uint256 latest = staking.timestampToLockDate(block.timestamp + maxDuration);
+        // @todo check that if (until > latest) -> until = latest;
+        // @todo check require(previousLock < until, "must increase staking duration");
+        // @todo check emit ExtendedStakingDuration(msg.sender, previousLock, until, amount);
+
+        uint256 userBalanceBefore = sov.balanceOf(user);
+        uint256 stakingBalanceBefore = sov.balanceOf(address(staking));
+
+        // uint256 blockBefore = block.number;
+        mineBlocks(1);
+
+        staking.stake(uint96(amount), lockedDate, address(0), address(0));
+
+        console.log("timestamp %s < contract creation %s?", lockedDate, _extendUntil);
+        if (_extendUntil == 0 || _extendUntil < kickoffTS) {
+            vm.expectRevert("timestamp < contract creation");
+            staking.extendStakingDuration(lockedDate, _extendUntil);
+            return;
+        }
+
+        // extending in the same block as staking is not allowed
+        vm.expectRevert("cannot be mined in the same block as last stake");
+        staking.extendStakingDuration(lockedDate, _extendUntil);
+
+        mineBlocks(1);
+
+        //require(previousLock < until, "must increase staking duration");
+        if (staking.timestampToLockDate(_extendUntil) <= lockedDate) {
+            vm.expectRevert("must increase staking duration");
+            staking.extendStakingDuration(lockedDate, _extendUntil);
+            return;
+        }
+
+        /* console.log(
+            "staking.timestampToLockDate(_extendUntil) %s > lockedDate %s ?",
+            staking.timestampToLockDate(_extendUntil),
+            lockedDate
+        );*/
+
+        // should fail if previous lock date has no stake
+        if (staking.timestampToLockDate(_extendUntil) > lockedDate + 2 * 1 weeks) {
+            vm.expectRevert("no stakes till the prev lock date");
+            staking.extendStakingDuration(lockedDate + 2 * 1 weeks, _extendUntil);
+            return;
+        }
+
+        // should revert on incorrect until timestamp
+        if (_extendUntil == 0) {
+            vm.expectRevert();
+            staking.extendStakingDuration(lockedDate, _extendUntil);
+        }
+
+        uint96 amount2 = uint96(2000);
+        uint256 lockedDate2 = lockedDate + 2 * 1 weeks;
+        staking.stake(amount2, lockedDate2, address(0), address(0));
+
+        uint256 blockBefore = block.number;
+        mineBlocks(1);
+
+        //vm.expectEmit(true, true, true, true);
+        vm.expectEmit();
+        emit ExtendedStakingDuration(user, lockedDate, lockedDate2, amount);
+        staking.extendStakingDuration(lockedDate, lockedDate2);
+        uint256 blockAfter = block.number;
+        mineBlocks(1);
+
+        // getPriorTotalStakesByDate
+        assertEq(staking.getPriorUserStakeByDate(user, lockedDate, blockAfter), 0);
+
+        assertEq(staking.getPriorUserStakeByDate(user, lockedDate2, blockAfter), amount2 + amount);
+
+        //check delegatee
+        assertEq(staking.delegates(user, lockedDate), address(0));
+
+        assertEq(staking.delegates(user, lockedDate2), user);
+
+        //check getPriorTotalStakesForDate
+        uint256 priorTotalStakeBefore =
+            staking.getPriorTotalStakesForDate(lockedDate, blockBefore);
+        uint256 priorTotalStakeAfter = staking.getPriorTotalStakesForDate(lockedDate, blockAfter);
+        assertEq(priorTotalStakeBefore - priorTotalStakeAfter, amount);
+
+        uint256 priorTotalStakeBefore2 =
+            staking.getPriorTotalStakesForDate(lockedDate2, blockBefore);
+        uint256 priorTotalStakeAfter2 =
+            staking.getPriorTotalStakesForDate(lockedDate2, blockAfter);
+        assertEq(priorTotalStakeBefore2 - priorTotalStakeAfter2, amount);
 
         vm.stopPrank();
     }
