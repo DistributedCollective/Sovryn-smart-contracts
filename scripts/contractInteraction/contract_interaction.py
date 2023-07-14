@@ -84,8 +84,8 @@ def main():
     #checkTxOnAny(17, conf.contracts["NewMultisigBF"])
     #queueProposal(30)
 
-    confirmWithBFMS(36) # "BFmultisig"
-    checkTxOnBF(36)   # "BFmultisig"
+    #confirmWithBFMS(36) # "BFmultisig"
+    #checkTxOnBF(36)   # "BFmultisig"
 
     #confirmWithBFMS(32)
 

@@ -45,9 +45,9 @@ def createVestings(path, dryRun, multiplier):
             vestingCreationType = 3
         elif teamVesting[3] == 26: # 2 year vestings
             vestingCreationType = 1
-        elif teamVesting[3] == 39: # 3 year vestings. if cliff < 6 use FourYearVesting
-            vestingCreationType = 0
-            print("Make sure 4 year vesting is really expected!")
+        elif teamVesting[3] == 39 or teamVesting[3] == 22: # 3 year vestings. if cliff < 6 use FourYearVesting
+            vestingCreationType = 5 #type 4 is reserved for 4 year vestings - a separate contract
+            print("Make sure 3 year vesting 2 contracts split is really expected!")
         else:
             vestingCreationType = 0
             print("ALERT!!!! ZERO VESTING CREATION TYPE FALLBACK!!!")

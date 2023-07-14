@@ -35,6 +35,10 @@ const getEthersLog = async (contract, filter) => {
     return parsedEvents;
 };
 
+async function getVestingsOf(hre, address) {
+    return await (await ethers.getContract("VestingRegistry")).getVestingsOf(address);
+}
+
 async function createVestings(hre, path, dryRun, multiplier) {
     /*
      * vested token sender script - takes addresses from the file by path
@@ -84,9 +88,9 @@ async function createVestings(hre, path, dryRun, multiplier) {
             vestingCreationType = 3;
         } else if (teamVesting[3] === 26) {
             vestingCreationType = 1;
-        } else if (teamVesting[3] === 39) {
-            vestingCreationType = 0;
-            console.log("Make sure 4 year vesting is really expected!");
+        } else if (teamVesting[3] === 39 || teamVesting[3] === 22) {
+            vestingCreationType = 5;
+            console.log("Make sure 3 year team 2 vesting split is really expected!");
         } else {
             console.log("ALERT!!!! ZERO VESTING CREATION TYPE FALLBACK!!!");
         }
@@ -180,19 +184,19 @@ async function createVestings(hre, path, dryRun, multiplier) {
             console.log("Staking ...");
             const vesting = await ethers.getContractAt("VestingLogic", vestingAddress, signer);
             await (
-                await vesting.stakeTokens(
-                    amount
-                    // {
-                    //     gasLimit: 6800000,
-                    //     gasPrice: 65e6,
-                    // }
-                )
+                await vesting.stakeTokens(amount, {
+                    gasLimit: 6800000,
+                    gasPrice: 65e6,
+                })
             ).wait();
         }
 
         const stakes = await staking.getStakes(vestingAddress);
         console.log("Stakes:");
-        console.log(stakes);
+        logger.warn(
+            stakes.stakes.map((stake) => stake.div(ethers.constants.WeiPerEther).toString())
+        );
+        logger.warn(stakes.dates.map((date) => new Date(date.toNumber() * 1000)));
     }
 
     console.log("=======================================");
@@ -261,7 +265,7 @@ task("governance:createVestings", "Create vestings")
     });
 
 const VestingType = {
-    TeamVesting: 0,
+    TeamVesting: 5,
     Vesting: 1,
 };
 
@@ -450,6 +454,12 @@ task("governance:createFourYearVestings", "Create vestings")
     .addOptionalParam("dryRun", "Dry run flag (default: true)", true, types.boolean)
     .setAction(async ({ path, dryRun }, hre) => {
         await createFourYearVestings(hre, path, dryRun);
+    });
+
+task("governance:getVestingsOf", "Get vesting contracts of an address")
+    .addParam("address", "The address to get vestings of")
+    .setAction(async ({ address }, hre) => {
+        logger.warn(await getVestingsOf(hre, address));
     });
 
 /*// Usage
