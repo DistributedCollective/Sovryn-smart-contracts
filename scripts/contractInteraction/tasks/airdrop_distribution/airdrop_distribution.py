@@ -101,11 +101,11 @@ def main():
     #
     # - VESTED DISTRIBUTION -
     # -----------------------
-    # print("SOV balance of exchequer multisig: \n", getBalance(conf.contracts['SOV'], conf.contracts['multisig'])/10**18) # check multisig is funded with SOV
-    # print("SOV balance of executing account: \n", getBalance(conf.contracts['SOV'], conf.acct)/10**18) # check that the script running address is funded
+    #print("SOV balance of exchequer multisig: \n", getBalance(conf.contracts['SOV'], conf.contracts['multisig'])/10**18) # check multisig is funded with SOV
+    #print("SOV balance of executing account: \n", getBalance(conf.contracts['SOV'], conf.acct)/10**18) # check that the script running address is funded
     
     '''
-    vestedSOVAmount = 4823202 * 10**16 #48,232.02
+    vestedSOVAmount = 58000000 * 10**16 #580,000.00
     transferSOVtoAccount(conf.acct, vestedSOVAmount) # vesting SOV distribution
     '''
     
@@ -130,12 +130,12 @@ def main():
     brownie run scripts/contractInteraction/tasks/airdrop_distribution/airdrop_distribution.py --network rsk-mainnet
     '''
 
-     #'''
+    '''
     vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-team-3y-23-06-split.csv'
     dryRun = False # False to execute, True to verify the file structure
     multiplier = 10**16 # multiplier == 10**16 <- amounts must with 2 decimals
     createVestings(vestingDistributionPath, dryRun, multiplier)
-    #'''
+    '''
    
     #
     # vestingRegistryProxyRemoveAdmin(receiver) # remove the script exexution from admins
