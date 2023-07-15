@@ -407,12 +407,6 @@ contract StakingFuzzTest is Test {
         mineBlocks(1);
         uint256 lockedDate = kickoffTS + TWO_WEEKS * 2;
 
-        // @todo check require(previousLock < until, "must increase staking duration");
-        // @todo check emit ExtendedStakingDuration(msg.sender, previousLock, until, amount);
-
-        uint256 userBalanceBefore = sov.balanceOf(user);
-        uint256 stakingBalanceBefore = sov.balanceOf(address(staking));
-
         // uint256 blockBefore = block.number;
         mineBlocks(1);
 
@@ -472,6 +466,7 @@ contract StakingFuzzTest is Test {
         staking.extendStakingDuration(lockedDate, lockedDate2);
         mineBlocks(1);
         uint256 blockAfter = block.number;
+        mineBlocks(1);
 
         // getPriorTotalStakesByDate
         assertEq(staking.getPriorUserStakeByDate(user, lockedDate, blockAfter), 0);
@@ -489,14 +484,15 @@ contract StakingFuzzTest is Test {
 
         uint256 priorTotalStakeBefore2 =
             staking.getPriorTotalStakesForDate(lockedDate2, blockBefore);
+        assertEq(priorTotalStakeBefore2, amount2);
+
         uint256 priorTotalStakeAfter2 =
             staking.getPriorTotalStakesForDate(lockedDate2, blockAfter);
-        assertEq(priorTotalStakeBefore2 - priorTotalStakeAfter2, amount);
+        assertEq(priorTotalStakeAfter2, amount + amount2);
 
         vm.stopPrank();
     }
 
-    /*
     function testFuzz_ExtendStakingDuration(uint256 _extendUntil) external {
         deal(address(sov), user, amount);
         mineBlocks(1);
@@ -559,6 +555,11 @@ contract StakingFuzzTest is Test {
 
         uint256 blockBefore = block.number;
         mineBlocks(1);
+        _extendUntil = bound(
+            _extendUntil,
+            kickoffTS + TWO_WEEKS,
+            block.timestamp + staking.MAX_DURATION()
+        );
         uint256 latest = staking.timestampToLockDate(block.timestamp + maxDuration);
         uint256 expectedExtendUntil = staking.timestampToLockDate(_extendUntil);
         if (_extendUntil > latest) {
@@ -569,6 +570,7 @@ contract StakingFuzzTest is Test {
         staking.extendStakingDuration(lockedDate, _extendUntil);
         mineBlocks(1);
         uint256 blockAfter = block.number;
+        mineBlocks(1);
 
         // getPriorUserStakeByDate
         assertEq(staking.getPriorUserStakeByDate(user, lockedDate, blockAfter), 0);
@@ -580,10 +582,10 @@ contract StakingFuzzTest is Test {
         //check getPriorTotalStakesForDate
         uint256 priorTotalStakeBefore =
             staking.getPriorTotalStakesForDate(lockedDate, blockBefore);
-        uint256 priorTotalStakeAfter = staking.getPriorTotalStakesForDate(lockedDate, blockAfter);
+        uint256 priorTotalStakeAfter =
+            staking.getPriorTotalStakesForDate(expectedExtendUntil, blockAfter);
         assertEq(priorTotalStakeBefore, priorTotalStakeAfter);
 
         vm.stopPrank();
     }
-    */
 }
