@@ -9,10 +9,9 @@ import { IStakingModulesProxy } from "./interfaces/IStaking.sol";
 import { IERC20 } from "./interfaces/ITokens.sol";
 
 contract StakingFuzzTest is Test {
-    uint256 internal constant TWO_WEEKS = 14 days;
-
     // Test Variables
     address private user;
+    address private user2;
     uint256 private invalidLockDate;
     uint256 private amount;
     uint256 private kickoffTS;
@@ -68,10 +67,11 @@ contract StakingFuzzTest is Test {
         kickoffTS = staking.kickoffTS();
         maxDuration = staking.MAX_DURATION();
         // console.log("kickoffTS: %s", kickoffTS);
-        // console.log("kickoffTS + 2 weeks: %s", kickoffTS + TWO_WEEKS);
+        // console.log("kickoffTS + 2 weeks: %s", kickoffTS + 2 weeks);
 
         amount = 1000;
         user = address(1);
+        user2 = address(2);
 
         // Fund user
         vm.deal(user, 1 ether);
@@ -107,12 +107,12 @@ contract StakingFuzzTest is Test {
             mineBlocks(1);
             _randomLockTimestamp = bound(
                 _randomLockTimestamp,
-                kickoffTS + TWO_WEEKS,
+                kickoffTS + 2 weeks,
                 block.timestamp + 60 + staking.MAX_DURATION()
             );
             // shifting timestamp to make it invalid if fuzz is a valid timestamp
             uint256 calculatedExpectedTimestamp =
-                kickoffTS + ((_randomLockTimestamp - kickoffTS) / TWO_WEEKS) * TWO_WEEKS;
+                kickoffTS + ((_randomLockTimestamp - kickoffTS) / 2 weeks) * 2 weeks;
             if (calculatedExpectedTimestamp == _randomLockTimestamp) {
                 _randomLockTimestamp += 3600;
             }
@@ -215,7 +215,7 @@ contract StakingFuzzTest is Test {
 
         function testFuzz_StakeFailsLessTwoWeeksFromKickoff(uint256 _randomLockTimestamp) external {
             vm.assume(
-                _randomLockTimestamp >= kickoffTS && _randomLockTimestamp < kickoffTS + TWO_WEEKS
+                _randomLockTimestamp >= kickoffTS && _randomLockTimestamp < kickoffTS + 2 weeks
             );
 
             vm.startPrank(user);
@@ -278,8 +278,8 @@ contract StakingFuzzTest is Test {
                         _randomLockTimestamp > block.timestamp + maxDuration
                             ? block.timestamp - kickoffTS + maxDuration
                             : _randomLockTimestamp - kickoffTS
-                    ) / TWO_WEEKS) *
-                    TWO_WEEKS;
+                    ) / 2 weeks) *
+                    2 weeks;
 
             timestampToLockDate = staking.timestampToLockDate(_randomLockTimestamp);
             if (timestampToLockDate > calculatedExpectedTimestamp) {
@@ -336,7 +336,7 @@ contract StakingFuzzTest is Test {
         // vm.skip(true); not working here
         _randomLockTimestamp = bound(
             _randomLockTimestamp,
-            kickoffTS + TWO_WEEKS,
+            kickoffTS + 2 weeks,
             block.timestamp + staking.MAX_DURATION()
         );
         _amount = bound(_amount, 0, sov.totalSupply());
@@ -396,7 +396,7 @@ contract StakingFuzzTest is Test {
         /*@todo remove
         _randomLockTimestamp = bound(
             _randomLockTimestamp,
-            kickoffTS + TWO_WEEKS,
+            kickoffTS + 2 weeks,
             block.timestamp + staking.MAX_DURATION()
         );*/
         // _amount = bound(_amount, 0, sov.totalSupply());
@@ -405,7 +405,7 @@ contract StakingFuzzTest is Test {
         vm.startPrank(user);
         sov.approve(address(staking), amount);
         mineBlocks(1);
-        uint256 lockedDate = kickoffTS + TWO_WEEKS * 2;
+        uint256 lockedDate = kickoffTS + 2 weeks * 2;
 
         // uint256 blockBefore = block.number;
         mineBlocks(1);
@@ -499,20 +499,13 @@ contract StakingFuzzTest is Test {
         vm.startPrank(user);
         sov.approve(address(staking), amount);
         mineBlocks(1);
-        uint256 lockedDate = kickoffTS + TWO_WEEKS * 2;
+        uint256 lockedDate = kickoffTS + 2 weeks * 2;
 
-        // @todo check require(previousLock < until, "must increase staking duration");
-        // @todo check emit ExtendedStakingDuration(msg.sender, previousLock, until, amount);
-
-        uint256 userBalanceBefore = sov.balanceOf(user);
-        uint256 stakingBalanceBefore = sov.balanceOf(address(staking));
-
-        // uint256 blockBefore = block.number;
         mineBlocks(1);
 
         _extendUntil = bound(
             _extendUntil,
-            kickoffTS + TWO_WEEKS,
+            kickoffTS + 2 weeks,
             block.timestamp + staking.MAX_DURATION()
         );
 
@@ -557,7 +550,7 @@ contract StakingFuzzTest is Test {
         mineBlocks(1);
         _extendUntil = bound(
             _extendUntil,
-            kickoffTS + TWO_WEEKS,
+            kickoffTS + 2 weeks,
             block.timestamp + staking.MAX_DURATION()
         );
         uint256 latest = staking.timestampToLockDate(block.timestamp + maxDuration);
@@ -587,5 +580,162 @@ contract StakingFuzzTest is Test {
         assertEq(priorTotalStakeBefore, priorTotalStakeAfter);
 
         vm.stopPrank();
+    }
+
+    function testFuzz_IncreaseStaking(uint256 _increaseAmount) external {
+        // prepare
+        mineBlocks(1);
+        vm.startPrank(user);
+        mineBlocks(1);
+        uint256 lockedTS = kickoffTS + 4 weeks;
+        uint96 max96 = 2**96 - 1;
+        uint96 _increaseAmount96 = uint96(_increaseAmount);
+        uint256 firstStakeBlockNumber;
+        uint256 secondStakeBlockNumber;
+
+        sov.approve(address(staking), amount + _increaseAmount96);
+        deal(address(sov), user, amount + _increaseAmount96);
+
+        mineBlocks(1);
+        firstStakeBlockNumber = block.number;
+        staking.stake(uint96(amount), lockedTS, address(0), address(0));
+
+        // test
+        mineBlocks(1);
+        uint256 userBalanceBeforeIncrease = sov.balanceOf(user);
+        assertTrue(sov.balanceOf(address(staking)) == amount);
+
+        console.log("_increaseAmount96: %s", _increaseAmount96);
+        console.log("max96: %s", max96);
+        if (_increaseAmount96 == 0) {
+            vm.expectRevert("amount needs to be bigger than 0");
+            staking.stake(_increaseAmount96, lockedTS, address(0), address(0));
+            return;
+        }
+
+        console.log(
+            "_increaseAmount96 %s + amount %s == %s",
+            _increaseAmount96,
+            amount,
+            _increaseAmount96 + amount
+        );
+        console.log("uint256(max96): %s", uint256(max96));
+        if (_increaseAmount96 + amount > uint256(max96)) {
+            vm.expectRevert("increaseStake: overflow");
+            staking.stake(_increaseAmount96, lockedTS, address(0), address(0));
+            return;
+        }
+
+        uint256 stakingBalance = sov.balanceOf(address(staking));
+        assertTrue(stakingBalance == amount, "Unexpected staking balance");
+
+        address delegatee = staking.delegates(user, lockedTS);
+        assertTrue(delegatee == user, "Unexpected delegatee");
+
+        secondStakeBlockNumber = block.number;
+
+        // increase staking
+        vm.expectEmit();
+        emit TokensStaked({
+            staker: user,
+            amount: _increaseAmount96,
+            lockedUntil: lockedTS,
+            totalStaked: amount + _increaseAmount96
+        });
+
+        staking.stake(_increaseAmount96, lockedTS, address(0), user2);
+
+        mineBlocks(1);
+
+        // check delegatee
+        delegatee = staking.delegates(user, lockedTS);
+        assertTrue(delegatee == user2, "Unexpected delegatee");
+
+        stakingBalance = sov.balanceOf(address(staking));
+        assertTrue(stakingBalance == amount + _increaseAmount96, "Unexpected staking balance");
+        uint256 userBalanceAfterIncrease = sov.balanceOf(user);
+        assertTrue(
+            userBalanceBeforeIncrease - userBalanceAfterIncrease == _increaseAmount96,
+            "Unexpected token balance change"
+        );
+
+        // _increaseDailyStake
+        uint32 numTotalStakingCheckpoints = staking.numTotalStakingCheckpoints(lockedTS);
+        assertTrue(
+            numTotalStakingCheckpoints == 2,
+            "Unexpected number of total staking checkpoints"
+        );
+
+        IStaking.Checkpoint memory checkpoint = staking.totalStakingCheckpoints(lockedTS, 0);
+        assertTrue(
+            checkpoint.fromBlock == firstStakeBlockNumber,
+            "Unexpected total staking checkpoint fromBlock"
+        );
+        assertTrue(checkpoint.stake == amount, "Unexpected total staking checkpoint stake");
+
+        checkpoint = staking.totalStakingCheckpoints(lockedTS, 1);
+        assertTrue(
+            checkpoint.fromBlock == secondStakeBlockNumber,
+            "Unexpected total staking checkpoint fromBlock"
+        );
+        assertTrue(
+            checkpoint.stake == amount + _increaseAmount96,
+            "Unexpected total staking checkpoint stake"
+        );
+
+        // _writeUserCheckpoint
+        uint256 numUserCheckpoints = staking.numUserStakingCheckpoints(user, lockedTS);
+        assertTrue(numUserCheckpoints == 2, "Unexpected number of user staking checkpoints");
+        checkpoint = staking.userStakingCheckpoints(user, lockedTS, 0);
+        assertTrue(
+            checkpoint.fromBlock == firstStakeBlockNumber,
+            "Unexpected user staking checkpoint fromBlock"
+        );
+        assertTrue(checkpoint.stake == amount, "Unexpected user staking checkpoint stake");
+        checkpoint = staking.userStakingCheckpoints(user, lockedTS, 1);
+        assertTrue(
+            checkpoint.fromBlock == secondStakeBlockNumber,
+            "Unexpected user staking checkpoint fromBlock"
+        );
+        assertTrue(
+            checkpoint.stake == amount + _increaseAmount96,
+            "Unexpected user staking checkpoint stake"
+        );
+
+        // delegateStakingCheckpoints - user
+        uint32 numDelegateStakingCheckpoints =
+            staking.numDelegateStakingCheckpoints(user, lockedTS);
+        assertTrue(
+            numDelegateStakingCheckpoints == 2,
+            "Unexpected number of delegate staking checkpoints for user"
+        );
+        checkpoint = staking.delegateStakingCheckpoints(user, lockedTS, 0);
+        assertTrue(
+            checkpoint.fromBlock == firstStakeBlockNumber,
+            "Unexpected delegate staking checkpoint fromBlock"
+        );
+        assertTrue(checkpoint.stake == amount, "Unexpected delegate staking checkpoint stake");
+        checkpoint = staking.delegateStakingCheckpoints(user, lockedTS, 1);
+        assertTrue(
+            checkpoint.fromBlock == secondStakeBlockNumber,
+            "Unexpected delegate staking checkpoint fromBlock"
+        );
+        assertTrue(checkpoint.stake == 0, "Unexpected delegate staking checkpoint stake");
+
+        // delegateStakingCheckpoints - user2
+        numDelegateStakingCheckpoints = staking.numDelegateStakingCheckpoints(user2, lockedTS);
+        assertTrue(
+            numDelegateStakingCheckpoints == 1,
+            "Unexpected number of delegate staking checkpoints for account1"
+        );
+        checkpoint = staking.delegateStakingCheckpoints(user2, lockedTS, 0);
+        assertTrue(
+            checkpoint.fromBlock == secondStakeBlockNumber,
+            "Unexpected delegate staking checkpoint fromBlock"
+        );
+        assertTrue(
+            checkpoint.stake == amount + _increaseAmount96,
+            "Unexpected delegate staking checkpoint stake"
+        );
     }
 }
