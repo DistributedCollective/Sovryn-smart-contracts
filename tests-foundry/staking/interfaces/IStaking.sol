@@ -394,7 +394,7 @@ interface IStaking {
     function numTotalStakingCheckpoints(uint256 date)
         external
         view
-        returns (bytes32 checkpointsQty);
+        returns (uint32 checkpointsQty);
 
     /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address.
     /// For delegatee voting power computation. Voting weights get adjusted bi-weekly.
@@ -410,7 +410,7 @@ interface IStaking {
     function numDelegateStakingCheckpoints(address delegatee, uint256 date)
         external
         view
-        returns (bytes32 checkpointsQty);
+        returns (uint32 checkpointsQty);
 
     /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)
     /// @dev userStakingCheckpoints[user][date][index] is a checkpoint.
