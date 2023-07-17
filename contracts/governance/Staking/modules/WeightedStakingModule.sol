@@ -105,7 +105,7 @@ contract WeightedStakingModule is IFunctionsList, StakingShared, CheckpointsShar
      * @return The weighted stake the account had as of the given block.
      * */
     function computeWeightByDate(uint256 date, uint256 startDate)
-        public
+        external
         pure
         returns (uint96 weight)
     {
