@@ -7,7 +7,6 @@
     "language": "en",
     "ignoreFiles": ["**/*test*.json", "**/*[T|t]est*.json", "**/*[M|m]ock*.json"],
     "contractsListBeginKeyword": "## Contracts",
-    "replaceContractsListBeginKeyword": "### Contracts",
     "freshOutput": true,
     "readMe": "README.md"
 }
