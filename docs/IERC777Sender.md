@@ -2,7 +2,7 @@
 
 View Source: [contracts/interfaces/IERC777Sender.sol](../contracts/interfaces/IERC777Sender.sol)
 
-**IERC777Sender**
+## **IERC777Sender** contract
 
 Interface of the ERC777TokensSender standard as defined in the EIP.
  * {IERC777} Token holders can be notified of operations performed on their
@@ -72,7 +72,6 @@ function tokensToSend(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/modules/StakingStakeModule.sol](../co
 
 **↗ Extends: [IFunctionsList](IFunctionsList.md), [StakingShared](StakingShared.md), [CheckpointsShared](CheckpointsShared.md), [ApprovalReceiver](ApprovalReceiver.md)**
 
-**StakingStakeModule**
+## **StakingStakeModule** contract
 
 Implements staking functionality*
 
@@ -223,15 +223,19 @@ function _stakeOptionalTokenTransfer(
         //		if  first stake was withdrawn completely and stake was delegated to the staker
         //		(no delegation to another address).
         address previousDelegatee = delegates[stakeFor][until];
+
         if (previousDelegatee != delegatee) {
             // @dev only the user that stakes for himself is allowed to delegate VP to another address
             // which works with vesting stakes and prevents vulnerability of delegating VP to an arbitrary address from
             // any address
+
             if (delegatee != stakeFor) {
                 require(
                     stakeFor == sender,
                     "Only stakeFor account is allowed to change delegatee"
                 );
+            } else if (sender != stakeFor && previousDelegatee != address(0)) {
+                require(stakeFor == sender, "Only sender is allowed to change delegatee");
             }
 
             /// @dev Update delegatee.
@@ -793,7 +797,6 @@ function getFunctionsList() external pure returns (bytes4[] memory) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

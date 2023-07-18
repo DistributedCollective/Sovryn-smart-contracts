@@ -5,7 +5,7 @@ View Source: [contracts/feeds/testnet/PriceFeedsLocal.sol](../contracts/feeds/te
 
 **↗ Extends: [PriceFeeds](PriceFeeds.md)**
 
-**PriceFeedsLocal**
+## **PriceFeedsLocal** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -174,7 +174,6 @@ function setRates(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

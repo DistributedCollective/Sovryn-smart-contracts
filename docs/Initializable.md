@@ -4,7 +4,7 @@ View Source: [contracts/openzeppelin/Initializable.sol](../contracts/openzeppeli
 
 **↘ Derived Contracts: [VestingRegistryStorage](VestingRegistryStorage.md)**
 
-**Initializable**
+## **Initializable** contract
 
 This is a base contract to aid in writing upgradeable contracts, or any kind of contract that will be deployed
 behind a proxy. Since a proxied contract can't have a constructor, it's common to move constructor logic to an
@@ -54,7 +54,6 @@ modifier initializer() internal
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

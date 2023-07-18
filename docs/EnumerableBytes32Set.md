@@ -3,7 +3,7 @@
 
 View Source: [contracts/mixins/EnumerableBytes32Set.sol](../contracts/mixins/EnumerableBytes32Set.sol)
 
-**EnumerableBytes32Set**
+## **EnumerableBytes32Set** contract
 
 Sets have the following properties:
  * - Elements are added, removed, and checked for existence in constant time
@@ -403,7 +403,6 @@ function get(Bytes32Set storage set, uint256 index) internal view returns (bytes
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

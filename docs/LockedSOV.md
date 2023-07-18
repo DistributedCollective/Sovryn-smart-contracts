@@ -4,7 +4,7 @@ View Source: [contracts/locked/LockedSOV.sol](../contracts/locked/LockedSOV.sol)
 
 **↗ Extends: [ILockedSOV](ILockedSOV.md)**
 
-**LockedSOV**
+## **LockedSOV** contract
 
 This contract is used to receive reward from other contracts, Create Vesting and Stake Tokens.
 
@@ -825,7 +825,6 @@ function adminStatus(address _addr) external view returns (bool _status) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

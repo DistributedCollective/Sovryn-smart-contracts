@@ -5,7 +5,7 @@ View Source: [contracts/feeds/PriceFeeds.sol](../contracts/feeds/PriceFeeds.sol)
 **↗ Extends: [Constants](Constants.md), [Ownable](Ownable.md)**
 **↘ Derived Contracts: [BProPriceFeed](BProPriceFeed.md), [Medianizer](Medianizer.md), [PriceFeedRSKOracle](PriceFeedRSKOracle.md), [PriceFeedsMoC](PriceFeedsMoC.md), [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md), [USDTPriceFeed](USDTPriceFeed.md)**
 
-**IPriceFeedsExt**
+## **IPriceFeedsExt** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -47,8 +47,6 @@ event GlobalPricingPaused(address indexed sender, bool indexed isPaused);
 ---    
 
 > ### latestAnswer
-
-⤿ Overridden Implementation(s): [BProPriceFeed.latestAnswer](BProPriceFeed.md#latestanswer),[Medianizer.latestAnswer](Medianizer.md#latestanswer),[PriceFeedRSKOracle.latestAnswer](PriceFeedRSKOracle.md#latestanswer),[PriceFeedsMoC.latestAnswer](PriceFeedsMoC.md#latestanswer),[PriceFeedV1PoolOracle.latestAnswer](PriceFeedV1PoolOracle.md#latestanswer),[USDTPriceFeed.latestAnswer](USDTPriceFeed.md#latestanswer)
 
 ```solidity
 function latestAnswer() external view
@@ -797,7 +795,6 @@ function _getDecimalPrecision(address sourceToken, address destToken)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

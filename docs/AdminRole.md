@@ -5,7 +5,7 @@ View Source: [contracts/utils/AdminRole.sol](../contracts/utils/AdminRole.sol)
 **↗ Extends: [Ownable](Ownable.md)**
 **↘ Derived Contracts: [GenericTokenSender](GenericTokenSender.md), [LiquidityMiningStorage](LiquidityMiningStorage.md), [VestingCreator](VestingCreator.md), [VestingRegistryStorage](VestingRegistryStorage.md)**
 
-**AdminRole**
+## **AdminRole** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -110,7 +110,6 @@ function removeAdmin(address _admin) public onlyOwner {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

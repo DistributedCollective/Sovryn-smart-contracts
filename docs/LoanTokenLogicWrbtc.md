@@ -4,7 +4,7 @@ View Source: [contracts/connectors/loantoken/modules/beaconLogicWRBTC/LoanTokenL
 
 **↗ Extends: [LoanTokenLogicStandard](LoanTokenLogicStandard.md)**
 
-**LoanTokenLogicWrbtc**
+## **LoanTokenLogicWrbtc** contract
 
 ## Functions
 
@@ -156,7 +156,7 @@ function burnToBTC(
 
 > ### _verifyTransfers
 
-⤾ overrides [IStaking._verifyTransfers](IStaking.md#_verifytransfers)
+⤾ overrides [LoanTokenLogicStandard._verifyTransfers](LoanTokenLogicStandard.md#_verifytransfers)
 
 Handle transfers prior to adding newPrincipal to loanTokenSent.
      *
@@ -261,7 +261,6 @@ function _verifyTransfers(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

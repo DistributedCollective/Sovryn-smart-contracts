@@ -5,7 +5,7 @@ View Source: [contracts/governance/Vesting/GenericTokenSender.sol](../contracts/
 
 **↗ Extends: [AdminRole](AdminRole.md)**
 
-**GenericTokenSender**
+## **GenericTokenSender** contract
 
 This contract includes functions to transfer tokens
 to a recipient or to several recipients in a list. There is
@@ -142,7 +142,6 @@ function _transferTokens(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

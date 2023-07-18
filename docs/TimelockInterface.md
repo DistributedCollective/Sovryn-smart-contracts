@@ -4,7 +4,7 @@ View Source: [contracts/governance/GovernorAlpha.sol](../contracts/governance/Go
 
 **↗ Extends: [SafeMath96](SafeMath96.md)**
 
-**TimelockInterface**
+## **TimelockInterface** contract
 
 This is an adapted clone of compound’s governance model. In general,
 the process is the same: Token holders can make (executable) proposals if
@@ -1388,7 +1388,6 @@ tion getPriorTotalVotingPower(uint32 blockNumber, uint256 time)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

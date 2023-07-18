@@ -4,7 +4,7 @@ View Source: [contracts/swaps/ISwapsImpl.sol](../contracts/swaps/ISwapsImpl.sol)
 
 **↘ Derived Contracts: [SwapsImplLocal](SwapsImplLocal.md), [SwapsImplSovrynSwap](SwapsImplSovrynSwap.md)**
 
-**ISwapsImpl**
+## **ISwapsImpl** contract
 
 ## Functions
 
@@ -135,7 +135,6 @@ function internalExpectedReturn(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -5,7 +5,7 @@ View Source: [contracts/token/SOV.sol](../contracts/token/SOV.sol)
 
 **↗ Extends: [ERC20](ERC20.md), [ERC20Detailed](ERC20Detailed.md), [Ownable](Ownable.md)**
 
-**SOV**
+## **SOV** contract
 
 This contract accounts for all holders' balances.
  *
@@ -133,7 +133,6 @@ function approveAndCall(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

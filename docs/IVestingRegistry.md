@@ -2,7 +2,7 @@
 
 View Source: [contracts/governance/Vesting/IVestingRegistry.sol](../contracts/governance/Vesting/IVestingRegistry.sol)
 
-**IVestingRegistry**
+## **IVestingRegistry** contract
 
 Interfaces are used to cast a contract address into a callable instance.
 
@@ -11,7 +11,6 @@ Interfaces are used to cast a contract address into a callable instance.
 - [getVesting(address _tokenOwner)](#getvesting)
 - [getTeamVesting(address _tokenOwner)](#getteamvesting)
 - [setVestingRegistry(address _vestingRegistryProxy)](#setvestingregistry)
-- [isVestingAdress(address _vestingAddress)](#isvestingadress)
 - [isVestingAddress(address _vestingAddress)](#isvestingaddress)
 - [isTeamVesting(address _vestingAddress)](#isteamvesting)
 
@@ -85,29 +84,6 @@ function setVestingRegistry(address _vestingRegistryProxy) external;
 
 ---    
 
-> ### isVestingAdress
-
-```solidity
-function isVestingAdress(address _vestingAddress) external view
-returns(bool)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _vestingAddress | address |  | 
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function isVestingAdress(address _vestingAddress) external view returns (bool);
-```
-</details>
-
----    
-
 > ### isVestingAddress
 
 ```solidity
@@ -168,7 +144,6 @@ function isTeamVesting(address _vestingAddress) external view returns (bool);
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
