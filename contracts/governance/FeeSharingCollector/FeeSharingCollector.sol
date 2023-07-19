@@ -350,7 +350,10 @@ contract FeeSharingCollector is
         address[] memory _tokens,
         address _user
     ) private view {
-        require(_tokens.length == _fromCheckpoints.length, "mismatch tokens and checkpoints length");
+        require(
+            _tokens.length == _fromCheckpoints.length,
+            "mismatch tokens and checkpoints length"
+        );
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             /** @note can't assign any other local variables here due to stack too deep issue */
@@ -366,7 +369,8 @@ contract FeeSharingCollector is
                 "_fromCheckpoint should be <= totalTokenCheckpoints"
             );
 
-            Checkpoint memory prevCheckpoint = tokenCheckpoints[_tokens[i]][fromCheckpointIndex - 1];
+            Checkpoint memory prevCheckpoint =
+                tokenCheckpoints[_tokens[i]][fromCheckpointIndex - 1];
 
             uint96 weightedStake =
                 staking.getPriorWeightedStake(
@@ -374,7 +378,10 @@ contract FeeSharingCollector is
                     prevCheckpoint.blockNumber - 1,
                     prevCheckpoint.timestamp
                 );
-            require(weightedStake == 0, "User weighted stake should be zero at previous checkpoint");
+            require(
+                weightedStake == 0,
+                "User weighted stake should be zero at previous checkpoint"
+            );
 
             Checkpoint memory fromCheckpoint = tokenCheckpoints[_tokens[i]][fromCheckpointIndex];
             weightedStake = staking.getPriorWeightedStake(
@@ -462,7 +469,7 @@ contract FeeSharingCollector is
         address _token,
         uint32 _maxCheckpoints,
         address _receiver
-    ) internal returns(uint256 totalAmount, uint256 endToken) {
+    ) internal returns (uint256 totalAmount, uint256 endToken) {
         address user = msg.sender;
 
         IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
@@ -475,14 +482,13 @@ contract FeeSharingCollector is
 
         (totalAmount, endToken) = _getRBTCBalance(_token, user, _maxCheckpoints);
 
-        if(totalAmount > 0) {
+        if (totalAmount > 0) {
             processedCheckpoints[user][_token] = endToken;
             if (_token == address(wrbtcToken)) {
                 // unwrap the wrbtc
                 wrbtcToken.withdraw(totalAmount);
             } else if (_token == loanPoolTokenWRBTC) {
                 // pull out the iWRBTC to rbtc to this feeSharingCollector contract
-                processedCheckpoints[user][loanPoolTokenWRBTC] = endToken;
                 totalAmount = ILoanTokenWRBTC(loanPoolTokenWRBTC).burnToBTC(
                     address(this),
                     totalAmount,
@@ -544,20 +550,18 @@ contract FeeSharingCollector is
         uint256[] calldata _fromCheckpoints,
         uint32 _maxCheckpoints,
         address _receiver
-    )
-        external
-        nonReentrant
-    {
+    ) external nonReentrant {
         validFromCheckpointParams(_fromCheckpoints, _tokens, msg.sender);
         for (uint256 i = 0; i < _tokens.length; i++) {
             uint256 _fromCheckpoint = _fromCheckpoints[i];
             address _token = _tokens[i];
-            (, uint256 endToken) = _withdrawRbtcTokenStartingFromCheckpoint(
-                _token,
-                _fromCheckpoint,
-                _maxCheckpoints,
-                _receiver
-            );
+            (, uint256 endToken) =
+                _withdrawRbtcTokenStartingFromCheckpoint(
+                    _token,
+                    _fromCheckpoint,
+                    _maxCheckpoints,
+                    _receiver
+                );
 
             uint256 _previousUsedCheckpoint = endToken.sub(_fromCheckpoint).add(1);
             _maxCheckpoints = uint32(_maxCheckpoints.sub(_previousUsedCheckpoint).add(1));
@@ -574,7 +578,7 @@ contract FeeSharingCollector is
         uint256 _fromCheckpoint,
         uint32 _maxCheckpoints,
         address _receiver
-    ) private returns(uint256 totalAmount, uint256 endToken) {
+    ) private returns (uint256 totalAmount, uint256 endToken) {
         // @dev e.g. _fromCheckpoint == 10
         // after _withdraw() user's processedCheckpoints should be 10 =>
         // set processed checkpoints = 9, next maping index = 9 (10th checkpoint)

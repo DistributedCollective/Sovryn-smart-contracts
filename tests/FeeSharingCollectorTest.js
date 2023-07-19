@@ -643,9 +643,11 @@ contract("FeeSharingCollector:", (accounts) => {
                     [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
                     [0],
                     10,
-                    ZERO_ADDRESS, {
-                    from: account1,
-                }),
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
                 "_fromCheckpoint param must be > 1"
             );
         });
@@ -700,9 +702,11 @@ contract("FeeSharingCollector:", (accounts) => {
                     [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
                     [2],
                     10,
-                    ZERO_ADDRESS, {
-                    from: account1,
-                }),
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
                 "_fromCheckpoint param must be > userProcessedCheckpoints"
             );
 
@@ -777,9 +781,11 @@ contract("FeeSharingCollector:", (accounts) => {
                     [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
                     [2],
                     10,
-                    ZERO_ADDRESS, {
-                    from: account1,
-                }),
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
                 "User weighted stake should be zero at previous checkpoint"
             );
         });
@@ -1858,9 +1864,14 @@ contract("FeeSharingCollector:", (accounts) => {
             );
             expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
 
-            let tx = await feeSharingCollector.withdrawRbtcToken([RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT], 1000, account2, {
-                from: account1,
-            });
+            let tx = await feeSharingCollector.withdrawRbtcToken(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                1000,
+                account2,
+                {
+                    from: account1,
+                }
+            );
 
             // processedCheckpoints
             let [processedCheckpointsRBTC, processedCheckpointsWRBTC, processedCheckpointsIWRBTC] =
@@ -1964,9 +1975,14 @@ contract("FeeSharingCollector:", (accounts) => {
                 new BN(feeAmount).mul(new BN(userStakePercentage)).div(new BN(10))
             );
 
-            let tx = await feeSharingCollector.withdrawRbtcToken([RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address], 1000, account2, {
-                from: account1,
-            });
+            let tx = await feeSharingCollector.withdrawRbtcToken(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
+                1000,
+                account2,
+                {
+                    from: account1,
+                }
+            );
 
             // processedCheckpoints
             let [processedCheckpointsRBTC, processedCheckpointsWRBTC, processedCheckpointsIWRBTC] =
@@ -1986,13 +2002,18 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpointsWRBTC.toNumber()).to.be.equal(1);
             expect(processedCheckpointsIWRBTC.toNumber()).to.be.equal(1);
 
-            expectEvent(tx, "RBTCWithdrawn", {
-                sender: account1,
-                receiver: account2,
-                amount: new BN(feeAmount)
-                    .mul(new BN(userStakePercentage).mul(new BN(1)))
-                    .div(new BN(10)), // the event will be emitted separately here
-            }, { times: 3 });
+            expectEvent(
+                tx,
+                "RBTCWithdrawn",
+                {
+                    sender: account1,
+                    receiver: account2,
+                    amount: new BN(feeAmount)
+                        .mul(new BN(userStakePercentage).mul(new BN(1)))
+                        .div(new BN(10)), // the event will be emitted separately here
+                },
+                { times: 3 }
+            );
         });
 
         it("Should be able to withdraw (token pool)", async () => {
@@ -2211,9 +2232,14 @@ contract("FeeSharingCollector:", (accounts) => {
                 }
             );
             /** Withdraw WRBTC */
-            let tx2 = await feeSharingCollector.withdrawRbtcToken([WRBTC.address], 1000, account2, {
-                from: account1,
-            });
+            let tx2 = await feeSharingCollector.withdrawRbtcToken(
+                [WRBTC.address],
+                1000,
+                account2,
+                {
+                    from: account1,
+                }
+            );
 
             /** Withdraw IWRBTC */
             let tx3 = await feeSharingCollector.withdrawRbtcToken(
@@ -2307,9 +2333,12 @@ contract("FeeSharingCollector:", (accounts) => {
             let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
             let tx = await feeSharingCollector.withdrawRbtcToken(
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
-                30, ZERO_ADDRESS, {
-                from: account1,
-            });
+                30,
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
 
             /// @dev To anticipate gas consumption it is required to split hardhat
             ///   behaviour into two different scenarios: coverage and regular testing.
@@ -2362,11 +2391,16 @@ contract("FeeSharingCollector:", (accounts) => {
             );
             expect(userLatestBTCBalance.toString()).to.be.equal(userExpectedBtcBalance.toString());
 
-            expectEvent(tx, "RBTCWithdrawn", {
-                sender: account1,
-                receiver: account1,
-                amount: feeAmount.mul(new BN(3)).div(new BN(10)),
-            }, {times: 3});
+            expectEvent(
+                tx,
+                "RBTCWithdrawn",
+                {
+                    sender: account1,
+                    receiver: account1,
+                    amount: feeAmount.mul(new BN(3)).div(new BN(10)),
+                },
+                { times: 3 }
+            );
         });
 
         it("Should be able to withdraw (sov pool)", async () => {
@@ -2536,9 +2570,11 @@ contract("FeeSharingCollector:", (accounts) => {
             let tx = await feeSharingCollector.withdrawRbtcToken(
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
                 1,
-                ZERO_ADDRESS, {
-                from: account1,
-            });
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
 
             /// @dev Same as above gas consumption is different on regular tests than on coverge
             let userLatestBTCBalance = new BN(await web3.eth.getBalance(account1));
@@ -2616,9 +2652,11 @@ contract("FeeSharingCollector:", (accounts) => {
             tx = await feeSharingCollector.withdrawRbtcToken(
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
                 2,
-                ZERO_ADDRESS, {
-                from: account1,
-            });
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
             gasPrice = new BN(parseInt(tx.receipt.effectiveGasPrice));
             console.log("\nwithdraw(checkpoints = 2).gasUsed: " + tx.receipt.gasUsed);
             txFee = new BN(tx.receipt.gasUsed).mul(gasPrice);
@@ -2668,9 +2706,11 @@ contract("FeeSharingCollector:", (accounts) => {
             let tx = await feeSharingCollector.withdrawRbtcToken(
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
                 1000,
-                ZERO_ADDRESS, {
-                from: account1,
-            });
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
             console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
             // processedCheckpoints
             let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
@@ -2699,9 +2739,11 @@ contract("FeeSharingCollector:", (accounts) => {
             let tx = await feeSharingCollector.withdrawRbtcToken(
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
                 5,
-                ZERO_ADDRESS, {
-                from: account1,
-            });
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
             console.log("\nwithdraw(checkpoints = 5).gasUsed: " + tx.receipt.gasUsed);
             // processedCheckpoints
             let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
@@ -2713,9 +2755,11 @@ contract("FeeSharingCollector:", (accounts) => {
             tx = await feeSharingCollector.withdrawRbtcToken(
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
                 3,
-                ZERO_ADDRESS, {
-                from: account1,
-            });
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
             console.log("\nwithdraw(checkpoints = 3).gasUsed: " + tx.receipt.gasUsed);
             // processedCheckpoints
             processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
@@ -2727,9 +2771,11 @@ contract("FeeSharingCollector:", (accounts) => {
             tx = await feeSharingCollector.withdrawRbtcToken(
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
                 1000,
-                ZERO_ADDRESS, {
-                from: account1,
-            });
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
             console.log("\nwithdraw(checkpoints = 2).gasUsed: " + tx.receipt.gasUsed);
             // processedCheckpoints
             processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
@@ -2837,9 +2883,11 @@ contract("FeeSharingCollector:", (accounts) => {
             let tx = await feeSharingCollector.withdrawRbtcToken(
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
                 10,
-                ZERO_ADDRESS, {
-                from: account1,
-            });
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
             console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
         });
 
