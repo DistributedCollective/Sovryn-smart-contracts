@@ -300,7 +300,7 @@ contract("FeeSharingCollector:", (accounts) => {
         await loadFixture(protocolDeploymentFixture);
     });
 
-    describe("withdrawStartingFromCheckpoint, withdrawRBTCStartingFromCheckpoint, withdrawSpecificRBTCStartingFromCheckpoint and getNextPositiveUserCheckpoint", () => {
+    describe("withdrawStartingFromCheckpoint, withdrawRBTCStartingFromCheckpoint, withdrawRbtcTokenStartingFromCheckpoint and getNextPositiveUserCheckpoint", () => {
         let snapshot;
         before(async () => {
             await loadFixture(protocolDeploymentFixture);
@@ -410,47 +410,8 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpoints.toNumber()).to.equal(10);
         });
 
-        it("withdrawRBTCStartingFromCheckpoint calculates fees correctly", async () => {
-            // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRBTCStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
-
-            /// RBTC
-            await stake(900, root);
-            const userStake = 100;
-
-            await SOVToken.transfer(account1, userStake);
-            await createCheckpoints(9);
-
-            await stake(userStake, account1);
-            await createCheckpoints(1);
-
-            let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
-                account1,
-                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                0,
-                MAX_NEXT_POSITIVE_CHECKPOINT
-            );
-
-            let tx = await feeSharingCollector.withdrawRBTCStartingFromCheckpoint(
-                nextPositive.checkpointNum.toNumber(),
-                3,
-                ZERO_ADDRESS,
-                { from: account1 }
-            );
-
-            expectEvent(tx, "RBTCWithdrawn", {
-                sender: account1,
-                amount: new BN(60),
-            });
-
-            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
-                account1,
-                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
-            );
-            expect(processedCheckpoints.toNumber()).to.equal(10);
-        });
-
-        it("withdrawSpecificRBTCStartingFromCheckpoint calculates fees correctly", async () => {
-            // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawSpecificRBTCStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
+        it("withdrawRbtcTokenStartingFromCheckpoint calculates fees correctly", async () => {
+            // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRbtcTokenStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
             await stake(900, root);
@@ -470,8 +431,8 @@ contract("FeeSharingCollector:", (accounts) => {
             );
 
             let tx = await feeSharingCollector.withdrawRbtcTokenStartingFromCheckpoint(
-                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                nextPositive.checkpointNum.toNumber(),
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                [nextPositive.checkpointNum.toNumber()],
                 3,
                 ZERO_ADDRESS,
                 { from: account1 }
@@ -678,7 +639,11 @@ contract("FeeSharingCollector:", (accounts) => {
             );
 
             await expectRevert(
-                feeSharingCollector.withdrawRBTCStartingFromCheckpoint(0, 10, ZERO_ADDRESS, {
+                feeSharingCollector.withdrawRbtcTokenStartingFromCheckpoint(
+                    [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                    [0],
+                    10,
+                    ZERO_ADDRESS, {
                     from: account1,
                 }),
                 "_fromCheckpoint param must be > 1"
@@ -731,7 +696,11 @@ contract("FeeSharingCollector:", (accounts) => {
             );
 
             await expectRevert(
-                feeSharingCollector.withdrawRBTCStartingFromCheckpoint(2, 10, ZERO_ADDRESS, {
+                feeSharingCollector.withdrawRbtcTokenStartingFromCheckpoint(
+                    [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                    [2],
+                    10,
+                    ZERO_ADDRESS, {
                     from: account1,
                 }),
                 "_fromCheckpoint param must be > userProcessedCheckpoints"
@@ -804,7 +773,11 @@ contract("FeeSharingCollector:", (accounts) => {
                 1
             );
             await expectRevert(
-                feeSharingCollector.withdrawRBTCStartingFromCheckpoint(2, 10, ZERO_ADDRESS, {
+                feeSharingCollector.withdrawRbtcTokenStartingFromCheckpoint(
+                    [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                    [2],
+                    10,
+                    ZERO_ADDRESS, {
                     from: account1,
                 }),
                 "User weighted stake should be zero at previous checkpoint"
@@ -1885,7 +1858,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
             expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
 
-            let tx = await feeSharingCollector.withdrawRBTC(1000, account2, {
+            let tx = await feeSharingCollector.withdrawRbtcToken([RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT], 1000, account2, {
                 from: account1,
             });
 
@@ -1991,7 +1964,7 @@ contract("FeeSharingCollector:", (accounts) => {
                 new BN(feeAmount).mul(new BN(userStakePercentage)).div(new BN(10))
             );
 
-            let tx = await feeSharingCollector.withdrawRBTC(1000, account2, {
+            let tx = await feeSharingCollector.withdrawRbtcToken([RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address], 1000, account2, {
                 from: account1,
             });
 
@@ -2017,9 +1990,9 @@ contract("FeeSharingCollector:", (accounts) => {
                 sender: account1,
                 receiver: account2,
                 amount: new BN(feeAmount)
-                    .mul(new BN(userStakePercentage).mul(new BN(3)))
-                    .div(new BN(10)), // need multiple by 3 since we added a mock for WRBTC & IRBTC
-            });
+                    .mul(new BN(userStakePercentage).mul(new BN(1)))
+                    .div(new BN(10)), // the event will be emitted separately here
+            }, { times: 3 });
         });
 
         it("Should be able to withdraw (token pool)", async () => {
@@ -2083,7 +2056,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it("Should be able to withdraw to another account using withdrawSpecificRBTC()", async () => {
+        it("Should be able to withdraw to another account using withdrawRbtcToken()", async () => {
             await protocolDeploymentFixture();
             // stake - getPriorTotalVotingPower
             let rootStake = 700;
@@ -2118,7 +2091,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
 
             let tx = await feeSharingCollector.withdrawRbtcToken(
-                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
                 1000,
                 account2,
                 {
@@ -2151,7 +2124,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it("Should be able to withdraw to another account (WRBTC) - using withdrawSpecificRBTC()", async () => {
+        it("Should be able to withdraw to another account (WRBTC) - using withdrawRbtcToken()", async () => {
             await protocolDeploymentFixture();
 
             // FeeSharingCollectorProxy
@@ -2230,7 +2203,7 @@ contract("FeeSharingCollector:", (accounts) => {
 
             /** Withdraw RBTC */
             let tx1 = await feeSharingCollector.withdrawRbtcToken(
-                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
                 1000,
                 account2,
                 {
@@ -2238,13 +2211,13 @@ contract("FeeSharingCollector:", (accounts) => {
                 }
             );
             /** Withdraw WRBTC */
-            let tx2 = await feeSharingCollector.withdrawRbtcToken(WRBTC.address, 1000, account2, {
+            let tx2 = await feeSharingCollector.withdrawRbtcToken([WRBTC.address], 1000, account2, {
                 from: account1,
             });
 
             /** Withdraw IWRBTC */
             let tx3 = await feeSharingCollector.withdrawRbtcToken(
-                loanTokenWrbtc.address,
+                [loanTokenWrbtc.address],
                 1000,
                 account2,
                 {
@@ -2332,7 +2305,9 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
 
             let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
-            let tx = await feeSharingCollector.withdrawRBTC(10, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdrawRbtcToken(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
+                30, ZERO_ADDRESS, {
                 from: account1,
             });
 
@@ -2391,7 +2366,7 @@ contract("FeeSharingCollector:", (accounts) => {
                 sender: account1,
                 receiver: account1,
                 amount: feeAmount.mul(new BN(3)).div(new BN(10)),
-            });
+            }, {times: 3});
         });
 
         it("Should be able to withdraw (sov pool)", async () => {
@@ -2558,7 +2533,10 @@ contract("FeeSharingCollector:", (accounts) => {
             await feeSharingCollector.withdrawFees([SUSD.address]);
 
             let userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
-            let tx = await feeSharingCollector.withdrawRBTC(1, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdrawRbtcToken(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
+                1,
+                ZERO_ADDRESS, {
                 from: account1,
             });
 
@@ -2635,7 +2613,10 @@ contract("FeeSharingCollector:", (accounts) => {
 
             // [SECOND] - [THIRD]
             userInitialBtcBalance = new BN(await web3.eth.getBalance(account1));
-            tx = await feeSharingCollector.withdrawRBTC(2, ZERO_ADDRESS, {
+            tx = await feeSharingCollector.withdrawRbtcToken(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
+                2,
+                ZERO_ADDRESS, {
                 from: account1,
             });
             gasPrice = new BN(parseInt(tx.receipt.effectiveGasPrice));
@@ -2684,7 +2665,10 @@ contract("FeeSharingCollector:", (accounts) => {
             // mock data
             await createCheckpoints(10);
 
-            let tx = await feeSharingCollector.withdrawRBTC(1000, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdrawRbtcToken(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
+                1000,
+                ZERO_ADDRESS, {
                 from: account1,
             });
             console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
@@ -2712,7 +2696,10 @@ contract("FeeSharingCollector:", (accounts) => {
             // mock data
             await createCheckpoints(10);
 
-            let tx = await feeSharingCollector.withdrawRBTC(5, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdrawRbtcToken(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
+                5,
+                ZERO_ADDRESS, {
                 from: account1,
             });
             console.log("\nwithdraw(checkpoints = 5).gasUsed: " + tx.receipt.gasUsed);
@@ -2723,7 +2710,10 @@ contract("FeeSharingCollector:", (accounts) => {
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(5);
 
-            tx = await feeSharingCollector.withdrawRBTC(3, ZERO_ADDRESS, {
+            tx = await feeSharingCollector.withdrawRbtcToken(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
+                3,
+                ZERO_ADDRESS, {
                 from: account1,
             });
             console.log("\nwithdraw(checkpoints = 3).gasUsed: " + tx.receipt.gasUsed);
@@ -2734,7 +2724,10 @@ contract("FeeSharingCollector:", (accounts) => {
             );
             expect(processedCheckpoints.toNumber()).to.be.equal(8);
 
-            tx = await feeSharingCollector.withdrawRBTC(1000, ZERO_ADDRESS, {
+            tx = await feeSharingCollector.withdrawRbtcToken(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
+                1000,
+                ZERO_ADDRESS, {
                 from: account1,
             });
             console.log("\nwithdraw(checkpoints = 2).gasUsed: " + tx.receipt.gasUsed);
@@ -2841,7 +2834,10 @@ contract("FeeSharingCollector:", (accounts) => {
 
             await feeSharingCollector.withdrawFees([SUSD.address]);
 
-            let tx = await feeSharingCollector.withdrawRBTC(10, ZERO_ADDRESS, {
+            let tx = await feeSharingCollector.withdrawRbtcToken(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, WRBTC.address, loanTokenWrbtc.address],
+                10,
+                ZERO_ADDRESS, {
                 from: account1,
             });
             console.log("\nwithdraw(checkpoints = 1).gasUsed: " + tx.receipt.gasUsed);
