@@ -12,12 +12,16 @@ contract StakingFuzzTest is Test {
     // Test Variables
     address private user;
     address private user2;
+    address private delegatee;
     uint256 private invalidLockDate;
     uint256 private amount;
     uint256 private kickoffTS;
     uint256 private maxDuration;
     IStaking private staking;
     IERC20 private sov;
+
+    uint96 constant MAX_96 = 2**96 - 1;
+    uint256 constant MAX_256 = 2**256 - 1;
 
     event TokensStaked(
         address indexed staker,
@@ -31,6 +35,13 @@ contract StakingFuzzTest is Test {
         uint256 previousDate,
         uint256 newDate,
         uint256 amountStaked
+    );
+
+    event DelegateChanged(
+        address indexed delegator,
+        uint256 lockedUntil,
+        address indexed fromDelegate,
+        address indexed toDelegate
     );
 
     // Test Setup
@@ -72,6 +83,7 @@ contract StakingFuzzTest is Test {
         amount = 1000;
         user = address(1);
         user2 = address(2);
+        delegatee = address(3);
 
         // Fund user
         vm.deal(user, 1 ether);
@@ -588,7 +600,6 @@ contract StakingFuzzTest is Test {
         vm.startPrank(user);
         mineBlocks(1);
         uint256 lockedTS = kickoffTS + 4 weeks;
-        uint96 max96 = 2**96 - 1;
         uint96 _increaseAmount96 = uint96(_increaseAmount);
         uint256 firstStakeBlockNumber;
         uint256 secondStakeBlockNumber;
@@ -606,7 +617,7 @@ contract StakingFuzzTest is Test {
         assertTrue(sov.balanceOf(address(staking)) == amount);
 
         console.log("_increaseAmount96: %s", _increaseAmount96);
-        console.log("max96: %s", max96);
+        console.log("MAX_96: %s", MAX_96);
         if (_increaseAmount96 == 0) {
             vm.expectRevert("amount needs to be bigger than 0");
             staking.stake(_increaseAmount96, lockedTS, address(0), address(0));
@@ -619,8 +630,8 @@ contract StakingFuzzTest is Test {
             amount,
             _increaseAmount96 + amount
         );
-        console.log("uint256(max96): %s", uint256(max96));
-        if (_increaseAmount96 + amount > uint256(max96)) {
+        console.log("uint256(MAX_96): %s", uint256(MAX_96));
+        if (_increaseAmount96 + amount > uint256(MAX_96)) {
             vm.expectRevert("increaseStake: overflow");
             staking.stake(_increaseAmount96, lockedTS, address(0), address(0));
             return;
@@ -629,8 +640,8 @@ contract StakingFuzzTest is Test {
         uint256 stakingBalance = sov.balanceOf(address(staking));
         assertTrue(stakingBalance == amount, "Unexpected staking balance");
 
-        address delegatee = staking.delegates(user, lockedTS);
-        assertTrue(delegatee == user, "Unexpected delegatee");
+        address actualDelegatee = staking.delegates(user, lockedTS);
+        assertTrue(actualDelegatee == user, "Unexpected delegatee");
 
         secondStakeBlockNumber = block.number;
 
@@ -737,5 +748,161 @@ contract StakingFuzzTest is Test {
             checkpoint.stake == amount + _increaseAmount96,
             "Unexpected delegate staking checkpoint stake"
         );
+    }
+
+    // STAKE BY SCHEDULE TESTS
+
+    function testFuzz_StakeBySchedule(
+        uint256 _intervalLength,
+        uint256 _amount,
+        uint256 _duration,
+        uint256 _cliff
+    ) external {
+        vm.startPrank(user);
+        if (_amount > 0) {
+            emit log_named_uint("deal user", _amount);
+            deal(address(sov), user, _amount);
+            mineBlocks(1);
+            emit log("approving the amount to staking");
+            sov.approve(address(staking), _amount);
+        }
+        mineBlocks(1);
+        //vm.assume(intervalLength != (intervalLength / 14 days) * 14 days);
+        //uint256 cliff = 2 weeks;
+        //uint256 duration = maxDuration;
+
+        // _amount = bound(_amount, 0, sov.totalSupply());
+        //uint256 intervalCount = amount / intervalAmount;
+        emit log("- TEST KNOWN EXCEPTIONS");
+        if (MAX_256 - _cliff < block.timestamp || MAX_256 - _duration < block.timestamp) {
+            emit log(">> _cliff or _duration overflow");
+            return;
+        }
+        uint256 startDate = staking.timestampToLockDate(block.timestamp + _cliff);
+        uint256 endDate = staking.timestampToLockDate(block.timestamp + _duration);
+
+        // TEST KNOWN EXCEPTIONS
+        emit log("TEST KNOWN EXCEPTIONS");
+
+        /*require(
+            until > block.timestamp,
+            "Staking::_timestampToLockDate: staking period too short"
+        ); */
+        if (MAX_256 - _duration < startDate) {
+            emit log(">> startDate + _duration overflow");
+            // vm.expectRevert("Arithmetic over/underflow");
+            // startDate + _duration;
+            return;
+        }
+
+        if (
+            _intervalLength == 0 ||
+            _amount == 0 ||
+            _duration > maxDuration ||
+            startDate > endDate ||
+            _intervalLength % 2 weeks != 0 ||
+            startDate < block.timestamp
+        ) {
+            vm.expectRevert();
+            staking.stakeBySchedule(
+                _amount,
+                _cliff,
+                _duration,
+                _intervalLength,
+                address(0),
+                address(0)
+            );
+            return;
+        }
+        // @todo this test is not fuzzz kind of test, but need to check if it can cause issues when used not from the vesting contracts
+        vm.expectRevert("Only stakeFor account is allowed to change delegatee");
+        staking.stakeBySchedule({
+            amount: _amount,
+            cliff: _cliff,
+            duration: _duration,
+            intervalLength: _intervalLength,
+            stakeFor: user2,
+            delegatee: delegatee
+        });
+
+        // TEST UNKNOWN EXCEPTIONS
+        emit log("TEST UNKNOWN EXCEPTIONS");
+
+        uint256 intervalCount;
+        if (startDate < endDate) {
+            intervalCount = (endDate - startDate) / _intervalLength + 1;
+        } else {
+            intervalCount = 1;
+        }
+
+        uint256 intervalAmount = _amount / intervalCount;
+        uint256 blockBefore = block.number - 1;
+        uint256 blockAfter = block.number;
+
+        for (
+            uint256 lockedDate = startDate;
+            lockedDate <= endDate;
+            lockedDate += _intervalLength
+        ) {
+            vm.expectEmit();
+            emit TokensStaked(user, intervalAmount, lockedDate, intervalAmount);
+            emit DelegateChanged(user, lockedDate, address(0), delegatee);
+        }
+
+        staking.stakeBySchedule({
+            amount: _amount,
+            cliff: _cliff,
+            duration: _duration,
+            intervalLength: _intervalLength,
+            stakeFor: user,
+            delegatee: delegatee
+        });
+
+        for (
+            uint256 lockedDate = startDate;
+            lockedDate <= endDate;
+            lockedDate += _intervalLength
+        ) {
+            // Check delegatee
+            address userDelegatee = staking.delegates(user, lockedDate);
+            assertTrue(userDelegatee == delegatee, "Unexpected delegatee");
+
+            // Check getPriorTotalStakesForDate
+            uint256 priorTotalStakeBefore =
+                staking.getPriorTotalStakesForDate(lockedDate, blockBefore);
+            uint256 priorTotalStakeAfter =
+                staking.getPriorTotalStakesForDate(lockedDate, blockAfter);
+            assertTrue(
+                priorTotalStakeAfter - priorTotalStakeBefore == intervalAmount,
+                "Unexpected prior total stake difference"
+            );
+
+            // Check getPriorUserStakeByDate
+            uint256 priorUserStakeBefore =
+                staking.getPriorUserStakeByDate(user, lockedDate, blockBefore);
+            uint256 priorUserStakeAfter =
+                staking.getPriorUserStakeByDate(user, lockedDate, blockAfter);
+            assertTrue(
+                priorUserStakeAfter - priorUserStakeBefore == intervalAmount,
+                "Unexpected prior user stake difference"
+            );
+
+            // Check getPriorStakeByDateForDelegatee
+            uint256 priorDelegateStakeBefore =
+                staking.getPriorStakeByDateForDelegatee(delegatee, lockedDate, blockBefore);
+            uint256 priorDelegateStakeAfter =
+                staking.getPriorStakeByDateForDelegatee(delegatee, lockedDate, blockAfter);
+            assertTrue(
+                priorDelegateStakeAfter - priorDelegateStakeBefore == intervalAmount,
+                "Unexpected prior delegate stake difference"
+            );
+
+            // Event verification
+            /*
+            vm.expectEmit();
+            emit TokensStaked(user, intervalAmount, lockedDate, intervalAmount);
+            emit DelegateChanged(user, lockedDate, address(0), delegatee);
+            */
+        }
     }
 }
