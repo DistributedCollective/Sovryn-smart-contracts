@@ -278,7 +278,7 @@ contract FeeSharingCollector is
         address _token,
         uint32 _maxCheckpoints,
         address _receiver
-    ) internal {
+    ) internal returns (uint256 totalAmount, uint256 endToken) {
         /// @dev Prevents block gas limit hit when processing checkpoints
         require(
             _maxCheckpoints > 0,
@@ -299,7 +299,7 @@ contract FeeSharingCollector is
             if (end > processedUserCheckpoints) {
                 emit UserFeeProcessedNoWithdraw(msg.sender, _token, processedUserCheckpoints, end);
                 processedCheckpoints[user][_token] = end;
-                return;
+                return (0, end);
             } else {
                 // getting here most likely means smth wrong with the state
                 revert("FeeSharingCollector::withdrawFees: no tokens for withdrawal");
@@ -319,6 +319,8 @@ contract FeeSharingCollector is
         }
 
         emit UserFeeWithdrawn(msg.sender, _receiver, _token, amount);
+
+        return (amount, end);
     }
 
     /**
@@ -345,7 +347,7 @@ contract FeeSharingCollector is
     }
 
     /// @notice Validates if the checkpoint is payable for the user
-    function validFromCheckpointParams(
+    function validFromCheckpointParam(
         uint256[] memory _fromCheckpoints,
         address[] memory _tokens,
         address _user
@@ -356,7 +358,6 @@ contract FeeSharingCollector is
         );
 
         for (uint256 i = 0; i < _tokens.length; i++) {
-            /** @note can't assign any other local variables here due to stack too deep issue */
             // _fromCheckpoint is checkpoint number, not array index, so should be > 1
             require(_fromCheckpoints[i] > 1, "_fromCheckpoint param must be > 1");
             uint256 fromCheckpointIndex = _fromCheckpoints[i] - 1;
@@ -394,45 +395,6 @@ contract FeeSharingCollector is
         }
     }
 
-    /// @notice Validates if the checkpoint is payable for the user
-    modifier validFromCheckpointParam(
-        uint256 _fromCheckpoint,
-        address _user,
-        address _token
-    ) {
-        // _fromCheckpoint is checkpoint number, not array index, so should be > 1
-        require(_fromCheckpoint > 1, "_fromCheckpoint param must be > 1");
-        uint256 fromCheckpointIndex = _fromCheckpoint - 1;
-        require(
-            _fromCheckpoint > processedCheckpoints[_user][_token],
-            "_fromCheckpoint param must be > userProcessedCheckpoints"
-        );
-        require(
-            _fromCheckpoint <= totalTokenCheckpoints[_token],
-            "_fromCheckpoint should be <= totalTokenCheckpoints"
-        );
-
-        Checkpoint memory prevCheckpoint = tokenCheckpoints[_token][fromCheckpointIndex - 1];
-
-        uint96 weightedStake =
-            staking.getPriorWeightedStake(
-                _user,
-                prevCheckpoint.blockNumber - 1,
-                prevCheckpoint.timestamp
-            );
-        require(weightedStake == 0, "User weighted stake should be zero at previous checkpoint");
-
-        Checkpoint memory fromCheckpoint = tokenCheckpoints[_token][fromCheckpointIndex];
-        weightedStake = staking.getPriorWeightedStake(
-            _user,
-            fromCheckpoint.blockNumber - 1,
-            fromCheckpoint.timestamp
-        );
-
-        require(weightedStake > 0, "User weighted stake should be > 0 at  _fromCheckpoint");
-        _;
-    }
-
     /**
      * @notice Withdraw accumulated fee to the message sender/receiver.
      *
@@ -444,25 +406,73 @@ contract FeeSharingCollector is
      *
      * @dev WARNING! This function skips all the checkpoints before '_fromCheckpoint' irreversibly, use with care
      *
-     * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
-     * @param _fromCheckpoint Skips all the checkpoints before '_fromCheckpoint'
+     * @param _tokens RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
+     * @param _fromCheckpoints Skips all the checkpoints before '_fromCheckpoint'
      *        should be calculated offchain with getNextPositiveUserCheckpoint function
      * @param _maxCheckpoints Maximum number of checkpoints to be processed.
      * @param _receiver The receiver of tokens or msg.sender
      * */
     function withdrawStartingFromCheckpoint(
+        address[] calldata _tokens,
+        uint256[] calldata _fromCheckpoints,
+        uint32 _maxCheckpoints,
+        address _receiver
+    ) external nonReentrant {
+        validFromCheckpointParam(_fromCheckpoints, _tokens, msg.sender);
+
+        IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
+        address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
+
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            if (_maxCheckpoints <= 0) break;
+            uint256 _fromCheckpoint = _fromCheckpoints[i];
+            address _token = _tokens[i];
+            uint256 endToken;
+
+            uint256 previousProcessedUserCheckpoints = processedCheckpoints[msg.sender][_token];
+            uint256 startingCheckpoint =
+                _fromCheckpoint > previousProcessedUserCheckpoints
+                    ? _fromCheckpoint
+                    : previousProcessedUserCheckpoints;
+
+            if (
+                _token == address(wrbtcToken) ||
+                _token == loanPoolTokenWRBTC ||
+                _token == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            ) {
+                (, endToken) = _withdrawRbtcTokenStartingFromCheckpoint(
+                    _token,
+                    _fromCheckpoint,
+                    _maxCheckpoints,
+                    _receiver
+                );
+            } else {
+                (, endToken) = _withdrawStartingFromCheckpoint(
+                    _token,
+                    _fromCheckpoint,
+                    _maxCheckpoints,
+                    _receiver
+                );
+            }
+
+            uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint);
+            _maxCheckpoints = uint32(_maxCheckpoints.sub(_previousUsedCheckpoint));
+        }
+    }
+
+    function _withdrawStartingFromCheckpoint(
         address _token,
         uint256 _fromCheckpoint,
         uint32 _maxCheckpoints,
         address _receiver
-    ) public validFromCheckpointParam(_fromCheckpoint, msg.sender, _token) nonReentrant {
+    ) internal returns (uint256 totalAmount, uint256 endToken) {
         // @dev e.g. _fromCheckpoint == 10 meaning we should set 9 user's processed checkpoints
         // after _withdraw() the user's processedCheckpoints should be 10
         uint256 prevFromCheckpoint = _fromCheckpoint.sub(1);
         if (prevFromCheckpoint > processedCheckpoints[msg.sender][_token]) {
             processedCheckpoints[msg.sender][_token] = prevFromCheckpoint;
         }
-        _withdraw(_token, _maxCheckpoints, _receiver);
+        (totalAmount, endToken) = _withdraw(_token, _maxCheckpoints, _receiver);
     }
 
     function _withdrawRbtcToken(
@@ -489,6 +499,7 @@ contract FeeSharingCollector is
                 wrbtcToken.withdraw(totalAmount);
             } else if (_token == loanPoolTokenWRBTC) {
                 // pull out the iWRBTC to rbtc to this feeSharingCollector contract
+                /** @dev will use the burned result from IWRBTC to RBTC as return total amount */
                 totalAmount = ILoanTokenWRBTC(loanPoolTokenWRBTC).burnToBTC(
                     address(this),
                     totalAmount,
@@ -524,7 +535,14 @@ contract FeeSharingCollector is
         address _receiver
     ) external nonReentrant {
         for (uint256 i = 0; i < _tokens.length; i++) {
-            _withdrawRbtcToken(_tokens[i], _maxCheckpoints, _receiver);
+            if (_maxCheckpoints <= 0) break;
+            address _token = _tokens[i];
+            uint256 startingCheckpoint = processedCheckpoints[msg.sender][_token];
+
+            (, uint256 endToken) = _withdrawRbtcToken(_tokens[i], _maxCheckpoints, _receiver);
+
+            uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint);
+            _maxCheckpoints = uint32(_maxCheckpoints.sub(_previousUsedCheckpoint));
         }
     }
 
@@ -551,10 +569,18 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints,
         address _receiver
     ) external nonReentrant {
-        validFromCheckpointParams(_fromCheckpoints, _tokens, msg.sender);
+        validFromCheckpointParam(_fromCheckpoints, _tokens, msg.sender);
         for (uint256 i = 0; i < _tokens.length; i++) {
+            if (_maxCheckpoints <= 0) break;
             uint256 _fromCheckpoint = _fromCheckpoints[i];
             address _token = _tokens[i];
+
+            uint256 previousProcessedUserCheckpoints = processedCheckpoints[msg.sender][_token];
+            uint256 startingCheckpoint =
+                _fromCheckpoint > previousProcessedUserCheckpoints
+                    ? _fromCheckpoint
+                    : previousProcessedUserCheckpoints;
+
             (, uint256 endToken) =
                 _withdrawRbtcTokenStartingFromCheckpoint(
                     _token,
@@ -563,15 +589,14 @@ contract FeeSharingCollector is
                     _receiver
                 );
 
-            uint256 _previousUsedCheckpoint = endToken.sub(_fromCheckpoint).add(1);
-            _maxCheckpoints = uint32(_maxCheckpoints.sub(_previousUsedCheckpoint).add(1));
+            uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint);
+            _maxCheckpoints = uint32(_maxCheckpoints.sub(_previousUsedCheckpoint));
         }
     }
 
     /**
      * @dev Withdraw either specific RBTC related token balance or all RBTC related tokens balances.
      * RBTC related here means, it could be either rbtc, wrbtc, or iwrbtc, depends on the _token param.
-     * If 0 address is passed, it will withdraw all of them.
      */
     function _withdrawRbtcTokenStartingFromCheckpoint(
         address _token,
