@@ -100,6 +100,9 @@ contract ProtocolSettings is
         _setTarget(this.getDefaultPathConversion.selector, target);
         _setTarget(this.setDefaultPathConversion.selector, target);
         _setTarget(this.removeDefaultPathConversion.selector, target);
+        _setTarget(this.getDefaultPathConversion.selector, target);
+        _setTarget(this.setPauser.selector, target);
+        _setTarget(this.getPauser.selector, target);
         emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
     }
 
@@ -391,6 +394,31 @@ contract ProtocolSettings is
         feesController = newController;
 
         emit SetFeesController(msg.sender, oldController, newController);
+    }
+
+    /**
+     * @notice Set the pauser address of sovryn protocol.
+     *
+     * only pauser or owner can perform this action.
+     *
+     * @param newPauser The new address of the pauser.
+     * */
+    function setPauser(address newPauser) external onlyPauserOrOwner {
+        require(newPauser != address(0), "Pauser cannot be zero address");
+        address oldPauser = pauser;
+        pauser = newPauser;
+
+        emit SetPauser(msg.sender, oldPauser, newPauser);
+    }
+
+    /**
+     * @dev Get pauser address.
+     *
+     *
+     * @return pauser address.
+     */
+    function getPauser() external view returns (address) {
+        return pauser;
     }
 
     /**
@@ -807,7 +835,7 @@ contract ProtocolSettings is
         return feeRebatePercent;
     }
 
-    function togglePaused(bool paused) external onlyOwner {
+    function togglePaused(bool paused) external onlyPauserOrOwner {
         require(paused != pause, "Can't toggle");
         pause = paused;
         emit TogglePaused(msg.sender, !paused, paused);

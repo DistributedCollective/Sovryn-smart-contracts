@@ -968,6 +968,40 @@ contract("ProtocolSettings", (accounts) => {
             expect(event["newRolloverFlexFeePercent"] == new_percent.toString()).to.be.true;
             expect((await sovryn.rolloverFlexFeePercent()).eq(new_percent)).to.be.true;
         });
+
+        it("Test set pauser", async () => {
+            expect((await sovryn.getPauser()) == ZERO_ADDRESS).to.be.true;
+
+            const pauser1 = accounts[1];
+            const pauser2 = accounts[2];
+            const dest = sovryn.address;
+            const val = 0;
+            const data = sovryn.contract.methods.setPauser(pauser1).encodeABI();
+            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+            expect((await sovryn.getPauser()) == pauser1).to.be.true;
+
+            /** Pauser should be able to call the setter function */
+            await sovryn.setPauser(pauser2, { from: pauser1 });
+            expect((await sovryn.getPauser()) == pauser2).to.be.true;
+
+            /** Owner should be able to overwrite if the pauser has been set */
+            const tx2 = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+            const txId2 = tx2.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId2, { from: accounts[1] });
+            expect((await sovryn.getPauser()) == pauser1).to.be.true;
+
+            await expectRevert(
+                sovryn.setPauser(WRBTC.address, { from: accounts[3] }),
+                "unauthorized"
+            );
+        });
     });
 
     describe("LoanClosings test coverage", () => {
