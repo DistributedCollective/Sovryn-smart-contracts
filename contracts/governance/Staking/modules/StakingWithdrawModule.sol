@@ -276,6 +276,9 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         returns (uint96, uint96)
     {
         until = _adjustDateForOrigin(until);
+        if (block.timestamp > until) {
+            return (amount, 0);
+        }
         _validateWithdrawParams(msg.sender, amount, until);
         uint96 punishedAmount = _getPunishedAmount(amount, until);
         return (amount - punishedAmount, punishedAmount);
