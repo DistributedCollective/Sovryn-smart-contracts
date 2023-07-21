@@ -100,7 +100,6 @@ contract ProtocolSettings is
         _setTarget(this.getDefaultPathConversion.selector, target);
         _setTarget(this.setDefaultPathConversion.selector, target);
         _setTarget(this.removeDefaultPathConversion.selector, target);
-        _setTarget(this.getDefaultPathConversion.selector, target);
         _setTarget(this.setPauser.selector, target);
         _setTarget(this.getPauser.selector, target);
         emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
