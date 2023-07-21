@@ -403,7 +403,6 @@ contract ProtocolSettings is
      * @param newPauser The new address of the pauser.
      * */
     function setPauser(address newPauser) external onlyPauserOrOwner {
-        require(newPauser != address(0), "Pauser cannot be zero address");
         address oldPauser = pauser;
         pauser = newPauser;
 
