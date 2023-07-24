@@ -188,6 +188,8 @@ def main():
 
     #readTokenOwnerFromFunds()
 
+    #printLendingPoolsData()
+
 
 def governanceTransfer():
     # # ---------- Transfer ownership to gov ----------
