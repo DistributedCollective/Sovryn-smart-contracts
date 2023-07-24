@@ -212,7 +212,7 @@ contract("LoanTokenAdministration", (accounts) => {
                 localLoanToken.toggleFunctionPause("mint(address,uint256)", true, {
                     from: accounts[1],
                 }),
-                "onlyPauser"
+                "unauthorized"
             );
         });
 

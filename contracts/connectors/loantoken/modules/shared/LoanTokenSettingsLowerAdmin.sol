@@ -209,9 +209,8 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
     function toggleFunctionPause(
         string memory funcId, /// example: "mint(uint256,uint256)"
         bool isPaused
-    ) public {
+    ) public onlyPauserOrOwner {
         bool paused;
-        require(msg.sender == pauser, "onlyPauser");
         /// keccak256("iToken_FunctionPause")
         bytes32 slot =
             keccak256(
