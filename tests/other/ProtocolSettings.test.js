@@ -1012,6 +1012,21 @@ contract("ProtocolSettings", (accounts) => {
             await multisig.confirmTransaction(txId2, { from: accounts[1] });
             expect((await sovryn.getPauser()) == pauser2).to.be.true;
         });
+
+        it("Should be able to set pauser to 0 address", async () => {
+            expect((await sovryn.getPauser()) == ZERO_ADDRESS).to.be.true;
+
+            const dest = sovryn.address;
+            const val = 0;
+            const data = sovryn.contract.methods.setPauser(ZERO_ADDRESS).encodeABI();
+            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+            expect((await sovryn.getPauser()) == ZERO_ADDRESS).to.be.true;
+        });
     });
 
     describe("LoanClosings test coverage", () => {
