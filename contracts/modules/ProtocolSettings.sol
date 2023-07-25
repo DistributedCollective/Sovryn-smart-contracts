@@ -402,7 +402,7 @@ contract ProtocolSettings is
      *
      * @param newPauser The new address of the pauser.
      * */
-    function setPauser(address newPauser) external onlyPauserOrOwner {
+    function setPauser(address newPauser) external onlyOwner {
         address oldPauser = pauser;
         pauser = newPauser;
 

@@ -969,6 +969,24 @@ contract("ProtocolSettings", (accounts) => {
             expect((await sovryn.rolloverFlexFeePercent()).eq(new_percent)).to.be.true;
         });
 
+        it("Pauser should not be able to set the pauser address", async () => {
+            expect((await sovryn.getPauser()) == ZERO_ADDRESS).to.be.true;
+            const pauser = accounts[1];
+            const dest = sovryn.address;
+            const val = 0;
+            const data = sovryn.contract.methods.setPauser(pauser).encodeABI();
+            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId, { from: accounts[1] });
+            expect((await sovryn.getPauser()) == pauser).to.be.true;
+
+            /** Pauser should not be able to call the setter function */
+            await expectRevert(sovryn.setPauser(accounts[4], { from: pauser }), "unauthorized");
+            expect((await sovryn.getPauser()) == pauser).to.be.true;
+        });
+
         it("Test set pauser", async () => {
             expect((await sovryn.getPauser()) == ZERO_ADDRESS).to.be.true;
 
@@ -985,22 +1003,14 @@ contract("ProtocolSettings", (accounts) => {
 
             expect((await sovryn.getPauser()) == pauser1).to.be.true;
 
-            /** Pauser should be able to call the setter function */
-            await sovryn.setPauser(pauser2, { from: pauser1 });
-            expect((await sovryn.getPauser()) == pauser2).to.be.true;
-
             /** Owner should be able to overwrite if the pauser has been set */
-            const tx2 = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+            const data2 = sovryn.contract.methods.setPauser(pauser2).encodeABI();
+            const tx2 = await multisig.submitTransaction(dest, val, data2, { from: accounts[0] });
             const txId2 = tx2.logs.filter((item) => item.event == "Submission")[0].args[
                 "transactionId"
             ];
             await multisig.confirmTransaction(txId2, { from: accounts[1] });
-            expect((await sovryn.getPauser()) == pauser1).to.be.true;
-
-            await expectRevert(
-                sovryn.setPauser(WRBTC.address, { from: accounts[3] }),
-                "unauthorized"
-            );
+            expect((await sovryn.getPauser()) == pauser2).to.be.true;
         });
     });
 
