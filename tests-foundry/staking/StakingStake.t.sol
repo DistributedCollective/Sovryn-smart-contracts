@@ -785,11 +785,21 @@ contract StakingFuzzTest is Test {
         vm.startPrank(user2);
         sov.approve(address(staking), amount * 2);
         staking.stake(uint96(amount * 2), 365 days, address(0), address(0));
+        emit log_named_uint(
+            "1. user2::stake staking.numTotalStakingCheckpoints(lockDate)",
+            staking.numTotalStakingCheckpoints(lockDate)
+        );
         vm.stopPrank();
+
+        // mineBlocks(7 days);
 
         vm.startPrank(user);
         sov.approve(address(staking), amount);
         staking.stake(uint96(amount), 365 days, address(0), address(0));
+        emit log_named_uint(
+            "2. user::stake staking.numTotalStakingCheckpoints(lockDate)",
+            staking.numTotalStakingCheckpoints(lockDate)
+        );
         //sov.approve(address(staking), amount);
 
         //@test-case 1) unstaking at the same block as staking, any amount should revert
@@ -836,6 +846,7 @@ contract StakingFuzzTest is Test {
             return;
         }
         emit log_named_uint("_withdrawAmount", _withdrawAmount);
+        uint256 blockNumberAtWithdrawTS = block.number;
         emit log_named_uint("block.number after moving to _withdrawTS", block.number);
         emit log_named_uint("block.timestamp after moving to _withdrawTS", block.timestamp);
         emit log_named_uint("lockDate", lockDate);
@@ -907,6 +918,8 @@ contract StakingFuzzTest is Test {
             expectedWithdrawAmount + expectedSlashAmount
         );
 
+        uint256 withdrawAmount2 = _withdrawAmount; // just pushing up in stack to to work around stack too deep issue
+
         // Check getPriorUserStakeByDate
 
         // uint256 withdrawTsToLockDate = staking.timestampToLockDate(_withdrawTS);
@@ -914,7 +927,7 @@ contract StakingFuzzTest is Test {
             staking.getPriorUserStakeByDate(user, lockDate, blockAfter - 2);
         uint256 priorUserStakeAfter = staking.getPriorUserStakeByDate(user, lockDate, blockAfter);
 
-        assertEq(priorUserStakeBefore - priorUserStakeAfter, _withdrawAmount);
+        assertEq(priorUserStakeBefore - priorUserStakeAfter, withdrawAmount2);
 
         // check user2 staking unchanged
         (uint256[] memory dates, uint96[] memory stakes) = staking.getStakes(user2);
@@ -925,23 +938,29 @@ contract StakingFuzzTest is Test {
 
         // Extended validation
         // _increaseDailyStake
-        uint32 numTotalStakingCheckpoints = staking.numTotalStakingCheckpoints(lockDate);
+        uint256 lockDate2 = lockDate; // just pushing up in stack to to work around stack too deep issue
+        uint32 numTotalStakingCheckpoints = staking.numTotalStakingCheckpoints(lockDate2);
         assertEq(
             numTotalStakingCheckpoints,
-            3,
+            2,
             "1. Unexpected number of total staking checkpoints"
         );
 
-        IStaking.Checkpoint memory checkpoint = staking.totalStakingCheckpoints(lockDate, 0);
+        IStaking.Checkpoint memory checkpoint = staking.totalStakingCheckpoints(lockDate2, 0);
 
-        assertTrue(checkpoint.fromBlock == 1, "2. Unexpected total staking checkpoint fromBlock");
+        assertTrue(checkpoint.fromBlock == 2, "2. Unexpected total staking checkpoint fromBlock");
 
-        assertTrue(checkpoint.stake == amount, "3. Unexpected total staking checkpoint stake");
+        assertTrue(checkpoint.stake == amount * 3, "3. Unexpected total staking checkpoint stake"); // 2 stakes, 3 amounts in total
 
-        uint256 lockDate2 = lockDate;
         checkpoint = staking.totalStakingCheckpoints(lockDate2, 1);
-        assertTrue(checkpoint.fromBlock == 3, "4. Unexpected total staking checkpoint fromBlock");
-        assertTrue(checkpoint.stake == amount * 3, "5. Unexpected total staking checkpoint stake");
+        assertTrue(
+            checkpoint.fromBlock == blockNumberAtWithdrawTS,
+            "4. Unexpected total staking checkpoint fromBlock"
+        );
+        assertTrue(
+            checkpoint.stake == amount * 3 - withdrawAmount2,
+            "5. Unexpected total staking checkpoint stake"
+        );
 
         // _writeUserCheckpoint
         assertTrue(
@@ -955,12 +974,18 @@ contract StakingFuzzTest is Test {
         );
 
         checkpoint = staking.userStakingCheckpoints(user, lockDate2, 0);
-        assertTrue(checkpoint.fromBlock == 1, "8. Unexpected user staking checkpoint fromBlock");
+        assertTrue(checkpoint.fromBlock == 2, "8. Unexpected user staking checkpoint fromBlock");
         assertTrue(checkpoint.stake == amount, "9. Unexpected user staking checkpoint stake");
 
         checkpoint = staking.userStakingCheckpoints(user, lockDate2, 1);
-        assertTrue(checkpoint.fromBlock == 3, "10. Unexpected user staking checkpoint fromBlock");
-        assertTrue(checkpoint.stake == amount * 3, "11. Unexpected user staking checkpoint stake");
+        assertTrue(
+            checkpoint.fromBlock == blockNumberAtWithdrawTS,
+            "10. Unexpected user staking checkpoint fromBlock"
+        );
+        assertTrue(
+            checkpoint.stake == amount - withdrawAmount2,
+            "11. Unexpected user staking checkpoint stake"
+        );
 
         // _decreaseDelegateStake
         uint32 numDelegateStakingCheckpoints =
@@ -971,11 +996,11 @@ contract StakingFuzzTest is Test {
             numDelegateStakingCheckpoints - 1
         );
         assertTrue(
-            checkpoint.fromBlock == 3,
+            checkpoint.fromBlock == blockNumberAtWithdrawTS,
             "12. Unexpected delegate staking checkpoint fromBlock"
         );
         assertTrue(
-            checkpoint.stake == amount * 3,
+            checkpoint.stake == amount - withdrawAmount2,
             "13. Unexpected delegate staking checkpoint stake"
         );
         assertTrue(
