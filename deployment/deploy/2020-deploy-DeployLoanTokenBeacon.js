@@ -11,23 +11,8 @@ const func = async function (hre) {
     const { deployer } = await getNamedAccounts(); //await ethers.getSigners(); //
     let totalGas = ethers.BigNumber.from(0);
 
-    // @dev use to narrow down module contracts to redeploy
-    // e.g. you have three contracts modified but want to deploy only one
-    // then add the modules not ready for deployment to `dontDeployModules`
-    const dontDeployModules = {
-        /*
-        LoanTokenLogicLM: "LoanTokenLogicLM",
-        LoanTokenLogicWRBTC: "LoanTokenLogicWRBTC",
-        LoanTokenSettingsLowerAdmin: "LoanTokenSettingsLowerAdmin",
-        */
-    };
-    log(col.bgYellow("Deploying LoanTokenModules..."));
-    const modulesList = getLoanTokenModulesNames();
-    const loanTokenModuleNames = Object.keys(modulesList).filter(
-        (k) => !dontDeployModules.hasOwnProperty(k)
-    );
-
     // Deploy loan token logic beacon LM //
+    log(col.bgYellow("Deploying LoanTokengLogicBeaconLM..."));
     const tx = await deploy("LoanTokenLogicBeaconLM", {
         from: deployer,
         args: [],
@@ -40,6 +25,7 @@ const func = async function (hre) {
     }
 
     // Deploy loan token logic beacon WRBTC //
+    log(col.bgYellow("Deploying LoanTokengLogicBeaconLM..."));
     const tx2 = await deploy("LoanTokenLogicBeaconWrbtc", {
         from: deployer,
         args: [],

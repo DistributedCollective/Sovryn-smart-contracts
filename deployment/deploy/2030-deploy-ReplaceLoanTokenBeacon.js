@@ -20,27 +20,18 @@ const func = async function (hre) {
     // REPLACE MODULES //
     log(col.bgYellow("Replacing LoanToken Modules..."));
 
-    const loanTokenDeploymentIBPRO = await get("LoanToken_iBPRO");
-    const loanTokenDeploymentIDLLR = await get("LoanToken_iDLLR");
-    const loanTokenDeploymentIDOC = await get("LoanToken_iDOC");
-    const loanTokenDeploymentIUSDT = await get("LoanToken_iUSDT");
-    const loanTokenDeploymentIXUSD = await get("LoanToken_iXUSD");
-    const loanTokenDeploymentIRBTC = await get("LoanToken_iRBTC");
-
-    const loanTokenLogicProxyDeployment = await get("LoanTokenLogicProxy");
-    const loanTokenLogicProxyInterface = new ethers.utils.Interface(
-        loanTokenLogicProxyDeployment.abi
-    );
+    const loanTokenLogicProxyInterface = (await ethers.getContractFactory("LoanTokenLogicProxy"))
+        .interface;
 
     const loanTokenLogicBeaconLMDeployment = await get("LoanTokenLogicBeaconLM");
-    const loanTokenLogicBeaconWRBTCDeployment = await get("LoanTokenLogicBeaconWRBTC");
+    const loanTokenLogicBeaconWRBTCDeployment = await get("LoanTokenLogicBeaconWrbtc");
     const loanTokenLogicLMDeployment = await get("LoanTokenLogicLM");
     const loanTokenLogicWRBTCDeployment = await get("LoanTokenLogicWrbtc");
     const loanTokenSettingsLowerAdminDeployment = await get("LoanTokenSettingsLowerAdmin");
 
     const loanTokenLogicBeaconLMContract = await ethers.getContract("LoanTokenLogicBeaconLM");
     const loanTokenLogicBeaconWRBTCContract = await ethers.getContract(
-        "LoanTokenLogicBeaconWRBTC"
+        "LoanTokenLogicBeaconWrbtc"
     );
 
     const loanTokenLogicBeaconLMInterface = new ethers.utils.Interface(
@@ -50,6 +41,39 @@ const func = async function (hre) {
     const loanTokenLogicBeaconWRBTCInterface = new ethers.utils.Interface(
         loanTokenLogicBeaconWRBTCDeployment.abi
     );
+
+    const loanTokens = [
+        {
+            name: "iBPro",
+            deployment: await get("LoanToken_iBPRO"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
+        {
+            name: "iDLLR",
+            deployment: await get("LoanToken_iDLLR"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
+        {
+            name: "iDOC",
+            deployment: await get("LoanToken_iDOC"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
+        {
+            name: "iUSDT",
+            deployment: await get("LoanToken_iUSDT"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
+        {
+            name: "iXUSD",
+            deployment: await get("LoanToken_iXUSD"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
+        {
+            name: "iRBTC",
+            deployment: await get("LoanToken_iRBTC"),
+            beaconAddress: loanTokenLogicBeaconWRBTCDeployment.address,
+        },
+    ];
 
     if (hre.network.tags["testnet"] || hre.network.tags["mainnet"]) {
         const multisigDeployment = await get("MultiSigWallet");
@@ -222,117 +246,25 @@ const func = async function (hre) {
         }
 
         /** 5. Replace loan token logic beacon in proxy */
-        loanTokenWithProxyABI = Contract.from_abi(
-            "loanTokenWithProxyABI",
-            (address = loanTokenAddress),
-            (abi = LoanTokenLogicProxy.abi),
-            (owner = conf.acct)
-        );
-        let data = loanTokenLogicBeaconLMInterface.encodeFunctionData("registerLoanTokenModule", [
-            loanTokenLogicLMDeployment.address,
-        ]);
-
-        /** iBPRO */
-        data = loanTokenLogicProxyInterface.encodeFunctionData("setBeaconAddress", [
-            loanTokenLogicBeaconLMDeployment.address,
-        ]);
-        log("Generating multisig transaction to replace BeaconAddress in loanToken BPRO...");
-        await sendWithMultisig(
-            multisigDeployment.address,
-            loanTokenDeploymentIBPRO.address,
-            data,
-            deployer
-        );
-        log(
-            col.bgBlue(
-                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
-            )
-        );
-
-        /** iDLLR */
-        data = loanTokenLogicProxyInterface.encodeFunctionData("setBeaconAddress", [
-            loanTokenLogicBeaconLMDeployment.address,
-        ]);
-        log("Generating multisig transaction to replace BeaconAddress in loanToken DLLR...");
-        await sendWithMultisig(
-            multisigDeployment.address,
-            loanTokenDeploymentIDLLR.address,
-            data,
-            deployer
-        );
-        log(
-            col.bgBlue(
-                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
-            )
-        );
-
-        /** iDOC */
-        data = loanTokenLogicProxyInterface.encodeFunctionData("setBeaconAddress", [
-            loanTokenLogicBeaconLMDeployment.address,
-        ]);
-        log("Generating multisig transaction to replace BeaconAddress in loanToken DOC...");
-        await sendWithMultisig(
-            multisigDeployment.address,
-            loanTokenDeploymentIDOC.address,
-            data,
-            deployer
-        );
-        log(
-            col.bgBlue(
-                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
-            )
-        );
-
-        /** iUSDT */
-        data = loanTokenLogicProxyInterface.encodeFunctionData("setBeaconAddress", [
-            loanTokenLogicBeaconLMDeployment.address,
-        ]);
-        log("Generating multisig transaction to replace BeaconAddress in loanToken USDT...");
-        await sendWithMultisig(
-            multisigDeployment.address,
-            loanTokenDeploymentIUSDT.address,
-            data,
-            deployer
-        );
-        log(
-            col.bgBlue(
-                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
-            )
-        );
-
-        /** iXUSD */
-        data = loanTokenLogicProxyInterface.encodeFunctionData("setBeaconAddress", [
-            loanTokenLogicBeaconLMDeployment.address,
-        ]);
-        log("Generating multisig transaction to replace BeaconAddress in loanToken XUSD...");
-        await sendWithMultisig(
-            multisigDeployment.address,
-            loanTokenDeploymentIXUSD.address,
-            data,
-            deployer
-        );
-        log(
-            col.bgBlue(
-                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
-            )
-        );
-
-        /** iRBTC to use the loan token logic beacon WRBTC */
-        data = loanTokenLogicProxyInterface.encodeFunctionData("setBeaconAddress", [
-            loanTokenLogicBeaconWRBTCDeployment.address,
-        ]);
-        log("Generating multisig transaction to replace BeaconAddress in loanToken RBTC...");
-        await sendWithMultisig(
-            multisigDeployment.address,
-            loanTokenDeploymentIRBTC.address,
-            data,
-            deployer
-        );
-        log(
-            col.bgBlue(
-                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
-            )
-        );
+        for (let i = 0; i < loanTokens.length; i++) {
+            data = loanTokenLogicProxyInterface.encodeFunctionData("setBeaconAddress", [
+                loanTokens[i].beaconAddress,
+            ]);
+            log(
+                `Generating multisig transaction to replace BeaconAddress in loanToken ${loanTokens[i].name}...`
+            );
+            await sendWithMultisig(
+                multisigDeployment.address,
+                loanTokens[i].deployment.address,
+                data,
+                deployer
+            );
+            log(
+                col.bgBlue(
+                    `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
+                )
+            );
+        }
     } else {
         // hh ganache
         await loanTokenLogicBeaconLMContract.registerLoanTokenModule(
@@ -349,61 +281,15 @@ const func = async function (hre) {
         );
 
         /** Replace loan token logic beacon in proxy */
-        // iBPRO
-        const loanTokenLogicContractIBPRO = await ethers.getContractAt(
-            loanTokenLogicProxyDeployment.abi,
-            loanTokenDeploymentIBPRO.address
-        );
-        await loanTokenLogicContractIBPRO.setBeaconAddress(
-            loanTokenLogicBeaconLMDeployment.address
-        );
-
-        // iDLLR
-        const loanTokenLogicContractIDLLR = await ethers.getContractAt(
-            loanTokenLogicProxyDeployment.abi,
-            loanTokenDeploymentIDLLR.address
-        );
-        await loanTokenLogicContractIDLLR.setBeaconAddress(
-            loanTokenLogicBeaconLMDeployment.address
-        );
-
-        // iDOC
-        const loanTokenLogicContractIDOC = await ethers.getContractAt(
-            loanTokenLogicProxyDeployment.abi,
-            loanTokenDeploymentIDOC.address
-        );
-        await loanTokenLogicContractIDOC.setBeaconAddress(
-            loanTokenLogicBeaconLMDeployment.address
-        );
-
-        // iUSDT
-        const loanTokenLogicContractIUSDT = await ethers.getContractAt(
-            loanTokenLogicProxyDeployment.abi,
-            loanTokenDeploymentIUSDT.address
-        );
-        await loanTokenLogicContractIUSDT.setBeaconAddress(
-            loanTokenLogicBeaconLMDeployment.address
-        );
-
-        // iXUSD
-        const loanTokenLogicContractIXUSD = await ethers.getContractAt(
-            loanTokenLogicProxyDeployment.abi,
-            loanTokenDeploymentIXUSD.address
-        );
-        await loanTokenLogicContractIXUSD.setBeaconAddress(
-            loanTokenLogicBeaconLMDeployment.address
-        );
-
-        // iRBTC
-        const loanTokenLogicContractIRBTC = await ethers.getContractAt(
-            loanTokenLogicProxyDeployment.abi,
-            loanTokenDeploymentIRBTC.address
-        );
-        await loanTokenLogicContractIRBTC.setBeaconAddress(
-            loanTokenLogicBeaconWRBTCDeployment.address
-        );
+        for (let i = 0; i < loanTokens.length; i++) {
+            const loanTokenLogicContractIBPRO = await ethers.getContractAt(
+                loanTokenLogicProxyDeployment.abi,
+                loanTokens[i].deployment.address
+            );
+            await loanTokenLogicContractIBPRO.setBeaconAddress(loanTokens[i].beaconAddress);
+        }
     }
 };
-func.tags = ["DeployLoanTokenBeacon"];
+func.tags = ["ReplaceLoanTokenBeacon"];
 func.dependencies = ["DeployLoanTokenBeacon"];
 module.exports = func;
