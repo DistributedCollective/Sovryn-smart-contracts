@@ -53,7 +53,6 @@ contract FeeSharingCollector is
     FeeSharingCollectorStorage
 {
     using SafeMath for uint256;
-    using SafeMath for uint32;
     using SafeERC20 for IERC20;
 
     address constant ZERO_ADDRESS = address(0);
@@ -278,7 +277,7 @@ contract FeeSharingCollector is
         address _token,
         uint32 _maxCheckpoints,
         address _receiver
-    ) internal returns (uint256 totalAmount, uint256 endToken) {
+    ) internal returns (uint256 totalAmount, uint256 endTokenCheckpoint) {
         /// @dev Prevents block gas limit hit when processing checkpoints
         require(
             _maxCheckpoints > 0,
@@ -347,7 +346,7 @@ contract FeeSharingCollector is
     }
 
     /// @notice Validates if the checkpoint is payable for the user
-    function validFromCheckpointParam(
+    function validFromCheckpointParams(
         uint256[] memory _fromCheckpoints,
         address[] memory _tokens,
         address _user
@@ -412,19 +411,19 @@ contract FeeSharingCollector is
      * @param _maxCheckpoints Maximum number of checkpoints to be processed.
      * @param _receiver The receiver of tokens or msg.sender
      * */
-    function withdrawStartingFromCheckpoint(
+    function withdrawStartingFromCheckpoints(
         address[] calldata _tokens,
         uint256[] calldata _fromCheckpoints,
         uint32 _maxCheckpoints,
         address _receiver
     ) external nonReentrant {
-        validFromCheckpointParam(_fromCheckpoints, _tokens, msg.sender);
+        validFromCheckpointParams(_fromCheckpoints, _tokens, msg.sender);
 
         IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
         address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
 
         for (uint256 i = 0; i < _tokens.length; i++) {
-            if (_maxCheckpoints <= 0) break;
+            if (_maxCheckpoints == 0) break;
             uint256 _fromCheckpoint = _fromCheckpoints[i];
             address _token = _tokens[i];
             uint256 endToken;
@@ -455,8 +454,11 @@ contract FeeSharingCollector is
                 );
             }
 
-            uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint);
-            _maxCheckpoints = uint32(_maxCheckpoints.sub(_previousUsedCheckpoint));
+            uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint).add(1);
+            _maxCheckpoints = safe32(
+                _maxCheckpoints - _previousUsedCheckpoint,
+                "FeeSharingCollector: maxCheckpoint iteration exceeds 32 bits"
+            );
         }
     }
 
@@ -465,21 +467,21 @@ contract FeeSharingCollector is
         uint256 _fromCheckpoint,
         uint32 _maxCheckpoints,
         address _receiver
-    ) internal returns (uint256 totalAmount, uint256 endToken) {
+    ) internal returns (uint256 totalAmount, uint256 endTokenCheckpoint) {
         // @dev e.g. _fromCheckpoint == 10 meaning we should set 9 user's processed checkpoints
         // after _withdraw() the user's processedCheckpoints should be 10
         uint256 prevFromCheckpoint = _fromCheckpoint.sub(1);
         if (prevFromCheckpoint > processedCheckpoints[msg.sender][_token]) {
             processedCheckpoints[msg.sender][_token] = prevFromCheckpoint;
         }
-        (totalAmount, endToken) = _withdraw(_token, _maxCheckpoints, _receiver);
+        (totalAmount, endTokenCheckpoint) = _withdraw(_token, _maxCheckpoints, _receiver);
     }
 
     function _withdrawRbtcToken(
         address _token,
         uint32 _maxCheckpoints,
         address _receiver
-    ) internal returns (uint256 totalAmount, uint256 endToken) {
+    ) internal returns (uint256 totalAmount, uint256 endTokenCheckpoint) {
         address user = msg.sender;
 
         IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
@@ -490,10 +492,10 @@ contract FeeSharingCollector is
             _receiver = msg.sender;
         }
 
-        (totalAmount, endToken) = _getRBTCBalance(_token, user, _maxCheckpoints);
+        (totalAmount, endTokenCheckpoint) = _getRBTCBalance(_token, user, _maxCheckpoints);
 
         if (totalAmount > 0) {
-            processedCheckpoints[user][_token] = endToken;
+            processedCheckpoints[user][_token] = endTokenCheckpoint;
             if (_token == address(wrbtcToken)) {
                 // unwrap the wrbtc
                 wrbtcToken.withdraw(totalAmount);
@@ -529,20 +531,27 @@ contract FeeSharingCollector is
      * @param _maxCheckpoints  Maximum number of checkpoints to be processed to workaround block gas limit
      * @param _receiver An optional tokens receiver (msg.sender used if 0)
      */
-    function withdrawRbtcToken(
+    function withdrawRbtcTokens(
         address[] calldata _tokens,
         uint32 _maxCheckpoints,
         address _receiver
     ) external nonReentrant {
         for (uint256 i = 0; i < _tokens.length; i++) {
-            if (_maxCheckpoints <= 0) break;
+            if (_maxCheckpoints == 0) break;
             address _token = _tokens[i];
             uint256 startingCheckpoint = processedCheckpoints[msg.sender][_token];
 
             (, uint256 endToken) = _withdrawRbtcToken(_tokens[i], _maxCheckpoints, _receiver);
 
             uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint);
-            _maxCheckpoints = uint32(_maxCheckpoints.sub(_previousUsedCheckpoint));
+            if (startingCheckpoint > 0) {
+                // we only need to add used checkpoint by 1 only if starting checkpoint > 0
+                _previousUsedCheckpoint.add(1);
+            }
+            _maxCheckpoints = safe32(
+                _maxCheckpoints - _previousUsedCheckpoint,
+                "FeeSharingCollector: maxCheckpoint iteration exceeds 32 bits"
+            );
         }
     }
 
@@ -563,15 +572,15 @@ contract FeeSharingCollector is
      * @param _maxCheckpoints  Maximum number of checkpoints to be processed to workaround block gas limit
      * @param _receiver An optional tokens receiver (msg.sender used if 0)
      */
-    function withdrawRbtcTokenStartingFromCheckpoint(
+    function withdrawRbtcTokensStartingFromCheckpoint(
         address[] calldata _tokens,
         uint256[] calldata _fromCheckpoints,
         uint32 _maxCheckpoints,
         address _receiver
     ) external nonReentrant {
-        validFromCheckpointParam(_fromCheckpoints, _tokens, msg.sender);
+        validFromCheckpointParams(_fromCheckpoints, _tokens, msg.sender);
         for (uint256 i = 0; i < _tokens.length; i++) {
-            if (_maxCheckpoints <= 0) break;
+            if (_maxCheckpoints == 0) break;
             uint256 _fromCheckpoint = _fromCheckpoints[i];
             address _token = _tokens[i];
 
@@ -589,8 +598,11 @@ contract FeeSharingCollector is
                     _receiver
                 );
 
-            uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint);
-            _maxCheckpoints = uint32(_maxCheckpoints.sub(_previousUsedCheckpoint));
+            uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint).add(1);
+            _maxCheckpoints = safe32(
+                _maxCheckpoints - _previousUsedCheckpoint,
+                "FeeSharingCollector: maxCheckpoint iteration exceeds 32 bits"
+            );
         }
     }
 
@@ -603,7 +615,7 @@ contract FeeSharingCollector is
         uint256 _fromCheckpoint,
         uint32 _maxCheckpoints,
         address _receiver
-    ) private returns (uint256 totalAmount, uint256 endToken) {
+    ) private returns (uint256 totalAmount, uint256 endTokenCheckpoint) {
         // @dev e.g. _fromCheckpoint == 10
         // after _withdraw() user's processedCheckpoints should be 10 =>
         // set processed checkpoints = 9, next maping index = 9 (10th checkpoint)
@@ -1048,27 +1060,19 @@ contract FeeSharingCollector is
 
         address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
 
-        if (_token == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT) {
+        if (
+            _token == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT ||
+            _token == address(wrbtcToken) ||
+            _token == loanPoolTokenWRBTC
+        ) {
             (_tokenAmount, _endToken) = _getAccumulatedFees({
                 _user: _user,
-                _token: RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                _token: _token,
                 _startFrom: 0,
                 _maxCheckpoints: _maxCheckpoints
             });
-        } else if (_token == address(wrbtcToken)) {
-            (_tokenAmount, _endToken) = _getAccumulatedFees({
-                _user: _user,
-                _token: address(wrbtcToken),
-                _startFrom: 0,
-                _maxCheckpoints: _maxCheckpoints
-            });
-        } else if (_token == loanPoolTokenWRBTC) {
-            (_tokenAmount, _endToken) = _getAccumulatedFees({
-                _user: _user,
-                _token: loanPoolTokenWRBTC,
-                _startFrom: 0,
-                _maxCheckpoints: _maxCheckpoints
-            });
+        } else {
+            revert("FeeSharingCollector::_getRBTCBalance: only rbtc-based tokens are allowed");
         }
     }
 
