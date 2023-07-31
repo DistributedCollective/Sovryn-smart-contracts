@@ -228,4 +228,9 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
             logicTargetsSet.removeBytes32(bytes32(sig));
         }
     }
+
+    modifier onlyAdminOrOwner() {
+        require(isOwner() || admin == (msg.sender), "unauthorized");
+        _;
+    }
 }

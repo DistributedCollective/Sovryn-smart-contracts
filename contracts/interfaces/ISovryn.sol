@@ -503,4 +503,8 @@ contract ISovryn is
         external
         view
         returns (bool isTinyPosition, uint256 tinyPositionAmount);
+
+    function setAdmin(address newAdmin) external;
+
+    function getAdmin() external view returns (address);
 }

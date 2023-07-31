@@ -174,4 +174,6 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
         address indexed destTokenAddress,
         IERC20[] defaultPath
     );
+
+    event SetAdmin(address indexed sender, address indexed oldAdmin, address indexed newAdmin);
 }

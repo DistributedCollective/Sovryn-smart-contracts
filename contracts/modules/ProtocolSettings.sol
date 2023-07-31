@@ -100,6 +100,8 @@ contract ProtocolSettings is
         _setTarget(this.getDefaultPathConversion.selector, target);
         _setTarget(this.setDefaultPathConversion.selector, target);
         _setTarget(this.removeDefaultPathConversion.selector, target);
+        _setTarget(this.setAdmin.selector, target);
+        _setTarget(this.getAdmin.selector, target);
         emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "ProtocolSettings");
     }
 
@@ -391,6 +393,30 @@ contract ProtocolSettings is
         feesController = newController;
 
         emit SetFeesController(msg.sender, oldController, newController);
+    }
+
+    /**
+     * @notice Set the admin address of sovryn protocol.
+     *
+     * only owner can perform this action.
+     *
+     * @param newAdmin The new address of the admin.
+     * */
+    function setAdmin(address newAdmin) external onlyOwner {
+        address oldAdmin = admin;
+        admin = newAdmin;
+
+        emit SetAdmin(msg.sender, oldAdmin, newAdmin);
+    }
+
+    /**
+     * @dev Get admin address.
+     *
+     *
+     * @return admin address.
+     */
+    function getAdmin() external view returns (address) {
+        return admin;
     }
 
     /**
@@ -891,7 +917,7 @@ contract ProtocolSettings is
      */
     function setDefaultPathConversion(IERC20[] calldata defaultPath)
         external
-        onlyOwner
+        onlyAdminOrOwner
         whenNotPaused
     {
         address sourceTokenAddress = address(defaultPath[0]);
