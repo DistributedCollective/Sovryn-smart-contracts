@@ -346,7 +346,7 @@ contract FeeSharingCollector is
     }
 
     /// @notice Validates if the checkpoint is payable for the user
-    function validFromCheckpointParams(
+    function validFromCheckpointsParam(
         uint256[] memory _fromCheckpoints,
         address[] memory _tokens,
         address _user
@@ -394,6 +394,23 @@ contract FeeSharingCollector is
         }
     }
 
+    function validRBTCBasedTokens(address[] memory _tokens) private view {
+        IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
+
+        address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
+
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address _token = _tokens[i];
+            if (
+                _token != RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT &&
+                _token != address(wrbtcToken) &&
+                _token != loanPoolTokenWRBTC
+            ) {
+                revert("only rbtc-based tokens are allowed");
+            }
+        }
+    }
+
     /**
      * @notice Withdraw accumulated fee to the message sender/receiver.
      *
@@ -417,16 +434,23 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints,
         address _receiver
     ) external nonReentrant {
-        validFromCheckpointParams(_fromCheckpoints, _tokens, msg.sender);
+        validFromCheckpointsParam(_fromCheckpoints, _tokens, msg.sender);
+
+        if (_receiver == ZERO_ADDRESS) {
+            _receiver = msg.sender;
+        }
 
         IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
         address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
+
+        uint256 tempRbtcAmountToSend;
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             if (_maxCheckpoints == 0) break;
             uint256 _fromCheckpoint = _fromCheckpoints[i];
             address _token = _tokens[i];
             uint256 endToken;
+            uint256 totalAmount;
 
             uint256 previousProcessedUserCheckpoints = processedCheckpoints[msg.sender][_token];
             uint256 startingCheckpoint =
@@ -439,12 +463,13 @@ contract FeeSharingCollector is
                 _token == loanPoolTokenWRBTC ||
                 _token == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             ) {
-                (, endToken) = _withdrawRbtcTokenStartingFromCheckpoint(
+                (totalAmount, endToken) = _withdrawRbtcTokenStartingFromCheckpoint(
                     _token,
                     _fromCheckpoint,
                     _maxCheckpoints,
                     _receiver
                 );
+                tempRbtcAmountToSend = tempRbtcAmountToSend.add(totalAmount);
             } else {
                 (, endToken) = _withdrawStartingFromCheckpoint(
                     _token,
@@ -459,6 +484,12 @@ contract FeeSharingCollector is
                 _maxCheckpoints - _previousUsedCheckpoint,
                 "FeeSharingCollector: maxCheckpoint iteration exceeds 32 bits"
             );
+        }
+
+        if (tempRbtcAmountToSend > 0) {
+            // send all rbtc withdrawal
+            (bool success, ) = _receiver.call.value(tempRbtcAmountToSend)("");
+            require(success, "FeeSharingCollector::withdrawRBTC: Withdrawal failed");
         }
     }
 
@@ -488,10 +519,6 @@ contract FeeSharingCollector is
 
         address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
 
-        if (_receiver == ZERO_ADDRESS) {
-            _receiver = msg.sender;
-        }
-
         (totalAmount, endTokenCheckpoint) = _getRBTCBalance(_token, user, _maxCheckpoints);
 
         if (totalAmount > 0) {
@@ -510,10 +537,6 @@ contract FeeSharingCollector is
             }
         }
 
-        // withdraw everything
-        (bool success, ) = _receiver.call.value(totalAmount)("");
-        require(success, "FeeSharingCollector::withdrawRBTC: Withdrawal failed");
-
         emit RBTCWithdrawn(user, _receiver, totalAmount);
     }
 
@@ -525,7 +548,6 @@ contract FeeSharingCollector is
      * - wrbtc balance which will be unwrapped to rbtc or
      * - iwrbtc balance which will be unwrapped to rbtc or
      *
-     * @dev WARNING! This function skips all the checkpoints before '_fromCheckpoint' irreversibly, use with care
      *
      * @param _tokens array of either RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT or wrbtc address or iwrbtc address
      * @param _maxCheckpoints  Maximum number of checkpoints to be processed to workaround block gas limit
@@ -536,12 +558,22 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints,
         address _receiver
     ) external nonReentrant {
+        validRBTCBasedTokens(_tokens);
+
+        if (_receiver == ZERO_ADDRESS) {
+            _receiver = msg.sender;
+        }
+
+        uint256 tempRbtcAmountToSend;
+
         for (uint256 i = 0; i < _tokens.length; i++) {
             if (_maxCheckpoints == 0) break;
             address _token = _tokens[i];
             uint256 startingCheckpoint = processedCheckpoints[msg.sender][_token];
 
-            (, uint256 endToken) = _withdrawRbtcToken(_tokens[i], _maxCheckpoints, _receiver);
+            (uint256 totalAmount, uint256 endToken) =
+                _withdrawRbtcToken(_tokens[i], _maxCheckpoints, _receiver);
+            tempRbtcAmountToSend = tempRbtcAmountToSend.add(totalAmount);
 
             uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint);
             if (startingCheckpoint > 0) {
@@ -552,6 +584,12 @@ contract FeeSharingCollector is
                 _maxCheckpoints - _previousUsedCheckpoint,
                 "FeeSharingCollector: maxCheckpoint iteration exceeds 32 bits"
             );
+        }
+
+        // send all rbtc
+        if (tempRbtcAmountToSend > 0) {
+            (bool success, ) = _receiver.call.value(tempRbtcAmountToSend)("");
+            require(success, "FeeSharingCollector::withdrawRBTC: Withdrawal failed");
         }
     }
 
@@ -578,7 +616,15 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints,
         address _receiver
     ) external nonReentrant {
-        validFromCheckpointParams(_fromCheckpoints, _tokens, msg.sender);
+        validFromCheckpointsParam(_fromCheckpoints, _tokens, msg.sender);
+        validRBTCBasedTokens(_tokens);
+
+        if (_receiver == ZERO_ADDRESS) {
+            _receiver = msg.sender;
+        }
+
+        uint256 tempRbtcAmountToSend;
+
         for (uint256 i = 0; i < _tokens.length; i++) {
             if (_maxCheckpoints == 0) break;
             uint256 _fromCheckpoint = _fromCheckpoints[i];
@@ -590,19 +636,26 @@ contract FeeSharingCollector is
                     ? _fromCheckpoint
                     : previousProcessedUserCheckpoints;
 
-            (, uint256 endToken) =
+            (uint256 totalAmount, uint256 endToken) =
                 _withdrawRbtcTokenStartingFromCheckpoint(
                     _token,
                     _fromCheckpoint,
                     _maxCheckpoints,
                     _receiver
                 );
+            tempRbtcAmountToSend = tempRbtcAmountToSend.add(totalAmount);
 
             uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint).add(1);
             _maxCheckpoints = safe32(
                 _maxCheckpoints - _previousUsedCheckpoint,
                 "FeeSharingCollector: maxCheckpoint iteration exceeds 32 bits"
             );
+        }
+
+        // send all rbtc
+        if (tempRbtcAmountToSend > 0) {
+            (bool success, ) = _receiver.call.value(tempRbtcAmountToSend)("");
+            require(success, "FeeSharingCollector::withdrawRBTC: Withdrawal failed");
         }
     }
 

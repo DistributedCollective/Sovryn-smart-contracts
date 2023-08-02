@@ -592,6 +592,38 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpoints.toNumber()).to.equal(10);
         });
 
+        it("withdrawRbtcTokenStartingFromCheckpoint should revert if non-rbtc token is passed", async () => {
+            // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRbtcTokenStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
+
+            /// RBTC
+            await stake(900, root);
+            const userStake = 100;
+
+            await SOVToken.transfer(account1, userStake);
+            await createCheckpointsSOV(9);
+
+            await stake(userStake, account1);
+            await createCheckpointsSOV(1);
+
+            let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+
+            await expectRevert(
+                feeSharingCollector.withdrawRbtcTokensStartingFromCheckpoint(
+                    [SOVToken.address],
+                    [nextPositive.checkpointNum.toNumber()],
+                    3,
+                    ZERO_ADDRESS,
+                    { from: account1 }
+                ),
+                "only rbtc-based tokens are allowed"
+            );
+        });
+
         it("should not be able to withdraw non-rbtc based token using withdrawRbtcTokenStartingFromCheckpoint() function", async () => {
             // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRbtcTokenStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
@@ -620,7 +652,7 @@ contract("FeeSharingCollector:", (accounts) => {
                     ZERO_ADDRESS,
                     { from: account1 }
                 ),
-                "FeeSharingCollector::_getRBTCBalance: only rbtc-based tokens are allowed"
+                "only rbtc-based tokens are allowed"
             );
         });
 
@@ -2074,7 +2106,7 @@ contract("FeeSharingCollector:", (accounts) => {
                 feeSharingCollector.withdrawRbtcTokens([SOVToken.address], 1000, account2, {
                     from: account1,
                 }),
-                "FeeSharingCollector::_getRBTCBalance: only rbtc-based tokens are allowed"
+                "only rbtc-based tokens are allowed"
             );
         });
 
