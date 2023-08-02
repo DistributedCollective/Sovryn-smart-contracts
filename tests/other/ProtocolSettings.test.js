@@ -987,6 +987,27 @@ contract("ProtocolSettings", (accounts) => {
             expect((await sovryn.getAdmin()) == admin).to.be.true;
         });
 
+        it("Should revert if call setAdmin by non-authorized account", async () => {
+            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
+            const admin = accounts[1];
+            const dest = sovryn.address;
+            const val = 0;
+            const data = sovryn.contract.methods.setAdmin(admin).encodeABI();
+            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId, { from: accounts[1] });
+            expect((await sovryn.getAdmin()) == admin).to.be.true;
+
+            /** non-authorized account should not be able to call the setter function */
+            await expectRevert(
+                sovryn.setAdmin(accounts[4], { from: accounts[6] }),
+                "unauthorized"
+            );
+            expect((await sovryn.getAdmin()) == admin).to.be.true;
+        });
+
         it("Test set admin", async () => {
             expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
 
