@@ -945,7 +945,7 @@ contract FeeSharingCollector is
      *
      * @return wrbtc loan pool wrbtc token address
      */
-    function _getAndValidateLoanPoolWRBTC(address _wRBTCAddress) private view returns (address) {
+    function _getAndValidateLoanPoolWRBTC(address _wRBTCAddress) internal view returns (address) {
         address loanPoolTokenWRBTC = protocol.underlyingToLoanPool(_wRBTCAddress);
         require(
             loanPoolTokenWRBTC != ZERO_ADDRESS,

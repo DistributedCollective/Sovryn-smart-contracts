@@ -645,6 +645,33 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
+        it("withdrawStartingFromCheckpoint revert if _fromCheckpoint <= totalTokenCheckpoints[_token]", async () => {
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await sovryn.setFeesController(feeSharingCollector.address);
+            let rootStake = 900;
+            await stake(rootStake, root);
+            const userStake = 100;
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+            await feeSharingCollector.addCheckPoint(SOVToken.address, 100);
+            await feeSharingCollector.setUserProcessedCheckpoints(account1, SOVToken.address, 3);
+            await expectRevert(
+                feeSharingCollector.withdrawStartingFromCheckpoint(
+                    SOVToken.address,
+                    100,
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "_fromCheckpoint should be <= totalTokenCheckpoints"
+            );
+        });
+
         it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint revert if _fromCheckpoint < processedCheckpoints[user][_token]", async () => {
             feeSharingCollector = await FeeSharingCollectorMockup.new(
                 sovryn.address,
@@ -1579,6 +1606,17 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
+        it("Token transfer failed", async () => {
+            await protocolDeploymentFixture();
+            mockToken = await smock.fake("TestToken");
+
+            mockToken.transferFrom.returns(false);
+            await expectRevert(
+                feeSharingCollector.transferTokens(mockToken.address, 1000),
+                "Staking::transferTokens: token transfer failed"
+            );
+        });
+
         it("Shouldn't be able to transfer zero amount", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
@@ -1709,7 +1747,15 @@ contract("FeeSharingCollector:", (accounts) => {
             await stake(900, root);
             await createCheckpointsSOV(10);
             let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            let feesByCheckpointsRange =
+                await feeSharingCollector.getAccumulatedFeesForCheckpointsRange(
+                    account1,
+                    SOVToken.address,
+                    0,
+                    0
+                );
             expect(fees).to.be.bignumber.equal("0");
+            expect(feesByCheckpointsRange).to.be.bignumber.equal("0");
 
             const tx = await feeSharingCollector.withdraw(SOVToken.address, 9, ZERO_ADDRESS, {
                 from: account1,
@@ -2681,6 +2727,11 @@ contract("FeeSharingCollector:", (accounts) => {
             await protocolDeploymentFixture();
 
             await expectRevert(
+                feeSharingCollector.addWhitelistedConverterAddress(account1, { from: account2 }),
+                "unauthorized"
+            );
+
+            await expectRevert(
                 feeSharingCollector.addWhitelistedConverterAddress(account1),
                 "Non contract address given"
             );
@@ -2717,6 +2768,14 @@ contract("FeeSharingCollector:", (accounts) => {
             );
             let whitelistedConverterList = await feeSharingCollector.getWhitelistedConverterList();
             expect(whitelistedConverterList.length).to.equal(0);
+
+            await expectRevert(
+                feeSharingCollector.removeWhitelistedConverterAddress(
+                    liquidityPoolV1Converter.address,
+                    { from: account2 }
+                ),
+                "unauthorized"
+            );
 
             await feeSharingCollector.removeWhitelistedConverterAddress(
                 liquidityPoolV1Converter.address
@@ -3378,6 +3437,58 @@ contract("FeeSharingCollector:", (accounts) => {
                 feeSharingCollector.recoverIncorrectAllocatedFees(),
                 "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
             );
+        });
+    });
+
+    describe("test coverage", async () => {
+        it("getAccumulatedRBTCFeeBalances should revert loan wrbtc is not set", async () => {
+            await protocolDeploymentFixture();
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            await expectRevert(
+                feeSharingCollector.invalidLoanPoolWRBTC(),
+                "FeeSharingCollector::withdraw: loan wRBTC not found"
+            );
+        });
+
+        it("Withdraw wrbtc using transferTokens failed because insufficient balance", async () => {
+            await protocolDeploymentFixture();
+            await expectRevert.unspecified(
+                feeSharingCollector.transferTokens(WRBTC.address, 1000)
+            );
+        });
+
+        it("Withdraw wrbtc using transferTokens failed because insufficient balance", async () => {
+            await protocolDeploymentFixture();
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            const end = await feeSharingCollector.endOfRangeWithZeroMaxCheckpoint(WRBTC.address);
+            expect(end).to.equal(0);
+        });
+
+        it("getNextPositiveUserCheckpoint should return empty value for vesting contract", async () => {
+            await protocolDeploymentFixture();
+            let { vestingInstance } = await createVestingContractWithSingleDate(
+                new BN(MAX_DURATION),
+                1000,
+                root
+            );
+            await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
+            let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                vestingInstance.address,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            const { checkpointNum, hasSkippedCheckpoints, hasFees } = nextPositive;
+            expect(checkpointNum).to.equal(0);
+            expect(hasSkippedCheckpoints).to.equal(false);
+            expect(hasFees).to.equal(false);
         });
     });
 
