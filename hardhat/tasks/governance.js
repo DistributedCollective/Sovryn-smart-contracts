@@ -11,6 +11,18 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { delay } = require("../../deployment/helpers/helpers");
 
+const getImpersonatedSignerFromJsonRpcProvider = async (addressToImpersonate) => {
+    //await impersonateAccount(addressToImpersonate);
+    //return await ethers.getSigner(addressToImpersonate);
+    const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
+    await provider.send("hardhat_impersonateAccount", [addressToImpersonate]);
+    console.log(
+        "provider.getSigner(addressToImpersonate):",
+        provider.getSigner(addressToImpersonate).address
+    );
+    return provider.getSigner(addressToImpersonate);
+};
+
 const parseEthersLog = (parsed) => {
     let parsedEvent = {};
     for (let i = 0; i < parsed.args.length; i++) {
@@ -39,7 +51,7 @@ async function getVestingsOf(hre, address) {
     return await (await ethers.getContract("VestingRegistry")).getVestingsOf(address);
 }
 
-async function createVestings(hre, path, dryRun, multiplier) {
+async function createVestings(hre, path, multiplier, signerAcc) {
     /*
      * vested token sender script - takes addresses from the file by path
      * dryRun - true to check that the data will be processed correctly, false - execute distribution
@@ -48,8 +60,15 @@ async function createVestings(hre, path, dryRun, multiplier) {
 
     const { ethers } = hre;
 
-    const { deployer: deployerAcc } = await hre.getNamedAccounts();
-    signer = await ethers.getSigner(deployerAcc);
+    let signer;
+    let signerAddress;
+    if (ethers.utils.isAddress(signerAcc)) {
+        signer = await getImpersonatedSignerFromJsonRpcProvider(signerAcc);
+        signerAddress = signer._address;
+    } else {
+        signer = await ethers.getSigner((await hre.getNamedAccounts())[signerAcc]);
+        signerAddress = signer.address;
+    }
 
     const vestingRegistry = await ethers.getContract("VestingRegistry", signer);
 
@@ -60,7 +79,7 @@ async function createVestings(hre, path, dryRun, multiplier) {
     const DAY = 24 * 60 * 60;
     const FOUR_WEEKS = 4 * 7 * DAY;
 
-    const balanceBefore = await ethers.provider.getBalance(signer.address);
+    const balanceBefore = await ethers.provider.getBalance(signerAddress);
     let totalAmount = ethers.BigNumber.from(0);
 
     // amounts examples: "6,516.85", 1200.00, 912.92 - 2 decimals strictly!
@@ -201,10 +220,11 @@ async function createVestings(hre, path, dryRun, multiplier) {
 
     console.log("=======================================");
     console.log("SOV amount:");
-    console.log(totalAmount / 10 ** 18);
+    console.log(totalAmount / ethers.constants.WeiPerEther);
 
+    const balanceAfter = await ethers.provider.getBalance(signerAddress);
     console.log("deployment cost:");
-    console.log((balanceBefore - (await ethers.provider.getBalance(deployerAcc))) / 10 ** 18);
+    console.log(balanceBefore.sub(balanceAfter) / ethers.constants.WeiPerEther);
 }
 
 async function parseVestingsFile(ethers, fileName, multiplier) {
@@ -258,10 +278,10 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
 
 task("governance:createVestings", "Create vestings")
     .addParam("path", "The file path")
-    .addOptionalParam("dryRun", "Dry run flag (default: true)", true, types.boolean)
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .setAction(async ({ path, dryRun }, hre) => {
         const multiplier = (1e16).toString();
-        await createVestings(hre, path, dryRun, multiplier);
+        await createVestings(hre, path, multiplier, signer);
     });
 
 const VestingType = {
@@ -285,13 +305,23 @@ function calculateUid(tokenOwner, vestingCreationType, cliff, duration) {
     return ethers.BigNumber.from(encodedData);
 }
 
-async function createFourYearVestings(hre, path, dryRun) {
+async function createFourYearVestings(hre, path, signerAcc) {
     const {
         ethers,
         deployments: { get },
     } = hre;
-    const { deployer } = await hre.getNamedAccounts();
-    const signer = ethers.provider.getSigner(deployer);
+    console.log(signerAcc);
+    console.log(ethers.utils.isAddress(signerAcc));
+
+    let signer;
+    let signerAddress;
+    if (ethers.utils.isAddress(signerAcc)) {
+        signer = await getImpersonatedSignerFromJsonRpcProvider(signerAcc);
+        signerAddress = signer._address;
+    } else {
+        signer = await ethers.getSigner((await hre.getNamedAccounts())[signerAcc]);
+        signerAddress = signer.address;
+    }
 
     const SOVtoken = await ethers.getContract("SOV", signer);
 
@@ -301,16 +331,15 @@ async function createFourYearVestings(hre, path, dryRun) {
 
     const MULTIPLIER = ethers.BigNumber.from(10).pow(16);
     const DAY = 24 * 60 * 60;
-    const WEEK = 7 * DAY;
     const FOUR_WEEKS = 4 * 7 * DAY;
     const cliff = FOUR_WEEKS;
     const duration = 39 * FOUR_WEEKS;
     const vestingCreationType = 4;
 
-    const balanceBefore = await ethers.provider.getBalance(deployer);
+    const balanceBefore = await ethers.provider.getBalance(signerAddress);
     console.log("SOV Balance Before:");
     console.log(
-        (await SOVtoken.balanceOf(deployer)).div(ethers.BigNumber.from(10).pow(18)).toString()
+        (await SOVtoken.balanceOf(signerAddress)).div(ethers.constants.WeiPerEther).toString()
     );
 
     const data = [];
@@ -351,7 +380,6 @@ async function createFourYearVestings(hre, path, dryRun) {
         let amount = row[1].replace(",", "").replace(".", "");
         amount = ethers.BigNumber.from(amount).mul(MULTIPLIER);
         const extendDurationFor = row[2].replace(" ", "");
-        //@todo query registry if 4y vesting is already created for the user and return it instead of creating
 
         const uid = calculateUid(
             tokenOwner.toLowerCase(),
@@ -426,7 +454,13 @@ async function createFourYearVestings(hre, path, dryRun) {
         let lastSchedule = ethers.BigNumber.from(0);
         while (remainingAmount.gt(0)) {
             console.log("remainingAmount before:", remainingAmount.toString());
-            await (await fourYearVesting.stakeTokens(remainingAmount, lastSchedule)).wait();
+
+            await (
+                await fourYearVesting.stakeTokens(remainingAmount, lastSchedule, {
+                    gasLimit: 6800000,
+                    gasPrice: 65e6,
+                })
+            ).wait();
             lastSchedule = await fourYearVesting.lastStakingSchedule();
             console.log("lastSchedule:", lastSchedule.toString());
             remainingAmount = await fourYearVesting.remainingStakeAmount();
@@ -434,26 +468,27 @@ async function createFourYearVestings(hre, path, dryRun) {
         }
 
         const stakes = await staking.getStakes(vestingAddress);
-        console.log("Staking Details");
-        console.log("=======================================");
-        console.log(stakes);
+        console.log("Stakes:");
+        logger.warn(
+            stakes.stakes.map((stake) => stake.div(ethers.constants.WeiPerEther).toString())
+        );
+        logger.warn(stakes.dates.map((date) => new Date(date.toNumber() * 1000)));
     }
 
     console.log("SOV Balance After:");
-    console.log(
-        (await SOVtoken.balanceOf(deployer)).div(ethers.BigNumber.from(10).pow(18)).toString()
-    );
+    console.log((await SOVtoken.balanceOf(signerAddress)) / ethers.constants.WeiPerEther);
 
-    const balanceAfter = await ethers.provider.getBalance(deployer);
+    const balanceAfter = await ethers.provider.getBalance(signerAddress);
     console.log("deployment cost:");
-    console.log(balanceBefore.sub(balanceAfter).div(ethers.BigNumber.from(10).pow(18)).toString());
+    console.log(balanceBefore.sub(balanceAfter) / ethers.constants.WeiPerEther);
 }
 
 task("governance:createFourYearVestings", "Create vestings")
     .addParam("path", "The file path")
-    .addOptionalParam("dryRun", "Dry run flag (default: true)", true, types.boolean)
-    .setAction(async ({ path, dryRun }, hre) => {
-        await createFourYearVestings(hre, path, dryRun);
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    //.addOptionalParam("dryRun", "Dry run flag (default: true)", true, types.boolean)
+    .setAction(async ({ path, signer }, hre) => {
+        await createFourYearVestings(hre, path, signer);
     });
 
 task("governance:getVestingsOf", "Get vesting contracts of an address")
