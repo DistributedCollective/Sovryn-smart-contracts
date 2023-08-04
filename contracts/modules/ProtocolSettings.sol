@@ -403,10 +403,8 @@ contract ProtocolSettings is
      * @param newAdmin The new address of the admin.
      * */
     function setAdmin(address newAdmin) external onlyOwner {
-        address oldAdmin = admin;
+        emit SetAdmin(msg.sender, admin, newAdmin);
         admin = newAdmin;
-
-        emit SetAdmin(msg.sender, oldAdmin, newAdmin);
     }
 
     /**
