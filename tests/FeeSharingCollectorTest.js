@@ -2561,18 +2561,13 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpointsWRBTC.toNumber()).to.be.equal(1);
             expect(processedCheckpointsIWRBTC.toNumber()).to.be.equal(1);
 
-            expectEvent(
-                tx,
-                "RBTCWithdrawn",
-                {
-                    sender: account1,
-                    receiver: account2,
-                    amount: new BN(feeAmount)
-                        .mul(new BN(userStakePercentage).mul(new BN(1)))
-                        .div(new BN(10)), // need multiple by 1 only since we only withdraw RBTC in tx1
-                },
-                { times: 3 }
-            );
+            expectEvent(tx, "RBTCWithdrawn", {
+                sender: account1,
+                receiver: account2,
+                amount: new BN(feeAmount)
+                    .mul(new BN(userStakePercentage).mul(new BN(3)))
+                    .div(new BN(10)),
+            });
         });
 
         it("Should be able to withdraw to another account (WRBTC) - using withdrawRbtcToken() - Within 1 transaction partially", async () => {
@@ -2692,31 +2687,21 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpointsWRBTC.toNumber()).to.be.equal(1);
             expect(processedCheckpointsIWRBTC.toNumber()).to.be.equal(1);
 
-            expectEvent(
-                tx,
-                "RBTCWithdrawn",
-                {
-                    sender: account1,
-                    receiver: account2,
-                    amount: new BN(feeAmount)
-                        .mul(new BN(userStakePercentage).mul(new BN(1)))
-                        .div(new BN(10)), // need multiple by 1 only since we only withdraw RBTC in tx1
-                },
-                { times: 2 }
-            );
+            expectEvent(tx, "RBTCWithdrawn", {
+                sender: account1,
+                receiver: account2,
+                amount: new BN(feeAmount)
+                    .mul(new BN(userStakePercentage).mul(new BN(2)))
+                    .div(new BN(10)),
+            });
 
-            expectEvent(
-                tx2,
-                "RBTCWithdrawn",
-                {
-                    sender: account1,
-                    receiver: account2,
-                    amount: new BN(feeAmount)
-                        .mul(new BN(userStakePercentage).mul(new BN(1)))
-                        .div(new BN(10)), // need multiple by 1 only since we only withdraw RBTC in tx1
-                },
-                { times: 1 }
-            );
+            expectEvent(tx2, "RBTCWithdrawn", {
+                sender: account1,
+                receiver: account2,
+                amount: new BN(feeAmount)
+                    .mul(new BN(userStakePercentage).mul(new BN(1)))
+                    .div(new BN(10)),
+            });
         });
 
         it("Should be able to withdraw (WRBTC pool)", async () => {
@@ -2816,16 +2801,11 @@ contract("FeeSharingCollector:", (accounts) => {
             );
             expect(userLatestBTCBalance.toString()).to.be.equal(userExpectedBtcBalance.toString());
 
-            expectEvent(
-                tx,
-                "RBTCWithdrawn",
-                {
-                    sender: account1,
-                    receiver: account1,
-                    amount: feeAmount.mul(new BN(3)).div(new BN(10)),
-                },
-                { times: 3 }
-            );
+            expectEvent(tx, "RBTCWithdrawn", {
+                sender: account1,
+                receiver: account1,
+                amount: feeAmount.mul(new BN(3)).div(new BN(10)),
+            });
         });
 
         it("Should be able to withdraw (sov pool)", async () => {
