@@ -11,6 +11,10 @@ fs_permissions = [{ access = "read-write", path = "./"}, { access = "read-write"
 # block_base_fee_per_gas = 0
 # block_gas_limit = 30000000
 
+[doc]
+out = 'foundry/docs'
+ignore = ['contracts/mockup/**/*.sol','contracts/testhelpers/**/*.sol']
+
 [fuzz]
 runs = 10000
 
