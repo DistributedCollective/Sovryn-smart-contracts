@@ -31,16 +31,6 @@ contract StakingFuzzTest is Test {
     uint256 constant MAX_256 = 2**256 - 1;
     uint32 constant MAX_32 = 2**32 - 1;
 
-    struct TestData {
-        uint256 userBalance;
-        uint256 userStakeTS;
-        uint256 delegateeBalance;
-        uint256 delegateeStakeTS;
-        uint256 userVotingPower;
-        uint256 delegateeVotingPower;
-        uint256 stakingBalance;
-    }
-
     event TokensStaked(
         address indexed staker,
         uint256 amount,
@@ -73,6 +63,8 @@ contract StakingFuzzTest is Test {
     // Test Setup
     function setUp() public virtual {
         // Initialize test variables
+        mineBlocks(1);
+
         sov = IERC20(
             deployCode("TestToken.sol", abi.encode("Sovryn", "SOV", 18, 100_000_000 ether))
         );
@@ -144,8 +136,23 @@ contract StakingFuzzTest is Test {
         vm.warp(block.number * _timePerBlockInSeconds);
     }
 
+    // helpers
+    // @todo extract to a helper contract
+    function mineBlocksTimeBack(uint256 _blocks, uint256 _timePerBlockInSeconds) internal {
+        vm.roll(block.number - _blocks);
+        vm.warp(block.number * _timePerBlockInSeconds);
+    }
+
     function mineBlocks(uint256 _blocks) internal {
-        mineBlocksTime(_blocks, 30);
+        if (_blocks != 0) {
+            mineBlocksTime(_blocks, 30);
+        }
+    }
+
+    function mineBlocksBack(uint256 _blocks) internal {
+        if (_blocks != 0) {
+            mineBlocksTimeBack(_blocks, 30);
+        }
     }
 
     function testFuzz_AdjustLockDate(uint256 _randomLockTimestamp) external {
@@ -775,6 +782,13 @@ contract StakingFuzzTest is Test {
         vm.stopPrank();
     }
 
+    event DelegateStakeChanged(
+        address indexed delegate,
+        uint256 lockedUntil,
+        uint256 previousBalance,
+        uint256 newBalance
+    );
+
     /**
      * @param _withdrawTS - random timestamp after the stake timestamp to time travel to and withdraw
      * @param _withdrawAmount - random amount to withdraw
@@ -834,7 +848,8 @@ contract StakingFuzzTest is Test {
         _withdrawTS = bound(
             _withdrawTS,
             block.timestamp,
-            (uint256(MAX_32) - block.timestamp - 1) * 30 + block.timestamp
+            (uint256(MAX_32) - block.number - 1) * 30 + block.timestamp
+            //(uint256(MAX_32) - block.timestamp - 1) * 30 + block.timestamp
         );
 
         emit log_named_uint("kickoffTS", kickoffTS);
@@ -1021,32 +1036,41 @@ contract StakingFuzzTest is Test {
         vm.stopPrank();
     }
 
+    struct DelegateFuzzTestData {
+        uint256 userBalance;
+        uint256 userStakeTS;
+        uint256 userStakeBlock;
+        uint256 userLockedTS;
+        uint256 delegateeBalance;
+        uint256 delegateeStakeTS;
+        uint256 delegateeStakeBlock;
+        uint256 delegateeLockedTS;
+        uint256 userVotingPower;
+        uint256 delegateeVotingPower;
+        uint256 stakingBalance;
+        uint256 totalVotingPower;
+    }
+
     function testFuzz_Delegate(
-        uint256 _delegateTS,
-        uint256 _stakeAmount,
-        address _delegateeIndex,
-        uint256 _blocksBetweenStakesIndex,
-        bool _userStakesFirst,
-        bool _userUnstakesStakesFirst
+        uint32 _delegateBlockNumber,
+        uint8 _blocksBetweenStakesIndex,
+        bool _userStakesFirst
     ) external {
-        _delegateeIndex = bound(_delegateeIndex, 0, 2);
-        address[3] memory fuzzDelegatees = [address(0), user, user2];
-        uint256[5] memory blocksRangeBetweenStakes =
-            [0, 1 days, 14 days, 28 days, 50 days, 60 days]; // 1 block - 30 seconds
-        address fuzzDelegatee = fuzzDelegatees[_delegateeIndex];
-        _stakeAmount = bound(_stakeAmount, 1, MAX_96);
-        _blocksBetweenStakes = bound(_blocksBetweenStakes, 0, 5);
-        address firstStakingUser = _userStakeFirst ? user : fuzzDelegatee;
-        address secondStakingUser = _userStakeFirst ? fuzzDelegatee : user;
+        uint24[6] memory blocksRangeBetweenStakes =
+            [0, 1 days / 30, 7 days / 30, 14 days / 30, 28 days / 30, 30 days / 30]; // 1 block - 30 seconds
 
-        TestData memory dataBeforeDelegation;
-        TestData memory dataAfterDelegation;
+        _blocksBetweenStakesIndex = uint8(bound(uint256(_blocksBetweenStakesIndex), 0, 5));
 
-        deal(address(sov), user, _stakeAmount);
+        DelegateFuzzTestData memory beforeDelegation;
+        DelegateFuzzTestData memory afterDelegation;
+
+        // deal(address(sov), user, _stakeAmount);
+        deal(address(sov), user, amount);
+        deal(address(sov), delegatee, amount * 2);
 
         mineBlocks(1);
 
-        // fuzz _delegateTS, _withdrawAmount, bool: mine blocks between stakes and delegate addresses to {0x0, user, delegatee}, rsndom stake/unstale order
+        // fuzz _delegateBlock, _withdrawAmount, bool: mine blocks between stakes and delegate addresses to {0x0, user, delegatee}, rsndom stake/unstale order
         // scenario:
         // prepare:
         // - stake for user and delegatee random amounts in random order with random: 0 or a block block between stakes
@@ -1055,253 +1079,232 @@ contract StakingFuzzTest is Test {
         // - withdraw stake by user and by delegatee in random order, check voting power
 
         // SETUP
-        uint256 stakeTimestampToLockDate = staking.timestampToLockDate(block.timestamp);
-        uint256 lockDate = staking.timestampToLockDate(block.timestamp + 365 days);
 
-        deal(address(sov), firstStakingUser, amount * 2);
+        address firstStakingUser;
+        address secondStakingUser;
 
-        vm.startPrank(firstStakingUser);
-        uint256 stakeAmount = amount * (firstStakingUser == user ? 1 : 2);
-        sov.approve(address(staking), stakeAmount);
-        staking.stake(uint96(stakeAmount), 365 days, address(0), address(0));
-        emit log_named_uint(
-            "1. user2::stake staking.numTotalStakingCheckpoints(lockDate)",
-            staking.numTotalStakingCheckpoints(lockDate)
-        );
-        vm.stopPrank();
-
-        if (firstStakeUser == user) {
-            dataBeforeDelegation.userStakeTS = block.timestamp;
+        if (_userStakesFirst) {
+            firstStakingUser = user;
+            secondStakingUser = delegatee;
+            beforeDelegation.userLockedTS = staking.timestampToLockDate(
+                block.timestamp + 365 days
+            );
         } else {
-            dataBeforeDelegation.delegateeStakeTS = block.timestamp;
+            firstStakingUser = delegatee;
+            secondStakingUser = user;
+            beforeDelegation.delegateeLockedTS = staking.timestampToLockDate(
+                block.timestamp + 365 days
+            );
         }
 
-        uint256 blocksBetweenStakes = blocksRangeBetweenStakes[_blocksBetweenStakesIndex];
-        if (mineBlocksBetweenStakes > 0) {
+        vm.startPrank(firstStakingUser);
+        if (firstStakingUser == user) {
+            emit log_string(
+                "firstStakingUser == user -> delegate should revert at the same block as staking"
+            );
+            uint256 stakingTSToLockDate = staking.timestampToLockDate(block.timestamp + 365 days);
+            vm.expectRevert();
+            staking.delegate(delegatee, stakingTSToLockDate);
+        }
+        uint256 stakeAmount = amount * (firstStakingUser == user ? 1 : 2);
+        sov.approve(address(staking), stakeAmount);
+        staking.stake(uint96(stakeAmount), block.timestamp + 365 days, address(0), address(0));
+        vm.stopPrank();
+
+        if (firstStakingUser == user) {
+            beforeDelegation.userStakeTS = block.timestamp;
+            beforeDelegation.userStakeBlock = block.number;
+            beforeDelegation.userLockedTS = staking.timestampToLockDate(
+                block.timestamp + 365 days
+            );
+
+            emit log_named_uint(
+                "1.1. user::stake staking.numTotalStakingCheckpoints(lockDate)",
+                staking.numTotalStakingCheckpoints(beforeDelegation.userLockedTS)
+            );
+
+            // trying to delegate in the same block as stake
+            vm.expectRevert();
+            staking.delegate(delegatee, beforeDelegation.userLockedTS);
+        } else {
+            beforeDelegation.delegateeStakeTS = block.timestamp;
+            beforeDelegation.delegateeStakeBlock = block.number;
+            beforeDelegation.delegateeLockedTS = staking.timestampToLockDate(
+                block.timestamp + 365 days
+            );
+
+            emit log_named_uint(
+                "1.2. delegatee::stake staking.numTotalStakingCheckpoints(lockDate)",
+                staking.numTotalStakingCheckpoints(beforeDelegation.delegateeLockedTS)
+            );
+        }
+
+        uint256 blocksBetweenStakes = uint256(blocksRangeBetweenStakes[_blocksBetweenStakesIndex]);
+        if (blocksBetweenStakes > 0) {
             mineBlocks(blocksBetweenStakes);
         }
 
         vm.startPrank(secondStakingUser);
         stakeAmount = amount * (secondStakingUser == user ? 1 : 2);
         sov.approve(address(staking), stakeAmount);
-        staking.stake(uint96(stakeAmount), 365 days, address(0), address(0));
+        staking.stake(uint96(stakeAmount), block.timestamp + 365 days, address(0), address(0));
         vm.stopPrank();
 
         if (secondStakingUser == user) {
-            dataBeforeDelegation.userStakeTS = block.timestamp;
+            beforeDelegation.userStakeTS = block.timestamp;
+            beforeDelegation.userStakeBlock = block.number;
+            beforeDelegation.userLockedTS = staking.timestampToLockDate(
+                block.timestamp + 365 days
+            );
+            beforeDelegation.userStakeBlock = block.number;
+
+            // trying to delegate in the same block as stake
+            vm.expectRevert();
+            staking.delegate(delegatee, beforeDelegation.userLockedTS);
         } else {
-            dataBeforeDelegation.delegateeStakeTS = block.timestamp;
+            beforeDelegation.delegateeStakeTS = block.timestamp;
+            beforeDelegation.delegateeStakeBlock = block.number;
+            beforeDelegation.delegateeLockedTS = staking.timestampToLockDate(
+                block.timestamp + 365 days
+            );
         }
 
-        // TEST
-        vm.startPrank(user);
+        emit log_named_uint("beforeDelegation.userStakeTS", beforeDelegation.userStakeTS);
+        emit log_named_uint("beforeDelegation.userStakeBlock", beforeDelegation.userStakeBlock);
+        emit log_named_uint("beforeDelegation.userLockedTS", beforeDelegation.userLockedTS);
         emit log_named_uint(
-            "2. user::stake staking.numTotalStakingCheckpoints(lockDate)",
-            staking.numTotalStakingCheckpoints(lockDate)
+            "beforeDelegation.delegateeStakeTS",
+            beforeDelegation.delegateeStakeTS
         );
-        //sov.approve(address(staking), amount);
+        emit log_named_uint(
+            "beforeDelegation.delegateeStakeBlock",
+            beforeDelegation.delegateeStakeBlock
+        );
+        emit log_named_uint(
+            "beforeDelegation.delegateeLockedTS",
+            beforeDelegation.delegateeLockedTS
+        );
 
-        //@test-case 1) delegating in the same block as staking should fail
-        vm.expectRevert();
-        staking.delegate(fuzzDelegatee, lockDate);
+        uint256 lockedTS = beforeDelegation.userLockedTS;
 
-        // mineBlocks(1);
-        // uint256 timestampToLockDate = staking.timestampToLockDate(_delegateTS);
+        // mineBlocks(1); // allows testing same block
 
-        // emit log_named_uint("MAX_32", MAX_32);
-        // emit log_named_uint("MAX_32 * 30", uint256(MAX_32) * 30);
-        // emit log_named_uint(
-        //     "MAX_32 * 30 + block.timestamp",
-        //     uint256(MAX_32) * 30 + block.timestamp
-        // );
+        // TEST
+
+        vm.startPrank(user);
 
         (
-            dataBeforeDelegation.userBalance,
-            dataBeforeDelegation.delegateeBalance,
-            dataBeforeDelegation.stakingBalance
-        ) = (sov.balanceOf(user), sov.balanceOf(fuzzDelegatee), sov.balanceOf(staking));
+            beforeDelegation.userBalance,
+            beforeDelegation.delegateeBalance,
+            beforeDelegation.stakingBalance
+        ) = (sov.balanceOf(user), sov.balanceOf(delegatee), sov.balanceOf(address(staking)));
 
-        // block.number * _timePerBlockInSeconds < MAX_256
-        _delegateTS = bound(
-            _delegateTS,
-            block.timestamp,
-            (uint256(MAX_32) - block.timestamp - 1) * 30 + block.timestamp
+        _delegateBlockNumber = uint32(
+            bound(
+                uint256(_delegateBlockNumber),
+                block.number + 1, // @todo verify/remove earlier checks ??? delegating at the same block as staking is tested earlier
+                uint256(MAX_32) - block.number // limiting to max block number to avoid massive casting to reverts, waisting trials
+            )
         );
 
         emit log_named_uint("kickoffTS", kickoffTS);
+        emit log_named_uint("lockedTS", lockedTS);
         emit log_named_uint("block.timestamp", block.timestamp);
-        emit log_named_uint("_delegateTS", _delegateTS);
-        emit log_named_uint(
-            "(_delegateTS - block.timestamp) / 30",
-            (_delegateTS - block.timestamp) / 30
-        );
+        emit log_named_uint("block.number", block.number);
+        emit log_named_uint("_delegateBlockNumber", _delegateBlockNumber);
 
-        uint256 mineBlocksQty = (_delegateTS - block.timestamp) / 30;
+        uint256 mineBlocksQty = _delegateBlockNumber - block.number;
+        //if (mineBlocksQty > 0) {
         mineBlocks(mineBlocksQty);
-        if (_delegateTS < dataBeforeDelegation.userStakeTS || _delegateTS > lockDate) {
-            vm.ExpectRevert();
-            staking.delegate(fuzzDelegatee, lockDate);
-            _delegateTS = bound(_delegateTS, block.timestamp + 30, lockDate);
-            vm.warp(_delegateTS);
-            vm.roll(block.timestamp - mineBlocksQty);
-            mineBlocksQty = (_delegateTS - block.timestamp) / 30;
-            mineBlocks(mineBlocksQty);
-        }
+        uint256 delegateTS = block.timestamp;
+        emit log_named_uint("delegateTS", delegateTS);
 
         vm.mockCall(
             address(dummyProtocol),
             abi.encodeWithSelector(dummyProtocol.wrbtcToken.selector),
             abi.encode(address(4))
         );
+
         //@todo tests (split?), check balances and delegated stake - ? invariants
         // - delegate should pass, check balances and delegated stake
         // - delegate back to the staker (user)
         // - user withdraw, delegate - fail
-        // - fuzzDelegatee - withdraw, user - delegate
+        // - delegatee - withdraw, user - delegate
 
+        mineBlocks(1);
+
+        mineBlocks(1); // moving temporarily forward to calc totalVotingPower
+        beforeDelegation.userVotingPower = staking.getCurrentVotes(user);
+        beforeDelegation.delegateeVotingPower = staking.getCurrentVotes(delegatee);
+        beforeDelegation.totalVotingPower = staking.getPriorTotalVotingPower(
+            uint32(block.number - 1), //@todo safe32()
+            block.timestamp
+        );
+        mineBlocksBack(1); // getting one block back
+
+        emit log("BEFORE 1st DELEGATION to DELEGATEE, block 1:");
+        emit log_named_uint("block.timestamp", block.timestamp);
+        emit log_named_uint("beforeDelegation.userVotingPower", beforeDelegation.userVotingPower);
+        emit log_named_uint(
+            "beforeDelegation.delegateeVotingPower",
+            beforeDelegation.delegateeVotingPower
+        );
+        emit log_named_uint(
+            "beforeDelegation.totalVotingPower",
+            beforeDelegation.totalVotingPower
+        );
+
+        beforeDelegation.userBalance = sov.balanceOf(user);
+        beforeDelegation.delegateeBalance = sov.balanceOf(delegatee);
+        beforeDelegation.stakingBalance = sov.balanceOf(address(staking));
+
+        assertEq(
+            beforeDelegation.userVotingPower + beforeDelegation.delegateeVotingPower,
+            beforeDelegation.totalVotingPower
+        );
+
+        // delegate to the delegatee - success
+        // uint32 delegateeCheckpointsNum = staking.numDelegateStakingCheckpoints(delegatee,lockedTS);
+        emit log_string("Delegate to delegatee");
         vm.expectEmit();
-        emit DelegateStakeChanged(fuzzDelegatee, lockedTS, amount * 2, amount * 3);
+        if (beforeDelegation.delegateeLockedTS == beforeDelegation.userLockedTS) {
+            emit DelegateStakeChanged(delegatee, lockedTS, amount * 2, amount * 3);
+        } else {
+            emit DelegateStakeChanged(delegatee, lockedTS, 0, amount);
+        }
         emit DelegateStakeChanged(user, lockedTS, amount, 0);
-        emit DelegateChanged(user, lockedTS, user, fuzzDelegatee);
-        staking.delegate(fuzzDelegatee, lockDate);
+        emit DelegateChanged(user, lockedTS, user, delegatee);
+        staking.delegate(delegatee, lockedTS);
 
-        vm.expectEmit();
-        emit DelegateStakeChanged(fuzzDelegatee, lockedTS, amount * 3, amount * 2);
-        emit DelegateStakeChanged(user, lockedTS, 0, amount);
-        emit DelegateChanged(user, lockedTS, fuzzDelegatee, user);
-        staking.delegate(user, lockDate);
+        mineBlocks(1);
 
+        afterDelegation.userVotingPower = staking.getCurrentVotes(user);
+        afterDelegation.delegateeVotingPower = staking.getCurrentVotes(delegatee);
+        mineBlocks(1);
+        afterDelegation.totalVotingPower = staking.getPriorTotalVotingPower(
+            uint32(block.number - 1), //@todo safe32()
+            block.timestamp
+        );
+        mineBlocksBack(1);
+
+        emit log("AFTER 1st DELEGATION to DELEGATEE, block 1:");
+        emit log_named_uint("block.timestamp", block.timestamp);
+        emit log_named_uint("afterDelegation.userVotingPower", afterDelegation.userVotingPower);
+        emit log_named_uint(
+            "afterDelegation.delegateeVotingPower",
+            afterDelegation.delegateeVotingPower
+        );
+        emit log_named_uint("afterDelegation.totalVotingPower", afterDelegation.totalVotingPower);
+
+        //@todo to keep it DRY - wrap into functions
         assertEq(sov.balanceOf(user), 0);
-        assertEq(sov.balanceOf(fuzzDelegatee), 0);
-        assertEq(sov.balanceOf(staking), amount * 3);
+        assertEq(sov.balanceOf(delegatee), 0);
+        assertEq(sov.balanceOf(address(staking)), amount * 3);
 
-        mineBlocks(blocksBetweenStakes);
-        staking.withdraw(uint96(amount), lockDate, address(0));
+        assertEq(afterDelegation.userVotingPower, 0);
+        assertEq(afterDelegation.totalVotingPower, afterDelegation.totalVotingPower);
+        assertEq(afterDelegation.delegateeVotingPower, afterDelegation.totalVotingPower);
 
-        assertEq(sov.balanceOf(user), amount);
-        assertEq(sov.balanceOf(staking), amount * 2);
-        assertEq(sov.balanceOf(fuzzDelegatee), 0);
-
-        vm.expectRevert();
-        staking.delegate(fuzzDelegatee, lockDate);
-
-        mineBlocks(1);
-        vm.expectRevert();
-        staking.delegate(fuzzDelegatee, lockDate);
-
-        //@todo add checkpoints check
-
-        emit log_named_uint("test case 2: block.timestamp before withdraw", block.timestamp);
-
-        emit log_named_uint("test case 2: block.timestamp after withdraw", block.timestamp);
-
-        //@todo remove tmp return
-        //return;
-
-        mineBlocks(1);
-        uint256 blockAfter = block.number;
-        mineBlocks(1);
-
-        // Get final balances
-        uint256 userBalanceAfter = sov.balanceOf(user);
-        uint256 stakingBalanceAfter = sov.balanceOf(address(staking));
-
-        // Check balances
-        assertEq(userBalanceAfter - userBalanceBefore, expectedWithdrawAmount);
-        assertEq(
-            stakingBalanceBefore - stakingBalanceAfter,
-            expectedWithdrawAmount + expectedSlashAmount
-        );
-
-        uint256 withdrawAmount2 = _withdrawAmount; // just pushing up in stack to to work around stack too deep issue
-
-        // Check getPriorUserStakeByDate
-
-        // uint256 withdrawTsToLockDate = staking.timestampToLockDate(_delegateTS);
-        uint256 priorUserStakeBefore =
-            staking.getPriorUserStakeByDate(user, lockDate, blockAfter - 2);
-        uint256 priorUserStakeAfter = staking.getPriorUserStakeByDate(user, lockDate, blockAfter);
-
-        assertEq(priorUserStakeBefore - priorUserStakeAfter, withdrawAmount2);
-
-        // check user2 staking unchanged
-        (uint256[] memory dates, uint96[] memory stakes) = staking.getStakes(user2);
-        assertEq(dates.length, 1);
-        assertEq(stakes.length, 1);
-        assertEq(dates[0], lockDate);
-        assertEq(stakes[0], amount * 2);
-
-        // Extended validation
-        // _increaseDailyStake
-        uint256 lockDate2 = lockDate; // just pushing up in stack to to work around stack too deep issue
-        uint32 numTotalStakingCheckpoints = staking.numTotalStakingCheckpoints(lockDate2);
-        assertEq(
-            numTotalStakingCheckpoints,
-            2,
-            "1. Unexpected number of total staking checkpoints"
-        );
-
-        IStaking.Checkpoint memory checkpoint = staking.totalStakingCheckpoints(lockDate2, 0);
-
-        assertTrue(checkpoint.fromBlock == 2, "2. Unexpected total staking checkpoint fromBlock");
-
-        assertTrue(checkpoint.stake == amount * 3, "3. Unexpected total staking checkpoint stake"); // 2 stakes, 3 amounts in total
-
-        checkpoint = staking.totalStakingCheckpoints(lockDate2, 1);
-        assertTrue(
-            checkpoint.fromBlock == blockNumberAtWithdrawTS,
-            "4. Unexpected total staking checkpoint fromBlock"
-        );
-        assertTrue(
-            checkpoint.stake == amount * 3 - withdrawAmount2,
-            "5. Unexpected total staking checkpoint stake"
-        );
-
-        // _writeUserCheckpoint
-        assertTrue(
-            staking.numUserStakingCheckpoints(user, lockDate2) == 2,
-            "6. Unexpected number of user staking checkpoints"
-        );
-
-        assertTrue(
-            staking.numUserStakingCheckpoints(user2, lockDate2) == 1,
-            "7. Unexpected number of user2 staking checkpoints"
-        );
-
-        checkpoint = staking.userStakingCheckpoints(user, lockDate2, 0);
-        assertTrue(checkpoint.fromBlock == 2, "8. Unexpected user staking checkpoint fromBlock");
-        assertTrue(checkpoint.stake == amount, "9. Unexpected user staking checkpoint stake");
-
-        checkpoint = staking.userStakingCheckpoints(user, lockDate2, 1);
-        assertTrue(
-            checkpoint.fromBlock == blockNumberAtWithdrawTS,
-            "10. Unexpected user staking checkpoint fromBlock"
-        );
-        assertTrue(
-            checkpoint.stake == amount - withdrawAmount2,
-            "11. Unexpected user staking checkpoint stake"
-        );
-
-        // _decreaseDelegateStake
-        uint32 numDelegateStakingCheckpoints =
-            staking.numDelegateStakingCheckpoints(user, lockDate2);
-        checkpoint = staking.delegateStakingCheckpoints(
-            user,
-            lockDate2,
-            numDelegateStakingCheckpoints - 1
-        );
-        assertTrue(
-            checkpoint.fromBlock == blockNumberAtWithdrawTS,
-            "12. Unexpected delegate staking checkpoint fromBlock"
-        );
-        assertTrue(
-            checkpoint.stake == amount - withdrawAmount2,
-            "13. Unexpected delegate staking checkpoint stake"
-        );
-        assertTrue(
-            numDelegateStakingCheckpoints == 2,
-            "14. Unexpected number of delegate staking checkpoints"
-        );
         vm.clearMockedCalls();
         vm.stopPrank();
     }
