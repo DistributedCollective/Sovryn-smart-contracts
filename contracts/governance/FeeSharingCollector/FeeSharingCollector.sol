@@ -1111,7 +1111,7 @@ contract FeeSharingCollector is
         address _token,
         address _user,
         uint32 _maxCheckpoints
-    ) private view returns (uint256 _tokenAmount, uint256 _endToken) {
+    ) internal view returns (uint256 _tokenAmount, uint256 _endToken) {
         IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
 
         address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
@@ -1140,7 +1140,7 @@ contract FeeSharingCollector is
      *
      * @return wrbtc loan pool wrbtc token address
      */
-    function _getAndValidateLoanPoolWRBTC(address _wRBTCAddress) private view returns (address) {
+    function _getAndValidateLoanPoolWRBTC(address _wRBTCAddress) internal view returns (address) {
         address loanPoolTokenWRBTC = protocol.underlyingToLoanPool(_wRBTCAddress);
         require(
             loanPoolTokenWRBTC != ZERO_ADDRESS,
