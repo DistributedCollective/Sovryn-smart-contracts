@@ -4,7 +4,7 @@ View Source: [contracts/proxy/modules/interfaces/IModulesProxyRegistry.sol](../c
 
 **↘ Derived Contracts: [ModulesProxyRegistry](ModulesProxyRegistry.md)**
 
-**IModulesProxyRegistry**
+## **IModulesProxyRegistry** contract
 
 **Events**
 
@@ -338,7 +338,6 @@ function checkClashingFuncSelectors(address _newModule)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

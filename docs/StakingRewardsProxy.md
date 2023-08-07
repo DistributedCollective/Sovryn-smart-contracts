@@ -4,7 +4,7 @@ View Source: [contracts/governance/StakingRewards/StakingRewardsProxy.sol](../co
 
 **↗ Extends: [StakingRewardsStorage](StakingRewardsStorage.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**StakingRewardsProxy**
+## **StakingRewardsProxy** contract
 
 StakingRewards contract should be upgradable. Used UpgradableProxy.
 StakingRewardsStorage is deployed with the upgradable functionality
@@ -29,7 +29,6 @@ the possibility of being enhanced and re-deployed.
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

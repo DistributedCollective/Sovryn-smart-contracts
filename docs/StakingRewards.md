@@ -4,7 +4,7 @@ View Source: [contracts/governance/StakingRewards/StakingRewards.sol](../contrac
 
 **↗ Extends: [StakingRewardsStorage](StakingRewardsStorage.md)**
 
-**StakingRewards**
+## **StakingRewards** contract
 
 This is a trial incentive program.
 In this, the SOV emitted and becoming liquid from the Adoption Fund could be utilized
@@ -494,7 +494,6 @@ function getStakerCurrentReward(bool considerMaxDuration, uint256 restartTime)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -4,7 +4,7 @@ View Source: [contracts/openzeppelin/ReentrancyGuard.sol](../contracts/openzeppe
 
 **↘ Derived Contracts: [LoanTokenBase](LoanTokenBase.md), [State](State.md)**
 
-**ReentrancyGuard**
+## **ReentrancyGuard** contract
 
 If you mark a function `nonReentrant`, you should also
 mark it `external`.
@@ -54,7 +54,6 @@ modifier nonReentrant() internal
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

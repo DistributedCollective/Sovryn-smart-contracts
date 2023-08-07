@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/fouryear/FourYearVestingLogic.sol](..
 
 **↗ Extends: [IFourYearVesting](IFourYearVesting.md), [FourYearVestingStorage](FourYearVestingStorage.md), [ApprovalReceiver](ApprovalReceiver.md)**
 
-**FourYearVestingLogic**
+## **FourYearVestingLogic** contract
 
 Staking, delegating and withdrawal functionality.
 
@@ -621,7 +621,6 @@ function _getSelectors() internal pure returns (bytes4[] memory) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

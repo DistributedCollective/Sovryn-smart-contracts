@@ -5,7 +5,7 @@ View Source: [contracts/governance/ApprovalReceiver.sol](../contracts/governance
 **↗ Extends: [ErrorDecoder](ErrorDecoder.md), [IApproveAndCall](IApproveAndCall.md)**
 **↘ Derived Contracts: [FourYearVestingLogic](FourYearVestingLogic.md), [StakingStakeModule](StakingStakeModule.md), [VestingLogic](VestingLogic.md)**
 
-**ApprovalReceiver**
+## **ApprovalReceiver** contract
 
 ## Modifiers
 
@@ -215,7 +215,6 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

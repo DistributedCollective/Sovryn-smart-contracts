@@ -91,9 +91,6 @@ def main():
     #confirmWithBFMS(36) # "BFmultisig"
     #checkTxOnBF(36)   # "BFmultisig"
 
-    #getVestingCreationAndTypes('0xd5f72e163902B8E9DB61387c0a7Ce2847E2e02fD')
-    #getTokenPrice(conf.contracts['iDLLR'])
-
     #confirmWithBFMS(32)
 
     #sendToWatcher(conf.contracts['DLLR'], 70000e18)
@@ -195,14 +192,9 @@ def main():
 
     #readTokenOwnerFromFunds()
 
-    #addPauser('0xa89B2B664132cC6DB7b1627464acF9f672f6ed4F')
-    #addGuard('0xa89B2B664132cC6DB7b1627464acF9f672f6ed4F')
-    #withdrawRBTCFromFastBTCBiDi(0.0058e18, conf.contracts['multisig'])
+    #printLendingPoolsData()
 
-    #revokeAdmin('0xa89B2B664132cC6DB7b1627464acF9f672f6ed4F')
-    #setSupportedTokens([conf.contracts['DLLR']], [True])
-
-    setNonBech32Prefixes()
+    #transferOwnershipFromMultisig(conf.contracts["FourYearVestingFactory"], '0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b')
 
 
 def governanceTransfer():

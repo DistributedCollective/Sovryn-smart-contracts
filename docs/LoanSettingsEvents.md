@@ -5,7 +5,7 @@ View Source: [contracts/events/LoanSettingsEvents.sol](../contracts/events/LoanS
 **↗ Extends: [ModulesCommonEvents](ModulesCommonEvents.md)**
 **↘ Derived Contracts: [ISovryn](ISovryn.md), [LoanSettings](LoanSettings.md)**
 
-**LoanSettingsEvents**
+## **LoanSettingsEvents** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -38,7 +38,6 @@ event LoanParamsIdDisabled(bytes32 indexed id, address indexed owner);
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

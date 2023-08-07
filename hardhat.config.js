@@ -51,7 +51,7 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
         params: [
             {
                 forking: {
-                    jsonRpcUrl: "https://mainnet4.sovryn.app/rpc",
+                    jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
                     blockNumber: 4272658,
                 },
             },
@@ -171,6 +171,7 @@ module.exports = {
             accounts: mainnetAccounts,
             url: "http://127.0.0.1:8545",
             blockGasLimit: 6800000,
+            gasPrice: 66000010,
             live: true,
             tags: ["mainnet", "forked"],
             timeout: 1000000,

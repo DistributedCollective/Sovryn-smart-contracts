@@ -4,7 +4,7 @@ View Source: [contracts/governance/FeeSharingCollector/FeeSharingCollector.sol](
 
 **↗ Extends: [SafeMath96](SafeMath96.md), [IFeeSharingCollector](IFeeSharingCollector.md), [Ownable](Ownable.md), [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)**
 
-**ILoanToken**
+## **ILoanToken** contract
 
 This contract withdraws fees to be paid to SOV Stakers from the protocol.
 Stakers call withdraw() to get their share of the fees.
@@ -29,11 +29,45 @@ event FeeWithdrawnInRBTC(address indexed sender, uint256  amount);
 event TokensTransferred(address indexed sender, address indexed token, uint256  amount);
 event CheckpointAdded(address indexed sender, address indexed token, uint256  amount);
 event UserFeeWithdrawn(address indexed sender, address indexed receiver, address indexed token, uint256  amount);
+event UserFeeProcessedNoWithdraw(address indexed sender, address indexed token, uint256  prevProcessedCheckpoints, uint256  newProcessedCheckpoints);
 event FeeAMMWithdrawn(address indexed sender, address indexed converter, uint256  amount);
 event WhitelistedConverter(address indexed sender, address  converter);
 event UnwhitelistedConverter(address indexed sender, address  converter);
 event RBTCWithdrawn(address indexed sender, address indexed receiver, uint256  amount);
 ```
+
+## Modifiers
+
+- [oneTimeExecution](#onetimeexecution)
+- [validFromCheckpointParam](#validfromcheckpointparam)
+
+### oneTimeExecution
+
+```js
+modifier oneTimeExecution(bytes4 _funcSig) internal
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _funcSig | bytes4 |  | 
+
+### validFromCheckpointParam
+
+Validates if the checkpoint is payable for the user
+
+```js
+modifier validFromCheckpointParam(uint256 _fromCheckpoint, address _user, address _token) internal
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _fromCheckpoint | uint256 |  | 
+| _user | address |  | 
+| _token | address |  | 
 
 ## Functions
 
@@ -43,11 +77,17 @@ event RBTCWithdrawn(address indexed sender, address indexed receiver, uint256  a
 - [transferTokens(address _token, uint96 _amount)](#transfertokens)
 - [transferRBTC()](#transferrbtc)
 - [_addCheckpoint(address _token, uint96 _amount)](#_addcheckpoint)
-- [withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver)](#withdraw)
+- [_withdraw(address _token, uint32 _maxCheckpoints, address _receiver)](#_withdraw)
+- [withdraw(address _token, uint32 _maxCheckpoints, address _receiver)](#withdraw)
+- [withdrawStartingFromCheckpoint(address _token, uint256 _fromCheckpoint, uint32 _maxCheckpoints, address _receiver)](#withdrawstartingfromcheckpoint)
+- [_withdrawRBTC(uint32 _maxCheckpoints, address _receiver)](#_withdrawrbtc)
 - [withdrawRBTC(uint32 _maxCheckpoints, address _receiver)](#withdrawrbtc)
-- [getAccumulatedFees(address _user, address _loanPoolToken)](#getaccumulatedfees)
-- [_getAccumulatedFees(address _user, address _loanPoolToken, uint32 _maxCheckpoints)](#_getaccumulatedfees)
-- [_getEndOfRange(uint256 start, address _loanPoolToken, uint32 _maxCheckpoints)](#_getendofrange)
+- [withdrawRBTCStartingFromCheckpoint(uint256 _fromCheckpoint, uint32 _maxCheckpoints, address _receiver)](#withdrawrbtcstartingfromcheckpoint)
+- [getNextPositiveUserCheckpoint(address _user, address _token, uint256 _startFrom, uint256 _maxCheckpoints)](#getnextpositiveusercheckpoint)
+- [getAccumulatedFees(address _user, address _token)](#getaccumulatedfees)
+- [getAccumulatedFeesForCheckpointsRange(address _user, address _token, uint256 _startFrom, uint32 _maxCheckpoints)](#getaccumulatedfeesforcheckpointsrange)
+- [_getAccumulatedFees(address _user, address _token, uint256 _startFrom, uint32 _maxCheckpoints)](#_getaccumulatedfees)
+- [_getEndOfRange(uint256 _start, address _token, uint32 _maxCheckpoints)](#_getendofrange)
 - [_writeTokenCheckpoint(address _token, uint96 _numTokens)](#_writetokencheckpoint)
 - [_getVoluntaryWeightedStake(uint32 blockNumber, uint256 timestamp)](#_getvoluntaryweightedstake)
 - [addWhitelistedConverterAddress(address converterAddress)](#addwhitelistedconverteraddress)
@@ -55,9 +95,11 @@ event RBTCWithdrawn(address indexed sender, address indexed receiver, uint256  a
 - [getWhitelistedConverterList()](#getwhitelistedconverterlist)
 - [_validateWhitelistedConverter(address[] converterAddresses)](#_validatewhitelistedconverter)
 - [withdrawWRBTC(address receiver, uint256 wrbtcAmount)](#withdrawwrbtc)
+- [recoverIncorrectAllocatedFees()](#recoverincorrectallocatedfees)
 - [getAccumulatedRBTCFeeBalances(address _user)](#getaccumulatedrbtcfeebalances)
 - [_getRBTCBalances(address _user, uint32 _maxCheckpoints)](#_getrbtcbalances)
 - [_getAndValidateLoanPoolWRBTC(address _wRBTCAddress)](#_getandvalidateloanpoolwrbtc)
+- [numTokenCheckpoints(address _token)](#numtokencheckpoints)
 - [mint(address receiver, uint256 depositAmount)](#mint)
 - [burnToBTC(address receiver, uint256 burnAmount, bool useLM)](#burntobtc)
 - [tokenPrice()](#tokenprice)
@@ -94,7 +136,7 @@ For SOV, it will be directly deposited into the feeSharingCollector from the pro
      *
 
 ```solidity
-function withdrawFees(address[] _tokens) public nonpayable
+function withdrawFees(address[] _tokens) external nonpayable
 ```
 
 **Arguments**
@@ -107,7 +149,7 @@ function withdrawFees(address[] _tokens) public nonpayable
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-on withdrawFees(address[] memory _tokens) public {
+on withdrawFees(address[] calldata _tokens) external {
         for (uint256 i = 0; i < _tokens.length; i++) {
             require(
                 Address.isContract(_tokens[i]),
@@ -328,6 +370,76 @@ on _addCheckpoint(address _token, uint96 _amount) internal {
 
 ---    
 
+> ### _withdraw
+
+```solidity
+function _withdraw(address _token, uint32 _maxCheckpoints, address _receiver) internal nonpayable
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _token | address |  | 
+| _maxCheckpoints | uint32 |  | 
+| _receiver | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on _withdraw(
+        address _token,
+        uint32 _maxCheckpoints,
+        address _receiver
+    ) internal {
+        /// @dev Prevents block gas limit hit when processing checkpoints
+        require(
+            _maxCheckpoints > 0,
+            "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
+        );
+
+        address wRBTCAddress = address(protocol.wrbtcToken());
+        address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(wRBTCAddress);
+
+        address user = msg.sender;
+        if (_receiver == ZERO_ADDRESS) {
+            _receiver = msg.sender;
+        }
+        uint256 processedUserCheckpoints = processedCheckpoints[user][_token];
+        (uint256 amount, uint256 end) =
+            _getAccumulatedFees(user, _token, processedUserCheckpoints, _maxCheckpoints);
+        if (amount == 0) {
+            if (end > processedUserCheckpoints) {
+                emit UserFeeProcessedNoWithdraw(msg.sender, _token, processedUserCheckpoints, end);
+                processedCheckpoints[user][_token] = end;
+                return;
+            } else {
+                // getting here most likely means smth wrong with the state
+                revert("FeeSharingCollector::withdrawFees: no tokens for withdrawal");
+            }
+        }
+
+        processedCheckpoints[user][_token] = end;
+        if (loanPoolTokenWRBTC == _token) {
+            // We will change, so that feeSharingCollector will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
+            ILoanTokenWRBTC(_token).burnToBTC(_receiver, amount, false);
+        } else {
+            // Previously it directly send the loanToken to the user
+            require(
+                IERC20(_token).transfer(_receiver, amount),
+                "FeeSharingCollector::withdraw: withdrawal failed"
+            );
+        }
+
+        emit UserFeeWithdrawn(msg.sender, _receiver, _token, amount);
+    }
+
+```
+</details>
+
+---    
+
 > ### withdraw
 
 ⤾ overrides [IFeeSharingCollector.withdraw](IFeeSharingCollector.md#withdraw)
@@ -342,15 +454,15 @@ generated, meaning you will earn more from staking.
      *
 
 ```solidity
-function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) public nonpayable nonReentrant 
+function withdraw(address _token, uint32 _maxCheckpoints, address _receiver) public nonpayable nonReentrant 
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| _loanPoolToken | address | Address of the pool token. | 
-| _maxCheckpoints | uint32 | Maximum number of checkpoints to be processed. | 
+| _token | address | RBTC dummy to fit into existing data structure or SOV. Former address of the pool token. | 
+| _maxCheckpoints | uint32 | Maximum number of checkpoints to be processed. Must be positive value. | 
 | _receiver | address | The receiver of tokens or msg.sender | 
 
 <details>
@@ -358,42 +470,11 @@ function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _recei
 
 ```javascript
 on withdraw(
-        address _loanPoolToken,
+        address _token,
         uint32 _maxCheckpoints,
         address _receiver
     ) public nonReentrant {
-        /// @dev Prevents checkpoints processing block gas limit
-        require(
-            _maxCheckpoints > 0,
-            "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
-        );
-
-        address wRBTCAddress = address(protocol.wrbtcToken());
-        address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(wRBTCAddress);
-
-        address user = msg.sender;
-        if (_receiver == ZERO_ADDRESS) {
-            _receiver = msg.sender;
-        }
-
-        (uint256 amount, uint256 end) = _getAccumulatedFees(user, _loanPoolToken, _maxCheckpoints);
-        require(amount > 0, "FeeSharingCollector::withdrawFees: no tokens for a withdrawal");
-
-        processedCheckpoints[user][_loanPoolToken] = end;
-
-        if (loanPoolTokenWRBTC == _loanPoolToken) {
-            // We will change, so that feeSharingCollector will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
-            uint256 loanAmountPaid =
-                ILoanTokenWRBTC(_loanPoolToken).burnToBTC(_receiver, amount, false);
-        } else {
-            // Previously it directly send the loanToken to the user
-            require(
-                IERC20(_loanPoolToken).transfer(_receiver, amount),
-                "FeeSharingCollector::withdraw: withdrawal failed"
-            );
-        }
-
-        emit UserFeeWithdrawn(msg.sender, _receiver, _loanPoolToken, amount);
+        _withdraw(_token, _maxCheckpoints, _receiver);
     }
 
 ```
@@ -401,16 +482,56 @@ on withdraw(
 
 ---    
 
-> ### withdrawRBTC
+> ### withdrawStartingFromCheckpoint
 
-withdraw all of the RBTC balance based on particular checkpoints
-     * RBTC balance consists of:
-- rbtc balance
-- wrbtc balance which will be unwrapped to rbtc
-- iwrbtc balance which will be unwrapped to rbtc
+Withdraw accumulated fee to the message sender/receiver.
+     * The Sovryn protocol collects fees on every trade/swap and loan.
+These fees will be distributed to SOV stakers based on their voting
+power as a percentage of total voting power.
+     * This function will directly burnToBTC and use the msg.sender (user) as the receiver
+     *
 
 ```solidity
-function withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonpayable nonReentrant 
+function withdrawStartingFromCheckpoint(address _token, uint256 _fromCheckpoint, uint32 _maxCheckpoints, address _receiver) public nonpayable validFromCheckpointParam nonReentrant 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _token | address | RBTC dummy to fit into existing data structure or SOV. Former address of the pool token. | 
+| _fromCheckpoint | uint256 | Skips all the checkpoints before '_fromCheckpoint'        should be calculated offchain with getNextPositiveUserCheckpoint function | 
+| _maxCheckpoints | uint32 | Maximum number of checkpoints to be processed. | 
+| _receiver | address | The receiver of tokens or msg.sender | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on withdrawStartingFromCheckpoint(
+        address _token,
+        uint256 _fromCheckpoint,
+        uint32 _maxCheckpoints,
+        address _receiver
+    ) public validFromCheckpointParam(_fromCheckpoint, msg.sender, _token) nonReentrant {
+        // @dev e.g. _fromCheckpoint == 10 meaning we should set 9 user's processed checkpoints
+        // after _withdraw() the user's processedCheckpoints should be 10
+        uint256 prevFromCheckpoint = _fromCheckpoint.sub(1);
+        if (prevFromCheckpoint > processedCheckpoints[msg.sender][_token]) {
+            processedCheckpoints[msg.sender][_token] = prevFromCheckpoint;
+        }
+        _withdraw(_token, _maxCheckpoints, _receiver);
+    }
+
+```
+</details>
+
+---    
+
+> ### _withdrawRBTC
+
+```solidity
+function _withdrawRBTC(uint32 _maxCheckpoints, address _receiver) internal nonpayable
 ```
 
 **Arguments**
@@ -424,7 +545,7 @@ function withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonpay
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-on withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonReentrant {
+on _withdrawRBTC(uint32 _maxCheckpoints, address _receiver) internal {
         uint256 wrbtcAmount;
         uint256 rbtcAmount;
         uint256 iWrbtcAmount;
@@ -482,12 +603,184 @@ on withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonReentrant
 
 ---    
 
+> ### withdrawRBTC
+
+withdraw all of the RBTC balance based on particular checkpoints
+     * RBTC balance consists of:
+- rbtc balance
+- wrbtc balance which will be unwrapped to rbtc
+- iwrbtc balance which will be unwrapped to rbtc
+     *
+
+```solidity
+function withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonpayable nonReentrant 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _maxCheckpoints | uint32 | Maximum number of checkpoints to be processed to workaround block gas limit | 
+| _receiver | address | An optional tokens receiver (msg.sender used if 0) | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on withdrawRBTC(uint32 _maxCheckpoints, address _receiver) external nonReentrant {
+        _withdrawRBTC(_maxCheckpoints, _receiver);
+    }
+
+```
+</details>
+
+---    
+
+> ### withdrawRBTCStartingFromCheckpoint
+
+Withdraw all of the RBTC balance based starting from a specific checkpoint
+The function was designed to skip checkpoints with no fees for users
+     * RBTC balance consists of:
+- rbtc balance
+- wrbtc balance which will be unwrapped to rbtc
+- iwrbtc balance which will be unwrapped to rbtc
+     *
+
+```solidity
+function withdrawRBTCStartingFromCheckpoint(uint256 _fromCheckpoint, uint32 _maxCheckpoints, address _receiver) external nonpayable validFromCheckpointParam nonReentrant 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _fromCheckpoint | uint256 | Skips all the checkpoints before '_fromCheckpoint'        should be calculated offchain with getNextPositiveUserCheckpoint function | 
+| _maxCheckpoints | uint32 | Maximum number of checkpoints to be processed to workaround block gas limit | 
+| _receiver | address | An optional tokens receiver (msg.sender used if 0) | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on withdrawRBTCStartingFromCheckpoint(
+        uint256 _fromCheckpoint,
+        uint32 _maxCheckpoints,
+        address _receiver
+    )
+        external
+        validFromCheckpointParam(_fromCheckpoint, msg.sender, RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT)
+        nonReentrant
+    {
+        // @dev e.g. _fromCheckpoint == 10
+        // after _withdraw() user's processedCheckpoints should be 10 =>
+        // set processed checkpoints = 9, next maping index = 9 (10th checkpoint)
+        uint256 prevFromCheckpoint = _fromCheckpoint.sub(1);
+        if (
+            prevFromCheckpoint >
+            processedCheckpoints[msg.sender][RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT]
+        ) {
+            processedCheckpoints[msg.sender][
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            ] = prevFromCheckpoint;
+        }
+        _withdrawRBTC(_maxCheckpoints, _receiver);
+    }
+
+```
+</details>
+
+---    
+
+> ### getNextPositiveUserCheckpoint
+
+Returns first user's checkpoint with weighted stake > 0
+     *
+
+```solidity
+function getNextPositiveUserCheckpoint(address _user, address _token, uint256 _startFrom, uint256 _maxCheckpoints) external view
+returns(checkpointNum uint256, hasSkippedCheckpoints bool, hasFees bool)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _user | address | The address of the user or contract. | 
+| _token | address | RBTC dummy to fit into existing data structure or SOV. Former address of the pool token. | 
+| _startFrom | uint256 | Checkpoint number to start from. If _startFrom < processedUserCheckpoints then starts from processedUserCheckpoints. | 
+| _maxCheckpoints | uint256 | Max checkpoints to process in a row to avoid timeout error | 
+
+**Returns**
+
+[checkpointNum: checkpoint number where user's weighted stake > 0, hasSkippedCheckpoints, hasFees]
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on getNextPositiveUserCheckpoint(
+        address _user,
+        address _token,
+        uint256 _startFrom,
+        uint256 _maxCheckpoints
+    )
+        external
+        view
+        returns (
+            uint256 checkpointNum,
+            bool hasSkippedCheckpoints,
+            bool hasFees
+        )
+    {
+        if (staking.isVestingContract(_user)) {
+            return (0, false, false);
+        }
+        require(_maxCheckpoints > 0, "_maxCheckpoints must be > 0");
+
+        uint256 totalCheckpoints = totalTokenCheckpoints[_token];
+        uint256 processedUserCheckpoints = processedCheckpoints[_user][_token];
+
+        if (processedUserCheckpoints >= totalCheckpoints || totalCheckpoints == 0) {
+            return (totalCheckpoints, false, false);
+        }
+
+        uint256 startFrom =
+            _startFrom > processedUserCheckpoints ? _startFrom : processedUserCheckpoints;
+
+        uint256 end = startFrom.add(_maxCheckpoints);
+        if (end >= totalCheckpoints) {
+            end = totalCheckpoints;
+        }
+
+        // @note here processedUserCheckpoints is a number of processed checkpoints and
+        // also an index for the next checkpoint because an array index starts wtih 0
+        for (uint256 i = startFrom; i < end; i++) {
+            Checkpoint storage tokenCheckpoint = tokenCheckpoints[_token][i];
+            uint96 weightedStake =
+                staking.getPriorWeightedStake(
+                    _user,
+                    tokenCheckpoint.blockNumber - 1,
+                    tokenCheckpoint.timestamp
+                );
+            if (weightedStake > 0) {
+                // i is the index and we need to return checkpoint num which is i + 1
+                return (i + 1, i > processedUserCheckpoints, true);
+            }
+        }
+        return (end, end > processedUserCheckpoints, false);
+    }
+
+```
+</details>
+
+---    
+
 > ### getAccumulatedFees
 
 Get the accumulated loan pool fee of the message sender.
 
 ```solidity
-function getAccumulatedFees(address _user, address _loanPoolToken) public view
+function getAccumulatedFees(address _user, address _token) public view
 returns(uint256)
 ```
 
@@ -496,7 +789,7 @@ returns(uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _user | address | The address of the user or contract. | 
-| _loanPoolToken | address | Address of the pool token. | 
+| _token | address | RBTC dummy to fit into existing data structure or SOV. Former address of the pool token. | 
 
 **Returns**
 
@@ -506,13 +799,57 @@ The accumulated fee for the message sender.
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-on getAccumulatedFees(address _user, address _loanPoolToken)
-        public
-        view
-        returns (uint256)
-    {
+on getAccumulatedFees(address _user, address _token) public view returns (uint256) {
         uint256 amount;
-        (amount, ) = _getAccumulatedFees(_user, _loanPoolToken, 0);
+        (amount, ) = _getAccumulatedFees({
+            _user: _user,
+            _token: _token,
+            _startFrom: 0,
+            _maxCheckpoints: 0
+        });
+        return amount;
+    }
+
+```
+</details>
+
+---    
+
+> ### getAccumulatedFeesForCheckpointsRange
+
+Get the accumulated fee rewards for the message sender for a checkpoints range
+     *
+
+```solidity
+function getAccumulatedFeesForCheckpointsRange(address _user, address _token, uint256 _startFrom, uint32 _maxCheckpoints) external view
+returns(uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _user | address | The address of a user (staker) or contract. | 
+| _token | address | RBTC dummy to fit into existing data structure or SOV. Former address of the pool token. | 
+| _startFrom | uint256 | Checkpoint to start calculating fees from. | 
+| _maxCheckpoints | uint32 | maxCheckpoints to get accumulated fees for the _user | 
+
+**Returns**
+
+The accumulated fees rewards for the _user in the given checkpoints interval: [_startFrom, _startFrom + maxCheckpoints].
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on getAccumulatedFeesForCheckpointsRange(
+        address _user,
+        address _token,
+        uint256 _startFrom,
+        uint32 _maxCheckpoints
+    ) external view returns (uint256) {
+        uint256 amount;
+        (amount, ) = _getAccumulatedFees(_user, _token, _startFrom, _maxCheckpoints);
         return amount;
     }
 
@@ -523,22 +860,12 @@ on getAccumulatedFees(address _user, address _loanPoolToken)
 
 > ### _getAccumulatedFees
 
-Whenever fees are withdrawn, the staking contract needs to
-checkpoint the block number, the number of pool tokens and the
-total voting power at that time (read from the staking contract).
-While the total voting power would not necessarily need to be
-checkpointed, it makes sense to save gas cost on withdrawal.
-     * When the user wants to withdraw its share of tokens, we need
-to iterate over all of the checkpoints since the users last
-withdrawal (note: remember last withdrawal block), query the
-user’s balance at the checkpoint blocks from the staking contract,
-compute his share of the checkpointed tokens and add them up.
-The maximum number of checkpoints to process at once should be limited.
+Gets accumulated fees for a user starting from a given checkpoint
      *
 
 ```solidity
-function _getAccumulatedFees(address _user, address _loanPoolToken, uint32 _maxCheckpoints) internal view
-returns(uint256, uint256)
+function _getAccumulatedFees(address _user, address _token, uint256 _startFrom, uint32 _maxCheckpoints) internal view
+returns(feesAmount uint256, endCheckpoint uint256)
 ```
 
 **Arguments**
@@ -546,42 +873,44 @@ returns(uint256, uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | _user | address | Address of the user's account. | 
-| _loanPoolToken | address | Loan pool token address. | 
-| _maxCheckpoints | uint32 | Checkpoint index incremental.      * | 
+| _token | address | RBTC dummy to fit into existing data structure or SOV. Former address of the pool token. | 
+| _startFrom | uint256 | Checkpoint num to start calculations from      * | 
+| _maxCheckpoints | uint32 | Max checkpoints to process at once to fit into block gas limit | 
 
 **Returns**
 
-accumulated fees amount
+feesAmount - accumulated fees amount
 
 <details>
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- _getAccumulatedFees(
+on _getAccumulatedFees(
         address _user,
-        address _loanPoolToken,
+        address _token,
+        uint256 _startFrom,
         uint32 _maxCheckpoints
-    ) internal view returns (uint256, uint256) {
+    ) internal view returns (uint256 feesAmount, uint256 endCheckpoint) {
         if (staking.isVestingContract(_user)) {
             return (0, 0);
         }
+        uint256 processedUserCheckpoints = processedCheckpoints[_user][_token];
+        uint256 startOfRange =
+            _startFrom > processedUserCheckpoints ? _startFrom : processedUserCheckpoints;
+        endCheckpoint = _maxCheckpoints > 0
+            ? _getEndOfRange(startOfRange, _token, _maxCheckpoints)
+            : totalTokenCheckpoints[_token];
 
-        uint256 processedUserCheckpoints = processedCheckpoints[_user][_loanPoolToken];
-        uint256 end;
-
-        if (processedUserCheckpoints >= numTokenCheckpoints[_loanPoolToken]) {
-            return (0, _maxCheckpoints > 0 ? 0 : numTokenCheckpoints[_loanPoolToken]);
+        if (startOfRange >= totalTokenCheckpoints[_token]) {
+            return (0, endCheckpoint);
         }
 
-        end = _maxCheckpoints > 0
-            ? _getEndOfRange(processedUserCheckpoints, _loanPoolToken, _maxCheckpoints)
-            : numTokenCheckpoints[_loanPoolToken];
-
-        uint256 amount = 0;
         uint256 cachedLockDate = 0;
         uint96 cachedWeightedStake = 0;
-        for (uint256 i = processedUserCheckpoints; i < end; i++) {
-            Checkpoint storage checkpoint = tokenCheckpoints[_loanPoolToken][i];
+        // @note here processedUserCheckpoints is a number of processed checkpoints and
+        // also an index for the next checkpoint because an array index starts wtih 0
+        for (uint256 i = startOfRange; i < endCheckpoint; i++) {
+            Checkpoint memory checkpoint = tokenCheckpoints[_token][i];
             uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
             uint96 weightedStake;
             if (lockDate == cachedLockDate) {
@@ -601,12 +930,11 @@ accumulated fees amount
                 uint256(checkpoint.numTokens).mul(weightedStake).div(
                     uint256(checkpoint.totalWeightedStake)
                 );
-            amount = amount.add(share);
+            feesAmount = feesAmount.add(share);
         }
-        return (amount, end);
+        return (feesAmount, endCheckpoint);
     }
 
-    /*
 ```
 </details>
 
@@ -620,7 +948,7 @@ they are not considered by the withdrawing logic (to avoid inconsistencies).
      *
 
 ```solidity
-function _getEndOfRange(uint256 start, address _loanPoolToken, uint32 _maxCheckpoints) internal view
+function _getEndOfRange(uint256 _start, address _token, uint32 _maxCheckpoints) internal view
 returns(uint256)
 ```
 
@@ -628,46 +956,46 @@ returns(uint256)
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| start | uint256 | Start of the range. | 
-| _loanPoolToken | address | Loan pool token address. | 
+| _start | uint256 | Start of the range. | 
+| _token | address | RBTC dummy to fit into existing data structure or SOV. Former address of a pool token. | 
 | _maxCheckpoints | uint32 | Checkpoint index incremental. | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- _getEndOfRange(
-        uint256 start,
-        address _loanPoolToken,
+on _getEndOfRange(
+        uint256 _start,
+        address _token,
         uint32 _maxCheckpoints
     ) internal view returns (uint256) {
-        uint256 nCheckpoints = numTokenCheckpoints[_loanPoolToken];
+        uint256 nextCheckpointIndex = totalTokenCheckpoints[_token];
+        if (nextCheckpointIndex == 0) {
+            return 0;
+        }
         uint256 end;
+
         if (_maxCheckpoints == 0) {
             /// @dev All checkpoints will be processed (only for getter outside of a transaction).
-            end = nCheckpoints;
+            end = nextCheckpointIndex;
         } else {
-            if (_maxCheckpoints > MAX_CHECKPOINTS) {
-                _maxCheckpoints = MAX_CHECKPOINTS;
-            }
             end = safe32(
-                start + _maxCheckpoints,
+                _start + _maxCheckpoints,
                 "FeeSharingCollector::withdraw: checkpoint index exceeds 32 bits"
             );
-            if (end > nCheckpoints) {
-                end = nCheckpoints;
+            if (end > nextCheckpointIndex) {
+                end = nextCheckpointIndex;
             }
         }
 
         /// @dev Withdrawal should only be possible for blocks which were already mined.
-        uint32 lastBlockNumber = tokenCheckpoints[_loanPoolToken][end - 1].blockNumber;
+        uint32 lastBlockNumber = tokenCheckpoints[_token][end - 1].blockNumber;
         if (block.number == lastBlockNumber) {
             end--;
         }
         return end;
     }
 
-    /*
 ```
 </details>
 
@@ -693,7 +1021,7 @@ function _writeTokenCheckpoint(address _token, uint96 _numTokens) internal nonpa
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- _writeTokenCheckpoint(address _token, uint96 _numTokens) internal {
+on _writeTokenCheckpoint(address _token, uint96 _numTokens) internal {
         uint32 blockNumber =
             safe32(
                 block.number,
@@ -704,29 +1032,29 @@ function _writeTokenCheckpoint(address _token, uint96 _numTokens) internal nonpa
                 block.timestamp,
                 "FeeSharingCollector::_writeCheckpoint: block timestamp exceeds 32 bits"
             );
-        uint256 nCheckpoints = numTokenCheckpoints[_token];
+        uint256 nextCheckpointsIndex = totalTokenCheckpoints[_token];
 
         uint96 totalWeightedStake = _getVoluntaryWeightedStake(blockNumber - 1, block.timestamp);
         require(totalWeightedStake > 0, "Invalid totalWeightedStake");
         if (
-            nCheckpoints > 0 &&
-            tokenCheckpoints[_token][nCheckpoints - 1].blockNumber == blockNumber
+            nextCheckpointsIndex > 0 &&
+            tokenCheckpoints[_token][nextCheckpointsIndex - 1].blockNumber == blockNumber
         ) {
-            tokenCheckpoints[_token][nCheckpoints - 1].totalWeightedStake = totalWeightedStake;
-            tokenCheckpoints[_token][nCheckpoints - 1].numTokens = _numTokens;
+            tokenCheckpoints[_token][nextCheckpointsIndex - 1]
+                .totalWeightedStake = totalWeightedStake;
+            tokenCheckpoints[_token][nextCheckpointsIndex - 1].numTokens = _numTokens;
         } else {
-            tokenCheckpoints[_token][nCheckpoints] = Checkpoint(
+            tokenCheckpoints[_token][nextCheckpointsIndex] = Checkpoint(
                 blockNumber,
                 blockTimestamp,
                 totalWeightedStake,
                 _numTokens
             );
-            numTokenCheckpoints[_token] = nCheckpoints + 1;
+            totalTokenCheckpoints[_token] = nextCheckpointsIndex + 1;
         }
         emit CheckpointAdded(msg.sender, _token, _numTokens);
     }
 
-    /*
 ```
 </details>
 
@@ -750,7 +1078,7 @@ returns(totalWeightedStake uint96)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- _getVoluntaryWeightedStake(uint32 blockNumber, uint256 timestamp)
+on _getVoluntaryWeightedStake(uint32 blockNumber, uint256 timestamp)
         internal
         view
         returns (uint96 totalWeightedStake)
@@ -764,7 +1092,6 @@ returns(totalWeightedStake uint96)
         );
     }
 
-    /*
 ```
 </details>
 
@@ -789,13 +1116,12 @@ function addWhitelistedConverterAddress(address converterAddress) external nonpa
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- addWhitelistedConverterAddress(address converterAddress) external onlyOwner {
+on addWhitelistedConverterAddress(address converterAddress) external onlyOwner {
         require(Address.isContract(converterAddress), "Non contract address given");
         whitelistedConverterList.add(converterAddress);
         emit WhitelistedConverter(msg.sender, converterAddress);
     }
 
-    /*
 ```
 </details>
 
@@ -820,12 +1146,11 @@ function removeWhitelistedConverterAddress(address converterAddress) external no
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- removeWhitelistedConverterAddress(address converterAddress) external onlyOwner {
+on removeWhitelistedConverterAddress(address converterAddress) external onlyOwner {
         whitelistedConverterList.remove(converterAddress);
         emit UnwhitelistedConverter(msg.sender, converterAddress);
     }
 
-    /*
 ```
 </details>
 
@@ -844,11 +1169,10 @@ returns(converterList address[])
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- getWhitelistedConverterList() external view returns (address[] memory converterList) {
+on getWhitelistedConverterList() external view returns (address[] memory converterList) {
         converterList = whitelistedConverterList.enumerate();
     }
 
-    /*
 ```
 </details>
 
@@ -872,13 +1196,12 @@ function _validateWhitelistedConverter(address[] converterAddresses) private vie
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- _validateWhitelistedConverter(address[] memory converterAddresses) private view {
+on _validateWhitelistedConverter(address[] memory converterAddresses) private view {
         for (uint256 i = 0; i < converterAddresses.length; i++) {
             require(whitelistedConverterList.contains(converterAddresses[i]), "Invalid Converter");
         }
     }
 
-    fu
 ```
 </details>
 
@@ -901,7 +1224,7 @@ function withdrawWRBTC(address receiver, uint256 wrbtcAmount) external nonpayabl
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- withdrawWRBTC(address receiver, uint256 wrbtcAmount) external onlyOwner {
+on withdrawWRBTC(address receiver, uint256 wrbtcAmount) external onlyOwner {
         address wRBTCAddress = address(protocol.wrbtcToken());
 
         uint256 balance = IERC20(wRBTCAddress).balanceOf(address(this));
@@ -910,7 +1233,56 @@ function withdrawWRBTC(address receiver, uint256 wrbtcAmount) external nonpayabl
         IERC20(wRBTCAddress).safeTransfer(receiver, wrbtcAmount);
     }
 
-    /*
+```
+</details>
+
+---    
+
+> ### recoverIncorrectAllocatedFees
+
+This function is dedicated to recover the wrong fee allocation for the 4 year vesting contracts.
+This function can only be called once
+The affected tokens to be withdrawn
+1. RBTC
+2. ZUSD
+3. SOV
+The amount for all of the tokens above is hardcoded
+The withdrawn tokens will be sent to the owner.
+
+```solidity
+function recoverIncorrectAllocatedFees() external nonpayable oneTimeExecution onlyOwner 
+```
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on recoverIncorrectAllocatedFees()
+        external
+        oneTimeExecution(this.recoverIncorrectAllocatedFees.selector)
+        onlyOwner
+    {
+        uint256 rbtcAmount = 878778886164898400;
+        uint256 zusdAmount = 16658600400155126000000;
+        uint256 sovAmount = 6275898259771202000000;
+
+        address zusdToken = 0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d;
+        address sovToken = 0xEFc78fc7d48b64958315949279Ba181c2114ABBd;
+
+        // Withdraw rbtc
+        (bool success, ) = owner().call.value(rbtcAmount)("");
+        require(
+            success,
+            "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
+        );
+
+        // Withdraw ZUSD
+        IERC20(zusdToken).safeTransfer(owner(), zusdAmount);
+
+        // Withdraw SOV
+        IERC20(sovToken).safeTransfer(owner(), sovAmount);
+    }
+
 ```
 </details>
 
@@ -942,15 +1314,16 @@ rbtc balance of the given user's address.
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- getAccumulatedRBTCFeeBalances(address _user) external view returns (uint256) {
-        uint256 _rbtcAmount;
-        uint256 _wrbtcAmount;
-        uint256 _iWrbtcAmount;
-        (_rbtcAmount, _wrbtcAmount, _iWrbtcAmount, , , ) = _getRBTCBalances(_user, 0);
-        return _rbtcAmount.add(_wrbtcAmount).add(_iWrbtcAmount);
+on getAccumulatedRBTCFeeBalances(address _user) external view returns (uint256) {
+        (uint256 _rbtcAmount, uint256 _wrbtcAmount, uint256 _iWrbtcAmount, , , ) =
+            _getRBTCBalances(_user, 0);
+        IWrbtcERC20 wrbtcToken = protocol.wrbtcToken();
+        address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
+        uint256 iWRBTCAmountInRBTC =
+            _iWrbtcAmount.mul(ILoanTokenWRBTC(loanPoolTokenWRBTC).tokenPrice()).div(1e18);
+        return _rbtcAmount.add(_wrbtcAmount).add(iWRBTCAmountInRBTC);
     }
 
-    /*
 ```
 </details>
 
@@ -981,7 +1354,7 @@ _rbtcAmount rbtc amount
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- _getRBTCBalances(address _user, uint32 _maxCheckpoints)
+on _getRBTCBalances(address _user, uint32 _maxCheckpoints)
         private
         view
         returns (
@@ -997,28 +1370,27 @@ _rbtcAmount rbtc amount
 
         address loanPoolTokenWRBTC = _getAndValidateLoanPoolWRBTC(address(wrbtcToken));
 
-        (_rbtcAmount, _endRBTC) = _getAccumulatedFees(
-            _user,
-            RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-            _maxCheckpoints
-        );
-        (_wrbtcAmount, _endWRBTC) = _getAccumulatedFees(
-            _user,
-            address(wrbtcToken),
-            _maxCheckpoints
-        );
-        (_iWrbtcAmount, _endIWRBTC) = _getAccumulatedFees(
-            _user,
-            loanPoolTokenWRBTC,
-            _maxCheckpoints
-        );
+        (_rbtcAmount, _endRBTC) = _getAccumulatedFees({
+            _user: _user,
+            _token: RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+            _startFrom: 0,
+            _maxCheckpoints: _maxCheckpoints
+        });
 
-        _iWrbtcAmount = _iWrbtcAmount.mul(ILoanTokenWRBTC(loanPoolTokenWRBTC).tokenPrice()).div(
-            1e18
-        );
+        (_wrbtcAmount, _endWRBTC) = _getAccumulatedFees({
+            _user: _user,
+            _token: address(wrbtcToken),
+            _startFrom: 0,
+            _maxCheckpoints: _maxCheckpoints
+        });
+        (_iWrbtcAmount, _endIWRBTC) = _getAccumulatedFees({
+            _user: _user,
+            _token: loanPoolTokenWRBTC,
+            _startFrom: 0,
+            _maxCheckpoints: _maxCheckpoints
+        });
     }
 
-    /*
 ```
 </details>
 
@@ -1047,7 +1419,7 @@ wrbtc loan pool wrbtc token address
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- _getAndValidateLoanPoolWRBTC(address _wRBTCAddress) private view returns (address) {
+on _getAndValidateLoanPoolWRBTC(address _wRBTCAddress) private view returns (address) {
         address loanPoolTokenWRBTC = protocol.underlyingToLoanPool(_wRBTCAddress);
         require(
             loanPoolTokenWRBTC != ZERO_ADDRESS,
@@ -1056,9 +1428,43 @@ wrbtc loan pool wrbtc token address
 
         return loanPoolTokenWRBTC;
     }
+
+```
+</details>
+
+---    
+
+> ### numTokenCheckpoints
+
+This getter function `numTokenCheckpoints` is added for backwards compatibility
+     broken when renamed `numTokenCheckpoints` storage variable to `totalTokenCheckpoints`.
+     *
+
+```solidity
+function numTokenCheckpoints(address _token) external view
+returns(uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _token | address | token address to get checkpoints for      * | 
+
+**Returns**
+
+Total token checkpoints
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on numTokenCheckpoints(address _token) external view returns (uint256) {
+        return totalTokenCheckpoints[_token];
+    }
 }
 
-/* I
+/*
 ```
 </details>
 
@@ -1082,10 +1488,10 @@ returns(mintAmount uint256)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- mint(address receiver, uint256 depositAmount) external returns (uint256 mintAmount);
+on mint(address receiver, uint256 depositAmount) external returns (uint256 mintAmount);
 }
 
-inte
+in
 ```
 </details>
 
@@ -1110,13 +1516,12 @@ returns(loanAmountPaid uint256)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- burnToBTC(
+on burnToBTC(
         address receiver,
         uint256 burnAmount,
         bool useLM
     ) external returns (uint256 loanAmountPaid);
 
-    fu
 ```
 </details>
 
@@ -1133,7 +1538,7 @@ returns(price uint256)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
- tokenPrice() external view returns (uint256 price);
+on tokenPrice() external view returns (uint256 price);
 }
 
 ```
@@ -1155,7 +1560,6 @@ returns(price uint256)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

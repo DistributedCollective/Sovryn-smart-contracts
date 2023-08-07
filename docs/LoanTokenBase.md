@@ -5,7 +5,7 @@ View Source: [contracts/connectors/loantoken/LoanTokenBase.sol](../contracts/con
 **↗ Extends: [ReentrancyGuard](ReentrancyGuard.md), [SharedReentrancyGuard](SharedReentrancyGuard.md), [Ownable](Ownable.md), [Pausable](Pausable.md)**
 **↘ Derived Contracts: [AdvancedTokenStorage](AdvancedTokenStorage.md)**
 
-**LoanTokenBase**
+## **LoanTokenBase** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized margin
 trading and lending https://bzx.network similar to the dYdX protocol.
@@ -73,7 +73,6 @@ mapping(address => uint256) public transactionLimit;
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -5,7 +5,7 @@ View Source: [contracts/mixins/RewardHelper.sol](../contracts/mixins/RewardHelpe
 **↗ Extends: [State](State.md)**
 **↘ Derived Contracts: [LoanClosingsShared](LoanClosingsShared.md)**
 
-**RewardHelper**
+## **RewardHelper** contract
 
 This contract calculates the reward for rollover transactions.
  * A rollover is a renewal of a deposit. Instead of liquidating a deposit
@@ -83,7 +83,6 @@ function _getRolloverReward(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

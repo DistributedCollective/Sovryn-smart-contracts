@@ -5,7 +5,7 @@ View Source: [contracts/modules/LoanClosingsShared.sol](../contracts/modules/Loa
 **↗ Extends: [LoanClosingsEvents](LoanClosingsEvents.md), [VaultController](VaultController.md), [InterestUser](InterestUser.md), [SwapsUser](SwapsUser.md), [RewardHelper](RewardHelper.md), [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)**
 **↘ Derived Contracts: [LoanClosingsLiquidation](LoanClosingsLiquidation.md), [LoanClosingsRollover](LoanClosingsRollover.md), [LoanClosingsWith](LoanClosingsWith.md)**
 
-**LoanClosingsShared**
+## **LoanClosingsShared** contract
 
 This contract should only contains the internal function that is being used / utilized by
   LoanClosingsLiquidation, LoanClosingsRollover & LoanClosingsWith contract
@@ -1032,7 +1032,6 @@ function _checkLoan(bytes32 loanId) internal view returns (Loan storage, LoanPar
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

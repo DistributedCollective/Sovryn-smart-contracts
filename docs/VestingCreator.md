@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/VestingCreator.sol](../contracts/gove
 
 **↗ Extends: [AdminRole](AdminRole.md)**
 
-**VestingCreator**
+## **VestingCreator** contract
 
 ## Structs
 ### VestingData
@@ -589,7 +589,6 @@ function _getVesting(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

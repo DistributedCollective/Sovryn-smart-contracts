@@ -104,6 +104,16 @@ contract FeeSharingCollector is
 
     event RBTCWithdrawn(address indexed sender, address indexed receiver, uint256 amount);
 
+    /* Modifier */
+    modifier oneTimeExecution(bytes4 _funcSig) {
+        require(
+            !isFunctionExecuted[_funcSig],
+            "FeeSharingCollector: function can only be called once"
+        );
+        _;
+        isFunctionExecuted[_funcSig] = true;
+    }
+
     /* Functions */
 
     /// @dev fallback function to support rbtc transfer when unwrap the wrbtc.
@@ -821,6 +831,42 @@ contract FeeSharingCollector is
         require(wrbtcAmount <= balance, "Insufficient balance");
 
         IERC20(wRBTCAddress).safeTransfer(receiver, wrbtcAmount);
+    }
+
+    /**
+     * @dev This function is dedicated to recover the wrong fee allocation for the 4 year vesting contracts.
+     * This function can only be called once
+     * The affected tokens to be withdrawn
+     * 1. RBTC
+     * 2. ZUSD
+     * 3. SOV
+     * The amount for all of the tokens above is hardcoded
+     * The withdrawn tokens will be sent to the owner.
+     */
+    function recoverIncorrectAllocatedFees()
+        external
+        oneTimeExecution(this.recoverIncorrectAllocatedFees.selector)
+        onlyOwner
+    {
+        uint256 rbtcAmount = 878778886164898400;
+        uint256 zusdAmount = 16658600400155126000000;
+        uint256 sovAmount = 6275898259771202000000;
+
+        address zusdToken = 0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d;
+        address sovToken = 0xEFc78fc7d48b64958315949279Ba181c2114ABBd;
+
+        // Withdraw rbtc
+        (bool success, ) = owner().call.value(rbtcAmount)("");
+        require(
+            success,
+            "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
+        );
+
+        // Withdraw ZUSD
+        IERC20(zusdToken).safeTransfer(owner(), zusdAmount);
+
+        // Withdraw SOV
+        IERC20(sovToken).safeTransfer(owner(), sovAmount);
     }
 
     /**

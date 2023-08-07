@@ -5,7 +5,7 @@ View Source: [contracts/mixins/VaultController.sol](../contracts/mixins/VaultCon
 **↗ Extends: [State](State.md)**
 **↘ Derived Contracts: [InterestUser](InterestUser.md), [LoanClosingsShared](LoanClosingsShared.md), [LoanMaintenance](LoanMaintenance.md), [LoanOpenings](LoanOpenings.md), [SwapsExternal](SwapsExternal.md)**
 
-**VaultController**
+## **VaultController** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized margin
 trading and lending https://bzx.network similar to the dYdX protocol.
@@ -263,7 +263,6 @@ function vaultApprove(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
