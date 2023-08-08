@@ -172,7 +172,7 @@
     "BFMultisigToken": "0x26712a09d40f11f34e6c14633ed2c7c34c903ef0",
     "BFMultisigDeposit": "0xbb4ec577c084a17160f5a016a1a58f51bc6b0609",
     "FastBTCAccessControl": "0xed47F7b0f9a71AE667194ac186e4d1932CE7a099",
-    "BTCAddressValidator":  "0xc21c72Dc5Cac8BBE31c018AA47948E021365235b",
+    "BTCAddressValidator": "0xc21c72Dc5Cac8BBE31c018AA47948E021365235b",
     "MoneyOnChain": "0xf773b590af754d597770937fa8ea7abdf2668370",
     "StakingBF": "0xFd8ea2e5e8591fA791d44731499cDF2e81CD6a41",
     "NewMultisigBF": "0xbD687d470A7E8B36C666968bb79376904725E4DD",
@@ -185,5 +185,4 @@
     "MyntBondedToken": "0x2e6B1d146064613E8f521Eb3c6e65070af964EbB",
     "MyntKernel": "0x5e6687a03e4c96d7B7e3b9fE96dA1660E7c9A5a7",
     "FastBTCMultisig": "0x0f279e810B95E0d425622b9b40D7bCD0B5C4B19d"
-    
 }
