@@ -1173,6 +1173,10 @@ contract StakingFuzzTest is Test {
         emit log_named_uint("beforeDelegation.userStakeBlock", beforeDelegation.userStakeBlock);
         emit log_named_uint("beforeDelegation.userLockedTS", beforeDelegation.userLockedTS);
         emit log_named_uint(
+            "beforeDelegation.userLockedTSBlock",
+            beforeDelegation.userLockedTS / 30
+        );
+        emit log_named_uint(
             "beforeDelegation.delegateeStakeTS",
             beforeDelegation.delegateeStakeTS
         );
@@ -1183,6 +1187,10 @@ contract StakingFuzzTest is Test {
         emit log_named_uint(
             "beforeDelegation.delegateeLockedTS",
             beforeDelegation.delegateeLockedTS
+        );
+        emit log_named_uint(
+            "beforeDelegation.delegateeLockedTSBlock",
+            beforeDelegation.delegateeLockedTS / 30
         );
 
         uint256 lockedTS = beforeDelegation.userLockedTS;
@@ -1198,6 +1206,20 @@ contract StakingFuzzTest is Test {
             beforeDelegation.delegateeBalance,
             beforeDelegation.stakingBalance
         ) = (sov.balanceOf(user), sov.balanceOf(delegatee), sov.balanceOf(address(staking)));
+
+        vm.mockCall(
+            address(dummyProtocol),
+            abi.encodeWithSelector(dummyProtocol.wrbtcToken.selector),
+            abi.encode(address(4))
+        );
+
+        //@todo tests (split?), check balances and delegated stake - ? invariants
+        // - delegate should pass, check balances and delegated stake
+        // - delegate back to the staker (user)
+        // - user withdraw, delegate - fail
+        // - delegatee - withdraw, user - delegate
+
+        mineBlocks(1);
 
         _delegateBlockNumber = uint32(
             bound(
@@ -1218,20 +1240,6 @@ contract StakingFuzzTest is Test {
         mineBlocks(mineBlocksQty);
         uint256 delegateTS = block.timestamp;
         emit log_named_uint("delegateTS", delegateTS);
-
-        vm.mockCall(
-            address(dummyProtocol),
-            abi.encodeWithSelector(dummyProtocol.wrbtcToken.selector),
-            abi.encode(address(4))
-        );
-
-        //@todo tests (split?), check balances and delegated stake - ? invariants
-        // - delegate should pass, check balances and delegated stake
-        // - delegate back to the staker (user)
-        // - user withdraw, delegate - fail
-        // - delegatee - withdraw, user - delegate
-
-        mineBlocks(1);
 
         mineBlocks(1); // moving temporarily forward to calc totalVotingPower
         beforeDelegation.userVotingPower = staking.getCurrentVotes(user);
@@ -1289,6 +1297,7 @@ contract StakingFuzzTest is Test {
 
         emit log("AFTER 1st DELEGATION to DELEGATEE, block 1:");
         emit log_named_uint("block.timestamp", block.timestamp);
+        emit log_named_uint("block.number", block.number);
         emit log_named_uint("afterDelegation.userVotingPower", afterDelegation.userVotingPower);
         emit log_named_uint(
             "afterDelegation.delegateeVotingPower",
@@ -1304,6 +1313,187 @@ contract StakingFuzzTest is Test {
         assertEq(afterDelegation.userVotingPower, 0);
         assertEq(afterDelegation.totalVotingPower, afterDelegation.totalVotingPower);
         assertEq(afterDelegation.delegateeVotingPower, afterDelegation.totalVotingPower);
+
+        //@todo: delete
+        // return;
+
+        // revert if delegating to 0 address
+        vm.expectRevert();
+        staking.delegate(address(0), lockedTS);
+
+        // delegate back to the user - success
+        emit log_string("Delegate back to user");
+
+        uint256 rightAroundDelegateBack =
+            staking.getPriorTotalVotingPower(uint32(block.number - 1), lockedTS);
+        emit log_named_uint("  rightAroundDelegateBack before 3", rightAroundDelegateBack);
+
+        beforeDelegation.userVotingPower = staking.getCurrentVotes(user);
+        beforeDelegation.delegateeVotingPower = staking.getCurrentVotes(delegatee);
+        mineBlocks(1);
+        beforeDelegation.totalVotingPower = staking.getPriorTotalVotingPower(
+            uint32(block.number - 1), //@todo safe32()
+            block.timestamp
+        );
+        mineBlocksBack(1);
+        emit log_named_uint("  block.number", block.number);
+        emit log_named_uint(
+            "     beforeDelegation.userVotingPower",
+            beforeDelegation.userVotingPower
+        );
+        emit log_named_uint(
+            "     beforeDelegation.delegateeVotingPower",
+            beforeDelegation.delegateeVotingPower
+        );
+        emit log_named_uint(
+            "     beforeDelegation.totalVotingPower",
+            beforeDelegation.totalVotingPower
+        );
+
+        mineBlocks(1);
+        rightAroundDelegateBack = staking.getPriorTotalVotingPower(
+            uint32(block.number - 1),
+            lockedTS
+        );
+        emit log_named_uint("  rightAroundDelegateBack before 2", rightAroundDelegateBack);
+        uint256 delegateeStakeAtDelegateBackToUserBlock =
+            staking.getPriorUserStakeByDate(
+                delegatee,
+                lockedTS,
+                block.number - 1 //beforeDelegation.delegateeStakeBlock
+            );
+        mineBlocksBack(1);
+        emit log_named_uint(
+            "  delegateeStakeAtDelegateBackToUserBlock",
+            delegateeStakeAtDelegateBackToUserBlock
+        );
+        // mineBlocks(1);
+        rightAroundDelegateBack = staking.getPriorTotalVotingPower(
+            uint32(block.number - 1),
+            lockedTS
+        );
+        emit log_named_uint("  rightAroundDelegateBack before", rightAroundDelegateBack);
+
+        vm.expectEmit();
+        emit DelegateStakeChanged(
+            delegatee,
+            lockedTS,
+            delegateeStakeAtDelegateBackToUserBlock + amount,
+            delegateeStakeAtDelegateBackToUserBlock
+        );
+        emit DelegateStakeChanged(user, lockedTS, 0, amount);
+        emit DelegateChanged(user, lockedTS, delegatee, user);
+        staking.delegate(user, lockedTS);
+
+        mineBlocks(1);
+        rightAroundDelegateBack = staking.getPriorTotalVotingPower(
+            uint32(block.number - 1),
+            lockedTS
+        );
+        mineBlocksBack(1);
+        emit log_named_uint("  rightAroundDelegateBack after", rightAroundDelegateBack);
+
+        vm.expectRevert();
+        staking.getPriorTotalVotingPower(uint32(block.number), lockedTS); // the block must be mined
+
+        mineBlocks(1);
+
+        assertEq(sov.balanceOf(user), 0);
+        assertEq(sov.balanceOf(delegatee), 0);
+        assertEq(sov.balanceOf(address(staking)), amount * 3);
+
+        emit log_named_uint("->block.timestamp", block.timestamp);
+        emit log_named_uint("->block.number", block.number);
+
+        afterDelegation.userVotingPower = staking.getCurrentVotes(user);
+        afterDelegation.delegateeVotingPower = staking.getCurrentVotes(delegatee);
+
+        //mineBlocks(1);
+        afterDelegation.totalVotingPower = staking.getPriorTotalVotingPower(
+            uint32(block.number - 1),
+            lockedTS
+        );
+        //mineBlocksBack(1);
+
+        emit log_named_uint("<-afterDelegation.userVotingPower", afterDelegation.userVotingPower);
+        emit log_named_uint(
+            "<-afterDelegation.delegateeVotingPower",
+            afterDelegation.delegateeVotingPower
+        );
+        emit log_named_uint(
+            "<-afterDelegation.totalVotingPower",
+            afterDelegation.totalVotingPower
+        );
+
+        assertEq(
+            afterDelegation.userVotingPower,
+            beforeDelegation.delegateeVotingPower - afterDelegation.delegateeVotingPower
+        );
+        // assertEq(beforeDelegation.totalVotingPower, afterDelegation.totalVotingPower);
+        /*assertEq(
+            afterDelegation.totalVotingPower,
+            afterDelegation.userVotingPower + afterDelegation.delegateeVotingPower
+        );*/
+
+        afterDelegation.userBalance = sov.balanceOf(user);
+        afterDelegation.delegateeBalance = sov.balanceOf(delegatee);
+        afterDelegation.stakingBalance = sov.balanceOf(address(staking));
+
+        uint256[3] memory balancesBeforeDelegation =
+            [
+                beforeDelegation.userBalance,
+                beforeDelegation.delegateeBalance,
+                beforeDelegation.stakingBalance
+            ];
+        uint256[3] memory balancesAfterDelegation =
+            [
+                afterDelegation.userBalance,
+                afterDelegation.delegateeBalance,
+                afterDelegation.stakingBalance
+            ];
+
+        for (uint8 i = 0; i < 3; i++) {
+            emit log_named_uint("checking i", i);
+            assertEq(balancesBeforeDelegation[i], balancesAfterDelegation[i]);
+        }
+
+        // try to delegate after withdraw
+        // mineBlocks(blocksBetweenStakes);
+
+        // revert("DELIBERATE REVERT");
+
+        //@todo check events - should cut total VP and VP or all actors
+        //@todo add test to withdraw after delegation to delegatee to check that delegated VP removed correctly
+
+        (uint96 expectedWithdrawAmount, uint96 expectedSlashAmount) =
+            lockedTS > block.timestamp
+                ? staking.getWithdrawAmounts(uint96(amount), lockedTS)
+                : (uint96(amount), 0);
+        vm.expectEmit();
+        emit DelegateStakeChanged({
+            delegate: user,
+            lockedUntil: lockedTS,
+            previousBalance: amount,
+            newBalance: 0
+        });
+        staking.withdraw(uint96(amount), lockedTS, address(0));
+
+        emit log_string("after withdraw");
+
+        emit log_named_uint("test case 2: expectedWithdrawAmount", expectedWithdrawAmount);
+        emit log_named_uint("test case 2: expectedSlashAmount", expectedSlashAmount);
+        emit log_named_uint("test case 2: block.timestamp", block.timestamp);
+
+        assertEq(sov.balanceOf(user), expectedWithdrawAmount);
+        assertEq(sov.balanceOf(address(staking)), amount * 2);
+        assertEq(sov.balanceOf(delegatee), 0);
+
+        vm.expectRevert(); // at the same block as withdraw
+        staking.delegate(delegatee, lockedTS);
+
+        mineBlocks(1);
+        vm.expectRevert(); // not at the same block as withdraw
+        staking.delegate(delegatee, lockedTS);
 
         vm.clearMockedCalls();
         vm.stopPrank();
