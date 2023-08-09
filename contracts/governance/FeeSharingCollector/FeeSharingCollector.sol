@@ -697,7 +697,7 @@ contract FeeSharingCollector is
         uint256 _startFrom,
         uint256 _maxCheckpoints
     )
-        external
+        public
         view
         returns (
             uint256 checkpointNum,
@@ -776,10 +776,32 @@ contract FeeSharingCollector is
         address _token,
         uint256 _startFrom,
         uint32 _maxCheckpoints
-    ) external view returns (uint256) {
-        uint256 amount;
-        (amount, ) = _getAccumulatedFees(_user, _token, _startFrom, _maxCheckpoints);
-        return amount;
+    )
+        external
+        view
+        returns (
+            uint256 feeAmount,
+            uint256 endCheckpoint,
+            uint256 nextCheckpointNum,
+            bool nextHasSkippedCheckpoints,
+            bool nextHasFees
+        )
+    {
+        (feeAmount, endCheckpoint) = _getAccumulatedFees(
+            _user,
+            _token,
+            _startFrom,
+            _maxCheckpoints
+        );
+
+        /** If passed maxCheckpoints is 0, it will return zero value for the next positive user checkpoint data */
+        if (_maxCheckpoints > 0) {
+            (
+                nextCheckpointNum,
+                nextHasSkippedCheckpoints,
+                nextHasFees
+            ) = getNextPositiveUserCheckpoint(_user, _token, endCheckpoint, _maxCheckpoints);
+        }
     }
 
     /**
