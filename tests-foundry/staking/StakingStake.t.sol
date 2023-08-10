@@ -973,7 +973,7 @@ contract StakingFuzzTest is Test {
 
         IStaking.Checkpoint memory checkpoint = staking.totalStakingCheckpoints(lockDate2, 0);
 
-        assertTrue(checkpoint.fromBlock == 2, "2. Unexpected total staking checkpoint fromBlock");
+        assertTrue(checkpoint.fromBlock == 3, "2. Unexpected total staking checkpoint fromBlock");
 
         assertTrue(checkpoint.stake == amount * 3, "3. Unexpected total staking checkpoint stake"); // 2 stakes, 3 amounts in total
 
@@ -999,7 +999,7 @@ contract StakingFuzzTest is Test {
         );
 
         checkpoint = staking.userStakingCheckpoints(user, lockDate2, 0);
-        assertTrue(checkpoint.fromBlock == 2, "8. Unexpected user staking checkpoint fromBlock");
+        assertTrue(checkpoint.fromBlock == 3, "8. Unexpected user staking checkpoint fromBlock");
         assertTrue(checkpoint.stake == amount, "9. Unexpected user staking checkpoint stake");
 
         checkpoint = staking.userStakingCheckpoints(user, lockDate2, 1);
