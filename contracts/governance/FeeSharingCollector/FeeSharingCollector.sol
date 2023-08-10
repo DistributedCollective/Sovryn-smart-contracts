@@ -776,31 +776,51 @@ contract FeeSharingCollector is
         address _token,
         uint256 _startFrom,
         uint32 _maxCheckpoints
-    )
-        external
-        view
-        returns (
-            uint256 feeAmount,
-            uint256 endCheckpoint,
-            uint256 nextCheckpointNum,
-            bool nextHasSkippedCheckpoints,
-            bool nextHasFees
-        )
-    {
-        (feeAmount, endCheckpoint) = _getAccumulatedFees(
-            _user,
-            _token,
-            _startFrom,
-            _maxCheckpoints
-        );
+    ) external view returns (uint256) {
+        uint256 amount;
+        (amount, ) = _getAccumulatedFees(_user, _token, _startFrom, _maxCheckpoints);
+        return amount;
+    }
 
-        /** If passed maxCheckpoints is 0, it will return zero value for the next positive user checkpoint data */
-        if (_maxCheckpoints > 0) {
-            (
-                nextCheckpointNum,
-                nextHasSkippedCheckpoints,
-                nextHasFees
-            ) = getNextPositiveUserCheckpoint(_user, _token, endCheckpoint, _maxCheckpoints);
+    /**
+     * @dev Get all user fees reward per maxCheckpoint starting from latest processed checkpoint
+     *
+     * @dev e.g: Total user checkpoint for the particualar token = 300,
+     * when we call this function with 50 maxCheckpoint, it will return 6 fee values in array form.
+     * if there is no more fees, it will return empty array.
+     *
+     * @param _user The address of a user (staker) or contract.
+     * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
+     * @param _maxCheckpoints maxCheckpoints to get accumulated fees for the _user
+     * @return The next checkpoint num which is the starting point to fetch all of the fees, array of calculated fees.
+     * */
+    function getAllUserFeesPerMaxCheckpoints(
+        address _user,
+        address _token,
+        uint32 _maxCheckpoints
+    ) external view returns (uint256 nextCheckpointNum, uint256[] memory fees) {
+        require(_maxCheckpoints > 0, "_maxCheckpoints must be > 0");
+        bool nextHasFees;
+        (nextCheckpointNum, , nextHasFees) = getNextPositiveUserCheckpoint(_user, _token, 0, 1);
+
+        if (!nextHasFees) return (nextCheckpointNum, fees);
+
+        if (nextCheckpointNum > 0) nextCheckpointNum = nextCheckpointNum - 1;
+
+        uint256 totalCheckpoints = totalTokenCheckpoints[_token];
+
+        uint256 arrSize;
+        for (uint256 i = nextCheckpointNum; i < totalCheckpoints; i += _maxCheckpoints) {
+            arrSize = arrSize.add(1);
+        }
+
+        fees = new uint256[](arrSize);
+
+        uint256 index;
+        for (uint256 i = nextCheckpointNum; i < totalCheckpoints; i += _maxCheckpoints) {
+            (uint256 fee, ) = _getAccumulatedFees(_user, _token, i, _maxCheckpoints);
+            fees[index] = fee;
+            index++;
         }
     }
 
