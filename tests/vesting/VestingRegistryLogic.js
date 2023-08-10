@@ -1007,7 +1007,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 lockedTS,
                 numUserStakingCheckpoints - 1
             );
-            assert.equal(ethers.BigNumber.from(numDelegateStakingCheckpoints).toNumber(), 1);
+            assert.equal(numDelegateStakingCheckpoints, 1);
             if (i === start) {
                 assert.equal(delegateStakingCheckpoints.stake.toString(), stakeForFirstInterval);
             } else {

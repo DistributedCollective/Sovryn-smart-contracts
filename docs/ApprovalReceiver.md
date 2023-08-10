@@ -91,7 +91,7 @@ function receiveApproval(
 
 > ### _getToken
 
-⤿ Overridden Implementation(s): [FourYearVestingLogic._getToken](FourYearVestingLogic.md#_gettoken),[StakingStakeModule._getToken](StakingStakeModule.md#_gettoken),[VestingLogic._getToken](VestingLogic.md#_gettoken)
+⤿ Overridden Implementation(s): [FourYearVestingLogic._getToken](FourYearVestingLogic.md#_gettoken),[VestingLogic._getToken](VestingLogic.md#_gettoken)
 
 Returns token address, only this address can be a sender for receiveApproval.
 
@@ -114,7 +114,7 @@ function _getToken() internal view returns (address) {
 
 > ### _getSelectors
 
-⤿ Overridden Implementation(s): [FourYearVestingLogic._getSelectors](FourYearVestingLogic.md#_getselectors),[StakingStakeModule._getSelectors](StakingStakeModule.md#_getselectors),[VestingLogic._getSelectors](VestingLogic.md#_getselectors)
+⤿ Overridden Implementation(s): [FourYearVestingLogic._getSelectors](FourYearVestingLogic.md#_getselectors),[VestingLogic._getSelectors](VestingLogic.md#_getselectors)
 
 Returns list of function selectors allowed to be invoked.
 
