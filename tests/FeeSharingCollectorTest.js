@@ -2667,10 +2667,10 @@ contract("FeeSharingCollector:", (accounts) => {
                     account1,
                     SOVToken.address,
                     0,
-                    1
+                    0
                 );
             expect(fees).to.be.bignumber.equal("0");
-            expect(feesByCheckpointsRange["feeAmount"]).to.be.bignumber.equal("0");
+            expect(feesByCheckpointsRange).to.be.bignumber.equal("0");
 
             const tx = await feeSharingCollector.withdraw(SOVToken.address, 9, ZERO_ADDRESS, {
                 from: account1,
