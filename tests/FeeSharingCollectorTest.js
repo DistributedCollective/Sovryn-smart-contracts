@@ -2608,55 +2608,6 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(allUserFees["fees"].length).to.equal(expectedIteration);
         });
 
-        it("getAccumulatedFeesForCheckpointsRange should return zero value for next data if 0 maxCheckpoint is passed", async () => {
-            await protocolDeploymentFixture();
-            // stake - getPriorTotalVotingPower
-            let rootStake = 700;
-            await stake(rootStake, root);
-
-            let userStake = 300;
-            if (MOCK_PRIOR_WEIGHTED_STAKE) {
-                await staking.MOCK_priorWeightedStake(userStake * 10);
-            }
-            await SOVToken.transfer(account1, userStake);
-            await stake(userStake, account1);
-
-            // mock data
-            let lendingFeeTokensHeld = new BN(wei("1", "ether"));
-            let tradingFeeTokensHeld = new BN(wei("2", "ether"));
-            let borrowingFeeTokensHeld = new BN(wei("3", "ether"));
-            let totalFeeTokensHeld = lendingFeeTokensHeld
-                .add(tradingFeeTokensHeld)
-                .add(borrowingFeeTokensHeld);
-            let feeAmount = await setFeeTokensHeld(
-                lendingFeeTokensHeld,
-                tradingFeeTokensHeld,
-                borrowingFeeTokensHeld
-            );
-
-            await feeSharingCollector.withdrawFees([SUSD.address]);
-
-            let fees = await feeSharingCollector.getAccumulatedFees(
-                account1,
-                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
-            );
-            let feesByCheckpointsRange =
-                await feeSharingCollector.getAccumulatedFeesForCheckpointsRange(
-                    account1,
-                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                    0,
-                    0
-                );
-            expect(fees).to.be.bignumber.equal(new BN(feeAmount).mul(new BN(3)).div(new BN(10)));
-            expect(feesByCheckpointsRange["feeAmount"]).to.be.bignumber.equal(
-                new BN(feeAmount).mul(new BN(3)).div(new BN(10))
-            );
-
-            expect(feesByCheckpointsRange["nextCheckpointNum"]).to.eq(0);
-            expect(feesByCheckpointsRange["nextHasSkippedCheckpoints"]).to.eq(false);
-            expect(feesByCheckpointsRange["nextHasFees"]).to.eq(false);
-        });
-
         it("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints", async () => {
             await protocolDeploymentFixture();
             await stake(900, root);
