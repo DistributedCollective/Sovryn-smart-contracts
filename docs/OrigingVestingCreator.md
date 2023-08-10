@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/OrigingVestingCreator.sol](../contrac
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**OrigingVestingCreator**
+## **OrigingVestingCreator** contract
 
 It casts an instance of vestingRegistry and by using createVesting
 function it creates a vesting, gets it and stakes some tokens w/ this vesting.

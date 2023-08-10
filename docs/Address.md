@@ -2,7 +2,7 @@
 
 View Source: [contracts/openzeppelin/Address.sol](../contracts/openzeppelin/Address.sol)
 
-**Address**
+## **Address** contract
 
 Collection of functions related to the address type
 

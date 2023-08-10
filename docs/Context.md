@@ -4,7 +4,7 @@ View Source: [contracts/openzeppelin/Context.sol](../contracts/openzeppelin/Cont
 
 **↘ Derived Contracts: [ERC20](ERC20.md), [Ownable](Ownable.md)**
 
-**Context**
+## **Context** contract
 
 ## Functions
 

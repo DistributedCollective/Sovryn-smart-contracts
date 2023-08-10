@@ -2,7 +2,7 @@
 
 View Source: [contracts/governance/Vesting/ITeamVesting.sol](../contracts/governance/Vesting/ITeamVesting.sol)
 
-**ITeamVesting**
+## **ITeamVesting** contract
 
 Interfaces are used to cast a contract address into a callable instance.
 This interface is used by Staking contract to call governanceWithdrawTokens

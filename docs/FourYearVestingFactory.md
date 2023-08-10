@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/fouryear/FourYearVestingFactory.sol](
 
 **↗ Extends: [IFourYearVestingFactory](IFourYearVestingFactory.md), [Ownable](Ownable.md)**
 
-**FourYearVestingFactory**
+## **FourYearVestingFactory** contract
 
 Factory pattern allows to create multiple instances
 of the same contract and keep track of them easier.

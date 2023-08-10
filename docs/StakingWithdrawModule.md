@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/modules/StakingWithdrawModule.sol](..
 
 **↗ Extends: [IFunctionsList](IFunctionsList.md), [StakingShared](StakingShared.md), [CheckpointsShared](CheckpointsShared.md)**
 
-**StakingWithdrawModule**
+## **StakingWithdrawModule** contract
 
 ## Structs
 ### VestingConfig

@@ -5,7 +5,7 @@ View Source: [contracts/core/Objects.sol](../contracts/core/Objects.sol)
 **↗ Extends: [LoanStruct](LoanStruct.md), [LoanParamsStruct](LoanParamsStruct.md), [OrderStruct](OrderStruct.md), [LenderInterestStruct](LenderInterestStruct.md), [LoanInterestStruct](LoanInterestStruct.md)**
 **↘ Derived Contracts: [State](State.md)**
 
-**Objects**
+## **Objects** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

@@ -4,7 +4,7 @@ View Source: [contracts/governance/IFeeSharingCollector.sol](../contracts/govern
 
 **↘ Derived Contracts: [FeeSharingCollector](FeeSharingCollector.md), [ILoanToken](ILoanToken.md), [ILoanTokenWRBTC](ILoanTokenWRBTC.md)**
 
-**IFeeSharingCollector**
+## **IFeeSharingCollector** contract
 
 Interfaces are used to cast a contract address into a callable instance.
 

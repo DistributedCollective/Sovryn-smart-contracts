@@ -4,7 +4,7 @@ View Source: [contracts/farm/ILiquidityMining.sol](../contracts/farm/ILiquidityM
 
 **↘ Derived Contracts: [LiquidityMining](LiquidityMining.md)**
 
-**ILiquidityMining**
+## **ILiquidityMining** contract
 
 ## Functions
 

@@ -4,7 +4,7 @@ View Source: [contracts/governance/FeeSharingCollector/FeeSharingCollectorProxy.
 
 **↗ Extends: [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**FeeSharingCollectorProxy**
+## **FeeSharingCollectorProxy** contract
 
 FeeSharingCollectorProxy contract should be upgradable, use UpgradableProxy.
 FeeSharingCollectorStorage is deployed with the upgradable functionality

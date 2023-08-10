@@ -4,7 +4,7 @@ View Source: [contracts/governance/FeeSharingCollector/FeeSharingCollectorStorag
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**IProtocol**
+## **IProtocol** contract
 
 Just the storage part of FeeSharingCollector contract, and FeeSharingCollectorProxy. No functions,
 only constant, variables and required structures (mappings)
@@ -40,6 +40,7 @@ mapping(address => uint256) public totalTokenCheckpoints;
 mapping(address => mapping(address => uint256)) public processedCheckpoints;
 mapping(address => uint256) public lastFeeWithdrawalTime;
 mapping(address => uint96) public unprocessedAmount;
+mapping(bytes4 => bool) public isFunctionExecuted;
 
 ```
 

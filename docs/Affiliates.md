@@ -4,7 +4,7 @@ View Source: [contracts/modules/Affiliates.sol](../contracts/modules/Affiliates.
 
 **↗ Extends: [State](State.md), [AffiliatesEvents](AffiliatesEvents.md), [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)**
 
-**Affiliates**
+## **Affiliates** contract
 
 Track referrals and reward referrers (affiliates) with tokens.
   In-detail specifications are found at https://wiki.sovryn.app/en/community/Affiliates

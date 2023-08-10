@@ -2,7 +2,7 @@
 
 View Source: [contracts/feeds/IV1PoolOracle.sol](../contracts/feeds/IV1PoolOracle.sol)
 
-**IV1PoolOracle**
+## **IV1PoolOracle** contract
 
 ## Functions
 

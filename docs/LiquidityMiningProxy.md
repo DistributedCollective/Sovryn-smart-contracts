@@ -4,7 +4,7 @@ View Source: [contracts/farm/LiquidityMiningProxy.sol](../contracts/farm/Liquidi
 
 **↗ Extends: [LiquidityMiningStorage](LiquidityMiningStorage.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**LiquidityMiningProxy**
+## **LiquidityMiningProxy** contract
 
 LiquidityMining contract should be upgradable, use UpgradableProxy
 

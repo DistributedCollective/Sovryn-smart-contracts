@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/modules/StakingAdminModule.sol](../co
 
 **↗ Extends: [IFunctionsList](IFunctionsList.md), [StakingShared](StakingShared.md)**
 
-**StakingAdminModule**
+## **StakingAdminModule** contract
 
 Implements administrative functionality pause, freeze and setting addresses and parameters
 related to staking

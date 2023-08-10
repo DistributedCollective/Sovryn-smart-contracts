@@ -4,7 +4,7 @@ View Source: [contracts/core/objects/LoanParamsStruct.sol](../contracts/core/obj
 
 **↘ Derived Contracts: [Objects](Objects.md)**
 
-**LoanParamsStruct**
+## **LoanParamsStruct** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

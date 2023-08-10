@@ -5,7 +5,7 @@ View Source: [contracts/farm/LiquidityMiningStorage.sol](../contracts/farm/Liqui
 **↗ Extends: [AdminRole](AdminRole.md)**
 **↘ Derived Contracts: [LiquidityMining](LiquidityMining.md), [LiquidityMiningProxy](LiquidityMiningProxy.md)**
 
-**LiquidityMiningStorage**
+## **LiquidityMiningStorage** contract
 
 ## Structs
 ### UserInfo

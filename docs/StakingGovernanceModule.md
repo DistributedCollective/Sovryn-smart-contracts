@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/modules/StakingGovernanceModule.sol](
 
 **↗ Extends: [IFunctionsList](IFunctionsList.md), [StakingShared](StakingShared.md), [CheckpointsShared](CheckpointsShared.md)**
 
-**StakingGovernanceModule**
+## **StakingGovernanceModule** contract
 
 Implements voting power and delegation functionality
 

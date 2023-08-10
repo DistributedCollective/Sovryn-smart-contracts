@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/fouryear/IFourYearVestingFactory.sol]
 
 **↘ Derived Contracts: [FourYearVestingFactory](FourYearVestingFactory.md)**
 
-**IFourYearVestingFactory**
+## **IFourYearVestingFactory** contract
 
 Interfaces are used to cast a contract address into a callable instance.
 This interface is used by FourYearVestingFactory contract to override empty

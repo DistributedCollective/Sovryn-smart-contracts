@@ -5,7 +5,7 @@ View Source: [contracts/proxy/modules/ModulesProxyRegistry.sol](../contracts/pro
 **↗ Extends: [IModulesProxyRegistry](IModulesProxyRegistry.md), [ProxyOwnable](ProxyOwnable.md)**
 **↘ Derived Contracts: [ModulesProxy](ModulesProxy.md)**
 
-**ModulesProxyRegistry**
+## **ModulesProxyRegistry** contract
 
 ## Contract Members
 **Constants & Variables**

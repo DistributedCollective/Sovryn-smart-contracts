@@ -2,7 +2,7 @@
 
 View Source: [contracts/interfaces/ILoanTokenModules.sol](../contracts/interfaces/ILoanTokenModules.sol)
 
-**ILoanTokenModules**
+## **ILoanTokenModules** contract
 
 ## Structs
 ### LoanParams

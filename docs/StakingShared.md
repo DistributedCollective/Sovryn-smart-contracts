@@ -5,7 +5,7 @@ View Source: [contracts/governance/Staking/modules/shared/StakingShared.sol](../
 **↗ Extends: [StakingStorageShared](StakingStorageShared.md), [SafeMath96](SafeMath96.md)**
 **↘ Derived Contracts: [StakingAdminModule](StakingAdminModule.md), [StakingGovernanceModule](StakingGovernanceModule.md), [StakingStakeModule](StakingStakeModule.md), [StakingVestingModule](StakingVestingModule.md), [StakingWithdrawModule](StakingWithdrawModule.md), [WeightedStakingModule](WeightedStakingModule.md)**
 
-**StakingShared**
+## **StakingShared** contract
 
 ## Contract Members
 **Constants & Variables**

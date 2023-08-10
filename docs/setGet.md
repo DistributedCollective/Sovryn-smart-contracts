@@ -2,7 +2,7 @@
 
 View Source: [contracts/mockup/setGet.sol](../contracts/mockup/setGet.sol)
 
-**setGet**
+## **setGet** contract
 
 This is going to be used for testing purposes.
 

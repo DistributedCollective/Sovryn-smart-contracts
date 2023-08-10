@@ -2,7 +2,7 @@
 
 View Source: [contracts/interfaces/IERC777Recipient.sol](../contracts/interfaces/IERC777Recipient.sol)
 
-**IERC777Recipient**
+## **IERC777Recipient** contract
 
 Interface of the ERC777TokensRecipient standard as defined in the EIP.
  * Accounts can be notified of {IERC777} tokens being sent to them by having a

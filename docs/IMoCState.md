@@ -2,7 +2,7 @@
 
 View Source: [contracts/feeds/IMoCState.sol](../contracts/feeds/IMoCState.sol)
 
-**IMoCState**
+## **IMoCState** contract
 
 ## Functions
 

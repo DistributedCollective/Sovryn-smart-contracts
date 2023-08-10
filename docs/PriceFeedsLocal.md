@@ -5,7 +5,7 @@ View Source: [contracts/feeds/testnet/PriceFeedsLocal.sol](../contracts/feeds/te
 
 **↗ Extends: [PriceFeeds](PriceFeeds.md)**
 
-**PriceFeedsLocal**
+## **PriceFeedsLocal** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

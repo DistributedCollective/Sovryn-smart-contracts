@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/StakingProxy.sol](../contracts/govern
 
 **↗ Extends: [StakingStorageShared](StakingStorageShared.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**StakingProxy**
+## **StakingProxy** contract
 
 Staking contract should be upgradable, use UpgradableProxy.
 StakingStorage is deployed with the upgradable functionality

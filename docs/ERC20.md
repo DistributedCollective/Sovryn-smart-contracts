@@ -5,7 +5,7 @@ View Source: [contracts/openzeppelin/ERC20.sol](../contracts/openzeppelin/ERC20.
 **↗ Extends: [Context](Context.md), [IERC20_](IERC20_.md)**
 **↘ Derived Contracts: [SOV](SOV.md)**
 
-**ERC20**
+## **ERC20** contract
 
 Implementation of the {IERC20} interface.
  * This implementation is agnostic to the way tokens are created. This means

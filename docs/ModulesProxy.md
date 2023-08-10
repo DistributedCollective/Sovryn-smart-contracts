@@ -4,7 +4,7 @@ View Source: [contracts/proxy/modules/ModulesProxy.sol](../contracts/proxy/modul
 
 **↗ Extends: [ModulesProxyRegistry](ModulesProxyRegistry.md)**
 
-**ModulesProxy**
+## **ModulesProxy** contract
 
 ## Functions
 

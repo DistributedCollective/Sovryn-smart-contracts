@@ -5,7 +5,7 @@ View Source: [contracts/connectors/loantoken/AdvancedTokenStorage.sol](../contra
 **↗ Extends: [LoanTokenBase](LoanTokenBase.md)**
 **↘ Derived Contracts: [AdvancedToken](AdvancedToken.md), [ILoanTokenLogicBeacon](ILoanTokenLogicBeacon.md), [LoanToken](LoanToken.md), [LoanTokenLogicProxy](LoanTokenLogicProxy.md), [PreviousLoanToken](PreviousLoanToken.md), [PreviousLoanTokenSettingsLowerAdmin](PreviousLoanTokenSettingsLowerAdmin.md)**
 
-**AdvancedTokenStorage**
+## **AdvancedTokenStorage** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

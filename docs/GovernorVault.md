@@ -4,7 +4,7 @@ View Source: [contracts/governance/GovernorVault.sol](../contracts/governance/Go
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**GovernorVault**
+## **GovernorVault** contract
 
 This contract stores tokens and rBTC only transfereble by owner,
 i.e. Sovryn governance.

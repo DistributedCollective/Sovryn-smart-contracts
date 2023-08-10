@@ -2,7 +2,7 @@
 
 View Source: [contracts/swaps/connectors/interfaces/ISovrynSwapNetwork.sol](../contracts/swaps/connectors/interfaces/ISovrynSwapNetwork.sol)
 
-**ISovrynSwapNetwork**
+## **ISovrynSwapNetwork** contract
 
 ## Functions
 

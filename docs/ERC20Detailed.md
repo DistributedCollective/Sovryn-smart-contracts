@@ -5,7 +5,7 @@ View Source: [contracts/openzeppelin/ERC20Detailed.sol](../contracts/openzeppeli
 **↗ Extends: [IERC20_](IERC20_.md)**
 **↘ Derived Contracts: [SOV](SOV.md)**
 
-**ERC20Detailed**
+## **ERC20Detailed** contract
 
 Optional functions from the ERC20 standard.
 

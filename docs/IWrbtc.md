@@ -4,7 +4,7 @@ View Source: [contracts/interfaces/IWrbtc.sol](../contracts/interfaces/IWrbtc.so
 
 **↘ Derived Contracts: [IWrbtcERC20](IWrbtcERC20.md)**
 
-**IWrbtc**
+## **IWrbtc** contract
 
 ## Functions
 

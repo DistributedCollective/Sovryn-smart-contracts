@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/fouryear/FourYearVestingLogic.sol](..
 
 **↗ Extends: [IFourYearVesting](IFourYearVesting.md), [FourYearVestingStorage](FourYearVestingStorage.md), [ApprovalReceiver](ApprovalReceiver.md)**
 
-**FourYearVestingLogic**
+## **FourYearVestingLogic** contract
 
 Staking, delegating and withdrawal functionality.
 

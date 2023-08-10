@@ -4,7 +4,7 @@ View Source: [contracts/farm/LiquidityMining.sol](../contracts/farm/LiquidityMin
 
 **↗ Extends: [ILiquidityMining](ILiquidityMining.md), [LiquidityMiningStorage](LiquidityMiningStorage.md)**
 
-**LiquidityMining**
+## **LiquidityMining** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -586,7 +586,11 @@ function _getUserAccumulatedReward(uint256 _poolId, address _user)
             (, uint256 accumulatedRewardPerShare_) = _getPoolAccumulatedReward(pool);
             accumulatedRewardPerShare = accumulatedRewardPerShare.add(accumulatedRewardPerShare_);
         }
-        return user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
+
+        return
+            user.accumulatedReward.add(
+                user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt)
+            );
     }
 ```
 </details>

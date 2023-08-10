@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/VestingRegistry2.sol](../contracts/go
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**VestingRegistry2**
+## **VestingRegistry2** contract
 
 One time contract needed to distribute tokens to origin sales investors.
 

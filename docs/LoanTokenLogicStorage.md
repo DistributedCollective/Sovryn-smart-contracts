@@ -5,7 +5,7 @@ View Source: [contracts/connectors/loantoken/LoanTokenLogicStorage.sol](../contr
 **↗ Extends: [AdvancedToken](AdvancedToken.md)**
 **↘ Derived Contracts: [LoanTokenLogicStandard](LoanTokenLogicStandard.md), [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)**
 
-**LoanTokenLogicStorage**
+## **LoanTokenLogicStorage** contract
 
 ## Contract Members
 **Constants & Variables**

@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/VestingRegistryProxy.sol](../contract
 
 **↗ Extends: [VestingRegistryStorage](VestingRegistryStorage.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**VestingRegistryProxy**
+## **VestingRegistryProxy** contract
 
 Vesting Registry contract should be upgradable, use UpgradableProxy.
 VestingRegistryStorage is deployed with the upgradable functionality

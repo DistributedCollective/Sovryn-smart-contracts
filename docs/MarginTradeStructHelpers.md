@@ -2,7 +2,7 @@
 
 View Source: [contracts/connectors/loantoken/lib/MarginTradeStructHelpers.sol](../contracts/connectors/loantoken/lib/MarginTradeStructHelpers.sol)
 
-**MarginTradeStructHelpers**
+## **MarginTradeStructHelpers** contract
 
 ## Structs
 ### SentAddresses

@@ -4,7 +4,7 @@ View Source: [contracts/proxy/modules/interfaces/IFunctionsList.sol](../contract
 
 **↘ Derived Contracts: [StakingAdminModule](StakingAdminModule.md), [StakingGovernanceModule](StakingGovernanceModule.md), [StakingStakeModule](StakingStakeModule.md), [StakingStorageModule](StakingStorageModule.md), [StakingVestingModule](StakingVestingModule.md), [StakingWithdrawModule](StakingWithdrawModule.md), [WeightedStakingModule](WeightedStakingModule.md)**
 
-**IFunctionsList**
+## **IFunctionsList** contract
 
 ## Functions
 

@@ -2,7 +2,7 @@
 
 View Source: [contracts/interfaces/IERC777.sol](../contracts/interfaces/IERC777.sol)
 
-**IERC777**
+## **IERC777** contract
 
 Interface of the ERC777Token standard as defined in the EIP.
  * This contract uses the
@@ -102,6 +102,8 @@ function granularity() external view returns (uint256);
 
 > ### totalSupply
 
+⤿ Overridden Implementation(s): [IERC20.totalSupply](IERC20.md#totalsupply)
+
 Returns the amount of tokens in existence.
 
 ```solidity
@@ -120,6 +122,8 @@ function totalSupply() external view returns (uint256);
 ---    
 
 > ### balanceOf
+
+⤿ Overridden Implementation(s): [IERC20.balanceOf](IERC20.md#balanceof)
 
 Returns the amount of tokens owned by an account (`owner`).
 

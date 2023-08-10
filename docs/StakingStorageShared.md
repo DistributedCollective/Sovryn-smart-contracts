@@ -5,7 +5,7 @@ View Source: [contracts/governance/Staking/modules/shared/StakingStorageShared.s
 **↗ Extends: [Ownable](Ownable.md)**
 **↘ Derived Contracts: [CheckpointsShared](CheckpointsShared.md), [StakingProxy](StakingProxy.md), [StakingShared](StakingShared.md), [StakingStorageModule](StakingStorageModule.md)**
 
-**StakingStorageShared**
+## **StakingStorageShared** contract
 
 Just the storage part of stacking contract, no functions,
 only constant, variables and required structures (mappings).

@@ -5,7 +5,7 @@ View Source: [contracts/modules/SwapsExternal.sol](../contracts/modules/SwapsExt
 
 **↗ Extends: [VaultController](VaultController.md), [SwapsUser](SwapsUser.md), [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)**
 
-**SwapsExternal**
+## **SwapsExternal** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

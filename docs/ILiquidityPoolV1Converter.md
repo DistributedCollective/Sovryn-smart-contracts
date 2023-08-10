@@ -2,7 +2,7 @@
 
 View Source: [contracts/feeds/IV1PoolOracle.sol](../contracts/feeds/IV1PoolOracle.sol)
 
-**ILiquidityPoolV1Converter**
+## **ILiquidityPoolV1Converter** contract
 
 ## Functions
 

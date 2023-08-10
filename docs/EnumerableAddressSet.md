@@ -2,7 +2,7 @@
 
 View Source: [contracts/mixins/EnumerableAddressSet.sol](../contracts/mixins/EnumerableAddressSet.sol)
 
-**EnumerableAddressSet**
+## **EnumerableAddressSet** contract
 
 Based on Library for managing
 https://en.wikipedia.org/wiki/Set_(abstract_data_type)[sets] of primitive

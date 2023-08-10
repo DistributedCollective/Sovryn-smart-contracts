@@ -5,7 +5,7 @@ View Source: [contracts/governance/Vesting/GenericTokenSender.sol](../contracts/
 
 **↗ Extends: [AdminRole](AdminRole.md)**
 
-**GenericTokenSender**
+## **GenericTokenSender** contract
 
 This contract includes functions to transfer tokens
 to a recipient or to several recipients in a list. There is

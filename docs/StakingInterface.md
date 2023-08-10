@@ -4,7 +4,7 @@ View Source: [contracts/governance/GovernorAlpha.sol](../contracts/governance/Go
 
 **↗ Extends: [SafeMath96](SafeMath96.md)**
 
-**StakingInterface**
+## **StakingInterface** contract
 
 This is an adapted clone of compound’s governance model. In general,
 the process is the same: Token holders can make (executable) proposals if

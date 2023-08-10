@@ -5,7 +5,7 @@ View Source: [contracts/connectors/loantoken/LoanTokenLogicProxy.sol](../contrac
 
 **↗ Extends: [AdvancedTokenStorage](AdvancedTokenStorage.md)**
 
-**LoanTokenLogicProxy**
+## **LoanTokenLogicProxy** contract
 
 This contract contains the proxy functionality and it will query the logic target from LoanTokenLogicBeacon
 This contract will also has the pause/unpause functionality. The purpose of this pausability is so that we can pause/unpause from the loan token level.

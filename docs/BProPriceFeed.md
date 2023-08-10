@@ -6,7 +6,7 @@ View Source: [contracts/feeds/BProPriceFeed.sol](../contracts/feeds/BProPriceFee
 
 **↗ Extends: [IPriceFeedsExt](IPriceFeedsExt.md), [Ownable](Ownable.md)**
 
-**BProPriceFeed**
+## **BProPriceFeed** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -60,7 +60,7 @@ constructor(address _mocStateAddress) public {
 
 > ### latestAnswer
 
-⤾ overrides [IPriceFeedsExt.latestAnswer](IPriceFeedsExt.md#latestanswer)
+undefined
 
 Get BPro USD price.
      *

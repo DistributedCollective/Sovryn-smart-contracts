@@ -4,7 +4,7 @@ View Source: [contracts/governance/ErrorDecoder.sol](../contracts/governance/Err
 
 **↘ Derived Contracts: [ApprovalReceiver](ApprovalReceiver.md), [ITimelock](ITimelock.md), [Timelock](Timelock.md)**
 
-**ErrorDecoder**
+## **ErrorDecoder** contract
 
 On EVM if the return data length of a call is less than 68,
 then the transaction fails silently without a revert message!

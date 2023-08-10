@@ -4,7 +4,7 @@ View Source: [contracts/mockup/previousLoanToken/PreviousLoanTokenSettingsLowerA
 
 **↗ Extends: [AdvancedTokenStorage](AdvancedTokenStorage.md)**
 
-**PreviousLoanTokenSettingsLowerAdmin**
+## **PreviousLoanTokenSettingsLowerAdmin** contract
 
 ## Contract Members
 **Constants & Variables**

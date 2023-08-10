@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/modules/StakingVestingModule.sol](../
 
 **↗ Extends: [IFunctionsList](IFunctionsList.md), [StakingShared](StakingShared.md)**
 
-**StakingVestingModule**
+## **StakingVestingModule** contract
 
 Implements interaction with Vesting functionality: vesting registry, vesting staking
 

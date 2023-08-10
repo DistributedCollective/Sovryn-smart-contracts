@@ -4,7 +4,7 @@ View Source: [contracts/locked/LockedSOV.sol](../contracts/locked/LockedSOV.sol)
 
 **↗ Extends: [ILockedSOV](ILockedSOV.md)**
 
-**LockedSOV**
+## **LockedSOV** contract
 
 This contract is used to receive reward from other contracts, Create Vesting and Stake Tokens.
 

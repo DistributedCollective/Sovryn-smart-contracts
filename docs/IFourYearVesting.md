@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/fouryear/IFourYearVesting.sol](../con
 
 **↘ Derived Contracts: [FourYearVestingLogic](FourYearVestingLogic.md)**
 
-**IFourYearVesting**
+## **IFourYearVesting** contract
 
 Interfaces are used to cast a contract address into a callable instance.
 This interface is used by FourYearVestingLogic contract to implement stakeTokens function

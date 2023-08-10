@@ -2,7 +2,7 @@
 
 View Source: [contracts/mockup/DummyContract.sol](../contracts/mockup/DummyContract.sol)
 
-**DummyContract**
+## **DummyContract** contract
 
 ## Functions
 

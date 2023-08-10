@@ -6,7 +6,7 @@ View Source: [contracts/mixins/InterestUser.sol](../contracts/mixins/InterestUse
 **↗ Extends: [VaultController](VaultController.md), [FeesHelper](FeesHelper.md)**
 **↘ Derived Contracts: [LoanClosingsShared](LoanClosingsShared.md), [LoanMaintenance](LoanMaintenance.md), [LoanOpenings](LoanOpenings.md)**
 
-**InterestUser**
+## **InterestUser** contract
 
 **Events**
 

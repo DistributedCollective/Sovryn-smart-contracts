@@ -2,7 +2,7 @@
 
 View Source: [contracts/governance/Vesting/DevelopmentFund.sol](../contracts/governance/Vesting/DevelopmentFund.sol)
 
-**DevelopmentFund**
+## **DevelopmentFund** contract
 
 You can use this contract for timed token release from Dev Fund.
 

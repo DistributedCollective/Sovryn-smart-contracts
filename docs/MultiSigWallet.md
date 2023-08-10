@@ -4,7 +4,7 @@
 
 View Source: [contracts/multisig/MultiSigWallet.sol](../contracts/multisig/MultiSigWallet.sol)
 
-**MultiSigWallet**
+## **MultiSigWallet** contract
 
 ## Structs
 ### Transaction

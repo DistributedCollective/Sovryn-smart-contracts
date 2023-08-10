@@ -2,7 +2,7 @@
 
 View Source: [contracts/connectors/loantoken/interfaces/ProtocolLike.sol](../contracts/connectors/loantoken/interfaces/ProtocolLike.sol)
 
-**ProtocolLike**
+## **ProtocolLike** contract
 
 ## Functions
 

@@ -4,7 +4,7 @@ View Source: [contracts/escrow/Escrow.sol](../contracts/escrow/Escrow.sol)
 
 **↘ Derived Contracts: [EscrowReward](EscrowReward.md)**
 
-**Escrow**
+## **Escrow** contract
 
 You can use this contract for deposit of SOV tokens for some time and withdraw later.
 

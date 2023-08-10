@@ -2,7 +2,7 @@
 
 View Source: [contracts/openzeppelin/SafeERC20.sol](../contracts/openzeppelin/SafeERC20.sol)
 
-**SafeERC20**
+## **SafeERC20** contract
 
 Wrappers around ERC20 operations that throw on failure (when the token
 contract returns false). Tokens that return no value (and instead revert or

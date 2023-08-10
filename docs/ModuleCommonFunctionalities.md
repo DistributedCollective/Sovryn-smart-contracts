@@ -5,7 +5,7 @@ View Source: [contracts/mixins/ModuleCommonFunctionalities.sol](../contracts/mix
 **↗ Extends: [State](State.md)**
 **↘ Derived Contracts: [Affiliates](Affiliates.md), [LoanClosingsShared](LoanClosingsShared.md), [LoanMaintenance](LoanMaintenance.md), [LoanOpenings](LoanOpenings.md), [LoanSettings](LoanSettings.md), [ProtocolSettings](ProtocolSettings.md), [SwapsExternal](SwapsExternal.md)**
 
-**ModuleCommonFunctionalities**
+## **ModuleCommonFunctionalities** contract
 
 ## Modifiers
 

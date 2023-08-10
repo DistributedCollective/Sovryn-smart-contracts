@@ -6,5 +6,7 @@
     "compiler": "truffle compile",
     "language": "en",
     "ignoreFiles": ["**/*test*.json", "**/*[T|t]est*.json", "**/*[M|m]ock*.json"],
-    "readme": "docs"
+    "contractsListBeginKeyword": "## Contracts",
+    "freshOutput": true,
+    "readMe": "README.md"
 }

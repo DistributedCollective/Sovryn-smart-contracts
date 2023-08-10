@@ -4,7 +4,7 @@ View Source: [contracts/token/IApproveAndCall.sol](../contracts/token/IApproveAn
 
 **↘ Derived Contracts: [ApprovalReceiver](ApprovalReceiver.md)**
 
-**IApproveAndCall**
+## **IApproveAndCall** contract
 
 Interfaces are used to cast a contract address into a callable instance.
 

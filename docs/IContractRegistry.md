@@ -2,7 +2,7 @@
 
 View Source: [contracts/swaps/connectors/interfaces/IContractRegistry.sol](../contracts/swaps/connectors/interfaces/IContractRegistry.sol)
 
-**IContractRegistry**
+## **IContractRegistry** contract
 
 ## Functions
 

@@ -5,7 +5,7 @@ View Source: [contracts/swaps/SwapsUser.sol](../contracts/swaps/SwapsUser.sol)
 **↗ Extends: [State](State.md), [SwapsEvents](SwapsEvents.md), [FeesHelper](FeesHelper.md)**
 **↘ Derived Contracts: [LoanClosingsShared](LoanClosingsShared.md), [LoanMaintenance](LoanMaintenance.md), [LoanOpenings](LoanOpenings.md), [SwapsExternal](SwapsExternal.md)**
 
-**SwapsUser**
+## **SwapsUser** contract
 
 ## Functions
 

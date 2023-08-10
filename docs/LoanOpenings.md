@@ -5,7 +5,7 @@ View Source: [contracts/modules/LoanOpenings.sol](../contracts/modules/LoanOpeni
 
 **↗ Extends: [LoanOpeningsEvents](LoanOpeningsEvents.md), [VaultController](VaultController.md), [InterestUser](InterestUser.md), [SwapsUser](SwapsUser.md), [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)**
 
-**LoanOpenings**
+## **LoanOpenings** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

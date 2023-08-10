@@ -4,7 +4,7 @@ View Source: [contracts/connectors/loantoken/modules/beaconLogicWRBTC/LoanTokenL
 
 **↗ Extends: [LoanTokenLogicStandard](LoanTokenLogicStandard.md)**
 
-**LoanTokenLogicWrbtc**
+## **LoanTokenLogicWrbtc** contract
 
 ## Functions
 

@@ -2,7 +2,7 @@
 
 View Source: [contracts/connectors/loantoken/interfaces/FeedsLike.sol](../contracts/connectors/loantoken/interfaces/FeedsLike.sol)
 
-**FeedsLike**
+## **FeedsLike** contract
 
 ## Functions
 

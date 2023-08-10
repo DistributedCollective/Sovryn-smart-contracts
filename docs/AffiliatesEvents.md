@@ -5,7 +5,7 @@ View Source: [contracts/events/AffiliatesEvents.sol](../contracts/events/Affilia
 **↗ Extends: [ModulesCommonEvents](ModulesCommonEvents.md)**
 **↘ Derived Contracts: [Affiliates](Affiliates.md), [ISovryn](ISovryn.md)**
 
-**AffiliatesEvents**
+## **AffiliatesEvents** contract
 
 **Events**
 

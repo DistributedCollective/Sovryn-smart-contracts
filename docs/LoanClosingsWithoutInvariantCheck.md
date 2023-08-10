@@ -4,7 +4,7 @@ View Source: [contracts/mockup/LoanClosingsWithoutInvariantCheck.sol](../contrac
 
 **↗ Extends: [LoanClosingsWithMockup](LoanClosingsWithMockup.md)**
 
-**LoanClosingsWithoutInvariantCheck**
+## **LoanClosingsWithoutInvariantCheck** contract
 
 ## Modifiers
 

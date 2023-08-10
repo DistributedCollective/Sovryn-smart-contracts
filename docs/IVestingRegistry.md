@@ -2,7 +2,7 @@
 
 View Source: [contracts/governance/Vesting/IVestingRegistry.sol](../contracts/governance/Vesting/IVestingRegistry.sol)
 
-**IVestingRegistry**
+## **IVestingRegistry** contract
 
 Interfaces are used to cast a contract address into a callable instance.
 

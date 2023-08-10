@@ -6,7 +6,7 @@ View Source: [contracts/multisig/MultiSigKeyHolders.sol](../contracts/multisig/M
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**MultiSigKeyHolders**
+## **MultiSigKeyHolders** contract
 
 ## Structs
 ### Data

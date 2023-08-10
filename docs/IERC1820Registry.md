@@ -2,7 +2,7 @@
 
 View Source: [contracts/testhelpers/interfaces/IERC1820Registry.sol](../contracts/testhelpers/interfaces/IERC1820Registry.sol)
 
-**IERC1820Registry**
+## **IERC1820Registry** contract
 
 Interface of the global ERC1820 Registry, as defined in the
 https://eips.ethereum.org/EIPS/eip-1820[EIP]. Accounts may register

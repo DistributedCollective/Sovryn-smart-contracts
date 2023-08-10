@@ -4,7 +4,7 @@ View Source: [contracts/reentrancy/SharedReentrancyGuard.sol](../contracts/reent
 
 **↘ Derived Contracts: [LoanTokenBase](LoanTokenBase.md), [State](State.md)**
 
-**SharedReentrancyGuard**
+## **SharedReentrancyGuard** contract
 
 ## Contract Members
 **Constants & Variables**

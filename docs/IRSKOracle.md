@@ -2,7 +2,7 @@
 
 View Source: [contracts/feeds/IRSKOracle.sol](../contracts/feeds/IRSKOracle.sol)
 
-**IRSKOracle**
+## **IRSKOracle** contract
 
 ## Functions
 

@@ -6,7 +6,7 @@ View Source: [contracts/governance/Vesting/VestingRegistryStorage.sol](../contra
 **↗ Extends: [Initializable](Initializable.md), [AdminRole](AdminRole.md)**
 **↘ Derived Contracts: [VestingRegistryLogic](VestingRegistryLogic.md), [VestingRegistryProxy](VestingRegistryProxy.md)**
 
-**VestingRegistryStorage**
+## **VestingRegistryStorage** contract
 
 This contract is just the storage required for vesting registry.
 It is parent of VestingRegistryProxy and VestingRegistryLogic.

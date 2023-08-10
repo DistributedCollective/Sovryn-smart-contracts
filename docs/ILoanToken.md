@@ -4,7 +4,7 @@ View Source: [contracts/governance/FeeSharingCollector/FeeSharingCollector.sol](
 
 **↗ Extends: [SafeMath96](SafeMath96.md), [IFeeSharingCollector](IFeeSharingCollector.md), [Ownable](Ownable.md), [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)**
 
-**ILoanToken**
+## **ILoanToken** contract
 
 This contract withdraws fees to be paid to SOV Stakers from the protocol.
 Stakers call withdraw() to get their share of the fees.
@@ -38,7 +38,20 @@ event RBTCWithdrawn(address indexed sender, address indexed receiver, uint256  a
 
 ## Modifiers
 
+- [oneTimeExecution](#onetimeexecution)
 - [validFromCheckpointParam](#validfromcheckpointparam)
+
+### oneTimeExecution
+
+```js
+modifier oneTimeExecution(bytes4 _funcSig) internal
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _funcSig | bytes4 |  | 
 
 ### validFromCheckpointParam
 
@@ -82,6 +95,7 @@ modifier validFromCheckpointParam(uint256 _fromCheckpoint, address _user, addres
 - [getWhitelistedConverterList()](#getwhitelistedconverterlist)
 - [_validateWhitelistedConverter(address[] converterAddresses)](#_validatewhitelistedconverter)
 - [withdrawWRBTC(address receiver, uint256 wrbtcAmount)](#withdrawwrbtc)
+- [recoverIncorrectAllocatedFees()](#recoverincorrectallocatedfees)
 - [getAccumulatedRBTCFeeBalances(address _user)](#getaccumulatedrbtcfeebalances)
 - [_getRBTCBalances(address _user, uint32 _maxCheckpoints)](#_getrbtcbalances)
 - [_getAndValidateLoanPoolWRBTC(address _wRBTCAddress)](#_getandvalidateloanpoolwrbtc)
@@ -1218,6 +1232,57 @@ on withdrawWRBTC(address receiver, uint256 wrbtcAmount) external onlyOwner {
 
         IERC20(wRBTCAddress).safeTransfer(receiver, wrbtcAmount);
     }
+
+```
+</details>
+
+---    
+
+> ### recoverIncorrectAllocatedFees
+
+This function is dedicated to recover the wrong fee allocation for the 4 year vesting contracts.
+This function can only be called once
+The affected tokens to be withdrawn
+1. RBTC
+2. ZUSD
+3. SOV
+The amount for all of the tokens above is hardcoded
+The withdrawn tokens will be sent to the owner.
+
+```solidity
+function recoverIncorrectAllocatedFees() external nonpayable oneTimeExecution onlyOwner 
+```
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+on recoverIncorrectAllocatedFees()
+        external
+        oneTimeExecution(this.recoverIncorrectAllocatedFees.selector)
+        onlyOwner
+    {
+        uint256 rbtcAmount = 878778886164898400;
+        uint256 zusdAmount = 16658600400155126000000;
+        uint256 sovAmount = 6275898259771202000000;
+
+        address zusdToken = 0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d;
+        address sovToken = 0xEFc78fc7d48b64958315949279Ba181c2114ABBd;
+
+        // Withdraw rbtc
+        (bool success, ) = owner().call.value(rbtcAmount)("");
+        require(
+            success,
+            "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
+        );
+
+        // Withdraw ZUSD
+        IERC20(zusdToken).safeTransfer(owner(), zusdAmount);
+
+        // Withdraw SOV
+        IERC20(sovToken).safeTransfer(owner(), sovAmount);
+    }
+
 
 ```
 </details>

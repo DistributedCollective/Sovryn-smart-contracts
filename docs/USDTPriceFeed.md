@@ -4,7 +4,7 @@ View Source: [contracts/feeds/USDTPriceFeed.sol](../contracts/feeds/USDTPriceFee
 
 **↗ Extends: [IPriceFeedsExt](IPriceFeedsExt.md)**
 
-**USDTPriceFeed**
+## **USDTPriceFeed** contract
 
 The Price Feed USDT contract.
  * This contract implements USDT query functionality,
@@ -28,7 +28,7 @@ uint256 private constant USDT_RATE;
 
 > ### latestAnswer
 
-⤾ overrides [IPriceFeedsExt.latestAnswer](IPriceFeedsExt.md#latestanswer)
+undefined
 
 Get the USDT price.
      *

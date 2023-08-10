@@ -4,7 +4,7 @@ View Source: [contracts/interfaces/ISovryn.sol](../contracts/interfaces/ISovryn.
 
 **↗ Extends: [State](State.md), [ProtocolSettingsEvents](ProtocolSettingsEvents.md), [LoanSettingsEvents](LoanSettingsEvents.md), [LoanOpeningsEvents](LoanOpeningsEvents.md), [LoanMaintenanceEvents](LoanMaintenanceEvents.md), [LoanClosingsEvents](LoanClosingsEvents.md), [SwapsEvents](SwapsEvents.md), [AffiliatesEvents](AffiliatesEvents.md), [FeesEvents](FeesEvents.md)**
 
-**ISovryn**
+## **ISovryn** contract
 
 ## Structs
 ### LoanReturnData

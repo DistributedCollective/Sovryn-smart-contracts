@@ -2,7 +2,7 @@
 
 View Source: [contracts/utils/Utils.sol](../contracts/utils/Utils.sol)
 
-**Utils**
+## **Utils** contract
 
 ## Functions
 

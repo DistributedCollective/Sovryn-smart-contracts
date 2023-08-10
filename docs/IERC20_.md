@@ -4,7 +4,7 @@ View Source: [contracts/openzeppelin/IERC20_.sol](../contracts/openzeppelin/IERC
 
 **↘ Derived Contracts: [ERC20](ERC20.md), [ERC20Detailed](ERC20Detailed.md), [LiquidityMiningConfigToken](LiquidityMiningConfigToken.md)**
 
-**IERC20_**
+## **IERC20_** contract
 
 Interface of the ERC20 standard as defined in the EIP. Does not include
 the optional functions; to access them see {ERC20Detailed}.

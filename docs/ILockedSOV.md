@@ -4,7 +4,7 @@ View Source: [contracts/locked/ILockedSOV.sol](../contracts/locked/ILockedSOV.so
 
 **↘ Derived Contracts: [LockedSOV](LockedSOV.md)**
 
-**ILockedSOV**
+## **ILockedSOV** contract
 
 This interface is an incomplete yet useful for future migration of LockedSOV Contract.
 

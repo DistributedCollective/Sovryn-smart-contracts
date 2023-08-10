@@ -4,7 +4,7 @@ View Source: [contracts/proxy/Proxy.sol](../contracts/proxy/Proxy.sol)
 
 **↘ Derived Contracts: [TeamVesting](TeamVesting.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**Proxy**
+## **Proxy** contract
 
 The proxy performs delegated calls to the contract implementation
 it is pointing to. This way upgradable contracts are possible on blockchain.

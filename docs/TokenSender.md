@@ -5,7 +5,7 @@ View Source: [contracts/governance/Vesting/TokenSender.sol](../contracts/governa
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**TokenSender**
+## **TokenSender** contract
 
 This contract includes functions to transfer SOV tokens
 to a recipient or to several recipients in a list. There is

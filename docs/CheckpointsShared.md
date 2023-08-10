@@ -5,7 +5,7 @@ View Source: [contracts/governance/Staking/modules/shared/CheckpointsShared.sol]
 **↗ Extends: [StakingStorageShared](StakingStorageShared.md), [SafeMath96](SafeMath96.md)**
 **↘ Derived Contracts: [StakingGovernanceModule](StakingGovernanceModule.md), [StakingStakeModule](StakingStakeModule.md), [StakingWithdrawModule](StakingWithdrawModule.md), [WeightedStakingModule](WeightedStakingModule.md)**
 
-**CheckpointsShared**
+## **CheckpointsShared** contract
 
 Increases and decreases storage values for users, delegatees and
 total daily stake.

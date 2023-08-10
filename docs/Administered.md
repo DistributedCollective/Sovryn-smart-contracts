@@ -4,7 +4,7 @@ View Source: [contracts/mockup/TimelockHarness.sol](../contracts/mockup/Timelock
 
 **↗ Extends: [Timelock](Timelock.md)**
 
-**Administered**
+## **Administered** contract
 
 ## Functions
 

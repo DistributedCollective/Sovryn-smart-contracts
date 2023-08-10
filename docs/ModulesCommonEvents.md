@@ -4,7 +4,7 @@ View Source: [contracts/events/ModulesCommonEvents.sol](../contracts/events/Modu
 
 **↘ Derived Contracts: [AffiliatesEvents](AffiliatesEvents.md), [LoanClosingsEvents](LoanClosingsEvents.md), [LoanMaintenanceEvents](LoanMaintenanceEvents.md), [LoanOpeningsEvents](LoanOpeningsEvents.md), [LoanSettingsEvents](LoanSettingsEvents.md), [ProtocolSettingsEvents](ProtocolSettingsEvents.md), [SwapsEvents](SwapsEvents.md)**
 
-**ModulesCommonEvents**
+## **ModulesCommonEvents** contract
 
 This contract contains the events which will be used by all modules*
 

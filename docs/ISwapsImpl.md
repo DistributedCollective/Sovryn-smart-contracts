@@ -4,7 +4,7 @@ View Source: [contracts/swaps/ISwapsImpl.sol](../contracts/swaps/ISwapsImpl.sol)
 
 **↘ Derived Contracts: [SwapsImplLocal](SwapsImplLocal.md), [SwapsImplSovrynSwap](SwapsImplSovrynSwap.md)**
 
-**ISwapsImpl**
+## **ISwapsImpl** contract
 
 ## Functions
 

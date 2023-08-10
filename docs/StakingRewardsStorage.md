@@ -5,7 +5,7 @@ View Source: [contracts/governance/StakingRewards/StakingRewardsStorage.sol](../
 **↗ Extends: [Ownable](Ownable.md)**
 **↘ Derived Contracts: [StakingRewards](StakingRewards.md), [StakingRewardsProxy](StakingRewardsProxy.md)**
 
-**StakingRewardsStorage**
+## **StakingRewardsStorage** contract
 
 Just the storage part of staking rewards contract, no functions,
 only constant, variables and required structures (mappings).

@@ -2,7 +2,7 @@
 
 View Source: [contracts/openzeppelin/SignedSafeMath.sol](../contracts/openzeppelin/SignedSafeMath.sol)
 
-**SignedSafeMath**
+## **SignedSafeMath** contract
 
 Signed math operations with safety checks that revert on error.
 

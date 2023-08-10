@@ -4,7 +4,7 @@ View Source: [contracts/governance/StakingRewards/StakingRewards.sol](../contrac
 
 **↗ Extends: [StakingRewardsStorage](StakingRewardsStorage.md)**
 
-**StakingRewards**
+## **StakingRewards** contract
 
 This is a trial incentive program.
 In this, the SOV emitted and becoming liquid from the Adoption Fund could be utilized

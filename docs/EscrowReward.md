@@ -4,7 +4,7 @@ View Source: [contracts/escrow/EscrowReward.sol](../contracts/escrow/EscrowRewar
 
 **↗ Extends: [Escrow](Escrow.md)**
 
-**EscrowReward**
+## **EscrowReward** contract
 
 Multisig can use this contract for depositing of Reward tokens based on the total token deposit.
 

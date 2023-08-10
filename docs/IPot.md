@@ -4,7 +4,7 @@ View Source: [contracts/interfaces/IChai.sol](../contracts/interfaces/IChai.sol)
 
 **↗ Extends: [IERC20](IERC20.md)**
 
-**IPot**
+## **IPot** contract
 
 ## Functions
 

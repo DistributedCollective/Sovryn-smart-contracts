@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/modules/StakingStakeModule.sol](../co
 
 **↗ Extends: [IFunctionsList](IFunctionsList.md), [StakingShared](StakingShared.md), [CheckpointsShared](CheckpointsShared.md), [ApprovalReceiver](ApprovalReceiver.md)**
 
-**StakingStakeModule**
+## **StakingStakeModule** contract
 
 Implements staking functionality*
 

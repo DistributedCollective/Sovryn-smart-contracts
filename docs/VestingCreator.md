@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/VestingCreator.sol](../contracts/gove
 
 **↗ Extends: [AdminRole](AdminRole.md)**
 
-**VestingCreator**
+## **VestingCreator** contract
 
 ## Structs
 ### VestingData

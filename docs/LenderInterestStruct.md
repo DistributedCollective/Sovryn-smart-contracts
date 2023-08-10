@@ -4,7 +4,7 @@ View Source: [contracts/core/objects/LenderInterestStruct.sol](../contracts/core
 
 **↘ Derived Contracts: [Objects](Objects.md)**
 
-**LenderInterestStruct**
+## **LenderInterestStruct** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

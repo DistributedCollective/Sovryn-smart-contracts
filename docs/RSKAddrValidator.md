@@ -2,7 +2,7 @@
 
 View Source: [contracts/rsk/RSKAddrValidator.sol](../contracts/rsk/RSKAddrValidator.sol)
 
-**RSKAddrValidator**
+## **RSKAddrValidator** contract
 
 ## Functions
 

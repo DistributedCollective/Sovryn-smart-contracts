@@ -6,7 +6,7 @@ View Source: [contracts/governance/Vesting/TeamVesting.sol](../contracts/governa
 **↗ Extends: [VestingStorage](VestingStorage.md), [Proxy](Proxy.md)**
 **↘ Derived Contracts: [Vesting](Vesting.md)**
 
-**TeamVesting**
+## **TeamVesting** contract
 
 A regular vesting contract, but the owner (governance) is able to
 withdraw earlier without a slashing.

@@ -4,7 +4,7 @@ View Source: [contracts/feeds/PriceFeedRSKOracle.sol](../contracts/feeds/PriceFe
 
 **↗ Extends: [IPriceFeedsExt](IPriceFeedsExt.md), [Ownable](Ownable.md)**
 
-**PriceFeedRSKOracle**
+## **PriceFeedRSKOracle** contract
 
 The Price Feed RSK Oracle contract.
  * This contract implements RSK Oracle query functionality,
@@ -62,7 +62,7 @@ constructor(address _rskOracleAddress) public {
 
 > ### latestAnswer
 
-⤾ overrides [IPriceFeedsExt.latestAnswer](IPriceFeedsExt.md#latestanswer)
+undefined
 
 Get the oracle price.
 

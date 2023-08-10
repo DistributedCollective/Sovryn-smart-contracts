@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/VestingLogic.sol](../contracts/govern
 
 **↗ Extends: [IVesting](IVesting.md), [VestingStorage](VestingStorage.md), [ApprovalReceiver](ApprovalReceiver.md)**
 
-**VestingLogic**
+## **VestingLogic** contract
 
 Staking, delegating and withdrawal functionality.
 

@@ -5,7 +5,7 @@ View Source: [contracts/governance/ApprovalReceiver.sol](../contracts/governance
 **↗ Extends: [ErrorDecoder](ErrorDecoder.md), [IApproveAndCall](IApproveAndCall.md)**
 **↘ Derived Contracts: [FourYearVestingLogic](FourYearVestingLogic.md), [StakingStakeModule](StakingStakeModule.md), [VestingLogic](VestingLogic.md)**
 
-**ApprovalReceiver**
+## **ApprovalReceiver** contract
 
 ## Modifiers
 

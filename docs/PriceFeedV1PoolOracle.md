@@ -4,7 +4,7 @@ View Source: [contracts/feeds/PriceFeedV1PoolOracle.sol](../contracts/feeds/Pric
 
 **↗ Extends: [IPriceFeedsExt](IPriceFeedsExt.md), [Ownable](Ownable.md)**
 
-**PriceFeedV1PoolOracle**
+## **PriceFeedV1PoolOracle** contract
 
 The Price Feed V1 Pool Oracle contract.
  * This contract implements V1 Pool Oracle query functionality,
@@ -82,7 +82,7 @@ constructor(
 
 > ### latestAnswer
 
-⤾ overrides [IPriceFeedsExt.latestAnswer](IPriceFeedsExt.md#latestanswer)
+undefined
 
 Get the oracle price.
 

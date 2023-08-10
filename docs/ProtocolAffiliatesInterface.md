@@ -2,7 +2,7 @@
 
 View Source: [contracts/modules/interfaces/ProtocolAffiliatesInterface.sol](../contracts/modules/interfaces/ProtocolAffiliatesInterface.sol)
 
-**ProtocolAffiliatesInterface**
+## **ProtocolAffiliatesInterface** contract
 
 ## Functions
 

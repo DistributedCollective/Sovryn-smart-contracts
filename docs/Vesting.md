@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/Vesting.sol](../contracts/governance/
 
 **↗ Extends: [TeamVesting](TeamVesting.md)**
 
-**Vesting**
+## **Vesting** contract
 
 Team tokens and investor tokens are vested. Therefore, a smart
 contract needs to be developed to enforce the vesting schedule.

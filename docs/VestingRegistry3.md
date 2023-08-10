@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/VestingRegistry3.sol](../contracts/go
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**VestingRegistry3**
+## **VestingRegistry3** contract
 
 **Enums**
 ### VestingType

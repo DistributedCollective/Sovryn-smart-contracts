@@ -5,7 +5,7 @@ View Source: [contracts/modules/LoanSettings.sol](../contracts/modules/LoanSetti
 
 **↗ Extends: [State](State.md), [LoanSettingsEvents](LoanSettingsEvents.md), [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)**
 
-**LoanSettings**
+## **LoanSettings** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

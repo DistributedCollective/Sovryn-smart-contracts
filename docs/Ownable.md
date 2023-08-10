@@ -5,7 +5,7 @@ View Source: [contracts/openzeppelin/Ownable.sol](../contracts/openzeppelin/Owna
 **↗ Extends: [Context](Context.md)**
 **↘ Derived Contracts: [AdminRole](AdminRole.md), [BProPriceFeed](BProPriceFeed.md), [FeeSharingCollector](FeeSharingCollector.md), [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md), [FourYearVestingFactory](FourYearVestingFactory.md), [FourYearVestingStorage](FourYearVestingStorage.md), [GovernorVault](GovernorVault.md), [ILoanToken](ILoanToken.md), [ILoanTokenWRBTC](ILoanTokenWRBTC.md), [IPriceFeedsExt](IPriceFeedsExt.md), [IProtocol](IProtocol.md), [LoanTokenBase](LoanTokenBase.md), [Medianizer](Medianizer.md), [MultiSigKeyHolders](MultiSigKeyHolders.md), [OrigingVestingCreator](OrigingVestingCreator.md), [OriginInvestorsClaim](OriginInvestorsClaim.md), [PausableOz](PausableOz.md), [PriceFeedRSKOracle](PriceFeedRSKOracle.md), [PriceFeeds](PriceFeeds.md), [PriceFeedsMoC](PriceFeedsMoC.md), [PriceFeedV1PoolOracle](PriceFeedV1PoolOracle.md), [SOV](SOV.md), [StakingRewardsStorage](StakingRewardsStorage.md), [StakingStorageShared](StakingStorageShared.md), [State](State.md), [TokenSender](TokenSender.md), [VestingFactory](VestingFactory.md), [VestingRegistry](VestingRegistry.md), [VestingRegistry2](VestingRegistry2.md), [VestingRegistry3](VestingRegistry3.md), [VestingStorage](VestingStorage.md)**
 
-**Ownable**
+## **Ownable** contract
 
 Contract module which provides a basic access control mechanism, where
 there is an account (an owner) that can be granted exclusive access to

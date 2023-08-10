@@ -5,7 +5,7 @@ View Source: [contracts/governance/Timelock.sol](../contracts/governance/Timeloc
 **↗ Extends: [ErrorDecoder](ErrorDecoder.md), [ITimelock](ITimelock.md)**
 **↘ Derived Contracts: [Administered](Administered.md), [TimelockHarness](TimelockHarness.md)**
 
-**Timelock**
+## **Timelock** contract
 
 ## Contract Members
 **Constants & Variables**

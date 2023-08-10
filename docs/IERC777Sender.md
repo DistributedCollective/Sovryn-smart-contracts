@@ -2,7 +2,7 @@
 
 View Source: [contracts/interfaces/IERC777Sender.sol](../contracts/interfaces/IERC777Sender.sol)
 
-**IERC777Sender**
+## **IERC777Sender** contract
 
 Interface of the ERC777TokensSender standard as defined in the EIP.
  * {IERC777} Token holders can be notified of operations performed on their

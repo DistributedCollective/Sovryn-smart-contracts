@@ -4,7 +4,7 @@ View Source: [contracts/connectors/loantoken/Pausable.sol](../contracts/connecto
 
 **↘ Derived Contracts: [LoanTokenBase](LoanTokenBase.md)**
 
-**Pausable**
+## **Pausable** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized margin
 trading and lending https://bzx.network similar to the dYdX protocol.

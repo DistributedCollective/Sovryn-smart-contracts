@@ -5,7 +5,7 @@ View Source: [contracts/events/SwapsEvents.sol](../contracts/events/SwapsEvents.
 **↗ Extends: [ModulesCommonEvents](ModulesCommonEvents.md)**
 **↘ Derived Contracts: [ISovryn](ISovryn.md), [SwapsUser](SwapsUser.md)**
 
-**SwapsEvents**
+## **SwapsEvents** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

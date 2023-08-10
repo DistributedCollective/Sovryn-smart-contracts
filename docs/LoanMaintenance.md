@@ -5,7 +5,7 @@ View Source: [contracts/modules/LoanMaintenance.sol](../contracts/modules/LoanMa
 
 **↗ Extends: [LoanOpeningsEvents](LoanOpeningsEvents.md), [LoanMaintenanceEvents](LoanMaintenanceEvents.md), [VaultController](VaultController.md), [InterestUser](InterestUser.md), [SwapsUser](SwapsUser.md), [LiquidationHelper](LiquidationHelper.md), [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)**
 
-**LoanMaintenance**
+## **LoanMaintenance** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

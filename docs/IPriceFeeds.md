@@ -2,7 +2,7 @@
 
 View Source: [contracts/feeds/IPriceFeeds.sol](../contracts/feeds/IPriceFeeds.sol)
 
-**IPriceFeeds**
+## **IPriceFeeds** contract
 
 ## Functions
 

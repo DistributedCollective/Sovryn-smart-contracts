@@ -5,7 +5,7 @@ View Source: [contracts/events/ProtocolSettingsEvents.sol](../contracts/events/P
 **↗ Extends: [ModulesCommonEvents](ModulesCommonEvents.md)**
 **↘ Derived Contracts: [ISovryn](ISovryn.md), [ProtocolSettings](ProtocolSettings.md)**
 
-**ProtocolSettingsEvents**
+## **ProtocolSettingsEvents** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

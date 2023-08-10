@@ -6,7 +6,7 @@ View Source: [contracts/mixins/FeesHelper.sol](../contracts/mixins/FeesHelper.so
 **↗ Extends: [State](State.md), [FeesEvents](FeesEvents.md)**
 **↘ Derived Contracts: [InterestUser](InterestUser.md), [SwapsUser](SwapsUser.md)**
 
-**FeesHelper**
+## **FeesHelper** contract
 
 ## Functions
 

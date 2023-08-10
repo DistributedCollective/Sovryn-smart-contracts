@@ -3,7 +3,7 @@
 
 View Source: [contracts/mixins/EnumerableBytes4Set.sol](../contracts/mixins/EnumerableBytes4Set.sol)
 
-**EnumerableBytes4Set**
+## **EnumerableBytes4Set** contract
 
 Sets have the following properties:
  * - Elements are added, removed, and checked for existence in constant time

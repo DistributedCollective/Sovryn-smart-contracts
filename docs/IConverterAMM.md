@@ -2,7 +2,7 @@
 
 View Source: [contracts/interfaces/IConverterAMM.sol](../contracts/interfaces/IConverterAMM.sol)
 
-**IConverterAMM**
+## **IConverterAMM** contract
 
 ## Functions
 

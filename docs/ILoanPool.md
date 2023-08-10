@@ -2,7 +2,7 @@
 
 View Source: [contracts/interfaces/ILoanPool.sol](../contracts/interfaces/ILoanPool.sol)
 
-**ILoanPool**
+## **ILoanPool** contract
 
 ## Functions
 

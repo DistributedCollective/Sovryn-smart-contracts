@@ -5,7 +5,7 @@ View Source: [contracts/proxy/UpgradableProxy.sol](../contracts/proxy/Upgradable
 **↗ Extends: [Proxy](Proxy.md)**
 **↘ Derived Contracts: [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md), [FourYearVesting](FourYearVesting.md), [LiquidityMiningProxy](LiquidityMiningProxy.md), [StakingProxy](StakingProxy.md), [StakingRewardsProxy](StakingRewardsProxy.md), [VestingRegistryProxy](VestingRegistryProxy.md)**
 
-**UpgradableProxy**
+## **UpgradableProxy** contract
 
 A disadvantage of the immutable ledger is that nobody can change the
 source code of a smart contract after it’s been deployed. In order to fix

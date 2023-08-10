@@ -5,7 +5,7 @@ View Source: [contracts/mixins/LiquidationHelper.sol](../contracts/mixins/Liquid
 **↗ Extends: [State](State.md)**
 **↘ Derived Contracts: [LoanClosingsLiquidation](LoanClosingsLiquidation.md), [LoanClosingsRollover](LoanClosingsRollover.md), [LoanMaintenance](LoanMaintenance.md)**
 
-**LiquidationHelper**
+## **LiquidationHelper** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized margin
 trading and lending https://bzx.network similar to the dYdX protocol.

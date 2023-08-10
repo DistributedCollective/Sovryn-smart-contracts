@@ -5,7 +5,7 @@ View Source: [contracts/swaps/connectors/testnet/SwapsImplLocal.sol](../contract
 
 **↗ Extends: [State](State.md), [ISwapsImpl](ISwapsImpl.md)**
 
-**SwapsImplLocal**
+## **SwapsImplLocal** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

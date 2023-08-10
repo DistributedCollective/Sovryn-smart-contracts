@@ -5,7 +5,7 @@ View Source: [contracts/governance/Vesting/fouryear/FourYearVesting.sol](../cont
 
 **↗ Extends: [FourYearVestingStorage](FourYearVestingStorage.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**FourYearVesting**
+## **FourYearVesting** contract
 
 A four year vesting contract.
  *
@@ -73,7 +73,7 @@ constructor(
 
 > ### setImplementation
 
-⤾ overrides [Medianizer.setImplementation](Medianizer.md#setimplementation)
+⤾ overrides [UpgradableProxy.setImplementation](UpgradableProxy.md#setimplementation)
 
 Set address of the implementation - vesting owner.
 

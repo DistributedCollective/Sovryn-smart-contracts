@@ -4,7 +4,7 @@ View Source: [contracts/connectors/loantoken/modules/shared/LoanTokenSettingsLow
 
 **↗ Extends: [LoanTokenLogicStorage](LoanTokenLogicStorage.md)**
 
-**LoanTokenSettingsLowerAdmin**
+## **LoanTokenSettingsLowerAdmin** contract
 
 **Events**
 

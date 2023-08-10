@@ -4,7 +4,7 @@ View Source: [contracts/events/FeesEvents.sol](../contracts/events/FeesEvents.so
 
 **↘ Derived Contracts: [FeesHelper](FeesHelper.md), [ISovryn](ISovryn.md)**
 
-**FeesEvents**
+## **FeesEvents** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

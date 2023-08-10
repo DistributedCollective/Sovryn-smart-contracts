@@ -6,7 +6,7 @@ View Source: [contracts/governance/Vesting/fouryear/FourYearVestingStorage.sol](
 **↗ Extends: [Ownable](Ownable.md)**
 **↘ Derived Contracts: [FourYearVesting](FourYearVesting.md), [FourYearVestingLogic](FourYearVestingLogic.md)**
 
-**FourYearVestingStorage**
+## **FourYearVestingStorage** contract
 
 This contract is just the storage required for four year vesting.
 It is parent of FourYearVestingLogic and FourYearVesting.

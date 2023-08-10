@@ -4,7 +4,7 @@ View Source: [contracts/connectors/loantoken/modules/beaconLogicLM/LoanTokenLogi
 
 **↗ Extends: [LoanTokenLogicStandard](LoanTokenLogicStandard.md)**
 
-**LoanTokenLogicLM**
+## **LoanTokenLogicLM** contract
 
 ## Functions
 

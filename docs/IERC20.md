@@ -4,7 +4,7 @@ View Source: [contracts/interfaces/IERC20.sol](../contracts/interfaces/IERC20.so
 
 **↘ Derived Contracts: [IChai](IChai.md), [IPot](IPot.md), [IWrbtcERC20](IWrbtcERC20.md)**
 
-**IERC20**
+## **IERC20** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -36,8 +36,10 @@ event Approval(address indexed owner, address indexed spender, uint256  value);
 
 > ### totalSupply
 
+⤾ overrides [IERC777.totalSupply](IERC777.md#totalsupply)
+
 ```solidity
-function totalSupply() public view
+function totalSupply() external view
 returns(uint256)
 ```
 
@@ -45,7 +47,7 @@ returns(uint256)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function totalSupply() public view returns (uint256);
+function totalSupply() external view returns (uint256);
 ```
 </details>
 
@@ -53,8 +55,10 @@ function totalSupply() public view returns (uint256);
 
 > ### balanceOf
 
+⤾ overrides [IERC777.balanceOf](IERC777.md#balanceof)
+
 ```solidity
-function balanceOf(address _who) public view
+function balanceOf(address _who) external view
 returns(uint256)
 ```
 
@@ -68,7 +72,7 @@ returns(uint256)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function balanceOf(address _who) public view returns (uint256);
+function balanceOf(address _who) external view returns (uint256);
 ```
 </details>
 
@@ -77,7 +81,7 @@ function balanceOf(address _who) public view returns (uint256);
 > ### allowance
 
 ```solidity
-function allowance(address _owner, address _spender) public view
+function allowance(address _owner, address _spender) external view
 returns(uint256)
 ```
 
@@ -92,7 +96,7 @@ returns(uint256)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function allowance(address _owner, address _spender) public view returns (uint256);
+function allowance(address _owner, address _spender) external view returns (uint256);
 ```
 </details>
 
@@ -101,7 +105,7 @@ function allowance(address _owner, address _spender) public view returns (uint25
 > ### approve
 
 ```solidity
-function approve(address _spender, uint256 _value) public nonpayable
+function approve(address _spender, uint256 _value) external nonpayable
 returns(bool)
 ```
 
@@ -116,7 +120,7 @@ returns(bool)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function approve(address _spender, uint256 _value) public returns (bool);
+function approve(address _spender, uint256 _value) external returns (bool);
 ```
 </details>
 
@@ -125,7 +129,7 @@ function approve(address _spender, uint256 _value) public returns (bool);
 > ### transfer
 
 ```solidity
-function transfer(address _to, uint256 _value) public nonpayable
+function transfer(address _to, uint256 _value) external nonpayable
 returns(bool)
 ```
 
@@ -140,7 +144,7 @@ returns(bool)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function transfer(address _to, uint256 _value) public returns (bool);
+function transfer(address _to, uint256 _value) external returns (bool);
 ```
 </details>
 
@@ -149,7 +153,7 @@ function transfer(address _to, uint256 _value) public returns (bool);
 > ### transferFrom
 
 ```solidity
-function transferFrom(address _from, address _to, uint256 _value) public nonpayable
+function transferFrom(address _from, address _to, uint256 _value) external nonpayable
 returns(bool)
 ```
 
@@ -169,7 +173,7 @@ function transferFrom(
         address _from,
         address _to,
         uint256 _value
-    ) public returns (bool);
+    ) external returns (bool);
 ```
 </details>
 

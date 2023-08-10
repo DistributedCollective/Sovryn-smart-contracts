@@ -4,7 +4,7 @@ View Source: [contracts/mockup/previousLoanToken/PreviousLoanToken.sol](../contr
 
 **↗ Extends: [AdvancedTokenStorage](AdvancedTokenStorage.md)**
 
-**PreviousLoanToken**
+## **PreviousLoanToken** contract
 
 ## Contract Members
 **Constants & Variables**

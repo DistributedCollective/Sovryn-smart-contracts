@@ -4,7 +4,7 @@ View Source: [contracts/feeds/testnet/PriceFeedsMoC.sol](../contracts/feeds/test
 
 **↗ Extends: [IPriceFeedsExt](IPriceFeedsExt.md), [Ownable](Ownable.md)**
 
-**PriceFeedsMoC**
+## **PriceFeedsMoC** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -80,7 +80,7 @@ constructor(address _mocOracleAddress, address _rskOracleAddress) public {
 
 > ### latestAnswer
 
-⤾ overrides [IPriceFeedsExt.latestAnswer](IPriceFeedsExt.md#latestanswer)
+undefined
 
 Get the las time oracle updated the price.
 

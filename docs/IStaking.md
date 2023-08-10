@@ -2,7 +2,7 @@
 
 View Source: [contracts/governance/Staking/interfaces/IStaking.sol](../contracts/governance/Staking/interfaces/IStaking.sol)
 
-**IStaking**
+## **IStaking** contract
 
 ## Structs
 ### Checkpoint

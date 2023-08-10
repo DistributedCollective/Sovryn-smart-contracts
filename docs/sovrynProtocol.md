@@ -4,7 +4,7 @@ View Source: [contracts/core/Protocol.sol](../contracts/core/Protocol.sol)
 
 **↗ Extends: [State](State.md)**
 
-**sovrynProtocol**
+## **sovrynProtocol** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

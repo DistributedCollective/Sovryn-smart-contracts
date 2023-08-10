@@ -4,7 +4,7 @@ View Source: [contracts/proxy/modules/interfaces/IModulesProxyRegistry.sol](../c
 
 **↘ Derived Contracts: [ModulesProxyRegistry](ModulesProxyRegistry.md)**
 
-**IModulesProxyRegistry**
+## **IModulesProxyRegistry** contract
 
 **Events**
 

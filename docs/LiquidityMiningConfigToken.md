@@ -5,7 +5,7 @@ View Source: [contracts/farm/LiquidityMiningConfigToken.sol](../contracts/farm/L
 
 **↗ Extends: [IERC20_](IERC20_.md)**
 
-**LiquidityMiningConfigToken**
+## **LiquidityMiningConfigToken** contract
 
 We need this token for having a flexibility with LiquidityMining configuration
 

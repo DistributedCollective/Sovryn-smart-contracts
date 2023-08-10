@@ -4,7 +4,7 @@ View Source: [contracts/governance/StakingRewards/StakingRewardsProxy.sol](../co
 
 **↗ Extends: [StakingRewardsStorage](StakingRewardsStorage.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**StakingRewardsProxy**
+## **StakingRewardsProxy** contract
 
 StakingRewards contract should be upgradable. Used UpgradableProxy.
 StakingRewardsStorage is deployed with the upgradable functionality

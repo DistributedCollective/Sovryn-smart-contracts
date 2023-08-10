@@ -5,7 +5,7 @@ View Source: [contracts/feeds/PriceFeedsConstants.sol](../contracts/feeds/PriceF
 
 **↘ Derived Contracts: [IPriceFeedsExt](IPriceFeedsExt.md), [PriceFeeds](PriceFeeds.md)**
 
-**Constants**
+## **Constants** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

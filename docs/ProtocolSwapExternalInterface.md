@@ -2,7 +2,7 @@
 
 View Source: [contracts/modules/interfaces/ProtocolSwapExternalInterface.sol](../contracts/modules/interfaces/ProtocolSwapExternalInterface.sol)
 
-**ProtocolSwapExternalInterface**
+## **ProtocolSwapExternalInterface** contract
 
 ## Functions
 

@@ -3,7 +3,7 @@
 
 View Source: [contracts/mixins/EnumerableBytes32Set.sol](../contracts/mixins/EnumerableBytes32Set.sol)
 
-**EnumerableBytes32Set**
+## **EnumerableBytes32Set** contract
 
 Sets have the following properties:
  * - Elements are added, removed, and checked for existence in constant time

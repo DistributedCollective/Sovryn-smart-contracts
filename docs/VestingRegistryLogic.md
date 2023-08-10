@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/VestingRegistryLogic.sol](../contract
 
 **↗ Extends: [VestingRegistryStorage](VestingRegistryStorage.md)**
 
-**VestingRegistryLogic**
+## **VestingRegistryLogic** contract
 
 **Events**
 

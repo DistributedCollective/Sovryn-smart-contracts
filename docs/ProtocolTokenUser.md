@@ -5,7 +5,7 @@ View Source: [contracts/mixins/ProtocolTokenUser.sol](../contracts/mixins/Protoc
 **↗ Extends: [State](State.md)**
 **↘ Derived Contracts: [ProtocolSettings](ProtocolSettings.md)**
 
-**ProtocolTokenUser**
+## **ProtocolTokenUser** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized margin
 trading and lending https://bzx.network similar to the dYdX protocol.

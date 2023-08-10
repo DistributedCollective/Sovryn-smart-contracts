@@ -2,7 +2,7 @@
 
 View Source: [contracts/interfaces/ILoanTokenLogicProxy.sol](../contracts/interfaces/ILoanTokenLogicProxy.sol)
 
-**ILoanTokenLogicProxy**
+## **ILoanTokenLogicProxy** contract
 
 ## Functions
 

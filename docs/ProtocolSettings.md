@@ -5,7 +5,7 @@ View Source: [contracts/modules/ProtocolSettings.sol](../contracts/modules/Proto
 
 **↗ Extends: [State](State.md), [ProtocolTokenUser](ProtocolTokenUser.md), [ProtocolSettingsEvents](ProtocolSettingsEvents.md), [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)**
 
-**ProtocolSettings**
+## **ProtocolSettings** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.

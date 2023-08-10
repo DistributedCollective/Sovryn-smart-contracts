@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/modules/StakingStorageModule.sol](../
 
 **↗ Extends: [IFunctionsList](IFunctionsList.md), [StakingStorageShared](StakingStorageShared.md)**
 
-**StakingStorageModule**
+## **StakingStorageModule** contract
 
 Provides getters for public storage variables*
 

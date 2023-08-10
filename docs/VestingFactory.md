@@ -5,7 +5,7 @@ View Source: [contracts/governance/Vesting/VestingFactory.sol](../contracts/gove
 
 **↗ Extends: [IVestingFactory](IVestingFactory.md), [Ownable](Ownable.md)**
 
-**VestingFactory**
+## **VestingFactory** contract
 
 Factory pattern allows to create multiple instances
 of the same contract and keep track of them easier.
