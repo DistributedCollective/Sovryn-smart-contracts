@@ -4,7 +4,7 @@ View Source: [contracts/governance/IFeeSharingCollector.sol](../contracts/govern
 
 **↘ Derived Contracts: [FeeSharingCollector](FeeSharingCollector.md), [ILoanToken](ILoanToken.md), [ILoanTokenWRBTC](ILoanTokenWRBTC.md)**
 
-**IFeeSharingCollector**
+## **IFeeSharingCollector** contract
 
 Interfaces are used to cast a contract address into a callable instance.
 
@@ -109,7 +109,6 @@ function withdraw(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

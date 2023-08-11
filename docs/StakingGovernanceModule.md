@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/modules/StakingGovernanceModule.sol](
 
 **↗ Extends: [IFunctionsList](IFunctionsList.md), [StakingShared](StakingShared.md), [CheckpointsShared](CheckpointsShared.md)**
 
-**StakingGovernanceModule**
+## **StakingGovernanceModule** contract
 
 Implements voting power and delegation functionality
 
@@ -687,7 +687,6 @@ function getFunctionsList() external pure returns (bytes4[] memory) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

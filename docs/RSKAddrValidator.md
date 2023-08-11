@@ -2,7 +2,7 @@
 
 View Source: [contracts/rsk/RSKAddrValidator.sol](../contracts/rsk/RSKAddrValidator.sol)
 
-**RSKAddrValidator**
+## **RSKAddrValidator** contract
 
 ## Functions
 
@@ -78,7 +78,6 @@ function safeEquals(address addr1, address addr2) internal pure returns (bool) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

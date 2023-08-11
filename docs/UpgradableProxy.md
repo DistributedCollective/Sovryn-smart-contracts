@@ -5,7 +5,7 @@ View Source: [contracts/proxy/UpgradableProxy.sol](../contracts/proxy/Upgradable
 **↗ Extends: [Proxy](Proxy.md)**
 **↘ Derived Contracts: [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md), [FourYearVesting](FourYearVesting.md), [LiquidityMiningProxy](LiquidityMiningProxy.md), [StakingProxy](StakingProxy.md), [StakingRewardsProxy](StakingRewardsProxy.md), [VestingRegistryProxy](VestingRegistryProxy.md)**
 
-**UpgradableProxy**
+## **UpgradableProxy** contract
 
 A disadvantage of the immutable ledger is that nobody can change the
 source code of a smart contract after it’s been deployed. In order to fix
@@ -26,6 +26,8 @@ updated to reference the new contract address.
 ---    
 
 > ### setImplementation
+
+⤿ Overridden Implementation(s): [FourYearVesting.setImplementation](FourYearVesting.md#setimplementation)
 
 Set address of the implementation.
 
@@ -93,7 +95,6 @@ nction setProxyOwner(address _owner) public onlyProxyOwner {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

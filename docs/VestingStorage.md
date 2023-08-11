@@ -6,7 +6,7 @@ View Source: [contracts/governance/Vesting/VestingStorage.sol](../contracts/gove
 **↗ Extends: [Ownable](Ownable.md)**
 **↘ Derived Contracts: [TeamVesting](TeamVesting.md), [VestingLogic](VestingLogic.md)**
 
-**VestingStorage**
+## **VestingStorage** contract
 
 This contract is just the storage required for vesting.
 It is parent of VestingLogic and TeamVesting.
@@ -49,7 +49,6 @@ uint256 internal constant FOUR_WEEKS;
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -105,3 +105,4 @@ def printLendingPoolsData():
     printLendingPoolData("iXUSD", "XUSD")
     printLendingPoolData("iBPro", "BPro")
     printLendingPoolData("iDOC", "DoC")
+    printLendingPoolData("iDLLR", "DLLR")

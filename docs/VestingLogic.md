@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/VestingLogic.sol](../contracts/govern
 
 **↗ Extends: [IVesting](IVesting.md), [VestingStorage](VestingStorage.md), [ApprovalReceiver](ApprovalReceiver.md)**
 
-**VestingLogic**
+## **VestingLogic** contract
 
 Staking, delegating and withdrawal functionality.
 
@@ -427,7 +427,6 @@ function _getSelectors() internal pure returns (bytes4[] memory) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

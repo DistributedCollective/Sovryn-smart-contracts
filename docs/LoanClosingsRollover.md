@@ -4,7 +4,7 @@ View Source: [contracts/modules/LoanClosingsRollover.sol](../contracts/modules/L
 
 **↗ Extends: [LoanClosingsShared](LoanClosingsShared.md), [LiquidationHelper](LiquidationHelper.md)**
 
-**LoanClosingsRollover**
+## **LoanClosingsRollover** contract
 
 Ways to close a loan: rollover. Margin trade
   positions are always closed with a swap.
@@ -425,7 +425,6 @@ function _swapBackExcess(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

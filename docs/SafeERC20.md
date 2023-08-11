@@ -2,7 +2,7 @@
 
 View Source: [contracts/openzeppelin/SafeERC20.sol](../contracts/openzeppelin/SafeERC20.sol)
 
-**SafeERC20**
+## **SafeERC20** contract
 
 Wrappers around ERC20 operations that throw on failure (when the token
 contract returns false). Tokens that return no value (and instead revert or
@@ -257,7 +257,6 @@ function callOptionalReturn(IERC20 token, bytes memory data) private {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

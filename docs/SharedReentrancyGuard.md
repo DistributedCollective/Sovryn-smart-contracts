@@ -4,7 +4,7 @@ View Source: [contracts/reentrancy/SharedReentrancyGuard.sol](../contracts/reent
 
 **↘ Derived Contracts: [LoanTokenBase](LoanTokenBase.md), [State](State.md)**
 
-**SharedReentrancyGuard**
+## **SharedReentrancyGuard** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -42,7 +42,6 @@ modifier globallyNonReentrant() internal
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

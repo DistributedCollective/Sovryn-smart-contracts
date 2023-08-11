@@ -4,7 +4,7 @@ View Source: [contracts/escrow/Escrow.sol](../contracts/escrow/Escrow.sol)
 
 **↘ Derived Contracts: [EscrowReward](EscrowReward.md)**
 
-**Escrow**
+## **Escrow** contract
 
 You can use this contract for deposit of SOV tokens for some time and withdraw later.
 
@@ -470,7 +470,6 @@ function getUserBalance(address _addr) external view returns (uint256 balance) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

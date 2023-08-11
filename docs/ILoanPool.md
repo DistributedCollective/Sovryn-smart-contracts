@@ -2,7 +2,7 @@
 
 View Source: [contracts/interfaces/ILoanPool.sol](../contracts/interfaces/ILoanPool.sol)
 
-**ILoanPool**
+## **ILoanPool** contract
 
 ## Functions
 
@@ -77,7 +77,6 @@ function totalAssetSupply() external view returns (uint256);
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

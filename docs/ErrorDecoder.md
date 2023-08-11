@@ -4,7 +4,7 @@ View Source: [contracts/governance/ErrorDecoder.sol](../contracts/governance/Err
 
 **↘ Derived Contracts: [ApprovalReceiver](ApprovalReceiver.md), [ITimelock](ITimelock.md), [Timelock](Timelock.md)**
 
-**ErrorDecoder**
+## **ErrorDecoder** contract
 
 On EVM if the return data length of a call is less than 68,
 then the transaction fails silently without a revert message!
@@ -104,7 +104,6 @@ function _addErrorMessage(string memory str1, string memory str2)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

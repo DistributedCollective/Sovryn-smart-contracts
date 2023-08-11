@@ -4,7 +4,7 @@ View Source: [contracts/escrow/EscrowReward.sol](../contracts/escrow/EscrowRewar
 
 **↗ Extends: [Escrow](Escrow.md)**
 
-**EscrowReward**
+## **EscrowReward** contract
 
 Multisig can use this contract for depositing of Reward tokens based on the total token deposit.
 
@@ -216,7 +216,6 @@ function getReward(address _addr) external view returns (uint256 reward) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

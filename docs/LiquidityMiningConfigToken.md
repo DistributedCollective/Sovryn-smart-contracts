@@ -5,7 +5,7 @@ View Source: [contracts/farm/LiquidityMiningConfigToken.sol](../contracts/farm/L
 
 **↗ Extends: [IERC20_](IERC20_.md)**
 
-**LiquidityMiningConfigToken**
+## **LiquidityMiningConfigToken** contract
 
 We need this token for having a flexibility with LiquidityMining configuration
 
@@ -199,7 +199,6 @@ function transferFrom(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

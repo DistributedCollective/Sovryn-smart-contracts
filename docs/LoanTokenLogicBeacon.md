@@ -5,7 +5,7 @@ View Source: [contracts/connectors/loantoken/LoanTokenLogicBeacon.sol](../contra
 
 **↗ Extends: [PausableOz](PausableOz.md)**
 
-**LoanTokenLogicBeacon**
+## **LoanTokenLogicBeacon** contract
 
 This contract stored the target logic implementation of LoanTokens which has the same logic implementation (LoanTokenLogicLM / LoanTokenLogicWrbtc)
 Apart from storing the target logic implementation, this contract also has a pause functionality.
@@ -324,7 +324,6 @@ function getListFunctionSignatures()
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

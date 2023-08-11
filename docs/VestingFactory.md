@@ -5,7 +5,7 @@ View Source: [contracts/governance/Vesting/VestingFactory.sol](../contracts/gove
 
 **↗ Extends: [IVestingFactory](IVestingFactory.md), [Ownable](Ownable.md)**
 
-**VestingFactory**
+## **VestingFactory** contract
 
 Factory pattern allows to create multiple instances
 of the same contract and keep track of them easier.
@@ -193,7 +193,6 @@ function deployTeamVesting(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

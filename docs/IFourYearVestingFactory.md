@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/fouryear/IFourYearVestingFactory.sol]
 
 **↘ Derived Contracts: [FourYearVestingFactory](FourYearVestingFactory.md)**
 
-**IFourYearVestingFactory**
+## **IFourYearVestingFactory** contract
 
 Interfaces are used to cast a contract address into a callable instance.
 This interface is used by FourYearVestingFactory contract to override empty
@@ -70,7 +70,6 @@ function deployFourYearVesting(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/IVestingFactory.sol](../contracts/gov
 
 **↘ Derived Contracts: [VestingFactory](VestingFactory.md)**
 
-**IVestingFactory**
+## **IVestingFactory** contract
 
 Interfaces are used to cast a contract address into a callable instance.
 This interface is used by VestingFactory contract to override empty
@@ -110,7 +110,6 @@ function deployTeamVesting(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
