@@ -503,4 +503,8 @@ contract ISovryn is
         external
         view
         returns (bool isTinyPosition, uint256 tinyPositionAmount);
+
+    function setPauser(address newPauser) external;
+
+    function getPauser() external view returns (address);
 }
