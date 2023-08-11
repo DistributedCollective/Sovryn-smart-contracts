@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/OriginInvestorsClaim.sol](../contract
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**OriginInvestorsClaim**
+## **OriginInvestorsClaim** contract
 
 // TODO: fund this contract with a total amount of SOV needed to distribute.
 
@@ -401,7 +401,6 @@ function transfer() internal {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -4,7 +4,7 @@ View Source: [contracts/modules/LoanClosingsLiquidation.sol](../contracts/module
 
 **↗ Extends: [LoanClosingsShared](LoanClosingsShared.md), [LiquidationHelper](LiquidationHelper.md)**
 
-**LoanClosingsLiquidation**
+## **LoanClosingsLiquidation** contract
 
 Ways to close a loan: liquidation. Margin trade
   positions are always closed with a swap.
@@ -359,7 +359,6 @@ function _swapBackExcess(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

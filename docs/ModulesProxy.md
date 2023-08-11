@@ -4,7 +4,7 @@ View Source: [contracts/proxy/modules/ModulesProxy.sol](../contracts/proxy/modul
 
 **↗ Extends: [ModulesProxyRegistry](ModulesProxyRegistry.md)**
 
-**ModulesProxy**
+## **ModulesProxy** contract
 
 ## Functions
 
@@ -76,7 +76,6 @@ function() external payable {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

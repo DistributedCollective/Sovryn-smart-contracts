@@ -4,7 +4,7 @@ View Source: [contracts/locked/ILockedSOV.sol](../contracts/locked/ILockedSOV.so
 
 **↘ Derived Contracts: [LockedSOV](LockedSOV.md)**
 
-**ILockedSOV**
+## **ILockedSOV** contract
 
 This interface is an incomplete yet useful for future migration of LockedSOV Contract.
 
@@ -203,7 +203,6 @@ function getUnlockedBalance(address _addr) external view returns (uint256 _balan
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

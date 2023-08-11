@@ -6,6 +6,8 @@ def main():
     brownie run scripts/contractInteraction/tasks/send_DLLR.py --network testnet
     brownie run scripts/contractInteraction/tasks/send_DLLR.py --network rsk-mainnet
     '''    
-    redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], 9900e18)
-    mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 9900e18)
-    sendTokensFromMultisig(conf.contracts['DLLR'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 9900e18)
+    #amount = 200000e18
+    #receiver = '0x2064242b697830535A2d76BE352e82Cf85E0EC2c'
+    redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], amount)
+    mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], amount)
+    sendTokensFromMultisig(conf.contracts['DLLR'], receiver, amount)

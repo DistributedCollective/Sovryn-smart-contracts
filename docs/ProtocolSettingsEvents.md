@@ -5,7 +5,7 @@ View Source: [contracts/events/ProtocolSettingsEvents.sol](../contracts/events/P
 **↗ Extends: [ModulesCommonEvents](ModulesCommonEvents.md)**
 **↘ Derived Contracts: [ISovryn](ISovryn.md), [ProtocolSettings](ProtocolSettings.md)**
 
-**ProtocolSettingsEvents**
+## **ProtocolSettingsEvents** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -66,7 +66,6 @@ event RemoveDefaultPathConversion(address indexed sender, address indexed source
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

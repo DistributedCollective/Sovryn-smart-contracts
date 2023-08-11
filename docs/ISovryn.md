@@ -4,7 +4,7 @@ View Source: [contracts/interfaces/ISovryn.sol](../contracts/interfaces/ISovryn.
 
 **↗ Extends: [State](State.md), [ProtocolSettingsEvents](ProtocolSettingsEvents.md), [LoanSettingsEvents](LoanSettingsEvents.md), [LoanOpeningsEvents](LoanOpeningsEvents.md), [LoanMaintenanceEvents](LoanMaintenanceEvents.md), [LoanClosingsEvents](LoanClosingsEvents.md), [SwapsEvents](SwapsEvents.md), [AffiliatesEvents](AffiliatesEvents.md), [FeesEvents](FeesEvents.md)**
 
-**ISovryn**
+## **ISovryn** contract
 
 ## Structs
 ### LoanReturnData
@@ -2659,7 +2659,6 @@ function checkCloseWithDepositIsTinyPosition(bytes32 loanId, uint256 depositAmou
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

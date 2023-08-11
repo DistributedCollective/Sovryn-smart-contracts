@@ -5,7 +5,7 @@ View Source: [contracts/connectors/loantoken/LoanTokenLogicStorage.sol](../contr
 **↗ Extends: [AdvancedToken](AdvancedToken.md)**
 **↘ Derived Contracts: [LoanTokenLogicStandard](LoanTokenLogicStandard.md), [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)**
 
-**LoanTokenLogicStorage**
+## **LoanTokenLogicStorage** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -80,7 +80,6 @@ function stringToBytes32(string memory source) public pure returns (bytes32 resu
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

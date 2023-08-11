@@ -6,7 +6,7 @@ View Source: [contracts/mixins/InterestUser.sol](../contracts/mixins/InterestUse
 **↗ Extends: [VaultController](VaultController.md), [FeesHelper](FeesHelper.md)**
 **↘ Derived Contracts: [LoanClosingsShared](LoanClosingsShared.md), [LoanMaintenance](LoanMaintenance.md), [LoanOpenings](LoanOpenings.md)**
 
-**InterestUser**
+## **InterestUser** contract
 
 **Events**
 
@@ -127,7 +127,6 @@ function _payInterestTransfer(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

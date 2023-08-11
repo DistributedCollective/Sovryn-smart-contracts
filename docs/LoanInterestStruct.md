@@ -4,7 +4,7 @@ View Source: [contracts/core/objects/LoanInterestStruct.sol](../contracts/core/o
 
 **↘ Derived Contracts: [Objects](Objects.md)**
 
-**LoanInterestStruct**
+## **LoanInterestStruct** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -39,7 +39,6 @@ struct LoanInterest {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

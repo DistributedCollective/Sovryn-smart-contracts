@@ -4,7 +4,7 @@ View Source: [contracts/core/Protocol.sol](../contracts/core/Protocol.sol)
 
 **↗ Extends: [State](State.md)**
 
-**sovrynProtocol**
+## **sovrynProtocol** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -170,7 +170,6 @@ function getTarget(string calldata sig) external view returns (address) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

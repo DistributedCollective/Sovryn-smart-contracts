@@ -4,7 +4,7 @@ View Source: [contracts/governance/FeeSharingCollector/FeeSharingCollectorProxy.
 
 **↗ Extends: [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**FeeSharingCollectorProxy**
+## **FeeSharingCollectorProxy** contract
 
 FeeSharingCollectorProxy contract should be upgradable, use UpgradableProxy.
 FeeSharingCollectorStorage is deployed with the upgradable functionality
@@ -59,7 +59,6 @@ constructor(IProtocol _protocol, IStaking _staking) public {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

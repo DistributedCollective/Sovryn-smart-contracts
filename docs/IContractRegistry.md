@@ -2,7 +2,7 @@
 
 View Source: [contracts/swaps/connectors/interfaces/IContractRegistry.sol](../contracts/swaps/connectors/interfaces/IContractRegistry.sol)
 
-**IContractRegistry**
+## **IContractRegistry** contract
 
 ## Functions
 
@@ -47,7 +47,6 @@ function addressOf(bytes32 contractName) public view returns (address);
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

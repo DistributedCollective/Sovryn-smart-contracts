@@ -52,6 +52,12 @@ def replaceOwnerOnMultisig(multisig, oldOwner, newOwner):
     data = multisig.replaceOwner.encode_input(oldOwner, newOwner)
     sendWithMultisig(multisig, multisig, data, conf.acct)
 
+def transferOwnershipFromMultisig(contract, newOwner):
+    contract = Contract.from_abi("ownable", address=contract, abi=LoanToken.abi, owner=conf.acct)
+    multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    data = contract.transferOwnership.encode_input(newOwner)
+    sendWithMultisig(multisig, contract, data, conf.acct)
+
 def confirmWithMS(txId):
     multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     multisig.confirmTransaction(txId)

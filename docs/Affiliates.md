@@ -4,7 +4,7 @@ View Source: [contracts/modules/Affiliates.sol](../contracts/modules/Affiliates.
 
 **↗ Extends: [State](State.md), [AffiliatesEvents](AffiliatesEvents.md), [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)**
 
-**Affiliates**
+## **Affiliates** contract
 
 Track referrals and reward referrers (affiliates) with tokens.
   In-detail specifications are found at https://wiki.sovryn.app/en/community/Affiliates
@@ -944,7 +944,6 @@ nction getAffiliateRewardsHeld(address referrer) public view returns (uint256) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

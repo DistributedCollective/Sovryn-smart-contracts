@@ -20,6 +20,6 @@ const func = async function (hre) {
         log: true,
     });
 };
-func.tags = ["FourYearVesting"];
+func.tags = ["FourYearVestingLogic"];
 func.runAtTheEnd = true;
 module.exports = func;

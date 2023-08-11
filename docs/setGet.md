@@ -2,7 +2,7 @@
 
 View Source: [contracts/mockup/setGet.sol](../contracts/mockup/setGet.sol)
 
-**setGet**
+## **setGet** contract
 
 This is going to be used for testing purposes.
 
@@ -88,7 +88,6 @@ function set(uint256 _value) public {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

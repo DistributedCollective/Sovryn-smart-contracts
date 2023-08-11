@@ -5,7 +5,7 @@ View Source: [contracts/openzeppelin/PausableOz.sol](../contracts/openzeppelin/P
 **↗ Extends: [Ownable](Ownable.md)**
 **↘ Derived Contracts: [ILoanTokenLogicModules](ILoanTokenLogicModules.md), [LoanTokenLogicBeacon](LoanTokenLogicBeacon.md)**
 
-**PausableOz**
+## **PausableOz** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -145,7 +145,6 @@ function unpause() public onlyOwner whenPaused {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -6,7 +6,7 @@ View Source: [contracts/multisig/MultiSigKeyHolders.sol](../contracts/multisig/M
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**MultiSigKeyHolders**
+## **MultiSigKeyHolders** contract
 
 ## Structs
 ### Data
@@ -696,7 +696,6 @@ function removeEthereumAndBitcoinAddresses(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

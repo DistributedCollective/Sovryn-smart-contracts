@@ -4,7 +4,7 @@ View Source: [contracts/connectors/loantoken/modules/shared/LoanTokenSettingsLow
 
 **↗ Extends: [LoanTokenLogicStorage](LoanTokenLogicStorage.md)**
 
-**LoanTokenSettingsLowerAdmin**
+## **LoanTokenSettingsLowerAdmin** contract
 
 **Events**
 
@@ -557,7 +557,6 @@ function checkPause(string memory funcId) public view returns (bool isPaused) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

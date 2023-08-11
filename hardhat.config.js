@@ -12,6 +12,7 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
+require("@nomicfoundation/hardhat-foundry");
 
 require("./hardhat/tasks");
 
@@ -29,6 +30,7 @@ const testnetAccounts = testnetPKs.length > 0 ? testnetPKs : mnemonic;
 const mainnetPKs = [
     process.env.MAINNET_DEPLOYER_PRIVATE_KEY ?? "",
     process.env.PROPOSAL_CREATOR_PRIVATE_KEY ?? "",
+    process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "", //mainnet signer2
 ].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
 const mainnetAccounts = mainnetPKs.length > 0 ? mainnetPKs : mnemonic;
 
@@ -50,7 +52,7 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
         params: [
             {
                 forking: {
-                    jsonRpcUrl: "https://mainnet4.sovryn.app/rpc",
+                    jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
                     blockNumber: 4272658,
                 },
             },
@@ -82,18 +84,50 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
 
 module.exports = {
     solidity: {
-        version: "0.5.17",
-        settings: {
-            optimizer: {
-                enabled: true,
-                runs: 200,
-            },
-            outputSelection: {
-                "*": {
-                    "*": ["storageLayout"],
+        compilers: [
+            {
+                version: "0.5.17",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 200,
+                    },
+                    outputSelection: {
+                        "*": {
+                            "*": ["storageLayout"],
+                        },
+                    },
                 },
             },
-        },
+            {
+                version: "0.8.13",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 200,
+                    },
+                    outputSelection: {
+                        "*": {
+                            "*": ["storageLayout"],
+                        },
+                    },
+                },
+            },
+            {
+                version: "0.8.17",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 200,
+                    },
+                    outputSelection: {
+                        "*": {
+                            "*": ["storageLayout"],
+                        },
+                    },
+                },
+            },
+        ],
     },
     abiExporter: {
         clear: true,
@@ -114,6 +148,9 @@ module.exports = {
             default: 1,
             rskSovrynMainnet: 0,
         },
+        signer2: {
+            rskSovrynMainnet: 2,
+        },
         voter: {
             default: 1,
             rskForkedMainnet: 0,
@@ -128,6 +165,7 @@ module.exports = {
             initialBaseFeePerGas: 0,
             //blockGasLimit: 6800000,
             //gasPrice: 66000010,
+            //timeout: 1000000,
         },
         localhost: {
             timeout: 100000,
@@ -166,9 +204,10 @@ module.exports = {
             accounts: mainnetAccounts,
             url: "http://127.0.0.1:8545",
             blockGasLimit: 6800000,
+            gasPrice: 66000010,
             live: true,
             tags: ["mainnet", "forked"],
-            timeout: 100000,
+            timeout: 1000000,
         },
         /*localhost: {
             url: "http://127.0.0.1:8545/",
@@ -233,25 +272,25 @@ module.exports = {
             //},
         ],
         deployments: {
-            rskSovrynTestnet: ["external/deployments/rskSovrynTestnet"],
+            rskSovrynTestnet: ["external/deployments/rskTestnet"],
             rskTestnet: [
-                "external/deployments/rskSovrynTestnet",
+                "external/deployments/rskTestnet",
                 "deployment/deployments/rskSovrynTestnet",
             ],
             rskForkedTestnet: [
-                "external/deployments/rskSovrynTestnet",
+                "external/deployments/rskTestnet",
                 "external/deployments/rskForkedTestnet",
                 "deployment/deployments/rskSovrynTestnet",
             ],
             rskForkedTestnetFlashback: ["external/deployments/rskForkedTestnetFlashback"],
             rskForkedMainnetFlashback: ["external/deployments/rskForkedMainnetFlashback"],
-            rskSovrynMainnet: ["external/deployments/rskSovrynMainnet"],
+            rskSovrynMainnet: ["external/deployments/rskMainnet"],
             rskMainnet: [
-                "external/deployments/rskSovrynMainnet",
+                "external/deployments/rskMainnet",
                 "deployment/deployments/rskSovrynMainnet",
             ],
             rskForkedMainnet: [
-                "external/deployments/rskSovrynMainnet",
+                "external/deployments/rskMainnet",
                 "deployment/deployments/rskSovrynMainnet",
                 "external/deployments/rskForkedMainnet",
             ],
