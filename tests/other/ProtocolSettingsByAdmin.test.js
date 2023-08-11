@@ -58,6 +58,7 @@ contract("ProtocolSettings", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds, multisig, sov;
     const ONE_ADDRESS = "0x0000000000000000000000000000000000000001";
     let lender, loanToken, loanTokenAddress;
+    let owner = accounts[0];
 
     async function deploymentAndInitFixture(_wallets, _provider) {
         // Deploying sovrynProtocol w/ generic function from initializer.js
@@ -69,7 +70,10 @@ contract("ProtocolSettings", (accounts) => {
         sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
         multisig = await getMultisig(accounts);
-        await sovryn.transferOwnership(multisig.address);
+        await sovryn.setAdmin(multisig.address);
+
+        expect(await sovryn.owner()).to.equal(owner);
+        expect(await sovryn.getAdmin()).to.equal(multisig.address);
 
         /// @dev A SOV mint useful for every test
         sov = await TestToken.new("Sovryn", "SOV", 18, new BN(10).pow(new BN(50)));
@@ -88,7 +92,7 @@ contract("ProtocolSettings", (accounts) => {
         await loadFixture(deploymentAndInitFixture);
     });
 
-    describe("ProtocolSettings Tests", () => {
+    describe("ProtocolSettings Tests (By Admin)", () => {
         it("Test setCoreParams", async () => {
             const dest = sovryn.address;
             const val = 0;
@@ -147,7 +151,7 @@ contract("ProtocolSettings", (accounts) => {
         });
 
         it("Test set wrbtc token", async () => {
-            expect((await sovryn.owner()) == multisig.address).to.be.true;
+            expect((await sovryn.owner()) == owner).to.be.true;
 
             const dest = sovryn.address;
             const val = 0;
@@ -161,13 +165,13 @@ contract("ProtocolSettings", (accounts) => {
             expect((await sovryn.wrbtcToken()) == WRBTC.address).to.be.true;
 
             await expectRevert(
-                sovryn.setWrbtcToken(WRBTC.address, { from: accounts[0] }),
+                sovryn.setWrbtcToken(WRBTC.address, { from: accounts[3] }),
                 "unauthorized"
             );
         });
 
         it("Should revert when setting wrbtc token w/ not a contract address", async () => {
-            expect((await sovryn.owner()) == multisig.address).to.be.true;
+            expect((await sovryn.owner()) == owner).to.be.true;
 
             const dest = sovryn.address;
             const val = 0;
@@ -274,7 +278,7 @@ contract("ProtocolSettings", (accounts) => {
             await multisig.confirmTransaction(txId, { from: accounts[1] });
 
             await expectRevert(
-                sovryn.depositProtocolToken(sov.address, { from: accounts[0] }),
+                sovryn.depositProtocolToken(sov.address, { from: accounts[3] }),
                 "unauthorized"
             );
         });
@@ -429,7 +433,7 @@ contract("ProtocolSettings", (accounts) => {
         // Should fail to change rollover base reward by unauthorized user
         it("Test set rollover base reward by unauthorized user", async () => {
             await expectRevert(
-                sovryn.setRolloverBaseReward(new BN(10).pow(new BN(15)), { from: accounts[0] }),
+                sovryn.setRolloverBaseReward(new BN(10).pow(new BN(15)), { from: accounts[3] }),
                 "unauthorized"
             );
         });
@@ -476,7 +480,7 @@ contract("ProtocolSettings", (accounts) => {
         // Should fail to change rebate percent by unauthorized user
         it("Test set rebate percent by unauthorized user", async () => {
             await expectRevert(
-                sovryn.setRebatePercent(new BN(2).mul(oneEth), { from: accounts[0] }),
+                sovryn.setRebatePercent(new BN(2).mul(oneEth), { from: accounts[3] }),
                 "unauthorized"
             );
         });
@@ -530,7 +534,7 @@ contract("ProtocolSettings", (accounts) => {
         // Should fail to change rebate percent by unauthorized user
         it("Test set trading rebate rewards basis point by unauthorized user", async () => {
             await expectRevert(
-                sovryn.setTradingRebateRewardsBasisPoint(new BN(10000), { from: accounts[0] }),
+                sovryn.setTradingRebateRewardsBasisPoint(new BN(10000), { from: accounts[3] }),
                 "unauthorized"
             );
         });
@@ -567,7 +571,7 @@ contract("ProtocolSettings", (accounts) => {
         // Should fail to change swap external fee percent by unauthorized user
         it("Test set swapExternalFeePercent with unauthorized sender", async () => {
             await expectRevert(
-                sovryn.setSwapExternalFeePercent(new BN(2).mul(oneEth), { from: accounts[0] }),
+                sovryn.setSwapExternalFeePercent(new BN(2).mul(oneEth), { from: accounts[3] }),
                 "unauthorized"
             );
         });
@@ -969,87 +973,10 @@ contract("ProtocolSettings", (accounts) => {
             expect((await sovryn.rolloverFlexFeePercent()).eq(new_percent)).to.be.true;
         });
 
-        it("Pauser should not be able to set the pauser address", async () => {
-            expect((await sovryn.getPauser()) == ZERO_ADDRESS).to.be.true;
-            const pauser = accounts[1];
-            const dest = sovryn.address;
-            const val = 0;
-            const data = sovryn.contract.methods.setPauser(pauser).encodeABI();
-            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
-            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId, { from: accounts[1] });
-            expect((await sovryn.getPauser()) == pauser).to.be.true;
-
-            /** Pauser should not be able to call the setter function */
-            await expectRevert(sovryn.setPauser(accounts[4], { from: pauser }), "unauthorized");
-            expect((await sovryn.getPauser()) == pauser).to.be.true;
-        });
-
-        it("Test set pauser", async () => {
-            expect((await sovryn.getPauser()) == ZERO_ADDRESS).to.be.true;
-
-            const pauser1 = accounts[1];
-            const pauser2 = accounts[2];
-            const dest = sovryn.address;
-            const val = 0;
-            const data = sovryn.contract.methods.setPauser(pauser1).encodeABI();
-            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
-            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId, { from: accounts[1] });
-
-            expect((await sovryn.getPauser()) == pauser1).to.be.true;
-
-            /** Owner should be able to overwrite if the pauser has been set */
-            const data2 = sovryn.contract.methods.setPauser(pauser2).encodeABI();
-            const tx2 = await multisig.submitTransaction(dest, val, data2, { from: accounts[0] });
-            const txId2 = tx2.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId2, { from: accounts[1] });
-            expect((await sovryn.getPauser()) == pauser2).to.be.true;
-        });
-
-        it("Should be able to set pauser to 0 address", async () => {
-            expect((await sovryn.getPauser()) == ZERO_ADDRESS).to.be.true;
-
-            const pauser1 = accounts[1];
-            const dest = sovryn.address;
-            const val = 0;
-            /** Set the pauser from zero to non-zero addreses */
-            const data = sovryn.contract.methods.setPauser(pauser1).encodeABI();
-            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
-            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId, { from: accounts[1] });
-
-            expect((await sovryn.getPauser()) == pauser1).to.be.true;
-
-            /** Set the pauser from non-zero to zero addreses */
-            const data2 = sovryn.contract.methods.setPauser(ZERO_ADDRESS).encodeABI();
-            const tx2 = await multisig.submitTransaction(dest, val, data2, { from: accounts[0] });
-            const txId2 = tx2.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId2, { from: accounts[1] });
-            expect((await sovryn.getPauser()) == ZERO_ADDRESS).to.be.true;
-        });
-
         it("Admin should not be able to set the admin address", async () => {
-            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
             const admin = accounts[1];
-            const dest = sovryn.address;
-            const val = 0;
-            const data = sovryn.contract.methods.setAdmin(admin).encodeABI();
-            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
-            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+            await sovryn.setAdmin(admin, { from: owner });
             expect((await sovryn.getAdmin()) == admin).to.be.true;
 
             /** Admin should not be able to call the setter function */
@@ -1058,16 +985,9 @@ contract("ProtocolSettings", (accounts) => {
         });
 
         it("Should revert if call setAdmin by non-authorized account", async () => {
-            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
             const admin = accounts[1];
-            const dest = sovryn.address;
-            const val = 0;
-            const data = sovryn.contract.methods.setAdmin(admin).encodeABI();
-            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
-            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+            await sovryn.setAdmin(admin, { from: owner });
             expect((await sovryn.getAdmin()) == admin).to.be.true;
 
             /** non-authorized account should not be able to call the setter function */
@@ -1076,58 +996,6 @@ contract("ProtocolSettings", (accounts) => {
                 "unauthorized"
             );
             expect((await sovryn.getAdmin()) == admin).to.be.true;
-        });
-
-        it("Test set admin", async () => {
-            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
-
-            const admin1 = accounts[1];
-            const admin2 = accounts[2];
-            const dest = sovryn.address;
-            const val = 0;
-            const data = sovryn.contract.methods.setAdmin(admin1).encodeABI();
-            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
-            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId, { from: accounts[1] });
-
-            expect((await sovryn.getAdmin()) == admin1).to.be.true;
-
-            /** Owner should be able to overwrite if the admin has been set */
-            const data2 = sovryn.contract.methods.setAdmin(admin2).encodeABI();
-            const tx2 = await multisig.submitTransaction(dest, val, data2, { from: accounts[0] });
-            const txId2 = tx2.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId2, { from: accounts[1] });
-            expect((await sovryn.getAdmin()) == admin2).to.be.true;
-        });
-
-        it("Should be able to set admin to 0 address", async () => {
-            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
-
-            const admin1 = accounts[1];
-            const dest = sovryn.address;
-            const val = 0;
-            /** Set the admin from zero to non-zero addreses */
-            const data = sovryn.contract.methods.setAdmin(admin1).encodeABI();
-            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
-            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId, { from: accounts[1] });
-
-            expect((await sovryn.getAdmin()) == admin1).to.be.true;
-
-            /** Set the admin from non-zero to zero addreses */
-            const data2 = sovryn.contract.methods.setAdmin(ZERO_ADDRESS).encodeABI();
-            const tx2 = await multisig.submitTransaction(dest, val, data2, { from: accounts[0] });
-            const txId2 = tx2.logs.filter((item) => item.event == "Submission")[0].args[
-                "transactionId"
-            ];
-            await multisig.confirmTransaction(txId2, { from: accounts[1] });
-            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
         });
     });
 

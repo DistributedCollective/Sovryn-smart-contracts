@@ -507,4 +507,8 @@ contract ISovryn is
     function setPauser(address newPauser) external;
 
     function getPauser() external view returns (address);
+
+    function setAdmin(address newAdmin) external;
+
+    function getAdmin() external view returns (address);
 }

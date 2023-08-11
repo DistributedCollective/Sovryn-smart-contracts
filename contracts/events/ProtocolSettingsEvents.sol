@@ -176,4 +176,6 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
     );
 
     event SetPauser(address indexed sender, address indexed oldPauser, address indexed newPauser);
+
+    event SetAdmin(address indexed sender, address indexed oldAdmin, address indexed newAdmin);
 }
