@@ -697,7 +697,33 @@ contract FeeSharingCollector is
         uint256 _startFrom,
         uint256 _maxCheckpoints
     )
-        public
+        external
+        view
+        returns (
+            uint256 checkpointNum,
+            bool hasSkippedCheckpoints,
+            bool hasFees
+        )
+    {
+        return _getNextPositiveUserCheckpoint(_user, _token, _startFrom, _maxCheckpoints);
+    }
+
+    /**
+     * @dev Returns first user's checkpoint with weighted stake > 0
+     *
+     * @param _user The address of the user or contract.
+     * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
+     * @param _startFrom Checkpoint number to start from. If _startFrom < processedUserCheckpoints then starts from processedUserCheckpoints.
+     * @param _maxCheckpoints Max checkpoints to process in a row to avoid timeout error
+     * @return [checkpointNum: checkpoint number where user's weighted stake > 0, hasSkippedCheckpoints, hasFees]
+     */
+    function _getNextPositiveUserCheckpoint(
+        address _user,
+        address _token,
+        uint256 _startFrom,
+        uint256 _maxCheckpoints
+    )
+        internal
         view
         returns (
             uint256 checkpointNum,
@@ -800,10 +826,10 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints
     ) external view returns (uint256 nextCheckpointNum, uint256[] memory fees) {
         require(_maxCheckpoints > 0, "_maxCheckpoints must be > 0");
-        bool nextHasFees;
-        (nextCheckpointNum, , nextHasFees) = getNextPositiveUserCheckpoint(_user, _token, 0, 1);
+        bool hasFees;
+        (nextCheckpointNum, , hasFees) = _getNextPositiveUserCheckpoint(_user, _token, 0, 1);
 
-        if (!nextHasFees) return (nextCheckpointNum, fees);
+        if (!hasFees) return (nextCheckpointNum, fees);
 
         if (nextCheckpointNum > 0) nextCheckpointNum = nextCheckpointNum - 1;
 
