@@ -2087,6 +2087,7 @@ contract("FeeSharingCollector:", (accounts) => {
                 feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                     account1,
                     RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                    0,
                     0
                 ),
                 "_maxCheckpoints must be > 0"
@@ -2116,11 +2117,12 @@ contract("FeeSharingCollector:", (accounts) => {
             const allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
                 MAX_NEXT_POSITIVE_CHECKPOINT
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(0);
-            expect(allUserFees["fees"].length).to.eq(0);
+            expect(allUserFees.length).to.eq(1);
+            expect(allUserFees[0]).to.eq(0);
         });
 
         it("getAllUserFees should return correct fees after withdrawal", async () => {
@@ -2163,12 +2165,12 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 SOVToken.address,
+                0,
                 100
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(0);
-            expect(allUserFees["fees"].length).to.equal(1);
-            expect(allUserFees["fees"][0]).to.equal(fees.toString());
+            expect(allUserFees.length).to.equal(1);
+            expect(allUserFees[0]).to.equal(fees.toString());
 
             let userInitialISOVBalance = await SOVToken.balanceOf(account1);
             let tx = await feeSharingCollector.withdraw(SOVToken.address, 10, ZERO_ADDRESS, {
@@ -2202,10 +2204,12 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 SOVToken.address,
+                0,
                 100
             );
 
-            expect(allUserFees["fees"].length).to.equal(0);
+            expect(allUserFees.length).to.equal(1);
+            expect(allUserFees[0]).to.equal(0);
         });
 
         it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with 1 iteration", async () => {
@@ -2234,12 +2238,12 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
                 1000
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(0);
-            expect(allUserFees["fees"].length).to.equal(1);
-            expect(allUserFees["fees"][0].toString()).to.equal(fees.toString());
+            expect(allUserFees.length).to.equal(1);
+            expect(allUserFees[0].toString()).to.equal(fees.toString());
 
             let tx = await feeSharingCollector.withdrawRbtcTokens(
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
@@ -2261,11 +2265,11 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                10,
                 1000
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(10);
-            expect(allUserFees["fees"].length).to.equal(0);
+            expect(allUserFees.length).to.equal(0);
         });
 
         it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (1 maxCheckpoint)", async () => {
@@ -2301,11 +2305,11 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
                 maxCheckpoint
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(0);
-            expect(allUserFees["fees"].length).to.equal(iteration);
+            expect(allUserFees.length).to.equal(iteration);
 
             let feesIndex = 0;
             for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
@@ -2315,7 +2319,7 @@ contract("FeeSharingCollector:", (accounts) => {
                     i,
                     maxCheckpoint
                 );
-                expect(allUserFees["fees"][feesIndex].toString()).to.equal(fees.toString());
+                expect(allUserFees[feesIndex].toString()).to.equal(fees.toString());
                 feesIndex++;
             }
 
@@ -2339,11 +2343,11 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                10,
                 1
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(10);
-            expect(allUserFees["fees"].length).to.equal(0);
+            expect(allUserFees.length).to.equal(0);
         });
 
         it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (2 maxCheckpoint)", async () => {
@@ -2379,11 +2383,11 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
                 maxCheckpoint
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(0);
-            expect(allUserFees["fees"].length).to.equal(iteration);
+            expect(allUserFees.length).to.equal(iteration);
 
             let feesIndex = 0;
             for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
@@ -2393,7 +2397,7 @@ contract("FeeSharingCollector:", (accounts) => {
                     i,
                     maxCheckpoint
                 );
-                expect(allUserFees["fees"][feesIndex].toString()).to.equal(fees.toString());
+                expect(allUserFees[feesIndex].toString()).to.equal(fees.toString());
                 feesIndex++;
             }
 
@@ -2417,11 +2421,11 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                10,
                 1
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(10);
-            expect(allUserFees["fees"].length).to.equal(0);
+            expect(allUserFees.length).to.equal(0);
         });
 
         it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (3 maxCheckpoint)", async () => {
@@ -2457,11 +2461,11 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
                 maxCheckpoint
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(0);
-            expect(allUserFees["fees"].length).to.equal(iteration);
+            expect(allUserFees.length).to.equal(iteration);
 
             let feesIndex = 0;
             for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
@@ -2471,7 +2475,7 @@ contract("FeeSharingCollector:", (accounts) => {
                     i,
                     maxCheckpoint
                 );
-                expect(allUserFees["fees"][feesIndex].toString()).to.equal(fees.toString());
+                expect(allUserFees[feesIndex].toString()).to.equal(fees.toString());
                 feesIndex++;
             }
 
@@ -2495,11 +2499,11 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                10,
                 1
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(10);
-            expect(allUserFees["fees"].length).to.equal(0);
+            expect(allUserFees.length).to.equal(0);
         });
 
         it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - starting from > 0 checkpoints", async () => {
@@ -2535,11 +2539,11 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
                 maxCheckpoint
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(0);
-            expect(allUserFees["fees"].length).to.equal(iteration);
+            expect(allUserFees.length).to.equal(iteration);
 
             let feesIndex = 0;
             for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
@@ -2549,7 +2553,7 @@ contract("FeeSharingCollector:", (accounts) => {
                     i,
                     maxCheckpoint
                 );
-                expect(allUserFees["fees"][feesIndex].toString()).to.equal(fees.toString());
+                expect(allUserFees[feesIndex].toString()).to.equal(fees.toString());
                 feesIndex++;
             }
 
@@ -2573,11 +2577,11 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                2,
                 100
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(2);
-            expect(allUserFees["fees"].length).to.equal(1);
+            expect(allUserFees.length).to.equal(1);
 
             let tempMaxCheckpoint = 100;
             let expectedIteration = 0;
@@ -2587,11 +2591,11 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                2,
                 tempMaxCheckpoint
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(2);
-            expect(allUserFees["fees"].length).to.equal(expectedIteration);
+            expect(allUserFees.length).to.equal(expectedIteration);
 
             tempMaxCheckpoint = 2;
             expectedIteration = 0;
@@ -2601,11 +2605,11 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                2,
                 tempMaxCheckpoint
             );
 
-            expect(allUserFees["nextCheckpointNum"]).to.equal(2);
-            expect(allUserFees["fees"].length).to.equal(expectedIteration);
+            expect(allUserFees.length).to.equal(expectedIteration);
         });
 
         it("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints", async () => {

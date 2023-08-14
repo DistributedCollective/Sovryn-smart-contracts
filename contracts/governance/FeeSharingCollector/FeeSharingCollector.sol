@@ -823,31 +823,32 @@ contract FeeSharingCollector is
     function getAllUserFeesPerMaxCheckpoints(
         address _user,
         address _token,
+        uint256 _startFrom,
         uint32 _maxCheckpoints
-    ) external view returns (uint256 nextCheckpointNum, uint256[] memory fees) {
+    ) external view returns (uint256[] memory fees) {
         require(_maxCheckpoints > 0, "_maxCheckpoints must be > 0");
-        bool hasFees;
-        (nextCheckpointNum, , hasFees) = _getNextPositiveUserCheckpoint(_user, _token, 0, 1);
-
-        if (!hasFees) return (nextCheckpointNum, fees);
-
-        if (nextCheckpointNum > 0) nextCheckpointNum = nextCheckpointNum - 1;
 
         uint256 totalCheckpoints = totalTokenCheckpoints[_token];
+        uint256 checkpointIndex = totalCheckpoints > 0 ? totalCheckpoints - 1 : 0;
 
-        uint256 arrSize;
-        for (uint256 i = nextCheckpointNum; i < totalCheckpoints; i += _maxCheckpoints) {
-            arrSize = arrSize.add(1);
-        }
+        if (checkpointIndex < _startFrom) return fees;
+
+        uint256 arrSize = checkpointIndex.sub(_startFrom).div(_maxCheckpoints) + 1;
 
         fees = new uint256[](arrSize);
 
-        uint256 index;
-        for (uint256 i = nextCheckpointNum; i < totalCheckpoints; i += _maxCheckpoints) {
-            (uint256 fee, ) = _getAccumulatedFees(_user, _token, i, _maxCheckpoints);
-            fees[index] = fee;
-            index++;
+        for (uint256 i = 0; i < fees.length; i++) {
+            (uint256 fee, ) =
+                _getAccumulatedFees(
+                    _user,
+                    _token,
+                    (_startFrom) + i * _maxCheckpoints,
+                    _maxCheckpoints
+                );
+            fees[i] = fee;
         }
+
+        return fees;
     }
 
     /**
