@@ -21,7 +21,7 @@ contract WeightedStakingModule is IFunctionsList, StakingShared, CheckpointsShar
      *
      * @param account The address of the account to check.
      * @param blockNumber The block number to get the vote balance at.
-     * @param date The date/timestamp of the unstaking time.
+     * @param date The start date/timestamp from which to calculate the weighted stake.
      * @return The weighted stake the account had as of the given block.
      * */
     function getPriorWeightedStake(
