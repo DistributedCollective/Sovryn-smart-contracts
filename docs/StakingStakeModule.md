@@ -670,7 +670,7 @@ function getStakes(address account)
 
 > ### _getToken
 
-⤾ overrides [ApprovalReceiver._getToken](ApprovalReceiver.md#_gettoken)
+undefined
 
 Overrides default ApprovalReceiver._getToken function to
 register SOV token on this contract.
@@ -694,7 +694,7 @@ function _getToken() internal view returns (address) {
 
 > ### _getSelectors
 
-⤾ overrides [ApprovalReceiver._getSelectors](ApprovalReceiver.md#_getselectors)
+undefined
 
 Overrides default ApprovalReceiver._getSelectors function to
 register stakeWithApproval selector on this contract.

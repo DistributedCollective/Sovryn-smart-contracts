@@ -40,6 +40,7 @@ contracts_bzx/
 tmp/
 tmp
 /temp/
+/out/
 foundry/out/
 abi
 types/

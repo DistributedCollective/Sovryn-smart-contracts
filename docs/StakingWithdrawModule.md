@@ -604,7 +604,7 @@ function governanceWithdraw(
 
 > ### getFunctionsList
 
-⤾ overrides [IFunctionsList.getFunctionsList](IFunctionsList.md#getfunctionslist)
+undefined
 
 ```solidity
 function getFunctionsList() external pure

@@ -14,7 +14,7 @@ View Source: [contracts/proxy/modules/interfaces/IFunctionsList.sol](../contract
 
 > ### getFunctionsList
 
-⤿ Overridden Implementation(s): [StakingAdminModule.getFunctionsList](StakingAdminModule.md#getfunctionslist),[StakingGovernanceModule.getFunctionsList](StakingGovernanceModule.md#getfunctionslist),[StakingStakeModule.getFunctionsList](StakingStakeModule.md#getfunctionslist),[StakingStorageModule.getFunctionsList](StakingStorageModule.md#getfunctionslist),[StakingVestingModule.getFunctionsList](StakingVestingModule.md#getfunctionslist),[StakingWithdrawModule.getFunctionsList](StakingWithdrawModule.md#getfunctionslist),[WeightedStakingModule.getFunctionsList](WeightedStakingModule.md#getfunctionslist)
+⤿ Overridden Implementation(s): [StakingGovernanceModule.getFunctionsList](StakingGovernanceModule.md#getfunctionslist),[StakingStakeModule.getFunctionsList](StakingStakeModule.md#getfunctionslist),[StakingVestingModule.getFunctionsList](StakingVestingModule.md#getfunctionslist),[WeightedStakingModule.getFunctionsList](WeightedStakingModule.md#getfunctionslist)
 
 ```solidity
 function getFunctionsList() external pure
