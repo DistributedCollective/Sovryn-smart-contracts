@@ -830,11 +830,11 @@ contract FeeSharingCollector is
         require(_maxCheckpoints > 0, "_maxCheckpoints must be > 0");
 
         uint256 totalCheckpoints = totalTokenCheckpoints[_token];
-        uint256 checkpointIndex = totalCheckpoints > 0 ? totalCheckpoints - 1 : 0;
+        uint256 totalTokensCheckpointsIndex = totalCheckpoints > 0 ? totalCheckpoints - 1 : 0;
 
-        if (checkpointIndex < _startFrom) return fees;
+        if (totalTokensCheckpointsIndex < _startFrom) return fees;
 
-        uint256 arrSize = checkpointIndex.sub(_startFrom).div(_maxCheckpoints) + 1;
+        uint256 arrSize = totalTokensCheckpointsIndex.sub(_startFrom).div(_maxCheckpoints) + 1;
 
         fees = new uint256[](arrSize);
 
