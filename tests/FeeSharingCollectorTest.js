@@ -2064,6 +2064,554 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
+        it("getAllUserFees should revert if maxCheckpoint is 0", async () => {
+            await protocolDeploymentFixture();
+            await stake(900, root);
+            const userStake = 100;
+
+            await SOVToken.transfer(account1, userStake);
+            await createCheckpoints(9);
+
+            await stake(userStake, account1);
+            await createCheckpoints(1);
+
+            let nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(10);
+
+            await expectRevert(
+                feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                    account1,
+                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                    10,
+                    0
+                ),
+                "_maxCheckpoints must be > 0"
+            );
+        });
+
+        it("getAllUserFees should return empty fees if no checkpoint can be processed", async () => {
+            await protocolDeploymentFixture();
+            feeSharingCollector = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+            await sovryn.setFeesController(feeSharingCollector.address);
+
+            let nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+            expect([
+                nextCheckpoint.checkpointNum.toNumber(),
+                nextCheckpoint.hasSkippedCheckpoints,
+                nextCheckpoint.hasFees,
+            ]).to.eql([0, false, false]);
+
+            const allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+
+            expect(allUserFees.length).to.eq(1);
+            expect(allUserFees[0]).to.eq(0);
+        });
+
+        it("getAllUserFees should return correct fees after withdrawal", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            //stake - getPriorTotalVotingPower
+            let rootStake = 700;
+            await stake(rootStake, root);
+
+            let userStake = 300;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            //mock data
+            let lendingFeeTokensHeld = new BN(wei("1", "gwei"));
+            let tradingFeeTokensHeld = new BN(wei("2", "gwei"));
+            let borrowingFeeTokensHeld = new BN(wei("3", "gwei"));
+            let totalFeeTokensHeld = lendingFeeTokensHeld
+                .add(tradingFeeTokensHeld)
+                .add(borrowingFeeTokensHeld);
+            let feeAmount = await setFeeTokensHeld(
+                lendingFeeTokensHeld,
+                tradingFeeTokensHeld,
+                borrowingFeeTokensHeld,
+                false,
+                true
+            );
+
+            await feeSharingCollector.withdrawFees([SOVToken.address]);
+
+            await mine(2880 * 15, { interval: 30 }); // 86400 (1day) / 30 == 2800 * 15 (2 weeks + 1 day - for weighted stake to be updated in cache of FeeSharingCollector._getAccumulatedFees())
+
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
+
+            let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                SOVToken.address,
+                0,
+                100
+            );
+
+            expect(allUserFees.length).to.equal(1);
+            expect(allUserFees[0]).to.equal(fees.toString());
+
+            let userInitialISOVBalance = await SOVToken.balanceOf(account1);
+            let tx = await feeSharingCollector.withdraw(SOVToken.address, 10, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                SOVToken.address
+            );
+            expect(processedCheckpoints.toNumber()).to.be.equal(1);
+
+            //check balances
+            let feeSharingCollectorProxyBalance = await SOVToken.balanceOf.call(
+                feeSharingCollector.address
+            );
+            expect(feeSharingCollectorProxyBalance.toNumber()).to.be.equal((feeAmount * 7) / 10);
+            let userBalance = await SOVToken.balanceOf.call(account1);
+            expect(userBalance.sub(userInitialISOVBalance).toNumber()).to.be.equal(
+                (feeAmount * 3) / 10
+            );
+
+            expectEvent(tx, "UserFeeWithdrawn", {
+                sender: account1,
+                receiver: account1,
+                token: SOVToken.address,
+                amount: new BN(feeAmount).mul(new BN(3)).div(new BN(10)),
+            });
+
+            allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                SOVToken.address,
+                0,
+                100
+            );
+
+            expect(allUserFees.length).to.equal(1);
+            expect(allUserFees[0]).to.equal(0);
+        });
+
+        it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with 1 iteration", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            // stake - getPriorTotalVotingPower
+            await stake(900, root);
+            let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            // mock data
+            await createCheckpoints(10);
+
+            await mine(2880 * 15, { interval: 30 }); // 86400 (1day) / 30 == 2800 * 15 (2 weeks + 1 day - for weighted stake to be updated in cache of FeeSharingCollector._getAccumulatedFees())
+
+            let fees = await feeSharingCollector.getAccumulatedFees(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+
+            let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                10000000
+            );
+
+            expect(allUserFees.length).to.equal(1);
+            expect(allUserFees[0].toString()).to.equal(fees.toString());
+
+            let tx = await feeSharingCollector.withdrawRbtcTokens(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                1000,
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
+
+            console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
+            // processedCheckpoints
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            expect(processedCheckpoints.toNumber()).to.be.equal(10);
+
+            allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                10,
+                1000
+            );
+
+            expect(allUserFees.length).to.equal(0);
+        });
+
+        it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (1 maxCheckpoint)", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            const checkpoints = 10;
+            const maxCheckpoint = 1;
+
+            // stake - getPriorTotalVotingPower
+            await stake(900, root);
+            let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            // mock data
+            await createCheckpoints(checkpoints);
+
+            await mine(2880 * 15, { interval: 30 }); // 86400 (1day) / 30 == 2800 * 15 (2 weeks + 1 day - for weighted stake to be updated in cache of FeeSharingCollector._getAccumulatedFees())
+
+            const totalCheckpoints = await feeSharingCollector.totalTokenCheckpoints(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            let iteration = 0;
+
+            for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
+                iteration += 1;
+            }
+
+            let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                maxCheckpoint
+            );
+
+            expect(allUserFees.length).to.equal(iteration);
+
+            let feesIndex = 0;
+            for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
+                const fees = await feeSharingCollector.getAccumulatedFeesForCheckpointsRange(
+                    account1,
+                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                    i,
+                    maxCheckpoint
+                );
+                expect(allUserFees[feesIndex].toString()).to.equal(fees.toString());
+                feesIndex++;
+            }
+
+            let tx = await feeSharingCollector.withdrawRbtcTokens(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                1000,
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
+
+            console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
+            // processedCheckpoints
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            expect(processedCheckpoints.toNumber()).to.be.equal(10);
+
+            allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                10,
+                1
+            );
+
+            expect(allUserFees.length).to.equal(0);
+        });
+
+        it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (2 maxCheckpoint)", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            const checkpoints = 10;
+            const maxCheckpoint = 2;
+
+            // stake - getPriorTotalVotingPower
+            await stake(900, root);
+            let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            // mock data
+            await createCheckpoints(checkpoints);
+
+            await mine(2880 * 15, { interval: 30 }); // 86400 (1day) / 30 == 2800 * 15 (2 weeks + 1 day - for weighted stake to be updated in cache of FeeSharingCollector._getAccumulatedFees())
+
+            const totalCheckpoints = await feeSharingCollector.totalTokenCheckpoints(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            let iteration = 0;
+
+            for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
+                iteration += 1;
+            }
+
+            let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                maxCheckpoint
+            );
+
+            expect(allUserFees.length).to.equal(iteration);
+
+            let feesIndex = 0;
+            for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
+                const fees = await feeSharingCollector.getAccumulatedFeesForCheckpointsRange(
+                    account1,
+                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                    i,
+                    maxCheckpoint
+                );
+                expect(allUserFees[feesIndex].toString()).to.equal(fees.toString());
+                feesIndex++;
+            }
+
+            let tx = await feeSharingCollector.withdrawRbtcTokens(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                1000,
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
+
+            console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
+            // processedCheckpoints
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            expect(processedCheckpoints.toNumber()).to.be.equal(10);
+
+            allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                10,
+                1
+            );
+
+            expect(allUserFees.length).to.equal(0);
+        });
+
+        it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (3 maxCheckpoint)", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            const checkpoints = 10;
+            const maxCheckpoint = 3;
+
+            // stake - getPriorTotalVotingPower
+            await stake(900, root);
+            let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            // mock data
+            await createCheckpoints(checkpoints);
+
+            await mine(2880 * 15, { interval: 30 }); // 86400 (1day) / 30 == 2800 * 15 (2 weeks + 1 day - for weighted stake to be updated in cache of FeeSharingCollector._getAccumulatedFees())
+
+            const totalCheckpoints = await feeSharingCollector.totalTokenCheckpoints(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            let iteration = 0;
+
+            for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
+                iteration += 1;
+            }
+
+            let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                maxCheckpoint
+            );
+
+            expect(allUserFees.length).to.equal(iteration);
+
+            let feesIndex = 0;
+            for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
+                const fees = await feeSharingCollector.getAccumulatedFeesForCheckpointsRange(
+                    account1,
+                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                    i,
+                    maxCheckpoint
+                );
+                expect(allUserFees[feesIndex].toString()).to.equal(fees.toString());
+                feesIndex++;
+            }
+
+            let tx = await feeSharingCollector.withdrawRbtcTokens(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                1000,
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
+
+            console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
+            // processedCheckpoints
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            expect(processedCheckpoints.toNumber()).to.be.equal(10);
+
+            allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                10,
+                1
+            );
+
+            expect(allUserFees.length).to.equal(0);
+        });
+
+        it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - starting from > 0 checkpoints", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            const checkpoints = 10;
+            const maxCheckpoint = 3;
+
+            // stake - getPriorTotalVotingPower
+            await stake(900, root);
+            let userStake = 100;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            // mock data
+            await createCheckpoints(checkpoints);
+
+            await mine(2880 * 15, { interval: 30 }); // 86400 (1day) / 30 == 2800 * 15 (2 weeks + 1 day - for weighted stake to be updated in cache of FeeSharingCollector._getAccumulatedFees())
+
+            const totalCheckpoints = await feeSharingCollector.totalTokenCheckpoints(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            let iteration = 0;
+
+            for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
+                iteration += 1;
+            }
+
+            let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                0,
+                maxCheckpoint
+            );
+
+            expect(allUserFees.length).to.equal(iteration);
+
+            let feesIndex = 0;
+            for (let i = 0; i < totalCheckpoints; i += maxCheckpoint) {
+                const fees = await feeSharingCollector.getAccumulatedFeesForCheckpointsRange(
+                    account1,
+                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                    i,
+                    maxCheckpoint
+                );
+                expect(allUserFees[feesIndex].toString()).to.equal(fees.toString());
+                feesIndex++;
+            }
+
+            let tx = await feeSharingCollector.withdrawRbtcTokens(
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                2,
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
+
+            console.log("\nwithdraw(checkpoints = 10).gasUsed: " + tx.receipt.gasUsed);
+            // processedCheckpoints
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            expect(processedCheckpoints.toNumber()).to.be.equal(2);
+
+            allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                2,
+                100
+            );
+
+            expect(allUserFees.length).to.equal(1);
+
+            let tempMaxCheckpoint = 100;
+            let expectedIteration = 0;
+            for (let i = 2; i < totalCheckpoints; i += tempMaxCheckpoint) {
+                expectedIteration++;
+            }
+            allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                2,
+                tempMaxCheckpoint
+            );
+
+            expect(allUserFees.length).to.equal(expectedIteration);
+
+            tempMaxCheckpoint = 2;
+            expectedIteration = 0;
+            for (let i = 2; i < totalCheckpoints; i += tempMaxCheckpoint) {
+                expectedIteration++;
+            }
+            allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
+                account1,
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                2,
+                tempMaxCheckpoint
+            );
+
+            expect(allUserFees.length).to.equal(expectedIteration);
+        });
+
         it("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints", async () => {
             await protocolDeploymentFixture();
             await stake(900, root);
