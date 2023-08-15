@@ -2094,36 +2094,6 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it("getAllUserFees should revert if _startFrom is 0", async () => {
-            await protocolDeploymentFixture();
-            await stake(900, root);
-            const userStake = 100;
-
-            await SOVToken.transfer(account1, userStake);
-            await createCheckpoints(9);
-
-            await stake(userStake, account1);
-            await createCheckpoints(1);
-
-            let nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
-                account1,
-                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                0,
-                MAX_NEXT_POSITIVE_CHECKPOINT
-            );
-            expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(10);
-
-            await expectRevert(
-                feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
-                    account1,
-                    RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                    0,
-                    100
-                ),
-                "startFrom must be > 0"
-            );
-        });
-
         it("getAllUserFees should return empty fees if no checkpoint can be processed", async () => {
             await protocolDeploymentFixture();
             feeSharingCollector = await FeeSharingCollectorMockup.new(
@@ -2147,11 +2117,12 @@ contract("FeeSharingCollector:", (accounts) => {
             const allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                1,
+                0,
                 MAX_NEXT_POSITIVE_CHECKPOINT
             );
 
-            expect(allUserFees.length).to.eq(0);
+            expect(allUserFees.length).to.eq(1);
+            expect(allUserFees[0]).to.eq(0);
         });
 
         it("getAllUserFees should return correct fees after withdrawal", async () => {
@@ -2194,7 +2165,7 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 SOVToken.address,
-                1,
+                0,
                 100
             );
 
@@ -2233,7 +2204,7 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 SOVToken.address,
-                1,
+                0,
                 100
             );
 
@@ -2267,7 +2238,7 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                1,
+                0,
                 10000000
             );
 
@@ -2294,7 +2265,7 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                11,
+                10,
                 1000
             );
 
@@ -2334,7 +2305,7 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                1,
+                0,
                 maxCheckpoint
             );
 
@@ -2372,7 +2343,7 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                11,
+                10,
                 1
             );
 
@@ -2412,7 +2383,7 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                1,
+                0,
                 maxCheckpoint
             );
 
@@ -2450,7 +2421,7 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                11,
+                10,
                 1
             );
 
@@ -2490,7 +2461,7 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                1,
+                0,
                 maxCheckpoint
             );
 
@@ -2528,7 +2499,7 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                11,
+                10,
                 1
             );
 
@@ -2568,7 +2539,7 @@ contract("FeeSharingCollector:", (accounts) => {
             let allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                1,
+                0,
                 maxCheckpoint
             );
 
@@ -2606,7 +2577,7 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                3,
+                2,
                 100
             );
 
@@ -2620,7 +2591,7 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                3,
+                2,
                 tempMaxCheckpoint
             );
 
@@ -2634,7 +2605,7 @@ contract("FeeSharingCollector:", (accounts) => {
             allUserFees = await feeSharingCollector.getAllUserFeesPerMaxCheckpoints(
                 account1,
                 RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                3,
+                2,
                 tempMaxCheckpoint
             );
 

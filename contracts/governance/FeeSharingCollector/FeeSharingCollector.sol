@@ -827,13 +827,13 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints
     ) external view returns (uint256[] memory fees) {
         require(_maxCheckpoints > 0, "_maxCheckpoints must be > 0");
-        require(_startFrom > 0, "startFrom must be > 0");
 
         uint256 totalCheckpoints = totalTokenCheckpoints[_token];
+        uint256 checkpointIndex = totalCheckpoints > 0 ? totalCheckpoints - 1 : 0;
 
-        if (totalCheckpoints < _startFrom) return fees;
+        if (checkpointIndex < _startFrom) return fees;
 
-        uint256 arrSize = totalCheckpoints.sub(_startFrom).div(_maxCheckpoints) + 1;
+        uint256 arrSize = checkpointIndex.sub(_startFrom).div(_maxCheckpoints) + 1;
 
         fees = new uint256[](arrSize);
 
@@ -842,7 +842,7 @@ contract FeeSharingCollector is
                 _getAccumulatedFees(
                     _user,
                     _token,
-                    (_startFrom - 1) + i * _maxCheckpoints,
+                    _startFrom + i * _maxCheckpoints,
                     _maxCheckpoints
                 );
             fees[i] = fee;
