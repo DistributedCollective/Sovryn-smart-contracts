@@ -817,6 +817,7 @@ contract FeeSharingCollector is
      *
      * @param _user The address of a user (staker) or contract.
      * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
+     * @param _startFrom Checkpoint to start calculating fees from.
      * @param _maxCheckpoints maxCheckpoints to get accumulated fees for the _user
      * @return The next checkpoint num which is the starting point to fetch all of the fees, array of calculated fees.
      * */
