@@ -17,7 +17,7 @@ require("@nomicfoundation/hardhat-foundry");
 require("./hardhat/tasks");
 
 require("dotenv").config();
-require("cryptoenv").parse();
+require("@secrez/cryptoenv").parse();
 
 const mnemonic = { mnemonic: "test test test test test test test test test test test junk" };
 const testnetPKs = [
