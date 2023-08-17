@@ -13,4 +13,6 @@ interface IVesting {
     function endDate() external returns (uint256);
 
     function stakeTokens(uint256 amount) external;
+
+    function tokenOwner() external view returns (address);
 }

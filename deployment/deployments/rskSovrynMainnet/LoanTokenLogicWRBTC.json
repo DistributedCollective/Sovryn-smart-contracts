@@ -1,5 +1,5 @@
 {
-  "address": "0xE13B1eEf35296d3b9e7bfd0Ac06756a752dA3c90",
+  "address": "0xB6D6Ed584240308b6CF2f654aA6027A35926e129",
   "abi": [
     {
       "anonymous": false,
@@ -451,18 +451,13 @@
           "internalType": "uint256",
           "name": "burnAmount",
           "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "useLM",
-          "type": "bool"
         }
       ],
       "name": "burn",
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "redeemed",
+          "name": "loanAmountPaid",
           "type": "uint256"
         }
       ],
@@ -482,9 +477,14 @@
           "internalType": "uint256",
           "name": "burnAmount",
           "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "useLM",
+          "type": "bool"
         }
       ],
-      "name": "burn",
+      "name": "burnToBTC",
       "outputs": [
         {
           "internalType": "uint256",
@@ -1080,26 +1080,21 @@
           "type": "address"
         },
         {
-          "internalType": "uint256",
-          "name": "depositAmount",
-          "type": "uint256"
-        },
-        {
           "internalType": "bool",
           "name": "useLM",
           "type": "bool"
         }
       ],
-      "name": "mint",
+      "name": "mintWithBTC",
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "minted",
+          "name": "mintAmount",
           "type": "uint256"
         }
       ],
-      "payable": false,
-      "stateMutability": "nonpayable",
+      "payable": true,
+      "stateMutability": "payable",
       "type": "function"
     },
     {
