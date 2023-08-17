@@ -174,4 +174,6 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
         address indexed destTokenAddress,
         IERC20[] defaultPath
     );
+
+    event SetPauser(address indexed sender, address indexed oldPauser, address indexed newPauser);
 }
