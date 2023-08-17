@@ -4,7 +4,7 @@ View Source: [contracts/connectors/loantoken/Pausable.sol](../contracts/connecto
 
 **↘ Derived Contracts: [LoanTokenBase](LoanTokenBase.md)**
 
-**Pausable**
+## **Pausable** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized margin
 trading and lending https://bzx.network similar to the dYdX protocol.
@@ -90,7 +90,6 @@ function _isPaused(bytes4 sig) internal view returns (bool isPaused) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

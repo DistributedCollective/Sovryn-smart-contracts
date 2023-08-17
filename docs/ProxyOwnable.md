@@ -4,7 +4,7 @@ View Source: [contracts/utils/ProxyOwnable.sol](../contracts/utils/ProxyOwnable.
 
 **↘ Derived Contracts: [ModulesProxyRegistry](ModulesProxyRegistry.md)**
 
-**ProxyOwnable**
+## **ProxyOwnable** contract
 
 Contract module which provides a basic access control mechanism, where
 there is an account (an owner) that can be granted exclusive access to
@@ -164,7 +164,6 @@ function getProxyOwner() public view returns (address _owner) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -5,7 +5,7 @@ View Source: [contracts/governance/ApprovalReceiver.sol](../contracts/governance
 **↗ Extends: [ErrorDecoder](ErrorDecoder.md), [IApproveAndCall](IApproveAndCall.md)**
 **↘ Derived Contracts: [FourYearVestingLogic](FourYearVestingLogic.md), [StakingStakeModule](StakingStakeModule.md), [VestingLogic](VestingLogic.md)**
 
-**ApprovalReceiver**
+## **ApprovalReceiver** contract
 
 ## Modifiers
 
@@ -91,7 +91,7 @@ function receiveApproval(
 
 > ### _getToken
 
-⤿ Overridden Implementation(s): [FourYearVestingLogic._getToken](FourYearVestingLogic.md#_gettoken),[StakingStakeModule._getToken](StakingStakeModule.md#_gettoken),[VestingLogic._getToken](VestingLogic.md#_gettoken)
+⤿ Overridden Implementation(s): [FourYearVestingLogic._getToken](FourYearVestingLogic.md#_gettoken),[VestingLogic._getToken](VestingLogic.md#_gettoken)
 
 Returns token address, only this address can be a sender for receiveApproval.
 
@@ -114,7 +114,7 @@ function _getToken() internal view returns (address) {
 
 > ### _getSelectors
 
-⤿ Overridden Implementation(s): [FourYearVestingLogic._getSelectors](FourYearVestingLogic.md#_getselectors),[StakingStakeModule._getSelectors](StakingStakeModule.md#_getselectors),[VestingLogic._getSelectors](VestingLogic.md#_getselectors)
+⤿ Overridden Implementation(s): [FourYearVestingLogic._getSelectors](FourYearVestingLogic.md#_getselectors),[VestingLogic._getSelectors](VestingLogic.md#_getselectors)
 
 Returns list of function selectors allowed to be invoked.
 
@@ -215,7 +215,6 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

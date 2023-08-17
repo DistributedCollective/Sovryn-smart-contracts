@@ -5,7 +5,7 @@ View Source: [contracts/swaps/SwapsUser.sol](../contracts/swaps/SwapsUser.sol)
 **↗ Extends: [State](State.md), [SwapsEvents](SwapsEvents.md), [FeesHelper](FeesHelper.md)**
 **↘ Derived Contracts: [LoanClosingsShared](LoanClosingsShared.md), [LoanMaintenance](LoanMaintenance.md), [LoanOpenings](LoanOpenings.md), [SwapsExternal](SwapsExternal.md)**
 
-**SwapsUser**
+## **SwapsUser** contract
 
 ## Functions
 
@@ -387,7 +387,6 @@ function _checkSwapSize(address tokenAddress, uint256 amount) internal view {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

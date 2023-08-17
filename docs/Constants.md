@@ -5,7 +5,7 @@ View Source: [contracts/feeds/PriceFeedsConstants.sol](../contracts/feeds/PriceF
 
 **↘ Derived Contracts: [IPriceFeedsExt](IPriceFeedsExt.md), [PriceFeeds](PriceFeeds.md)**
 
-**Constants**
+## **Constants** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -131,7 +131,6 @@ function _setBaseToken(address _baseTokenAddress) internal {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

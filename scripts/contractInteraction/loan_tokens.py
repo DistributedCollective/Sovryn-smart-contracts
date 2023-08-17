@@ -567,8 +567,12 @@ def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
 
 def triggerEmergencyStop(loanTokenAddress, turnOn):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
-    functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)"
+    functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,uint256,bytes)"
     #functionSignature = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
+    triggerFunctionEmergencyStop(loanToken.address, functionSignature, turnOn)
+
+def triggerFunctionEmergencyStop(loanTokenAddress, functionSignature, turnOn):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     data = loanToken.toggleFunctionPause.encode_input(functionSignature, turnOn)
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
@@ -582,9 +586,20 @@ def setPauser(loanTokenAddress, pauser):
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
 def checkPause(loanTokenAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=interface.ILoanTokenModules.abi, owner=conf.acct)
     funcId = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
     print(loanToken.checkPause(funcId))
+
+def checkLoanTokenFunctionsPause(loanTokenNames):
+    for loanTokenName in loanTokenNames:
+        loanToken = Contract.from_abi("loanToken", address=conf.contracts[loanTokenName], abi=interface.ILoanTokenModules.abi, owner=conf.acct)
+        print('loan token', loanTokenName, "@", conf.contracts[loanTokenName],":")
+        
+        funcId = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
+        print('                 borrow paused:     ', loanToken.checkPause(funcId))
+        
+        funcId = "marginTrade(bytes32,uint256,uint256,uint256,address,address,uint256,bytes)"
+        print('                 marginTrade paused:', loanToken.checkPause(funcId))
 
 def disableLoanParams(loanTokenAddress, collateralToken):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)

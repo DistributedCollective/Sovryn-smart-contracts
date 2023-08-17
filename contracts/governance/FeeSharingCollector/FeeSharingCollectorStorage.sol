@@ -15,7 +15,7 @@ import "../../interfaces/IWrbtcERC20.sol";
  * */
 contract FeeSharingCollectorStorage is Ownable {
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
-    uint256 constant FEE_WITHDRAWAL_INTERVAL = 86400;
+    uint256 constant FEE_WITHDRAWAL_INTERVAL = 172800;
 
     IProtocol public protocol;
     IStaking public staking;
@@ -68,6 +68,8 @@ contract FeeSharingCollectorStorage is Ownable {
      * @dev Just set the visibility to internal should be fine.
      */
     EnumerableAddressSet.AddressSet internal whitelistedConverterList;
+
+    mapping(bytes4 => bool) public isFunctionExecuted;
 
     /**
      * @dev Prevents a contract from calling itself, directly or indirectly.

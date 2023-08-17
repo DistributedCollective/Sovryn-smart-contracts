@@ -20,6 +20,34 @@ const sipArgsList = require("./sips/args/sipArgs");
 
 const logger = new Logs().showInConsole(true);
 
+task("sips:state", "Get proposal state")
+    .addParam("proposal", "Proposal Id", undefined, types.string)
+    .addParam(
+        "governor",
+        "Governor deployment name: 'GovernorOwner' or 'GovernorAdmin'",
+        undefined,
+        types.string
+    )
+    .setAction(async ({ proposal, governor }, hre) => {
+        const {
+            deployments: { get },
+        } = hre;
+        const governorContract = await ethers.getContract(governor);
+        const proposalStates = [
+            "Pending",
+            "Active",
+            "Canceled",
+            "Defeated",
+            "Succeeded",
+            "Queued",
+            "Expired",
+            "Executed",
+        ];
+        logger.info(
+            `SIP ${proposal} state: ${proposalStates[await governorContract.state(proposal)]}`
+        );
+    });
+
 task("sips:create", "Create SIP to Sovryn Governance")
     .addParam(
         "argsFunc",

@@ -5,7 +5,7 @@ View Source: [contracts/events/LoanClosingsEvents.sol](../contracts/events/LoanC
 **↗ Extends: [ModulesCommonEvents](ModulesCommonEvents.md)**
 **↘ Derived Contracts: [ISovryn](ISovryn.md), [LoanClosingsShared](LoanClosingsShared.md)**
 
-**LoanClosingsEvents**
+## **LoanClosingsEvents** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -39,7 +39,6 @@ event swapExcess(bool  shouldRefund, uint256  amount, uint256  amountInRbtc, uin
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

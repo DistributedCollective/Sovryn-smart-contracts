@@ -2,7 +2,7 @@
 
 View Source: [contracts/testhelpers/WRBTC.sol](../contracts/testhelpers/WRBTC.sol)
 
-**WRBTC**
+## **WRBTC** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -231,7 +231,6 @@ function transferFrom(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

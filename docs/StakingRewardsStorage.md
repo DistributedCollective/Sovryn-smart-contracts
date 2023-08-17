@@ -5,7 +5,7 @@ View Source: [contracts/governance/StakingRewards/StakingRewardsStorage.sol](../
 **↗ Extends: [Ownable](Ownable.md)**
 **↘ Derived Contracts: [StakingRewards](StakingRewards.md), [StakingRewardsProxy](StakingRewardsProxy.md)**
 
-**StakingRewardsStorage**
+## **StakingRewardsStorage** contract
 
 Just the storage part of staking rewards contract, no functions,
 only constant, variables and required structures (mappings).
@@ -58,7 +58,6 @@ bool private _initializing;
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
