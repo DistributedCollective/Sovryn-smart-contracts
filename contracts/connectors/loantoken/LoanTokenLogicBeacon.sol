@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../../mixins/EnumerableBytes32Set.sol";
 import "../../mixins/EnumerableBytes4Set.sol";
-import "../../openzeppelin/PausableOz.sol";
+import "../../utils/PausableRole.sol";
 import "../../openzeppelin/Address.sol";
 
 /**
@@ -15,7 +15,7 @@ import "../../openzeppelin/Address.sol";
  * Meanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause specific LoanToken
  */
 
-contract LoanTokenLogicBeacon is PausableOz {
+contract LoanTokenLogicBeacon is PausableRole {
     using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses
     using EnumerableBytes4Set for EnumerableBytes4Set.Bytes4Set; // enumerable map of bytes4 or addresses
 

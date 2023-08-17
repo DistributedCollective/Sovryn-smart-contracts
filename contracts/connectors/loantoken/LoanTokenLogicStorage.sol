@@ -42,4 +42,9 @@ contract LoanTokenLogicStorage is AdvancedToken {
             result := mload(add(source, 32))
         }
     }
+
+    modifier onlyPauserOrOwner() {
+        require(isOwner() || msg.sender == pauser, "unauthorized"); // SS02
+        _;
+    }
 }
