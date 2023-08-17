@@ -504,6 +504,10 @@ contract ISovryn is
         view
         returns (bool isTinyPosition, uint256 tinyPositionAmount);
 
+    function setAdmin(address newAdmin) external;
+
+    function getAdmin() external view returns (address);
+
     function setPauser(address newPauser) external;
 
     function getPauser() external view returns (address);
