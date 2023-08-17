@@ -121,8 +121,7 @@ def main():
     #setMaxTransferSatoshi(300000000)
     #bal = getBalance(conf.contracts['iRBTC'], conf.contracts['multisig'])
     #transferTokens(conf.contracts['iRBTC'], bal)
-    
-    
+
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
     #confirmMultipleTxsWithMS(1511, 1513)
 

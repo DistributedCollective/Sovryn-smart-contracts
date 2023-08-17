@@ -6,7 +6,9 @@ import copy
 from scripts.utils import *
 from scripts.contractInteraction.token import * 
 import scripts.contractInteraction.config as conf
-from scripts.contractInteraction.loan_tokens import getTokenPrice
+from scripts.contractInteraction.loan_tokens import getTokenPrice, setPauser
+from scripts.contractInteraction.staking_vesting import addStakingPauser
+from scripts.contractInteraction.fastbtc import addFastBTCPauser
 
 
 
@@ -112,11 +114,21 @@ def setNewContractGuardian(newGuardian):
     setPauser(conf.contracts['iDOC'], newGuardian)
     setPauser(conf.contracts['iBPro'], newGuardian)
 
-    #loan token logic beacon
+    #loan token logic beacon - using the loan token abi because the function is the same
+    setPauser(conf.contracts['LoanTokenLogicBeaconLM'], newGuardian)
+    setPauser(conf.contracts['LoanTokenLogicBeaconWrbtc'], newGuardian)
 
-    #protocol
+    #protocol - using the loan token abi because the function is the same
+    setPauser(conf.contracts['sovrynProtocol'], newGuardian)
 
-    #staking
+    #staking - needs to be done with a SIP. check sip_interaction
+    #addStakingPauser(newGuardian)
+    #removeStakingPauser(conf.contracts['multisig'])
+
+    #bidi fastbtc
+    addFastBTCPauser(newGuardian)
+    removeFastBTCPauser(conf.contracts['multisig'])
+
 
 def openTrove(_maxFeePercentage, _ZUSDAmount, _upperHint, _lowerHint, coll):
     abiFile =  open('./scripts/contractInteraction/ABIs/BorrowerOperations.json')

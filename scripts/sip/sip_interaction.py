@@ -23,7 +23,9 @@ def main():
 
     # Call the function you want here
 
-    createProposalSIP0065()
+    #todo: replace with new guardian address
+    newGuardian = contracts['multisig']
+    createProposalSIP00XX(newGuardian)
 
 
     balanceAfter = acct.balance()
@@ -565,3 +567,21 @@ def createProposalSIP0065():
     print(description)
     createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
+def createProposalSIP00XX(newGuardian):
+    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
+    stakingLogic = Contract.from_abi("StakingLogic5", address=contracts['StakingLogic5'], abi=interface.IStaking.abi, owner=acct)
+
+    # Action
+    targets = [contracts['Staking']]
+    values = [0, 0]
+    signatures = ["addPauser(address)", "removePauser(address)"]
+    data1 = stakingLogic.addPauser.encode_input(newGuardian)
+    data2 = stakingLogic.removePauser.encode_input(contracts['multisig'])
+    datas = ["0x" + data1[10:], "0x" + data2[10:]]
+    description = "SIP-0042: Staking Security Update, Details: https://github.com/DistributedCollective/SIPS/blob/7c1a44b/SIP-0042.md, sha256: 522e1e65c49ec028d81c3a1f94a47354c2f6287c2d90c6eec8f06dcc17a1ebcc"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
