@@ -35,7 +35,7 @@ def main():
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
     
     #print("fastBTC.balance()", loadBiDiFastBTC().balance()/1e18)
-    #withdrawRBTCFromFastBTCBiDi(2.5e18, conf.contracts['Watcher'])
+    #withdrawRBTCFromFastBTCBiDi(20e18, conf.contracts['multisig'])
     
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
     #bal = getBalance(conf.contracts['FastBTCBiDi'], conf.contracts['Watcher'])
@@ -46,14 +46,18 @@ def main():
 
     #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 300000e18)
     #sendTokensFromMultisig(conf.contracts['SOV'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 250000e18)
-    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
-    #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
     #sendFromMultisig('0xc0AAcbDB9Ce627A348B91CfDB67eC6b2FBC3dCbd', 0.1e18)
+    #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
+    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
     #confirmWithBFMS(28)
     #checkTxOnBF(28)
+
+    #pauseBiDiFastBTC()
+    #unpauseBiDiFastBTC()
+    #isBiDiFastBTCPaused()
 
     #setupTorqueLoanParams(conf.contracts['iBPro'], conf.contracts['BPro'], conf.contracts['DLLR'], Wei("50 ether"))
 
@@ -98,8 +102,8 @@ def main():
 
    # executeOnMultisig(1339)
     #executeOnMultisig(1343)
-    #executeOnMultisig(1352)
-    #checkTx(1463)
+    #confirmWithMS(1496)
+    #checkTx(1496)
    
     #addAmmPoolTokenToLM('(WR)BTC/DLLR')
 
@@ -120,7 +124,7 @@ def main():
     
     
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
-    #confirmMultipleTxsWithMS(1435, 1444)
+    #confirmMultipleTxsWithMS(1511, 1513)
 
     #mintAggregatedToken(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1e18)
 
@@ -141,7 +145,7 @@ def main():
     #print('FastBTC offramp balance:', bal/10**18)
     #print('Multisig balance:', getContractBTCBalance(conf.contracts['multisig'])/1e18)
 
-    #transferRBTCFromFastBTCOffRampToOnRamp(bal)
+    #transferRBTCFromFastBTCOffRampToOnRamp(20e18)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
     #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], 16658.600400155126 * 10**18)
@@ -189,6 +193,8 @@ def main():
     #readTokenOwnerFromFunds()
 
     #printLendingPoolsData()
+
+    #transferOwnershipFromMultisig(conf.contracts["FourYearVestingFactory"], '0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b')
 
 
 def governanceTransfer():

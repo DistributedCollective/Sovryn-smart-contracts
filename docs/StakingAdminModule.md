@@ -318,7 +318,7 @@ function migrateToNewStakingContract() external whenNotFrozen {
 
 > ### getFunctionsList
 
-⤾ overrides [IFunctionsList.getFunctionsList](IFunctionsList.md#getfunctionslist)
+undefined
 
 ```solidity
 function getFunctionsList() external pure

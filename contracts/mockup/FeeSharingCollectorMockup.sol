@@ -60,4 +60,29 @@ contract FeeSharingCollectorMockup is FeeSharingCollector {
     ) public view returns (uint256 amount, uint256 end) {
         (amount, end) = _getAccumulatedFees(_user, _token, 0, _maxCheckpoints);
     }
+
+    function invalidLoanPoolWRBTC() public view returns (address) {
+        return _getAndValidateLoanPoolWRBTC(address(0));
+    }
+
+    function endOfRangeWithZeroMaxCheckpoint(address _token) public view returns (uint256) {
+        return _getEndOfRange(0, _token, 0);
+    }
+
+    function getRBTCBalance(
+        address _token,
+        address _user,
+        uint32 _maxCheckpoints
+    ) public view returns (uint256 _tokenAmount, uint256 _endToken) {
+        return _getRBTCBalance(_token, _user, _maxCheckpoints);
+    }
+
+    function testWithdrawReentrancy(
+        address _token,
+        uint32 _maxCheckpoints,
+        address _receiver
+    ) public {
+        reentrancyLock = REENTRANCY_GUARD_LOCKED;
+        super.withdraw(_token, _maxCheckpoints, _receiver);
+    }
 }

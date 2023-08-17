@@ -15,6 +15,13 @@ const { expect } = require("chai");
 
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
+const StakingProxy = artifacts.require("StakingProxy");
+const FeeSharingCollector = artifacts.require("FeeSharingCollector");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
+const Vesting = artifacts.require("TeamVesting");
+const VestingLogic = artifacts.require("VestingLogicMockup");
+const TestToken = artifacts.require("TestToken");
+const mutexUtils = require("../reentrancy/utils");
 
 const {
     getSUSD,
@@ -28,6 +35,8 @@ const {
     getPriceFeeds,
     getSovryn,
     CONSTANTS,
+    getStakingModulesObject,
+    deployAndGetIStaking,
 } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
@@ -48,14 +57,20 @@ const initialize_test_transfer = async (SUSD, accounts, _loan_token) => {
 
 contract("LoanTokenFunctionality", (accounts) => {
     let owner;
-    let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC;
+    let sovryn, SUSD, WRBTC, RBTC, BZRX, SOVToken, loanToken, loanTokenWRBTC;
     let amount_sent, receiver, sender;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         SUSD = await getSUSD();
         RBTC = await getRBTC();
         WRBTC = await getWRBTC();
         BZRX = await getBZRX();
+
+        SOVToken = await TestToken.new("SOV", "SOV", 18, hunEth);
+
         const priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
         sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
@@ -111,6 +126,146 @@ contract("LoanTokenFunctionality", (accounts) => {
             // transfer the tokens to the sender
             await loanToken.transfer(sender, amount_sent);
             expect((await loanToken.balanceOf(sender)).eq(initial_balance)).to.be.true;
+        });
+
+        it("should transfer to tokenOwner if passed recipient is vesting contract that has tokenOwner() selector", async () => {
+            const vestingLogic = await VestingLogic.new();
+            // Creating the Staking Instance (Staking Modules Interface).
+            const stakingProxy = await StakingProxy.new(SOVToken.address);
+            const modulesObject = await getStakingModulesObject();
+            const staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+            const tokenOwner = accounts[3];
+            const cliff = new BN(24 * 60 * 60).mul(new BN(1092));
+
+            const feeSharingCollectorLogic = await FeeSharingCollector.new();
+            const feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
+                sovryn.address,
+                staking.address
+            );
+            await feeSharingCollectorProxyObj.setImplementation(feeSharingCollectorLogic.address);
+            const feeSharingCollector = await FeeSharingCollector.at(
+                feeSharingCollectorProxyObj.address
+            );
+
+            await loanToken.setStakingContractAddress(staking.address);
+            expect(await loanToken.getStakingContractAddress()).to.equal(staking.address);
+
+            let vestingInstance = await Vesting.new(
+                vestingLogic.address,
+                SOVToken.address,
+                staking.address,
+                tokenOwner,
+                cliff,
+                cliff,
+                feeSharingCollector.address
+            );
+
+            vestingInstance = await VestingLogic.at(vestingInstance.address);
+            // important, so it's recognized as vesting contract
+            await staking.addContractCodeHash(vestingInstance.address);
+
+            const previousTokenOwnerBalance = await loanToken.balanceOf(tokenOwner);
+            const previousVestingContractBalance = await loanToken.balanceOf(
+                vestingInstance.address
+            );
+
+            // transfer the tokens to the vesting contract address
+            await loanToken.transfer(vestingInstance.address, amount_sent);
+
+            const latestTokenOwnerBalance = await loanToken.balanceOf(tokenOwner);
+            const latestVestingContractBalance = await loanToken.balanceOf(
+                vestingInstance.address
+            );
+
+            /** Token owner of the contract should receive the amount */
+            expect(previousTokenOwnerBalance.add(amount_sent).toString()).to.equal(
+                latestTokenOwnerBalance.toString()
+            );
+
+            /** Vesting contract should not receive the amount */
+            expect(
+                previousVestingContractBalance.sub(latestVestingContractBalance).toString()
+            ).to.equal("0");
+        });
+
+        it("should transfer to the passed recipient if passed recipient is EOA / Contract that has no tokenOwner() function", async () => {
+            // Creating the Staking Instance (Staking Modules Interface).
+            const stakingProxy = await StakingProxy.new(SOVToken.address);
+            const modulesObject = await getStakingModulesObject();
+            const staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+
+            await loanToken.setStakingContractAddress(staking.address);
+            expect(await loanToken.getStakingContractAddress()).to.equal(staking.address);
+
+            // we register the contract that has no tokenOwner function
+            const dummyContractAddress = stakingProxy.address;
+            await staking.addContractCodeHash(dummyContractAddress);
+
+            const previousDummyContractBalance = await loanToken.balanceOf(dummyContractAddress);
+
+            // transfer the tokens to the contract that has no tokenOwner function
+            await loanToken.transfer(dummyContractAddress, amount_sent);
+            const latestDummyContractBalance = await loanToken.balanceOf(dummyContractAddress);
+
+            /** The dummy contract should receive the token */
+            expect(previousDummyContractBalance.add(amount_sent).toString()).to.equal(
+                latestDummyContractBalance.toString()
+            );
+        });
+
+        it("should transfer to the passed recipient if the passed recipient is not vesting contract", async () => {
+            const vestingLogic = await VestingLogic.new();
+            // Creating the Staking Instance (Staking Modules Interface).
+            const stakingProxy = await StakingProxy.new(SOVToken.address);
+            const modulesObject = await getStakingModulesObject();
+            const staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+            const tokenOwner = accounts[3];
+            const passedRecipient = accounts[2];
+            const cliff = new BN(24 * 60 * 60).mul(new BN(1092));
+
+            const feeSharingCollectorLogic = await FeeSharingCollector.new();
+            const feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
+                sovryn.address,
+                staking.address
+            );
+            await feeSharingCollectorProxyObj.setImplementation(feeSharingCollectorLogic.address);
+            const feeSharingCollector = await FeeSharingCollector.at(
+                feeSharingCollectorProxyObj.address
+            );
+
+            await loanToken.setStakingContractAddress(staking.address);
+            expect(await loanToken.getStakingContractAddress()).to.equal(staking.address);
+
+            let vestingInstance = await Vesting.new(
+                vestingLogic.address,
+                SOVToken.address,
+                staking.address,
+                tokenOwner,
+                cliff,
+                cliff,
+                feeSharingCollector.address
+            );
+
+            vestingInstance = await VestingLogic.at(vestingInstance.address);
+            // important, so it's recognized as vesting contract
+            await staking.addContractCodeHash(vestingInstance.address);
+
+            const previousTokenOwnerBalance = await loanToken.balanceOf(tokenOwner);
+            const previousPassedRecipientBalance = await loanToken.balanceOf(passedRecipient);
+            // transfer the tokens to the non-vesting contract address
+            await loanToken.transfer(passedRecipient, amount_sent);
+
+            const latestTokenOwnerBalance = await loanToken.balanceOf(tokenOwner);
+            const latestPassedRecipientBalance = await loanToken.balanceOf(passedRecipient);
+
+            expect(previousTokenOwnerBalance.add(latestTokenOwnerBalance).toString()).to.equal(
+                "0"
+            );
+
+            /** The passed recipient should receive the amount */
+            expect(previousPassedRecipientBalance.add(amount_sent).toString()).to.equal(
+                latestPassedRecipientBalance.toString()
+            );
         });
 
         it("Test transfer to from", async () => {
