@@ -46,6 +46,7 @@ const getLoanTokenModulesNames = () => {
         LoanTokenLogicLM: "LoanTokenLogicLM",
         LoanTokenLogicWrbtc: "LoanTokenLogicWrbtc",
         LoanTokenSettingsLowerAdmin: "LoanTokenSettingsLowerAdmin",
+        LoanTokenLogicTrade: "LoanTokenLogicTrade",
     };
 };
 

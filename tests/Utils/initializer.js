@@ -331,7 +331,7 @@ const getLoanTokenLogicWrbtc = async (isMockLoanToken = false) => {
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTrade.address);
 
     /** Deploy LoanTokenLogicWRBTC */
-    let loanTokenLogicLM;
+    let loanTokenLogicWrbtc;
     if (isMockLoanToken) {
         loanTokenLogicWrbtc = await MockLoanTokenLogic.new();
     } else {

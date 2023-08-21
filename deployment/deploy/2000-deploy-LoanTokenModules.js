@@ -19,6 +19,7 @@ const func = async function (hre) {
         LoanTokenLogicLM: "LoanTokenLogicLM",
         LoanTokenLogicWRBTC: "LoanTokenLogicWRBTC",
         LoanTokenSettingsLowerAdmin: "LoanTokenSettingsLowerAdmin",
+        LoanTokenLogicTrade: "LoanTokenLogicTrade",
         */
     };
     log(col.bgYellow("Deploying LoanTokenModules..."));

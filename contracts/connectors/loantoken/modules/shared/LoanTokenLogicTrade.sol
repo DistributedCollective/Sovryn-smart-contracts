@@ -668,6 +668,28 @@ contract LoanTokenLogicTrade is LoanTokenLogicStandard {
         require(collateralTokenPrice >= minEntryPrice, "entry price above the minimum");
     }
 
+    /**
+     * @notice Compute the next supply interest adjustment.
+     * @param assetBorrow The amount of loan tokens on debt.
+     * @param assetSupply The amount of loan tokens supplied.
+     * @return The next supply interest adjustment.
+     * */
+    function calculateSupplyInterestRate(uint256 assetBorrow, uint256 assetSupply)
+        public
+        view
+        returns (uint256)
+    {
+        if (assetBorrow != 0 && assetSupply >= assetBorrow) {
+            return
+                _avgBorrowInterestRate(assetBorrow)
+                    .mul(_utilizationRate(assetBorrow, assetSupply))
+                    .mul(
+                    SafeMath.sub(10**20, ProtocolLike(sovrynContractAddress).lendingFeePercent())
+                )
+                    .div(10**40);
+        }
+    }
+
     /* Internal functions */
 
     /**
@@ -873,28 +895,6 @@ contract LoanTokenLogicTrade is LoanTokenLogicStandard {
         if (assetBorrow != 0) {
             (uint256 interestOwedPerDay, ) = _getAllInterest();
             return interestOwedPerDay.mul(10**20).mul(365).div(assetBorrow);
-        }
-    }
-
-    /**
-     * @notice Compute the next supply interest adjustment.
-     * @param assetBorrow The amount of loan tokens on debt.
-     * @param assetSupply The amount of loan tokens supplied.
-     * @return The next supply interest adjustment.
-     * */
-    function calculateSupplyInterestRate(uint256 assetBorrow, uint256 assetSupply)
-        public
-        view
-        returns (uint256)
-    {
-        if (assetBorrow != 0 && assetSupply >= assetBorrow) {
-            return
-                _avgBorrowInterestRate(assetBorrow)
-                    .mul(_utilizationRate(assetBorrow, assetSupply))
-                    .mul(
-                    SafeMath.sub(10**20, ProtocolLike(sovrynContractAddress).lendingFeePercent())
-                )
-                    .div(10**40);
         }
     }
 

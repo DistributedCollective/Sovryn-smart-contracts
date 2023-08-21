@@ -145,9 +145,7 @@ contract("CallOptionalReturn", (accounts) => {
 
     describe("Token should be a contract address", () => {
         it("Check that it reverts when internal function _callOptionalReturn is called", async () => {
-            console.log("sd");
             await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
-            console.log("sd2");
 
             // above functionn also opens a trading position, so I need to add some more funds to be able to withdraw everything
             const balanceOf0 = await loanToken.assetBalanceOf(lender);

@@ -167,7 +167,7 @@ const lend_to_the_pool = async (loanToken, lender, underlyingToken, collateralTo
         initial_balance,
         deposit_amount
     );
-    console.log("ini");
+
     await loanToken.mint(lender, deposit_amount);
 
     expect(await underlyingToken.balanceOf(lender)).to.be.a.bignumber.equal(
