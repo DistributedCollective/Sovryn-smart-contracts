@@ -11,6 +11,7 @@ const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenLogicLMMockup = artifacts.require("LoanTokenLogicLMMockup");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
+const LoanTokenLogicTrade = artifacts.require("LoanTokenLogicTrade");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const Affiliates = artifacts.require("Affiliates");
@@ -92,8 +93,12 @@ contract("CallOptionalReturn", (accounts) => {
         /** Deploy  LoanTokenSettingsLowerAdmin*/
         const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
+        /** Deploy  LoanTokenLogicTrade*/
+        const loanTokenLogicTrade = await LoanTokenLogicTrade.new();
+
         /** Register Loan Token Modules to the Beacon */
         await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
+        await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTrade.address);
 
         let loanTokenLogicLM = await LoanTokenLogicLMMockup.new();
 
@@ -140,7 +145,9 @@ contract("CallOptionalReturn", (accounts) => {
 
     describe("Token should be a contract address", () => {
         it("Check that it reverts when internal function _callOptionalReturn is called", async () => {
+            console.log("sd");
             await lend_to_the_pool(loanToken, lender, underlyingToken, testWrbtc, sovryn);
+            console.log("sd2");
 
             // above functionn also opens a trading position, so I need to add some more funds to be able to withdraw everything
             const balanceOf0 = await loanToken.assetBalanceOf(lender);

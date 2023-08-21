@@ -26,47 +26,15 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](32);
+        bytes4[] memory res = new bytes4[](4);
 
-        // Loan Token Logic Standard
+        // Loan Token Logic Standard -- Needs to be here because there is overloading function in the Loan token LM for these.
         res[0] = this.mint.selector;
         res[1] = this.burn.selector;
-        res[2] = this.borrow.selector;
-        res[3] = this.marginTrade.selector;
-        res[4] = this.marginTradeAffiliate.selector;
-        res[5] = this.transfer.selector;
-        res[6] = this.transferFrom.selector;
-        res[7] = this.profitOf.selector;
-        res[8] = this.tokenPrice.selector;
-        res[9] = this.checkpointPrice.selector;
-        res[10] = this.marketLiquidity.selector;
-        res[11] = this.avgBorrowInterestRate.selector;
-        res[12] = this.borrowInterestRate.selector;
-        res[13] = this.nextBorrowInterestRate.selector;
-        res[14] = this.supplyInterestRate.selector;
-        res[15] = this.nextSupplyInterestRate.selector;
-        res[16] = this.totalSupplyInterestRate.selector;
-        res[17] = this.totalAssetBorrow.selector;
-        res[18] = this.totalAssetSupply.selector;
-        res[19] = this.getMaxEscrowAmount.selector;
-        res[20] = this.assetBalanceOf.selector;
-        res[21] = this.getEstimatedMarginDetails.selector;
-        res[22] = this.getDepositAmountForBorrow.selector;
-        res[23] = this.getBorrowAmountForDeposit.selector;
-        res[24] = this.checkPriceDivergence.selector;
-        res[25] = this.calculateSupplyInterestRate.selector;
 
         // Loan Token WRBTC
-        res[26] = this.mintWithBTC.selector;
-        res[27] = this.burnToBTC.selector;
-
-        // Advanced Token
-        res[28] = this.approve.selector;
-
-        // Advanced Token Storage
-        res[29] = this.totalSupply.selector;
-        res[30] = this.balanceOf.selector;
-        res[31] = this.allowance.selector;
+        res[2] = this.mintWithBTC.selector;
+        res[3] = this.burnToBTC.selector;
 
         return (res, stringToBytes32("LoanTokenLogicWrbtc"));
     }
