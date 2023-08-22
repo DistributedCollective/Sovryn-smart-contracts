@@ -43,6 +43,7 @@ const {
 const LoanToken = artifacts.require("LoanToken");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
+const mutexUtils = require("../reentrancy/utils");
 
 const {
     verify_start_conditions,
@@ -59,6 +60,9 @@ contract("LoanTokenLending", (accounts) => {
     let baseRate;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();
@@ -182,6 +186,7 @@ contract("LoanTokenLending", (accounts) => {
                 initial_balance,
                 deposit_amount
             );
+
             await loanToken.mintWithBTC(lender, false, { value: deposit_amount });
 
             initial_balance = new BN(wei("5", "ether"));

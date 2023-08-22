@@ -25,7 +25,8 @@ const func = async function (hre) {
     const loanTokenLogicLMDeployment = await get("LoanTokenLogicLM");
     const loanTokenLogicWRBTCDeployment = await get("LoanTokenLogicWrbtc");
     const loanTokenSettingsLowerAdminDeployment = await get("LoanTokenSettingsLowerAdmin");
-    const loanTokenLogicTradeDeployment = await get("LoanTokenLogicTrade");
+    const loanTokenLogicTradeLMDeployment = await get("LoanTokenLogicTradeLM");
+    const loanTokenLogicTradeWRBTCDeployment = await get("LoanTokenLogicTradeWrbtc");
 
     const loanTokenLogicBeaconLMContract = await ethers.getContract("LoanTokenLogicBeaconLM");
     const loanTokenLogicBeaconWRBTCContract = await ethers.getContract(
@@ -81,7 +82,51 @@ const func = async function (hre) {
             );
         }
 
-        /** 2. Registering Loan Protocol Settings Module to LoanTokenLogicBeaconLM */
+        /** 2. Registering Loan Token Logic Trade LM Module to LoanTokenLogicBeaconLM */
+        activeModuleIndex = await loanTokenLogicBeaconLMContract.activeModuleIndex(
+            ethers.utils.formatBytes32String(modulesList.LoanTokenLogicTradeLM)
+        );
+        moduleImplAddress = await loanTokenLogicBeaconLMContract.moduleUpgradeLog(
+            ethers.utils.formatBytes32String(modulesList.LoanTokenLogicTradeLM),
+            activeModuleIndex
+        );
+        if (
+            moduleImplAddress["implementation"].toLowerCase() !==
+            loanTokenLogicTradeLMDeployment.address.toLowerCase()
+        ) {
+            log(
+                col.bgYellow(
+                    "Registering Loan Token Logic Trade Module to LoanTokenLogicBeaconLM..."
+                )
+            );
+
+            data = loanTokenLogicBeaconLMInterface.encodeFunctionData("registerLoanTokenModule", [
+                loanTokenLogicTradeLMDeployment.address,
+            ]);
+
+            log(
+                "Generating multisig transaction to replace LoanTokenLogicTradeLM in beacon LM..."
+            );
+            await sendWithMultisig(
+                multisigDeployment.address,
+                loanTokenLogicBeaconLMDeployment.address,
+                data,
+                deployer
+            );
+            log(
+                col.bgBlue(
+                    `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
+                )
+            );
+        } else {
+            log(
+                col.bgYellow(
+                    "Skipping LoanTokenLogicTradeLM registration in LoanTokenLogicBeaconLM..."
+                )
+            );
+        }
+
+        /** 3. Registering Loan Protocol Settings Module to LoanTokenLogicBeaconLM */
         activeModuleIndex = await loanTokenLogicBeaconLMContract.activeModuleIndex(
             ethers.utils.formatBytes32String(modulesList.LoanTokenSettingsLowerAdmin)
         );
@@ -121,48 +166,6 @@ const func = async function (hre) {
             log(
                 col.bgYellow(
                     "Skipping LoanTokenSettingsLowerAdmin registration in LoanTokenLogicBeaconLM..."
-                )
-            );
-        }
-
-        /** 3. Registering Loan Token Logic Trade Module to LoanTokenLogicBeaconLM */
-        activeModuleIndex = await loanTokenLogicBeaconLMContract.activeModuleIndex(
-            ethers.utils.formatBytes32String(modulesList.LoanTokenLogicTrade)
-        );
-        moduleImplAddress = await loanTokenLogicBeaconLMContract.moduleUpgradeLog(
-            ethers.utils.formatBytes32String(modulesList.LoanTokenLogicTrade),
-            activeModuleIndex
-        );
-        if (
-            moduleImplAddress["implementation"].toLowerCase() !==
-            loanTokenLogicTradeDeployment.address.toLowerCase()
-        ) {
-            log(
-                col.bgYellow(
-                    "Registering Loan Token Logic Trade Module to LoanTokenLogicBeaconLM..."
-                )
-            );
-
-            data = loanTokenLogicBeaconLMInterface.encodeFunctionData("registerLoanTokenModule", [
-                loanTokenLogicTradeDeployment.address,
-            ]);
-
-            log("Generating multisig transaction to replace LoanTokenLogicTrade in beacon LM...");
-            await sendWithMultisig(
-                multisigDeployment.address,
-                loanTokenLogicBeaconLMDeployment.address,
-                data,
-                deployer
-            );
-            log(
-                col.bgBlue(
-                    `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
-                )
-            );
-        } else {
-            log(
-                col.bgYellow(
-                    "Skipping LoanTokenLogicTrade registration in LoanTokenLogicBeaconLM..."
                 )
             );
         }
@@ -208,7 +211,51 @@ const func = async function (hre) {
             );
         }
 
-        /** 5. Registering Loan Protocol Settings Module to LoanTokenLogicBeaconWrbtc */
+        /** 5. Registering Loan Token Logic Trade Wrbtc Module to LoanTokenLogicBeaconWrbtc */
+        activeModuleIndex = await loanTokenLogicBeaconWRBTCContract.activeModuleIndex(
+            ethers.utils.formatBytes32String(modulesList.LoanTokenLogicTradeWrbtc)
+        );
+        moduleImplAddress = await loanTokenLogicBeaconWRBTCContract.moduleUpgradeLog(
+            ethers.utils.formatBytes32String(modulesList.LoanTokenLogicTradeWrbtc),
+            activeModuleIndex
+        );
+        if (
+            moduleImplAddress["implementation"].toLowerCase() !==
+            loanTokenLogicTradeWRBTCDeployment.address.toLowerCase()
+        ) {
+            log(
+                col.bgYellow(
+                    "Registering Loan Token Logic Trade Wrbtc Module to LoanTokenLogicBeaconWrbtc..."
+                )
+            );
+
+            data = loanTokenLogicBeaconLMInterface.encodeFunctionData("registerLoanTokenModule", [
+                loanTokenLogicTradeWRBTCDeployment.address,
+            ]);
+
+            log(
+                "Generating multisig transaction to replace LoanTokenLogicTradeWrbtc in beacon WRBTC..."
+            );
+            await sendWithMultisig(
+                multisigDeployment.address,
+                loanTokenLogicBeaconWRBTCDeployment.address,
+                data,
+                deployer
+            );
+            log(
+                col.bgBlue(
+                    `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
+                )
+            );
+        } else {
+            log(
+                col.bgYellow(
+                    "Skipping LoanTokenLogicTradeWrbtc registration in LoanTokenLogicBeaconWrbtc..."
+                )
+            );
+        }
+
+        /** 6. Registering Loan Protocol Settings Module to LoanTokenLogicBeaconWrbtc */
         activeModuleIndex = await loanTokenLogicBeaconWRBTCContract.activeModuleIndex(
             ethers.utils.formatBytes32String(modulesList.LoanTokenSettingsLowerAdmin)
         );
@@ -251,50 +298,6 @@ const func = async function (hre) {
                 )
             );
         }
-
-        /** 6. Registering Loan Token Logic Trade Module to LoanTokenLogicBeaconWrbtc */
-        activeModuleIndex = await loanTokenLogicBeaconWRBTCContract.activeModuleIndex(
-            ethers.utils.formatBytes32String(modulesList.LoanTokenLogicTrade)
-        );
-        moduleImplAddress = await loanTokenLogicBeaconWRBTCContract.moduleUpgradeLog(
-            ethers.utils.formatBytes32String(modulesList.LoanTokenLogicTrade),
-            activeModuleIndex
-        );
-        if (
-            moduleImplAddress["implementation"].toLowerCase() !==
-            loanTokenLogicTradeDeployment.address.toLowerCase()
-        ) {
-            log(
-                col.bgYellow(
-                    "Registering Loan Token Logic Trade Module to LoanTokenLogicBeaconWrbtc..."
-                )
-            );
-
-            data = loanTokenLogicBeaconLMInterface.encodeFunctionData("registerLoanTokenModule", [
-                loanTokenLogicTradeDeployment.address,
-            ]);
-
-            log(
-                "Generating multisig transaction to replace LoanTokenLogicTrade in beacon WRBTC..."
-            );
-            await sendWithMultisig(
-                multisigDeployment.address,
-                loanTokenLogicBeaconWRBTCDeployment.address,
-                data,
-                deployer
-            );
-            log(
-                col.bgBlue(
-                    `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
-                )
-            );
-        } else {
-            log(
-                col.bgYellow(
-                    "Skipping LoanTokenLogicTrade registration in LoanTokenLogicBeaconWrbtc..."
-                )
-            );
-        }
     } else {
         // hh ganache
         await loanTokenLogicBeaconLMContract.registerLoanTokenModule(
@@ -304,7 +307,7 @@ const func = async function (hre) {
             loanTokenSettingsLowerAdminDeployment.address
         );
         await loanTokenLogicBeaconLMContract.registerLoanTokenModule(
-            loanTokenLogicTradeDeployment.address
+            loanTokenLogicTradeLMDeployment.address
         );
         await loanTokenLogicBeaconWRBTCContract.registerLoanTokenModule(
             loanTokenLogicWRBTCDeployment.address
@@ -313,7 +316,7 @@ const func = async function (hre) {
             loanTokenSettingsLowerAdminDeployment.address
         );
         await loanTokenLogicBeaconWRBTCContract.registerLoanTokenModule(
-            loanTokenLogicTradeDeployment.address
+            loanTokenLogicTradeWRBTCDeployment.address
         );
     }
 };

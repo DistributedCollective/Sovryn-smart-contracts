@@ -11,7 +11,7 @@ const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenLogicLMMockup = artifacts.require("LoanTokenLogicLMMockup");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
-const LoanTokenLogicTrade = artifacts.require("LoanTokenLogicTrade");
+const LoanTokenLogicTradeLM = artifacts.require("LoanTokenLogicTradeLM");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const Affiliates = artifacts.require("Affiliates");
@@ -26,6 +26,7 @@ const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
+const mutexUtils = require("../reentrancy/utils");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 const wei = web3.utils.toWei;
@@ -43,6 +44,9 @@ contract("CallOptionalReturn", (accounts) => {
     });
 
     beforeEach(async () => {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         //Token
         underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
         testWrbtc = await TestWrbtc.new();
@@ -93,12 +97,12 @@ contract("CallOptionalReturn", (accounts) => {
         /** Deploy  LoanTokenSettingsLowerAdmin*/
         const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
-        /** Deploy  LoanTokenLogicTrade*/
-        const loanTokenLogicTrade = await LoanTokenLogicTrade.new();
+        /** Deploy  LoanTokenLogicTradeLM*/
+        const loanTokenLogicTradeLM = await LoanTokenLogicTradeLM.new();
 
         /** Register Loan Token Modules to the Beacon */
         await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
-        await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTrade.address);
+        await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTradeLM.address);
 
         let loanTokenLogicLM = await LoanTokenLogicLMMockup.new();
 

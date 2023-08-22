@@ -4,9 +4,9 @@ const { BN, expectRevert } = require("@openzeppelin/test-helpers");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
-const LoanTokenLogicTrade = artifacts.require("LoanTokenLogicTrade");
-const LoanTokenLogicTradeV1Mockup = artifacts.require("LoanTokenLogicTradeV1Mockup");
-const LoanTokenLogicTradeV2Mockup = artifacts.require("LoanTokenLogicTradeV2Mockup");
+const LoanTokenLogicTradeLM = artifacts.require("LoanTokenLogicTradeLM");
+const LoanTokenLogicTradeLMV1Mockup = artifacts.require("LoanTokenLogicTradeLMV1Mockup");
+const LoanTokenLogicTradeLMV2Mockup = artifacts.require("LoanTokenLogicTradeLMV2Mockup");
 
 const {
     getSUSD,
@@ -152,12 +152,12 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 
             // Validate the current active module index
             loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
-            loanTokenLogicTrade = await LoanTokenLogicTrade.new();
+            loanTokenLogicTradeLM = await LoanTokenLogicTradeLM.new();
             loanTokenLogicLM = await LoanTokenLogicLM.new();
 
             const listSigsLowerAdmin =
                 await loanTokenSettingsLowerAdmin.getListFunctionSignatures();
-            const listSigsTrade = await loanTokenLogicTrade.getListFunctionSignatures();
+            const listSigsTrade = await loanTokenLogicTradeLM.getListFunctionSignatures();
             const listSigsLM = await loanTokenLogicLM.getListFunctionSignatures();
             const moduleNameLowerSettings = listSigsLowerAdmin[1];
             const moduleNameTrade = listSigsTrade[1];
@@ -166,7 +166,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             const prevLoanTokenLogicLowerAdminAddress = await loanTokenLogicBeacon.getTarget(
                 web3.eth.abi.encodeFunctionSignature("setAdmin(address)")
             );
-            const prevLoanTokenLogicTradeAddress = await loanTokenLogicBeacon.getTarget(
+            const prevLoanTokenLogicTradeLMAddress = await loanTokenLogicBeacon.getTarget(
                 web3.eth.abi.encodeFunctionSignature("borrowInterestRate()")
             );
             const prevLoanTokenLogicLMAddress = await loanTokenLogicBeacon.getTarget(
@@ -230,7 +230,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             const log1LM = await loanTokenLogicBeacon.moduleUpgradeLog(moduleNameLM, 0);
 
             expect(log1LowerAdmin[0]).to.equal(prevLoanTokenLogicLowerAdminAddress);
-            expect(log1Trade[0]).to.equal(prevLoanTokenLogicTradeAddress);
+            expect(log1Trade[0]).to.equal(prevLoanTokenLogicTradeLMAddress);
             expect(log1LM[0]).to.equal(prevLoanTokenLogicLMAddress);
 
             await expectRevert(
@@ -251,8 +251,8 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             expect(await loanTokenLogicBeacon.getTarget(sig1)).to.equal(CONSTANTS.ZERO_ADDRESS);
 
             /** Register New Loan Token Logic Trade to the Beacon */
-            loanTokenLogicTrade = await LoanTokenLogicTradeV1Mockup.new();
-            await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTrade.address);
+            loanTokenLogicTradeLM = await LoanTokenLogicTradeLMV1Mockup.new();
+            await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTradeLM.address);
 
             // The totalSupply function signature should not be exist in this v1 mockup
             expect(
@@ -270,13 +270,13 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             ).to.equal(new BN(2).toString());
 
             const log2Trade = await loanTokenLogicBeacon.moduleUpgradeLog(moduleNameTrade, 1);
-            expect(log2Trade[0]).to.equal(loanTokenLogicTrade.address);
+            expect(log2Trade[0]).to.equal(loanTokenLogicTradeLM.address);
 
             expect(
                 await loanTokenLogicBeacon.getTarget(
                     web3.eth.abi.encodeFunctionSignature("borrowInterestRate()")
                 )
-            ).to.equal(loanTokenLogicTrade.address);
+            ).to.equal(loanTokenLogicTradeLM.address);
         });
 
         it("Rollback the module address", async () => {
@@ -286,12 +286,12 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 
             // Validate the current active module index
             loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
-            loanTokenLogicTrade = await LoanTokenLogicTrade.new();
+            loanTokenLogicTradeLM = await LoanTokenLogicTradeLM.new();
             loanTokenLogicLM = await LoanTokenLogicLM.new();
 
             const listSigsLowerAdmin =
                 await loanTokenSettingsLowerAdmin.getListFunctionSignatures();
-            const listSigsTrade = await loanTokenLogicTrade.getListFunctionSignatures();
+            const listSigsTrade = await loanTokenLogicTradeLM.getListFunctionSignatures();
             const listSigsLM = await loanTokenLogicLM.getListFunctionSignatures();
             const moduleNameLowerSettings = listSigsLowerAdmin[1];
             const moduleNameTrade = listSigsTrade[1];
@@ -300,7 +300,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             const prevLoanTokenLogicLowerAdminAddress = await loanTokenLogicBeacon.getTarget(
                 web3.eth.abi.encodeFunctionSignature("setAdmin(address)")
             );
-            const prevLoanTokenLogicTradeAddress = await loanTokenLogicBeacon.getTarget(
+            const prevLoanTokenLogicTradeLMAddress = await loanTokenLogicBeacon.getTarget(
                 web3.eth.abi.encodeFunctionSignature("borrowInterestRate()")
             );
             const prevLoanTokenLogicLMAddress = await loanTokenLogicBeacon.getTarget(
@@ -337,7 +337,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             const log1LM = await loanTokenLogicBeacon.moduleUpgradeLog(moduleNameLM, 0);
 
             expect(log1LowerAdmin[0]).to.equal(prevLoanTokenLogicLowerAdminAddress);
-            expect(log1Trade[0]).to.equal(prevLoanTokenLogicTradeAddress);
+            expect(log1Trade[0]).to.equal(prevLoanTokenLogicTradeLMAddress);
             expect(log1LM[0]).to.equal(prevLoanTokenLogicLMAddress);
 
             await expectRevert(
@@ -353,7 +353,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
                 "invalid opcode"
             );
 
-            // There should not be testNewFunction signature registered in the real loanTokenLogicTrade
+            // There should not be testNewFunction signature registered in the real loanTokenLogicTradeLM
             expect(
                 await loanTokenLogicBeacon.getTarget(
                     web3.eth.abi.encodeFunctionSignature("testNewFunction()")
@@ -361,15 +361,15 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             ).to.equal(CONSTANTS.ZERO_ADDRESS);
 
             /** Register New Loan Token Logic Trade to the Beacon */
-            loanTokenLogicTrade = await LoanTokenLogicTradeV2Mockup.new();
-            await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTrade.address);
+            loanTokenLogicTradeLM = await LoanTokenLogicTradeLMV2Mockup.new();
+            await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTradeLM.address);
 
             // There should be testNewFunction signature registered in v2Mockup
             expect(
                 await loanTokenLogicBeacon.getTarget(
                     web3.eth.abi.encodeFunctionSignature("testNewFunction()")
                 )
-            ).to.equal(loanTokenLogicTrade.address);
+            ).to.equal(loanTokenLogicTradeLM.address);
 
             expect(
                 (await loanTokenLogicBeacon.activeModuleIndex(moduleNameTrade)).toString()
@@ -380,12 +380,12 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             ).to.equal(new BN(2).toString());
 
             const log2Trade = await loanTokenLogicBeacon.moduleUpgradeLog(moduleNameTrade, 1);
-            expect(log2Trade[0]).to.equal(loanTokenLogicTrade.address);
+            expect(log2Trade[0]).to.equal(loanTokenLogicTradeLM.address);
             expect(
                 await loanTokenLogicBeacon.getTarget(
                     web3.eth.abi.encodeFunctionSignature("borrowInterestRate()")
                 )
-            ).to.equal(loanTokenLogicTrade.address);
+            ).to.equal(loanTokenLogicTradeLM.address);
 
             /** Rollback */
             await loanTokenLogicBeacon.rollback(moduleNameTrade, 0);

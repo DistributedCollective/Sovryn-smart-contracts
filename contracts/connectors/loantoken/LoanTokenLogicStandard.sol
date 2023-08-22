@@ -251,6 +251,88 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
     /** INTERNAL FUNCTION */
 
     /**
+     * @notice .
+     *
+     * @param collateralTokenAddress The address of the token to be used as
+     *   collateral. Cannot be the loan token address.
+     * @param sentAddresses The addresses to send tokens: lender, borrower,
+     *   receiver and manager.
+     * @param sentAmounts The amounts to send to each address.
+     * @param withdrawalAmount The amount of tokens to withdraw.
+     *
+     * @return msgValue The amount of rBTC sent minus the collateral on tokens.
+     * */
+    function _verifyTransfers(
+        address collateralTokenAddress,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
+        uint256 withdrawalAmount
+    ) internal returns (uint256 msgValue) {
+        address _wrbtcToken = wrbtcTokenAddress;
+        address _loanTokenAddress = loanTokenAddress;
+        uint256 newPrincipal = sentAmounts.newPrincipal;
+        uint256 loanTokenSent = sentAmounts.loanTokenSent;
+        uint256 collateralTokenSent = sentAmounts.collateralTokenSent;
+
+        require(_loanTokenAddress != collateralTokenAddress, "26");
+
+        msgValue = msg.value;
+
+        if (withdrawalAmount != 0) {
+            /// withdrawOnOpen == true
+            _safeTransfer(_loanTokenAddress, sentAddresses.receiver, withdrawalAmount, "");
+            if (newPrincipal > withdrawalAmount) {
+                _safeTransfer(
+                    _loanTokenAddress,
+                    sovrynContractAddress,
+                    newPrincipal - withdrawalAmount,
+                    ""
+                );
+            }
+        } else {
+            _safeTransfer(_loanTokenAddress, sovrynContractAddress, newPrincipal, "27");
+        }
+        /**
+         * This is a critical piece of code!
+         * rBTC are supposed to be held by the contract itself, while other tokens are being transfered from the sender directly.
+         * */
+        if (collateralTokenSent != 0) {
+            if (
+                collateralTokenAddress == _wrbtcToken &&
+                msgValue != 0 &&
+                msgValue >= collateralTokenSent
+            ) {
+                IWrbtc(_wrbtcToken).deposit.value(collateralTokenSent)();
+                _safeTransfer(
+                    collateralTokenAddress,
+                    sovrynContractAddress,
+                    collateralTokenSent,
+                    "28-a"
+                );
+                msgValue -= collateralTokenSent;
+            } else {
+                _safeTransferFrom(
+                    collateralTokenAddress,
+                    msg.sender,
+                    sovrynContractAddress,
+                    collateralTokenSent,
+                    "28-b"
+                );
+            }
+        }
+
+        if (loanTokenSent != 0) {
+            _safeTransferFrom(
+                _loanTokenAddress,
+                msg.sender,
+                sovrynContractAddress,
+                loanTokenSent,
+                "29"
+            );
+        }
+    }
+
+    /**
      * @notice Withdraw loan token interests from protocol.
      * This function only operates once per block.
      * It asks protocol to withdraw accrued interests for the loan token.
@@ -411,88 +493,6 @@ contract LoanTokenLogicStandard is LoanTokenLogicStorage {
         //this function does not only update the checkpoints but also the current profit of the user
         //all for external use only
         _updateCheckpoints(msg.sender, oldBalance, newBalance, currentPrice);
-    }
-
-    /**
-     * @notice .
-     *
-     * @param collateralTokenAddress The address of the token to be used as
-     *   collateral. Cannot be the loan token address.
-     * @param sentAddresses The addresses to send tokens: lender, borrower,
-     *   receiver and manager.
-     * @param sentAmounts The amounts to send to each address.
-     * @param withdrawalAmount The amount of tokens to withdraw.
-     *
-     * @return msgValue The amount of rBTC sent minus the collateral on tokens.
-     * */
-    function _verifyTransfers(
-        address collateralTokenAddress,
-        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
-        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
-        uint256 withdrawalAmount
-    ) internal returns (uint256 msgValue) {
-        address _wrbtcToken = wrbtcTokenAddress;
-        address _loanTokenAddress = loanTokenAddress;
-        uint256 newPrincipal = sentAmounts.newPrincipal;
-        uint256 loanTokenSent = sentAmounts.loanTokenSent;
-        uint256 collateralTokenSent = sentAmounts.collateralTokenSent;
-
-        require(_loanTokenAddress != collateralTokenAddress, "26");
-
-        msgValue = msg.value;
-
-        if (withdrawalAmount != 0) {
-            /// withdrawOnOpen == true
-            _safeTransfer(_loanTokenAddress, sentAddresses.receiver, withdrawalAmount, "");
-            if (newPrincipal > withdrawalAmount) {
-                _safeTransfer(
-                    _loanTokenAddress,
-                    sovrynContractAddress,
-                    newPrincipal - withdrawalAmount,
-                    ""
-                );
-            }
-        } else {
-            _safeTransfer(_loanTokenAddress, sovrynContractAddress, newPrincipal, "27");
-        }
-        /**
-         * This is a critical piece of code!
-         * rBTC are supposed to be held by the contract itself, while other tokens are being transfered from the sender directly.
-         * */
-        if (collateralTokenSent != 0) {
-            if (
-                collateralTokenAddress == _wrbtcToken &&
-                msgValue != 0 &&
-                msgValue >= collateralTokenSent
-            ) {
-                IWrbtc(_wrbtcToken).deposit.value(collateralTokenSent)();
-                _safeTransfer(
-                    collateralTokenAddress,
-                    sovrynContractAddress,
-                    collateralTokenSent,
-                    "28-a"
-                );
-                msgValue -= collateralTokenSent;
-            } else {
-                _safeTransferFrom(
-                    collateralTokenAddress,
-                    msg.sender,
-                    sovrynContractAddress,
-                    collateralTokenSent,
-                    "28-b"
-                );
-            }
-        }
-
-        if (loanTokenSent != 0) {
-            _safeTransferFrom(
-                _loanTokenAddress,
-                msg.sender,
-                sovrynContractAddress,
-                loanTokenSent,
-                "29"
-            );
-        }
     }
 
     /**

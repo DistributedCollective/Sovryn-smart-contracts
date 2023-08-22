@@ -1,9 +1,9 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../connectors/loantoken/modules/shared/LoanTokenLogicTrade.sol";
+import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogicTradeLM.sol";
 
-contract LoanTokenLogicTradeV1Mockup is LoanTokenLogicTrade {
+contract LoanTokenLogicTradeLMV1Mockup is LoanTokenLogicTrade {
     function getListFunctionSignatures()
         external
         pure
@@ -49,7 +49,7 @@ contract LoanTokenLogicTradeV1Mockup is LoanTokenLogicTrade {
     }
 }
 
-contract LoanTokenLogicTradeV2Mockup is LoanTokenLogicTrade {
+contract LoanTokenLogicTradeLMV2Mockup is LoanTokenLogicTrade {
     function testNewFunction() external pure returns (bool) {
         return true;
     }

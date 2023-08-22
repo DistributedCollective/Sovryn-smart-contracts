@@ -17,9 +17,10 @@ const func = async function (hre) {
     const dontDeployModules = {
         /*
         LoanTokenLogicLM: "LoanTokenLogicLM",
-        LoanTokenLogicWRBTC: "LoanTokenLogicWRBTC",
+        LoanTokenLogicWrbtc: "LoanTokenLogicWrbtc",
         LoanTokenSettingsLowerAdmin: "LoanTokenSettingsLowerAdmin",
-        LoanTokenLogicTrade: "LoanTokenLogicTrade",
+        LoanTokenLogicTradeLM: "LoanTokenLogicTradeLM",
+        LoanTokenLogicTradeWrbtc: "LoanTokenLogicTradeWrbtc",
         */
     };
     log(col.bgYellow("Deploying LoanTokenModules..."));
