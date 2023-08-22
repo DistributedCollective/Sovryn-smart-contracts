@@ -69,6 +69,6 @@ contract LoanTokenLogicTradeLM is LoanTokenLogicTrade {
         res[26] = this.balanceOf.selector;
         res[27] = this.allowance.selector;
 
-        return (res, stringToBytes32("LoanTokenLogicTrade"));
+        return (res, stringToBytes32("LoanTokenLogicTradeLM"));
     }
 }

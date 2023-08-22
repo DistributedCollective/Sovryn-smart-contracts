@@ -45,7 +45,7 @@ contract LoanTokenLogicTradeLMV1Mockup is LoanTokenLogicTrade {
         res[25] = this.balanceOf.selector;
         res[26] = this.allowance.selector;
 
-        return (res, stringToBytes32("LoanTokenLogicTrade"));
+        return (res, stringToBytes32("LoanTokenLogicTradeLM"));
     }
 }
 
@@ -98,6 +98,6 @@ contract LoanTokenLogicTradeLMV2Mockup is LoanTokenLogicTrade {
         // Mockup
         res[28] = this.testNewFunction.selector;
 
-        return (res, stringToBytes32("LoanTokenLogicTrade"));
+        return (res, stringToBytes32("LoanTokenLogicTradeLM"));
     }
 }
