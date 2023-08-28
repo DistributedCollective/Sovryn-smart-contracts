@@ -199,8 +199,152 @@ const getArgsSip0063 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0064 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+
+    const targets = [
+        (await get("AmmSovrynSwapNetwork")).address,
+        (await get("AmmSwapSettings")).address,
+        (await get("BproOracle")).address,
+        (await get("MocOracle")).address,
+        (await get("SovOracle")).address,
+        (await get("EthOracle")).address,
+        (await get("BnbOracle")).address,
+        (await get("XusdOracle")).address,
+        (await get("FishOracle")).address,
+        (await get("RifOracle")).address,
+    ];
+
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    for (let i = 0; i < targets.length; i++) {
+        values.push(0);
+        signatures.push("acceptOwnership()");
+        datas.push("0x");
+    }
+
+    const args = {
+        targets: targets,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description: "SIP-0064 : Accepting ownership of AMM contracts Part 1",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
+const getArgsSip0065 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+
+    const targets = [
+        (await get("MyntOracle")).address,
+        (await get("DllrOracle")).address,
+        (await get("AmmConversionPathFinder")).address,
+        (await get("AmmConverterUpgrader")).address,
+        (await get("AmmConverterRegistryData")).address,
+        (await get("AmmOracleWhitelist")).address,
+        (await get("RbtcWrapperProxy")).address,
+    ];
+
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    for (let i = 0; i < targets.length; i++) {
+        values.push(0);
+        signatures.push("acceptOwnership()");
+        datas.push("0x");
+    }
+    const args = {
+        targets: targets,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description: "SIP-0065 : Accepting ownership of AMM contracts Part 2",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
+const getArgsSip0066 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+
+    const targets = [
+        (await get("ConverterDoc")).address,
+        (await get("ConverterUsdt")).address,
+        (await get("ConverterBpro")).address,
+        (await get("ConverterBnb")).address,
+        (await get("ConverterMoc")).address,
+        (await get("ConverterXusd")).address,
+        (await get("ConverterSov")).address,
+        (await get("ConverterEth")).address,
+        (await get("ConverterFish")).address,
+        (await get("ConverterMynt")).address,
+    ];
+
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    for (let i = 0; i < targets.length; i++) {
+        values.push(0);
+        signatures.push("acceptOwnership()");
+        datas.push("0x");
+    }
+    const args = {
+        targets: targets,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description: "SIP-0066 : Accepting ownership of AMM contracts Part 1",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSip0067 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+
+    const targets = [
+        (await get("ConverterRif")).address,
+        (await get("ConverterDllr")).address,
+        (await get("AmmContractRegistry")).address,
+        (await get("AmmConverterFactory")).address,
+    ];
+
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    for (let i = 0; i < targets.length; i++) {
+        values.push(0);
+        signatures.push("acceptOwnership()");
+        datas.push("0x");
+    }
+    const args = {
+        targets: targets,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description: "SIP-0067 : Accepting ownership of AMM contracts Part 2",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     getArgsSip0058,
     getArgsSip0049,
     getArgsSip0063,
+    getArgsSip0064,
+    getArgsSip0065,
+    getArgsSip0066,
+    getArgsSip0067,
 };

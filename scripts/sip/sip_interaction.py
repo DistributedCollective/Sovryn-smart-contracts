@@ -561,6 +561,7 @@ def createProposalSIP0065():
     # Action
     targets = [
         contracts['MYNTPoolOracle'],
+        contracts['DLLRPoolOracle'],
         contracts['ConversionPathFinder'],
         contracts['ConverterUpgrader'],
         contracts['ConverterRegistryData'],
@@ -621,6 +622,7 @@ def createProposalSIP0067():
     # Action
     targets = [
         contracts['ConverterRIF'],
+        contracts['ConverterDLLR'],
         contracts['ammContractRegistry'],
         contracts['ConverterFactory']
     ]
