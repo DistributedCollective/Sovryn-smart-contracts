@@ -358,8 +358,9 @@ contract FeeSharingCollector is
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             // _fromCheckpoint is checkpoint number, not array index
+            require(_fromCheckpoints[i] > 0, "_fromCheckpoint param must be > 0");
             // since we want to allow the withdrawal from the first checkpoint, we just skip check if _fromCheckpoint is 1
-            if (_fromCheckpoints[i] <= 1) continue;
+            if (_fromCheckpoints[i] == 1) continue;
 
             uint256 fromCheckpointIndex = _fromCheckpoints[i] - 1;
             require(
