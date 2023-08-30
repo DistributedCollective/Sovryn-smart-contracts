@@ -357,8 +357,10 @@ contract FeeSharingCollector is
         );
 
         for (uint256 i = 0; i < _tokens.length; i++) {
-            // _fromCheckpoint is checkpoint number, not array index, so should be > 1
-            require(_fromCheckpoints[i] > 1, "_fromCheckpoint param must be > 1");
+            // _fromCheckpoint is checkpoint number, not array index
+            // since we want to allow the withdrawal from the first checkpoint, we just skip check if _fromCheckpoint is 1
+            if (_fromCheckpoints[i] <= 1) continue;
+
             uint256 fromCheckpointIndex = _fromCheckpoints[i] - 1;
             require(
                 _fromCheckpoints[i] > processedCheckpoints[_user][_tokens[i]],
@@ -378,6 +380,7 @@ contract FeeSharingCollector is
                     prevCheckpoint.blockNumber - 1,
                     prevCheckpoint.timestamp
                 );
+
             require(
                 weightedStake == 0,
                 "User weighted stake should be zero at previous checkpoint"

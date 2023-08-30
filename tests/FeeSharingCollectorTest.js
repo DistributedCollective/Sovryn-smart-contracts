@@ -369,6 +369,63 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpoints.toNumber()).to.equal(10);
         });
 
+        it("withdrawStartingFromCheckpoint calculates fees correctly using the first checkpoint", async () => {
+            // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
+
+            /// RBTC
+            await stake(900, root);
+            const userStake = 100;
+
+            await SOVToken.transfer(account1, userStake);
+            await mine(2880 * 15, { interval: 30 }); // 86400 (1day) / 30 == 2800 * 15 (2 weeks + 1 day - for weighted stake to be updated in cache of FeeSharingCollector._getAccumulatedFees())
+            await stake(userStake, account1);
+            await createCheckpointsSOV(10);
+
+            const maxCheckpoints = new BN(10);
+
+            const tokenBalanceBefore = await SOVToken.balanceOf(account1);
+            let nextPositive = await feeSharingCollector.getNextPositiveUserCheckpoint(
+                account1,
+                SOVToken.address,
+                0,
+                MAX_NEXT_POSITIVE_CHECKPOINT
+            );
+
+            const { checkpointNum } = nextPositive;
+            expect(checkpointNum.toNumber()).eql(1);
+
+            const expectedReward = await feeSharingCollector.getAccumulatedFees(
+                account1,
+                SOVToken.address
+            );
+
+            let tx = await feeSharingCollector.withdrawStartingFromCheckpoints(
+                [SOVToken.address],
+                [1],
+                maxCheckpoints,
+                ZERO_ADDRESS,
+                { from: account1 }
+            );
+
+            const tokenBalanceAfter = await SOVToken.balanceOf(account1);
+
+            expectEvent(tx, "UserFeeWithdrawn", {
+                sender: account1,
+                token: SOVToken.address,
+                amount: new BN(60).mul(maxCheckpoints),
+            });
+
+            expect(tokenBalanceAfter.sub(tokenBalanceBefore).toNumber())
+                .eql(expectedReward.toNumber())
+                .eql(new BN(60).mul(maxCheckpoints).toNumber());
+
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                SOVToken.address
+            );
+            expect(processedCheckpoints.toNumber()).to.equal(maxCheckpoints);
+        });
+
         it("withdrawStartingFromCheckpoint calculates fees correctly for rbtc & non-rbtc based tokens", async () => {
             // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
@@ -931,39 +988,6 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(nextCheckpoint.checkpointNum.toNumber()).to.eql(201);
             expect(nextCheckpoint.hasFees);
             expect(nextCheckpoint.hasSkippedCheckpoints);
-        });
-
-        it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint revert if _fromCheckpoint == 0", async () => {
-            feeSharingCollector = await FeeSharingCollectorMockup.new(
-                sovryn.address,
-                staking.address
-            );
-            await sovryn.setFeesController(feeSharingCollector.address);
-            await expectRevert(
-                feeSharingCollector.withdrawStartingFromCheckpoints(
-                    [SOVToken.address],
-                    [0],
-                    10,
-                    ZERO_ADDRESS,
-                    {
-                        from: account1,
-                    }
-                ),
-                "_fromCheckpoint param must be > 1"
-            );
-
-            await expectRevert(
-                feeSharingCollector.withdrawRbtcTokensStartingFromCheckpoint(
-                    [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
-                    [0],
-                    10,
-                    ZERO_ADDRESS,
-                    {
-                        from: account1,
-                    }
-                ),
-                "_fromCheckpoint param must be > 1"
-            );
         });
 
         it("withdrawStartingFromCheckpoint and withdrawRBTCStartingFromCheckpoint revert if _fromCheckpoint < processedCheckpoints[user][_token]", async () => {
@@ -2062,6 +2086,38 @@ contract("FeeSharingCollector:", (accounts) => {
                 }),
                 "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
             );
+        });
+
+        it("withdrawStartingFromCheckpoints should be able to shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints (starting from first checkpoint)", async () => {
+            await protocolDeploymentFixture();
+            await stake(900, root);
+            await createCheckpointsSOV(10);
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            let feesByCheckpointsRange =
+                await feeSharingCollector.getAccumulatedFeesForCheckpointsRange(
+                    account1,
+                    SOVToken.address,
+                    0,
+                    0
+                );
+            expect(fees).to.be.bignumber.equal("0");
+            expect(feesByCheckpointsRange).to.be.bignumber.equal("0");
+
+            const tx = await feeSharingCollector.withdrawStartingFromCheckpoints(
+                [SOVToken.address],
+                [1],
+                9,
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
+            expectEvent(tx, "UserFeeProcessedNoWithdraw", {
+                sender: account1,
+                token: SOVToken.address,
+                prevProcessedCheckpoints: new BN(0),
+                newProcessedCheckpoints: new BN(9),
+            });
         });
 
         it("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints", async () => {
