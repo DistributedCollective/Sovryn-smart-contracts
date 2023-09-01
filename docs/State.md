@@ -5,7 +5,7 @@ View Source: [contracts/core/State.sol](../contracts/core/State.sol)
 **↗ Extends: [Objects](Objects.md), [ReentrancyGuard](ReentrancyGuard.md), [SharedReentrancyGuard](SharedReentrancyGuard.md), [Ownable](Ownable.md)**
 **↘ Derived Contracts: [Affiliates](Affiliates.md), [FeesHelper](FeesHelper.md), [ISovryn](ISovryn.md), [LiquidationHelper](LiquidationHelper.md), [LoanSettings](LoanSettings.md), [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md), [ProtocolSettings](ProtocolSettings.md), [ProtocolTokenUser](ProtocolTokenUser.md), [RewardHelper](RewardHelper.md), [sovrynProtocol](sovrynProtocol.md), [SwapsImplLocal](SwapsImplLocal.md), [SwapsImplSovrynSwap](SwapsImplSovrynSwap.md), [SwapsUser](SwapsUser.md), [VaultController](VaultController.md)**
 
-**State**
+## **State** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -134,7 +134,6 @@ function _setTarget(bytes4 sig, address target) internal {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

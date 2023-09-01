@@ -44,7 +44,7 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](13);
+        bytes4[] memory res = new bytes4[](15);
         res[0] = this.setAdmin.selector;
         res[1] = this.setPauser.selector;
         res[2] = this.setupLoanParams.selector;
@@ -58,6 +58,8 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
         res[10] = this.withdrawRBTCTo.selector;
         res[11] = this.getLiquidityMiningAddress.selector;
         res[12] = this.checkPause.selector;
+        res[13] = this.setStakingContractAddress.selector;
+        res[14] = this.getStakingContractAddress.selector;
         return (res, stringToBytes32("LoanTokenSettingsLowerAdmin"));
     }
 
@@ -209,9 +211,8 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
     function toggleFunctionPause(
         string memory funcId, /// example: "mint(uint256,uint256)"
         bool isPaused
-    ) public {
+    ) public onlyPauserOrOwner {
         bool paused;
-        require(msg.sender == pauser, "onlyPauser");
         /// keccak256("iToken_FunctionPause")
         bytes32 slot =
             keccak256(
@@ -288,6 +289,24 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 	 */
     function getLiquidityMiningAddress() public view returns (address) {
         return liquidityMiningAddress;
+    }
+
+    /**
+     * @notice sets the staking contract address
+     * @param _stakingContractAddress the address of the staking contract
+     */
+    function setStakingContractAddress(address _stakingContractAddress) external onlyOwner {
+        stakingContractAddress = _stakingContractAddress;
+    }
+
+    /**
+	 * @notice We need separate getter for newly added storage variable
+	 * @notice Getter for stakingContractAddress
+
+	 * @return stakingContractAddress
+	 */
+    function getStakingContractAddress() public view returns (address) {
+        return stakingContractAddress;
     }
 
     /**

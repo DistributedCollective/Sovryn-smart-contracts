@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/modules/WeightedStakingModule.sol](..
 
 **↗ Extends: [IFunctionsList](IFunctionsList.md), [StakingShared](StakingShared.md), [CheckpointsShared](CheckpointsShared.md)**
 
-**WeightedStakingModule**
+## **WeightedStakingModule** contract
 
 Implements getters for weighted staking functionality
 
@@ -195,7 +195,7 @@ function _weightedStakeByDate(
 Compute the weight for a specific date.
 
 ```solidity
-function computeWeightByDate(uint256 date, uint256 startDate) public pure
+function computeWeightByDate(uint256 date, uint256 startDate) external pure
 returns(weight uint96)
 ```
 
@@ -215,7 +215,7 @@ The weighted stake the account had as of the given block.
 
 ```javascript
 function computeWeightByDate(uint256 date, uint256 startDate)
-        public
+        external
         pure
         returns (uint96 weight)
     {
@@ -265,7 +265,6 @@ function getFunctionsList() external pure returns (bytes4[] memory) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

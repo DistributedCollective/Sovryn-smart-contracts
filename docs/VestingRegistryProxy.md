@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/VestingRegistryProxy.sol](../contract
 
 **↗ Extends: [VestingRegistryStorage](VestingRegistryStorage.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**VestingRegistryProxy**
+## **VestingRegistryProxy** contract
 
 Vesting Registry contract should be upgradable, use UpgradableProxy.
 VestingRegistryStorage is deployed with the upgradable functionality
@@ -29,7 +29,6 @@ the possibility of being enhanced and re-deployed.
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

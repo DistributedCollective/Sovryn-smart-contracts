@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/modules/StakingVestingModule.sol](../
 
 **↗ Extends: [IFunctionsList](IFunctionsList.md), [StakingShared](StakingShared.md)**
 
-**StakingVestingModule**
+## **StakingVestingModule** contract
 
 Implements interaction with Vesting functionality: vesting registry, vesting staking
 
@@ -609,7 +609,6 @@ function getFunctionsList() external pure returns (bytes4[] memory) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

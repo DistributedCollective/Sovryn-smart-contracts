@@ -2,7 +2,7 @@
 
 View Source: [contracts/governance/Staking/interfaces/IStaking.sol](../contracts/governance/Staking/interfaces/IStaking.sol)
 
-**IStaking**
+## **IStaking** contract
 
 ## Structs
 ### Checkpoint
@@ -12,6 +12,12 @@ struct Checkpoint {
  uint32 fromBlock,
  uint96 stake
 }
+```
+
+**Events**
+
+```js
+event VestingStakeSet(uint256  lockedTS, uint96  value);
 ```
 
 ## Functions
@@ -2214,8 +2220,6 @@ nction owner() external view returns (address);
 
 > ### isOwner
 
-⤿ Overridden Implementation(s): [LoanTokenLogicWrbtc._verifyTransfers](LoanTokenLogicWrbtc.md#_verifytransfers)
-
 Returns true if the caller is the current owner.
 
 ```solidity
@@ -2355,7 +2359,6 @@ nction setMaxVestingWithdrawIterations(uint256 maxIterations) external;
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

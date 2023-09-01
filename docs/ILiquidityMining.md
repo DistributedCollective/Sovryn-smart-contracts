@@ -4,7 +4,7 @@ View Source: [contracts/farm/ILiquidityMining.sol](../contracts/farm/ILiquidityM
 
 **↘ Derived Contracts: [LiquidityMining](LiquidityMining.md)**
 
-**ILiquidityMining**
+## **ILiquidityMining** contract
 
 ## Functions
 
@@ -112,7 +112,6 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

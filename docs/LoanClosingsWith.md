@@ -4,7 +4,7 @@ View Source: [contracts/modules/LoanClosingsWith.sol](../contracts/modules/LoanC
 
 **↗ Extends: [LoanClosingsShared](LoanClosingsShared.md)**
 
-**LoanClosingsWith**
+## **LoanClosingsWith** contract
 
 Close a loan w/deposit, close w/swap. There are 2 functions for ending a loan on the
   protocol contract: closeWithSwap and closeWithDeposit. Margin trade
@@ -356,7 +356,6 @@ function checkCloseWithDepositIsTinyPosition(bytes32 loanId, uint256 depositAmou
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

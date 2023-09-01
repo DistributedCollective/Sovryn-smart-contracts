@@ -2,7 +2,7 @@
 
 View Source: [contracts/connectors/loantoken/interfaces/ProtocolSettingsLike.sol](../contracts/connectors/loantoken/interfaces/ProtocolSettingsLike.sol)
 
-**ProtocolSettingsLike**
+## **ProtocolSettingsLike** contract
 
 ## Functions
 
@@ -96,7 +96,6 @@ function minInitialMargin(bytes32 loanParamsId) external view returns (uint256);
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

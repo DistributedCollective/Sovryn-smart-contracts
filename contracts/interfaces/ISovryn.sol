@@ -384,6 +384,19 @@ contract ISovryn is
         bool unsafeOnly
     ) external view returns (LoanReturnDataV2[] memory loansDataV2);
 
+    function extendLoanDuration(
+        bytes32 loanId,
+        uint256 depositAmount,
+        bool useCollateral,
+        bytes calldata /// loanDataBytes, for future use.
+    ) external;
+
+    function reduceLoanDuration(
+        bytes32 loanId,
+        address receiver,
+        uint256 withdrawAmount
+    ) external;
+
     ////// Protocol Migration //////
 
     function setLegacyOracles(address[] calldata refs, address[] calldata oracles) external;
@@ -503,4 +516,12 @@ contract ISovryn is
         external
         view
         returns (bool isTinyPosition, uint256 tinyPositionAmount);
+
+    function setAdmin(address newAdmin) external;
+
+    function getAdmin() external view returns (address);
+
+    function setPauser(address newPauser) external;
+
+    function getPauser() external view returns (address);
 }

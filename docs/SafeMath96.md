@@ -4,7 +4,7 @@ View Source: [contracts/governance/Staking/SafeMath96.sol](../contracts/governan
 
 **↘ Derived Contracts: [CheckpointsShared](CheckpointsShared.md), [FeeSharingCollector](FeeSharingCollector.md), [GovernorAlpha](GovernorAlpha.md), [ILoanToken](ILoanToken.md), [ILoanTokenWRBTC](ILoanTokenWRBTC.md), [StakingInterface](StakingInterface.md), [StakingShared](StakingShared.md), [TimelockInterface](TimelockInterface.md)**
 
-**SafeMath96**
+## **SafeMath96** contract
 
 Improved Solidity's arithmetic operations with added overflow checks.
 
@@ -278,7 +278,6 @@ function div96(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

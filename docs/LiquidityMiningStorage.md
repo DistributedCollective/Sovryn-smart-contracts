@@ -5,7 +5,7 @@ View Source: [contracts/farm/LiquidityMiningStorage.sol](../contracts/farm/Liqui
 **↗ Extends: [AdminRole](AdminRole.md)**
 **↘ Derived Contracts: [LiquidityMining](LiquidityMining.md), [LiquidityMiningProxy](LiquidityMiningProxy.md)**
 
-**LiquidityMiningStorage**
+## **LiquidityMiningStorage** contract
 
 ## Structs
 ### UserInfo
@@ -71,7 +71,6 @@ mapping(address => uint256) internal poolIdList;
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
