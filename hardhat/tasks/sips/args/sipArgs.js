@@ -1,5 +1,6 @@
 const { HardhatRuntimeEnvironment } = require("hardhat/types");
 const { getStakingModulesNames } = require("../../../../deployment/helpers/helpers");
+const { validateAmmOnchainAddresses } = require("../../../helpers");
 
 const sampleSIP01 = async (hre) => {
     const { ethers } = hre;
@@ -199,28 +200,84 @@ const getArgsSip0063 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
-const getArgsSip0064 = async (hre) => {
+const getArgsSip0067 = async (hre) => {
     const {
         deployments: { get },
+        ethers,
     } = hre;
 
-    const targets = [
-        (await get("AmmSovrynSwapNetwork")).address,
-        (await get("AmmSwapSettings")).address,
-        (await get("BproOracle")).address,
-        (await get("MocOracle")).address,
-        (await get("SovOracle")).address,
-        (await get("EthOracle")).address,
-        (await get("BnbOracle")).address,
-        (await get("XusdOracle")).address,
-        (await get("FishOracle")).address,
-        (await get("RifOracle")).address,
+    const deploymentTargets = [
+        {
+            deployment: await get("AmmSovrynSwapNetwork"),
+            contractName: "SovrynSwapNetwork",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+        {
+            deployment: await get("AmmSwapSettings"),
+            contractName: "SwapSettings",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+        {
+            // @todo need to check the discrepancy address between onchain with the excel one
+            deployment: await get("AmmBproOracle"),
+            contractName: "BproOracle",
+        },
+        {
+            deployment: await get("AmmMocOracle"),
+            contractName: "MocOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterMoc",
+        },
+        {
+            deployment: await get("AmmSovOracle"),
+            contractName: "SovOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterSov",
+        },
+        {
+            deployment: await get("AmmEthOracle"),
+            contractName: "EthOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterEth",
+        },
+        {
+            deployment: await get("AmmBnbOracle"),
+            contractName: "BnbOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterBnb",
+        },
+        {
+            deployment: await get("AmmXusdOracle"),
+            contractName: "XusdOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterXusd",
+        },
+        {
+            deployment: await get("AmmFishOracle"),
+            contractName: "FishOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterFish",
+        },
+        {
+            deployment: await get("AmmRifOracle"),
+            contractName: "RifOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterRif",
+        },
     ];
 
+    const targets = [];
     const values = [];
     const signatures = [];
     const datas = [];
-    for (let i = 0; i < targets.length; i++) {
+    for (let i = 0; i < deploymentTargets.length; i++) {
+        deploymentTarget = deploymentTargets[i];
+        const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+        if (!isValid) return process.exit;
+
+        targets.push(deploymentTarget.address);
         values.push(0);
         signatures.push("acceptOwnership()");
         datas.push("0x");
@@ -231,109 +288,225 @@ const getArgsSip0064 = async (hre) => {
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0064 : Accepting ownership of AMM contracts Part 1",
+        description: "SIP-0067 : Accepting ownership of AMM contracts Part 1",
     };
 
     return { args, governor: "GovernorAdmin" };
 };
 
-const getArgsSip0065 = async (hre) => {
+const getArgsSip0068 = async (hre) => {
     const {
         deployments: { get },
     } = hre;
 
-    const targets = [
-        (await get("MyntOracle")).address,
-        (await get("DllrOracle")).address,
-        (await get("AmmConversionPathFinder")).address,
-        (await get("AmmConverterUpgrader")).address,
-        (await get("AmmConverterRegistryData")).address,
-        (await get("AmmOracleWhitelist")).address,
-        (await get("RbtcWrapperProxy")).address,
+    const deploymentTargets = [
+        {
+            deployment: await get("AmmMyntOracle"),
+            contractName: "MyntOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterMynt",
+        },
+        {
+            deployment: await get("AmmDllrOracle"),
+            contractName: "DllrOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterDllr",
+        },
+        {
+            deployment: await get("AmmConversionPathFinder"),
+            contractName: "ConversionPathFinder",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+        {
+            deployment: await get("AmmConverterUpgrader"),
+            contractName: "ConverterUpgrader",
+        },
+        {
+            deployment: await get("AmmConverterRegistryData"),
+            contractName: "ConverterRegistryData",
+        },
+        {
+            deployment: await get("AmmOracleWhitelist"),
+            contractName: "OracleWhitelist",
+        },
+        {
+            deployment: await get("AmmRbtcWrapperProxy"),
+            contractName: "RbtcWrapperProxy",
+        },
     ];
 
+    const targets = [];
     const values = [];
     const signatures = [];
     const datas = [];
-    for (let i = 0; i < targets.length; i++) {
+    for (let i = 0; i < deploymentTargets.length; i++) {
+        deploymentTarget = deploymentTargets[i];
+        const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+        if (!isValid) return process.exit;
+
+        targets.push(deploymentTarget.address);
         values.push(0);
         signatures.push("acceptOwnership()");
         datas.push("0x");
     }
+
     const args = {
         targets: targets,
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0065 : Accepting ownership of AMM contracts Part 2",
+        description: "SIP-0068 : Accepting ownership of AMM contracts Part 2",
     };
 
     return { args, governor: "GovernorAdmin" };
 };
 
-const getArgsSip0066 = async (hre) => {
+const getArgsSip0069 = async (hre) => {
     const {
         deployments: { get },
     } = hre;
 
-    const targets = [
-        (await get("ConverterDoc")).address,
-        (await get("ConverterUsdt")).address,
-        (await get("ConverterBpro")).address,
-        (await get("ConverterBnb")).address,
-        (await get("ConverterMoc")).address,
-        (await get("ConverterXusd")).address,
-        (await get("ConverterSov")).address,
-        (await get("ConverterEth")).address,
-        (await get("ConverterFish")).address,
-        (await get("ConverterMynt")).address,
+    const deploymentTargets = [
+        {
+            deployment: await get("AmmConverterDoc"),
+            contractName: "ConverterDoc",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterUsdt"),
+            contractName: "ConverterUsdt",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterBpro"),
+            contractName: "ConverterBpro",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterBnb"),
+            contractName: "ConverterBnb",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterMoc"),
+            contractName: "ConverterMoc",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterXusd"),
+            contractName: "ConverterXusd",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterSov"),
+            contractName: "ConverterSov",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterEth"),
+            contractName: "ConverterEth",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterFish"),
+            contractName: "ConverterFish",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterMynt"),
+            contractName: "ConverterMynt",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
     ];
 
+    const targets = [];
     const values = [];
     const signatures = [];
     const datas = [];
-    for (let i = 0; i < targets.length; i++) {
+    for (let i = 0; i < deploymentTargets.length; i++) {
+        deploymentTarget = deploymentTargets[i];
+        const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+        if (!isValid) return process.exit;
+
+        targets.push(deploymentTarget.address);
         values.push(0);
         signatures.push("acceptOwnership()");
         datas.push("0x");
     }
+
     const args = {
         targets: targets,
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0066 : Accepting ownership of AMM contracts Part 1",
+        description: "SIP-0069 : Accepting ownership of AMM contracts Part 3",
     };
 
     return { args, governor: "GovernorOwner" };
 };
 
-const getArgsSip0067 = async (hre) => {
+const getArgsSip0070 = async (hre) => {
     const {
         deployments: { get },
     } = hre;
 
-    const targets = [
-        (await get("ConverterRif")).address,
-        (await get("ConverterDllr")).address,
-        (await get("AmmContractRegistry")).address,
-        (await get("AmmConverterFactory")).address,
+    const deploymentTargets = [
+        {
+            deployment: await get("AmmConverterRif"),
+            contractName: "ConverterRif",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterDllr"),
+            contractName: "ConverterDllr",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmContractRegistry"),
+            contractName: "ContractRegistry",
+        },
+        {
+            deployment: await get("AmmConverterFactory"),
+            contractName: "ConverterFactory",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
     ];
 
+    const targets = [];
     const values = [];
     const signatures = [];
     const datas = [];
-    for (let i = 0; i < targets.length; i++) {
+    for (let i = 0; i < deploymentTargets.length; i++) {
+        deploymentTarget = deploymentTargets[i];
+        const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+        if (!isValid) return process.exit;
+
+        targets.push(deploymentTarget.address);
         values.push(0);
         signatures.push("acceptOwnership()");
         datas.push("0x");
     }
+
     const args = {
         targets: targets,
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0067 : Accepting ownership of AMM contracts Part 2",
+        description: "SIP-0070 : Accepting ownership of AMM contracts Part 4",
     };
 
     return { args, governor: "GovernorOwner" };
@@ -343,8 +516,8 @@ module.exports = {
     getArgsSip0058,
     getArgsSip0049,
     getArgsSip0063,
-    getArgsSip0064,
-    getArgsSip0065,
-    getArgsSip0066,
     getArgsSip0067,
+    getArgsSip0068,
+    getArgsSip0069,
+    getArgsSip0070,
 };

@@ -523,7 +523,7 @@ def createProposalSIP0060():
 
 # === Accepting Ownership of AMM Contracts ===
 # === Governor Admin ===
-def createProposalSIP0064():
+def createProposalSIP0067():
     # total = 10
     # Action
     targets = [
@@ -547,7 +547,7 @@ def createProposalSIP0064():
         signatures.append("acceptOwnership()")
         datas.append("0x")
 
-    description = "SIP-0049 : Accepting ownership of AMM contracts Part 1"
+    description = "SIP-0067 : Accepting ownership of AMM contracts Part 1"
 
     # Create Proposal
     print(signatures)
@@ -556,7 +556,7 @@ def createProposalSIP0064():
     print(targets)
     #createProposal(contracts['GovernorAdmin'], targets, values, signatures, datas, description)
 
-def createProposalSIP0065():
+def createProposalSIP0068():
     # total = 6
     # Action
     targets = [
@@ -577,7 +577,7 @@ def createProposalSIP0065():
         signatures.append("acceptOwnership()")
         datas.append("0x")
 
-    description = "SIP-0049 : Accepting ownership of AMM contracts Part 2"
+    description = "SIP-0068 : Accepting ownership of AMM contracts Part 2"
 
     # Create Proposal
     print(signatures)
@@ -587,7 +587,7 @@ def createProposalSIP0065():
     #createProposal(contracts['GovernorAdmin'], targets, values, signatures, datas, description)
 
 # === Governor Owner ===
-def createProposalSIP0066():
+def createProposalSIP0069():
     # total = 10
     # Action
     targets = [
@@ -611,13 +611,13 @@ def createProposalSIP0066():
         signatures.append("acceptOwnership()")
         datas.append("0x")
 
-    description = "SIP-0050 : Accepting ownership of AMM contracts Part 1"
+    description = "SIP-0069 : Accepting ownership of AMM contracts Part 1"
     print(signatures)
     print(datas)
     print(description)
     # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
-def createProposalSIP0067():
+def createProposalSIP0070():
     # total = 3
     # Action
     targets = [
@@ -635,7 +635,7 @@ def createProposalSIP0067():
         signatures.append("acceptOwnership()")
         datas.append("0x")
 
-    description = "SIP-0050 : Accepting ownership of AMM contracts Part 2"
+    description = "SIP-0070 : Accepting ownership of AMM contracts Part 2"
     print(signatures)
     print(datas)
     print(description)

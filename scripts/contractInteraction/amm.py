@@ -346,7 +346,7 @@ def withdrawFromRBTCWrapperProxy(tokenAddress, to, amount):
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=conf.contracts['RBTCWrapperProxy'], abi=abi, owner=conf.acct)
     wrapperProxy.withdraw(tokenAddress, to, amount)
 
-def transferOwnershipAMMContractsToGovernance(contractAddress, destinationAddress, contractName=''):
+def transferOwnershipAMMContractsToGovernance(contractAddress, newOwnerAddress, contractName=''):
     abiFile =  open('./scripts/contractInteraction/ABIs/Owned.json')
     abi = json.load(abiFile)
     ammContract = Contract.from_abi("AMMContract", address=contractAddress, abi=abi, owner=conf.acct)
@@ -363,8 +363,8 @@ def transferOwnershipAMMContractsToGovernance(contractAddress, destinationAddres
     if(currentOwner != conf.contracts['multisig']):
         raise Exception("Multisig is not the owner")
 
-    print("Transferring ownership of {0} to {1}".format(contractAddress, destinationAddress))
-    data = ammContract.transferOwnership.encode_input(destinationAddress)
+    print("Transferring ownership of {0} to {1}".format(contractAddress, newOwnerAddress))
+    data = ammContract.transferOwnership.encode_input(newOwnerAddress)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], ammContract.address, data, conf.acct)
 
