@@ -61,10 +61,6 @@ contract FeeSharingCollectorMockup is FeeSharingCollector {
         (amount, end) = _getAccumulatedFees(_user, _token, 0, _maxCheckpoints);
     }
 
-    function invalidLoanPoolWRBTC() public view returns (address) {
-        return _getAndValidateLoanPoolWRBTC(address(0));
-    }
-
     function endOfRangeWithZeroMaxCheckpoint(address _token) public view returns (uint256) {
         return _getEndOfRange(0, _token, 0);
     }

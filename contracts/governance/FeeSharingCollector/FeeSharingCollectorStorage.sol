@@ -72,6 +72,16 @@ contract FeeSharingCollectorStorage is Ownable {
     mapping(bytes4 => bool) public isFunctionExecuted;
 
     /**
+     * @dev Wrbtc token adress
+     */
+    address public wrbtcTokenAddress;
+
+    /**
+     * @dev IWrbtc token adress
+     */
+    address public loanTokenWrbtcAddress;
+
+    /**
      * @dev Prevents a contract from calling itself, directly or indirectly.
      * If you mark a function `nonReentrant`, you should also
      * mark it `external`. Calling one `nonReentrant` function from
