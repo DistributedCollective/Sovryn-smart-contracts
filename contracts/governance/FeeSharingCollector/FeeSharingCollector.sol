@@ -428,12 +428,12 @@ contract FeeSharingCollector is
      * @param _maxCheckpoints Maximum number of checkpoints to be processed.
      * @param _receiver The receiver of tokens or msg.sender
      * */
-    function withdrawStartingFromCheckpoints(
-        address[] calldata _tokens,
-        uint256[] calldata _fromCheckpoints,
+    function _withdrawStartingFromCheckpoints(
+        address[] memory _tokens,
+        uint256[] memory _fromCheckpoints,
         uint32 _maxCheckpoints,
         address _receiver
-    ) external nonReentrant {
+    ) internal nonReentrant {
         validFromCheckpointsParam(_fromCheckpoints, _tokens, msg.sender);
 
         if (_receiver == ZERO_ADDRESS) {
@@ -495,6 +495,32 @@ contract FeeSharingCollector is
         }
     }
 
+    function claimAllCollectedFees(
+        TokenWithdraw[] calldata _tokens,
+        address[] calldata _rbtcTokensRegularWithdraw,
+        address _receiver,
+        uint32 _maxCheckpoints
+    ) external nonReentrant {
+        /** Process normal multiple withdrawal for RBTC based tokens */
+        if(_rbtcTokensRegularWithdraw.length > 0) _withdrawRbtcTokens(_rbtcTokensRegularWithdraw, _maxCheckpoints, _receiver);
+        
+        for(uint256 i = 0; i < _tokens.length; i++) {
+            TokenWithdraw memory tokenData = _tokens[i];
+            if(tokenData.hasSkippedCheckpoints) {
+               /** If token got skipped checkpoints, call the normal withdraw function */
+               address[] memory tokenAdresses = new address[](1);
+               uint256[] memory fromCheckpoints = new uint256[](1);
+
+               tokenAdresses[0]  = tokenData.tokenAddress;
+               fromCheckpoints[0] = tokenData.fromCheckpoint;
+                _withdrawStartingFromCheckpoints(tokenAdresses, fromCheckpoints, _maxCheckpoints, _receiver);
+            } else {
+                /** If token got no skipped checkpoints, call the normal withdraw function */
+                _withdraw(tokenData.tokenAddress , _maxCheckpoints, _receiver);
+            }
+        }
+    }
+
     function _withdrawStartingFromCheckpoint(
         address _token,
         uint256 _fromCheckpoint,
@@ -552,11 +578,11 @@ contract FeeSharingCollector is
      * @param _maxCheckpoints  Maximum number of checkpoints to be processed to workaround block gas limit
      * @param _receiver An optional tokens receiver (msg.sender used if 0)
      */
-    function withdrawRbtcTokens(
-        address[] calldata _tokens,
+    function _withdrawRbtcTokens(
+        address[] memory _tokens,
         uint32 _maxCheckpoints,
         address _receiver
-    ) external nonReentrant {
+    ) internal nonReentrant {
         validRBTCBasedTokens(_tokens);
 
         if (_receiver == ZERO_ADDRESS) {
