@@ -2128,12 +2128,46 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
+        it("Shouldn't be able to withdraw without checkpoints (for token pool) - using claimAllCollectedFees()", async () => {
+            await protocolDeploymentFixture();
+            await expectRevert(
+                feeSharingCollector.claimAllCollectedFees(
+                    [loanToken.address],
+                    [],
+                    [],
+                    0,
+                    account2,
+                    {
+                        from: account1,
+                    }
+                ),
+                "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
+            );
+        });
+
         it("Shouldn't be able to withdraw without checkpoints (for wRBTC pool)", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollector.withdraw(loanTokenWrbtc.address, 0, account2, {
                     from: account1,
                 }),
+                "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
+            );
+        });
+
+        it("Shouldn't be able to withdraw without checkpoints (for wRBTC pool) - using claimAllCollectedFees()", async () => {
+            await protocolDeploymentFixture();
+            await expectRevert(
+                feeSharingCollector.claimAllCollectedFees(
+                    [loanTokenWrbtc.address],
+                    [],
+                    [],
+                    0,
+                    account2,
+                    {
+                        from: account1,
+                    }
+                ),
                 "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
             );
         });
@@ -2156,6 +2190,39 @@ contract("FeeSharingCollector:", (accounts) => {
             const tx = await feeSharingCollector.withdraw(SOVToken.address, 9, ZERO_ADDRESS, {
                 from: account1,
             });
+            expectEvent(tx, "UserFeeProcessedNoWithdraw", {
+                sender: account1,
+                token: SOVToken.address,
+                prevProcessedCheckpoints: new BN(0),
+                newProcessedCheckpoints: new BN(9),
+            });
+        });
+
+        it("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints - using claimAllCollectedFees()", async () => {
+            await protocolDeploymentFixture();
+            await stake(900, root);
+            await createCheckpointsSOV(10);
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            let feesByCheckpointsRange =
+                await feeSharingCollector.getAccumulatedFeesForCheckpointsRange(
+                    account1,
+                    SOVToken.address,
+                    0,
+                    0
+                );
+            expect(fees).to.be.bignumber.equal("0");
+            expect(feesByCheckpointsRange).to.be.bignumber.equal("0");
+
+            const tx = await feeSharingCollector.claimAllCollectedFees(
+                [SOVToken.address],
+                [],
+                [],
+                9,
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
             expectEvent(tx, "UserFeeProcessedNoWithdraw", {
                 sender: account1,
                 token: SOVToken.address,
@@ -2237,6 +2304,26 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
+        it("Shouldn't be able to withdraw zero amount (for token pool) - using claimAllCollectedFees()", async () => {
+            await protocolDeploymentFixture();
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, loanToken.address);
+            expect(fees).to.be.bignumber.equal("0");
+
+            await expectRevert(
+                feeSharingCollector.claimAllCollectedFees(
+                    [loanToken.address],
+                    [],
+                    [],
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "FeeSharingCollector::withdrawFees: no tokens for withdrawal"
+            );
+        });
+
         it("Shouldn't be able to withdraw zero amount (for wRBTC pool)", async () => {
             await protocolDeploymentFixture();
             let fees = await feeSharingCollector.getAccumulatedFees(
@@ -2249,6 +2336,29 @@ contract("FeeSharingCollector:", (accounts) => {
                 feeSharingCollector.withdraw(loanTokenWrbtc.address, 10, ZERO_ADDRESS, {
                     from: account1,
                 }),
+                "FeeSharingCollector::withdrawFees: no tokens for withdrawal"
+            );
+        });
+
+        it("Shouldn't be able to withdraw zero amount (for wRBTC pool) - using claimAllCollectedFees()", async () => {
+            await protocolDeploymentFixture();
+            let fees = await feeSharingCollector.getAccumulatedFees(
+                account1,
+                loanTokenWrbtc.address
+            );
+            expect(fees).to.be.bignumber.equal("0");
+
+            await expectRevert(
+                feeSharingCollector.claimAllCollectedFees(
+                    [loanTokenWrbtc.address],
+                    [],
+                    [],
+                    10,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
                 "FeeSharingCollector::withdrawFees: no tokens for withdrawal"
             );
         });
@@ -3204,6 +3314,79 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
+        it("Should be able to withdraw (sov pool) - using claimAllCollectedFees()", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            //stake - getPriorTotalVotingPower
+            let rootStake = 700;
+            await stake(rootStake, root);
+
+            let userStake = 300;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            //mock data
+            let lendingFeeTokensHeld = new BN(wei("1", "gwei"));
+            let tradingFeeTokensHeld = new BN(wei("2", "gwei"));
+            let borrowingFeeTokensHeld = new BN(wei("3", "gwei"));
+            let totalFeeTokensHeld = lendingFeeTokensHeld
+                .add(tradingFeeTokensHeld)
+                .add(borrowingFeeTokensHeld);
+            let feeAmount = await setFeeTokensHeld(
+                lendingFeeTokensHeld,
+                tradingFeeTokensHeld,
+                borrowingFeeTokensHeld,
+                false,
+                true
+            );
+
+            await feeSharingCollector.withdrawFees([SOVToken.address]);
+
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            console.log("FEES:", fees.toString());
+            expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
+
+            let userInitialISOVBalance = await SOVToken.balanceOf(account1);
+            let tx = await feeSharingCollector.claimAllCollectedFees(
+                [SOVToken.address],
+                [],
+                [],
+                10,
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
+
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                SOVToken.address
+            );
+            expect(processedCheckpoints.toNumber()).to.be.equal(1);
+
+            //check balances
+            let feeSharingCollectorProxyBalance = await SOVToken.balanceOf.call(
+                feeSharingCollector.address
+            );
+            expect(feeSharingCollectorProxyBalance.toNumber()).to.be.equal((feeAmount * 7) / 10);
+            let userBalance = await SOVToken.balanceOf.call(account1);
+            expect(userBalance.sub(userInitialISOVBalance).toNumber()).to.be.equal(
+                (feeAmount * 3) / 10
+            );
+
+            expectEvent(tx, "UserFeeWithdrawn", {
+                sender: account1,
+                receiver: account1,
+                token: SOVToken.address,
+                amount: new BN(feeAmount).mul(new BN(3)).div(new BN(10)),
+            });
+        });
+
         it("Should be able to withdraw (sov pool) to another account", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
@@ -3243,6 +3426,79 @@ contract("FeeSharingCollector:", (accounts) => {
             let tx = await feeSharingCollector.withdraw(SOVToken.address, 10, account2, {
                 from: account1,
             });
+
+            //processedCheckpoints
+            let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(
+                account1,
+                SOVToken.address
+            );
+            expect(processedCheckpoints.toNumber()).to.be.equal(1);
+
+            //check balances
+            let feeSharingCollectorProxyBalance = await SOVToken.balanceOf.call(
+                feeSharingCollector.address
+            );
+            expect(feeSharingCollectorProxyBalance.toNumber()).to.be.equal((feeAmount * 7) / 10);
+            const receiverBalanceAfter = await SOVToken.balanceOf(account2);
+            const amountWithdrawn = new BN(feeAmount).mul(new BN(3)).div(new BN(10));
+            expect(receiverBalanceAfter.sub(receiverBalanceBefore).toString()).to.be.equal(
+                amountWithdrawn.toString()
+            );
+
+            expectEvent(tx, "UserFeeWithdrawn", {
+                sender: account1,
+                receiver: account2,
+                token: SOVToken.address,
+                amount: amountWithdrawn,
+            });
+        });
+
+        it("Should be able to withdraw (sov pool) to another account - using claimAllCollectedFees()", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            //stake - getPriorTotalVotingPower
+            let rootStake = 700;
+            await stake(rootStake, root);
+
+            let userStake = 300;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            //mock data
+            let lendingFeeTokensHeld = new BN(wei("1", "gwei"));
+            let tradingFeeTokensHeld = new BN(wei("2", "gwei"));
+            let borrowingFeeTokensHeld = new BN(wei("3", "gwei"));
+            let totalFeeTokensHeld = lendingFeeTokensHeld
+                .add(tradingFeeTokensHeld)
+                .add(borrowingFeeTokensHeld);
+            let feeAmount = await setFeeTokensHeld(
+                lendingFeeTokensHeld,
+                tradingFeeTokensHeld,
+                borrowingFeeTokensHeld,
+                false,
+                true
+            );
+
+            await feeSharingCollector.withdrawFees([SOVToken.address]);
+
+            let fees = await feeSharingCollector.getAccumulatedFees(account1, SOVToken.address);
+            expect(fees).to.be.bignumber.equal(feeAmount.mul(new BN(3)).div(new BN(10)));
+
+            const receiverBalanceBefore = await SOVToken.balanceOf(account2);
+            let tx = await feeSharingCollector.claimAllCollectedFees(
+                [SOVToken.address],
+                [],
+                [],
+                10,
+                account2,
+                {
+                    from: account1,
+                }
+            );
 
             //processedCheckpoints
             let processedCheckpoints = await feeSharingCollector.processedCheckpoints.call(

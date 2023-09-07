@@ -539,7 +539,6 @@ contract FeeSharingCollector is
 
         /** Process normal non-rbtc token withdrawal */
         for (uint256 i = 0; i < _nonRbtcTokensRegularWithdraw.length; i++) {
-            uint256 totalAmount;
             uint256 endTokenCheckpoint;
 
             address _nonRbtcTokenAddress = _nonRbtcTokensRegularWithdraw[i];
@@ -547,13 +546,13 @@ contract FeeSharingCollector is
             /** starting checkpoint is the previous processedCheckpoints for token */
             uint256 startingCheckpoint = processedCheckpoints[msg.sender][_nonRbtcTokenAddress];
 
-            (totalAmount, endTokenCheckpoint) = _withdraw(
-                _nonRbtcTokenAddress,
-                _maxCheckpoints,
-                _receiver
-            );
+            (, endTokenCheckpoint) = _withdraw(_nonRbtcTokenAddress, _maxCheckpoints, _receiver);
 
-            uint256 _previousUsedCheckpoint = endTokenCheckpoint.sub(startingCheckpoint).add(1);
+            uint256 _previousUsedCheckpoint = endTokenCheckpoint.sub(startingCheckpoint);
+            if (startingCheckpoint > 0) {
+                _previousUsedCheckpoint.add(1);
+            }
+
             _maxCheckpoints = safe32(
                 _maxCheckpoints - _previousUsedCheckpoint,
                 "FeeSharingCollector: maxCheckpoint iteration exceeds 32 bits"
