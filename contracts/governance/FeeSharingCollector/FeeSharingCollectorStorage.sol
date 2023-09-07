@@ -45,9 +45,8 @@ contract FeeSharingCollectorStorage is Ownable {
         uint96 numTokens;
     }
 
-    struct TokenWithdraw {
+    struct TokenWithSkippedCheckpointsWithdraw {
         address tokenAddress;
-        bool hasSkippedCheckpoints;
         uint256 fromCheckpoint;
     }
 
