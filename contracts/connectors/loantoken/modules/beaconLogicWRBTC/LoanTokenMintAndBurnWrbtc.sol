@@ -36,7 +36,7 @@ contract LoanTokenMintAndBurnWrbtc is LoanTokenLogicStandard {
         res[2] = this.mintWithBTC.selector;
         res[3] = this.burnToBTC.selector;
 
-        return (res, stringToBytes32("LoanTokenLogicWrbtc"));
+        return (res, stringToBytes32("LoanTokenMintAndBurnWrbtc"));
     }
 
     function mintWithBTC(address receiver, bool useLM)

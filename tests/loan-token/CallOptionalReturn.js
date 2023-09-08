@@ -9,9 +9,9 @@ const ISovryn = artifacts.require("ISovryn");
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
-const LoanTokenLogicLMMockup = artifacts.require("LoanTokenLogicLMMockup");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const LoanTokenMintAndBurn = artifacts.require("LoanTokenMintAndBurnMockup");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
-const LoanTokenLogicTradeLM = artifacts.require("LoanTokenLogicTradeLM");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const Affiliates = artifacts.require("Affiliates");
@@ -97,14 +97,14 @@ contract("CallOptionalReturn", (accounts) => {
         /** Deploy  LoanTokenSettingsLowerAdmin*/
         const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
-        /** Deploy  LoanTokenLogicTradeLM*/
-        const loanTokenLogicTradeLM = await LoanTokenLogicTradeLM.new();
-
         /** Register Loan Token Modules to the Beacon */
         await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
-        await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTradeLM.address);
 
-        let loanTokenLogicLM = await LoanTokenLogicLMMockup.new();
+        let loanTokenMintAndBurn = await LoanTokenMintAndBurn.new();
+        let loanTokenLogicLM = await LoanTokenLogicLM.new();
+
+        /** Register Loan Token Mint & Burn to the Beacon */
+        await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenMintAndBurn.address);
 
         /** Register Loan Token Logic LM to the Beacon */
         await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);

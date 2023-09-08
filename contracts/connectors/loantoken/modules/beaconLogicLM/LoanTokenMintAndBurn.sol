@@ -34,7 +34,7 @@ contract LoanTokenMintAndBurn is LoanTokenLogicStandard {
         res[2] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
         res[3] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
 
-        return (res, stringToBytes32("LoanTokenLogicLM"));
+        return (res, stringToBytes32("LoanTokenMintAndBurn"));
     }
 
     /**

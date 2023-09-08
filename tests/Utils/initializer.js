@@ -29,8 +29,8 @@ const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
-const LoanTokenLogicTradeLM = artifacts.require("LoanTokenLogicTradeLM");
-const LoanTokenLogicTradeWrbtc = artifacts.require("LoanTokenLogicTradeWrbtc");
+const LoanTokenMintAndBurn = artifacts.require("LoanTokenMintAndBurn");
+const LoanTokenMintAndBurnWrbtc = artifacts.require("LoanTokenMintAndBurnWrbtc");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 
@@ -294,12 +294,12 @@ const getLoanTokenLogic = async (isMockLoanToken = false) => {
     /** Deploy  LoanTokenSettingsLowerAdmin*/
     const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
-    /** Deploy  LoanTokenLogicTradeLM*/
-    const loanTokenLogicTradeLM = await LoanTokenLogicTradeLM.new();
+    /** Deploy  LoanTokenMintAndBurn*/
+    const loanTokenMintAndBurn = await LoanTokenMintAndBurn.new();
 
     /** Register Loan Token Modules to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
-    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTradeLM.address);
+    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenMintAndBurn.address);
 
     /** Deploy LoanTokenLogicLM */
     let loanTokenLogicLM;
@@ -324,12 +324,12 @@ const getLoanTokenLogicWrbtc = async (isMockLoanToken = false) => {
     /** Deploy  LoanTokenSettingsLowerAdmin*/
     const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
-    /** Deploy  LoanTokenLogicTrade*/
-    const loanTokenLogicTradeWrbtc = await LoanTokenLogicTradeWrbtc.new();
+    /** Deploy  LoanTokenMintAndBurnWrbtc*/
+    const loanTokenMintAndBurnWrbtc = await LoanTokenMintAndBurnWrbtc.new();
 
     /** Register Loan Token Modules to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
-    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicTradeWrbtc.address);
+    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenMintAndBurnWrbtc.address);
 
     /** Deploy LoanTokenLogicWRBTC */
     let loanTokenLogicWrbtc;
