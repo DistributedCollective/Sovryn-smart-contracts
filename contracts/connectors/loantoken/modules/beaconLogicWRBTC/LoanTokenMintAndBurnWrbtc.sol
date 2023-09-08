@@ -11,7 +11,7 @@ import "../../LoanTokenLogicStandard.sol";
 contract LoanTokenMintAndBurnWrbtc is LoanTokenLogicStandard {
     /**
      * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
-     * Every new public function, the sginature needs to be included in this function.
+     * Every new public function, the signature needs to be included in this function.
      *
      * @dev This function will return the list of function signature in this contract that are available for public call
      * Then this function will be called by LoanTokenLogicBeacon, and the function signatures will be registred in LoanTokenLogicBeacon.
