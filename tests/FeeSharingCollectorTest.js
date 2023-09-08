@@ -2128,46 +2128,12 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it("Shouldn't be able to withdraw without checkpoints (for token pool) - using claimAllCollectedFees()", async () => {
-            await protocolDeploymentFixture();
-            await expectRevert(
-                feeSharingCollector.claimAllCollectedFees(
-                    [loanToken.address],
-                    [],
-                    [],
-                    0,
-                    account2,
-                    {
-                        from: account1,
-                    }
-                ),
-                "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
-            );
-        });
-
         it("Shouldn't be able to withdraw without checkpoints (for wRBTC pool)", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollector.withdraw(loanTokenWrbtc.address, 0, account2, {
                     from: account1,
                 }),
-                "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
-            );
-        });
-
-        it("Shouldn't be able to withdraw without checkpoints (for wRBTC pool) - using claimAllCollectedFees()", async () => {
-            await protocolDeploymentFixture();
-            await expectRevert(
-                feeSharingCollector.claimAllCollectedFees(
-                    [loanTokenWrbtc.address],
-                    [],
-                    [],
-                    0,
-                    account2,
-                    {
-                        from: account1,
-                    }
-                ),
                 "FeeSharingCollector::withdraw: _maxCheckpoints should be positive"
             );
         });

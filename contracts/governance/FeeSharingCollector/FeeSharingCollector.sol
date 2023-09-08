@@ -510,19 +510,7 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints,
         address _receiver
     ) external nonReentrant {
-        /** Process token with skipped checkpoints withdrawal */
         uint256 totalProcessedCheckpoints;
-        if (_tokensWithSkippedCheckpoints.length > 0) {
-            totalProcessedCheckpoints = _withdrawStartingFromCheckpoints(
-                _tokensWithSkippedCheckpoints,
-                _maxCheckpoints,
-                _receiver
-            );
-            _maxCheckpoints = safe32(
-                _maxCheckpoints - totalProcessedCheckpoints,
-                "FeeSharingCollector: maxCheckpoint iteration exceeds 32 bits"
-            );
-        }
 
         /** Process normal multiple withdrawal for RBTC based tokens */
         if (_rbtcTokensRegularWithdraw.length > 0) {
@@ -539,6 +527,7 @@ contract FeeSharingCollector is
 
         /** Process normal non-rbtc token withdrawal */
         for (uint256 i = 0; i < _nonRbtcTokensRegularWithdraw.length; i++) {
+            if (_maxCheckpoints == 0) break;
             uint256 endTokenCheckpoint;
 
             address _nonRbtcTokenAddress = _nonRbtcTokensRegularWithdraw[i];
@@ -555,6 +544,19 @@ contract FeeSharingCollector is
 
             _maxCheckpoints = safe32(
                 _maxCheckpoints - _previousUsedCheckpoint,
+                "FeeSharingCollector: maxCheckpoint iteration exceeds 32 bits"
+            );
+        }
+
+        /** Process token with skipped checkpoints withdrawal */
+        if (_tokensWithSkippedCheckpoints.length > 0) {
+            totalProcessedCheckpoints = _withdrawStartingFromCheckpoints(
+                _tokensWithSkippedCheckpoints,
+                _maxCheckpoints,
+                _receiver
+            );
+            _maxCheckpoints = safe32(
+                _maxCheckpoints - totalProcessedCheckpoints,
                 "FeeSharingCollector: maxCheckpoint iteration exceeds 32 bits"
             );
         }
