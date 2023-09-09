@@ -175,7 +175,7 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
         IERC20[] defaultPath
     );
 
-    event SetPauser(address indexed sender, address indexed oldPauser, address indexed newPauser);
-
     event SetAdmin(address indexed sender, address indexed oldAdmin, address indexed newAdmin);
+
+    event SetPauser(address indexed sender, address indexed oldPauser, address indexed newPauser);
 }

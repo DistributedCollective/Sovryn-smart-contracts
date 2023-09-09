@@ -53,7 +53,8 @@ task("sips:create", "Create SIP to Sovryn Governance")
         "argsFunc",
         "Function name from tasks/sips/args/sipArgs.ts which returns the sip arguments"
     )
-    .setAction(async ({ argsFunc }, hre) => {
+    .addOptionalParam("signer", "Signer named account: 'signer', 'deployer' etc.", "deployer")
+    .setAction(async ({ argsFunc, signer }, hre) => {
         const { governor: governorName, args: sipArgs } = await sipArgsList[argsFunc](hre);
         const {
             ethers,
@@ -61,7 +62,9 @@ task("sips:create", "Create SIP to Sovryn Governance")
         } = hre;
 
         const governorDeployment = await get(governorName);
-        const governor = await ethers.getContract(governorName);
+        const signerAddress = (await hre.getNamedAccounts())[signer];
+        const signerAcc = await ethers.getSigner(signerAddress);
+        const governor = await ethers.getContract(governorName, signerAcc);
 
         logger.info("=== Creating SIP ===");
         logger.info(`Governor Address:    ${governorDeployment.address}`);
