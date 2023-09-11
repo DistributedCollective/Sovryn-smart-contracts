@@ -6,9 +6,9 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../../LoanTokenLogicTrade.sol";
+import "../../LoanTokenLogicStandard.sol";
 
-contract LoanTokenLogicWrbtc is LoanTokenLogicTrade {
+contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
     /**
      * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
      * Every new public function, the signature needs to be included in this function.

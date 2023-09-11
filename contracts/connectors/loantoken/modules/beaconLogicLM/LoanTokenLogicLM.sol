@@ -6,9 +6,9 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../../LoanTokenLogicTrade.sol";
+import "../../LoanTokenLogicStandard.sol";
 
-contract LoanTokenLogicLM is LoanTokenLogicTrade {
+contract LoanTokenLogicLM is LoanTokenLogicStandard {
     /**
      * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
      * Every new public function, the signature needs to be included in this function.
@@ -57,7 +57,7 @@ contract LoanTokenLogicLM is LoanTokenLogicTrade {
         // Loan Token LM & OVERLOADING function
         /**
          * @notice BE CAREFUL,
-         * LoanTokenLogicStandard also has mint & burn function (overloading).
+         * LoanTokenMintAndBurn also has mint & burn function (overloading).
          * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
          */
 

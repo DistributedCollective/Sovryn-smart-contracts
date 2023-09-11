@@ -26,10 +26,10 @@ const func = async function (hre) {
     const loanTokenLogicWRBTCDeployment = await get("LoanTokenLogicWrbtc");
     const loanTokenSettingsLowerAdminDeployment = await get("LoanTokenSettingsLowerAdmin");
     const loanTokenMintAndBurnDeployment = await get("LoanTokenMintAndBurn");
-    const loanTokenMintAndBurnWRBTCDeployment = await get("LoanTokenMintAndBurnWrbtc");
+    const loanTokenMintAndBurnWrbtcDeployment = await get("LoanTokenMintAndBurnWrbtc");
 
     const loanTokenLogicBeaconLMContract = await ethers.getContract("LoanTokenLogicBeaconLM");
-    const loanTokenLogicBeaconWRBTCContract = await ethers.getContract(
+    const loanTokenLogicBeaconWrbtcContract = await ethers.getContract(
         "LoanTokenLogicBeaconWRBTC"
     );
 
@@ -169,10 +169,10 @@ const func = async function (hre) {
         }
 
         /** 4. Registering function signature to the LoanTokenLogicBeaconWRBTC */
-        activeModuleIndex = await loanTokenLogicBeaconWRBTCContract.activeModuleIndex(
+        activeModuleIndex = await loanTokenLogicBeaconWrbtcContract.activeModuleIndex(
             ethers.utils.formatBytes32String(modulesList.LoanTokenLogicWrbtc)
         );
-        moduleImplAddress = await loanTokenLogicBeaconWRBTCContract.moduleUpgradeLog(
+        moduleImplAddress = await loanTokenLogicBeaconWrbtcContract.moduleUpgradeLog(
             ethers.utils.formatBytes32String(modulesList.LoanTokenLogicWrbtc),
             activeModuleIndex
         );
@@ -210,16 +210,16 @@ const func = async function (hre) {
         }
 
         /** 5. Registering Loan Token Mint and Burn Wrbtc Module to LoanTokenLogicBeaconWrbtc */
-        activeModuleIndex = await loanTokenLogicBeaconWRBTCContract.activeModuleIndex(
+        activeModuleIndex = await loanTokenLogicBeaconWrbtcContract.activeModuleIndex(
             ethers.utils.formatBytes32String(modulesList.LoanTokenMintAndBurnWrbtc)
         );
-        moduleImplAddress = await loanTokenLogicBeaconWRBTCContract.moduleUpgradeLog(
+        moduleImplAddress = await loanTokenLogicBeaconWrbtcContract.moduleUpgradeLog(
             ethers.utils.formatBytes32String(modulesList.LoanTokenMintAndBurnWrbtc),
             activeModuleIndex
         );
         if (
             moduleImplAddress["implementation"].toLowerCase() !==
-            loanTokenMintAndBurnWRBTCDeployment.address.toLowerCase()
+            loanTokenMintAndBurnWrbtcDeployment.address.toLowerCase()
         ) {
             log(
                 col.bgYellow(
@@ -228,7 +228,7 @@ const func = async function (hre) {
             );
 
             data = loanTokenLogicBeaconLMInterface.encodeFunctionData("registerLoanTokenModule", [
-                loanTokenMintAndBurnWRBTCDeployment.address,
+                loanTokenMintAndBurnWrbtcDeployment.address,
             ]);
 
             log(
@@ -254,10 +254,10 @@ const func = async function (hre) {
         }
 
         /** 6. Registering Loan Protocol Settings Module to LoanTokenLogicBeaconWrbtc */
-        activeModuleIndex = await loanTokenLogicBeaconWRBTCContract.activeModuleIndex(
+        activeModuleIndex = await loanTokenLogicBeaconWrbtcContract.activeModuleIndex(
             ethers.utils.formatBytes32String(modulesList.LoanTokenSettingsLowerAdmin)
         );
-        moduleImplAddress = await loanTokenLogicBeaconWRBTCContract.moduleUpgradeLog(
+        moduleImplAddress = await loanTokenLogicBeaconWrbtcContract.moduleUpgradeLog(
             ethers.utils.formatBytes32String(modulesList.LoanTokenSettingsLowerAdmin),
             activeModuleIndex
         );
@@ -307,14 +307,14 @@ const func = async function (hre) {
         await loanTokenLogicBeaconLMContract.registerLoanTokenModule(
             loanTokenMintAndBurnDeployment.address
         );
-        await loanTokenLogicBeaconWRBTCContract.registerLoanTokenModule(
+        await loanTokenLogicBeaconWrbtcContract.registerLoanTokenModule(
             loanTokenLogicWRBTCDeployment.address
         );
-        await loanTokenLogicBeaconWRBTCContract.registerLoanTokenModule(
+        await loanTokenLogicBeaconWrbtcContract.registerLoanTokenModule(
             loanTokenSettingsLowerAdminDeployment.address
         );
-        await loanTokenLogicBeaconWRBTCContract.registerLoanTokenModule(
-            loanTokenMintAndBurnWRBTCDeployment.address
+        await loanTokenLogicBeaconWrbtcContract.registerLoanTokenModule(
+            loanTokenMintAndBurnWrbtcDeployment.address
         );
     }
 };

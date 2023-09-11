@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogicLM.sol";
 
-contract LoanTokenLogicLMV1Mockup is LoanTokenLogicTrade {
+contract LoanTokenLogicLMV1Mockup is LoanTokenLogicStandard {
     function getListFunctionSignatures()
         external
         pure
@@ -49,7 +49,7 @@ contract LoanTokenLogicLMV1Mockup is LoanTokenLogicTrade {
     }
 }
 
-contract LoanTokenLogicLMV2Mockup is LoanTokenLogicTrade {
+contract LoanTokenLogicLMV2Mockup is LoanTokenLogicStandard {
     function testNewFunction() external pure returns (bool) {
         return true;
     }
