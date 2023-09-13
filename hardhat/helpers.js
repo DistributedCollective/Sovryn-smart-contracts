@@ -1,4 +1,5 @@
 const Logs = require("node-logs");
+const { sendWithMultisig } = require("../deployment/helpers/helpers");
 const logger = new Logs().showInConsole(true);
 
 const sourceContractTypesToValidate = {
@@ -110,6 +111,82 @@ const validateAmmOnchainAddresses = async function (deploymentTarget) {
     return true;
 };
 
+const transferOwnershipAMMContractsToGovernance = async (
+    contractAddress,
+    newOwnerAddress,
+    signerAcc,
+    contractName = ""
+) => {
+    const {
+        deployments: { get },
+        ethers,
+    } = hre;
+
+    const ownershipInterface = new ethers.utils.Interface([
+        {
+            constant: false,
+            inputs: [{ name: "_newOwner", type: "address" }],
+            name: "transferOwnership",
+            outputs: [],
+            payable: false,
+            stateMutability: "nonpayable",
+            type: "function",
+        },
+        {
+            constant: true,
+            inputs: [],
+            name: "owner",
+            outputs: [
+                {
+                    internalType: "address",
+                    name: "",
+                    type: "address",
+                },
+            ],
+            payable: false,
+            stateMutability: "view",
+            type: "function",
+        },
+    ]);
+    const ammContract = await ethers.getContractAt(ownershipInterface, contractAddress);
+    const multisig = await get("MultiSigWallet");
+
+    if (contractName) {
+        logger.info(`Verifying contract address for ${contractName}`);
+        const ammContractRegistry = await get("AmmContractRegistry");
+        const ammContractRegistryInterface = new ethers.utils.Interface(ammContractRegistry.abi);
+        const ammRegistryContract = await ethers.getContractAt(
+            ammContractRegistryInterface,
+            ammContractRegistry.address
+        );
+        const onchainContractAddress = await ammRegistryContract.addressOf(
+            ethers.utils.formatBytes32String(contractName)
+        );
+
+        if (contractAddress.toUpperCase() !== onchainContractAddress.toUpperCase()) {
+            logger.error(
+                `Unmatched contract address with the on-chain for ${contractName}, local: ${contractAddress}, onchain: ${onchainContractAddress}`
+            );
+            return false;
+        }
+    }
+
+    const currentOwner = await ammContract.owner();
+    if (currentOwner.toUpperCase() !== multisig.address.toUpperCase()) {
+        logger.error(`Multisig is not the owner, the onchain owner is ${currentOwner}`);
+        return false;
+    }
+
+    logger.info(
+        `Transferring ownership for ${contractName} (${contractAddress}) from ${multisig.address} to ${newOwnerAddress}`
+    );
+    let data = ownershipInterface.encodeFunctionData("transferOwnership", [newOwnerAddress]);
+    await sendWithMultisig(multisig.address, ammContract.address, data, signerAcc);
+
+    return true;
+};
+
 module.exports = {
     validateAmmOnchainAddresses,
+    transferOwnershipAMMContractsToGovernance,
 };
