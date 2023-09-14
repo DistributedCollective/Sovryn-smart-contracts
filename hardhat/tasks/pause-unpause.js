@@ -246,8 +246,8 @@ const loanTokenFunctionsPauseUnpause = async (
     let tokens = loanTokensListParam.split(",");
     let functions = functionsListParam.split(",");
 
-    const iface = new ethers.utils.Interface(["function togglePaused(bool paused)"]);
-    let data = await iface.encodeFunctionData("togglePaused", [bool]);
+    const iface = new ethers.utils.Interface(["function toggleFunctionPause(bool paused)"]);
+    let data = await iface.encodeFunctionData("toggleFunctionPause", [bool]);
 
     for (let loanTokenDeploymentName of tokens) {
         const loanToken = await ethers.getContract(loanTokenDeploymentName);
