@@ -2319,8 +2319,10 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(allUserFees.length).to.equal(1);
             expect(allUserFees[0].toString()).to.equal(fees.toString());
 
-            let tx = await feeSharingCollector.withdrawRbtcTokens(
+            let tx = await feeSharingCollector.claimAllCollectedFees(
+                [],
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                [],
                 1000,
                 ZERO_ADDRESS,
                 {
@@ -2397,8 +2399,10 @@ contract("FeeSharingCollector:", (accounts) => {
                 feesIndex++;
             }
 
-            let tx = await feeSharingCollector.withdrawRbtcTokens(
+            let tx = await feeSharingCollector.claimAllCollectedFees(
+                [],
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                [],
                 1000,
                 ZERO_ADDRESS,
                 {
@@ -2475,8 +2479,10 @@ contract("FeeSharingCollector:", (accounts) => {
                 feesIndex++;
             }
 
-            let tx = await feeSharingCollector.withdrawRbtcTokens(
+            let tx = await feeSharingCollector.claimAllCollectedFees(
+                [],
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                [],
                 1000,
                 ZERO_ADDRESS,
                 {
@@ -2553,8 +2559,10 @@ contract("FeeSharingCollector:", (accounts) => {
                 feesIndex++;
             }
 
-            let tx = await feeSharingCollector.withdrawRbtcTokens(
+            let tx = await feeSharingCollector.claimAllCollectedFees(
+                [],
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                [],
                 1000,
                 ZERO_ADDRESS,
                 {
@@ -2631,8 +2639,10 @@ contract("FeeSharingCollector:", (accounts) => {
                 feesIndex++;
             }
 
-            let tx = await feeSharingCollector.withdrawRbtcTokens(
+            let tx = await feeSharingCollector.claimAllCollectedFees(
+                [],
                 [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                [],
                 2,
                 ZERO_ADDRESS,
                 {
