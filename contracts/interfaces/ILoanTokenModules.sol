@@ -166,6 +166,10 @@ interface ILoanTokenModules {
 
     function getLiquidityMiningAddress() external view returns (address);
 
+    function setStakingContractAddress(address _stakingContractAddress) external;
+
+    function getStakingContractAddress() external view returns (address);
+
     function getEstimatedMarginDetails(
         uint256 leverageAmount,
         uint256 loanTokenSent,

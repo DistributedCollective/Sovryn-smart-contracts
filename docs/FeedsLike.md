@@ -2,7 +2,7 @@
 
 View Source: [contracts/connectors/loantoken/interfaces/FeedsLike.sol](../contracts/connectors/loantoken/interfaces/FeedsLike.sol)
 
-**FeedsLike**
+## **FeedsLike** contract
 
 ## Functions
 
@@ -51,7 +51,6 @@ function queryRate(address sourceTokenAddress, address destTokenAddress)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

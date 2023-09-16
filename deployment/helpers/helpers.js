@@ -41,6 +41,14 @@ const getStakingModulesNames = () => {
     };
 };
 
+const getLoanTokenModulesNames = () => {
+    return {
+        LoanTokenLogicLM: "LoanTokenLogicLM",
+        LoanTokenLogicWrbtc: "LoanTokenLogicWrbtc",
+        LoanTokenSettingsLowerAdmin: "LoanTokenSettingsLowerAdmin",
+    };
+};
+
 const stakingRegisterModuleWithMultisig = () => {
     return process.env.STAKING_REG_WITH_MULTISIG == "true";
 };
@@ -547,6 +555,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
     getStakingModulesNames,
+    getLoanTokenModulesNames,
     stakingRegisterModuleWithMultisig,
     parseEthersLog,
     getEthersLog,

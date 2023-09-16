@@ -4,7 +4,7 @@ View Source: [contracts/connectors/loantoken/LoanToken.sol](../contracts/connect
 
 **↗ Extends: [AdvancedTokenStorage](AdvancedTokenStorage.md)**
 
-**LoanToken**
+## **LoanToken** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -283,7 +283,6 @@ function initialize(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

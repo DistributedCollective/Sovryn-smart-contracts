@@ -5,7 +5,7 @@ View Source: [contracts/governance/Vesting/fouryear/FourYearVesting.sol](../cont
 
 **↗ Extends: [FourYearVestingStorage](FourYearVestingStorage.md), [UpgradableProxy](UpgradableProxy.md)**
 
-**FourYearVesting**
+## **FourYearVesting** contract
 
 A four year vesting contract.
  *
@@ -73,7 +73,7 @@ constructor(
 
 > ### setImplementation
 
-undefined
+⤾ overrides [UpgradableProxy.setImplementation](UpgradableProxy.md#setimplementation)
 
 Set address of the implementation - vesting owner.
 
@@ -116,7 +116,6 @@ function setImplementation(address _implementation) public onlyProxyOwner {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

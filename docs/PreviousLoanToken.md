@@ -4,7 +4,7 @@ View Source: [contracts/mockup/previousLoanToken/PreviousLoanToken.sol](../contr
 
 **↗ Extends: [AdvancedTokenStorage](AdvancedTokenStorage.md)**
 
-**PreviousLoanToken**
+## **PreviousLoanToken** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -251,7 +251,6 @@ function initialize(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -5,7 +5,7 @@ View Source: [contracts/governance/Vesting/VestingRegistry.sol](../contracts/gov
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**VestingRegistry**
+## **VestingRegistry** contract
 
 On January 25, 2020, Sovryn launched the Genesis Reservation system.
 Sovryn community members who controlled a special NFT were granted access to
@@ -918,7 +918,6 @@ function _getOrCreateTeamVesting(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

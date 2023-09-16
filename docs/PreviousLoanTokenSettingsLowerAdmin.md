@@ -4,7 +4,7 @@ View Source: [contracts/mockup/previousLoanToken/PreviousLoanTokenSettingsLowerA
 
 **↗ Extends: [AdvancedTokenStorage](AdvancedTokenStorage.md)**
 
-**PreviousLoanTokenSettingsLowerAdmin**
+## **PreviousLoanTokenSettingsLowerAdmin** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -329,7 +329,6 @@ function setTransactionLimits(address[] memory addresses, uint256[] memory limit
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

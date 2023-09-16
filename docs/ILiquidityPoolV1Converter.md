@@ -2,7 +2,7 @@
 
 View Source: [contracts/feeds/IV1PoolOracle.sol](../contracts/feeds/IV1PoolOracle.sol)
 
-**ILiquidityPoolV1Converter**
+## **ILiquidityPoolV1Converter** contract
 
 ## Functions
 
@@ -142,7 +142,6 @@ function reserveTokens(uint256 index) external view returns (address);
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

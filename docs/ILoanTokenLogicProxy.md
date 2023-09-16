@@ -2,7 +2,7 @@
 
 View Source: [contracts/interfaces/ILoanTokenLogicProxy.sol](../contracts/interfaces/ILoanTokenLogicProxy.sol)
 
-**ILoanTokenLogicProxy**
+## **ILoanTokenLogicProxy** contract
 
 ## Functions
 
@@ -64,7 +64,6 @@ function setBeaconAddress(address _newBeaconAddress) external;
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

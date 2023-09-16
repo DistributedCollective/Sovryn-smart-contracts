@@ -28,6 +28,7 @@
 	],
 	"devDependencies": {
 		"@defi-wonderland/smock": "^2.3.4",
+		"@nomicfoundation/hardhat-foundry": "^1.0.2",
 		"@nomicfoundation/hardhat-network-helpers": "^1.0.8",
 		"@nomicfoundation/hardhat-toolbox": "^2.0.2",
 		"@nomiclabs/hardhat-ethers": "^2.2.2",
@@ -35,11 +36,11 @@
 		"@nomiclabs/hardhat-truffle5": "^2.0.0",
 		"@nomiclabs/hardhat-web3": "^2.0.0",
 		"@openzeppelin/test-helpers": "^0.5.16",
+		"@secrez/cryptoenv": "^0.2.4",
 		"bignumber.js": "^9.0.0",
 		"cli-color": "^2.0.3",
 		"coveralls": "^3.1.0",
 		"cross-env": "^7.0.3",
-		"cryptoenv": "^0.2.0",
 		"csv-parser": "^3.0.0",
 		"decimal.js": "10.2.0",
 		"dotenv": "^16.0.3",
@@ -95,7 +96,8 @@
 		"fork:rsk-testnet": "hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy",
 		"hh:console-fork-mainnet": "hardhat console --network rskForkedMainnet",
 		"hh:console-fork-testnet": "hardhat console --network rskForkedTestnet",
-		"deploy:staking-modules": "hardhat deploy --tags StakingModules"
+		"deploy:staking-modules": "hardhat deploy --tags StakingModules",
+		"analyze:staking-modules": "slither contracts/governance/Staking/modules/ --exclude naming-convention"
 	},
 	"husky": {
 		"hooks": {

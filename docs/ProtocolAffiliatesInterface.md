@@ -2,7 +2,7 @@
 
 View Source: [contracts/modules/interfaces/ProtocolAffiliatesInterface.sol](../contracts/modules/interfaces/ProtocolAffiliatesInterface.sol)
 
-**ProtocolAffiliatesInterface**
+## **ProtocolAffiliatesInterface** contract
 
 ## Functions
 
@@ -126,7 +126,6 @@ function payTradingFeeToAffiliatesReferrer(
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

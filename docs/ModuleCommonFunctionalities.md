@@ -5,7 +5,7 @@ View Source: [contracts/mixins/ModuleCommonFunctionalities.sol](../contracts/mix
 **↗ Extends: [State](State.md)**
 **↘ Derived Contracts: [Affiliates](Affiliates.md), [LoanClosingsShared](LoanClosingsShared.md), [LoanMaintenance](LoanMaintenance.md), [LoanOpenings](LoanOpenings.md), [LoanSettings](LoanSettings.md), [ProtocolSettings](ProtocolSettings.md), [SwapsExternal](SwapsExternal.md)**
 
-**ModuleCommonFunctionalities**
+## **ModuleCommonFunctionalities** contract
 
 ## Modifiers
 
@@ -35,7 +35,6 @@ modifier whenNotPaused() internal
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

@@ -5,7 +5,7 @@ View Source: [contracts/governance/Vesting/TokenSender.sol](../contracts/governa
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**TokenSender**
+## **TokenSender** contract
 
 This contract includes functions to transfer SOV tokens
 to a recipient or to several recipients in a list. There is
@@ -235,7 +235,6 @@ function _transferSOV(address _receiver, uint256 _amount) internal {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

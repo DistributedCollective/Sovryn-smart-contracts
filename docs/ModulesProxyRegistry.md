@@ -5,7 +5,7 @@ View Source: [contracts/proxy/modules/ModulesProxyRegistry.sol](../contracts/pro
 **↗ Extends: [IModulesProxyRegistry](IModulesProxyRegistry.md), [ProxyOwnable](ProxyOwnable.md)**
 **↘ Derived Contracts: [ModulesProxy](ModulesProxy.md)**
 
-**ModulesProxyRegistry**
+## **ModulesProxyRegistry** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -835,7 +835,6 @@ function _getFunctionsList() internal pure returns (bytes4[] memory) {
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)

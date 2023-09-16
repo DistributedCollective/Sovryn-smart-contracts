@@ -24,3 +24,6 @@ types/
 venv/
 deployment/deployments
 tmp/
+out/
+foundry/forge-std
+cache_forge/

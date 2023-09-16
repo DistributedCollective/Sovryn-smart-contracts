@@ -5,7 +5,7 @@ View Source: [contracts/events/LoanMaintenanceEvents.sol](../contracts/events/Lo
 **↗ Extends: [ModulesCommonEvents](ModulesCommonEvents.md)**
 **↘ Derived Contracts: [ISovryn](ISovryn.md), [LoanMaintenance](LoanMaintenance.md)**
 
-**LoanMaintenanceEvents**
+## **LoanMaintenanceEvents** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -35,7 +35,6 @@ event DepositCollateral(bytes32 indexed loanId, uint256  depositAmount, uint256 
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
