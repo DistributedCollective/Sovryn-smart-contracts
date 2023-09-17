@@ -246,8 +246,8 @@ const loanTokenFunctionsPauseUnpause = async (
     let tokens = loanTokensListParam.split(",");
     let functions = functionsListParam.split(",");
 
-    const iface = new ethers.utils.Interface(["function togglePaused(bool paused)"]);
-    let data = await iface.encodeFunctionData("togglePaused", [bool]);
+    const iface = new ethers.utils.Interface(["function toggleFunctionPause(bool paused)"]);
+    let data = await iface.encodeFunctionData("toggleFunctionPause", [bool]);
 
     for (let loanTokenDeploymentName of tokens) {
         const loanToken = await ethers.getContract(loanTokenDeploymentName);
@@ -281,18 +281,17 @@ const loanTokensList = [
     "LoanToken_iDLLR",
 ];
 
-task("pausing:print-lp-functions-paused", "Log Lending Pools functions paused/unpaused")
+task("pausing:is-lending-pool-functions-paused", "Log Lending Pools functions paused/unpaused")
     .addOptionalParam(
         "names",
         "Loan Tokens Deployment name(s): a single lending pool name or a list, e.g. 'LoanToken_iDOC,LoanToken_iRBTC,'",
         loanTokensList.toString()
     )
-    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .setAction(async ({ names }, hre) => {
         await printLoanTokenFunctionsPaused(hre, names);
     });
 
-task("pausing:pause-unpause-lp-functions", "Pause/unpause Lending Pools functions")
+task("pausing:pause-unpause-lending-pool-functions", "Pause/unpause Lending Pools functions")
     .addOptionalParam(
         "tokens",
         "Loan Tokens Deployment name(s): a single lending pool name or a list, e.g. 'LoanToken_iDOC,LoanToken_iRBTC'",

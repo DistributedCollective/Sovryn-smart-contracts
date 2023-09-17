@@ -45,6 +45,11 @@ contract FeeSharingCollectorStorage is Ownable {
         uint96 numTokens;
     }
 
+    struct TokenWithSkippedCheckpointsWithdraw {
+        address tokenAddress;
+        uint256 fromCheckpoint;
+    }
+
     /**
      * @dev Add extra modifier (Reentrancy) below.
      * Because we cannot add any additional storage slot before this storage contract after initial deployment
