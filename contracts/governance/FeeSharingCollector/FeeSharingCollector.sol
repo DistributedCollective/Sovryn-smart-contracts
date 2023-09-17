@@ -705,6 +705,32 @@ contract FeeSharingCollector is
             bool hasFees
         )
     {
+        return _getNextPositiveUserCheckpoint(_user, _token, _startFrom, _maxCheckpoints);
+    }
+
+    /**
+     * @dev Returns first user's checkpoint with weighted stake > 0
+     *
+     * @param _user The address of the user or contract.
+     * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
+     * @param _startFrom Checkpoint number to start from. If _startFrom < processedUserCheckpoints then starts from processedUserCheckpoints.
+     * @param _maxCheckpoints Max checkpoints to process in a row to avoid timeout error
+     * @return [checkpointNum: checkpoint number where user's weighted stake > 0, hasSkippedCheckpoints, hasFees]
+     */
+    function _getNextPositiveUserCheckpoint(
+        address _user,
+        address _token,
+        uint256 _startFrom,
+        uint256 _maxCheckpoints
+    )
+        internal
+        view
+        returns (
+            uint256 checkpointNum,
+            bool hasSkippedCheckpoints,
+            bool hasFees
+        )
+    {
         if (staking.isVestingContract(_user)) {
             return (0, false, false);
         }
@@ -780,6 +806,50 @@ contract FeeSharingCollector is
         uint256 amount;
         (amount, ) = _getAccumulatedFees(_user, _token, _startFrom, _maxCheckpoints);
         return amount;
+    }
+
+    /**
+     * @dev Get all user fees reward per maxCheckpoint starting from latest processed checkpoint
+     *
+     * @dev e.g: Total user checkpoint for the particualar token = 300,
+     * when we call this function with 50 maxCheckpoint, it will return 6 fee values in array form.
+     * if there is no more fees, it will return empty array.
+     *
+     * @param _user The address of a user (staker) or contract.
+     * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
+     * @param _startFrom Checkpoint to start calculating fees from.
+     * @param _maxCheckpoints maxCheckpoints to get accumulated fees for the _user
+     * @return The next checkpoint num which is the starting point to fetch all of the fees, array of calculated fees.
+     * */
+    function getAllUserFeesPerMaxCheckpoints(
+        address _user,
+        address _token,
+        uint256 _startFrom,
+        uint32 _maxCheckpoints
+    ) external view returns (uint256[] memory fees) {
+        require(_maxCheckpoints > 0, "_maxCheckpoints must be > 0");
+
+        uint256 totalCheckpoints = totalTokenCheckpoints[_token];
+        uint256 totalTokensCheckpointsIndex = totalCheckpoints > 0 ? totalCheckpoints - 1 : 0;
+
+        if (totalTokensCheckpointsIndex < _startFrom) return fees;
+
+        uint256 arrSize = totalTokensCheckpointsIndex.sub(_startFrom).div(_maxCheckpoints) + 1;
+
+        fees = new uint256[](arrSize);
+
+        for (uint256 i = 0; i < fees.length; i++) {
+            (uint256 fee, ) =
+                _getAccumulatedFees(
+                    _user,
+                    _token,
+                    _startFrom + i * _maxCheckpoints,
+                    _maxCheckpoints
+                );
+            fees[i] = fee;
+        }
+
+        return fees;
     }
 
     /**
