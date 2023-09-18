@@ -24,11 +24,8 @@ const validateAmmOnchainAddresses = async function (deploymentTarget) {
         deploymentTarget.sourceContractTypeToValidate ===
         sourceContractTypesToValidate.ContractRegistry
     ) {
-        const ammContractRegistry = await get(deploymentTarget.sourceContractNameToValidate);
-        const ammContractRegistryInterface = new ethers.utils.Interface(ammContractRegistry.abi);
-        const ammRegistryContract = await ethers.getContractAt(
-            ammContractRegistryInterface,
-            ammContractRegistry.address
+        const ammRegistryContract = await ethers.getContract(
+            deploymentTarget.sourceContractNameToValidate
         );
         const AmmSovrynSwapNetwork = deploymentTarget.contractName;
         const registeredAddressOnchain = await ammRegistryContract.addressOf(
@@ -44,12 +41,8 @@ const validateAmmOnchainAddresses = async function (deploymentTarget) {
     } else if (
         deploymentTarget.sourceContractTypeToValidate === sourceContractTypesToValidate.ConverterV1
     ) {
-        const ammConverter = await get(deploymentTarget.sourceContractNameToValidate);
-        const ammConverterInterface = new ethers.utils.Interface(ammConverter.abi);
-
-        const ammConverterContract = await ethers.getContractAt(
-            ammConverterInterface,
-            ammConverter.address
+        const ammConverterContract = await ethers.getContract(
+            deploymentTarget.sourceContractNameToValidate
         );
         const registeredAddressOnchain = await ammConverterContract.oracle();
 
@@ -122,43 +115,17 @@ const transferOwnershipAMMContractsToGovernance = async (
         ethers,
     } = hre;
 
-    const ownershipInterface = new ethers.utils.Interface([
-        {
-            constant: false,
-            inputs: [{ name: "_newOwner", type: "address" }],
-            name: "transferOwnership",
-            outputs: [],
-            payable: false,
-            stateMutability: "nonpayable",
-            type: "function",
-        },
-        {
-            constant: true,
-            inputs: [],
-            name: "owner",
-            outputs: [
-                {
-                    internalType: "address",
-                    name: "",
-                    type: "address",
-                },
-            ],
-            payable: false,
-            stateMutability: "view",
-            type: "function",
-        },
-    ]);
+    const ownershipABI = [
+        "function transferOwnership(address _newOwner)",
+        "function owner() view returns(address)",
+    ];
+    const ownershipInterface = new ethers.utils.Interface(ownershipABI);
     const ammContract = await ethers.getContractAt(ownershipInterface, contractAddress);
     const multisig = await get("MultiSigWallet");
 
     if (contractName) {
         logger.info(`Verifying contract address for ${contractName}`);
-        const ammContractRegistry = await get("AmmContractRegistry");
-        const ammContractRegistryInterface = new ethers.utils.Interface(ammContractRegistry.abi);
-        const ammRegistryContract = await ethers.getContractAt(
-            ammContractRegistryInterface,
-            ammContractRegistry.address
-        );
+        const ammRegistryContract = await ethers.getContract("AmmContractRegistry");
         const onchainContractAddress = await ammRegistryContract.addressOf(
             ethers.utils.formatBytes32String(contractName)
         );

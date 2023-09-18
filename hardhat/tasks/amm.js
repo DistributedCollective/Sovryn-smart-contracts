@@ -213,7 +213,7 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
         );
         for (let timeLockOwnerListTransfer of timeLockOwnerListTransfers) {
             logger.info(
-                `=== Transferring ownership of ${timeLockAdminListTransfer.contractAddress} ===`
+                `=== Transferring ownership of ${timeLockOwnerListTransfer.contractAddress} ===`
             );
             const isTransferOwnershipSuccess = await transferOwnershipAMMContractsToGovernance(
                 timeLockOwnerListTransfer.contractAddress,
