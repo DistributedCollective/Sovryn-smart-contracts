@@ -578,7 +578,8 @@ def createProposalSIP00XX(newGuardian):
     data1 = stakingLogic.addPauser.encode_input(newGuardian)
     data2 = stakingLogic.removePauser.encode_input(contracts['multisig'])
     datas = ["0x" + data1[10:], "0x" + data2[10:]]
-    description = "SIP-0042: Staking Security Update, Details: https://github.com/DistributedCollective/SIPS/blob/7c1a44b/SIP-0042.md, sha256: 522e1e65c49ec028d81c3a1f94a47354c2f6287c2d90c6eec8f06dcc17a1ebcc"
+    # TODO
+    description = ""
 
     # Create Proposal
     print(signatures)
