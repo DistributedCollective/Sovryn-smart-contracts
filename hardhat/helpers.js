@@ -1,5 +1,6 @@
 const Logs = require("node-logs");
 const { sendWithMultisig } = require("../deployment/helpers/helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const logger = new Logs().showInConsole(true);
 
 const sourceContractTypesToValidate = {
@@ -7,6 +8,34 @@ const sourceContractTypesToValidate = {
     ConverterV1: "ConverterV1",
     ConverterV2: "ConverterV2",
     ConverterRegistry: "ConverterRegistry",
+};
+
+const getAmmOracleAddress = async function (converterName, converterType) {
+    const {
+        deployments: { get },
+        ethers,
+    } = hre;
+
+    if (converterType === sourceContractTypesToValidate.ConverterV1) {
+        const ammConverterContract = await ethers.getContract(converterName);
+        const registeredAddressOnchain = await ammConverterContract.oracle();
+
+        return registeredAddressOnchain;
+    } else if (converterType === sourceContractTypesToValidate.ConverterV2) {
+        const ammConverter = await get(converterName);
+        const ammConverterInterface = new ethers.utils.Interface(ammConverter.abi);
+
+        const ammConverterContract = await ethers.getContractAt(
+            ammConverterInterface,
+            ammConverter.address
+        );
+        const registeredAddressOnchain = await ammConverterContract.priceOracle();
+
+        return registeredAddressOnchain;
+    } else {
+        logger.error(`Converter type ${converterType} is invalid`);
+        return ZERO_ADDRESS;
+    }
 };
 
 const validateAmmOnchainAddresses = async function (deploymentTarget) {
@@ -154,6 +183,7 @@ const transferOwnershipAMMContractsToGovernance = async (
 };
 
 module.exports = {
+    getAmmOracleAddress,
     validateAmmOnchainAddresses,
     transferOwnershipAMMContractsToGovernance,
 };

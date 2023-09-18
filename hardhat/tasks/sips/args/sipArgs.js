@@ -1,6 +1,7 @@
 const { HardhatRuntimeEnvironment } = require("hardhat/types");
 const { getStakingModulesNames } = require("../../../../deployment/helpers/helpers");
-const { validateAmmOnchainAddresses } = require("../../../helpers");
+const { validateAmmOnchainAddresses, getAmmOracleAddress } = require("../../../helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const sampleSIP01 = async (hre) => {
     const { ethers } = hre;
@@ -260,47 +261,49 @@ const getArgsSip0067 = async (hre) => {
         },
         {
             // @todo need to check the discrepancy address between onchain with the excel one
-            deployment: await get("AmmBproOracle"),
+            deployment: "oracle",
             contractName: "BproOracle",
+            sourceContractTypeToValidate: "ConverterV2",
+            sourceContractNameToValidate: "AmmConverterBpro",
         },
         {
-            deployment: await get("AmmMocOracle"),
+            deployment: "oracle",
             contractName: "MocOracle",
             sourceContractTypeToValidate: "ConverterV1",
             sourceContractNameToValidate: "AmmConverterMoc",
         },
         {
-            deployment: await get("AmmSovOracle"),
+            deployment: "oracle",
             contractName: "SovOracle",
             sourceContractTypeToValidate: "ConverterV1",
             sourceContractNameToValidate: "AmmConverterSov",
         },
         {
-            deployment: await get("AmmEthOracle"),
+            deployment: "oracle",
             contractName: "EthOracle",
             sourceContractTypeToValidate: "ConverterV1",
             sourceContractNameToValidate: "AmmConverterEth",
         },
         {
-            deployment: await get("AmmBnbOracle"),
+            deployment: "oracle",
             contractName: "BnbOracle",
             sourceContractTypeToValidate: "ConverterV1",
             sourceContractNameToValidate: "AmmConverterBnb",
         },
         {
-            deployment: await get("AmmXusdOracle"),
+            deployment: "oracle",
             contractName: "XusdOracle",
             sourceContractTypeToValidate: "ConverterV1",
             sourceContractNameToValidate: "AmmConverterXusd",
         },
         {
-            deployment: await get("AmmFishOracle"),
+            deployment: "oracle",
             contractName: "FishOracle",
             sourceContractTypeToValidate: "ConverterV1",
             sourceContractNameToValidate: "AmmConverterFish",
         },
         {
-            deployment: await get("AmmRifOracle"),
+            deployment: "oracle",
             contractName: "RifOracle",
             sourceContractTypeToValidate: "ConverterV1",
             sourceContractNameToValidate: "AmmConverterRif",
@@ -313,10 +316,23 @@ const getArgsSip0067 = async (hre) => {
     const datas = [];
     for (let i = 0; i < deploymentTargets.length; i++) {
         deploymentTarget = deploymentTargets[i];
-        const isValid = await validateAmmOnchainAddresses(deploymentTarget);
-        if (!isValid) return process.exit;
+        if (deploymentTarget.deployment === "oracle") {
+            const oracleAddress = await getAmmOracleAddress(
+                deploymentTarget.sourceContractNameToValidate,
+                deploymentTarget.sourceContractTypeToValidate
+            );
+            if (oracleAddress === ZERO_ADDRESS) return process.exit;
+            const oracleArtifact = await deployments.getArtifact("Oracle");
+            deploymentTarget.deployment = await ethers.getContractAt(
+                oracleArtifact.abi,
+                oracleAddress
+            );
+        } else {
+            const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+            if (!isValid) return process.exit;
+        }
 
-        targets.push(deploymentTarget.address);
+        targets.push(deploymentTarget.deployment.address);
         values.push(0);
         signatures.push("acceptOwnership()");
         datas.push("0x");
@@ -340,13 +356,13 @@ const getArgsSip0068 = async (hre) => {
 
     const deploymentTargets = [
         {
-            deployment: await get("AmmMyntOracle"),
+            deployment: "oracle",
             contractName: "MyntOracle",
             sourceContractTypeToValidate: "ConverterV1",
             sourceContractNameToValidate: "AmmConverterMynt",
         },
         {
-            deployment: await get("AmmDllrOracle"),
+            deployment: "oracle",
             contractName: "DllrOracle",
             sourceContractTypeToValidate: "ConverterV1",
             sourceContractNameToValidate: "AmmConverterDllr",
@@ -381,10 +397,23 @@ const getArgsSip0068 = async (hre) => {
     const datas = [];
     for (let i = 0; i < deploymentTargets.length; i++) {
         deploymentTarget = deploymentTargets[i];
-        const isValid = await validateAmmOnchainAddresses(deploymentTarget);
-        if (!isValid) return process.exit;
+        if (deploymentTarget.deployment === "oracle") {
+            const oracleAddress = await getAmmOracleAddress(
+                deploymentTarget.sourceContractNameToValidate,
+                deploymentTarget.sourceContractTypeToValidate
+            );
+            if (oracleAddress === ZERO_ADDRESS) return process.exit;
+            const oracleArtifact = await deployments.getArtifact("Oracle");
+            deploymentTarget.deployment = await ethers.getContractAt(
+                oracleArtifact.abi,
+                oracleAddress
+            );
+        } else {
+            const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+            if (!isValid) return process.exit;
+        }
 
-        targets.push(deploymentTarget.address);
+        targets.push(deploymentTarget.deployment.address);
         values.push(0);
         signatures.push("acceptOwnership()");
         datas.push("0x");
@@ -478,7 +507,7 @@ const getArgsSip0069 = async (hre) => {
         const isValid = await validateAmmOnchainAddresses(deploymentTarget);
         if (!isValid) return process.exit;
 
-        targets.push(deploymentTarget.address);
+        targets.push(deploymentTarget.deployment.address);
         values.push(0);
         signatures.push("acceptOwnership()");
         datas.push("0x");
@@ -534,7 +563,7 @@ const getArgsSip0070 = async (hre) => {
         const isValid = await validateAmmOnchainAddresses(deploymentTarget);
         if (!isValid) return process.exit;
 
-        targets.push(deploymentTarget.address);
+        targets.push(deploymentTarget.deployment.address);
         values.push(0);
         signatures.push("acceptOwnership()");
         datas.push("0x");

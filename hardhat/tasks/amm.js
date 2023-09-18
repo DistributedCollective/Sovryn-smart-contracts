@@ -9,7 +9,8 @@ const {
     multisigAddOwner,
     multisigRemoveOwner,
 } = require("../../deployment/helpers/helpers");
-const { transferOwnershipAMMContractsToGovernance } = require("../helpers");
+const { transferOwnershipAMMContractsToGovernance, getAmmOracleAddress } = require("../helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const logger = new Logs().showInConsole(true);
 
@@ -62,6 +63,59 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
         const timelockAdmin = await get("TimelockAdmin");
         const timelockOwner = await get("TimelockOwner");
 
+        const timeLockAdminListOracleTransfers = [
+            {
+                sourceConverter: "AmmConverterBpro",
+                sourceConverterType: "ConverterV2",
+                contractName: "",
+            },
+            {
+                sourceConverter: "AmmConverterMoc",
+                sourceConverterType: "ConverterV1",
+                contractName: "",
+            },
+            {
+                sourceConverter: "AmmConverterSov",
+                sourceConverterType: "ConverterV1",
+                contractName: "",
+            },
+            {
+                sourceConverter: "AmmConverterEth",
+                sourceConverterType: "ConverterV1",
+                contractName: "",
+            },
+            {
+                sourceConverter: "AmmConverterBnb",
+                sourceConverterType: "ConverterV1",
+                contractName: "",
+            },
+            {
+                sourceConverter: "AmmConverterXusd",
+                sourceConverterType: "ConverterV1",
+                contractName: "",
+            },
+            {
+                sourceConverter: "AmmConverterFish",
+                sourceConverterType: "ConverterV1",
+                contractName: "",
+            },
+            {
+                sourceConverter: "AmmConverterRif",
+                sourceConverterType: "ConverterV1",
+                contractName: "",
+            },
+            {
+                sourceConverter: "AmmConverterMynt",
+                sourceConverterType: "ConverterV1",
+                contractName: "",
+            },
+            {
+                sourceConverter: "AmmConverterDllr",
+                sourceConverterType: "ConverterV1",
+                contractName: "",
+            },
+        ];
+
         const timeLockAdminListTransfers = [
             {
                 contractAddress: (await get("AmmSovrynSwapNetwork")).address,
@@ -70,46 +124,6 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
             {
                 contractAddress: (await get("AmmSwapSettings")).address,
                 contractName: "SwapSettings",
-            },
-            {
-                contractAddress: (await get("AmmBproOracle")).address,
-                contractName: "",
-            },
-            {
-                contractAddress: (await get("AmmMocOracle")).address,
-                contractName: "",
-            },
-            {
-                contractAddress: (await get("AmmSovOracle")).address,
-                contractName: "",
-            },
-            {
-                contractAddress: (await get("AmmEthOracle")).address,
-                contractName: "",
-            },
-            {
-                contractAddress: (await get("AmmBnbOracle")).address,
-                contractName: "",
-            },
-            {
-                contractAddress: (await get("AmmXusdOracle")).address,
-                contractName: "",
-            },
-            {
-                contractAddress: (await get("AmmFishOracle")).address,
-                contractName: "",
-            },
-            {
-                contractAddress: (await get("AmmRifOracle")).address,
-                contractName: "",
-            },
-            {
-                contractAddress: (await get("AmmMyntOracle")).address,
-                contractName: "",
-            },
-            {
-                contractAddress: (await get("AmmDllrOracle")).address,
-                contractName: "",
             },
             {
                 contractAddress: (await get("AmmConversionPathFinder")).address,
@@ -191,6 +205,30 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
                 contractName: "ConverterFactory",
             },
         ];
+
+        logger.info(
+            `=== Transferring Ownership of Oracle AMM Contracts to Governance (Timelock Admin) ===`
+        );
+        for (let timeLockAdminListOracleTransfer of timeLockAdminListOracleTransfers) {
+            const oracleAddress = await getAmmOracleAddress(
+                timeLockAdminListOracleTransfer.sourceConverter,
+                timeLockAdminListOracleTransfer.sourceConverterType
+            );
+            if (oracleAddress === ZERO_ADDRESS) {
+                logger.error(
+                    `Could not find the oracle from ${timeLockAdminListOracleTransfer.sourceConverter}`
+                );
+                break;
+            }
+            logger.info(`=== Transferring ownership of oracle ${oracleAddress} ===`);
+            const isTransferOwnershipSuccess = await transferOwnershipAMMContractsToGovernance(
+                oracleAddress,
+                timelockAdmin.address,
+                signerAcc,
+                timeLockAdminListOracleTransfer.contractName
+            );
+            if (!isTransferOwnershipSuccess) break;
+        }
 
         logger.info(
             `=== Transferring Ownership of AMM Contracts to Governance (Timelock Admin) ===`
