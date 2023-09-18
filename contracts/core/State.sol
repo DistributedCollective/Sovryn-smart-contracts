@@ -231,6 +231,11 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
         }
     }
 
+    modifier onlyAdminOrOwner() {
+        require(isOwner() || admin == (msg.sender), "unauthorized");
+        _;
+    }
+
     modifier onlyPauserOrOwner() {
         require(isOwner() || pauser == (msg.sender), "unauthorized");
         _;
