@@ -68,38 +68,6 @@ const validateAmmOnchainAddresses = async function (deploymentTarget) {
             return false;
         }
     } else if (
-        deploymentTarget.sourceContractTypeToValidate === sourceContractTypesToValidate.ConverterV1
-    ) {
-        const ammConverterContract = await ethers.getContract(
-            deploymentTarget.sourceContractNameToValidate
-        );
-        const registeredAddressOnchain = await ammConverterContract.oracle();
-
-        if (deploymentTarget.deployment.address !== registeredAddressOnchain) {
-            logger.error(
-                `unmatched onchain for contract ${deploymentTarget.contractName}, artifact: ${deploymentTarget.deployment.address}, onchain: ${registeredAddressOnchain}`
-            );
-            return false;
-        }
-    } else if (
-        deploymentTarget.sourceContractTypeToValidate === sourceContractTypesToValidate.ConverterV2
-    ) {
-        const ammConverter = await get(deploymentTarget.sourceContractNameToValidate);
-        const ammConverterInterface = new ethers.utils.Interface(ammConverter.abi);
-
-        const ammConverterContract = await ethers.getContractAt(
-            ammConverterInterface,
-            ammConverter.address
-        );
-        const registeredAddressOnchain = await ammConverterContract.priceOracle();
-
-        if (deploymentTarget.deployment.address !== registeredAddressOnchain) {
-            logger.error(
-                `unmatched onchain for contract ${deploymentTarget.contractName}, artifact: ${deploymentTarget.deployment.address}, onchain: ${registeredAddressOnchain}`
-            );
-            return false;
-        }
-    } else if (
         deploymentTarget.sourceContractTypeToValidate ===
         sourceContractTypesToValidate.ConverterRegistry
     ) {
