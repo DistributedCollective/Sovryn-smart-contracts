@@ -4,38 +4,55 @@ const { validateAmmOnchainAddresses, getAmmOracleAddress } = require("../../../h
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 
-const sampleSIP01 = async (hre) => {
-    const { ethers } = hre;
+const sampleGovernorOwnerSIP = async (hre) => {
+    /*
+        target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0037: The Sovryn Mynt: https://github.com/DistributedCollective/SIPS/blob/8bd786c/SIP-0037.md, sha256: 35904333545f2df983173e5e95a31020fbc2e3922a70f23e5bae94ee94194a3e"
+    */
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![31, 31337].includes(chainId)) {
+        throw new Error(`sampleGovernorOwnerSIP cannot run on the network ID == ${chainId}`);
+    }
     const SampleToken = await ethers.getContractFactory("ERC20");
     const args = {
-        targets: ["0x95a1CA72Df913f14Dc554a5D14E826B64Bd049FD"],
+        targets: [(await get("SOV")).address],
         values: [0],
-        signatures: ["transfer(address,uint256)"],
-        data: [
-            SampleToken.interface._abiCoder.encode(
-                ["address", "uint256"],
-                ["0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5", ethers.utils.parseEther("1")]
-            ),
-        ],
-        description: "SIP-0001: Transfer token. SHA256: ",
+        signatures: ["symbol()"],
+        data: ["0x"],
+        description:
+            "SIP-SAMPLE-GOVERNOR-OWNER: Dummy proposal - will call SOV.symbol(). SHA256: 16a581f5f5e2b22dbf2ffcfb73fce6c850d2f039d1d7aa4adae983c17f4a6953",
     };
 
-    return args;
+    return { args, governor: "GovernorOwner" };
 };
 
-const sampleSIPSetMassetManagerProxy = async (hre) => {
-    const { ethers } = hre;
-    const newMassetManagerProxy = "";
-    const dllr = await ethers.getContract("DLLR");
+const sampleGovernorAdminSIP = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![31, 31337].includes(chainId)) {
+        throw new Error(`sampleGovernorOwnerSIP cannot run on the network ID == ${chainId}`);
+    }
+    const SampleToken = await ethers.getContractFactory("ERC20");
     const args = {
-        targets: [dllr.address],
+        targets: [(await hre.deployments.get("SOV")).address],
         values: [0],
-        signatures: ["setMassetManagerProxy(address)"],
-        data: [dllr.interface._abiCoder.encode(["address"], [newMassetManagerProxy])],
-        description: "SIP-0002: Set Masset Manager Proxy. SHA256: ",
+        signatures: ["name()"],
+        data: ["0x"],
+        description:
+            "SIP-SAMPLE-GOVERNOR-ADMIN: Dummy proposal - will call SOV.name(). SHA256: 4912fe9c24aa4c050c5743dadca689769726fd61f2f996a307f2977b80e32b19 ",
     };
 
-    return args;
+    return { args, governor: "GovernorAdmin" };
 };
 
 const getArgsSip0049 = async (hre) => {
@@ -715,6 +732,8 @@ const getArgsSip0046Part4 = async (hre) => {
 };
 
 module.exports = {
+    sampleGovernorAdminSIP,
+    sampleGovernorOwnerSIP,
     getArgsSip0058,
     getArgsSip0049,
     getArgsSip0063,

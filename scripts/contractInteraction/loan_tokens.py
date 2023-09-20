@@ -578,7 +578,7 @@ def triggerFunctionEmergencyStop(loanTokenAddress, functionSignature, turnOn):
 
 def readPauser(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=interface.ILoanTokenModules.abi, owner=conf.acct)
-    print(loanToken.pauser())
+    print(loanToken.pauser.encode_input())
 
 def setPauser(loanTokenAddress, pauser):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=interface.ILoanTokenModules.abi, owner=conf.acct)
@@ -614,6 +614,10 @@ def setAdminOnLoanToken(loanTokenAddress, admin):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     data = loanToken.setAdmin.encode_input(admin)
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+def setAdminOnLoanTokenWithWallet(loanTokenAddress, admin):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    loanToken.setAdmin(admin)
 
 def readLiquidity():
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
