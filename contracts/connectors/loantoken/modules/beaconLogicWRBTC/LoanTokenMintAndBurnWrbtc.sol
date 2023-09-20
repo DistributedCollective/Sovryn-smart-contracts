@@ -28,7 +28,7 @@ contract LoanTokenMintAndBurnWrbtc is LoanTokenLogicStandard {
     {
         bytes4[] memory res = new bytes4[](4);
 
-        // Loan Token Logic Standard -- Needs to be here because there is overloading function in the Loan token LM for these.
+        // Loan Token Mint and Burn.
         res[0] = this.mint.selector;
         res[1] = this.burn.selector;
 
@@ -55,8 +55,7 @@ contract LoanTokenMintAndBurnWrbtc is LoanTokenLogicStandard {
         uint256 burnAmount,
         bool useLM
     ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
-        if (useLM) loanAmountPaid = _burnFromLM(burnAmount);
-        else loanAmountPaid = _burnToken(burnAmount);
+        loanAmountPaid = useLM ? _burnFromLM(burnAmount) : _burnToken(burnAmount);
 
         if (loanAmountPaid != 0) {
             IWrbtcERC20(wrbtcTokenAddress).withdraw(loanAmountPaid);

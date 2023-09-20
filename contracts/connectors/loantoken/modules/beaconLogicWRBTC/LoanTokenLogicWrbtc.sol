@@ -54,13 +54,6 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         res[22] = this.checkPriceDivergence.selector;
         res[23] = this.calculateSupplyInterestRate.selector;
 
-        // Loan Token LM & OVERLOADING function
-        /**
-         * @notice BE CAREFUL,
-         * LoanTokenLogicStandard also has mint & burn function (overloading).
-         * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
-         */
-
         // Advanced Token
         res[24] = this.approve.selector;
 
