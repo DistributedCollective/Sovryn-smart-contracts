@@ -227,6 +227,7 @@ contract("FeeSharingCollector:", (accounts) => {
         );
         await feeSharingCollectorProxyObj.setImplementation(feeSharingCollectorLogic.address);
         feeSharingCollector = await FeeSharingCollector.at(feeSharingCollectorProxyObj.address);
+
         await sovryn.setFeesController(feeSharingCollector.address);
 
         // Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
@@ -293,11 +294,135 @@ contract("FeeSharingCollector:", (accounts) => {
         RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT =
             await feeSharingCollector.RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT();
 
+        await feeSharingCollector.initialize(WRBTC.address, loanTokenWrbtc.address);
+
         return sovryn;
     }
 
     beforeEach(async () => {
         await loadFixture(protocolDeploymentFixture);
+    });
+
+    describe("initialization", async () => {
+        it("initialize should revert if wrbtc has been set", async () => {
+            const feeSharingCollectorMock = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            await feeSharingCollectorMock.setWrbtcToken(WRBTC.address);
+            expect(await feeSharingCollectorMock.wrbtcTokenAddress()).to.equal(WRBTC.address);
+
+            await expectRevert(
+                feeSharingCollectorMock.initialize(WRBTC.address, loanTokenWrbtc.address),
+                "wrbtcToken or loanWrbtcToken has been initialized"
+            );
+        });
+
+        it("initialize should revert if iWrbtc has been set", async () => {
+            const feeSharingCollectorMock = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            await feeSharingCollectorMock.setWrbtcToken(WRBTC.address);
+            expect(await feeSharingCollectorMock.wrbtcTokenAddress()).to.equal(WRBTC.address);
+
+            await expectRevert(
+                feeSharingCollectorMock.initialize(WRBTC.address, loanTokenWrbtc.address),
+                "wrbtcToken or loanWrbtcToken has been initialized"
+            );
+        });
+
+        it("revert if initialize called by non-owner account", async () => {
+            await expectRevert(
+                feeSharingCollector.initialize(WRBTC.address, loanTokenWrbtc.address, {
+                    from: account3,
+                }),
+                "unauthorized"
+            );
+        });
+
+        it("revert if setWrbtcToken called by non-owner account", async () => {
+            await expectRevert(
+                feeSharingCollector.setWrbtcToken(WRBTC.address, { from: account3 }),
+                "unauthorized"
+            );
+        });
+
+        it("revert if setLoanTokenWrbtc called by non-owner account", async () => {
+            await expectRevert(
+                feeSharingCollector.setLoanTokenWrbtc(loanTokenWrbtc.address, { from: account3 }),
+                "unauthorized"
+            );
+        });
+
+        it("should revert if initialized more than once", async () => {
+            const wrbtcAddress = (await TestToken.new("WRBTC", "WRBTC", 18, 100)).address;
+            const loanTokenWrbtcAddress = (await TestToken.new("IWRBTC", "IWRBTC", 18, 100))
+                .address;
+            await expectRevert(
+                feeSharingCollector.initialize(wrbtcAddress, loanTokenWrbtcAddress),
+                "function can only be called once"
+            );
+        });
+
+        it("setWrbtcToken should revert if try to set non-contract address", async () => {
+            expect(await feeSharingCollector.wrbtcTokenAddress()).to.equal(WRBTC.address);
+            let newInvalidWrbtcAddress = accounts[0];
+            await expectRevert(
+                feeSharingCollector.setWrbtcToken(newInvalidWrbtcAddress),
+                "newWrbtcTokenAddress not a contract"
+            );
+
+            newInvalidWrbtcAddress = ZERO_ADDRESS;
+            await expectRevert(
+                feeSharingCollector.setWrbtcToken(newInvalidWrbtcAddress),
+                "newWrbtcTokenAddress not a contract"
+            );
+            expect(await feeSharingCollector.wrbtcTokenAddress()).to.equal(WRBTC.address);
+        });
+
+        it("setWrbtcToken should set the wrbtc token address properly", async () => {
+            expect(await feeSharingCollector.wrbtcTokenAddress()).to.equal(WRBTC.address);
+            const newWrbtcAddress = (await TestToken.new("WRBTC", "WRBTC", 18, 100)).address;
+            await feeSharingCollector.setWrbtcToken(newWrbtcAddress);
+            expect(await feeSharingCollector.wrbtcTokenAddress()).to.equal(newWrbtcAddress);
+        });
+
+        it("setLoanTokenWrbtc should revert if try to set non-contract addrerss", async () => {
+            expect(await feeSharingCollector.loanTokenWrbtcAddress()).to.equal(
+                loanTokenWrbtc.address
+            );
+
+            let newInvalidLoanTokenWrbtcAddress = accounts[0];
+            await expectRevert(
+                feeSharingCollector.setLoanTokenWrbtc(newInvalidLoanTokenWrbtcAddress),
+                "newLoanTokenWrbtcAddress not a contract"
+            );
+
+            newInvalidLoanTokenWrbtcAddress = ZERO_ADDRESS;
+            await expectRevert(
+                feeSharingCollector.setLoanTokenWrbtc(newInvalidLoanTokenWrbtcAddress),
+                "newLoanTokenWrbtcAddress not a contract"
+            );
+
+            expect(await feeSharingCollector.loanTokenWrbtcAddress()).to.equal(
+                loanTokenWrbtc.address
+            );
+        });
+
+        it("setLoanTokenWrbtc should set the wrbtc token address properly", async () => {
+            expect(await feeSharingCollector.loanTokenWrbtcAddress()).to.equal(
+                loanTokenWrbtc.address
+            );
+            const newLoanTokenWrbtcAddress = (await TestToken.new("IWRBTC", "IWRBTC", 18, 100))
+                .address;
+            await feeSharingCollector.setLoanTokenWrbtc(newLoanTokenWrbtcAddress);
+            expect(await feeSharingCollector.loanTokenWrbtcAddress()).to.equal(
+                newLoanTokenWrbtcAddress
+            );
+        });
     });
 
     describe("withdrawStartingFromCheckpoint, withdrawRBTCStartingFromCheckpoint, withdrawRbtcTokenStartingFromCheckpoint using claimAllCollectedFees(), and getNextPositiveUserCheckpoint", () => {
@@ -1286,11 +1411,14 @@ contract("FeeSharingCollector:", (accounts) => {
                 nextCheckpoint.hasFees,
             ]).to.eql([10, true, true]);
         });
+
         it("getNextPositiveUserCheckpoint for RBTC returns correct [checkpointNum, hasSkippedCheckpoints, hasFees]", async () => {
             feeSharingCollector = await FeeSharingCollectorMockup.new(
                 sovryn.address,
                 staking.address
             );
+
+            await feeSharingCollector.initialize(WRBTC.address, loanTokenWrbtc.address);
             await sovryn.setFeesController(feeSharingCollector.address);
 
             let nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
@@ -1307,7 +1435,6 @@ contract("FeeSharingCollector:", (accounts) => {
 
             await stake(900, root);
             const userStake = 100;
-
             await createCheckpoints(9);
 
             nextCheckpoint = await feeSharingCollector.getNextPositiveUserCheckpoint(
@@ -3146,6 +3273,7 @@ contract("FeeSharingCollector:", (accounts) => {
                 staking.address
             );
 
+            await feeSharingCollector.initialize(WRBTC.address, loanTokenWrbtc.address);
             await sovryn.setFeesController(feeSharingCollector.address);
 
             await WRBTC.mint(feeSharingCollector.address, wei("2", "ether"));
@@ -3301,6 +3429,7 @@ contract("FeeSharingCollector:", (accounts) => {
                 staking.address
             );
 
+            await feeSharingCollector.initialize(WRBTC.address, loanTokenWrbtc.address);
             await sovryn.setFeesController(feeSharingCollector.address);
 
             await WRBTC.mint(feeSharingCollector.address, wei("2", "ether"));
@@ -3417,6 +3546,7 @@ contract("FeeSharingCollector:", (accounts) => {
                 staking.address
             );
 
+            await feeSharingCollector.initialize(WRBTC.address, loanTokenWrbtc.address);
             await sovryn.setFeesController(feeSharingCollector.address);
 
             await WRBTC.mint(feeSharingCollector.address, wei("2", "ether"));
@@ -3537,6 +3667,7 @@ contract("FeeSharingCollector:", (accounts) => {
                 staking.address
             );
 
+            await feeSharingCollector.initialize(WRBTC.address, loanTokenWrbtc.address);
             await sovryn.setFeesController(feeSharingCollector.address);
 
             await WRBTC.mint(feeSharingCollector.address, wei("2", "ether"));
@@ -5239,8 +5370,8 @@ contract("FeeSharingCollector:", (accounts) => {
             );
 
             await expectRevert(
-                feeSharingCollector.invalidLoanPoolWRBTC(),
-                "FeeSharingCollector::withdraw: loan wRBTC not found"
+                feeSharingCollector.getAccumulatedRBTCFeeBalances(root),
+                "Transaction reverted: function call to a non-contract account"
             );
         });
 
