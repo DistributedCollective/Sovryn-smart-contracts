@@ -136,7 +136,11 @@ contract FeeSharingCollector is
      * @param wrbtcToken wrbtc token address
      * @param loanWrbtcToken address of loan token wrbtc (IWrbtc)
      */
-    function initialize(address wrbtcToken, address loanWrbtcToken) external onlyOwner {
+    function initialize(address wrbtcToken, address loanWrbtcToken)
+        external
+        onlyOwner
+        oneTimeExecution(this.initialize.selector)
+    {
         setWrbtcToken(wrbtcToken);
         setLoanTokenWrbtc(loanWrbtcToken);
     }
@@ -149,6 +153,7 @@ contract FeeSharingCollector is
      * @param newWrbtcTokenAddress The new address of the wrbtc token.
      * */
     function setWrbtcToken(address newWrbtcTokenAddress) public onlyOwner {
+        require(Address.isContract(newWrbtcTokenAddress), "newWrbtcTokenAddress not a contract");
         emit SetWrbtcToken(msg.sender, wrbtcTokenAddress, newWrbtcTokenAddress);
         wrbtcTokenAddress = newWrbtcTokenAddress;
     }
@@ -161,6 +166,10 @@ contract FeeSharingCollector is
      * @param newLoanTokenWrbtcAddress The new address of the loan wrbtc token.
      * */
     function setLoanTokenWrbtc(address newLoanTokenWrbtcAddress) public onlyOwner {
+        require(
+            Address.isContract(newLoanTokenWrbtcAddress),
+            "newLoanTokenWrbtcAddress not a contract"
+        );
         emit SetLoanTokenWrbtc(msg.sender, loanTokenWrbtcAddress, newLoanTokenWrbtcAddress);
         loanTokenWrbtcAddress = newLoanTokenWrbtcAddress;
     }

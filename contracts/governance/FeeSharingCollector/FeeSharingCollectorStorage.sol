@@ -77,12 +77,12 @@ contract FeeSharingCollectorStorage is Ownable {
     mapping(bytes4 => bool) public isFunctionExecuted;
 
     /**
-     * @dev Wrbtc token adress
+     * @dev Wrbtc token address
      */
     address public wrbtcTokenAddress;
 
     /**
-     * @dev IWrbtc token adress
+     * @dev iWrbtc loan token address
      */
     address public loanTokenWrbtcAddress;
 

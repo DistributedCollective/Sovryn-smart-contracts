@@ -327,15 +327,30 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it("initialized successfully", async () => {
+        it("should revert if initialized more than once", async () => {
             const wrbtcAddress = (await TestToken.new("WRBTC", "WRBTC", 18, 100)).address;
             const loanTokenWrbtcAddress = (await TestToken.new("IWRBTC", "IWRBTC", 18, 100))
                 .address;
-            await feeSharingCollector.initialize(wrbtcAddress, loanTokenWrbtcAddress);
-            expect(await feeSharingCollector.wrbtcTokenAddress()).to.equal(wrbtcAddress);
-            expect(await feeSharingCollector.loanTokenWrbtcAddress()).to.equal(
-                loanTokenWrbtcAddress
+            await expectRevert(
+                feeSharingCollector.initialize(wrbtcAddress, loanTokenWrbtcAddress),
+                "function can only be called once"
             );
+        });
+
+        it("setWrbtcToken should revert if try to set non-contract address", async () => {
+            expect(await feeSharingCollector.wrbtcTokenAddress()).to.equal(WRBTC.address);
+            let newInvalidWrbtcAddress = accounts[0];
+            await expectRevert(
+                feeSharingCollector.setWrbtcToken(newInvalidWrbtcAddress),
+                "newWrbtcTokenAddress not a contract"
+            );
+
+            newInvalidWrbtcAddress = ZERO_ADDRESS;
+            await expectRevert(
+                feeSharingCollector.setWrbtcToken(newInvalidWrbtcAddress),
+                "newWrbtcTokenAddress not a contract"
+            );
+            expect(await feeSharingCollector.wrbtcTokenAddress()).to.equal(WRBTC.address);
         });
 
         it("setWrbtcToken should set the wrbtc token address properly", async () => {
@@ -343,6 +358,28 @@ contract("FeeSharingCollector:", (accounts) => {
             const newWrbtcAddress = (await TestToken.new("WRBTC", "WRBTC", 18, 100)).address;
             await feeSharingCollector.setWrbtcToken(newWrbtcAddress);
             expect(await feeSharingCollector.wrbtcTokenAddress()).to.equal(newWrbtcAddress);
+        });
+
+        it("setLoanTokenWrbtc should revert if try to set non-contract addrerss", async () => {
+            expect(await feeSharingCollector.loanTokenWrbtcAddress()).to.equal(
+                loanTokenWrbtc.address
+            );
+
+            let newInvalidLoanTokenWrbtcAddress = accounts[0];
+            await expectRevert(
+                feeSharingCollector.setLoanTokenWrbtc(newInvalidLoanTokenWrbtcAddress),
+                "newLoanTokenWrbtcAddress not a contract"
+            );
+
+            newInvalidLoanTokenWrbtcAddress = ZERO_ADDRESS;
+            await expectRevert(
+                feeSharingCollector.setLoanTokenWrbtc(newInvalidLoanTokenWrbtcAddress),
+                "newLoanTokenWrbtcAddress not a contract"
+            );
+
+            expect(await feeSharingCollector.loanTokenWrbtcAddress()).to.equal(
+                loanTokenWrbtc.address
+            );
         });
 
         it("setLoanTokenWrbtc should set the wrbtc token address properly", async () => {
