@@ -1,7 +1,8 @@
 const { HardhatRuntimeEnvironment } = require("hardhat/types");
 const { getStakingModulesNames } = require("../../../../deployment/helpers/helpers");
 const { validateAmmOnchainAddresses, getAmmOracleAddress } = require("../../../helpers");
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const Logs = require("node-logs");
+const logger = new Logs().showInConsole(true);
 
 const sampleSIP01 = async (hre) => {
     const { ethers } = hre;
@@ -240,11 +241,19 @@ const getArgsSip0065 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
-const getArgsSip0067 = async (hre) => {
+const getArgsSip0046Part1 = async (hre) => {
     const {
         deployments: { get },
         ethers,
     } = hre;
+
+    const ownershipABI = [
+        "function owner() view returns(address)",
+        "function newOwner() view returns(address)",
+    ];
+    const ownershipInterface = new ethers.utils.Interface(ownershipABI);
+    const multisigDeployment = await get("MultiSigWallet");
+    const timeLockAdminDeployment = await get("TimelockAdmin");
 
     const deploymentTargets = [
         {
@@ -260,7 +269,6 @@ const getArgsSip0067 = async (hre) => {
             sourceContractNameToValidate: "AmmContractRegistry",
         },
         {
-            // @todo need to check the discrepancy address between onchain with the excel one
             deployment: "oracle",
             contractName: "BproOracle",
             sourceContractTypeToValidate: "ConverterV2",
@@ -321,7 +329,10 @@ const getArgsSip0067 = async (hre) => {
                 deploymentTarget.sourceContractNameToValidate,
                 deploymentTarget.sourceContractTypeToValidate
             );
-            if (oracleAddress === ZERO_ADDRESS) return process.exit;
+            if (oracleAddress === ethers.constants.AddressZero) {
+                logger.error(`Zero address for oracle converter ${deploymentTarget.contractName}`);
+                return process.exit;
+            }
             const oracleArtifact = await deployments.getArtifact("Oracle");
             deploymentTarget.deployment = await ethers.getContractAt(
                 oracleArtifact.abi,
@@ -329,7 +340,33 @@ const getArgsSip0067 = async (hre) => {
             );
         } else {
             const isValid = await validateAmmOnchainAddresses(deploymentTarget);
-            if (!isValid) return process.exit;
+            if (!isValid) {
+                logger.error(
+                    `validation amm onchain address is failed for ${deploymentTarget.contractName}`
+                );
+                return process.exit;
+            }
+        }
+
+        const ammContract = await ethers.getContractAt(
+            ownershipInterface,
+            deploymentTarget.deployment.address
+        );
+        const currentOwner = await ammContract.owner();
+        const newTargetOwner = await ammContract.newOwner();
+
+        if (currentOwner.toLowerCase() !== multisigDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - Current owner (${currentOwner}) is not the multisig (${multisigDeployment.address})`
+            );
+            return process.exit;
+        }
+
+        if (newTargetOwner.toLowerCase() !== timeLockAdminDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock admin (${timeLockAdminDeployment.address})`
+            );
+            return process.exit;
         }
 
         targets.push(deploymentTarget.deployment.address);
@@ -343,16 +380,24 @@ const getArgsSip0067 = async (hre) => {
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0067 : Accepting ownership of AMM contracts Part 1",
+        description: "SIP-0046 Part 1: Accepting ownership of AMM contracts Part 1",
     };
 
     return { args, governor: "GovernorAdmin" };
 };
 
-const getArgsSip0068 = async (hre) => {
+const getArgsSip0046Part2 = async (hre) => {
     const {
         deployments: { get },
     } = hre;
+
+    const ownershipABI = [
+        "function owner() view returns(address)",
+        "function newOwner() view returns(address)",
+    ];
+    const ownershipInterface = new ethers.utils.Interface(ownershipABI);
+    const multisigDeployment = await get("MultiSigWallet");
+    const timeLockAdminDeployment = await get("TimelockAdmin");
 
     const deploymentTargets = [
         {
@@ -402,7 +447,7 @@ const getArgsSip0068 = async (hre) => {
                 deploymentTarget.sourceContractNameToValidate,
                 deploymentTarget.sourceContractTypeToValidate
             );
-            if (oracleAddress === ZERO_ADDRESS) return process.exit;
+            if (oracleAddress === ethers.constants.AddressZero) return process.exit;
             const oracleArtifact = await deployments.getArtifact("Oracle");
             deploymentTarget.deployment = await ethers.getContractAt(
                 oracleArtifact.abi,
@@ -411,6 +456,27 @@ const getArgsSip0068 = async (hre) => {
         } else {
             const isValid = await validateAmmOnchainAddresses(deploymentTarget);
             if (!isValid) return process.exit;
+        }
+
+        const ammContract = await ethers.getContractAt(
+            ownershipInterface,
+            deploymentTarget.deployment.address
+        );
+        const currentOwner = await ammContract.owner();
+        const newTargetOwner = await ammContract.newOwner();
+
+        if (currentOwner.toLowerCase() !== multisigDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - Current owner (${currentOwner}) is not the multisig (${multisigDeployment.address})`
+            );
+            return process.exit;
+        }
+
+        if (newTargetOwner.toLowerCase() !== timeLockAdminDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock admin (${timeLockAdminDeployment.address})`
+            );
+            return process.exit;
         }
 
         targets.push(deploymentTarget.deployment.address);
@@ -424,16 +490,24 @@ const getArgsSip0068 = async (hre) => {
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0068 : Accepting ownership of AMM contracts Part 2",
+        description: "SIP-0046 Part 2: Accepting ownership of AMM contracts Part 2",
     };
 
     return { args, governor: "GovernorAdmin" };
 };
 
-const getArgsSip0069 = async (hre) => {
+const getArgsSip0046Part3 = async (hre) => {
     const {
         deployments: { get },
     } = hre;
+
+    const ownershipABI = [
+        "function owner() view returns(address)",
+        "function newOwner() view returns(address)",
+    ];
+    const ownershipInterface = new ethers.utils.Interface(ownershipABI);
+    const multisigDeployment = await get("MultiSigWallet");
+    const timeLockOwnerDeployment = await get("TimelockOwner");
 
     const deploymentTargets = [
         {
@@ -505,7 +579,33 @@ const getArgsSip0069 = async (hre) => {
     for (let i = 0; i < deploymentTargets.length; i++) {
         deploymentTarget = deploymentTargets[i];
         const isValid = await validateAmmOnchainAddresses(deploymentTarget);
-        if (!isValid) return process.exit;
+        if (!isValid) {
+            logger.error(
+                `validation amm onchain address is failed for ${deploymentTarget.contractName}`
+            );
+            return process.exit;
+        }
+
+        const ammContract = await ethers.getContractAt(
+            ownershipInterface,
+            deploymentTarget.deployment.address
+        );
+        const currentOwner = await ammContract.owner();
+        const newTargetOwner = await ammContract.newOwner();
+
+        if (currentOwner.toLowerCase() !== multisigDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - Current owner (${currentOwner}) is not the multisig (${multisigDeployment.address})`
+            );
+            return process.exit;
+        }
+
+        if (newTargetOwner.toLowerCase() !== timeLockOwnerDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock owner (${timeLockOwnerDeployment.address})`
+            );
+            return process.exit;
+        }
 
         targets.push(deploymentTarget.deployment.address);
         values.push(0);
@@ -518,16 +618,24 @@ const getArgsSip0069 = async (hre) => {
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0069 : Accepting ownership of AMM contracts Part 3",
+        description: "SIP-0046 Part 3: Accepting ownership of AMM contracts Part 3",
     };
 
     return { args, governor: "GovernorOwner" };
 };
 
-const getArgsSip0070 = async (hre) => {
+const getArgsSip0046Part4 = async (hre) => {
     const {
         deployments: { get },
     } = hre;
+
+    const ownershipABI = [
+        "function owner() view returns(address)",
+        "function newOwner() view returns(address)",
+    ];
+    const ownershipInterface = new ethers.utils.Interface(ownershipABI);
+    const multisigDeployment = await get("MultiSigWallet");
+    const timeLockOwnerDeployment = await get("TimelockOwner");
 
     const deploymentTargets = [
         {
@@ -561,7 +669,33 @@ const getArgsSip0070 = async (hre) => {
     for (let i = 0; i < deploymentTargets.length; i++) {
         deploymentTarget = deploymentTargets[i];
         const isValid = await validateAmmOnchainAddresses(deploymentTarget);
-        if (!isValid) return process.exit;
+        if (!isValid) {
+            logger.error(
+                `validation amm onchain address is failed for ${deploymentTarget.contractName}`
+            );
+            return process.exit;
+        }
+
+        const ammContract = await ethers.getContractAt(
+            ownershipInterface,
+            deploymentTarget.deployment.address
+        );
+        const currentOwner = await ammContract.owner();
+        const newTargetOwner = await ammContract.newOwner();
+
+        if (currentOwner.toLowerCase() !== multisigDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - Current owner (${currentOwner}) is not the multisig (${multisigDeployment.address})`
+            );
+            return process.exit;
+        }
+
+        if (newTargetOwner.toLowerCase() !== timeLockOwnerDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock owner (${timeLockOwnerDeployment.address})`
+            );
+            return process.exit;
+        }
 
         targets.push(deploymentTarget.deployment.address);
         values.push(0);
@@ -574,7 +708,7 @@ const getArgsSip0070 = async (hre) => {
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0070 : Accepting ownership of AMM contracts Part 4",
+        description: "SIP-0046 Part 4: Accepting ownership of AMM contracts Part 4",
     };
 
     return { args, governor: "GovernorOwner" };
@@ -585,8 +719,8 @@ module.exports = {
     getArgsSip0049,
     getArgsSip0063,
     getArgsSip0065,
-    getArgsSip0067,
-    getArgsSip0068,
-    getArgsSip0069,
-    getArgsSip0070,
+    getArgsSip0046Part1,
+    getArgsSip0046Part2,
+    getArgsSip0046Part3,
+    getArgsSip0046Part4,
 };

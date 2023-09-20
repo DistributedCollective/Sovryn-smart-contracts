@@ -22,13 +22,7 @@ const getAmmOracleAddress = async function (converterName, converterType) {
 
         return registeredAddressOnchain;
     } else if (converterType === sourceContractTypesToValidate.ConverterV2) {
-        const ammConverter = await get(converterName);
-        const ammConverterInterface = new ethers.utils.Interface(ammConverter.abi);
-
-        const ammConverterContract = await ethers.getContractAt(
-            ammConverterInterface,
-            ammConverter.address
-        );
+        const ammConverterContract = await ethers.getContract(converterName);
         const registeredAddressOnchain = await ammConverterContract.priceOracle();
 
         return registeredAddressOnchain;
@@ -80,11 +74,7 @@ const validateAmmOnchainAddresses = async function (deploymentTarget) {
         );
         const lpToken = await ammConverterContract.token();
 
-        const ammConverterRegistryAddress = (await get("AmmConverterRegistry")).address;
-        const ammConverterRegistryContract = await ethers.getContractAt(
-            ammConverterRegistryInterface,
-            ammConverterRegistryAddress
-        );
+        const ammConverterRegistryContract = await ethers.getContract("AmmConverterRegistry");
         const isLiquidityPool = await ammConverterRegistryContract.isLiquidityPool(lpToken);
 
         if (!isLiquidityPool) {
