@@ -65,9 +65,6 @@ const validateAmmOnchainAddresses = async function (deploymentTarget) {
         deploymentTarget.sourceContractTypeToValidate ===
         sourceContractTypesToValidate.ConverterRegistry
     ) {
-        const ammConverterRegistry = await get(deploymentTarget.sourceContractNameToValidate);
-        const ammConverterRegistryInterface = new ethers.utils.Interface(ammConverterRegistry.abi);
-
         const ammConverterContract = await ethers.getContractAt(
             deploymentTarget.deployment.abi,
             deploymentTarget.deployment.address
