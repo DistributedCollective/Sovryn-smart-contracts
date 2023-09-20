@@ -143,7 +143,7 @@ contract FeeSharingCollector is
     {
         require(
             wrbtcTokenAddress == address(0) && loanTokenWrbtcAddress == address(0),
-            "wrbtcToken and loanWrbtcToken has been initialized"
+            "wrbtcToken or loanWrbtcToken has been initialized"
         );
         setWrbtcToken(wrbtcToken);
         setLoanTokenWrbtc(loanWrbtcToken);

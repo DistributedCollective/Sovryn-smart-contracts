@@ -304,6 +304,36 @@ contract("FeeSharingCollector:", (accounts) => {
     });
 
     describe("initialization", async () => {
+        it("initialize should revert if wrbtc has been set", async () => {
+            const feeSharingCollectorMock = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            await feeSharingCollectorMock.setWrbtcToken(WRBTC.address);
+            expect(await feeSharingCollectorMock.wrbtcTokenAddress()).to.equal(WRBTC.address);
+
+            await expectRevert(
+                feeSharingCollectorMock.initialize(WRBTC.address, loanTokenWrbtc.address),
+                "wrbtcToken or loanWrbtcToken has been initialized"
+            );
+        });
+
+        it("initialize should revert if iWrbtc has been set", async () => {
+            const feeSharingCollectorMock = await FeeSharingCollectorMockup.new(
+                sovryn.address,
+                staking.address
+            );
+
+            await feeSharingCollectorMock.setWrbtcToken(WRBTC.address);
+            expect(await feeSharingCollectorMock.wrbtcTokenAddress()).to.equal(WRBTC.address);
+
+            await expectRevert(
+                feeSharingCollectorMock.initialize(WRBTC.address, loanTokenWrbtc.address),
+                "wrbtcToken or loanWrbtcToken has been initialized"
+            );
+        });
+
         it("revert if initialize called by non-owner account", async () => {
             await expectRevert(
                 feeSharingCollector.initialize(WRBTC.address, loanTokenWrbtc.address, {
