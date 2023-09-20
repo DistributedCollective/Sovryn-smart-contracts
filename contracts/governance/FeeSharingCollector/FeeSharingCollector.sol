@@ -141,6 +141,10 @@ contract FeeSharingCollector is
         onlyOwner
         oneTimeExecution(this.initialize.selector)
     {
+        require(
+            wrbtcTokenAddress == address(0) && loanTokenWrbtcAddress == address(0),
+            "wrbtcToken and loanWrbtcToken has been initialized"
+        );
         setWrbtcToken(wrbtcToken);
         setLoanTokenWrbtc(loanWrbtcToken);
     }
