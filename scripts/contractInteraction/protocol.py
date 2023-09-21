@@ -720,3 +720,14 @@ def readFeesController():
     feesController = sovryn.feesController()
     print(feesController)
     return feesController
+
+def setPauser(pauser):
+    print("Setting pauser to the protocol: ", pauser)
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setPauser.encode_input(pauser)
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
+def setAdmin(admin):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setAdmin.encode_input(admin)
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
