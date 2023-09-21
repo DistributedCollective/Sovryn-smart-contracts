@@ -8,7 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "../../LoanTokenLogicStandard.sol";
 
-contract LoanTokenMintAndBurnWrbtc is LoanTokenLogicStandard {
+contract LoanTokenMintAndBurnWrbtc is LoanTokenLogicSplit {
     /**
      * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
      * Every new public function, the signature needs to be included in this function.
