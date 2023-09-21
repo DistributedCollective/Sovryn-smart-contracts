@@ -1,3 +1,5 @@
+const hre = require("hardhat");
+const { ethers } = hre;
 const { expect } = require("chai");
 
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
@@ -463,7 +465,7 @@ contract("Staking", (accounts) => {
             expect(vestingBalance).to.be.bignumber.equal(new BN(0));
 
             /// should emit token withdrawn event for complete withdrawal
-            const end = vesting.endDate();
+            const end = await vesting.endDate();
             tx = await staking.cancelTeamVesting(
                 vesting.address,
                 root,
@@ -634,11 +636,11 @@ contract("Staking", (accounts) => {
             );
 
             /// should emit token withdrawn event for complete withdrawal
-            const end = vesting.endDate();
+            const end = await vesting.endDate();
             tx = await staking.cancelTeamVesting(
                 vesting.address,
                 root,
-                new BN(end.toString()).sub(new BN(TWO_WEEKS).mul(new BN(10))),
+                new BN(end.toString()).sub(new BN(TWO_WEEKS)).mul(new BN(10)),
                 {
                     from: account1,
                 }
@@ -765,7 +767,7 @@ contract("Staking", (accounts) => {
             expect(vestingBalance).to.be.bignumber.equal(new BN(0));
 
             /// should emit token withdrawn event for complete withdrawal
-            const end = vesting.endDate();
+            const end = await vesting.endDate();
             tx = await staking.cancelTeamVesting(
                 vesting.address,
                 root,

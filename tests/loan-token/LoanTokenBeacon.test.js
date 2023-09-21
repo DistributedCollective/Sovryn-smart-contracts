@@ -17,6 +17,7 @@ const {
     getSovryn,
     CONSTANTS,
 } = require("../Utils/initializer.js");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants.js");
 
 contract("LoanTokenLogicBeacon", (accounts) => {
     let owner;
@@ -25,7 +26,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
     let sovryn;
 
     before(async () => {
-        [owner, account1] = accounts;
+        [owner, account1, pauser] = accounts;
     });
 
     beforeEach(async () => {
@@ -55,6 +56,81 @@ contract("LoanTokenLogicBeacon", (accounts) => {
                 loanTokenLogicBeacon.registerLoanTokenModule(CONSTANTS.ZERO_ADDRESS),
                 "LoanTokenModuleAddress is not a contract"
             );
+        });
+
+        it("Only owner can set the pauser address", async () => {
+            expect(await loanTokenLogicBeacon.pauser()).to.equal(ZERO_ADDRESS);
+            await expectRevert(
+                loanTokenLogicBeacon.setPauser(account1, { from: pauser }),
+                "unauthorized"
+            );
+        });
+
+        it("Only owner / pauser can pause & unpause", async () => {
+            await expectRevert(
+                loanTokenLogicBeacon.pause({ from: account1 }),
+                "Pausable: unauthorized"
+            );
+            await expectRevert(
+                loanTokenLogicBeacon.unpause({ from: account1 }),
+                "Pausable: unauthorized"
+            );
+        });
+
+        it("Pauser can pause / unpause", async () => {
+            expect(await loanTokenLogicBeacon.pauser()).to.equal(ZERO_ADDRESS);
+            await loanTokenLogicBeacon.setPauser(pauser);
+            expect(await loanTokenLogicBeacon.pauser()).to.equal(pauser);
+
+            expect(await loanTokenLogicBeacon.paused()).to.equal(false);
+
+            await loanTokenLogicBeacon.pause({ from: pauser });
+            expect(await loanTokenLogicBeacon.paused()).to.equal(true);
+            await loanTokenLogicBeacon.unpause({ from: pauser });
+            expect(await loanTokenLogicBeacon.paused()).to.equal(false);
+        });
+
+        it("Owner can pause", async () => {
+            expect(await loanTokenLogicBeacon.pauser()).to.equal(ZERO_ADDRESS);
+            await loanTokenLogicBeacon.setPauser(pauser);
+            expect(await loanTokenLogicBeacon.pauser()).to.equal(pauser);
+
+            expect(await loanTokenLogicBeacon.paused()).to.equal(false);
+
+            await loanTokenLogicBeacon.pause({ from: owner });
+            expect(await loanTokenLogicBeacon.paused()).to.equal(true);
+            await loanTokenLogicBeacon.unpause({ from: owner });
+            expect(await loanTokenLogicBeacon.paused()).to.equal(false);
+        });
+
+        it("Cannot pause when contract is paused", async () => {
+            expect(await loanTokenLogicBeacon.pauser()).to.equal(ZERO_ADDRESS);
+            await loanTokenLogicBeacon.setPauser(pauser);
+            expect(await loanTokenLogicBeacon.pauser()).to.equal(pauser);
+
+            expect(await loanTokenLogicBeacon.paused()).to.equal(false);
+
+            await loanTokenLogicBeacon.pause({ from: pauser });
+            expect(await loanTokenLogicBeacon.paused()).to.equal(true);
+            await expectRevert(
+                loanTokenLogicBeacon.pause({ from: pauser }),
+                "LoanTokenLogicBeacon:paused mode"
+            );
+            expect(await loanTokenLogicBeacon.paused()).to.equal(true);
+        });
+
+        it("Cannot unpause when contract is unpaused", async () => {
+            expect(await loanTokenLogicBeacon.pauser()).to.equal(ZERO_ADDRESS);
+            await loanTokenLogicBeacon.setPauser(pauser);
+            expect(await loanTokenLogicBeacon.pauser()).to.equal(pauser);
+
+            expect(await loanTokenLogicBeacon.paused()).to.equal(false);
+
+            await expectRevert(
+                loanTokenLogicBeacon.unpause({ from: pauser }),
+                "Pausable: not paused"
+            );
+            expect(await loanTokenLogicBeacon.paused()).to.equal(false);
         });
 
         it("Cannot get implementation address in pause mode", async () => {

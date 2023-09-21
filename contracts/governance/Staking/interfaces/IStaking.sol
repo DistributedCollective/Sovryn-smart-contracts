@@ -155,47 +155,14 @@ interface IStaking {
      * */
     function delegate(address delegatee, uint256 lockDate) external;
 
-    /**
-     * @notice Delegates votes from signatory to a delegatee account.
-     * Voting with EIP-712 Signatures.
-     *
-     * Voting power can be delegated to any address, and then can be used to
-     * vote on proposals. A key benefit to users of by-signature functionality
-     * is that they can create a signed vote transaction for free, and have a
-     * trusted third-party spend rBTC(or ETH) on gas fees and write it to the
-     * blockchain for them.
-     *
-     * The third party in this scenario, submitting the SOV-holder’s signed
-     * transaction holds a voting power that is for only a single proposal.
-     * The signatory still holds the power to vote on their own behalf in
-     * the proposal if the third party has not yet published the signed
-     * transaction that was given to them.
-     *
-     * @dev The signature needs to be broken up into 3 parameters, known as
-     * v, r and s:
-     * const r = '0x' + sig.substring(2).substring(0, 64);
-     * const s = '0x' + sig.substring(2).substring(64, 128);
-     * const v = '0x' + sig.substring(2).substring(128, 130);
-     *
-     * @param delegatee The address to delegate votes to.
-     * @param lockDate The date until which the position is locked.
-     * @param nonce The contract state required to match the signature.
-     * @param expiry The time at which to expire the signature.
-     * @param v The recovery byte of the signature.
-     * @param r Half of the ECDSA signature pair.
-     * @param s Half of the ECDSA signature pair.
-     * */
-    function delegateBySig(
-        address delegatee,
-        uint256 lockDate,
-        uint256 nonce,
-        uint256 expiry,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
-
     /*************************** StakingStakeModule ***************************/
+
+    event TokensStaked(
+        address indexed staker,
+        uint256 amount,
+        uint256 lockedUntil,
+        uint256 totalStaked
+    );
 
     /**
      * @notice Stake the given amount for the given duration of time.
@@ -386,7 +353,7 @@ interface IStaking {
     function numTotalStakingCheckpoints(uint256 date)
         external
         view
-        returns (bytes32 checkpointsQty);
+        returns (uint32 checkpointsQty);
 
     /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address.
     /// For delegatee voting power computation. Voting weights get adjusted bi-weekly.
@@ -402,7 +369,7 @@ interface IStaking {
     function numDelegateStakingCheckpoints(address delegatee, uint256 date)
         external
         view
-        returns (bytes32 checkpointsQty);
+        returns (uint32 checkpointsQty);
 
     /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)
     /// @dev userStakingCheckpoints[user][date][index] is a checkpoint.
@@ -468,6 +435,8 @@ interface IStaking {
     function frozen() external view returns (bool);
 
     /*************************** StakingVestingModule ***************************/
+
+    event VestingStakeSet(uint256 lockedTS, uint96 value);
 
     /**
      * @notice Return flag whether the given address is a registered vesting contract.

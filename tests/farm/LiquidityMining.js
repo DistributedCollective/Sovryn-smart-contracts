@@ -12,7 +12,7 @@
  *
  * Notes: Instead of a general deployment for all tests in the beforeEach hook,
  *  it has been restricted exclusively to those tests that required it. Besides,
- *  a waffle fixture is used only on tests that can start from the initial snapshot.
+ *  the oz test-helpers fixture is used only on tests that can start from the initial snapshot.
  *
  *   + Added test of dummy liquidityMiningConfigToken methods for coverage.
  */
@@ -1028,6 +1028,240 @@ contract("LiquidityMining", (accounts) => {
             expect(latestUserSOVBalance.toString()).to.equal(
                 previousUserSOVBalance.add(userReward)
             );
+
+            expectEvent(tx, "RewardClaimed", {
+                user: account1,
+                poolToken: token1.address,
+                amount: userReward,
+            });
+        });
+
+        it("getUserAccumulatedReward() should return correct value with the reward being claimed for 100% unlockedImmediatelyPercent", async () => {
+            /**
+             * set unlockedImmediatelyPercent to 100%
+             * After user claim reward:
+             *      - 100% of token1 reward will be transferred directly to the user.
+             */
+            const newUnlockedImmediatelyPercent = new BN(10000);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+
+            /** First Deposit */
+            let depositTx = await liquidityMining.deposit(
+                token1.address,
+                amount.div(new BN(2)),
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
+
+            /** Second Deposit */
+            await liquidityMining.deposit(token1.address, amount.div(new BN(2)), ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+            await SOVToken.transfer(liquidityMining.address, new BN(1000));
+
+            const previousUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            const totalLiquidReward = await liquidityMining.getUserAccumulatedRewardToBePaidLiquid(
+                account1
+            );
+            const totalVestedReward = await liquidityMining.getUserAccumulatedRewardToBeVested(
+                account1
+            );
+            const totalUserAccumulatedReward = await liquidityMining.getUserAccumulatedReward(
+                token1.address,
+                account1
+            );
+
+            let blockNumberBeforeClaim = await ethers.provider.getBlock("latest");
+
+            /** Claim Reward */
+            let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            let totalUsersBalance = await liquidityMining.totalUsersBalance();
+            expect(totalUsersBalance).bignumber.equal(new BN(0));
+
+            let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+            let latestBlockNumber = new BN(tx.receipt.blockNumber);
+            checkPoolInfo(
+                poolInfo,
+                token1.address,
+                allocationPoint,
+                latestBlockNumber,
+                new BN(-1)
+            );
+
+            await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+            let userReward = await checkUserReward(
+                account1,
+                token1,
+                depositBlockNumber,
+                latestBlockNumber
+            );
+
+            // withdrawAndStakeTokensFrom was invoked
+            let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+            let lockedBalance = await lockedSOV.getLockedBalance(account1);
+            expect(unlockedBalance).bignumber.equal(new BN(0));
+            expect(lockedBalance).bignumber.equal(new BN(0));
+
+            const latestUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            /** user should receive the entire SOV reward since the unlockedImmediatelyPercent is 100% */
+            expect(latestUserSOVBalance.toString()).to.equal(
+                previousUserSOVBalance.add(userReward)
+            );
+
+            /**
+             * There is a block number different when we check the get user accumulated reward and when we do the actual claim
+             * This causes the disceprancies of how much reward being claimed because the totalAccumulatedRewardPerShare is calculated based on block number.
+             * So we need to find how much the discrepancies.
+             */
+            const bonusBlockMultiplier = await liquidityMining.BONUS_BLOCK_MULTIPLIER();
+            const blockDifference = new BN(latestBlockNumber).sub(
+                new BN(blockNumberBeforeClaim.number)
+            );
+            const additionalAccumulatedRewardPerShare = rewardTokensPerBlock
+                .mul(bonusBlockMultiplier)
+                .mul(blockDifference);
+            expect(userReward.sub(additionalAccumulatedRewardPerShare).toString()).to.be.equal(
+                totalUserAccumulatedReward.toString()
+            );
+
+            /** The total liquid reward should be the same as we got from getUserAccumulated reward since the calc immediate percent is 100% liquid */
+            expect(userReward.sub(additionalAccumulatedRewardPerShare).toString()).to.be.equal(
+                totalLiquidReward.toString()
+            );
+
+            // total vested should be 0 since the calc immediate percent is 100% liquid
+            expect(totalVestedReward.toString()).to.be.equal("0");
+
+            expectEvent(tx, "RewardClaimed", {
+                user: account1,
+                poolToken: token1.address,
+                amount: userReward,
+            });
+        });
+
+        it("getUserAccumulatedReward() should return correct value with the reward being claimed for 70% unlockedImmediatelyPercent", async () => {
+            /**
+             * set unlockedImmediatelyPercent to 70%
+             * After user claim reward:
+             *      - 70% of token1 reward will be transferred directly to the user.
+             */
+            const newUnlockedImmediatelyPercent = new BN(7000);
+            await liquidityMining.setUnlockedImmediatelyPercent(newUnlockedImmediatelyPercent);
+
+            /** First Deposit */
+            let depositTx = await liquidityMining.deposit(
+                token1.address,
+                amount.div(new BN(2)),
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
+
+            /** Second Deposit */
+            await liquidityMining.deposit(token1.address, amount.div(new BN(2)), ZERO_ADDRESS, {
+                from: account1,
+            });
+            let depositBlockNumber = new BN(depositTx.receipt.blockNumber);
+            await SOVToken.transfer(liquidityMining.address, new BN(1000));
+
+            const previousUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            const totalLiquidReward = await liquidityMining.getUserAccumulatedRewardToBePaidLiquid(
+                account1
+            );
+            const totalVestedReward = await liquidityMining.getUserAccumulatedRewardToBeVested(
+                account1
+            );
+            const totalUserAccumulatedReward = await liquidityMining.getUserAccumulatedReward(
+                token1.address,
+                account1
+            );
+
+            let blockNumberBeforeClaim = await ethers.provider.getBlock("latest");
+
+            /** Claim Reward */
+            let tx = await liquidityMining.claimReward(token1.address, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            let totalUsersBalance = await liquidityMining.totalUsersBalance();
+            expect(totalUsersBalance).bignumber.equal(new BN(0));
+
+            let poolInfo = await liquidityMining.getPoolInfo(token1.address);
+            let latestBlockNumber = new BN(tx.receipt.blockNumber);
+            checkPoolInfo(
+                poolInfo,
+                token1.address,
+                allocationPoint,
+                latestBlockNumber,
+                new BN(-1)
+            );
+
+            await checkUserPoolTokens(account1, token1, amount, amount, new BN(0));
+            let userReward = await checkUserReward(
+                account1,
+                token1,
+                depositBlockNumber,
+                latestBlockNumber
+            );
+
+            // withdrawAndStakeTokensFrom was invoked
+            let unlockedBalance = await lockedSOV.getUnlockedBalance(account1);
+            let lockedBalance = await lockedSOV.getLockedBalance(account1);
+            expect(unlockedBalance).bignumber.equal(new BN(0));
+            expect(lockedBalance).bignumber.equal(new BN(0));
+
+            const latestUserSOVBalance = await SOVToken.balanceOf(account1);
+
+            /** user should receive the entire SOV reward since the unlockedImmediatelyPercent is 100% */
+            expect(latestUserSOVBalance.toString()).to.equal(
+                previousUserSOVBalance
+                    .add(userReward.mul(newUnlockedImmediatelyPercent).div(HUNDRED_PERCENT))
+                    .toString()
+            );
+
+            /**
+             * There is a block number different when we check the get user accumulated reward and when we do the actual claim
+             * This causes the disceprancies of how much reward being claimed because the totalAccumulatedRewardPerShare is calculated based on block number.
+             * So we need to find how much the discrepancies.
+             */
+            const bonusBlockMultiplier = await liquidityMining.BONUS_BLOCK_MULTIPLIER();
+            const blockDifference = new BN(latestBlockNumber).sub(
+                new BN(blockNumberBeforeClaim.number)
+            );
+            const additionalAccumulatedRewardPerShare = rewardTokensPerBlock
+                .mul(bonusBlockMultiplier)
+                .mul(blockDifference);
+            expect(userReward.sub(additionalAccumulatedRewardPerShare).toString()).to.be.equal(
+                totalUserAccumulatedReward.toString()
+            );
+
+            /** The total liquid reward should be 70% of the reward since the calc immediate percent is 70% liquid */
+            expect(
+                userReward
+                    .sub(additionalAccumulatedRewardPerShare)
+                    .mul(newUnlockedImmediatelyPercent)
+                    .div(HUNDRED_PERCENT)
+                    .toString()
+            ).to.be.equal(totalLiquidReward.toString());
+
+            // total vested should be 30% of the reward since the calc immediate percent is 70% liquid
+            expect(
+                userReward
+                    .sub(additionalAccumulatedRewardPerShare)
+                    .mul(new BN(HUNDRED_PERCENT).sub(newUnlockedImmediatelyPercent))
+                    .div(HUNDRED_PERCENT)
+                    .toString()
+            ).to.be.equal(totalVestedReward.toString());
 
             expectEvent(tx, "RewardClaimed", {
                 user: account1,

@@ -1,9 +1,9 @@
 /* eslint-disable */
 require("chai")
 	.use(require("chai-as-promised"))
-	.use(require("chai-bn")(require("bn.js")))
-	.use(require("chai-string"))
-	.use(require("dirty-chai"))
+	//.use(require("chai-bn")(require("bn.js")))
+	//.use(require("chai-string"))
+	//.use(require("dirty-chai"))
 	.expect();
 
 const Decimal = require("decimal.js");

@@ -1,38 +1,55 @@
 const { HardhatRuntimeEnvironment } = require("hardhat/types");
 const { getStakingModulesNames } = require("../../../../deployment/helpers/helpers");
 
-const sampleSIP01 = async (hre) => {
-    const { ethers } = hre;
+const sampleGovernorOwnerSIP = async (hre) => {
+    /*
+        target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0037: The Sovryn Mynt: https://github.com/DistributedCollective/SIPS/blob/8bd786c/SIP-0037.md, sha256: 35904333545f2df983173e5e95a31020fbc2e3922a70f23e5bae94ee94194a3e"
+    */
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![31, 31337].includes(chainId)) {
+        throw new Error(`sampleGovernorOwnerSIP cannot run on the network ID == ${chainId}`);
+    }
     const SampleToken = await ethers.getContractFactory("ERC20");
     const args = {
-        targets: ["0x95a1CA72Df913f14Dc554a5D14E826B64Bd049FD"],
+        targets: [(await get("SOV")).address],
         values: [0],
-        signatures: ["transfer(address,uint256)"],
-        data: [
-            SampleToken.interface._abiCoder.encode(
-                ["address", "uint256"],
-                ["0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5", ethers.utils.parseEther("1")]
-            ),
-        ],
-        description: "SIP-0001: Transfer token. SHA256: ",
+        signatures: ["symbol()"],
+        data: ["0x"],
+        description:
+            "SIP-SAMPLE-GOVERNOR-OWNER: Dummy proposal - will call SOV.symbol(). SHA256: 16a581f5f5e2b22dbf2ffcfb73fce6c850d2f039d1d7aa4adae983c17f4a6953",
     };
 
-    return args;
+    return { args, governor: "GovernorOwner" };
 };
 
-const sampleSIPSetMassetManagerProxy = async (hre) => {
-    const { ethers } = hre;
-    const newMassetManagerProxy = "";
-    const dllr = await ethers.getContract("DLLR");
+const sampleGovernorAdminSIP = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![31, 31337].includes(chainId)) {
+        throw new Error(`sampleGovernorOwnerSIP cannot run on the network ID == ${chainId}`);
+    }
+    const SampleToken = await ethers.getContractFactory("ERC20");
     const args = {
-        targets: [dllr.address],
+        targets: [(await hre.deployments.get("SOV")).address],
         values: [0],
-        signatures: ["setMassetManagerProxy(address)"],
-        data: [dllr.interface._abiCoder.encode(["address"], [newMassetManagerProxy])],
-        description: "SIP-0002: Set Masset Manager Proxy. SHA256: ",
+        signatures: ["name()"],
+        data: ["0x"],
+        description:
+            "SIP-SAMPLE-GOVERNOR-ADMIN: Dummy proposal - will call SOV.name(). SHA256: 4912fe9c24aa4c050c5743dadca689769726fd61f2f996a307f2977b80e32b19 ",
     };
 
-    return args;
+    return { args, governor: "GovernorAdmin" };
 };
 
 const getArgsSip0049 = async (hre) => {
@@ -136,7 +153,7 @@ const getArgsSip0049 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
-const getArgsSipXX = async (hre) => {
+const getArgsSip0058 = async (hre) => {
     const {
         ethers,
         deployments: { get },
@@ -147,8 +164,8 @@ const getArgsSipXX = async (hre) => {
         "0x7Fe861e0948df601f28e0d84664Fa2Ddf4b39155", // StakingWithdrawModule
     ];
     const modulesTo = [
-        (await get("StakingVestingModule")).address, //"0xa1A80F1D50D07372A80EcC814c5C4F4d84Bd80cA",
-        (await get("StakingWithdrawModule")).address, //"0xc6F77b77FAAAECEeA4f3F46a482F5c192010cF51",
+        (await get("StakingVestingModule")).address, //"0x53C5C57302e7A6529C1A298B036426b944dC23Af",
+        (await get("StakingWithdrawModule")).address, //"0xf97c4751E4c75d28B600b0207519f2C71aA8902c",
     ];
 
     console.log(modulesTo);
@@ -164,13 +181,85 @@ const getArgsSipXX = async (hre) => {
             ),
         ],
         description:
-            "SIP-00XX: Staking contract fix ..... , Details: https://github.com/DistributedCollective/SIPS/blob/48a3f26/SIP-00XX.md, sha256: _______",
+            "SIP-0058: Staking contract update, Details: https://github.com/DistributedCollective/SIPS/blob/7c96f89/SIP-0058.md, sha256: da1a79797bad8b1d830cd188046dc62946f90af7a6b016c540eaee419e720c10",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSip0063 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+
+    const modulesFrom = [
+        "0xdf41bD1F610d0DBe9D990e3eb04fd983777f1966", // StakingStakeModule
+    ];
+    const modulesTo = [(await get("StakingStakeModule")).address];
+
+    console.log([modulesFrom], "->", [modulesTo]);
+
+    const args = {
+        targets: [(await get("StakingProxy")).address],
+        values: [0],
+        signatures: ["replaceModules(address[],address[])"],
+        data: [
+            ethers.utils.defaultAbiCoder.encode(
+                ["address[]", "address[]"],
+                [modulesFrom, modulesTo]
+            ),
+        ],
+        description:
+            "SIP-0063: Fix Staking Bug to Prevent Reverting Delegated Voting Power, Details: https://github.com/DistributedCollective/SIPS/blob/12f2600/SIP-0063.md, sha256: c56786f8bd6907c844720a127136b6ee0189360790f3e87f1490b23e2ddd614a",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSip0065 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+
+    const contracts = require("../../../../scripts/contractInteraction/mainnet_contracts.json");
+    const AdoptionFundAddress = contracts["AdoptionFund"];
+    const DevelopmentFundAddress = contracts["DevelopmentFund"];
+    const SovAddress = contracts["SOV"];
+    const multiSigAddress = contracts["multisig"];
+    const amountFromAdoption = ethers.utils.parseEther("1000000");
+    const amountFromDevelopment = ethers.utils.parseEther("2000000");
+    const amountToTransfer = ethers.utils.parseEther("3000000");
+
+    const args = {
+        targets: [AdoptionFundAddress, DevelopmentFundAddress, SovAddress],
+        values: [0, 0, 0],
+        signatures: [
+            "withdrawTokensByUnlockedTokenOwner(uint256)",
+            "withdrawTokensByUnlockedTokenOwner(uint256)",
+            "transfer(address,uint256)",
+        ],
+        data: [
+            ethers.utils.defaultAbiCoder.encode(["uint256"], [amountFromAdoption]),
+            ethers.utils.defaultAbiCoder.encode(["uint256"], [amountFromDevelopment]),
+            ethers.utils.defaultAbiCoder.encode(
+                ["address", "uint256"],
+                [multiSigAddress, amountToTransfer]
+            ),
+        ],
+        description:
+            "SIP-0065: Transfer of SOV from Adoption and Development Funds to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/cd3d249cddb6a5d0af59209c337c6864ad922007/SIP-0065.md, sha256: d6a703af4d3866ff6a7f927b680da23f450338d5346dca5d3d1e6b5751c45550",
     };
 
     return { args, governor: "GovernorOwner" };
 };
 
 module.exports = {
-    getArgsSipXX,
+    sampleGovernorAdminSIP,
+    sampleGovernorOwnerSIP,
+    getArgsSip0058,
     getArgsSip0049,
+    getArgsSip0063,
+    getArgsSip0065,
 };

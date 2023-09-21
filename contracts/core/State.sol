@@ -214,6 +214,8 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
     /// Will be used in internal swap.
     mapping(address => mapping(address => IERC20[])) internal defaultPathConversion;
 
+    address internal pauser;
+
     /**
      * @notice Add signature and target to storage.
      * @dev Protocol is a proxy and requires a way to add every
@@ -227,5 +229,15 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
         } else {
             logicTargetsSet.removeBytes32(bytes32(sig));
         }
+    }
+
+    modifier onlyAdminOrOwner() {
+        require(isOwner() || admin == (msg.sender), "unauthorized");
+        _;
+    }
+
+    modifier onlyPauserOrOwner() {
+        require(isOwner() || pauser == (msg.sender), "unauthorized");
+        _;
     }
 }

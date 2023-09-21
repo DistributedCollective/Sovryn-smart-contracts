@@ -313,7 +313,11 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
             (, uint256 accumulatedRewardPerShare_) = _getPoolAccumulatedReward(pool);
             accumulatedRewardPerShare = accumulatedRewardPerShare.add(accumulatedRewardPerShare_);
         }
-        return user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
+
+        return
+            user.accumulatedReward.add(
+                user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt)
+            );
     }
 
     /**

@@ -11,8 +11,8 @@
  * Notes: Applied fixture to use snapshot beforeEach test.
  */
 
-const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
-const BN = require("bn.js");
+const { BN, expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
+// const BN = require("bn.js");
 const { expect } = require("chai");
 
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");

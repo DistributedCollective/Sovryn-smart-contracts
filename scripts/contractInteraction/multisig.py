@@ -52,6 +52,12 @@ def replaceOwnerOnMultisig(multisig, oldOwner, newOwner):
     data = multisig.replaceOwner.encode_input(oldOwner, newOwner)
     sendWithMultisig(multisig, multisig, data, conf.acct)
 
+def transferOwnershipFromMultisig(contract, newOwner):
+    contract = Contract.from_abi("ownable", address=contract, abi=LoanToken.abi, owner=conf.acct)
+    multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    data = contract.transferOwnership.encode_input(newOwner)
+    sendWithMultisig(multisig, contract, data, conf.acct)
+
 def confirmWithMS(txId):
     multisig = Contract.from_abi("MultiSig", address = conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     multisig.confirmTransaction(txId)
@@ -115,6 +121,20 @@ def transferXUSDtoTokenSender(amount):
     token = Contract.from_abi("TestToken", address=conf.contracts['XUSD'], abi=TestToken.abi, owner=conf.acct)
     data = token.transfer.encode_input(tokenSenderAddress, amount)
     print("Transfer",amount, "xUSD from Multisig:", conf.contracts['multisig']," to GenericTokenSender:",tokenSenderAddress)
+    print(data)
+
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+
+def transferToTokenSender(currency, amount):
+    '''
+    direct liquid currency distribution
+    '''
+    # amount = 4739700 * 10**16
+
+    tokenSenderAddress = conf.contracts['GenericTokenSender']
+    token = Contract.from_abi("TestToken", address=conf.contracts[currency], abi=TestToken.abi, owner=conf.acct)
+    data = token.transfer.encode_input(tokenSenderAddress, amount)
+    print("Transfer",amount,currency, "from Multisig:", conf.contracts['multisig']," to GenericTokenSender:",tokenSenderAddress)
     print(data)
 
     sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)

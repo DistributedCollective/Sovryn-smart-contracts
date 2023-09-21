@@ -2,11 +2,11 @@
 
 View Source: [contracts/connectors/loantoken/interfaces/ProtocolLike.sol](../contracts/connectors/loantoken/interfaces/ProtocolLike.sol)
 
-**ProtocolLike**
+## **ProtocolLike** contract
 
 ## Functions
 
-- [borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes)](#borrowortradefrompool)
+- [borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, struct MarginTradeStructHelpers.SentAddresses sentAddresses, struct MarginTradeStructHelpers.SentAmounts sentValues, bytes loanDataBytes)](#borrowortradefrompool)
 - [getTotalPrincipal(address lender, address loanToken)](#gettotalprincipal)
 - [withdrawAccruedInterest(address loanToken)](#withdrawaccruedinterest)
 - [getLenderInterestData(address lender, address loanToken)](#getlenderinterestdata)
@@ -17,13 +17,16 @@ View Source: [contracts/connectors/loantoken/interfaces/ProtocolLike.sol](../con
 - [isLoanPool(address loanPool)](#isloanpool)
 - [lendingFeePercent()](#lendingfeepercent)
 - [getSwapExpectedReturn(address sourceToken, address destToken, uint256 sourceTokenAmount)](#getswapexpectedreturn)
+- [borrowerNonce(address )](#borrowernonce)
+- [closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral, bytes )](#closewithswap)
+- [closeWithDeposit(bytes32 loanId, address receiver, uint256 depositAmount)](#closewithdeposit)
 
 ---    
 
 > ### borrowOrTradeFromPool
 
 ```solidity
-function borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, address[4] sentAddresses, uint256[5] sentValues, bytes loanDataBytes) external payable
+function borrowOrTradeFromPool(bytes32 loanParamsId, bytes32 loanId, bool isTorqueLoan, uint256 initialMargin, struct MarginTradeStructHelpers.SentAddresses sentAddresses, struct MarginTradeStructHelpers.SentAmounts sentValues, bytes loanDataBytes) external payable
 returns(newPrincipal uint256, newCollateral uint256)
 ```
 
@@ -35,8 +38,8 @@ returns(newPrincipal uint256, newCollateral uint256)
 | loanId | bytes32 |  | 
 | isTorqueLoan | bool |  | 
 | initialMargin | uint256 |  | 
-| sentAddresses | address[4] |  | 
-| sentValues | uint256[5] |  | 
+| sentAddresses | struct MarginTradeStructHelpers.SentAddresses |  | 
+| sentValues | struct MarginTradeStructHelpers.SentAmounts |  | 
 | loanDataBytes | bytes |  | 
 
 <details>
@@ -48,12 +51,12 @@ function borrowOrTradeFromPool(
         bytes32 loanId, // if 0, start a new loan
         bool isTorqueLoan,
         uint256 initialMargin,
-        address[4] calldata sentAddresses,
+        MarginTradeStructHelpers.SentAddresses calldata sentAddresses,
         // lender: must match loan if loanId provided
         // borrower: must match loan if loanId provided
         // receiver: receiver of funds (address(0) assumes borrower address)
         // manager: delegated manager of loan unless address(0)
-        uint256[5] calldata sentValues,
+        MarginTradeStructHelpers.SentAmounts calldata sentValues,
         // newRate: new loan interest rate
         // newPrincipal: new loan size (borrowAmount + any borrowed interest)
         // torqueInterest: new amount of interest to escrow for Torque loan (determines initial loan length)
@@ -331,6 +334,104 @@ function getSwapExpectedReturn(
 ```
 </details>
 
+---    
+
+> ### borrowerNonce
+
+```solidity
+function borrowerNonce(address ) external view
+returns(uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+|  | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function borrowerNonce(address) external view returns (uint256);
+```
+</details>
+
+---    
+
+> ### closeWithSwap
+
+```solidity
+function closeWithSwap(bytes32 loanId, address receiver, uint256 swapAmount, bool returnTokenIsCollateral, bytes ) external nonpayable
+returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| loanId | bytes32 |  | 
+| receiver | address |  | 
+| swapAmount | uint256 |  | 
+| returnTokenIsCollateral | bool |  | 
+|  | bytes |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function closeWithSwap(
+        bytes32 loanId,
+        address receiver,
+        uint256 swapAmount, // denominated in collateralToken
+        bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
+        bytes calldata // for future use /*loanDataBytes*/
+    )
+        external
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        );
+```
+</details>
+
+---    
+
+> ### closeWithDeposit
+
+```solidity
+function closeWithDeposit(bytes32 loanId, address receiver, uint256 depositAmount) external payable
+returns(loanCloseAmount uint256, withdrawAmount uint256, withdrawToken address)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| loanId | bytes32 |  | 
+| receiver | address |  | 
+| depositAmount | uint256 |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function closeWithDeposit(
+        bytes32 loanId,
+        address receiver,
+        uint256 depositAmount // denominated in loanToken
+    )
+        external
+        payable
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        );
+```
+</details>
+
 ## Contracts
 
 * [Address](Address.md)
@@ -342,12 +443,11 @@ function getSwapExpectedReturn(
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -358,9 +458,9 @@ function getSwapExpectedReturn(
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -373,11 +473,16 @@ function getSwapExpectedReturn(
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -389,6 +494,7 @@ function getSwapExpectedReturn(
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -419,6 +525,7 @@ function getSwapExpectedReturn(
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -438,11 +545,15 @@ function getSwapExpectedReturn(
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -465,6 +576,7 @@ function getSwapExpectedReturn(
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -472,18 +584,24 @@ function getSwapExpectedReturn(
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -496,6 +614,7 @@ function getSwapExpectedReturn(
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -508,5 +627,5 @@ function getSwapExpectedReturn(
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

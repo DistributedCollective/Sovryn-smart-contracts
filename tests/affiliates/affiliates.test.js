@@ -24,7 +24,7 @@
  */
 
 const { BN, constants, send, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
-const { expect, waffle } = require("hardhat");
+const { expect } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { deployAndGetIStaking } = require("../Utils/initializer");
 
@@ -35,7 +35,7 @@ const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 const LockedSOV = artifacts.require("LockedSOV");
 const StakingProxy = artifacts.require("StakingProxy");
-const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");

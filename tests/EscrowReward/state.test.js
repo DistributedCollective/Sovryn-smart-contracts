@@ -10,7 +10,7 @@
  * Other minor optimizations:
  * - fixed some comments
  *
- * Notes: Used Waffle fixture to avoid redeployments on sovAndRewardWithdraw tests
+ * Notes: Used fixture to avoid redeployments on sovAndRewardWithdraw tests
  *
  */
 
@@ -23,7 +23,7 @@ const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
 const StakingProxy = artifacts.require("StakingProxy");
-const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const SOV = artifacts.require("TestToken");
 
 const {

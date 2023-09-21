@@ -15,9 +15,8 @@
  */
 
 const { expect, assert } = require("chai");
-const { waffle } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const provider = waffle.provider;
+const provider = ethers.provider;
 
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 
@@ -27,7 +26,7 @@ const { deployAndGetIStaking } = require("../Utils/initializer");
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
-const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry2");

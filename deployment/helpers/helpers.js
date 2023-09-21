@@ -9,6 +9,26 @@
 const { arrayToUnique } = require("../helpers/utils");
 const col = require("cli-color");
 
+const Logs = require("node-logs");
+const logger = new Logs().showInConsole(true);
+
+const logTimer = (time, passedTime) => {
+    const delaySeconds = time / 1000;
+    let timer = delaySeconds - passedTime;
+
+    let hours = parseInt(timer / 3600, 10);
+    let minutes = parseInt((timer % 3600) / 60, 10);
+    let seconds = parseInt(timer % 60, 10);
+    hours = hours < 10 ? "0" + hours : hours;
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+    process.stdout.write("");
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+
+    process.stdout.write(hours + ":" + minutes + ":" + seconds);
+};
+
 const getStakingModulesNames = () => {
     return {
         StakingAdminModule: "StakingAdminModule",
@@ -18,6 +38,14 @@ const getStakingModulesNames = () => {
         StakingVestingModule: "StakingVestingModule",
         StakingWithdrawModule: "StakingWithdrawModule",
         WeightedStakingModule: "WeightedStakingModule",
+    };
+};
+
+const getLoanTokenModulesNames = () => {
+    return {
+        LoanTokenLogicLM: "LoanTokenLogicLM",
+        LoanTokenLogicWrbtc: "LoanTokenLogicWrbtc",
+        LoanTokenSettingsLowerAdmin: "LoanTokenSettingsLowerAdmin",
     };
 };
 
@@ -83,31 +111,69 @@ const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, 
     const abi = ["event Submission(uint256 indexed transactionId)"];
     let iface = new ethers.utils.Interface(abi);
     const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "Submission");
-    await multisigCheckTx(parsedEvent.transactionId.value.toNumber(), multisig.address);
+    await multisigCheckTx(parsedEvent.transactionId.value, multisig.address);
 };
 
 const signWithMultisig = async (multisigAddress, txId, sender) => {
     const { ethers, getNamedAccounts } = hre;
-    console.log("Signing multisig txId:", txId);
+    console.log("Signing multisig txId...", txId);
     const signer = await ethers.getSigner(sender);
     const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress, signer);
     const gasEstimated = (await multisig.estimateGas.confirmTransaction(txId)).toNumber();
+    /*
     receipt = await (
         await multisig.confirmTransaction(txId, { gasLimit: Math.round(gasEstimated * 1.3) })
     ).wait();
     // console.log("Required signatures:", await multisig.required());
     console.log("Signed. Details:");
     await multisigCheckTx(txId, multisig.address);
+    */
+    console.log("Estimated Gas:", gasEstimated);
+    const lastBlock = await ethers.provider.getBlock();
+    const lastBlockGasLimit = lastBlock.gasLimit.toNumber();
+    console.log("Last Block Gas Limit:", lastBlockGasLimit);
+    const gasEstimatedMul = gasEstimated * 1.5;
+
+    let receipt;
+    let wontSign = false;
+    if (gasEstimatedMul < lastBlockGasLimit) {
+        try {
+            await multisig.callStatic.confirmTransaction(txId, { gasEstimatedMul });
+            receipt = await (await multisig.confirmTransaction(txId, { gasEstimatedMul })).wait();
+        } catch (e) {
+            wontSign = true;
+        }
+    }
+    if (wontSign || gasEstimatedMul >= lastBlockGasLimit) {
+        receipt = await (
+            await multisig.confirmTransaction(txId, { gasLimit: lastBlockGasLimit })
+        ).wait();
+    }
+
+    console.log(
+        col.yellowBright(
+            "==============================================================================="
+        )
+    );
+    console.log(col.greenBright("DONE. Details:"));
+    console.log("Tx hash:", receipt.transactionHash);
+    console.log("Gas used:", receipt.gasUsed.toNumber());
+    await multisigCheckTx(txId, multisig.address);
+    console.log(
+        col.yellowBright(
+            "==============================================================================="
+        )
+    );
 };
 
-const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_ZERO) => {
+const multisigCheckTx = async (txId, multisigAddress = ethers.constants.AddressZero) => {
     const {
         ethers,
         deployments: { get },
     } = hre;
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
-        multisigAddress == ethers.constants.ADDRESS_ZERO
+        multisigAddress == ethers.constants.AddressZero
             ? (
                   await get("MultiSigWallet")
               ).address
@@ -136,7 +202,7 @@ const multisigCheckTx = async (txId, multisigAddress = ethers.constants.ADDRESS_
 const multisigRevokeConfirmation = async (
     txId,
     sender,
-    multisigAddress = ethers.constants.ADDRESS_ZERO
+    multisigAddress = ethers.constants.AddressZero
 ) => {
     const {
         ethers,
@@ -145,7 +211,7 @@ const multisigRevokeConfirmation = async (
     const signer = await ethers.getSigner(sender);
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
-        multisigAddress == ethers.constants.ADDRESS_ZERO
+        multisigAddress == ethers.constants.AddressZero
             ? (
                   await get("MultiSigWallet")
               ).address
@@ -160,11 +226,7 @@ const multisigRevokeConfirmation = async (
     await multisigCheckTx(txId, multisig.address);
 };
 
-const multisigExecuteTx = async (
-    txId,
-    sender,
-    multisigAddress = ethers.constants.ADDRESS_ZERO
-) => {
+const multisigExecuteTx = async (txId, sender, multisigAddress = ethers.constants.AddressZero) => {
     const {
         ethers,
         deployments: { get },
@@ -172,7 +234,7 @@ const multisigExecuteTx = async (
     const signer = await ethers.getSigner(sender);
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
-        multisigAddress == ethers.constants.ADDRESS_ZERO
+        multisigAddress == ethers.constants.AddressZero
             ? (
                   await get("MultiSigWallet")
               ).address
@@ -224,10 +286,25 @@ const parseEthersLog = (parsed) => {
     for (let i = 0; i < parsed.args.length; i++) {
         const input = parsed.eventFragment.inputs[i];
         const arg = parsed.args[i];
-        const newObj = { ...input, ...{ value: arg } };
+        const newObj = { ...input, ...{ value: arg.toString() } };
         parsedEvent[input["name"]] = newObj;
     }
     return parsedEvent;
+};
+
+const parseEthersLogToValue = (parsed) => {
+    let parsedEvent = {};
+    for (let i = 0; i < parsed.args.length; i++) {
+        const input = parsed.eventFragment.inputs[i];
+        const arg = parsed.args[i];
+        const newObj = { ...input, ...{ value: arg.toString() } };
+        parsedEvent[input["name"]] = newObj.value;
+    }
+    return parsedEvent;
+};
+
+const getTxLog = (tx, contract) => {
+    return tx.logs.map((log) => parseEthersLogToValue(contract.interface.parseLog(log)));
 };
 
 const getEthersLog = async (contract, filter) => {
@@ -364,13 +441,14 @@ const deployWithCustomProxy = async (
     proxyArtifactName, // proxy deployment name
     logicInstanceName = undefined, // save logic implementation as
     proxyInstanceName = undefined, // save proxy implementation as
-    forceOwnerIsMultisig = false, // overrides network dependency
+    isOwnerMultisig = false, // overrides network dependency
     args = [],
     proxyArgs = [],
-    multisigName = "MultiSigWallet"
+    multisigName = "MultiSigWallet",
+    proxyOwner = "" // new proxy owner address, used for new proxy deployments and only if there are no post-deployment func calls from the creator address
 ) => {
     const {
-        deployments: { deploy, get, getOrNull, log },
+        deployments: { deploy, get, getOrNull, log, save },
         ethers,
     } = hre;
 
@@ -379,6 +457,7 @@ const deployWithCustomProxy = async (
 
     const proxyName = proxyInstanceName ?? proxyArtifactName; // support multiple deployments of the same artifact
     let proxyDeployment = await getOrNull(proxyName);
+    let isNewProxy = false;
     if (!proxyDeployment) {
         await deploy(proxyName, {
             contract: proxyArtifactName,
@@ -386,6 +465,7 @@ const deployWithCustomProxy = async (
             args: proxyArgs,
             log: true,
         });
+        isNewProxy = true;
     }
 
     const logicName = logicInstanceName ?? logicArtifactName;
@@ -402,8 +482,8 @@ const deployWithCustomProxy = async (
     log(`Current ${proxyName} implementation: ${prevImpl}`);
 
     if (logicDeploymentTx.newlyDeployed || logicDeploymentTx.address != prevImpl) {
-        log(`New ${logicName} implementation: ${logicDeploymentTx.address}`);
-        await deployments.save(logicName, {
+        log(`New ${proxyName} implementation: ${logicImplName} @ ${logicDeploymentTx.address}`);
+        await save(logicName, {
             address: proxy.address,
             implementation: logicDeploymentTx.address,
             abi: logicDeploymentTx.abi,
@@ -415,7 +495,7 @@ const deployWithCustomProxy = async (
         });
 
         const proxyDeployment = await get(proxyName);
-        if (hre.network.tags["testnet"] || forceOwnerIsMultisig) {
+        if ((hre.network.tags["testnet"] || isOwnerMultisig) && !isNewProxy) {
             //multisig is the owner
             const multisigDeployment = await get(multisigName);
             //@todo wrap getting ms tx data into a helper
@@ -423,20 +503,18 @@ const deployWithCustomProxy = async (
             let data = proxyInterface.encodeFunctionData("setImplementation", [
                 logicDeploymentTx.address,
             ]);
-            log(
+            logger.warn(
                 `Creating multisig tx to set ${logicArtifactName} (${logicDeploymentTx.address}) as implementation for ${proxyName} (${proxyDeployment.address}...`
             );
             log();
             await sendWithMultisig(multisigDeployment.address, proxy.address, data, deployer);
-            log(
-                col.bgBlue(
-                    `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<
+            logger.info(
+                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<
                  >>> DON'T PUSH DEPLOYMENTS TO THE REPO UNTIL THE MULTISIG TX SUCCESSFULLY SIGNED & EXECUTED <<<`
-                )
             );
-        } else if (hre.network.tags["mainnet"]) {
-            log(">>> Create a Bitocracy proposal via SIP <<<");
-            log(
+        } else if (hre.network.tags["mainnet"] && !isNewProxy) {
+            logger.warn(">>> Create a Bitocracy proposal via SIP <<<");
+            logger.error(
                 ">>> DON'T PUSH DEPLOYMENTS TO THE REPO UNTIL THE SIP IS SUCCESSFULLY EXECUTED <<<`"
             );
             // governance is the owner - need a SIP to register
@@ -448,24 +526,54 @@ const deployWithCustomProxy = async (
                 `>>> New implementation ${await proxy.getImplementation()} is set to the proxy <<<`
             );
         }
+        if (ethers.utils.isAddress(proxyOwner) && (await proxy.getOwner()) !== proxyOwner) {
+            await proxy.transferOwnership(proxyOwner);
+            logger.success(
+                `Proxy ${proxyName} ownership transferred to ${await proxy.getOwner()}`
+            );
+        }
         log();
     }
 };
+const getTxRevertReason = async (txHash) => {
+    const tx = await ethers.provider.getTransaction(txHash);
+    try {
+        let code = await ethers.provider.call(tx, tx.blockNumber);
+        console.log("code:", code);
+    } catch (err) {
+        return err;
+        /*console.log(err);
+        const code = err.data.replace("Reverted ", "");
+        console.log({ err });
+        let reason = ethers.utils.toUtf8String("0x" + code.substr(138));
+        console.log("Revert reason:", reason);
+        return `Revert reason: ${reason}`;*/
+    }
+};
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
     getStakingModulesNames,
+    getLoanTokenModulesNames,
     stakingRegisterModuleWithMultisig,
     parseEthersLog,
     getEthersLog,
+    parseEthersLogToValue,
     getParsedEventLogFromReceipt,
     sendWithMultisig,
     signWithMultisig,
     multisigCheckTx,
     multisigRevokeConfirmation,
     multisigExecuteTx,
+    isMultisigOwner,
     getStakingModuleContractToReplace,
     createProposal,
     deployWithCustomProxy,
     multisigAddOwner,
     multisigRemoveOwner,
+    getTxLog,
+    getTxRevertReason,
+    delay,
+    logTimer,
 };

@@ -1098,7 +1098,7 @@ contract("Staking", (accounts) => {
 
         it("the owner may not set the vesting registry if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.setVestingRegistry(address(1337))).to.be.revertedWith("paused");
+            await expectRevert(staking.setVestingRegistry(address(1337)), "paused");
         });
 
         it("the owner may set the vesting registry if the contract is paused", async () => {
@@ -1109,15 +1109,17 @@ contract("Staking", (accounts) => {
         });
 
         it("any other address may not set the vesting registry", async () => {
-            await expect(
-                staking.setVestingRegistry(address(1337), { from: a1 })
-            ).to.be.revertedWith("unauthorized");
+            await expectRevert(
+                staking.setVestingRegistry(address(1337), { from: a1 }),
+                "unauthorized"
+            );
 
             await staking.addAdmin(a1);
             // still reverts
-            await expect(
-                staking.setVestingRegistry(address(1337), { from: a1 })
-            ).to.be.revertedWith("unauthorized");
+            await expectRevert(
+                staking.setVestingRegistry(address(1337), { from: a1 }),
+                "unauthorized"
+            );
         });
 
         it("it is allowed to set the vesting registry to the 0 address", async () => {
@@ -1969,7 +1971,7 @@ contract("Staking", (accounts) => {
 
         it("the owner may not add an admin if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.addAdmin(a1)).to.be.revertedWith("paused");
+            await expectRevert(staking.addAdmin(a1), "paused");
         });
 
         it("the owner may add an admin if the contract is paused", async () => {
@@ -1979,13 +1981,14 @@ contract("Staking", (accounts) => {
         });
 
         it("any other address may not add an admin", async () => {
-            await expect(staking.addAdmin(a1, { from: a1 })).to.be.revertedWith("unauthorized");
+            await expectRevert(staking.addAdmin(a1, { from: a1 }), "unauthorized");
             await staking.addAdmin(a1);
-            await expect(staking.addAdmin(a2, { from: a1 })).to.be.revertedWith("unauthorized");
+            await expectRevert(staking.addAdmin(a2, { from: a1 }), "unauthorized");
         });
 
         it("it is not allowed to add the 0 address as an admin", async () => {
-            await expect(staking.addAdmin(address(0))).to.be.revertedWith(
+            await expectRevert(
+                staking.addAdmin(address(0)),
                 "cannot add the zero address as an admin"
             );
         });
@@ -2012,7 +2015,7 @@ contract("Staking", (accounts) => {
         it("the owner may not remove an admin if the contract is frozen", async () => {
             await staking.addAdmin(a1);
             await staking.freezeUnfreeze(true);
-            await expect(staking.removeAdmin(a1)).to.be.revertedWith("paused");
+            await expectRevert(staking.removeAdmin(a1), "paused");
         });
 
         it("the owner may remove an admin if the contract is paused", async () => {
@@ -2052,7 +2055,7 @@ contract("Staking", (accounts) => {
 
         it("the owner may not add a pauser if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.addPauser(a1)).to.be.revertedWith("paused");
+            await expectRevert(staking.addPauser(a1), "paused");
         });
 
         it("the owner may add a  pauser if the contract is paused", async () => {
@@ -2062,13 +2065,14 @@ contract("Staking", (accounts) => {
         });
 
         it("any other address may not add a pauser", async () => {
-            await expect(staking.addPauser(a1, { from: a1 })).to.be.revertedWith("unauthorized");
+            await expectRevert(staking.addPauser(a1, { from: a1 }), "unauthorized");
             await staking.addAdmin(a1);
-            await expect(staking.addPauser(a2, { from: a1 })).to.be.revertedWith("unauthorized");
+            await expectRevert(staking.addPauser(a2, { from: a1 }), "unauthorized");
         });
 
         it("it is not allowed to add the 0 address as a pauser", async () => {
-            await expect(staking.addPauser(address(0))).to.be.revertedWith(
+            await expectRevert(
+                staking.addPauser(address(0)),
                 "cannot add the zero address as a pauser"
             );
         });
@@ -2094,7 +2098,7 @@ contract("Staking", (accounts) => {
         it("the owner may not remove a pauser if the contract is frozen", async () => {
             await staking.addPauser(a1);
             await staking.freezeUnfreeze(true);
-            await expect(staking.removePauser(a1)).to.be.revertedWith("paused");
+            await expectRevert(staking.removePauser(a1), "paused");
         });
 
         it("the owner may remove a pauser if the contract is paused", async () => {
@@ -2106,17 +2110,13 @@ contract("Staking", (accounts) => {
 
         it("any other address may not remove a pauser", async () => {
             await staking.addPauser(a1);
-            await expect(staking.removePauser(a1, { from: a1 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.removePauser(a1, { from: a1 }), "unauthorized");
             await staking.addAdmin(a2);
-            await expect(staking.removePauser(a1, { from: a2 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.removePauser(a1, { from: a2 }), "unauthorized");
         });
 
         it("reverts if _pauser is not a pauser", async () => {
-            await expect(staking.removePauser(a1)).to.be.revertedWith("address is not a pauser");
+            await expectRevert(staking.removePauser(a1), "address is not a pauser");
         });
     });
 
@@ -2151,13 +2151,13 @@ contract("Staking", (accounts) => {
 
         it("the owner may not pause/unpause if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.pauseUnpause(true)).to.be.revertedWith("paused");
+            await expectRevert(staking.pauseUnpause(true), "paused");
 
             await staking.freezeUnfreeze(false);
             await staking.pauseUnpause(true);
 
             await staking.freezeUnfreeze(true);
-            await expect(staking.pauseUnpause(false)).to.be.revertedWith("paused");
+            await expectRevert(staking.pauseUnpause(false), "paused");
         });
 
         it("a pauser different from the owner may pause/unpause if the contract is not frozen", async () => {
@@ -2171,19 +2171,11 @@ contract("Staking", (accounts) => {
         });
 
         it("any other address may not pause/unpause", async () => {
-            await expect(staking.pauseUnpause(true, { from: a1 })).to.be.revertedWith(
-                "unauthorized"
-            );
-            await expect(staking.pauseUnpause(false, { from: a1 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.pauseUnpause(true, { from: a1 }), "unauthorized");
+            await expectRevert(staking.pauseUnpause(false, { from: a1 }), "unauthorized");
             await staking.addAdmin(a1);
-            await expect(staking.pauseUnpause(true, { from: a1 })).to.be.revertedWith(
-                "unauthorized"
-            );
-            await expect(staking.pauseUnpause(false, { from: a1 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.pauseUnpause(true, { from: a1 }), "unauthorized");
+            await expectRevert(staking.pauseUnpause(false, { from: a1 }), "unauthorized");
         });
     });
 
@@ -2256,25 +2248,21 @@ contract("Staking", (accounts) => {
         });
 
         it("another contract may not freeze/unfreeze", async () => {
-            await expect(staking.freezeUnfreeze(true, { from: a1 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.freezeUnfreeze(true, { from: a1 }), "unauthorized");
             await staking.addAdmin(a1);
-            await expect(staking.freezeUnfreeze(true, { from: a1 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.freezeUnfreeze(true, { from: a1 }), "unauthorized");
             await staking.freezeUnfreeze(true);
-            await expect(staking.freezeUnfreeze(false, { from: a1 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.freezeUnfreeze(false, { from: a1 }), "unauthorized");
         });
 
         it("freezing/unfreezing to the same state as before will revert", async () => {
-            await expect(staking.freezeUnfreeze(false)).to.be.revertedWith(
+            await expectRevert(
+                staking.freezeUnfreeze(false),
                 "Cannot freeze/unfreeze to the same state"
             );
             await staking.freezeUnfreeze(true);
-            await expect(staking.freezeUnfreeze(true)).to.be.revertedWith(
+            await expectRevert(
+                staking.freezeUnfreeze(true),
                 "Cannot freeze/unfreeze to the same state"
             );
         });
@@ -2312,9 +2300,7 @@ contract("Staking", (accounts) => {
 
         it("the owner may not add a vesting code hash if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.addContractCodeHash(randomContract.address)).to.be.revertedWith(
-                "paused"
-            );
+            await expectRevert(staking.addContractCodeHash(randomContract.address), "paused");
         });
 
         it("the owner may add a vesting code hash if the contract is paused", async () => {
@@ -2324,9 +2310,10 @@ contract("Staking", (accounts) => {
         });
 
         it("other accounts cannot add a vesting code hash", async () => {
-            await expect(
-                staking.addContractCodeHash(randomContract.address, { from: a2 })
-            ).to.be.revertedWith("unauthorized");
+            await expectRevert(
+                staking.addContractCodeHash(randomContract.address, { from: a2 }),
+                "unauthorized"
+            );
         });
 
         it("an admin other than the owner may add a vesting code hash if the contract is not frozen", async () => {
@@ -2371,9 +2358,7 @@ contract("Staking", (accounts) => {
         it("the owner may not remove a vesting code hash if the contract is frozen", async () => {
             await staking.addContractCodeHash(randomContract.address);
             await staking.freezeUnfreeze(true);
-            await expect(
-                staking.removeContractCodeHash(randomContract.address)
-            ).to.be.revertedWith("paused");
+            await expectRevert(staking.removeContractCodeHash(randomContract.address), "paused");
         });
 
         it("the owner may remove a vesting code hash if the contract is paused", async () => {
@@ -2393,15 +2378,17 @@ contract("Staking", (accounts) => {
 
         it("other accounts cannot remove a vesting code hash", async () => {
             await staking.addContractCodeHash(randomContract.address);
-            await expect(
-                staking.removeContractCodeHash(randomContract.address, { from: a2 })
-            ).to.be.revertedWith("unauthorized");
+            await expectRevert(
+                staking.removeContractCodeHash(randomContract.address, { from: a2 }),
+                "unauthorized"
+            );
         });
 
         it("reverts if vesting is not actually a registered vesting contract code hash", async () => {
-            await expect(
-                staking.removeContractCodeHash(randomContract.address)
-            ).to.be.revertedWith("not a registered vesting code hash");
+            await expectRevert(
+                staking.removeContractCodeHash(randomContract.address),
+                "not a registered vesting code hash"
+            );
         });
     });
 
@@ -2415,7 +2402,7 @@ contract("Staking", (accounts) => {
 
         it("the owner may not set the new staking contract if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.setNewStakingContract(a2)).to.be.revertedWith("paused");
+            await expectRevert(staking.setNewStakingContract(a2), "paused");
         });
 
         it("the owner may set the new staking contract if the contract is paused", async () => {
@@ -2425,13 +2412,12 @@ contract("Staking", (accounts) => {
         });
 
         it("any other address may not set the new staking contract", async () => {
-            await expect(staking.setNewStakingContract(a2, { from: a2 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.setNewStakingContract(a2, { from: a2 }), "unauthorized");
         });
 
         it("it is not allowed to set the new staking contract to the 0 address", async () => {
-            await expect(staking.setNewStakingContract(ZERO_ADDRESS)).to.be.revertedWith(
+            await expectRevert(
+                staking.setNewStakingContract(ZERO_ADDRESS),
                 "can't reset the new staking contract to 0"
             );
         });
@@ -2452,7 +2438,7 @@ contract("Staking", (accounts) => {
 
         it("the owner may not set the fee sharing contract if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.setFeeSharing(a2)).to.be.revertedWith("paused");
+            await expectRevert(staking.setFeeSharing(a2), "paused");
         });
 
         it("the owner may set the fee sharing contract if the contract is paused", async () => {
@@ -2462,13 +2448,12 @@ contract("Staking", (accounts) => {
         });
 
         it("any other address may not set the fee sharing contract", async () => {
-            await expect(staking.setFeeSharing(a2, { from: a2 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.setFeeSharing(a2, { from: a2 }), "unauthorized");
         });
 
         it("it is not allowed to set the fee sharing contract to the 0 address", async () => {
-            await expect(staking.setFeeSharing(ZERO_ADDRESS)).to.be.revertedWith(
+            await expectRevert(
+                staking.setFeeSharing(ZERO_ADDRESS),
                 "FeeSharing address shouldn't be 0"
             );
         });
@@ -2498,7 +2483,7 @@ contract("Staking", (accounts) => {
 
         it("the owner may not set the scaling weight if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.setWeightScaling(5)).to.be.revertedWith("paused");
+            await expectRevert(staking.setWeightScaling(5), "paused");
         });
 
         it("the owner may set the scaling weight if the contract is paused", async () => {
@@ -2508,18 +2493,15 @@ contract("Staking", (accounts) => {
         });
 
         it("any other address may not set the scaling weight", async () => {
-            await expect(staking.setWeightScaling(5, { from: a2 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.setWeightScaling(5, { from: a2 }), "unauthorized");
             // add a2 as admin and try again
             await staking.addAdmin(a2);
-            await expect(staking.setWeightScaling(5, { from: a2 })).to.be.revertedWith(
-                "unauthorized"
-            );
+            await expectRevert(staking.setWeightScaling(5, { from: a2 }), "unauthorized");
         });
 
         it("it is not allowed to set the scaling weight lower than MIN_WEIGHT_SCALING", async () => {
-            await expect(staking.setWeightScaling(MIN_WEIGHT_SCALING - 1)).to.be.revertedWith(
+            await expectRevert(
+                staking.setWeightScaling(MIN_WEIGHT_SCALING - 1),
                 "scaling doesn't belong to range [1, 9]"
             ); //S18
             // test boundary
@@ -2530,7 +2512,8 @@ contract("Staking", (accounts) => {
         });
 
         it("it is not allowed to set the scaling weight higher than MAX_WEIGHT_SCALING", async () => {
-            await expect(staking.setWeightScaling(MAX_WEIGHT_SCALING + 1)).to.be.revertedWith(
+            await expectRevert(
+                staking.setWeightScaling(MAX_WEIGHT_SCALING + 1),
                 "scaling doesn't belong to range [1, 9]"
             ); //S18
             // test boundary
@@ -2771,7 +2754,7 @@ contract("Staking", (accounts) => {
 
         it("the owner may not set max vesting iterations if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.setMaxVestingWithdrawIterations(20)).to.be.revertedWith("paused");
+            await expectRevert(staking.setMaxVestingWithdrawIterations(20), "paused");
         });
 
         it("the owner may set max vesting iterations if the contract is paused", async () => {
@@ -2816,7 +2799,7 @@ contract("Staking", (accounts) => {
 
     describe("computeWeightByDate", () => {
         it("if date < startDate, the function reverts", async () => {
-            await expect(staking.computeWeightByDate(1, 2)).to.be.revertedWith("date < startDate");
+            await expectRevert(staking.computeWeightByDate(1, 2), "date < startDate");
             await staking.computeWeightByDate(1, 1); // no revert
         });
 
@@ -2824,7 +2807,8 @@ contract("Staking", (accounts) => {
             let startDate = new BN(1000);
             let date = startDate.add(MAX_DURATION).add(new BN(1));
 
-            await expect(staking.computeWeightByDate(date, startDate)).to.be.revertedWith(
+            await expectRevert(
+                staking.computeWeightByDate(date, startDate),
                 "remaining time > max duration"
             );
 
@@ -2897,7 +2881,8 @@ contract("Staking", (accounts) => {
 
         it("if timestamp lies before the kickoff date, the function reverts", async () => {
             const timestamp = kickoffTS.sub(new BN(1));
-            await expect(staking.timestampToLockDate(timestamp)).to.be.revertedWith(
+            await expectRevert(
+                staking.timestampToLockDate(timestamp),
                 "timestamp < contract creation"
             );
         });
@@ -3008,12 +2993,14 @@ contract("Staking", (accounts) => {
 
         it("if blockNumber  >= the current block number, the function reverts", async () => {
             const blockNumber = await web3.eth.getBlockNumber();
-            await expect(
-                staking.getPriorUserStakeByDate(a1, kickoffTS, blockNumber)
-            ).to.be.revertedWith("not determined");
-            await expect(
-                staking.getPriorUserStakeByDate(a1, kickoffTS, blockNumber + 1)
-            ).to.be.revertedWith("not determined");
+            await expectRevert(
+                staking.getPriorUserStakeByDate(a1, kickoffTS, blockNumber),
+                "not determined"
+            );
+            await expectRevert(
+                staking.getPriorUserStakeByDate(a1, kickoffTS, blockNumber + 1),
+                "not determined"
+            );
         });
 
         it("if date is not a valid lock date, the function will return account’s stake at the closest lock date AFTER date", async () => {
@@ -3105,9 +3092,10 @@ contract("Staking", (accounts) => {
             // TODO: should not require stake
             const blockNumber = await initializeStake(date, "100");
 
-            await expect(
-                staking.weightedStakeByDate(a1, date, startDate, blockNumber)
-            ).to.be.revertedWith("date < startDate");
+            await expectRevert(
+                staking.weightedStakeByDate(a1, date, startDate, blockNumber),
+                "date < startDate"
+            );
         });
 
         it("if date < startDate, but there's nothing staked for the date, the function returns 0", async () => {
@@ -3133,20 +3121,23 @@ contract("Staking", (accounts) => {
             // TODO: should not require stake
             const blockNumber = await initializeStake(date, "1000");
 
-            await expect(
-                staking.weightedStakeByDate(a1, date, startDate, blockNumber)
-            ).to.be.revertedWith("remaining time > max duration");
+            await expectRevert(
+                staking.weightedStakeByDate(a1, date, startDate, blockNumber),
+                "remaining time > max duration"
+            );
         });
 
         it("if blockNumber >= the current block number, the function reverts", async () => {
             const currentBlockNumber = await web3.eth.getBlockNumber();
             const date = kickoffTS.add(TWO_WEEKS_BN);
-            await expect(
-                staking.weightedStakeByDate(a1, date, date, currentBlockNumber)
-            ).to.be.revertedWith("not determined");
-            await expect(
-                staking.weightedStakeByDate(a1, date, date, currentBlockNumber + 1)
-            ).to.be.revertedWith("not determined");
+            await expectRevert(
+                staking.weightedStakeByDate(a1, date, date, currentBlockNumber),
+                "not determined"
+            );
+            await expectRevert(
+                staking.weightedStakeByDate(a1, date, date, currentBlockNumber + 1),
+                "not determined"
+            );
         });
 
         it("returns the correct weight * stake for account and date (max duration)", async () => {
@@ -3343,9 +3334,10 @@ contract("Staking", (accounts) => {
         it("if blockNumber >= the current block number, the function reverts", async () => {
             const currentBlockNumber = await web3.eth.getBlockNumber();
             const date = kickoffTS.add(TWO_WEEKS_BN);
-            await expect(
-                staking.getPriorWeightedStake(a1, currentBlockNumber, date)
-            ).to.be.revertedWith("not determined");
+            await expectRevert(
+                staking.getPriorWeightedStake(a1, currentBlockNumber, date),
+                "not determined"
+            );
         });
 
         it("if date is not a valid lock date, the function will return the weighted stake of account at the closest lock date prior to date", async () => {
@@ -3507,9 +3499,10 @@ contract("Staking", (accounts) => {
         it("if blockNumber >= the current block number, the function reverts", async () => {
             const currentBlockNumber = await web3.eth.getBlockNumber();
             const date = kickoffTS.add(TWO_WEEKS_BN);
-            await expect(
-                staking.getPriorTotalStakesForDate(date, currentBlockNumber)
-            ).to.be.revertedWith("not determined");
+            await expectRevert(
+                staking.getPriorTotalStakesForDate(date, currentBlockNumber),
+                "not determined"
+            );
         });
     });
 
@@ -3592,9 +3585,10 @@ contract("Staking", (accounts) => {
 
         it("the function reverts if blockNumber >= current block", async () => {
             const currentBlockNumber = await web3.eth.getBlockNumber();
-            await expect(
-                staking.getPriorTotalVotingPower(currentBlockNumber, kickoffTS)
-            ).to.be.revertedWith("not determined");
+            await expectRevert(
+                staking.getPriorTotalVotingPower(currentBlockNumber, kickoffTS),
+                "not determined"
+            );
         });
 
         it("time may lie in the future", async () => {
@@ -4198,12 +4192,14 @@ contract("Staking", (accounts) => {
 
         it("the function reverts if blockNumber >= current block", async () => {
             const currentBlockNumber = await web3.eth.getBlockNumber();
-            await expect(
-                staking.getPriorVestingWeightedStake(currentBlockNumber, kickoffTS)
-            ).to.be.revertedWith("not determined");
-            await expect(
-                staking.getPriorVestingWeightedStake(currentBlockNumber + 1, kickoffTS)
-            ).to.be.revertedWith("not determined");
+            await expectRevert(
+                staking.getPriorVestingWeightedStake(currentBlockNumber, kickoffTS),
+                "not determined"
+            );
+            await expectRevert(
+                staking.getPriorVestingWeightedStake(currentBlockNumber + 1, kickoffTS),
+                "not determined"
+            );
         });
 
         it("date may lie in the future", async () => {
@@ -4323,20 +4319,22 @@ contract("Staking", (accounts) => {
 
         it("the function reverts if blockNumber >= current block", async () => {
             const currentBlockNumber = await web3.eth.getBlockNumber();
-            await expect(
+            await expectRevert(
                 staking.getPriorStakeByDateForDelegatee(
                     a1,
                     kickoffTS.add(TWO_WEEKS_BN),
                     currentBlockNumber
-                )
-            ).to.be.revertedWith("not determined");
-            await expect(
+                ),
+                "not determined yet"
+            );
+            await expectRevert(
                 staking.getPriorStakeByDateForDelegatee(
                     a1,
                     kickoffTS.add(TWO_WEEKS_BN),
                     currentBlockNumber + 1
-                )
-            ).to.be.revertedWith("not determined");
+                ),
+                "not determined yet"
+            );
         });
     });
 
@@ -4541,7 +4539,8 @@ contract("Staking", (accounts) => {
     describe("getWithdrawAmounts", () => {
         it("the function reverts if amount is 0", async () => {
             const date = kickoffTS.add(TWO_WEEKS_BN);
-            await expect(staking.getWithdrawAmounts(0, date)).to.be.revertedWith(
+            await expectRevert(
+                staking.getWithdrawAmounts(0, date),
                 "Amount of tokens to withdraw must be > 0"
             );
         });
@@ -4549,9 +4548,12 @@ contract("Staking", (accounts) => {
         it("the function reverts if amount is higher than the msg.sender's staked balance for until", async () => {
             const date = kickoffTS.add(TWO_WEEKS_BN);
             await initializeStake(date, new BN("100"), a1);
-            await expect(staking.getWithdrawAmounts(new BN("101"), date), {
-                from: a1,
-            }).to.be.revertedWith("Staking::withdraw: not enough balance");
+            await expectRevert(
+                staking.getWithdrawAmounts(new BN("101"), date, {
+                    from: a1,
+                }),
+                "Staking::withdraw: not enough balance"
+            );
         });
 
         it("if until is not a valid lock date, the lock date NEXT to until is used for both the withdrawable amount and punishment", async () => {
@@ -4565,9 +4567,10 @@ contract("Staking", (accounts) => {
             expect(result).to.not.be.empty;
 
             // rounds to the next lock date -> no stake available -> revert
-            await expect(
-                staking.getWithdrawAmounts(new BN("100"), date.add(new BN(1)), { from: a1 })
-            ).to.be.revertedWith("Staking::withdraw: not enough balance");
+            await expectRevert(
+                staking.getWithdrawAmounts(new BN("100"), date.add(new BN(1)), { from: a1 }),
+                "Staking::withdraw: not enough balance"
+            );
         });
 
         it("if until lies in the past, the function will revert", async () => {
@@ -4578,9 +4581,10 @@ contract("Staking", (accounts) => {
             await setNextBlockTimestamp(date.add(TWO_WEEKS_BN).toNumber());
             await mineBlock();
 
-            await expect(
-                staking.getWithdrawAmounts(new BN("100"), date, { from: a1 })
-            ).to.be.revertedWith("date < startDate");
+            await expectRevert(
+                staking.getWithdrawAmounts(new BN("100"), date, { from: a1 }),
+                "date < startDate"
+            );
         });
 
         it("if until lies in the future, the function returns how many tokens the user receives if unstaking amount considering the penalty for early unstaking, and returns the withdrawable amount and the penalty", async () => {
@@ -4664,54 +4668,62 @@ contract("Staking", (accounts) => {
 
         it("the function reverts if the contract is paused", async () => {
             await staking.pauseUnpause(true);
-            await expect(
-                staking.delegate(delegatee, stakeDate, { from: delegator })
-            ).to.be.revertedWith("paused");
+            await expectRevert(
+                staking.delegate(delegatee, stakeDate, { from: delegator }),
+                "paused"
+            );
         });
 
         it("the function reverts if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(
-                staking.delegate(delegatee, stakeDate, { from: delegator })
-            ).to.be.revertedWith("paused");
+            await expectRevert(
+                staking.delegate(delegatee, stakeDate, { from: delegator }),
+                "paused"
+            );
         });
 
         it("the function reverts if the stake of msg.sender at until was modified on the same block", async () => {
             // Could not figure out how to mine two transactions in the same block without a custom contract...
             const stakingTester = await StakingTester.new(staking.address, token.address);
-            await expect(
+            await expectRevert(
                 stakingTester.stakeAndDelegate(
                     new BN("100"),
                     delegatee,
                     kickoffTS.add(TWO_WEEKS_BN)
-                )
-            ).to.be.revertedWith("cannot be mined in the same block as last stake");
+                ),
+                "cannot be mined in the same block as last stake"
+            );
         });
 
         it("the function reverts if the sender has no stake at lockDate (this includes the cases where lockDate is not a valid lock date", async () => {
-            await expect(
-                staking.delegate(delegatee, stakeDate.add(TWO_WEEKS_BN), { from: delegator })
-            ).to.be.revertedWith("no stake to delegate");
-            await expect(
-                staking.delegate(delegatee, stakeDate.sub(new BN(1)), { from: delegator })
-            ).to.be.revertedWith("no stake to delegate");
+            await expectRevert(
+                staking.delegate(delegatee, stakeDate.add(TWO_WEEKS_BN), { from: delegator }),
+                "no stake to delegate"
+            );
+            await expectRevert(
+                staking.delegate(delegatee, stakeDate.sub(new BN(1)), { from: delegator }),
+                "no stake to delegate"
+            );
         });
 
         it("the function reverts if delegatee is the same as the existing delegatee for lockDate", async () => {
-            await expect(
-                staking.delegate(delegator, stakeDate, { from: delegator })
-            ).to.be.revertedWith("cannot delegate to the existing delegatee");
+            await expectRevert(
+                staking.delegate(delegator, stakeDate, { from: delegator }),
+                "cannot delegate to the existing delegatee"
+            );
 
             await staking.delegate(delegatee, stakeDate, { from: delegator });
-            await expect(
-                staking.delegate(delegatee, stakeDate, { from: delegator })
-            ).to.be.revertedWith("cannot delegate to the existing delegatee");
+            await expectRevert(
+                staking.delegate(delegatee, stakeDate, { from: delegator }),
+                "cannot delegate to the existing delegatee"
+            );
         });
 
         it("the function reverts if delegatee is the 0 address", async () => {
-            await expect(
-                staking.delegate(address(0), stakeDate, { from: delegator })
-            ).to.be.revertedWith("cannot delegate to the zero address");
+            await expectRevert(
+                staking.delegate(address(0), stakeDate, { from: delegator }),
+                "cannot delegate to the zero address"
+            );
         });
 
         it("after function execution, getPriorStakeByDateForDelegatee is reduced by the sender’s stake at lockDate for the sender’s old delegate at lockDate.", async () => {
@@ -4937,39 +4949,36 @@ contract("Staking", (accounts) => {
     describe("migrateToNewStakingContract", () => {
         it("the function reverts if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.migrateToNewStakingContract()).to.be.revertedWith("paused");
+            await expectRevert(staking.migrateToNewStakingContract(), "paused");
         });
 
         it("reverts if the new staking contract has not been set yet", async () => {
-            await expect(staking.migrateToNewStakingContract()).to.be.revertedWith(
+            await expectRevert(
+                staking.migrateToNewStakingContract(),
                 "there is no new staking contract set"
             );
         });
 
         it("does nothing", async () => {
             await staking.setNewStakingContract(address(1337));
-            await expect(staking.migrateToNewStakingContract()).to.be.revertedWith(
-                "not implemented"
-            );
+            await expectRevert(staking.migrateToNewStakingContract(), "not implemented");
         });
 
         it("the function is executable if the contract is paused", async () => {
             await staking.pauseUnpause(true);
             await staking.setNewStakingContract(address(1337));
-            await expect(staking.migrateToNewStakingContract()).to.be.revertedWith(
-                "not implemented"
-            );
+            await expectRevert(staking.migrateToNewStakingContract(), "not implemented");
         });
     });
 
     describe("unlockAllTokens", () => {
         it("the function reverts if the sender is not the owner", async () => {
-            await expect(staking.unlockAllTokens({ from: a1 })).to.be.revertedWith("unauthorized");
+            await expectRevert(staking.unlockAllTokens({ from: a1 }), "unauthorized");
         });
 
         it("the function reverts if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
-            await expect(staking.unlockAllTokens()).to.be.revertedWith("paused");
+            await expectRevert(staking.unlockAllTokens(), "paused");
         });
 
         it("the function is executable if the contract is paused", async () => {
@@ -4997,9 +5006,7 @@ contract("Staking", (accounts) => {
         it("the function reverts if the contract is frozen", async () => {
             await staking.freezeUnfreeze(true);
 
-            expect(
-                staking.withdraw(new BN("100"), kickoffTS.add(TWO_WEEKS_BN), a1)
-            ).to.be.revertedWith("paused");
+            expect(staking.withdraw(new BN("100"), kickoffTS.add(TWO_WEEKS_BN), a1), "paused");
         });
 
         it("the function is executable if the contract is paused", async () => {
@@ -5013,14 +5020,16 @@ contract("Staking", (accounts) => {
         it("the function reverts if the senders stake at until was modified on the same block", async () => {
             // Could not figure out how to mine two transactions in the same block without a custom contract...
             const stakingTester = await StakingTester.new(staking.address, token.address);
-            await expect(
-                stakingTester.stakeAndWithdraw(new BN("100"), kickoffTS.add(TWO_WEEKS_BN))
-            ).to.be.revertedWith("cannot be mined in the same block as last stake");
+            await expectRevert(
+                stakingTester.stakeAndWithdraw(new BN("100"), kickoffTS.add(TWO_WEEKS_BN)),
+                "cannot be mined in the same block as last stake"
+            );
         });
 
         it("the function reverts if amount is 0", async () => {
             const date = kickoffTS.add(TWO_WEEKS_BN);
-            await expect(staking.withdraw(new BN("0"), date, a1)).to.be.revertedWith(
+            await expectRevert(
+                staking.withdraw(new BN("0"), date, a1),
                 "Amount of tokens to withdraw must be > 0"
             );
         });
@@ -5029,8 +5038,10 @@ contract("Staking", (accounts) => {
             const date = kickoffTS.add(TWO_WEEKS_BN);
             await initializeStake(date, new BN("100"), a1);
 
-            await expect(staking.withdraw(new BN("100"), date.add(new BN("1")), a1, { from: a1 }))
-                .to.be.reverted;
+            await expectRevert(
+                staking.withdraw(new BN("100"), date.add(new BN("1")), a1, { from: a1 }),
+                "Staking::withdraw: not enough balance"
+            );
 
             await staking.withdraw(new BN("100"), date.sub(new BN("1")), a1, { from: a1 });
             expect(await token.balanceOf(a1)).to.be.bignumber.gt("0");
@@ -5040,9 +5051,10 @@ contract("Staking", (accounts) => {
             const date = kickoffTS.add(TWO_WEEKS_BN);
             await initializeStake(date, new BN("100"), a1);
 
-            await expect(
-                staking.withdraw(new BN("101"), date.add(new BN("1")), a1, { from: a1 })
-            ).to.be.revertedWith("Staking::withdraw: not enough balance");
+            await expectRevert(
+                staking.withdraw(new BN("101"), date.add(new BN("1")), a1, { from: a1 }),
+                "Staking::withdraw: not enough balance"
+            );
         });
 
         it("if (adjusted) until lies in the past, the complete amount is withdrawn to receiver", async () => {

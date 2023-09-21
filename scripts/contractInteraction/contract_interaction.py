@@ -18,7 +18,7 @@ def main():
     * use --no-deploy param to skip running hh deployment scripts by default 
     
     mainnet: 
-    npx hardhat node --fork https://mainnet4.sovryn.app/rpc --no-deploy --fork-block-number 4929553
+    npx hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy --fork-block-number 4929553
     
     testnet:   
     npx hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy --fork-block-number 3495000
@@ -35,8 +35,12 @@ def main():
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
     
     #print("fastBTC.balance()", loadBiDiFastBTC().balance()/1e18)
-    withdrawRBTCFromFastBTCBiDi(2.5e18, conf.contracts['Watcher'])
-    
+    #withdrawRBTCFromFastBTCBiDi(30e18, '0xD9ECB390a6a32ae651D5C614974c5570c50A5D89')
+    #readPauser(conf.contracts['iXUSD'])
+    #getBalance(conf.contracts['ZUSD'], '0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a')
+    #transferTokensFromWallet(conf.contracts['ZUSD'], '0xae2a6e86d5f5d534fb372693b0ccda8d0ba9744d', 40e18)
+    #redeemFromAggregator('0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a', conf.contracts['ZUSD'], 40e18)
+    #mintAggregatedToken('0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a', conf.contracts['ZUSD'], 1e18)
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
     #bal = getBalance(conf.contracts['FastBTCBiDi'], conf.contracts['Watcher'])
     #print(getContractBTCBalance(conf.contracts['multisig'])/1e18)
@@ -46,20 +50,31 @@ def main():
 
     #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 300000e18)
     #sendTokensFromMultisig(conf.contracts['SOV'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 250000e18)
-    #sendFromMultisig(conf.acct, 2.51e18)
-    #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
     #sendFromMultisig('0xc0AAcbDB9Ce627A348B91CfDB67eC6b2FBC3dCbd', 0.1e18)
+    #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
+    #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
-    #confirmWithBFMS(8)
-    #checkTxOnBF(8)
+    #confirmWithBFMS(28)
+    #checkTxOnBF(28)
 
+    #pauseBiDiFastBTC()
+    #unpauseBiDiFastBTC()
+    #isBiDiFastBTCPaused()
+
+    #setupTorqueLoanParams(conf.contracts['iBPro'], conf.contracts['BPro'], conf.contracts['DLLR'], Wei("50 ether"))
+
+    #triggerEmergencyStop(conf.contracts['iDLLR'], False)
+
+    #readDemandCurve(conf.contracts['iXUSD'])
+    #deployLoanToken(conf.contracts['DLLR'], 'iDLLR', 'iDLLR', 6000000000000000000,15000000000000000000, 75000000000000000000, 150000000000000000000, [conf.contracts['WRBTC'], conf.contracts['SOV'], conf.contracts['BPro']])
+    #lendToPool(conf.contracts['iDLLR'], conf.contracts['DLLR'], 5000e18)
+    #buyWRBTC(0.5e18)
+    #testBorrow(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['SOV'], 100e18)
     #buyWRBTC(2.5e18)
     #setPriceFeed(conf.contracts['DLLR'], '0xEd80Ccde8bAeFf2dBFC70d3028a27e501Fa0D7D5')
-
-    
-    
+    #withdrawTokensFromWatcher(conf.contracts['XUSD'], amount, conf.contracts['multisig'])
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
     
     ### BF ###
@@ -72,28 +87,52 @@ def main():
     #confirmWithAnyMS(8, conf.contracts["BFMultisigDeposit"])
     #checkTxOnAny(8, conf.contracts["BFMultisigDeposit"])
     
-    #for i in range(11,13):
-    #    confirmWithAnyMS(i, conf.contracts["NewMultisigBF"])
-    #    checkTxOnAny(i, conf.contracts["NewMultisigBF"])
+    #for i in range(13,17):
+    #confirmWithAnyMS(17, conf.contracts["NewMultisigBF"])
+    #checkTxOnAny(17, conf.contracts["NewMultisigBF"])
+    #queueProposal(30)
 
-    #confirmWithBFMS(8) # "BFmultisig"
-    #checkTxOnBF(29)   # "BFmultisig"
+    #confirmWithBFMS(36) # "BFmultisig"
+    #checkTxOnBF(36)   # "BFmultisig"
+
+    #confirmWithBFMS(32)
+
+    #sendToWatcher(conf.contracts['DLLR'], 70000e18)
+    #transferTokensFromWallet(conf.contracts['DLLR'], '0x1bB2b1BeeDa1fB25EE5DA9caE6c0F12ced831128', 10000e18)
+    #testTradeOpeningAndClosing(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['WRBTC'], 100e18, 2e18, False, 0)
+    #tokenIsSupported(conf.contracts['DLLR'])
+    #tokenIsSupported(conf.contracts['WRBTC'])
+    #setSupportedTokens([conf.contracts['DLLR']], [True])
+    #testTradeOpeningAndClosing(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['WRBTC'], 50e18, 2e18, True, 0)
+    #testTradeOpeningAndClosingWithCollateral(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['WRBTC'], 0.002e18, 2e18, True, 0.002e18)
+
    # executeOnMultisig(1339)
     #executeOnMultisig(1343)
-    #executeOnMultisig(1352)
+    #confirmWithMS(1540)
+    #checkTx(1540)
+    #checkTx(1407)
+    #checkTx(1408)
    
-    #confirmWithMS(1357)
-    #checkTx(1358)
-    
     #addAmmPoolTokenToLM('(WR)BTC/DLLR')
 
     #hasApproval(conf.contracts['DLLR'], conf.contracts['multisig'], conf.contracts['RBTCWrapperProxyWithoutLM'])
 
 
+    #distributeMissedFees()
+    '''
+    getFeeSharingState(conf.contracts['SOV'])
+    getFeeSharingState(conf.contracts['ZUSD'])
+    getFeeSharingState(conf.contracts['iRBTC'])
+    getFeeSharingState(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT())
+    '''
+    #readOwner(conf.contracts['FeeSharingCollectorProxy'])
+    #setMaxTransferSatoshi(300000000)
+    #bal = getBalance(conf.contracts['iRBTC'], conf.contracts['multisig'])
+    #transferTokens(conf.contracts['iRBTC'], bal)
     
     
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
-    #confirmMultipleTxsWithMS(960, 963)
+    #confirmMultipleTxsWithMS(1511, 1513)
 
     #mintAggregatedToken(conf.contracts['XUSDAggregatorProxy'], conf.contracts['USDT'], 1e18)
 
@@ -109,12 +148,15 @@ def main():
     #readFeesController()
     #setFeesController(conf.contracts['FeeSharingCollectorProxy1DayStaking'])
 
+    #revokeConfirmationMS(txId)
     #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
     #print('FastBTC offramp balance:', bal/10**18)
-    #transferRBTCFromFastBTCOffRampToOnRamp(bal)
+    #print('Multisig balance:', getContractBTCBalance(conf.contracts['multisig'])/1e18)
+
+    #transferRBTCFromFastBTCOffRampToOnRamp(20e18)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
-    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], 250000e18)
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], 16658.600400155126 * 10**18)
     #mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 249999e18)
     #minReturn = getReturnForFirstLiquidityProvisionOnV1([10e18, 250000e18])
     #addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterDLLR'], [conf.contracts['WRBTC'], conf.contracts['DLLR']], [0.1e18,2500e18] , 1)
@@ -149,9 +191,18 @@ def main():
     
     #getVoluntaryWeightedStake()
 
-    #contract = Contract.from_abi("Token", address=conf.contracts['WRBTC'], abi=LoanToken.abi, owner=conf.acct)
-    #balance = contract.balanceOf('0x051b89f575fcd540f0a6a5b49c75f9a83bb2cf07', block_identifier=5132683)
+    #contract = Contract.from_abi("Token", address=conf.contracts['SOV'], abi=LoanToken.abi, owner=conf.acct)
+    #balance = contract.balanceOf(conf.acct)
     #print(balance/1e18)
+
+    #addFeeStructure(2,21400,20)
+    #setCurrentFeeStructure(2)
+
+    #readTokenOwnerFromFunds()
+
+    #printLendingPoolsData()
+
+    #transferOwnershipFromMultisig(conf.contracts["FourYearVestingFactory"], '0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b')
 
 
 def governanceTransfer():

@@ -1,5 +1,6 @@
 import csv
 from scripts.contractInteraction.contract_interaction_imports  import *
+from scripts.contractInteraction.tasks.airdrop_distribution.functions.send_direct import *
 from scripts.contractInteraction.tasks.airdrop_distribution.functions.send_direct_XUSD import *
 from scripts.contractInteraction.tasks.airdrop_distribution.functions.send_direct_SOV import *
 from scripts.contractInteraction.tasks.airdrop_distribution.functions.create_vestings import *
@@ -30,7 +31,7 @@ def main():
     # 
     # - Distribute SOV -
     # 
-    # SOVAmount = 9205394 * 10**16 # 92053.94
+    # SOVAmount = 1563050 * 10**16 #15,630.50
     # 0. 
     # print(getBalance(conf.contracts['SOV'], conf.contracts['multisig'])/10**18) # check multisig is funded with SOV
     # 1.
@@ -43,15 +44,16 @@ def main():
     # 2. 
     # print("SOV balance of Generic Token: ", getBalance(conf.contracts['SOV'], conf.contracts['GenericTokenSender'])/10**18) # check GenericTokenSender is funded with SOV
     '''
-    sovDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-SOV-transfers-22-06.csv'
+    sovDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-SOV-23-04.csv'
     dryRun = False # False to execute, true to verify the file structure
-    multiplier = 10**16 # usually 10**16 <- amounts must with 2 decimals
+    multiplier = 10**16 # usually 10**16 <- amounts must have 2 decimals
     sendDirectSOV(sovDistributionPath, dryRun, multiplier)
     '''
+
     #
     # - Distribute XUSD -
     # 
-    # XUSDAmount = 3830000 * 10**16 # 38,300.00
+    # XUSDAmount = 1475600 * 10**16 # 14,756.00
     # 0.
     # print("XUSD balance of exchequer multisig: \n", getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])/10**18) # check multisig is funded with XUSD
     # 1.
@@ -59,28 +61,54 @@ def main():
     print("GenericTokenSender Owner is: ")
     readOwner(conf.contracts['GenericTokenSender']) # check the token sender owner address
     print("Script executor address is: ",conf.acct) # check the token sender owner address
-    transferXUSDtoTokenSender(XUSDAmount) # direct liquid XUSD distribution 
     '''
+    # transferToTokenSender('XUSD', XUSDAmount) # direct liquid XUSD distribution 
+    
     # 2.
-    # print("XUSD balance of Generic Token: \n", getBalance(conf.contracts['XUSD'], conf.contracts['GenericTokenSender'])/10**18) # check multisig is funded with SOV
+    # print("XUSD balance of Generic Token: \n", getBalance(conf.contracts['XUSD'], conf.contracts['GenericTokenSender'])/10**18) # check multisig is funded with XUSD
     
     '''
-    xusdDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-XUSD-transfers-22-07.csv'
+    xusdDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-XUSD-23-09.csv'
     dryRun = False # false to execute, true to verify the file structure
     multiplier = 10**16 # usually 10**16 <- amounts must with 2 decimals
-    sendDirectXUSD(xusdDistributionPath, dryRun, multiplier)
+    sendDirect('XUSD', xusdDistributionPath, dryRun, multiplier)
+    '''
+
+    #
+    # - Distribute DLLR -
+    # currency = 'DLLR'
+    # amount = 42500 * 10**16 # 425.00
+    # 0.
+    #print(currency, "balance of exchequer multisig: \n", getBalance(conf.contracts[currency], conf.contracts['multisig'])/10**18) # check multisig is funded with currency
+    # redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], amount)
+    # mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], amount)
+    # 1.
+    '''
+    print("GenericTokenSender Owner is: ")
+    readOwner(conf.contracts['GenericTokenSender']) # check the token sender owner address
+    print("Script executor address is: ",conf.acct) # check the token sender owner address
+    transferToTokenSender('DLLR', amount) # direct liquid currency distribution 
+    '''
+    # 2.
+    # print(currency, "balance of Generic Token: \n", getBalance(conf.contracts[currency], conf.contracts['GenericTokenSender'])/10**18) # check multisig is funded with DLLR
+    
+    '''
+    dllrDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-DLLR-23-04.csv'
+    dryRun = False # false to execute, true to verify the file structure
+    multiplier = 10**16 # usually 10**16 <- amounts must with 2 decimals
+    sendDirect('DLLR', dllrDistributionPath, dryRun, multiplier)
     '''
     
     #
     # - VESTED DISTRIBUTION -
     # -----------------------
-    # print("SOV balance of exchequer multisig: \n", getBalance(conf.contracts['SOV'], conf.contracts['multisig'])/10**18) # check multisig is funded with SOV
-    # print("SOV balance of executing account: \n", getBalance(conf.contracts['SOV'], conf.acct)/10**18) # check that the script running address is funded
+    #print("SOV balance of exchequer multisig: \n", getBalance(conf.contracts['SOV'], conf.contracts['multisig'])/10**18) # check multisig is funded with SOV
+    #print("SOV balance of executing account: \n", getBalance(conf.contracts['SOV'], conf.acct)/10**18) # check that the script running address is funded
     
-    '''
-    vestedSOVAmount = 6988911 * 10**16 #69,889.11
-    transferSOVtoAccount(conf.acct, vestedSOVAmount) # vesting SOV distribution
-    '''
+    #'''
+    #vestedSOVAmount = 3941667 * 10**16 #39,416.67
+    #transferSOVtoAccount(conf.acct, vestedSOVAmount) # vesting SOV distribution
+    #'''
     
     # ------------------------
     # check, add and remove in the end the script execution address to admins
@@ -104,7 +132,7 @@ def main():
     '''
 
     '''
-    vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-22-07.csv'
+    vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-23-09.csv'
     dryRun = False # False to execute, True to verify the file structure
     multiplier = 10**16 # multiplier == 10**16 <- amounts must with 2 decimals
     createVestings(vestingDistributionPath, dryRun, multiplier)

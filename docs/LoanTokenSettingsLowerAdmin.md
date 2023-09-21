@@ -4,13 +4,14 @@ View Source: [contracts/connectors/loantoken/modules/shared/LoanTokenSettingsLow
 
 **↗ Extends: [LoanTokenLogicStorage](LoanTokenLogicStorage.md)**
 
-**LoanTokenSettingsLowerAdmin**
+## **LoanTokenSettingsLowerAdmin** contract
 
 **Events**
 
 ```js
 event SetTransactionLimits(address[]  addresses, uint256[]  limits);
 event ToggledFunctionPaused(string  functionId, bool  prevFlag, bool  newFlag);
+event WithdrawRBTCTo(address indexed to, uint256  amount);
 ```
 
 ## Modifiers
@@ -37,6 +38,10 @@ modifier onlyAdmin() internal
 - [toggleFunctionPause(string funcId, bool isPaused)](#togglefunctionpause)
 - [setTransactionLimits(address[] addresses, uint256[] limits)](#settransactionlimits)
 - [changeLoanTokenNameAndSymbol(string _name, string _symbol)](#changeloantokennameandsymbol)
+- [withdrawRBTCTo(address payable _receiverAddress, uint256 _amount)](#withdrawrbtcto)
+- [setLiquidityMiningAddress(address LMAddress)](#setliquidityminingaddress)
+- [getLiquidityMiningAddress()](#getliquidityminingaddress)
+- [checkPause(string funcId)](#checkpause)
 
 ---    
 
@@ -60,7 +65,7 @@ function getListFunctionSignatures()
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](9);
+        bytes4[] memory res = new bytes4[](13);
         res[0] = this.setAdmin.selector;
         res[1] = this.setPauser.selector;
         res[2] = this.setupLoanParams.selector;
@@ -70,6 +75,10 @@ function getListFunctionSignatures()
         res[6] = this.setTransactionLimits.selector;
         res[7] = this.changeLoanTokenNameAndSymbol.selector;
         res[8] = this.pauser.selector;
+        res[9] = this.setLiquidityMiningAddress.selector;
+        res[10] = this.withdrawRBTCTo.selector;
+        res[11] = this.getLiquidityMiningAddress.selector;
+        res[12] = this.checkPause.selector;
         return (res, stringToBytes32("LoanTokenSettingsLowerAdmin"));
     }
 ```
@@ -411,6 +420,127 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 ```
 </details>
 
+---    
+
+> ### withdrawRBTCTo
+
+Withdraws RBTC from the contract by Multisig.
+
+```solidity
+function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external nonpayable onlyOwner 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _receiverAddress | address payable | The address where the rBTC has to be transferred. | 
+| _amount | uint256 | The amount of rBTC to be transferred. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external onlyOwner {
+        require(_receiverAddress != address(0), "receiver address invalid");
+        require(_amount > 0, "non-zero withdraw amount expected");
+        require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
+        _receiverAddress.transfer(_amount);
+        emit WithdrawRBTCTo(_receiverAddress, _amount);
+    }
+```
+</details>
+
+---    
+
+> ### setLiquidityMiningAddress
+
+sets the liquidity mining contract address
+
+```solidity
+function setLiquidityMiningAddress(address LMAddress) external nonpayable onlyOwner 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| LMAddress | address | the address of the liquidity mining contract | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
+        liquidityMiningAddress = LMAddress;
+    }
+```
+</details>
+
+---    
+
+> ### getLiquidityMiningAddress
+
+We need separate getter for newly added storage variable
+
+```solidity
+function getLiquidityMiningAddress() public view
+returns(address)
+```
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getLiquidityMiningAddress() public view returns (address) {
+        return liquidityMiningAddress;
+    }
+```
+</details>
+
+---    
+
+> ### checkPause
+
+Check whether a function is paused.
+     *
+
+```solidity
+function checkPause(string funcId) public view
+returns(isPaused bool)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| funcId | string | The function ID, the selector.      * | 
+
+**Returns**
+
+isPaused Whether the function is paused: true or false.
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function checkPause(string memory funcId) public view returns (bool isPaused) {
+        bytes4 sig = bytes4(keccak256(abi.encodePacked(funcId)));
+        bytes32 slot =
+            keccak256(
+                abi.encodePacked(
+                    sig,
+                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+                )
+            );
+        assembly {
+            isPaused := sload(slot)
+        }
+        return isPaused;
+    }
+```
+</details>
+
 ## Contracts
 
 * [Address](Address.md)
@@ -422,12 +552,11 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -438,9 +567,9 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -453,11 +582,16 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -469,6 +603,7 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -499,6 +634,7 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -518,11 +654,15 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -545,6 +685,7 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -552,18 +693,24 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -576,6 +723,7 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -588,5 +736,5 @@ function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

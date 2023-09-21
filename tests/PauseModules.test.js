@@ -14,7 +14,7 @@
  *  - reordered external modules apart from local variables
  *
  * Notes:
- * 	Previous optimization by Tyrone adding a waffle fixture (loadFixture)
+ * 	Previous optimization by Tyrone adding a fixture (loadFixture)
  *  improved a 20% the code speed:
  * 		reduced total elapsed time from 5s to 4s
  *  Updated to use only the initializer.js functions for protocol deployment.
@@ -53,12 +53,14 @@ const {
     getSOV,
 } = require("./Utils/initializer.js");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const mutexUtils = require("./reentrancy/utils");
 
 contract("Pause Modules", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
     let loanParams, loanParamsId;
     /// @note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
     async function fixtureInitialize(_wallets, _provider) {
+        await mutexUtils.getOrDeployMutex();
         SUSD = await getSUSD(); // Underlying Token
         RBTC = await getRBTC();
         WRBTC = await getWRBTC();
@@ -295,6 +297,31 @@ contract("Pause Modules", (accounts) => {
 
             // Pause false -> true
             await sovryn.togglePaused(true);
+            expect(await sovryn.isProtocolPaused()).to.be.true;
+        });
+
+        it("isProtocolPaused() returns correct result when toggling pause/unpause using pauser address", async () => {
+            await loadFixture(fixtureInitialize);
+
+            const pauser = accounts[5];
+            await sovryn.setPauser(pauser, { from: owner });
+            expect((await sovryn.getPauser()) == pauser).to.be.true;
+
+            await sovryn.togglePaused(true, { from: pauser });
+            expect(await sovryn.isProtocolPaused()).to.be.true;
+
+            // Check deterministic result when trying to set current value
+            expectRevert.unspecified(sovryn.togglePaused(true, { from: pauser }));
+            expect(await sovryn.isProtocolPaused()).to.be.true;
+
+            // Pause true -> false
+            await sovryn.togglePaused(false, { from: pauser });
+            expect(await sovryn.isProtocolPaused()).to.be.false;
+            expectRevert.unspecified(sovryn.togglePaused(false));
+            expect(await sovryn.isProtocolPaused()).to.be.false;
+
+            // Pause false -> true
+            await sovryn.togglePaused(true, { from: pauser });
             expect(await sovryn.isProtocolPaused()).to.be.true;
         });
     });

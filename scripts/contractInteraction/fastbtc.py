@@ -35,14 +35,36 @@ def loadFastBTC():
     abi = json.load(abiFile)
     return Contract.from_abi("FastBTC", address = conf.contracts['FastBTC'], abi = abi, owner = conf.acct)
 
-
-
-
-def addPauser(address):
+def loadFastBTCAccessControl():
     abiFile =  open('./scripts/contractInteraction/ABIs/FastBTCAccessControl.json')
     abi = json.load(abiFile)
-    fastBTC = Contract.from_abi("FastBTC", address = conf.contracts['FastBTCAccessControl'], abi = abi, owner = conf.acct)
+    return Contract.from_abi("FastBTC", address = conf.contracts['FastBTCAccessControl'], abi = abi, owner = conf.acct)
+
+def loadBTCAddressValidator():
+    abiFile =  open('./scripts/contractInteraction/ABIs/BTCAddressValidator.json')
+    abi = json.load(abiFile)
+    return Contract.from_abi("FastBTC", address = conf.contracts['BTCAddressValidator'], abi = abi, owner = conf.acct)
+ 
+
+def addPauser(address):
+    fastBTC = loadFastBTCAccessControl()
     data = fastBTC.addPauser.encode_input(address)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def addGuard(address):
+    fastBTC = loadFastBTCAccessControl()    
+    data = fastBTC.addGuard.encode_input(address)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def checkAdmin(address):
+    fastBTC = loadFastBTCAccessControl()
+    print(fastBTC.checkAdmin(address))
+
+def revokeAdmin(account):
+    fastBTC = loadFastBTCAccessControl()
+    data = fastBTC.revokeRole.encode_input('0x0000000000000000000000000000000000000000000000000000000000000000', account)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
     
@@ -75,6 +97,24 @@ def freezeBiDiFastBTC():
 def unfreezeBiDiFastBTC():
     fastBTC = loadBiDiFastBTC()
     data = fastBTC.unfreeze.encode_input()
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def addFeeStructure(feeStructureIndex, newBaseFeeSatoshi, newDynamicFee):
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.addFeeStructure.encode_input(feeStructureIndex, newBaseFeeSatoshi, newDynamicFee)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def setCurrentFeeStructure(feeStructureIndex):
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.setCurrentFeeStructure.encode_input(feeStructureIndex)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def setNonBech32Prefixes():
+    fastBTC = loadBTCAddressValidator()
+    data = fastBTC.setNonBech32Prefixes.encode_input(["1", "3"])
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
 

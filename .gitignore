@@ -15,6 +15,7 @@ ignore/
 !.solhint.json
 !.solhintignore
 !.eslintignore
+!.chainId
 ignore
 *.txt
 *.log
@@ -34,11 +35,13 @@ cache
 node_modules
 artifacts/
 cache/
+cache_forge/
 contracts_bzx/
 tmp/
 tmp
 /temp/
 /out/
+foundry/out/
 abi
 types/
 typechain/
@@ -47,3 +50,4 @@ typechain/
 */deployments/*forked*
 venv/
 !/external/artifacts/
+cache_hardhat/

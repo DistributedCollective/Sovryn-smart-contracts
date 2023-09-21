@@ -426,6 +426,24 @@ def withdrawFees():
     feeSharingCollectorProxy = Contract.from_abi(
         "FeeSharingCollector", address=feesController, abi=FeeSharingCollector.abi, owner=conf.acct)
 
+    #  Withdraw fees from protocol
+    feeSharingCollectorProxy.withdrawFees([
+        conf.contracts['USDT'],
+        conf.contracts['DoC'],
+        conf.contracts['ETHs'],
+        conf.contracts['XUSD'],
+        conf.contracts['FISH'],
+        conf.contracts['BPro'],
+        conf.contracts['SOV'],
+        conf.contracts['WRBTC'],
+    ])
+
+def withdrawFeesAMM():
+    # Withdraw fees from protocol
+    feesController = readFeesController()
+    feeSharingCollectorProxy = Contract.from_abi(
+        "FeeSharingCollector", address=feesController, abi=FeeSharingCollector.abi, owner=conf.acct)
+
     # Withdraw fees from AMM
     feeSharingCollectorProxy.withdrawFeesAMM([
         conf.contracts["ConverterSOV"],
@@ -437,18 +455,6 @@ def withdrawFees():
         conf.contracts["ConverterRIF"],
         conf.contracts["ConverterMYNT"],
         conf.contracts["ConverterDLLR"],
-    ])
-
-    #  Withdraw fees from protocol
-    feeSharingCollectorProxy.withdrawFees([
-        conf.contracts['USDT'],
-        conf.contracts['DoC'],
-        conf.contracts['ETHs'],
-        conf.contracts['XUSD'],
-        conf.contracts['FISH'],
-        conf.contracts['BPro'],
-        conf.contracts['SOV'],
-        conf.contracts['WRBTC'],
     ])
 
 def setSupportedToken(tokenAddress):
@@ -714,3 +720,14 @@ def readFeesController():
     feesController = sovryn.feesController()
     print(feesController)
     return feesController
+
+def setPauser(pauser):
+    print("Setting pauser to the protocol: ", pauser)
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setPauser.encode_input(pauser)
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+
+def setAdmin(admin):
+    sovryn = Contract.from_abi("sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+    data = sovryn.setAdmin.encode_input(admin)
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)

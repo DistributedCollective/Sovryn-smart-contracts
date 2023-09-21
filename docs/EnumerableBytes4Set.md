@@ -3,7 +3,7 @@
 
 View Source: [contracts/mixins/EnumerableBytes4Set.sol](../contracts/mixins/EnumerableBytes4Set.sol)
 
-**EnumerableBytes4Set**
+## **EnumerableBytes4Set** contract
 
 Sets have the following properties:
  * - Elements are added, removed, and checked for existence in constant time
@@ -23,52 +23,12 @@ struct Bytes4Set {
 
 ## Functions
 
-- [addAddress(struct EnumerableBytes4Set.Bytes4Set set, address addrvalue)](#addaddress)
 - [addBytes4(struct EnumerableBytes4Set.Bytes4Set set, bytes4 value)](#addbytes4)
-- [removeAddress(struct EnumerableBytes4Set.Bytes4Set set, address addrvalue)](#removeaddress)
 - [removeBytes4(struct EnumerableBytes4Set.Bytes4Set set, bytes4 value)](#removebytes4)
 - [contains(struct EnumerableBytes4Set.Bytes4Set set, bytes4 value)](#contains)
-- [containsAddress(struct EnumerableBytes4Set.Bytes4Set set, address addrvalue)](#containsaddress)
 - [enumerate(struct EnumerableBytes4Set.Bytes4Set set, uint256 start, uint256 count)](#enumerate)
 - [length(struct EnumerableBytes4Set.Bytes4Set set)](#length)
 - [get(struct EnumerableBytes4Set.Bytes4Set set, uint256 index)](#get)
-
----    
-
-> ### addAddress
-
-Add an address value to a set. O(1).
-     *
-
-```solidity
-function addAddress(struct EnumerableBytes4Set.Bytes4Set set, address addrvalue) internal nonpayable
-returns(bool)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| set | struct EnumerableBytes4Set.Bytes4Set | The set of values. | 
-| addrvalue | address | The address to add.      * | 
-
-**Returns**
-
-False if the value was already in the set.
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function addAddress(Bytes4Set storage set, address addrvalue) internal returns (bool) {
-        bytes4 value;
-        assembly {
-            value := addrvalue
-        }
-        return addBytes4(set, value);
-    }
-```
-</details>
 
 ---    
 
@@ -104,43 +64,6 @@ function addBytes4(Bytes4Set storage set, bytes4 value) internal returns (bool) 
         } else {
             return false;
         }
-    }
-```
-</details>
-
----    
-
-> ### removeAddress
-
-Remove an address value from a set. O(1).
-     *
-
-```solidity
-function removeAddress(struct EnumerableBytes4Set.Bytes4Set set, address addrvalue) internal nonpayable
-returns(bool)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| set | struct EnumerableBytes4Set.Bytes4Set | The set of values. | 
-| addrvalue | address | The address to remove.      * | 
-
-**Returns**
-
-False if the address was not present in the set.
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function removeAddress(Bytes4Set storage set, address addrvalue) internal returns (bool) {
-        bytes4 value;
-        assembly {
-            value := addrvalue
-        }
-        return removeBytes4(set, value);
     }
 ```
 </details>
@@ -231,42 +154,6 @@ True if the value is in the set. O(1).
 
 ```javascript
 function contains(Bytes4Set storage set, bytes4 value) internal view returns (bool) {
-        return set.index[value] != 0;
-    }
-```
-</details>
-
----    
-
-> ### containsAddress
-
-Returns true if the value is in the set. O(1).
-
-```solidity
-function containsAddress(struct EnumerableBytes4Set.Bytes4Set set, address addrvalue) internal view
-returns(bool)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| set | struct EnumerableBytes4Set.Bytes4Set |  | 
-| addrvalue | address |  | 
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function containsAddress(Bytes4Set storage set, address addrvalue)
-        internal
-        view
-        returns (bool)
-    {
-        bytes4 value;
-        assembly {
-            value := addrvalue
-        }
         return set.index[value] != 0;
     }
 ```
@@ -398,12 +285,11 @@ function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -414,9 +300,9 @@ function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -429,11 +315,16 @@ function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -445,6 +336,7 @@ function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -475,6 +367,7 @@ function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -494,11 +387,15 @@ function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -521,6 +418,7 @@ function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -528,18 +426,24 @@ function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -552,6 +456,7 @@ function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -564,5 +469,5 @@ function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

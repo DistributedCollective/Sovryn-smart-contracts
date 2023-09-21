@@ -629,3 +629,26 @@ def getVoluntaryWeightedStake():
     totalWeightedStake = staking.getPriorTotalVotingPower(5138745, 1679073208);
     voluntary = (totalWeightedStake - vestingWeightedStake)/1e18
     print(voluntary)
+
+def updateRolesOnDevelopmentFund():
+    developmentFund = Contract.from_abi("DevelopmentFund", address=conf.contracts['DevelopmentFund'], abi=DevelopmentFund.abi, owner=acct)
+    data = developmentFund.updateUnlockedTokenOwner.encode_input(conf.contracts['multisig'])
+    sendWithMultisig(conf.contracts['multisig'], developmentFund.address, data, conf.acct)
+    data = developmentFund.updateLockedTokenOwner(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], developmentFund.address, data, conf.acct)
+    data = developmentFund.approveLockedTokenOwner()
+    sendWithMultisig(conf.contracts['multisig'], developmentFund.address, data, conf.acct)
+
+def withdrawDevFundTokensByUnlockedTokenOwner():
+    developmentFund = Contract.from_abi("DevelopmentFund", address=conf.contracts['DevelopmentFund'], abi=DevelopmentFund.abi, owner=acct)
+    #trying to withdraw 100M SOV -> more than available -> should withdraw the max
+    data = developmentFund.withdrawTokensByUnlockedTokenOwner.encode_input(100000000e18)
+    sendWithMultisig(conf.contracts['multisig'], developmentFund.address, data, conf.acct)
+
+def withdrawAdoptionFundTokensByUnlockedTokenOwner():
+    adoptionFund = Contract.from_abi("DevelopmentFund", address=conf.contracts['AdoptionFund'], abi=DevelopmentFund.abi, owner=acct)
+    #trying to withdraw 100M SOV -> more than available -> should withdraw the max
+    data = adoptionFund.withdrawTokensByUnlockedTokenOwner.encode_input(100000000e18)
+    sendWithMultisig(conf.contracts['multisig'], adoptionFund.address, data, conf.acct)
+
+
