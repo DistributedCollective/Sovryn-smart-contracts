@@ -9,8 +9,8 @@ const ISovryn = artifacts.require("ISovryn");
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
-const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
-const LoanTokenMintAndBurn = artifacts.require("LoanTokenMintAndBurnMockup");
+const LoanTokenLogic = artifacts.require("LoanTokenLogic");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLMMockup");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
@@ -100,21 +100,21 @@ contract("CallOptionalReturn", (accounts) => {
         /** Register Loan Token Modules to the Beacon */
         await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
 
-        let loanTokenMintAndBurn = await LoanTokenMintAndBurn.new();
+        let loanTokenLogic = await LoanTokenLogic.new();
         let loanTokenLogicLM = await LoanTokenLogicLM.new();
-
-        /** Register Loan Token Mint & Burn to the Beacon */
-        await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenMintAndBurn.address);
 
         /** Register Loan Token Logic LM to the Beacon */
         await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
 
+        /** Register Loan Token Logic to the Beacon */
+        await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogic.address);
+
         /** Deploy LoanTokenLogicProxy */
-        let loanTokenLogic = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
+        let loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
 
         loanToken = await LoanToken.new(
             lender,
-            loanTokenLogic.address,
+            loanTokenLogicProxy.address,
             sovryn.address,
             testWrbtc.address
         );

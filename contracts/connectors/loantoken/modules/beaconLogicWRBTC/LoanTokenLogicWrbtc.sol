@@ -65,7 +65,11 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         return (res, stringToBytes32("LoanTokenLogicWrbtc"));
     }
 
-    /* Internal functions */
+    /**
+     * @dev internal override functions
+     * @dev Put all of internal override function dedicated to the loanTokenWrtbc module here
+     * e.g: _verifyTransfers will override the implementation of _verifyTransfers in loanTokenLogicSplit
+     */
 
     /**
      * @notice Handle transfers prior to adding newPrincipal to loanTokenSent.

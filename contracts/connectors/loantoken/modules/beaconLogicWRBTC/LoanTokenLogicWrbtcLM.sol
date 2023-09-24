@@ -8,7 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "../../LoanTokenLogicStandard.sol";
 
-contract LoanTokenMintAndBurnWrbtc is LoanTokenLogicSplit {
+contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
     /**
      * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
      * Every new public function, the signature needs to be included in this function.
@@ -36,7 +36,7 @@ contract LoanTokenMintAndBurnWrbtc is LoanTokenLogicSplit {
         res[2] = this.mintWithBTC.selector;
         res[3] = this.burnToBTC.selector;
 
-        return (res, stringToBytes32("LoanTokenMintAndBurnWrbtc"));
+        return (res, stringToBytes32("LoanTokenLogicWrbtcLM"));
     }
 
     function mintWithBTC(address receiver, bool useLM)

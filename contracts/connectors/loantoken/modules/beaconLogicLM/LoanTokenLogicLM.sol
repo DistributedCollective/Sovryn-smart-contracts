@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "../../LoanTokenLogicStandard.sol";
 
-contract LoanTokenLogicLM is LoanTokenLogicStandard {
+contract LoanTokenLogicLM is LoanTokenLogicSplit {
     /**
      * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
      * Every new public function, the signature needs to be included in this function.
@@ -21,49 +21,55 @@ contract LoanTokenLogicLM is LoanTokenLogicStandard {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](28);
-
-        // Loan Token Logic Standard, Trade & Borrow
-        res[0] = this.borrow.selector;
-        res[1] = this.marginTrade.selector;
-        res[2] = this.marginTradeAffiliate.selector;
-        res[3] = this.transfer.selector;
-        res[4] = this.transferFrom.selector;
-        res[5] = this.profitOf.selector;
-        res[6] = this.tokenPrice.selector;
-        res[7] = this.checkpointPrice.selector;
-        res[8] = this.marketLiquidity.selector;
-        res[9] = this.avgBorrowInterestRate.selector;
-        res[10] = this.borrowInterestRate.selector;
-        res[11] = this.nextBorrowInterestRate.selector;
-        res[12] = this.supplyInterestRate.selector;
-        res[13] = this.nextSupplyInterestRate.selector;
-        res[14] = this.totalSupplyInterestRate.selector;
-        res[15] = this.totalAssetBorrow.selector;
-        res[16] = this.totalAssetSupply.selector;
-        res[17] = this.getMaxEscrowAmount.selector;
-        res[18] = this.assetBalanceOf.selector;
-        res[19] = this.getEstimatedMarginDetails.selector;
-        res[20] = this.getDepositAmountForBorrow.selector;
-        res[21] = this.getBorrowAmountForDeposit.selector;
-        res[22] = this.checkPriceDivergence.selector;
-        res[23] = this.calculateSupplyInterestRate.selector;
+        bytes4[] memory res = new bytes4[](4);
 
         // Loan Token LM & OVERLOADING function
         /**
          * @notice BE CAREFUL,
-         * LoanTokenMintAndBurn also has mint & burn function (overloading).
+         * LoanTokenLogicStandard also has mint & burn function (overloading).
          * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
          */
-
-        // Advanced Token
-        res[24] = this.approve.selector;
-
-        // Advanced Token Storage
-        res[25] = this.totalSupply.selector;
-        res[26] = this.balanceOf.selector;
-        res[27] = this.allowance.selector;
+        res[0] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicStandard
+        res[1] = bytes4(keccak256("mint(address,uint256,bool)")); /// LoanTokenLogicLM
+        res[2] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
+        res[3] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
 
         return (res, stringToBytes32("LoanTokenLogicLM"));
+    }
+
+    /**
+     * @notice deposit into the lending pool and optionally participate at the Liquidity Mining Program
+     * @param receiver the receiver of the tokens
+     * @param depositAmount The amount of underlying tokens provided on the loan.
+     *						(Not the number of loan tokens to mint).
+     * @param useLM if true -> deposit the pool tokens into the Liquidity Mining contract
+     */
+    function mint(
+        address receiver,
+        uint256 depositAmount,
+        bool useLM
+    ) external nonReentrant globallyNonReentrant returns (uint256 minted) {
+        if (useLM) return _mintWithLM(receiver, depositAmount);
+        else return _mintToken(receiver, depositAmount);
+    }
+
+    /**
+     * @notice withdraws from the lending pool and optionally retrieves the pool tokens from the
+     *         Liquidity Mining Contract
+     * @param receiver the receiver of the underlying tokens. note: potetial LM rewards are always sent to the msg.sender
+     * @param burnAmount The amount of pool tokens to redeem.
+     * @param useLM if true -> deposit the pool tokens into the Liquidity Mining contract
+     */
+    function burn(
+        address receiver,
+        uint256 burnAmount,
+        bool useLM
+    ) external nonReentrant globallyNonReentrant returns (uint256 redeemed) {
+        if (useLM) redeemed = _burnFromLM(burnAmount);
+        else redeemed = _burnToken(burnAmount);
+        //this needs to be here and not in _burnTokens because of the WRBTC implementation
+        if (redeemed != 0) {
+            _safeTransfer(loanTokenAddress, receiver, redeemed, "asset transfer failed");
+        }
     }
 }

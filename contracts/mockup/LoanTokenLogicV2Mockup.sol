@@ -1,9 +1,9 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogicLM.sol";
+import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogic.sol";
 
-contract LoanTokenLogicLMV1Mockup is LoanTokenLogicStandard {
+contract LoanTokenLogicV1Mockup is LoanTokenLogicStandard {
     function getListFunctionSignatures()
         external
         pure
@@ -45,11 +45,11 @@ contract LoanTokenLogicLMV1Mockup is LoanTokenLogicStandard {
         res[25] = this.balanceOf.selector;
         res[26] = this.allowance.selector;
 
-        return (res, stringToBytes32("LoanTokenLogicLM"));
+        return (res, stringToBytes32("LoanTokenLogic"));
     }
 }
 
-contract LoanTokenLogicLMV2Mockup is LoanTokenLogicStandard {
+contract LoanTokenLogicV2Mockup is LoanTokenLogicStandard {
     function testNewFunction() external pure returns (bool) {
         return true;
     }
@@ -98,6 +98,6 @@ contract LoanTokenLogicLMV2Mockup is LoanTokenLogicStandard {
         // Mockup
         res[28] = this.testNewFunction.selector;
 
-        return (res, stringToBytes32("LoanTokenLogicLM"));
+        return (res, stringToBytes32("LoanTokenLogic"));
     }
 }
