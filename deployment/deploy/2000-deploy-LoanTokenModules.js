@@ -16,11 +16,11 @@ const func = async function (hre) {
     // then add the modules not ready for deployment to `dontDeployModules`
     const dontDeployModules = {
         /*
-        LoanTokenLogicLM: "LoanTokenLogicLM",
+        LoanTokenLogic: "LoanTokenLogic",
         LoanTokenLogicWrbtc: "LoanTokenLogicWrbtc",
+        LoanTokenLogicLM: "LoanTokenLogicLM",
+        LoanTokenLogicWrbtcLM: "LoanTokenLogicWrbtcLM",
         LoanTokenSettingsLowerAdmin: "LoanTokenSettingsLowerAdmin",
-        LoanTokenMintAndBurn: "LoanTokenMintAndBurn",
-        LoanTokenMintAndBurnWrbtc: "LoanTokenMintAndBurnWrbtc",
         */
     };
     log(col.bgYellow("Deploying LoanTokenModules..."));

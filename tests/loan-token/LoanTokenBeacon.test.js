@@ -179,9 +179,9 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             expect(
                 (await loanTokenLogicBeacon.activeModuleIndex(moduleNameLM)).toString()
             ).to.equal(new BN(0).toString());
-            expect(
-                (await loanTokenLogicBeacon.activeModuleIndex(moduleName)).toString()
-            ).to.equal(new BN(0).toString());
+            expect((await loanTokenLogicBeacon.activeModuleIndex(moduleName)).toString()).to.equal(
+                new BN(0).toString()
+            );
 
             // Double check all module for lower settings
             for (let i = 0; i < listSigsLowerAdmin[0].length; i++) {
@@ -197,9 +197,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             // Double check all module for loan token logic
             for (let i = 0; i < listSigs[0].length; i++) {
                 expect(
-                    (await loanTokenLogicBeacon.getActiveFuncSignatureList(moduleNameLM))[
-                        i
-                    ]
+                    (await loanTokenLogicBeacon.getActiveFuncSignatureList(moduleNameLM))[i]
                 ).to.be.equal(listSigsLM[0][i]);
             }
 
@@ -217,9 +215,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             ).to.equal(new BN(1).toString());
 
             expect(
-                (
-                    await loanTokenLogicBeacon.getModuleUpgradeLogLength(moduleNameLM)
-                ).toString()
+                (await loanTokenLogicBeacon.getModuleUpgradeLogLength(moduleNameLM)).toString()
             ).to.equal(new BN(1).toString());
 
             expect(
@@ -230,10 +226,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
                 moduleNameLowerSettings,
                 0
             );
-            const log1LM = await loanTokenLogicBeacon.moduleUpgradeLog(
-                moduleNameLM,
-                0
-            );
+            const log1LM = await loanTokenLogicBeacon.moduleUpgradeLog(moduleNameLM, 0);
             const log1 = await loanTokenLogicBeacon.moduleUpgradeLog(moduleName, 0);
 
             expect(log1LowerAdmin[0]).to.equal(prevLoanTokenLogicLowerAdminAddress);
@@ -268,9 +261,9 @@ contract("LoanTokenLogicBeacon", (accounts) => {
                 )
             ).to.equal(CONSTANTS.ZERO_ADDRESS);
 
-            expect(
-                (await loanTokenLogicBeacon.activeModuleIndex(moduleName)).toString()
-            ).to.equal(new BN(1).toString());
+            expect((await loanTokenLogicBeacon.activeModuleIndex(moduleName)).toString()).to.equal(
+                new BN(1).toString()
+            );
 
             expect(
                 (await loanTokenLogicBeacon.getModuleUpgradeLogLength(moduleName)).toString()
@@ -320,9 +313,9 @@ contract("LoanTokenLogicBeacon", (accounts) => {
             expect(
                 (await loanTokenLogicBeacon.activeModuleIndex(moduleNameLM)).toString()
             ).to.equal(new BN(0).toString());
-            expect(
-                (await loanTokenLogicBeacon.activeModuleIndex(moduleName)).toString()
-            ).to.equal(new BN(0).toString());
+            expect((await loanTokenLogicBeacon.activeModuleIndex(moduleName)).toString()).to.equal(
+                new BN(0).toString()
+            );
 
             expect(
                 (
@@ -330,9 +323,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
                 ).toString()
             ).to.equal(new BN(1).toString());
             expect(
-                (
-                    await loanTokenLogicBeacon.getModuleUpgradeLogLength(moduleNameLM)
-                ).toString()
+                (await loanTokenLogicBeacon.getModuleUpgradeLogLength(moduleNameLM)).toString()
             ).to.equal(new BN(1).toString());
             expect(
                 (await loanTokenLogicBeacon.getModuleUpgradeLogLength(moduleName)).toString()
@@ -342,10 +333,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
                 moduleNameLowerSettings,
                 0
             );
-            const log1LM = await loanTokenLogicBeacon.moduleUpgradeLog(
-                moduleNameLM,
-                0
-            );
+            const log1LM = await loanTokenLogicBeacon.moduleUpgradeLog(moduleNameLM, 0);
             const log1 = await loanTokenLogicBeacon.moduleUpgradeLog(moduleName, 0);
 
             expect(log1LowerAdmin[0]).to.equal(prevLoanTokenLogicLowerAdminAddress);
@@ -383,9 +371,9 @@ contract("LoanTokenLogicBeacon", (accounts) => {
                 )
             ).to.equal(loanTokenLogic.address);
 
-            expect(
-                (await loanTokenLogicBeacon.activeModuleIndex(moduleName)).toString()
-            ).to.equal(new BN(1).toString());
+            expect((await loanTokenLogicBeacon.activeModuleIndex(moduleName)).toString()).to.equal(
+                new BN(1).toString()
+            );
 
             expect(
                 (await loanTokenLogicBeacon.getModuleUpgradeLogLength(moduleName)).toString()
@@ -401,9 +389,9 @@ contract("LoanTokenLogicBeacon", (accounts) => {
 
             /** Rollback */
             await loanTokenLogicBeacon.rollback(moduleName, 0);
-            expect(
-                (await loanTokenLogicBeacon.activeModuleIndex(moduleName)).toString()
-            ).to.equal(new BN(0).toString());
+            expect((await loanTokenLogicBeacon.activeModuleIndex(moduleName)).toString()).to.equal(
+                new BN(0).toString()
+            );
             expect(
                 await loanTokenLogicBeacon.getTarget(
                     web3.eth.abi.encodeFunctionSignature("borrowInterestRate()")

@@ -6,9 +6,9 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "./LoanTokenLogicSplit.sol";
+import "./LoanTokenLogicShared.sol";
 
-contract LoanTokenLogicStandard is LoanTokenLogicSplit {
+contract LoanTokenLogicStandard is LoanTokenLogicShared {
     /**
      * @notice Borrow funds from the pool.
      * The underlying loan token may not be used as collateral.

@@ -43,11 +43,11 @@ const getStakingModulesNames = () => {
 
 const getLoanTokenModulesNames = () => {
     return {
-        LoanTokenLogicLM: "LoanTokenLogicLM",
+        LoanTokenLogic: "LoanTokenLogic",
         LoanTokenLogicWrbtc: "LoanTokenLogicWrbtc",
+        LoanTokenLogicLM: "LoanTokenLogicLM",
+        LoanTokenLogicWrbtcLM: "LoanTokenLogicWrbtcLM",
         LoanTokenSettingsLowerAdmin: "LoanTokenSettingsLowerAdmin",
-        LoanTokenMintAndBurn: "LoanTokenMintAndBurn",
-        LoanTokenMintAndBurnWrbtc: "LoanTokenMintAndBurnWrbtc",
     };
 };
 

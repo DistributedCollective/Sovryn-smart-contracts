@@ -1,7 +1,7 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../../LoanTokenLogicStandard.sol";
+import "../../LoanTokenLogicSplit.sol";
 
 contract LoanTokenLogicLM is LoanTokenLogicSplit {
     /**
