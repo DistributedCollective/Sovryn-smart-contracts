@@ -11,7 +11,7 @@ import "../../governance/Staking/interfaces/IStaking.sol";
 import "../../governance/Vesting/IVesting.sol";
 
 /**
- * @dev This contract share the functions that are being used internally by both LoanTokenLogicSplit and LoanTokenLogicStandard
+ * @dev This contract shares functions used by both LoanTokenLogicSplit and LoanTokenLogicStandard
  */
 contract LoanTokenLogicShared is LoanTokenLogicStorage {
     using SafeMath for uint256;
