@@ -20,57 +20,6 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage {
     /// DON'T ADD VARIABLES HERE, PLEASE
 
     /**
-     * @notice Transfer tokens wrapper.
-     * Sets token owner the msg.sender.
-     * Sets maximun allowance uint256(-1) to ensure tokens are always transferred.
-     *
-     * If the recipient (_to) is a vesting contract address, transfer the token to the tokenOwner of the vesting contract itself.
-     *
-     * @param _to The recipient of the tokens.
-     * @param _value The amount of tokens sent.
-     * @return Success true/false.
-     * */
-    function transfer(address _to, uint256 _value) external returns (bool) {
-        /** need additional check  address(0) here to support backward compatibility
-         * in case we don't want to activate this check, just need to set the stakingContractAddress to 0 address
-         */
-        if (
-            stakingContractAddress != address(0) &&
-            IStaking(stakingContractAddress).isVestingContract(_to)
-        ) {
-            (bool success, bytes memory data) =
-                _to.staticcall(abi.encodeWithSelector(IVesting(_to).tokenOwner.selector));
-
-            if (success) _to = abi.decode(data, (address));
-        }
-
-        return _internalTransferFrom(msg.sender, _to, _value, uint256(-1));
-    }
-
-    /**
-     * @notice Moves `_value` loan tokens from `_from` to `_to` using the
-     * allowance mechanism. Calls internal _internalTransferFrom function.
-     *
-     * @return A boolean value indicating whether the operation succeeded.
-     */
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) external returns (bool) {
-        return
-            _internalTransferFrom(
-                _from,
-                _to,
-                _value,
-                //allowed[_from][msg.sender]
-                ProtocolLike(sovrynContractAddress).isLoanPool(msg.sender)
-                    ? uint256(-1)
-                    : allowed[_from][msg.sender]
-            );
-    }
-
-    /**
      * @notice Update the user's checkpoint price and profit so far.
      * In this loan token contract, whenever some tokens are minted or burned,
      * the _updateCheckpoints() function is invoked to update the stats to
