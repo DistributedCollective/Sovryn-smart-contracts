@@ -50,11 +50,11 @@ const func = async function (hre) {
         );
 
         let moduleImplAddress = {
-            implementation:  ethers.constants.AddressZero,
+            implementation: ethers.constants.AddressZero,
             updateTimestamp: 0,
         };
 
-        if(activeModuleIndex.toNumber() != 0) {
+        if (activeModuleIndex.toNumber() != 0) {
             moduleImplAddress = await loanTokenLogicBeaconLMContract.moduleUpgradeLog(
                 ethers.utils.formatBytes32String(modulesList.LoanTokenLogic),
                 activeModuleIndex
@@ -95,7 +95,7 @@ const func = async function (hre) {
         activeModuleIndex = await loanTokenLogicBeaconLMContract.activeModuleIndex(
             ethers.utils.formatBytes32String(modulesList.LoanTokenLogicLM)
         );
-        if(activeModuleIndex.toNumber() != 0) {
+        if (activeModuleIndex.toNumber() != 0) {
             moduleImplAddress = await loanTokenLogicBeaconLMContract.moduleUpgradeLog(
                 ethers.utils.formatBytes32String(modulesList.LoanTokenLogicLM),
                 activeModuleIndex
@@ -134,7 +134,7 @@ const func = async function (hre) {
         activeModuleIndex = await loanTokenLogicBeaconLMContract.activeModuleIndex(
             ethers.utils.formatBytes32String(modulesList.LoanTokenSettingsLowerAdmin)
         );
-        if(activeModuleIndex.toNumber() != 0) {
+        if (activeModuleIndex.toNumber() != 0) {
             moduleImplAddress = await loanTokenLogicBeaconLMContract.moduleUpgradeLog(
                 ethers.utils.formatBytes32String(modulesList.LoanTokenSettingsLowerAdmin),
                 activeModuleIndex
@@ -182,7 +182,7 @@ const func = async function (hre) {
             ethers.utils.formatBytes32String(modulesList.LoanTokenLogicWrbtc)
         );
 
-        if(activeModuleIndex.toNumber() != 0) {
+        if (activeModuleIndex.toNumber() != 0) {
             moduleImplAddress = await loanTokenLogicBeaconWrbtcContract.moduleUpgradeLog(
                 ethers.utils.formatBytes32String(modulesList.LoanTokenLogicWrbtc),
                 activeModuleIndex
@@ -229,7 +229,7 @@ const func = async function (hre) {
             ethers.utils.formatBytes32String(modulesList.LoanTokenLogicWrbtcLM)
         );
 
-        if(activeModuleIndex.toNumber() != 0) {
+        if (activeModuleIndex.toNumber() != 0) {
             moduleImplAddress = await loanTokenLogicBeaconWrbtcContract.moduleUpgradeLog(
                 ethers.utils.formatBytes32String(modulesList.LoanTokenLogicWrbtcLM),
                 activeModuleIndex
@@ -277,7 +277,7 @@ const func = async function (hre) {
             ethers.utils.formatBytes32String(modulesList.LoanTokenSettingsLowerAdmin)
         );
 
-        if(activeModuleIndex.toNumber() != 0) {
+        if (activeModuleIndex.toNumber() != 0) {
             moduleImplAddress = await loanTokenLogicBeaconWrbtcContract.moduleUpgradeLog(
                 ethers.utils.formatBytes32String(modulesList.LoanTokenSettingsLowerAdmin),
                 activeModuleIndex
