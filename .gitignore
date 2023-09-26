@@ -50,4 +50,4 @@ typechain/
 */deployments/*forked*
 venv/
 !/external/artifacts/
-cache_hardhat
+cache_hardhat/

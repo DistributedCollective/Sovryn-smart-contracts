@@ -5,3 +5,4 @@ require("./amm");
 require("./utils");
 require("./misc");
 require("./governance");
+require("./feeSharingCollector");

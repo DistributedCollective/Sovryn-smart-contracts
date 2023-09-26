@@ -45,6 +45,11 @@ contract FeeSharingCollectorStorage is Ownable {
         uint96 numTokens;
     }
 
+    struct TokenWithSkippedCheckpointsWithdraw {
+        address tokenAddress;
+        uint256 fromCheckpoint;
+    }
+
     /**
      * @dev Add extra modifier (Reentrancy) below.
      * Because we cannot add any additional storage slot before this storage contract after initial deployment
@@ -70,6 +75,16 @@ contract FeeSharingCollectorStorage is Ownable {
     EnumerableAddressSet.AddressSet internal whitelistedConverterList;
 
     mapping(bytes4 => bool) public isFunctionExecuted;
+
+    /**
+     * @dev Wrbtc token address
+     */
+    address public wrbtcTokenAddress;
+
+    /**
+     * @dev iWrbtc loan token address
+     */
+    address public loanTokenWrbtcAddress;
 
     /**
      * @dev Prevents a contract from calling itself, directly or indirectly.

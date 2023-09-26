@@ -11,6 +11,57 @@ const Logs = require("node-logs");
 
 const logger = new Logs().showInConsole(true);
 
+task(
+    "utils:compare-bytecode",
+    "Compare the deployed onchain contract bytecode with the artifact to see if they match"
+)
+    .addParam(
+        "contract",
+        "Deployed contract artifact name or address to compare bytecode with the repository artifact",
+        undefined,
+        types.string
+    )
+    .addOptionalParam(
+        "address",
+        "Deployment address - use if it is different from the deployment data in the repository",
+        undefined,
+        types.string
+    )
+    .setAction(async ({ contract, address }, hre) => {
+        const {
+            ethers: { provider },
+            deployments: { get, getArtifact },
+            ethers,
+        } = hre;
+
+        const artifact = await getArtifact(contract);
+        const deployment = ethers.utils.isAddress(address) ? "" : await get(contract);
+        const contractAddress = ethers.utils.isAddress(address)
+            ? address
+            : deployment.implementation ?? deployment.address;
+        // console.log("onchain bytecode: ", await provider.getCode(contractAddress));
+        // console.log();
+        // console.log("artifact deployedBytecode: ", artifact.deployedBytecode);
+
+        if ((await provider.getCode(contractAddress)) == artifact.deployedBytecode) {
+            logger.success(
+                `Bytecodes MATCH of the contract ${
+                    ethers.utils.isAddress(contract) ? "" : contract
+                } deployed at ${contractAddress}, chainId: ${
+                    (await ethers.provider.getNetwork()).chainId
+                }`
+            );
+        } else {
+            logger.error(
+                `Bytecodes DO NOT MATCH of the contract ${
+                    ethers.utils.isAddress(contract) ? "" : contract
+                } deployed at ${contractAddress}, chainId: ${
+                    (await ethers.provider.getNetwork()).chainId
+                }`
+            );
+        }
+    });
+
 task("utils:replace-tx", "Replace tx in mempool")
     .addParam("hash", "Replaced transaction hash", undefined, types.string)
     .addOptionalParam("newFrom", "New 'from' address")
