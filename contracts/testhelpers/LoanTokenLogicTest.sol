@@ -1,9 +1,9 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogicLM.sol";
+import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogic.sol";
 
-contract LoanTokenLogicTest is LoanTokenLogicLM {
+contract LoanTokenLogicTest is LoanTokenLogic {
     function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount)
         public
         view

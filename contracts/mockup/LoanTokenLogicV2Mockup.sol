@@ -1,15 +1,15 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogicLM.sol";
+import "../connectors/loantoken/modules/beaconLogicLM/LoanTokenLogic.sol";
 
-contract LoanTokenLogicLMV1Mockup is LoanTokenLogicLM {
+contract LoanTokenLogicV1Mockup is LoanTokenLogicStandard {
     function getListFunctionSignatures()
         external
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](31);
+        bytes4[] memory res = new bytes4[](27);
 
         // Loan Token Logic Standard
         res[0] = this.borrow.selector;
@@ -37,30 +37,19 @@ contract LoanTokenLogicLMV1Mockup is LoanTokenLogicLM {
         res[22] = this.checkPriceDivergence.selector;
         res[23] = this.calculateSupplyInterestRate.selector;
 
-        // Loan Token LM & OVERLOADING function
-        /**
-         * @notice BE CAREFUL,
-         * LoanTokenLogicStandard also has mint & burn function (overloading).
-         * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
-         */
-        res[24] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicStandard
-        res[25] = bytes4(keccak256("mint(address,uint256,bool)")); /// LoanTokenLogicLM
-        res[26] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
-        res[27] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
-
         // Advanced Token
-        res[28] = this.approve.selector;
+        res[24] = this.approve.selector;
 
         // Advanced Token Storage
         // res[31] = this.totalSupply.selector;
-        res[29] = this.balanceOf.selector;
-        res[30] = this.allowance.selector;
+        res[25] = this.balanceOf.selector;
+        res[26] = this.allowance.selector;
 
-        return (res, stringToBytes32("LoanTokenLogicLM"));
+        return (res, stringToBytes32("LoanTokenLogic"));
     }
 }
 
-contract LoanTokenLogicLMV2Mockup is LoanTokenLogicLM {
+contract LoanTokenLogicV2Mockup is LoanTokenLogicStandard {
     function testNewFunction() external pure returns (bool) {
         return true;
     }
@@ -70,7 +59,7 @@ contract LoanTokenLogicLMV2Mockup is LoanTokenLogicLM {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](33);
+        bytes4[] memory res = new bytes4[](29);
 
         // Loan Token Logic Standard
         res[0] = this.borrow.selector;
@@ -98,28 +87,17 @@ contract LoanTokenLogicLMV2Mockup is LoanTokenLogicLM {
         res[22] = this.checkPriceDivergence.selector;
         res[23] = this.calculateSupplyInterestRate.selector;
 
-        // Loan Token LM & OVERLOADING function
-        /**
-         * @notice BE CAREFUL,
-         * LoanTokenLogicStandard also has mint & burn function (overloading).
-         * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
-         */
-        res[24] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicStandard
-        res[25] = bytes4(keccak256("mint(address,uint256,bool)")); /// LoanTokenLogicLM
-        res[26] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
-        res[27] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
-
         // Advanced Token
-        res[28] = this.approve.selector;
+        res[24] = this.approve.selector;
 
         // Advanced Token Storage
-        res[29] = this.totalSupply.selector;
-        res[30] = this.balanceOf.selector;
-        res[31] = this.allowance.selector;
+        res[25] = this.totalSupply.selector;
+        res[26] = this.balanceOf.selector;
+        res[27] = this.allowance.selector;
 
         // Mockup
-        res[32] = this.testNewFunction.selector;
+        res[28] = this.testNewFunction.selector;
 
-        return (res, stringToBytes32("LoanTokenLogicLM"));
+        return (res, stringToBytes32("LoanTokenLogic"));
     }
 }

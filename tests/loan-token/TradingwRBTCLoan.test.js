@@ -43,6 +43,8 @@ const {
     open_margin_trade_position_iBTC,
 } = require("../Utils/initializer.js");
 
+const mutexUtils = require("../reentrancy/utils");
+
 const wei = web3.utils.toWei;
 
 const oneEth = new BN(wei("1", "ether"));
@@ -52,6 +54,9 @@ contract("LoanTokenTrading", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         SUSD = await getSUSD();
         RBTC = await getRBTC();
         WRBTC = await getWRBTC();

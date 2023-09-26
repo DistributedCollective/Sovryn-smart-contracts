@@ -30,6 +30,8 @@ const {
 
 const { liquidate, liquidate_healthy_position_should_fail } = require("./liquidationFunctions");
 
+const mutexUtils = require("../reentrancy/utils");
+
 /*
 Should test the liquidation handling
 1. Liquidate a position
@@ -41,6 +43,9 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();
