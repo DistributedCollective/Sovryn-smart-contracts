@@ -24,8 +24,8 @@ def main():
     elif thisNetwork == "testnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
-        ownerDelay = 2*24*60*60
-        adminDelay = 1*24*60*60
+        ownerDelay = 3*60*60 #ownerDelay = 2*24*60*60
+        adminDelay = 3*60*60 #adminDelay = 1*24*60*60
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
@@ -37,7 +37,7 @@ def main():
 
     # load deployed contracts addresses
     contracts = json.load(configFile)
-    staking = contracts['staking']
+    staking = contracts['Staking']
     if (thisNetwork == "testnet" or thisNetwork == "rsk-mainnet"):
         guardian = contracts['multisig']
     else:
