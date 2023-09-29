@@ -29,8 +29,26 @@ def main():
     '''
 
     # call the function you want here
-
+    
     #used often:
+
+    #### GET DLLR ####
+    ## 2 options by priority
+    #getTotalSupply(conf.contracts["iDLLR"])
+    #amount = 100000e18
+    ## 1) from watcher
+    #withdrawTokensFromWatcher(conf.contracts["DLLR"], amount, conf.contracts["multisig"])
+    ## 2) XUSD -> ZUSD -> mint DLLR(ZUSD)
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], amount)
+    #mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], amount)
+    
+    #lendToPoolWithMS(conf.contracts["iDLLR"], conf.contracts["DLLR"], amount)
+
+    #printV1ConverterData("0xa9c3d9681215ef7623dc28ea6b75bf87fdf285d9")
+    #print("from testnet_contracts:")
+    #printV1ConverterData("0xD877fd00ECF08eD78BF549fbc74bac3001aBBb07")
+    
+    #printLendingPoolsData()
 
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
     
@@ -141,7 +159,8 @@ def main():
     
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
-    #sendTokensFromMultisig(conf.contracts['SOV'], conf.contracts['StakingRewardsProxy'], 550000e18)
+
+    #sendTokensFromMultisig(conf.contracts['SOV'], conf.contracts['StakingRewardsProxy'], 430000e18)
     #revokeConfirmation(1075)
 
     #withdrawFees()
