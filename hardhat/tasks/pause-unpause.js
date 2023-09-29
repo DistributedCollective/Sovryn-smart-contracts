@@ -178,7 +178,7 @@ task("pausing:print-lp-beacons-paused", "Log Lending Pools Beacons paused/unpaus
         await printLoanTokenBeaconsPaused(hre, beaconsList);
     });
 
-task("pausing:pause-lp-beacon(s)", "Pause Lending Pools Beacons")
+task("pausing:pause-lp-beacons", "Pause Lending Pools Beacons")
     .addOptionalParam(
         "names",
         "Beacon deployment name(s): a single beacon deployment name or a list: 'LoanTokenLogicBeaconLM,LoanTokenLogicBeaconWrbtc'",
