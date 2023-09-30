@@ -3,57 +3,59 @@ const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 const { sendWithMultisig } = require("../../deployment/helpers/helpers");
 
-task("feeSharingCollector:initialize", "Initialize feeSharingCollector")
-    .addParam("wrbtcToken", "wrbtc token address")
-    .addParam("loanWrbtcToken", "iWrbtc loan token address")
+task(
+    "feeSharingCollector:initialize",
+    "Initialize feeSharingCollector: set WRBTC and Loan Token WRBTC addresses to the FeeSharingCollector storage"
+)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ wrbtcToken, loanWrbtcToken, signer }, hre) => {
-        await initializeFeeSharingCollector(hre, wrbtcToken, loanWrbtcToken, signer, true);
+    .setAction(async ({ signer }, hre) => {
+        await initializeFeeSharingCollector(hre, signer, true);
     });
 
-task("feeSharingCollector:setWrtbcTokenAddress", "Set wrbtc token address in feeSharingCollector")
-    .addParam("wrbtcToken", "wrbtc token address")
+task("feeSharingCollector:setWrtbcTokenAddress", "Set WRBTC token address in feeSharingCollector")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ wrbtcToken, signer }, hre) => {
-        await setWrbtcTokenAddress(hre, wrbtcToken, signer, true);
+    .setAction(async ({ signer }, hre) => {
+        await setWrbtcTokenAddress(hre, signer, true);
     });
 
 task(
     "feeSharingCollector:setLoanTokenWrtbcAddress",
-    "Set wrbtc token address in feeSharingCollector"
+    "Set WRBTC loan token address in feeSharingCollector"
 )
-    .addParam("loanWrbtcToken", "iWrbtc loan token address")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ loanWrbtcToken, signer }, hre) => {
-        await setLoanTokenWrbtcAddress(hre, loanWrbtcToken, signer, true);
+    .setAction(async ({ signer }, hre) => {
+        await setLoanTokenWrbtcAddress(hre, signer, true);
     });
 
-const initializeFeeSharingCollector = async (hre, wrbtcToken, loanWrbtcToken, signer) => {
+const initializeFeeSharingCollector = async (hre, signer) => {
     const {
         deployments: { get },
         ethers,
     } = hre;
 
-    if (!ethers.utils.isAddress(wrbtcToken)) {
-        logger.error(`wrbtcToken - ${wrbtcToken} is invalid address`);
-        return;
-    }
-
-    if (!ethers.utils.isAddress(loanWrbtcToken)) {
-        logger.error(`loanWrbtcToken - ${loanWrbtcToken} is invalid address`);
-        return;
-    }
-
-    const multisigDeployment = await get("MultiSigWallet");
     let initializeSelector = ethers.utils.id("initialize(address,address)").substring(0, 10);
     const isInitialized = await (
         await ethers.getContract("FeeSharingCollector")
     ).isFunctionExecuted(initializeSelector);
-
     if (isInitialized) {
-        logger.error("FeeSharingCollector has been initialized");
+        logger.error("FeeSharingCollector has already been initialized");
         return;
     }
+
+    const wrbtcToken = (await get("WRBTC")).address;
+    const loanWrbtcToken = (await get("LoanToken_iRBTC")).address;
+
+    if (!ethers.utils.isAddress(wrbtcToken)) {
+        logger.error(`WRBTC - ${wrbtcToken} is invalid address`);
+        return;
+    }
+
+    if (!ethers.utils.isAddress(loanWrbtcToken)) {
+        logger.error(`loan token iRBTC - ${loanWrbtcToken} is invalid address`);
+        return;
+    }
+
+    const multisigDeployment = await get("MultiSigWallet");
 
     const signerAcc = (await hre.getNamedAccounts())[signer];
     const targetDeploymentAddress = (await get("FeeSharingCollector")).address;
@@ -64,12 +66,13 @@ const initializeFeeSharingCollector = async (hre, wrbtcToken, loanWrbtcToken, si
     await sendWithMultisig(multisigDeployment.address, targetDeploymentAddress, data, signerAcc);
 };
 
-const setWrbtcTokenAddress = async (hre, wrbtcToken, signer) => {
+const setWrbtcTokenAddress = async (hre, signer) => {
     const {
         deployments: { get },
         ethers,
     } = hre;
 
+    const wrbtcToken = (await get("WRBTC")).address;
     if (!ethers.utils.isAddress(wrbtcToken)) {
         logger.error(`wrbtcToken - ${wrbtcToken} is invalid address`);
         return;
@@ -86,12 +89,13 @@ const setWrbtcTokenAddress = async (hre, wrbtcToken, signer) => {
     await sendWithMultisig(multisigDeployment.address, targetDeploymentAddress, data, signerAcc);
 };
 
-const setLoanTokenWrbtcAddress = async (hre, loanWrbtcToken, signer) => {
+const setLoanTokenWrbtcAddress = async (hre, signer) => {
     const {
         deployments: { get },
         ethers,
     } = hre;
 
+    const loanWrbtcToken = (await get("iRBTC")).address;
     if (!ethers.utils.isAddress(loanWrbtcToken)) {
         logger.error(`loanWrbtcToken - ${loanWrbtcToken} is invalid address`);
         return;
