@@ -506,7 +506,7 @@ const deployWithCustomProxy = async (
                 logicDeploymentTx.address,
             ]);
             logger.warn(
-                `Creating multisig tx to set ${logicArtifactName} (${logicDeploymentTx.address}) as implementation for ${proxyName} (${proxyDeployment.address}...`
+                `Creating multisig tx to set ${logicArtifactName} (${logicDeploymentTx.address}) as implementation for ${proxyName} (${proxyDeployment.address})...`
             );
             log();
             await sendWithMultisig(multisigDeployment.address, proxy.address, data, deployer);
