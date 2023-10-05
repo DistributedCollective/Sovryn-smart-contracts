@@ -1,6 +1,6 @@
 {
     "_format": "hh-sol-artifact-1",
-    "contractName": "Timelock",
+    "contractName": "TimelockOwner",
     "sourceName": "contracts/governance/Timelock.sol",
     "address": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
     "abi": [

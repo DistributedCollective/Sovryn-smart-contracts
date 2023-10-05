@@ -23,12 +23,14 @@ const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const SwapsExternal = artifacts.require("SwapsExternal");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const LoanTokenLogic = artifacts.require("LoanTokenLogic");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const LoanTokenLogicWrbtcLM = artifacts.require("LoanTokenLogicWrbtcLM");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 
@@ -292,19 +294,23 @@ const getLoanTokenLogic = async (isMockLoanToken = false) => {
     /** Deploy  LoanTokenSettingsLowerAdmin*/
     const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
+    /** Deploy  LoanTokenLogicLM*/
+    const loanTokenLogicLM = await LoanTokenLogicLM.new();
+
     /** Register Loan Token Modules to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
+    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
 
-    /** Deploy LoanTokenLogicLM */
-    let loanTokenLogicLM;
+    /** Deploy LoanTokenLogic */
+    let loanTokenLogic;
     if (isMockLoanToken) {
-        loanTokenLogicLM = await MockLoanTokenLogic.new();
+        loanTokenLogic = await MockLoanTokenLogic.new();
     } else {
-        loanTokenLogicLM = await LoanTokenLogicLM.new();
+        loanTokenLogic = await LoanTokenLogic.new();
     }
 
-    /** Register Loan Token Logic LM to the Beacon */
-    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
+    /** Register Loan Token Logic to the Beacon */
+    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogic.address);
 
     /** Deploy LoanTokenLogicProxy */
     loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
@@ -318,11 +324,15 @@ const getLoanTokenLogicWrbtc = async (isMockLoanToken = false) => {
     /** Deploy  LoanTokenSettingsLowerAdmin*/
     const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
+    /** Deploy  LoanTokenLogicWrbtcLM*/
+    const loanTokenLogicWrbtcLM = await LoanTokenLogicWrbtcLM.new();
+
     /** Register Loan Token Modules to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
+    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicWrbtcLM.address);
 
     /** Deploy LoanTokenLogicWRBTC */
-    let loanTokenLogicLM;
+    let loanTokenLogicWrbtc;
     if (isMockLoanToken) {
         loanTokenLogicWrbtc = await MockLoanTokenLogic.new();
     } else {

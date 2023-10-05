@@ -1038,6 +1038,97 @@ contract("ProtocolSettings", (accounts) => {
             await multisig.confirmTransaction(txId2, { from: accounts[1] });
             expect((await sovryn.getPauser()) == ZERO_ADDRESS).to.be.true;
         });
+
+        it("Admin should not be able to set the admin address", async () => {
+            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
+            const admin = accounts[1];
+            const dest = sovryn.address;
+            const val = 0;
+            const data = sovryn.contract.methods.setAdmin(admin).encodeABI();
+            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId, { from: accounts[1] });
+            expect((await sovryn.getAdmin()) == admin).to.be.true;
+
+            /** Admin should not be able to call the setter function */
+            await expectRevert(sovryn.setAdmin(accounts[4], { from: admin }), "unauthorized");
+            expect((await sovryn.getAdmin()) == admin).to.be.true;
+        });
+
+        it("Should revert if call setAdmin by non-authorized account", async () => {
+            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
+            const admin = accounts[1];
+            const dest = sovryn.address;
+            const val = 0;
+            const data = sovryn.contract.methods.setAdmin(admin).encodeABI();
+            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId, { from: accounts[1] });
+            expect((await sovryn.getAdmin()) == admin).to.be.true;
+
+            /** non-authorized account should not be able to call the setter function */
+            await expectRevert(
+                sovryn.setAdmin(accounts[4], { from: accounts[6] }),
+                "unauthorized"
+            );
+            expect((await sovryn.getAdmin()) == admin).to.be.true;
+        });
+
+        it("Test set admin", async () => {
+            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
+
+            const admin1 = accounts[1];
+            const admin2 = accounts[2];
+            const dest = sovryn.address;
+            const val = 0;
+            const data = sovryn.contract.methods.setAdmin(admin1).encodeABI();
+            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+            expect((await sovryn.getAdmin()) == admin1).to.be.true;
+
+            /** Owner should be able to overwrite if the admin has been set */
+            const data2 = sovryn.contract.methods.setAdmin(admin2).encodeABI();
+            const tx2 = await multisig.submitTransaction(dest, val, data2, { from: accounts[0] });
+            const txId2 = tx2.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId2, { from: accounts[1] });
+            expect((await sovryn.getAdmin()) == admin2).to.be.true;
+        });
+
+        it("Should be able to set admin to 0 address", async () => {
+            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
+
+            const admin1 = accounts[1];
+            const dest = sovryn.address;
+            const val = 0;
+            /** Set the admin from zero to non-zero addreses */
+            const data = sovryn.contract.methods.setAdmin(admin1).encodeABI();
+            const tx = await multisig.submitTransaction(dest, val, data, { from: accounts[0] });
+            const txId = tx.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId, { from: accounts[1] });
+
+            expect((await sovryn.getAdmin()) == admin1).to.be.true;
+
+            /** Set the admin from non-zero to zero addreses */
+            const data2 = sovryn.contract.methods.setAdmin(ZERO_ADDRESS).encodeABI();
+            const tx2 = await multisig.submitTransaction(dest, val, data2, { from: accounts[0] });
+            const txId2 = tx2.logs.filter((item) => item.event == "Submission")[0].args[
+                "transactionId"
+            ];
+            await multisig.confirmTransaction(txId2, { from: accounts[1] });
+            expect((await sovryn.getAdmin()) == ZERO_ADDRESS).to.be.true;
+        });
     });
 
     describe("LoanClosings test coverage", () => {

@@ -500,4 +500,8 @@ contract ISovrynBrownie is
         external
         view
         returns (bool isTinyPosition, uint256 tinyPositionAmount);
+
+    function setPauser(address newPauser) external;
+
+    function setAdmin(address newPauser) external;
 }

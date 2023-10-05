@@ -28,7 +28,7 @@ def readMaxTransferSatoshi():
 def loadBiDiFastBTC():
     abiFile =  open('./scripts/contractInteraction/ABIs/FastBTCBiDi.json')
     abi = json.load(abiFile)
-    return Contract.from_abi("FastBTC", address = conf.contracts['FastBTCBiDiNew'], abi = abi, owner = conf.acct)
+    return Contract.from_abi("FastBTC", address = conf.contracts['FastBTCBiDi'], abi = abi, owner = conf.acct)
 
 def loadFastBTC():
     abiFile =  open('./scripts/contractInteraction/ABIs/FastBTC.json')

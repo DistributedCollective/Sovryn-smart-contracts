@@ -29,14 +29,36 @@ def main():
     '''
 
     # call the function you want here
-
+    
     #used often:
+
+    #### GET DLLR ####
+    ## 2 options by priority
+    #getTotalSupply(conf.contracts["iDLLR"])
+    #amount = 100000e18
+    ## 1) from watcher
+    #withdrawTokensFromWatcher(conf.contracts["DLLR"], amount, conf.contracts["multisig"])
+    ## 2) XUSD -> ZUSD -> mint DLLR(ZUSD)
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], amount)
+    #mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], amount)
+    
+    #lendToPoolWithMS(conf.contracts["iDLLR"], conf.contracts["DLLR"], amount)
+
+    #printV1ConverterData("0xa9c3d9681215ef7623dc28ea6b75bf87fdf285d9")
+    #print("from testnet_contracts:")
+    #printV1ConverterData("0xD877fd00ECF08eD78BF549fbc74bac3001aBBb07")
+    
+    #printLendingPoolsData()
 
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
     
     #print("fastBTC.balance()", loadBiDiFastBTC().balance()/1e18)
-    #withdrawRBTCFromFastBTCBiDi(20e18, conf.contracts['multisig'])
-    
+    #withdrawRBTCFromFastBTCBiDi(30e18, '0xD9ECB390a6a32ae651D5C614974c5570c50A5D89')
+    #readPauser(conf.contracts['iXUSD'])
+    #getBalance(conf.contracts['ZUSD'], '0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a')
+    #transferTokensFromWallet(conf.contracts['ZUSD'], '0xae2a6e86d5f5d534fb372693b0ccda8d0ba9744d', 40e18)
+    #redeemFromAggregator('0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a', conf.contracts['ZUSD'], 40e18)
+    #mintAggregatedToken('0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a', conf.contracts['ZUSD'], 1e18)
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
     #bal = getBalance(conf.contracts['FastBTCBiDi'], conf.contracts['Watcher'])
     #print(getContractBTCBalance(conf.contracts['multisig'])/1e18)
@@ -99,11 +121,15 @@ def main():
     #tokenIsSupported(conf.contracts['DLLR'])
     #tokenIsSupported(conf.contracts['WRBTC'])
     #setSupportedTokens([conf.contracts['DLLR']], [True])
+    #testTradeOpeningAndClosing(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['WRBTC'], 50e18, 2e18, True, 0)
+    #testTradeOpeningAndClosingWithCollateral(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['WRBTC'], 0.002e18, 2e18, True, 0.002e18)
 
    # executeOnMultisig(1339)
     #executeOnMultisig(1343)
-    #confirmWithMS(1496)
-    #checkTx(1496)
+    #confirmWithMS(1540)
+    #checkTx(1540)
+    #checkTx(1407)
+    #checkTx(1408)
    
     #addAmmPoolTokenToLM('(WR)BTC/DLLR')
 
@@ -132,7 +158,8 @@ def main():
     
     #missed = getMissedBalance()
     #transferSOVtoLM(missed)
-    #sendTokensFromMultisig(conf.contracts['SOV'], conf.contracts['StakingRewardsProxy'], 550000e18)
+
+    #sendTokensFromMultisig(conf.contracts['SOV'], conf.contracts['StakingRewardsProxy'], 430000e18)
     #revokeConfirmation(1075)
 
     #withdrawFees()

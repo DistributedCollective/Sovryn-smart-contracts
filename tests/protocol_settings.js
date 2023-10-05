@@ -41,6 +41,7 @@ const TestToken = artifacts.require("TestToken");
 const { etherMantissa } = require("./Utils/Ethereum");
 const LockedSOV = artifacts.require("LockedSOVMockup");
 const { set_fee_tokens_held } = require("./loan-token/helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants.js");
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 const wei = web3.utils.toWei;
 
@@ -205,7 +206,8 @@ contract("Affliates", (accounts) => {
         );
     });
 
-    it("Test set defaultConversionPath", async () => {
+    it("Test set defaultConversionPath by owner", async () => {
+        const owner = accounts[0];
         let defaultConversionPath = [accounts[0], SUSD.address, WRBTC.address];
 
         // Should revert if set with non owner
@@ -216,12 +218,15 @@ contract("Affliates", (accounts) => {
 
         // Should revert if path is not contract address
         await expectRevert(
-            sovryn.setDefaultPathConversion(defaultConversionPath),
+            sovryn.setDefaultPathConversion(defaultConversionPath, { from: owner }),
             "ERR_PATH_NON_CONTRACT_ADDR"
         );
 
         // Should revert if path contains <= 1 address
-        await expectRevert(sovryn.setDefaultPathConversion([WRBTC.address]), "ERR_PATH_LENGTH");
+        await expectRevert(
+            sovryn.setDefaultPathConversion([WRBTC.address], { from: owner }),
+            "ERR_PATH_LENGTH"
+        );
 
         // Set the default path
         defaultConversionPath = [WRBTC.address, SUSD.address, BZRX.address];
@@ -229,7 +234,48 @@ contract("Affliates", (accounts) => {
         let sourceTokenAddress = defaultConversionPath[0];
         let destTokenAddress = defaultConversionPath[defaultConversionPath.length - 1];
 
-        await sovryn.setDefaultPathConversion(defaultConversionPath);
+        await sovryn.setDefaultPathConversion(defaultConversionPath, { from: owner });
+
+        expect(
+            await sovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress)
+        ).to.deep.equal(defaultConversionPath);
+    });
+
+    it("Test set defaultConversionPath by admin role", async () => {
+        const owner = accounts[0];
+        const admin = accounts[2];
+        expect(await sovryn.getAdmin()).to.equal(ZERO_ADDRESS);
+
+        await sovryn.setAdmin(admin, { from: owner });
+
+        expect(await sovryn.getAdmin()).to.equal(admin);
+        let defaultConversionPath = [accounts[0], SUSD.address, WRBTC.address];
+
+        // Should revert if set with non owner
+        await expectRevert(
+            sovryn.setDefaultPathConversion(defaultConversionPath, { from: accounts[1] }),
+            "unauthorized"
+        );
+
+        // Should revert if path is not contract address
+        await expectRevert(
+            sovryn.setDefaultPathConversion(defaultConversionPath, { from: admin }),
+            "ERR_PATH_NON_CONTRACT_ADDR"
+        );
+
+        // Should revert if path contains <= 1 address
+        await expectRevert(
+            sovryn.setDefaultPathConversion([WRBTC.address], { from: admin }),
+            "ERR_PATH_LENGTH"
+        );
+
+        // Set the default path
+        defaultConversionPath = [WRBTC.address, SUSD.address, BZRX.address];
+
+        let sourceTokenAddress = defaultConversionPath[0];
+        let destTokenAddress = defaultConversionPath[defaultConversionPath.length - 1];
+
+        await sovryn.setDefaultPathConversion(defaultConversionPath, { from: admin });
 
         expect(
             await sovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress)
