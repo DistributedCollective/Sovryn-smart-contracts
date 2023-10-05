@@ -23,9 +23,8 @@ def main():
 
     # Call the function you want here
 
-    #todo: replace with new guardian address
-    newGuardian = contracts['multisig']
-    createProposalSIP00XX(newGuardian)
+    newGuardian = contracts['ContractsGuardian']
+    createProposalSIP0047(newGuardian)
 
 
     balanceAfter = acct.balance()
@@ -567,7 +566,7 @@ def createProposalSIP0065():
     print(description)
     createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
-def createProposalSIP00XX(newGuardian):
+def createProposalSIP0047(newGuardian):
     staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
     stakingLogic = Contract.from_abi("StakingLogic5", address=contracts['StakingLogic5'], abi=interface.IStaking.abi, owner=acct)
 

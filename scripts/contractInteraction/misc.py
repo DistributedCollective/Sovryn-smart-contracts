@@ -7,7 +7,7 @@ from scripts.utils import *
 from scripts.contractInteraction.token import * 
 import scripts.contractInteraction.config as conf
 from scripts.contractInteraction.loan_tokens import getTokenPrice, setPauser
-from scripts.contractInteraction.staking_vesting import addStakingPauser
+from scripts.contractInteraction.staking_vesting import addStakingPauser, removeStakingPauser
 from scripts.contractInteraction.fastbtc import addFastBTCPauser
 
 
@@ -106,13 +106,15 @@ def getImplementation(proxyContract):
     proxy = Contract.from_abi("FeeSharingCollectorProxy", address=proxyContract, abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
     print(proxy.getImplementation())
     
-def setNewContractGuardian(newGuardian):
+def setNewContractGuardian():
+    newGuardian = conf.contracts['ContractsGuardian']
     #loan tokens
     setPauser(conf.contracts['iXUSD'], newGuardian)
     setPauser(conf.contracts['iUSDT'], newGuardian)
     setPauser(conf.contracts['iRBTC'], newGuardian)
     setPauser(conf.contracts['iDOC'], newGuardian)
     setPauser(conf.contracts['iBPro'], newGuardian)
+    setPauser(conf.contracts['iDLLR'], newGuardian)
 
     #loan token logic beacon - using the loan token abi because the function is the same
     setPauser(conf.contracts['LoanTokenLogicBeaconLM'], newGuardian)
@@ -121,9 +123,12 @@ def setNewContractGuardian(newGuardian):
     #protocol - using the loan token abi because the function is the same
     setPauser(conf.contracts['sovrynProtocol'], newGuardian)
 
-    #staking - needs to be done with a SIP. check sip_interaction
-    #addStakingPauser(newGuardian)
-    #removeStakingPauser(conf.contracts['multisig'])
+    #staking - on the mainnet needs to be done with a SIP. check sip_interaction
+    this_network = network.show_active()
+    
+    if this_network == "testnet" or this_network == "testnet-dev":
+        addStakingPauser(newGuardian)
+        removeStakingPauser(conf.contracts['multisig'])
 
     #bidi fastbtc
     addFastBTCPauser(newGuardian)

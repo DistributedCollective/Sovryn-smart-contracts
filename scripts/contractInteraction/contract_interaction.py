@@ -224,6 +224,10 @@ def main():
 
 
 def governanceTransfer():
+
+    # # It is critically important to first transfer pauser role
+    setNewContractGuardian()
+
     # # ---------- Transfer ownership to gov ----------
     # # core protocol
     transferProtocolOwnershipToGovernance()
