@@ -1,0 +1,39 @@
+{
+    "_format": "hh-sol-artifact-1",
+    "contractName": "FastBTCBiDiPauzeFreeze",
+    "address": "0x1A8E78B41bc5Ab9Ebb6996136622B9b41A601b5C",
+    "abi": [
+        {
+            "inputs": [],
+            "name": "freeze",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "unfreeze",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "pause",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "unpause",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ],
+    "bytecode": "0x",
+    "deployedBytecode": "0x",
+    "linkReferences": {},
+    "deployedLinkReferences": {}
+}

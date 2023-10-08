@@ -376,7 +376,7 @@ const freezeUnfreezeBiDiFastBTC = async (hre, signer, bool) => {
 
     const signerAcc = (await hre.getNamedAccounts())[signer];
     const multisigDeployment = await get("MultiSigWallet");
-    const targetDeployment = await get("FastBTCBiDiFreezable");
+    const targetDeployment = await get("FastBTCBiDiPauseFreeze");
 
     const targetInterface = new ethers.utils.Interface(targetDeployment.abi);
     const funcName = bool ? "freeze" : "unfreeze";
@@ -387,7 +387,7 @@ const freezeUnfreezeBiDiFastBTC = async (hre, signer, bool) => {
 
 const isFastBtcFrozen = async (hre) => {
     const { ethers } = hre;
-    return await (await ethers.getContract("FastBTCBiDiFreezable")).frozen();
+    return await (await ethers.getContract("FastBTCBiDiPauseFreeze")).frozen();
 };
 
 const printIsFastBtcFrozen = async (hre) => {
