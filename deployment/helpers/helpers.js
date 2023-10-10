@@ -563,7 +563,7 @@ const getLoanTokensData = async () => {
     const loanTokenLogicBeaconWrbtcDeployment = await get("LoanTokenLogicBeaconWrbtc");
     const loanTokens = [
         {
-            name: "iBPro",
+            name: "iBPRO",
             deployment: await get("LoanToken_iBPRO"),
             beaconAddress: loanTokenLogicBeaconLMDeployment.address,
         },

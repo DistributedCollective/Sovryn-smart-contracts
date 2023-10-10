@@ -1,7 +1,7 @@
 const path = require("path");
 const { getContractNameFromScriptFileName } = require("../helpers/utils");
 const col = require("cli-color");
-const { getLoanTokensData } = require("../helpers/helpers");
+const { getLoanTokensData, sendWithMultisig } = require("../helpers/helpers");
 
 const func = async function (hre) {
     const {
@@ -15,7 +15,7 @@ const func = async function (hre) {
 
     // Deploy loan token logic proxy //
     log(col.bgYellow("Deploying LoanTokenLogicProxy..."));
-    const tx = await deploy("LoanTokenLogicProxy", {
+    await deploy("LoanTokenLogicProxy", {
         from: deployer,
         args: [],
         log: true,
@@ -29,6 +29,9 @@ const func = async function (hre) {
     );
 
     for (let i = 0; i < loanTokens.length; i++) {
+        /* Note: for the first deployment, we cannot do the check, because there is no getTarget function initially in the curent loanTokenLogicProxy contract */
+        /* Can uncomment this after first deployment */
+        /*
         let loanTokenContract = await ethers.getContractAt(
             loanTokenLogicProxyInterface,
             loanTokens[i].deployment.address
@@ -36,16 +39,17 @@ const func = async function (hre) {
 
         const currentLoanTokenTarget = await loanTokenContract.getTarget();
 
-        /** If the loanToken already used the correct loanTokenLogicProxy, skip it */
         if (currentLoanTokenTarget == loanTokenLogicProxyDeployment.address) {
+            // If the loanToken already used the correct loanTokenLogicProxy, skip it
             log(col.bgGreen(`Skipping LoanTokenLogicProxy replacement of ${loanTokens[i].name}`));
             continue;
         }
+      */
 
         log(col.bgYellow(`Replacing LoanTokenLogicProxy of ${loanTokens[i].name}`));
-        loanTokenContract = await ethers.getContract(`LoanToken_${loanTokens[i].name}`);
 
-        const loanTokenInterface = new ethers.utils.Interface(loanTokens[i].deployment.abi);
+        const loanTokenProxyABI = ["function setTarget(address _newTarget)"];
+        const loanTokenInterface = new ethers.utils.Interface(loanTokenProxyABI);
         let data = loanTokenInterface.encodeFunctionData("setTarget", [
             loanTokenLogicProxyDeployment.address,
         ]);
