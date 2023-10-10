@@ -5,6 +5,7 @@ const {
     mine,
     time,
     setBalance,
+    // takeSnapshot,
 } = require("@nomicfoundation/hardhat-network-helpers");
 
 const parseEthersLog = (parsed) => {
@@ -210,3 +211,115 @@ task("misc:forkedchain:vestingStake", "Stakes from vesting contract")
         );
         logger.warning(await staking.getStakes(vesting));
     });
+
+task("misc:simulate-impersonation", "Impersonates an account ONLY on a forked network")
+    .addParam("account", "address to impersonate")
+    .addOptionalParam("amount", "Amount setBalance for the impersonated account", "0")
+    .setAction(async ({ account, amount }, hre) => {
+        const {
+            ethers,
+            deployments: { get },
+        } = hre;
+        if (!hre.network.tags["forked"]) {
+            logger.error("Can run only on a forked network");
+        }
+        const accountAddress = ethers.utils.isAddress(account)
+            ? account
+            : (await hre.getNamedAccounts())[account];
+        if (!ethers.utils.isAddress(accountAddress)) {
+            throw Error("Invalid account to add as signer!");
+        }
+        const accountSigner = await getImpersonatedSignerFromJsonRpcProvider(accountAddress);
+        if (ethers.utils.parseEther(amount).gt(0)) {
+            await setBalance(accountAddress, ethers.utils.parseEther(amount));
+            logger.success(
+                `RBTC balance of impersonated signer: ${await ethers.provider.getBalance(
+                    accountAddress
+                )}`
+            );
+        }
+        logger.success(`Impersonated signer: ${accountSigner._address}`);
+        return accountSigner;
+    });
+
+task("misc:fork-100-before", "Fork 100 blocks before in whatever network we are").setAction(
+    async ({}, hre) => {
+        const {
+            ethers,
+            deployments: { get },
+        } = hre;
+        if (!hre.network.tags["forked"]) {
+            logger.error("Can run only on a forked network");
+            // finish the task
+            return;
+        }
+        logger.info(`Running on network: ${hre.network.name}`);
+        const networkUrl = hre.network.tags["mainnet"]
+            ? "https://mainnet-dev.sovryn.app/rpc"
+            : "https://testnet.sovryn.app/rpc";
+        logger.info(`through URL: ${networkUrl}`);
+        const blockNumber = (await hre.ethers.provider.getBlockNumber()) - 100;
+        logger.info(`And forking 100 blocks before to block: ${blockNumber}`);
+        await hre.network.provider.request({
+            method: "hardhat_reset",
+            params: [
+                {
+                    forking: {
+                        jsonRpcUrl: networkUrl,
+                        blockNumber: blockNumber,
+                    },
+                },
+            ],
+        });
+        const netId = await ethers.provider.getNetwork().then((n) => n.chainId);
+        const lastBlock = await ethers.provider.getBlock("latest");
+
+        logger.success(`    ${"    Network Id: "}`);
+        logger.warning(`    ${netId.toString()}`);
+
+        logger.success(`    Now, the current Block Number is: `);
+        logger.warning(`    ${lastBlock.number}`);
+        logger.success(`    And its Timestamp is: `);
+        logger.warning(`    ${lastBlock.timestamp}`);
+        let date = new Date(lastBlock.timestamp * 1000);
+        logger.success(`    Corresponding to the date: `);
+        logger.warning(`    ${date}`);
+        // const snapshot = await takeSnapshot();
+        // return snapshot;
+    }
+);
+
+// task("misc:reset-fork", "Reset any fork in our hh node")
+//     .addParam("snapshot", "Snapshot id to restore")
+//     .setAction(async ({snapshot}, hre) => {
+//         const {
+//             ethers,
+//             deployments: { get },
+//         } = hre;
+//         if (!hre.network.tags["forked"]) {
+//             logger.error("Can run only on a forked network");
+//             // finish the task
+//             return;
+//         }
+//         logger.info(`Running on network: ${hre.network.name}`);
+//         // const networkUrl = hre.network.tags["mainnet"]
+//         //     ? "https://mainnet-dev.sovryn.app/rpc"
+//         //     : "https://testnet.sovryn.app/rpc";
+//         // logger.info(`through URL: ${networkUrl}`);
+//         // const blockNumber = (await hre.ethers.provider.getBlockNumber()) - 100;
+//         // logger.info(`And forking 100 blocks before to block: ${blockNumber}`);
+//         await snapshot.restore();
+//         const netId = await ethers.provider.getNetwork().then((n) => n.chainId);
+//         const lastBlock = await ethers.provider.getBlock("latest");
+
+//         logger.success(`    ${"    Network Id: "}`);
+//         logger.warning(`    ${netId.toString()}`);
+
+//         logger.success(`    Now, the current Block Number is: `);
+//         logger.warning(`    ${lastBlock.number}`);
+//         logger.success(`    And its Timestamp is: `);
+//         logger.warning(`    ${lastBlock.timestamp}`);
+//         let date = new Date(lastBlock.timestamp * 1000);
+//         logger.success(`    Corresponding to the date: `);
+//         logger.warning(`    ${date}`);
+//     });

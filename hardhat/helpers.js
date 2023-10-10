@@ -1,5 +1,5 @@
 const Logs = require("node-logs");
-const { sendWithMultisig } = require("../deployment/helpers/helpers");
+const { sendWithMultisig, sendWithMultisigReturningId } = require("../deployment/helpers/helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const logger = new Logs().showInConsole(true);
 
@@ -118,23 +118,39 @@ const transferOwnershipAMMContractsToGovernance = async (
             logger.error(
                 `Unmatched contract address with the on-chain for ${contractName}, local: ${contractAddress}, onchain: ${onchainContractAddress}`
             );
-            return false;
+            let result = {
+                transactionNumberproposed: 0,
+                successOfTransaction: false,
+            };
+            return result;
         }
     }
 
     const currentOwner = await ammContract.owner();
     if (currentOwner.toUpperCase() !== multisig.address.toUpperCase()) {
         logger.error(`Multisig is not the owner, the onchain owner is ${currentOwner}`);
-        return false;
+        let result = {
+            transactionNumberproposed: 0,
+            successOfTransaction: false,
+        };
+        return result;
     }
 
     logger.info(
         `Transferring ownership for ${contractName} (${contractAddress}) from ${multisig.address} to ${newOwnerAddress}`
     );
     let data = ownershipInterface.encodeFunctionData("transferOwnership", [newOwnerAddress]);
-    await sendWithMultisig(multisig.address, ammContract.address, data, signerAcc);
-
-    return true;
+    let txId = await sendWithMultisigReturningId(
+        multisig.address,
+        ammContract.address,
+        data,
+        signerAcc
+    );
+    let result = {
+        transactionNumberproposed: txId,
+        successOfTransaction: true,
+    };
+    return result;
 };
 
 module.exports = {

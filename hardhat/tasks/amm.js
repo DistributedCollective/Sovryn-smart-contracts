@@ -209,6 +209,7 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
         logger.info(
             `=== Transferring Ownership of Oracle AMM Contracts to Governance (Timelock Admin) ===`
         );
+        const txIds = [];
         for (let timeLockAdminListOracleTransfer of timeLockAdminListOracleTransfers) {
             const oracleAddress = await getAmmOracleAddress(
                 timeLockAdminListOracleTransfer.sourceConverter,
@@ -221,13 +222,14 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
                 break;
             }
             logger.info(`=== Transferring ownership of oracle ${oracleAddress} ===`);
-            const isTransferOwnershipSuccess = await transferOwnershipAMMContractsToGovernance(
+            const result = await transferOwnershipAMMContractsToGovernance(
                 oracleAddress,
                 timelockAdmin.address,
                 signerAcc,
                 timeLockAdminListOracleTransfer.contractName
             );
-            if (!isTransferOwnershipSuccess) break;
+            if (!result.successOfTransaction) break;
+            txIds.push(result.txId);
         }
 
         logger.info(
@@ -237,13 +239,14 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
             logger.info(
                 `=== Transferring ownership of ${timeLockAdminListTransfer.contractAddress} ===`
             );
-            const isTransferOwnershipSuccess = await transferOwnershipAMMContractsToGovernance(
+            const result = await transferOwnershipAMMContractsToGovernance(
                 timeLockAdminListTransfer.contractAddress,
                 timelockAdmin.address,
                 signerAcc,
                 timeLockAdminListTransfer.contractName
             );
-            if (!isTransferOwnershipSuccess) break;
+            if (!result.successOfTransaction) break;
+            txIds.push(result.txId);
         }
 
         logger.info(
@@ -253,12 +256,14 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
             logger.info(
                 `=== Transferring ownership of ${timeLockOwnerListTransfer.contractAddress} ===`
             );
-            const isTransferOwnershipSuccess = await transferOwnershipAMMContractsToGovernance(
+            const result = await transferOwnershipAMMContractsToGovernance(
                 timeLockOwnerListTransfer.contractAddress,
                 timelockOwner.address,
                 signerAcc,
                 timeLockOwnerListTransfer.contractName
             );
-            if (!isTransferOwnershipSuccess) break;
+            if (!result.successOfTransaction) break;
+            txIds.push(result.txId);
         }
+        return txIds;
     });
