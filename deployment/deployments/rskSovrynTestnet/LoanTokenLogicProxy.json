@@ -1,0 +1,1019 @@
+{
+  "address": "0xa8076d5907dA4525686bC46B00779d7E2f66D638",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "valueBefore",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "valueAfter",
+          "type": "uint256"
+        }
+      ],
+      "name": "AllowanceUpdate",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Approval",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "burner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "tokenAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "assetAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "price",
+          "type": "uint256"
+        }
+      ],
+      "name": "Burn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "borrower",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "loanToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "loanAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "FlashBorrow",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "minter",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "tokenAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "assetAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "price",
+          "type": "uint256"
+        }
+      ],
+      "name": "Mint",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Transfer",
+      "type": "event"
+    },
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "admin",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_spender",
+          "type": "address"
+        }
+      ],
+      "name": "allowance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "baseRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "beaconAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "checkpointSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getTarget",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "initialPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "kinkLevel",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "loanParamsIds",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "loanTokenAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "lowUtilBaseRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "lowUtilRateMultiplier",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "maxScaleRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "name",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "rateMultiplier",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_newBeaconAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setBeaconAddress",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "sovrynContractAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "symbol",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "targetLevel",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "target_",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "transactionLimit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "wrbtcTokenAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xdd706d38f7d6a4a647e0bd5ffc419e53688f52195fc00ebf68c28fefb5b459c6",
+  "receipt": {
+    "to": null,
+    "from": "0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae",
+    "contractAddress": "0xa8076d5907dA4525686bC46B00779d7E2f66D638",
+    "transactionIndex": 0,
+    "gasUsed": "1036389",
+    "logsBloom": "0x00000000000020000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000020000000000000000001800000000000000000000001000000000400000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000010000000000000000000020000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x2bc599666864442e73d5a292dad253b59366912c3a36edbebffebd4ded0e79c2",
+    "transactionHash": "0xdd706d38f7d6a4a647e0bd5ffc419e53688f52195fc00ebf68c28fefb5b459c6",
+    "logs": [
+      {
+        "transactionIndex": 0,
+        "blockNumber": 4373943,
+        "transactionHash": "0xdd706d38f7d6a4a647e0bd5ffc419e53688f52195fc00ebf68c28fefb5b459c6",
+        "address": "0xa8076d5907dA4525686bC46B00779d7E2f66D638",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x00000000000000000000000013be55487d37fe3c66ee7305e1e9c1ac85de75ae"
+        ],
+        "data": "0x",
+        "logIndex": 0,
+        "blockHash": "0x2bc599666864442e73d5a292dad253b59366912c3a36edbebffebd4ded0e79c2"
+      }
+    ],
+    "blockNumber": 4373943,
+    "cumulativeGasUsed": "1036389",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "f874decdaa9f31bd9097925ea5db6212",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"valueBefore\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"valueAfter\",\"type\":\"uint256\"}],\"name\":\"AllowanceUpdate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"burner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"tokenAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"assetAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"}],\"name\":\"Burn\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"borrower\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"loanToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"loanAmount\",\"type\":\"uint256\"}],\"name\":\"FlashBorrow\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"minter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"tokenAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"assetAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"price\",\"type\":\"uint256\"}],\"name\":\"Mint\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"constant\":true,\"inputs\":[],\"name\":\"admin\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"baseRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"beaconAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"checkpointSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getTarget\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"initialPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"kinkLevel\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"loanParamsIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"loanTokenAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lowUtilBaseRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lowUtilRateMultiplier\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"maxScaleRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rateMultiplier\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_newBeaconAddress\",\"type\":\"address\"}],\"name\":\"setBeaconAddress\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"sovrynContractAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"targetLevel\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"target_\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"transactionLimit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"wrbtcTokenAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"allowance(address,address)\":{\"params\":{\"_owner\":\"The account owner of the iTokens.\",\"_spender\":\"The account allowed to send the iTokens.\"},\"return\":\"The number of iTokens an account is allowing the spender  to send on its behalf.\"},\"balanceOf(address)\":{\"params\":{\"_owner\":\"The account owner of the iTokens.\"},\"return\":\"The number of iTokens an account owns.\"},\"beaconAddress()\":{\"return\":\"The address of the current LoanTokenLogicBeacon.\"},\"getTarget()\":{\"details\":\"External function to return the LoanTokenLogicProxy of loan token (target of LoanToken contract). Ideally this getter should be added in the LoanToken contract but since LoanToken contract can't be changed, adding the getter in this contract will do because it will use the context of LoanToken contract.\",\"return\":\"target address of LoanToken contract\"},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"setBeaconAddress(address)\":{\"details\":\"External function to set the new LoanTokenLogicBeacon Address\",\"params\":{\"_newBeaconAddress\":\"Address of the new LoanTokenLogicBeacon\"}},\"totalSupply()\":{\"return\":\"The total number of iTokens in existence as of now.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Loan Token Logic Proxy contract.\"},\"userdoc\":{\"methods\":{\"allowance(address,address)\":{\"notice\":\"Get the amount of iTokens allowed to be spent by a  given account on behalf of the owner.\"},\"balanceOf(address)\":{\"notice\":\"Get the amount of iTokens owned by an account.\"},\"totalSupply()\":{\"notice\":\"Get the total supply of iTokens.\"}},\"notice\":\"This contract contains the proxy functionality and it will query the logic target from LoanTokenLogicBeacon This contract will also has the pause/unpause functionality. The purpose of this pausability is so that we can pause/unpause from the loan token level. \"}},\"settings\":{\"compilationTarget\":{\"contracts/connectors/loantoken/LoanTokenLogicProxy.sol\":\"LoanTokenLogicProxy\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/connectors/loantoken/AdvancedTokenStorage.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\nimport \\\"./LoanTokenBase.sol\\\";\\n\\n/**\\n * @title Advanced Token Storage contract.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * AdvancedTokenStorage implements standard ERC-20 getters functionality:\\n * totalSupply, balanceOf, allowance and some events.\\n * iToken logic is divided into several contracts AdvancedToken,\\n * AdvancedTokenStorage and LoanTokenBase.\\n * */\\ncontract AdvancedTokenStorage is LoanTokenBase {\\n    using SafeMath for uint256;\\n\\n    /* Events */\\n\\n    /// topic: 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /// topic: 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n\\n    /// topic: 0x628e75c63c1873bcd3885f7aee9f58ee36f60dc789b2a6b3a978c4189bc548ba\\n    event AllowanceUpdate(\\n        address indexed owner,\\n        address indexed spender,\\n        uint256 valueBefore,\\n        uint256 valueAfter\\n    );\\n\\n    /// topic: 0xb4c03061fb5b7fed76389d5af8f2e0ddb09f8c70d1333abbb62582835e10accb\\n    event Mint(address indexed minter, uint256 tokenAmount, uint256 assetAmount, uint256 price);\\n\\n    /// topic: 0x743033787f4738ff4d6a7225ce2bd0977ee5f86b91a902a58f5e4d0b297b4644\\n    event Burn(address indexed burner, uint256 tokenAmount, uint256 assetAmount, uint256 price);\\n\\n    /// topic: 0xc688ff9bd4a1c369dd44c5cf64efa9db6652fb6b280aa765cd43f17d256b816e\\n    event FlashBorrow(address borrower, address target, address loanToken, uint256 loanAmount);\\n\\n    /* Storage */\\n\\n    mapping(address => uint256) internal balances;\\n    mapping(address => mapping(address => uint256)) internal allowed;\\n    uint256 internal totalSupply_;\\n\\n    /* Functions */\\n\\n    /**\\n     * @notice Get the total supply of iTokens.\\n     * @return The total number of iTokens in existence as of now.\\n     * */\\n    function totalSupply() public view returns (uint256) {\\n        return totalSupply_;\\n    }\\n\\n    /**\\n     * @notice Get the amount of iTokens owned by an account.\\n     * @param _owner The account owner of the iTokens.\\n     * @return The number of iTokens an account owns.\\n     * */\\n    function balanceOf(address _owner) public view returns (uint256) {\\n        return balances[_owner];\\n    }\\n\\n    /**\\n     * @notice Get the amount of iTokens allowed to be spent by a\\n     *   given account on behalf of the owner.\\n     * @param _owner The account owner of the iTokens.\\n     * @param _spender The account allowed to send the iTokens.\\n     * @return The number of iTokens an account is allowing the spender\\n     *   to send on its behalf.\\n     * */\\n    function allowance(address _owner, address _spender) public view returns (uint256) {\\n        return allowed[_owner][_spender];\\n    }\\n}\\n\",\"keccak256\":\"0x08afb0584442da1baf29938b6ff797e22fc8b7e493e51fd26358e7be3b73fa32\"},\"contracts/connectors/loantoken/LoanTokenBase.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\nimport \\\"../../openzeppelin/SafeMath.sol\\\";\\nimport \\\"../../openzeppelin/SignedSafeMath.sol\\\";\\nimport \\\"../../openzeppelin/ReentrancyGuard.sol\\\";\\nimport \\\"../../openzeppelin/Ownable.sol\\\";\\nimport \\\"../../openzeppelin/Address.sol\\\";\\nimport \\\"../../interfaces/IWrbtcERC20.sol\\\";\\nimport \\\"./Pausable.sol\\\";\\nimport \\\"../../reentrancy/SharedReentrancyGuard.sol\\\";\\n\\n/**\\n * @title Loan Token Base contract.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin\\n * trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * Specific loan related storage for iTokens.\\n *\\n * An loan token or iToken is a representation of a user funds in the pool and the\\n * interest they've earned. The redemption value of iTokens continually increase\\n * from the accretion of interest paid into the lending pool by borrowers. The user\\n * can sell iTokens to exit its position. The user might potentially use them as\\n * collateral wherever applicable.\\n *\\n * There are three main tokens in the bZx system, iTokens, pTokens, and BZRX tokens.\\n * The bZx system of lending and borrowing depends on iTokens and pTokens, and when\\n * users lend or borrow money on bZx, their crypto assets go into or come out of\\n * global liquidity pools, which are pools of funds shared between many different\\n * exchanges. When lenders supply funds into the global liquidity pools, they\\n * automatically receive iTokens; When users borrow money to open margin trading\\n * positions, they automatically receive pTokens. The system is also designed to\\n * use the BZRX tokens, which are only used to pay fees on the network currently.\\n * */\\ncontract LoanTokenBase is ReentrancyGuard, SharedReentrancyGuard, Ownable, Pausable {\\n    uint256 internal constant WEI_PRECISION = 10**18;\\n    uint256 internal constant WEI_PERCENT_PRECISION = 10**20;\\n\\n    int256 internal constant sWEI_PRECISION = 10**18;\\n\\n    /// @notice Standard ERC-20 properties\\n    string public name;\\n    string public symbol;\\n    uint8 public decimals;\\n\\n    /// @notice The address of the loan token (asset to lend) instance.\\n    address public loanTokenAddress;\\n\\n    uint256 public baseRate;\\n    uint256 public rateMultiplier;\\n    uint256 public lowUtilBaseRate;\\n    uint256 public lowUtilRateMultiplier;\\n\\n    uint256 public targetLevel;\\n    uint256 public kinkLevel;\\n    uint256 public maxScaleRate;\\n\\n    uint256 internal _flTotalAssetSupply;\\n    uint256 public checkpointSupply;\\n    uint256 public initialPrice;\\n\\n    /// uint88 for tight packing -> 8 + 88 + 160 = 256\\n    uint88 internal lastSettleTime_;\\n\\n    /// Mapping of keccak256(collateralToken, isTorqueLoan) to loanParamsId.\\n    mapping(uint256 => bytes32) public loanParamsIds;\\n\\n    /// Price of token at last user checkpoint.\\n    mapping(address => uint256) internal checkpointPrices_;\\n\\n    // the maximum trading/borrowing/lending limit per token address\\n    mapping(address => uint256) public transactionLimit;\\n    // 0 -> no limit\\n}\\n\",\"keccak256\":\"0x9cb501d26d27b5bc143085b6d38261323426741857e49ff5dea0ea1325b5fab8\"},\"contracts/connectors/loantoken/LoanTokenLogicProxy.sol\":{\"content\":\"pragma solidity 0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"./AdvancedTokenStorage.sol\\\";\\nimport \\\"../../openzeppelin/Initializable.sol\\\";\\n\\n/**\\n * @title Loan Token Logic Proxy contract.\\n *\\n * @notice This contract contains the proxy functionality and it will query the logic target from LoanTokenLogicBeacon\\n * This contract will also has the pause/unpause functionality. The purpose of this pausability is so that we can pause/unpause from the loan token level.\\n *\\n */\\ncontract LoanTokenLogicProxy is AdvancedTokenStorage {\\n    /**\\n     * @notice PLEASE DO NOT ADD ANY VARIABLES HERE UNLESS FOR SPESIFIC SLOT\\n     */\\n\\n    /// ------------- MUST BE THE SAME AS IN LoanToken CONTRACT -------------------\\n    address public sovrynContractAddress;\\n    address public wrbtcTokenAddress;\\n    address public target_;\\n    address public admin;\\n    /// ------------- END MUST BE THE SAME AS IN LoanToken CONTRACT -------------------\\n\\n    /**\\n     * @notice PLEASE DO NOT ADD ANY VARIABLES HERE UNLESS FOR SPESIFIC SLOT (CONSTANT / IMMUTABLE)\\n     */\\n\\n    bytes32 internal constant LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT =\\n        keccak256(\\\"LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT\\\");\\n\\n    modifier onlyAdmin() {\\n        require(isOwner(), \\\"LoanTokenLogicProxy:unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @notice Fallback function performs a logic implementation address query to LoanTokenLogicBeacon and then do delegate call to that query result address.\\n     * Returns whatever the implementation call returns.\\n     * */\\n    function() external payable {\\n        // query the logic target implementation address from the LoanTokenLogicBeacon\\n        address target = ILoanTokenLogicBeacon(_beaconAddress()).getTarget(msg.sig);\\n        require(target != address(0), \\\"LoanTokenLogicProxy:target not active\\\");\\n\\n        bytes memory data = msg.data;\\n        assembly {\\n            let result := delegatecall(gas, target, add(data, 0x20), mload(data), 0, 0)\\n            let size := returndatasize\\n            let ptr := mload(0x40)\\n            returndatacopy(ptr, 0, size)\\n            switch result\\n                case 0 {\\n                    revert(ptr, size)\\n                }\\n                default {\\n                    return(ptr, size)\\n                }\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the current Loan Token logic Beacon.\\n     * @return Address of the current LoanTokenLogicBeacon.\\n     */\\n    function _beaconAddress() internal view returns (address beaconAddress) {\\n        bytes32 slot = LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT;\\n        assembly {\\n            beaconAddress := sload(slot)\\n        }\\n    }\\n\\n    /**\\n     * @return The address of the current LoanTokenLogicBeacon.\\n     */\\n    function beaconAddress() external view returns (address) {\\n        return _beaconAddress();\\n    }\\n\\n    /**\\n     * @dev Set/update the new beacon address.\\n     * @param _newBeaconAddress Address of the new LoanTokenLogicBeacon.\\n     */\\n    function _setBeaconAddress(address _newBeaconAddress) private {\\n        require(\\n            Address.isContract(_newBeaconAddress),\\n            \\\"Cannot set beacon address to a non-contract address\\\"\\n        );\\n\\n        bytes32 slot = LOAN_TOKEN_LOGIC_BEACON_ADDRESS_SLOT;\\n\\n        assembly {\\n            sstore(slot, _newBeaconAddress)\\n        }\\n    }\\n\\n    /**\\n     * @dev External function to set the new LoanTokenLogicBeacon Address\\n     * @param _newBeaconAddress Address of the new LoanTokenLogicBeacon\\n     */\\n    function setBeaconAddress(address _newBeaconAddress) external onlyAdmin {\\n        _setBeaconAddress(_newBeaconAddress);\\n    }\\n\\n    /**\\n     * @dev External function to return the LoanTokenLogicProxy of loan token (target of LoanToken contract).\\n     * Ideally this getter should be added in the LoanToken contract\\n     * but since LoanToken contract can't be changed, adding the getter in this contract will do\\n     * because it will use the context of LoanToken contract.\\n     *\\n     * @return target address of LoanToken contract\\n     */\\n    function getTarget() external view returns (address) {\\n        return target_;\\n    }\\n}\\n\\ninterface ILoanTokenLogicBeacon {\\n    function getTarget(bytes4 functionSignature)\\n        external\\n        view\\n        returns (address logicTargetAddress);\\n}\\n\",\"keccak256\":\"0xc7ae150be5164f9d2f5448f491164e73892731f6f426f844d5cd3ff27e7071a9\"},\"contracts/connectors/loantoken/Pausable.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\n/**\\n * @title Pausable contract.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin\\n * trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * The contract implements pausable functionality by reading on slots the\\n * pause state of contract functions.\\n * */\\ncontract Pausable {\\n    /// keccak256(\\\"Pausable_FunctionPause\\\")\\n    bytes32 internal constant Pausable_FunctionPause =\\n        0xa7143c84d793a15503da6f19bf9119a2dac94448ca45d77c8bf08f57b2e91047;\\n\\n    modifier pausable(bytes4 sig) {\\n        require(!_isPaused(sig), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @notice Check whether a function is paused.\\n     *\\n     * @dev Used to read externally from the smart contract to see if a\\n     *   function is paused.\\n     *\\n     * @param sig The function ID, the selector on bytes4.\\n     *\\n     * @return isPaused Whether the function is paused: true or false.\\n     * */\\n    function _isPaused(bytes4 sig) internal view returns (bool isPaused) {\\n        bytes32 slot = keccak256(abi.encodePacked(sig, Pausable_FunctionPause));\\n        assembly {\\n            isPaused := sload(slot)\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x54f95b041e66fbcadb867bfba626373b681e0000ecea2b19f521de89c3020690\"},\"contracts/interfaces/IERC20.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ncontract IERC20 {\\n    string public name;\\n    uint8 public decimals;\\n    string public symbol;\\n\\n    function totalSupply() external view returns (uint256);\\n\\n    function balanceOf(address _who) external view returns (uint256);\\n\\n    function allowance(address _owner, address _spender) external view returns (uint256);\\n\\n    function approve(address _spender, uint256 _value) external returns (bool);\\n\\n    function transfer(address _to, uint256 _value) external returns (bool);\\n\\n    function transferFrom(\\n        address _from,\\n        address _to,\\n        uint256 _value\\n    ) external returns (bool);\\n\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0xbc0c9bb48f19651930ec9aff366b2e11a1abf89c846e4b2d52d8102b15ce6721\"},\"contracts/interfaces/IWrbtc.sol\":{\"content\":\"/**\\n * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ninterface IWrbtc {\\n    function deposit() external payable;\\n\\n    function withdraw(uint256 wad) external;\\n}\\n\",\"keccak256\":\"0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492\"},\"contracts/interfaces/IWrbtcERC20.sol\":{\"content\":\"/**\\n * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./IWrbtc.sol\\\";\\nimport \\\"./IERC20.sol\\\";\\n\\ncontract IWrbtcERC20 is IWrbtc, IERC20 {}\\n\",\"keccak256\":\"0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5\"},\"contracts/openzeppelin/Address.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev Collection of functions related to the address type\\n */\\nlibrary Address {\\n    /**\\n     * @dev Returns true if `account` is a contract.\\n     *\\n     * [IMPORTANT]\\n     * ====\\n     * It is unsafe to assume that an address for which this function returns\\n     * false is an externally-owned account (EOA) and not a contract.\\n     *\\n     * Among others, `isContract` will return false for the following\\n     * types of addresses:\\n     *\\n     *  - an externally-owned account\\n     *  - a contract in construction\\n     *  - an address where a contract will be created\\n     *  - an address where a contract lived, but was destroyed\\n     * ====\\n     */\\n    function isContract(address account) internal view returns (bool) {\\n        // According to EIP-1052, 0x0 is the value returned for not-yet created accounts\\n        // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned\\n        // for accounts without code, i.e. `keccak256('')`\\n        bytes32 codehash;\\n        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;\\n        // solhint-disable-next-line no-inline-assembly\\n        assembly {\\n            codehash := extcodehash(account)\\n        }\\n        return (codehash != accountHash && codehash != 0x0);\\n    }\\n\\n    /**\\n     * @dev Converts an `address` into `address payable`. Note that this is\\n     * simply a type cast: the actual underlying value is not changed.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function toPayable(address account) internal pure returns (address payable) {\\n        return address(uint160(account));\\n    }\\n\\n    /**\\n     * @dev Replacement for Solidity's `transfer`: sends `amount` wei to\\n     * `recipient`, forwarding all available gas and reverting on errors.\\n     *\\n     * https://eips.ethereum.org/EIPS/eip-1884[EIP1884] increases the gas cost\\n     * of certain opcodes, possibly making contracts go over the 2300 gas limit\\n     * imposed by `transfer`, making them unable to receive funds via\\n     * `transfer`. {sendValue} removes this limitation.\\n     *\\n     * https://diligence.consensys.net/posts/2019/09/stop-using-soliditys-transfer-now/[Learn more].\\n     *\\n     * IMPORTANT: because control is transferred to `recipient`, care must be\\n     * taken to not create reentrancy vulnerabilities. Consider using\\n     * {ReentrancyGuard} or the\\n     * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html\\n     *   #use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function sendValue(address recipient, uint256 amount) internal {\\n        require(address(this).balance >= amount, \\\"Address: insufficient balance\\\");\\n\\n        // solhint-disable-next-line avoid-call-value\\n        (bool success, ) = recipient.call.value(amount)(\\\"\\\");\\n        require(success, \\\"Address: unable to send value, recipient may have reverted\\\");\\n    }\\n}\\n\",\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\"},\"contracts/openzeppelin/Context.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\ncontract Context {\\n    // Empty internal constructor, to prevent people from mistakenly deploying\\n    // an instance of this contract, which should be used via inheritance.\\n    constructor() internal {}\\n\\n    // solhint-disable-previous-line no-empty-blocks\\n\\n    function _msgSender() internal view returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\"},\"contracts/openzeppelin/Initializable.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev This is a base contract to aid in writing upgradeable contracts, or any kind of contract that will be deployed\\n * behind a proxy. Since a proxied contract can't have a constructor, it's common to move constructor logic to an\\n * external initializer function, usually called `initialize`. It then becomes necessary to protect this initializer\\n * function so it can only be called once. The {initializer} modifier provided by this contract will have this effect.\\n *\\n * TIP: To avoid leaving the proxy in an uninitialized state, the initializer function should be called as early as\\n * possible by providing the encoded function call as the `_data` argument to {ERC1967Proxy-constructor}.\\n *\\n * CAUTION: When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure\\n * that all initializers are idempotent. This is not verified automatically as constructors are by Solidity.\\n */\\ncontract Initializable {\\n    /**\\n     * @dev Indicates that the contract has been initialized.\\n     */\\n    bool private _initialized;\\n\\n    /**\\n     * @dev Indicates that the contract is in the process of being initialized.\\n     */\\n    bool private _initializing;\\n\\n    /**\\n     * @dev Modifier to protect an initializer function from being invoked twice.\\n     */\\n    modifier initializer() {\\n        require(_initializing || !_initialized, \\\"Initializable: contract is already initialized\\\");\\n\\n        bool isTopLevelCall = !_initializing;\\n        if (isTopLevelCall) {\\n            _initializing = true;\\n            _initialized = true;\\n        }\\n\\n        _;\\n\\n        if (isTopLevelCall) {\\n            _initializing = false;\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xa5064e2730ae1037f4efc83654676174484b827890d30ee618048004a04d6b51\"},\"contracts/openzeppelin/Ownable.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\ncontract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() internal {\\n        address msgSender = _msgSender();\\n        _owner = msgSender;\\n        emit OwnershipTransferred(address(0), msgSender);\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(isOwner(), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns true if the caller is the current owner.\\n     */\\n    function isOwner() public view returns (bool) {\\n        return _msgSender() == _owner;\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public onlyOwner {\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     */\\n    function _transferOwnership(address newOwner) internal {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        emit OwnershipTransferred(_owner, newOwner);\\n        _owner = newOwner;\\n    }\\n}\\n\",\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\"},\"contracts/openzeppelin/ReentrancyGuard.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @title Helps contracts guard against reentrancy attacks.\\n * @author Remco Bloemen <remco@2\\u03c0.com>, Eenae <alexey@mixbytes.io>\\n * @dev If you mark a function `nonReentrant`, you should also\\n * mark it `external`.\\n */\\ncontract ReentrancyGuard {\\n    /// @dev Constant for unlocked guard state - non-zero to prevent extra gas costs.\\n    /// See: https://github.com/OpenZeppelin/openzeppelin-solidity/issues/1056\\n    uint256 internal constant REENTRANCY_GUARD_FREE = 1;\\n\\n    /// @dev Constant for locked guard state\\n    uint256 internal constant REENTRANCY_GUARD_LOCKED = 2;\\n\\n    /**\\n     * @dev We use a single lock for the whole contract.\\n     */\\n    uint256 internal reentrancyLock = REENTRANCY_GUARD_FREE;\\n\\n    /**\\n     * @dev Prevents a contract from calling itself, directly or indirectly.\\n     * If you mark a function `nonReentrant`, you should also\\n     * mark it `external`. Calling one `nonReentrant` function from\\n     * another is not supported. Instead, you can implement a\\n     * `private` function doing the actual work, and an `external`\\n     * wrapper marked as `nonReentrant`.\\n     */\\n    modifier nonReentrant() {\\n        require(reentrancyLock == REENTRANCY_GUARD_FREE, \\\"nonReentrant\\\");\\n        reentrancyLock = REENTRANCY_GUARD_LOCKED;\\n        _;\\n        reentrancyLock = REENTRANCY_GUARD_FREE;\\n    }\\n}\\n\",\"keccak256\":\"0xd347de96ad57d1e45b07a2efe3050c1bd4b809236bbf354acb593de56d21a5c9\"},\"contracts/openzeppelin/SafeMath.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev Wrappers over Solidity's arithmetic operations with added overflow\\n * checks.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * `SafeMath` restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this library instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n */\\nlibrary SafeMath {\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\\n        uint256 c = a + b;\\n        require(c >= a, \\\"SafeMath: addition overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return sub(a, b, \\\"SafeMath: subtraction overflow\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot overflow.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function sub(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        require(b <= a, errorMessage);\\n        uint256 c = a - b;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint256 c = a * b;\\n        require(c / a == b, \\\"SafeMath: multiplication overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return div(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function div(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b != 0, errorMessage);\\n        uint256 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Integer division of two numbers, rounding up and truncating the quotient\\n     */\\n    function divCeil(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return divCeil(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Integer division of two numbers, rounding up and truncating the quotient\\n     */\\n    function divCeil(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b != 0, errorMessage);\\n\\n        if (a == 0) {\\n            return 0;\\n        }\\n        uint256 c = ((a - 1) / b) + 1;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return mod(a, b, \\\"SafeMath: modulo by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts with custom message when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function mod(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        require(b != 0, errorMessage);\\n        return a % b;\\n    }\\n\\n    function min256(uint256 _a, uint256 _b) internal pure returns (uint256) {\\n        return _a < _b ? _a : _b;\\n    }\\n}\\n\",\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\"},\"contracts/openzeppelin/SignedSafeMath.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @title SignedSafeMath\\n * @dev Signed math operations with safety checks that revert on error.\\n */\\nlibrary SignedSafeMath {\\n    int256 private constant _INT256_MIN = -2**255;\\n\\n    /**\\n     * @dev Returns the multiplication of two signed integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(int256 a, int256 b) internal pure returns (int256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        require(!(a == -1 && b == _INT256_MIN), \\\"SignedSafeMath: multiplication overflow\\\");\\n\\n        int256 c = a * b;\\n        require(c / a == b, \\\"SignedSafeMath: multiplication overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two signed integers. Reverts on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function div(int256 a, int256 b) internal pure returns (int256) {\\n        require(b != 0, \\\"SignedSafeMath: division by zero\\\");\\n        require(!(b == -1 && a == _INT256_MIN), \\\"SignedSafeMath: division overflow\\\");\\n\\n        int256 c = a / b;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two signed integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(int256 a, int256 b) internal pure returns (int256) {\\n        int256 c = a - b;\\n        require((b >= 0 && c <= a) || (b < 0 && c > a), \\\"SignedSafeMath: subtraction overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the addition of two signed integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Addition cannot overflow.\\n     */\\n    function add(int256 a, int256 b) internal pure returns (int256) {\\n        int256 c = a + b;\\n        require((b >= 0 && c >= a) || (b < 0 && c < a), \\\"SignedSafeMath: addition overflow\\\");\\n\\n        return c;\\n    }\\n}\\n\",\"keccak256\":\"0x449606d22a41bbeaeee8775d66b2bd179b6964b65fd3380b22ef837634e7523b\"},\"contracts/reentrancy/Mutex.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/*\\n * @title Global Mutex contract\\n *\\n * @notice A mutex contract that allows only one function to be called at a time out\\n * of a large set of functions. *Anyone* in the network can freely use any instance\\n * of this contract to add a universal mutex to any function in any contract.\\n */\\ncontract Mutex {\\n    /*\\n     * We use an uint to store the mutex state.\\n     */\\n    uint256 public value;\\n\\n    /*\\n     * @notice Increment the mutex state and return the new value.\\n     *\\n     * @dev This is the function that will be called by anyone to change the mutex\\n     * state. It is purposely not protected by any access control\\n     */\\n    function incrementAndGetValue() external returns (uint256) {\\n        /*\\n         * increment value using unsafe math. This is safe because we are\\n         * pretty certain no one will ever increment the value 2^256 times\\n         * in a single transaction.\\n         */\\n        return ++value;\\n    }\\n}\\n\",\"keccak256\":\"0xd10b0fd07d5fed1ae1237e7c87e6501970fce2a86e2b8862e502258b0d3aeb2c\"},\"contracts/reentrancy/SharedReentrancyGuard.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\nimport \\\"./Mutex.sol\\\";\\n\\n/*\\n * @title Abstract contract for shared reentrancy guards\\n *\\n * @notice Exposes a single modifier `globallyNonReentrant` that can be used to ensure\\n * that there's no reentrancy between *any* functions marked with the modifier.\\n *\\n * @dev The Mutex contract address is hardcoded because the address is deployed using a\\n * special deployment method (similar to ERC1820Registry). This contract therefore has no\\n * state and is thus safe to add to the inheritance chain of upgradeable contracts.\\n */\\ncontract SharedReentrancyGuard {\\n    /*\\n     * This is the address of the mutex contract that will be used as the\\n     * reentrancy guard.\\n     *\\n     * The address is hardcoded to avoid changing the memory layout of\\n     * derived contracts (possibly upgradable). Hardcoding the address is possible,\\n     * because the Mutex contract is always deployed to the same address, with the\\n     * same method used in the deployment of ERC1820Registry.\\n     */\\n    Mutex private constant MUTEX = Mutex(0xba10edD6ABC7696Eae685839217BdcC42139612b);\\n\\n    /*\\n     * This is the modifier that will be used to protect functions from\\n     * reentrancy. It will call the mutex contract to increment the mutex\\n     * state and then revert if the mutex state was changed by another\\n     * nested call.\\n     */\\n    modifier globallyNonReentrant() {\\n        uint256 previous = MUTEX.incrementAndGetValue();\\n\\n        _;\\n\\n        /*\\n         * If the mutex state was changed by a nested function call, then\\n         * the value of the state variable will be different from the previous value.\\n         */\\n        require(previous == MUTEX.value(), \\\"reentrancy violation\\\");\\n    }\\n}\\n\",\"keccak256\":\"0x2d0e61b104b91c1764f20fbeb381ba0f8a8889934ba7f6e8a167ed542ec2c124\"}},\"version\":1}",
+  "bytecode": "0x60806040526001600090815561001c6001600160e01b0361006f16565b600180546001600160a01b0319166001600160a01b038316908117909155604051919250906000907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a350610073565b3390565b610db0806100826000396000f3fe6080604052600436106101b75760003560e01c80637e37c08c116100ec578063d759dbeb1161008a578063ef2b0b3911610064578063ef2b0b3914610554578063f00e6a2a14610569578063f2fde38b1461057e578063f851a4401461059e576101b7565b8063d759dbeb146104ff578063dd62ed3e14610514578063e41b07e314610534576101b7565b806392130344116100c6578063921303441461049e57806395d89b41146104c05780639bda3a98146104d5578063ba0e43bf146104ea576101b7565b80637e37c08c146104525780638da5cb5b146104675780638f32d59b1461047c576101b7565b80633291c11a1161015957806370a082311161013357806370a08231146103f3578063797bf385146104135780637b7933b4146104285780637e2ec6d01461043d576101b7565b80633291c11a146103a9578063330691ac146103c957806356e07d70146103de576101b7565b80631d0806ae116101955780631d0806ae146103485780631f68f20a1461035d5780632f6b600d14610372578063313ce56714610387576101b7565b806306947a3a146102d957806306fdde031461030457806318160ddd14610326575b60006101c16105b3565b6001600160a01b031663374e40476000356001600160e01b0319166040518263ffffffff1660e01b81526004016101f89190610c4e565b60206040518083038186803b15801561021057600080fd5b505afa158015610224573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525061024891908101906109ad565b90506001600160a01b0381166102795760405162461bcd60e51b815260040161027090610c74565b60405180910390fd5b60606000368080601f016020809104026020016040519081016040528093929190818152602001838380828437600092018290525084519495509384935091505060208401855af43d604051816000823e8280156102d5578282f35b8282fd5b3480156102e557600080fd5b506102ee6105d2565b6040516102fb9190610c24565b60405180910390f35b34801561031057600080fd5b506103196105e1565b6040516102fb9190610c5c565b34801561033257600080fd5b5061033b61066c565b6040516102fb9190610c40565b34801561035457600080fd5b5061033b610672565b34801561036957600080fd5b5061033b610678565b34801561037e57600080fd5b506102ee61067e565b34801561039357600080fd5b5061039c61068d565b6040516102fb9190610cc4565b3480156103b557600080fd5b5061033b6103c4366004610a05565b610696565b3480156103d557600080fd5b5061033b6106a8565b3480156103ea57600080fd5b5061033b6106ae565b3480156103ff57600080fd5b5061033b61040e36600461098f565b6106b4565b34801561041f57600080fd5b506102ee6106cf565b34801561043457600080fd5b5061033b6106e3565b34801561044957600080fd5b506102ee6106e9565b34801561045e57600080fd5b5061033b6106f8565b34801561047357600080fd5b506102ee6106fe565b34801561048857600080fd5b5061049161070d565b6040516102fb9190610c32565b3480156104aa57600080fd5b506104be6104b936600461098f565b610733565b005b3480156104cc57600080fd5b50610319610763565b3480156104e157600080fd5b506102ee6107be565b3480156104f657600080fd5b5061033b6107cd565b34801561050b57600080fd5b5061033b6107d3565b34801561052057600080fd5b5061033b61052f3660046109cb565b6107d9565b34801561054057600080fd5b5061033b61054f36600461098f565b610806565b34801561056057600080fd5b5061033b610818565b34801561057557600080fd5b506102ee61081e565b34801561058a57600080fd5b506104be61059936600461098f565b61082d565b3480156105aa57600080fd5b506102ee61085a565b6000806040516105c290610c19565b6040519081900390205492915050565b6016546001600160a01b031681565b6002805460408051602060018416156101000260001901909316849004601f810184900484028201840190925281815292918301828280156106645780601f1061063957610100808354040283529160200191610664565b820191906000526020600020905b81548152906001019060200180831161064757829003601f168201915b505050505081565b60155490565b600e5481565b60055481565b6017546001600160a01b031681565b60045460ff1681565b60106020526000908152604090205481565b60065481565b600a5481565b6001600160a01b031660009081526013602052604090205490565b60045461010090046001600160a01b031681565b600d5481565b60006106f36105b3565b905090565b60085481565b6001546001600160a01b031690565b6001546000906001600160a01b0316610724610869565b6001600160a01b031614905090565b61073b61070d565b6107575760405162461bcd60e51b815260040161027090610c94565b6107608161086d565b50565b6003805460408051602060026001851615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156106645780601f1061063957610100808354040283529160200191610664565b6018546001600160a01b031681565b60095481565b60075481565b6001600160a01b038083166000908152601460209081526040808320938516835292905220545b92915050565b60126020526000908152604090205481565b600b5481565b6018546001600160a01b031690565b61083561070d565b6108515760405162461bcd60e51b815260040161027090610cb4565b610760816108b0565b6019546001600160a01b031681565b3390565b61087681610932565b6108925760405162461bcd60e51b815260040161027090610ca4565b60006040516108a090610c19565b6040519081900390209190915550565b6001600160a01b0381166108d65760405162461bcd60e51b815260040161027090610c84565b6001546040516001600160a01b038084169216907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a3600180546001600160a01b0319166001600160a01b0392909216919091179055565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a47081811480159061096657508115155b949350505050565b803561080081610d50565b805161080081610d50565b803561080081610d64565b6000602082840312156109a157600080fd5b6000610966848461096e565b6000602082840312156109bf57600080fd5b60006109668484610979565b600080604083850312156109de57600080fd5b60006109ea858561096e565b92505060206109fb8582860161096e565b9150509250929050565b600060208284031215610a1757600080fd5b60006109668484610984565b610a2c81610ce4565b82525050565b610a2c81610cef565b610a2c81610cf4565b610a2c81610cf7565b6000610a5882610cd2565b610a628185610cd6565b9350610a72818560208601610d16565b610a7b81610d46565b9093019392505050565b6000610a92602583610cd6565b7f4c6f616e546f6b656e4c6f67696350726f78793a746172676574206e6f742061815264637469766560d81b602082015260400192915050565b6000610ad9602683610cd6565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b6000610b21602083610cd6565b7f4c6f616e546f6b656e4c6f67696350726f78793a756e617574686f72697a6564815260200192915050565b6000610b5a603383610cd6565b7f43616e6e6f742073657420626561636f6e206164647265737320746f2061206e8152726f6e2d636f6e7472616374206164647265737360681b602082015260400192915050565b6000610baf600c83610cd6565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b6000610bd7602483610cdf565b7f4c4f414e5f544f4b454e5f4c4f4749435f424541434f4e5f414444524553535f81526314d313d560e21b602082015260240192915050565b610a2c81610d10565b600061080082610bca565b602081016108008284610a23565b602081016108008284610a32565b602081016108008284610a3b565b602081016108008284610a44565b60208082528101610c6d8184610a4d565b9392505050565b6020808252810161080081610a85565b6020808252810161080081610acc565b6020808252810161080081610b14565b6020808252810161080081610b4d565b6020808252810161080081610ba2565b602081016108008284610c10565b5190565b90815260200190565b919050565b600061080082610d04565b151590565b90565b6001600160e01b03191690565b6001600160a01b031690565b60ff1690565b60005b83811015610d31578181015183820152602001610d19565b83811115610d40576000848401525b50505050565b601f01601f191690565b610d5981610ce4565b811461076057600080fd5b610d5981610cf456fea365627a7a72315820f5293405144106e3163a96fbb462763c72c46be75cc21557a2f7c46395fd94836c6578706572696d656e74616cf564736f6c63430005110040",
+  "deployedBytecode": "0x6080604052600436106101b75760003560e01c80637e37c08c116100ec578063d759dbeb1161008a578063ef2b0b3911610064578063ef2b0b3914610554578063f00e6a2a14610569578063f2fde38b1461057e578063f851a4401461059e576101b7565b8063d759dbeb146104ff578063dd62ed3e14610514578063e41b07e314610534576101b7565b806392130344116100c6578063921303441461049e57806395d89b41146104c05780639bda3a98146104d5578063ba0e43bf146104ea576101b7565b80637e37c08c146104525780638da5cb5b146104675780638f32d59b1461047c576101b7565b80633291c11a1161015957806370a082311161013357806370a08231146103f3578063797bf385146104135780637b7933b4146104285780637e2ec6d01461043d576101b7565b80633291c11a146103a9578063330691ac146103c957806356e07d70146103de576101b7565b80631d0806ae116101955780631d0806ae146103485780631f68f20a1461035d5780632f6b600d14610372578063313ce56714610387576101b7565b806306947a3a146102d957806306fdde031461030457806318160ddd14610326575b60006101c16105b3565b6001600160a01b031663374e40476000356001600160e01b0319166040518263ffffffff1660e01b81526004016101f89190610c4e565b60206040518083038186803b15801561021057600080fd5b505afa158015610224573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525061024891908101906109ad565b90506001600160a01b0381166102795760405162461bcd60e51b815260040161027090610c74565b60405180910390fd5b60606000368080601f016020809104026020016040519081016040528093929190818152602001838380828437600092018290525084519495509384935091505060208401855af43d604051816000823e8280156102d5578282f35b8282fd5b3480156102e557600080fd5b506102ee6105d2565b6040516102fb9190610c24565b60405180910390f35b34801561031057600080fd5b506103196105e1565b6040516102fb9190610c5c565b34801561033257600080fd5b5061033b61066c565b6040516102fb9190610c40565b34801561035457600080fd5b5061033b610672565b34801561036957600080fd5b5061033b610678565b34801561037e57600080fd5b506102ee61067e565b34801561039357600080fd5b5061039c61068d565b6040516102fb9190610cc4565b3480156103b557600080fd5b5061033b6103c4366004610a05565b610696565b3480156103d557600080fd5b5061033b6106a8565b3480156103ea57600080fd5b5061033b6106ae565b3480156103ff57600080fd5b5061033b61040e36600461098f565b6106b4565b34801561041f57600080fd5b506102ee6106cf565b34801561043457600080fd5b5061033b6106e3565b34801561044957600080fd5b506102ee6106e9565b34801561045e57600080fd5b5061033b6106f8565b34801561047357600080fd5b506102ee6106fe565b34801561048857600080fd5b5061049161070d565b6040516102fb9190610c32565b3480156104aa57600080fd5b506104be6104b936600461098f565b610733565b005b3480156104cc57600080fd5b50610319610763565b3480156104e157600080fd5b506102ee6107be565b3480156104f657600080fd5b5061033b6107cd565b34801561050b57600080fd5b5061033b6107d3565b34801561052057600080fd5b5061033b61052f3660046109cb565b6107d9565b34801561054057600080fd5b5061033b61054f36600461098f565b610806565b34801561056057600080fd5b5061033b610818565b34801561057557600080fd5b506102ee61081e565b34801561058a57600080fd5b506104be61059936600461098f565b61082d565b3480156105aa57600080fd5b506102ee61085a565b6000806040516105c290610c19565b6040519081900390205492915050565b6016546001600160a01b031681565b6002805460408051602060018416156101000260001901909316849004601f810184900484028201840190925281815292918301828280156106645780601f1061063957610100808354040283529160200191610664565b820191906000526020600020905b81548152906001019060200180831161064757829003601f168201915b505050505081565b60155490565b600e5481565b60055481565b6017546001600160a01b031681565b60045460ff1681565b60106020526000908152604090205481565b60065481565b600a5481565b6001600160a01b031660009081526013602052604090205490565b60045461010090046001600160a01b031681565b600d5481565b60006106f36105b3565b905090565b60085481565b6001546001600160a01b031690565b6001546000906001600160a01b0316610724610869565b6001600160a01b031614905090565b61073b61070d565b6107575760405162461bcd60e51b815260040161027090610c94565b6107608161086d565b50565b6003805460408051602060026001851615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156106645780601f1061063957610100808354040283529160200191610664565b6018546001600160a01b031681565b60095481565b60075481565b6001600160a01b038083166000908152601460209081526040808320938516835292905220545b92915050565b60126020526000908152604090205481565b600b5481565b6018546001600160a01b031690565b61083561070d565b6108515760405162461bcd60e51b815260040161027090610cb4565b610760816108b0565b6019546001600160a01b031681565b3390565b61087681610932565b6108925760405162461bcd60e51b815260040161027090610ca4565b60006040516108a090610c19565b6040519081900390209190915550565b6001600160a01b0381166108d65760405162461bcd60e51b815260040161027090610c84565b6001546040516001600160a01b038084169216907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a3600180546001600160a01b0319166001600160a01b0392909216919091179055565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a47081811480159061096657508115155b949350505050565b803561080081610d50565b805161080081610d50565b803561080081610d64565b6000602082840312156109a157600080fd5b6000610966848461096e565b6000602082840312156109bf57600080fd5b60006109668484610979565b600080604083850312156109de57600080fd5b60006109ea858561096e565b92505060206109fb8582860161096e565b9150509250929050565b600060208284031215610a1757600080fd5b60006109668484610984565b610a2c81610ce4565b82525050565b610a2c81610cef565b610a2c81610cf4565b610a2c81610cf7565b6000610a5882610cd2565b610a628185610cd6565b9350610a72818560208601610d16565b610a7b81610d46565b9093019392505050565b6000610a92602583610cd6565b7f4c6f616e546f6b656e4c6f67696350726f78793a746172676574206e6f742061815264637469766560d81b602082015260400192915050565b6000610ad9602683610cd6565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b6000610b21602083610cd6565b7f4c6f616e546f6b656e4c6f67696350726f78793a756e617574686f72697a6564815260200192915050565b6000610b5a603383610cd6565b7f43616e6e6f742073657420626561636f6e206164647265737320746f2061206e8152726f6e2d636f6e7472616374206164647265737360681b602082015260400192915050565b6000610baf600c83610cd6565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b6000610bd7602483610cdf565b7f4c4f414e5f544f4b454e5f4c4f4749435f424541434f4e5f414444524553535f81526314d313d560e21b602082015260240192915050565b610a2c81610d10565b600061080082610bca565b602081016108008284610a23565b602081016108008284610a32565b602081016108008284610a3b565b602081016108008284610a44565b60208082528101610c6d8184610a4d565b9392505050565b6020808252810161080081610a85565b6020808252810161080081610acc565b6020808252810161080081610b14565b6020808252810161080081610b4d565b6020808252810161080081610ba2565b602081016108008284610c10565b5190565b90815260200190565b919050565b600061080082610d04565b151590565b90565b6001600160e01b03191690565b6001600160a01b031690565b60ff1690565b60005b83811015610d31578181015183820152602001610d19565b83811115610d40576000848401525b50505050565b601f01601f191690565b610d5981610ce4565b811461076057600080fd5b610d5981610cf456fea365627a7a72315820f5293405144106e3163a96fbb462763c72c46be75cc21557a2f7c46395fd94836c6578706572696d656e74616cf564736f6c63430005110040",
+  "devdoc": {
+    "methods": {
+      "allowance(address,address)": {
+        "params": {
+          "_owner": "The account owner of the iTokens.",
+          "_spender": "The account allowed to send the iTokens."
+        },
+        "return": "The number of iTokens an account is allowing the spender  to send on its behalf."
+      },
+      "balanceOf(address)": {
+        "params": {
+          "_owner": "The account owner of the iTokens."
+        },
+        "return": "The number of iTokens an account owns."
+      },
+      "beaconAddress()": {
+        "return": "The address of the current LoanTokenLogicBeacon."
+      },
+      "getTarget()": {
+        "details": "External function to return the LoanTokenLogicProxy of loan token (target of LoanToken contract). Ideally this getter should be added in the LoanToken contract but since LoanToken contract can't be changed, adding the getter in this contract will do because it will use the context of LoanToken contract.",
+        "return": "target address of LoanToken contract"
+      },
+      "isOwner()": {
+        "details": "Returns true if the caller is the current owner."
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "setBeaconAddress(address)": {
+        "details": "External function to set the new LoanTokenLogicBeacon Address",
+        "params": {
+          "_newBeaconAddress": "Address of the new LoanTokenLogicBeacon"
+        }
+      },
+      "totalSupply()": {
+        "return": "The total number of iTokens in existence as of now."
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      }
+    },
+    "title": "Loan Token Logic Proxy contract."
+  },
+  "userdoc": {
+    "methods": {
+      "allowance(address,address)": {
+        "notice": "Get the amount of iTokens allowed to be spent by a  given account on behalf of the owner."
+      },
+      "balanceOf(address)": {
+        "notice": "Get the amount of iTokens owned by an account."
+      },
+      "totalSupply()": {
+        "notice": "Get the total supply of iTokens."
+      }
+    },
+    "notice": "This contract contains the proxy functionality and it will query the logic target from LoanTokenLogicBeacon This contract will also has the pause/unpause functionality. The purpose of this pausability is so that we can pause/unpause from the loan token level. "
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 54611,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "reentrancyLock",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 54427,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 483,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "name",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_string_storage"
+      },
+      {
+        "astId": 485,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "symbol",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_string_storage"
+      },
+      {
+        "astId": 487,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "decimals",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_uint8"
+      },
+      {
+        "astId": 489,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "loanTokenAddress",
+        "offset": 1,
+        "slot": "4",
+        "type": "t_address"
+      },
+      {
+        "astId": 491,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "baseRate",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 493,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "rateMultiplier",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 495,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "lowUtilBaseRate",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 497,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "lowUtilRateMultiplier",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 499,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "targetLevel",
+        "offset": 0,
+        "slot": "9",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 501,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "kinkLevel",
+        "offset": 0,
+        "slot": "10",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 503,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "maxScaleRate",
+        "offset": 0,
+        "slot": "11",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 505,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "_flTotalAssetSupply",
+        "offset": 0,
+        "slot": "12",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 507,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "checkpointSupply",
+        "offset": 0,
+        "slot": "13",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 509,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "initialPrice",
+        "offset": 0,
+        "slot": "14",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 511,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "lastSettleTime_",
+        "offset": 0,
+        "slot": "15",
+        "type": "t_uint88"
+      },
+      {
+        "astId": 515,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "loanParamsIds",
+        "offset": 0,
+        "slot": "16",
+        "type": "t_mapping(t_uint256,t_bytes32)"
+      },
+      {
+        "astId": 519,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "checkpointPrices_",
+        "offset": 0,
+        "slot": "17",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 523,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "transactionLimit",
+        "offset": 0,
+        "slot": "18",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 236,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "balances",
+        "offset": 0,
+        "slot": "19",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 242,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "allowed",
+        "offset": 0,
+        "slot": "20",
+        "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))"
+      },
+      {
+        "astId": 244,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "totalSupply_",
+        "offset": 0,
+        "slot": "21",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 845,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "sovrynContractAddress",
+        "offset": 0,
+        "slot": "22",
+        "type": "t_address"
+      },
+      {
+        "astId": 847,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "wrbtcTokenAddress",
+        "offset": 0,
+        "slot": "23",
+        "type": "t_address"
+      },
+      {
+        "astId": 849,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "target_",
+        "offset": 0,
+        "slot": "24",
+        "type": "t_address"
+      },
+      {
+        "astId": 851,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicProxy.sol:LoanTokenLogicProxy",
+        "label": "admin",
+        "offset": 0,
+        "slot": "25",
+        "type": "t_address"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(address => uint256))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_uint256)"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_uint256,t_bytes32)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => bytes32)",
+        "numberOfBytes": "32",
+        "value": "t_bytes32"
+      },
+      "t_string_storage": {
+        "encoding": "bytes",
+        "label": "string",
+        "numberOfBytes": "32"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      },
+      "t_uint8": {
+        "encoding": "inplace",
+        "label": "uint8",
+        "numberOfBytes": "1"
+      },
+      "t_uint88": {
+        "encoding": "inplace",
+        "label": "uint88",
+        "numberOfBytes": "11"
+      }
+    }
+  }
+}
