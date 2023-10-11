@@ -65,11 +65,6 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
 
         const timeLockAdminListOracleTransfers = [
             {
-                sourceConverter: "AmmConverterBpro",
-                sourceConverterType: "ConverterV2",
-                contractName: "",
-            },
-            {
                 sourceConverter: "AmmConverterMoc",
                 sourceConverterType: "ConverterV1",
                 contractName: "",

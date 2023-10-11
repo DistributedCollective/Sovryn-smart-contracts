@@ -287,12 +287,6 @@ const getArgsSip0046Part1 = async (hre) => {
         },
         {
             deployment: "oracle",
-            contractName: "BproOracle",
-            sourceContractTypeToValidate: "ConverterV2",
-            sourceContractNameToValidate: "AmmConverterBpro",
-        },
-        {
-            deployment: "oracle",
             contractName: "MocOracle",
             sourceContractTypeToValidate: "ConverterV1",
             sourceContractNameToValidate: "AmmConverterMoc",
