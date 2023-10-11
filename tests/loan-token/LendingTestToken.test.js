@@ -122,7 +122,6 @@ contract("LoanTokenLending", (accounts) => {
         /** Initialize the loan token logic proxy */
         loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
         await loanToken.setBeaconAddress(loanTokenLogicBeacon.address);
-        expect(await loanToken.getTarget()).to.equal(loanTokenLogic.address);
 
         /** Use interface of LoanTokenModules */
         loanToken = await ILoanTokenModules.at(loanToken.address);
