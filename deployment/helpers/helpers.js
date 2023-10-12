@@ -114,6 +114,32 @@ const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, 
     await multisigCheckTx(parsedEvent.transactionId.value, multisig.address);
 };
 
+const sendWithMultisigReturningId = async (
+    multisigAddress,
+    contractAddress,
+    data,
+    sender,
+    value = 0
+) => {
+    const { ethers } = hre;
+    const signer = await ethers.getSigner(sender);
+    const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress, signer);
+    const gasEstimated = (
+        await multisig.estimateGas.submitTransaction(contractAddress, value, data)
+    ).toNumber();
+    receipt = await (
+        await multisig.submitTransaction(contractAddress, value, data, {
+            gasLimit: Math.round(gasEstimated * 1.3),
+        })
+    ).wait();
+
+    const abi = ["event Submission(uint256 indexed transactionId)"];
+    let iface = new ethers.utils.Interface(abi);
+    const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "Submission");
+    await multisigCheckTx(parsedEvent.transactionId.value, multisig.address);
+    return parsedEvent.transactionId.value;
+};
+
 const signWithMultisig = async (multisigAddress, txId, sender) => {
     const { ethers, getNamedAccounts } = hre;
     console.log("Signing multisig txId...", txId);
@@ -562,6 +588,7 @@ module.exports = {
     parseEthersLogToValue,
     getParsedEventLogFromReceipt,
     sendWithMultisig,
+    sendWithMultisigReturningId,
     signWithMultisig,
     multisigCheckTx,
     multisigRevokeConfirmation,
