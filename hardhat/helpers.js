@@ -119,7 +119,7 @@ const transferOwnershipAMMContractsToGovernance = async (
                 `Unmatched contract address with the on-chain for ${contractName}, local: ${contractAddress}, onchain: ${onchainContractAddress}`
             );
             let result = {
-                transactionNumberproposed: 0,
+                transactionNumberProposed: 0,
                 successOfTransaction: false,
             };
             return result;
@@ -130,7 +130,7 @@ const transferOwnershipAMMContractsToGovernance = async (
     if (currentOwner.toUpperCase() !== multisig.address.toUpperCase()) {
         logger.error(`Multisig is not the owner, the onchain owner is ${currentOwner}`);
         let result = {
-            transactionNumberproposed: 0,
+            transactionNumberProposed: 0,
             successOfTransaction: false,
         };
         return result;
@@ -147,7 +147,7 @@ const transferOwnershipAMMContractsToGovernance = async (
         signerAcc
     );
     let result = {
-        transactionNumberproposed: txId,
+        transactionNumberProposed: txId,
         successOfTransaction: true,
     };
     return result;

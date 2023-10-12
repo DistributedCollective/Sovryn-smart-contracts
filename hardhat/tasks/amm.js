@@ -224,7 +224,7 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
                 timeLockAdminListOracleTransfer.contractName
             );
             if (!result.successOfTransaction) break;
-            txIds.push(result.txId);
+            txIds.push(result.transactionNumberProposed);
         }
 
         logger.info(
@@ -241,7 +241,7 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
                 timeLockAdminListTransfer.contractName
             );
             if (!result.successOfTransaction) break;
-            txIds.push(result.txId);
+            txIds.push(result.transactionNumberProposed);
         }
 
         logger.info(
@@ -258,7 +258,7 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
                 timeLockOwnerListTransfer.contractName
             );
             if (!result.successOfTransaction) break;
-            txIds.push(result.txId);
+            txIds.push(result.transactionNumberProposed);
         }
         return txIds;
     });
