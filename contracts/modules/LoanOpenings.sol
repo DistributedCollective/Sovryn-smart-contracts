@@ -352,7 +352,8 @@ contract LoanOpenings is
             "invalid interest"
         );
 
-        uint256 addPrincipal = sentValues.newPrincipal;
+        // @note this fix is for borrowing only
+        uint256 sentNewPrincipal = isTorqueLoan ? sentValues.newPrincipal : 0;
 
         /// Initialize loan.
         Loan storage loanLocal =
@@ -416,7 +417,7 @@ contract LoanOpenings is
                 initialMargin,
                 sentValues.collateralTokenSent,
                 collateralAmountRequired,
-                addPrincipal
+                sentNewPrincipal
             ),
             "collateral insufficient"
         );
@@ -657,7 +658,7 @@ contract LoanOpenings is
                     IPriceFeeds(priceFeeds).getMaxDrawdown(
                         loanParamsLocal.loanToken,
                         loanParamsLocal.collateralToken,
-                        loanLocal.principal.sub(newPrincipal), // sub(newPrincipal) to exclude ncludes new borrowed amount from the total principal to calculate maxDrawdown for existing loan
+                        loanLocal.principal.sub(newPrincipal), // sub(newPrincipal) to exclude the new borrowed amount from the total principal to calculate maxDrawdown for existing loan
                         loanLocal.collateral,
                         initialMargin
                     );
