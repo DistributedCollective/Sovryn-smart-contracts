@@ -20,6 +20,7 @@
 		"artifacts/",
 		"contracts/",
 		"deployment/",
+		"external/",
 		"hardhat/",
 		"interfaces/",
 		"scripts/contractInteraction/mainnet_contracts.json",
