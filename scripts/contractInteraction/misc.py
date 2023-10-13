@@ -8,10 +8,7 @@ from scripts.contractInteraction.token import *
 import scripts.contractInteraction.config as conf
 from scripts.contractInteraction.loan_tokens import getTokenPrice, setPauser
 from scripts.contractInteraction.staking_vesting import addStakingPauser, removeStakingPauser
-from scripts.contractInteraction.fastbtc import addFastBTCPauser
-
-
-
+from scripts.contractInteraction.fastbtc import addFastBTCPauser, removeFastBTCPauser
 
 
 def readClaimBalanceOrigin(address):
