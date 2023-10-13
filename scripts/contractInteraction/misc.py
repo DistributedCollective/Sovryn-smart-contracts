@@ -127,9 +127,9 @@ def setNewContractGuardian():
         addStakingPauser(newGuardian)
         removeStakingPauser(conf.contracts['multisig'])
 
-    #bidi fastbtc
-    addFastBTCPauser(newGuardian)
-    removeFastBTCPauser(conf.contracts['multisig'])
+    #bidi fastbtc -- this will be done later
+    # addFastBTCPauser(newGuardian)
+    # removeFastBTCPauser(conf.contracts['multisig'])
 
 
 def openTrove(_maxFeePercentage, _ZUSDAmount, _upperHint, _lowerHint, coll):
