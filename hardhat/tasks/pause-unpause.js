@@ -178,7 +178,7 @@ task("pausing:print-lp-beacons-paused", "Log Lending Pools Beacons paused/unpaus
         await printLoanTokenBeaconsPaused(hre, beaconsList);
     });
 
-task("pausing:pause-lp-beacon(s)", "Pause Lending Pools Beacons")
+task("pausing:pause-lp-beacons", "Pause Lending Pools Beacons")
     .addOptionalParam(
         "names",
         "Beacon deployment name(s): a single beacon deployment name or a list: 'LoanTokenLogicBeaconLM,LoanTokenLogicBeaconWrbtc'",
@@ -376,7 +376,7 @@ const freezeUnfreezeBiDiFastBTC = async (hre, signer, bool) => {
 
     const signerAcc = (await hre.getNamedAccounts())[signer];
     const multisigDeployment = await get("MultiSigWallet");
-    const targetDeployment = await get("FastBTCBiDiFreezable");
+    const targetDeployment = await get("FastBTCBiDiPauseFreeze");
 
     const targetInterface = new ethers.utils.Interface(targetDeployment.abi);
     const funcName = bool ? "freeze" : "unfreeze";
@@ -387,12 +387,50 @@ const freezeUnfreezeBiDiFastBTC = async (hre, signer, bool) => {
 
 const isFastBtcFrozen = async (hre) => {
     const { ethers } = hre;
-    return await (await ethers.getContract("FastBTCBiDiFreezable")).frozen();
+    return await (await ethers.getContract("FastBTCBiDiPauseFreeze")).frozen();
 };
+
+const pauseUnpauseBiDiFastBTC = async (hre, signer, bool) => {
+    const {
+        deployments: { get },
+        ethers,
+    } = hre;
+
+    if ((await isFastBtcPaused(hre)) == bool) {
+        logger.warn(`FastBTCBiDi contracts is already ${bool ? "paused" : "unpaused"}`);
+        return;
+    }
+
+    const signerAcc = (await hre.getNamedAccounts())[signer];
+    const multisigDeployment = await get("MultiSigWallet");
+    const targetDeployment = await get("FastBTCBiDiPauseFreeze");
+
+    const targetInterface = new ethers.utils.Interface(targetDeployment.abi);
+    const funcName = bool ? "pause" : "ununpause";
+    let data = targetInterface.encodeFunctionData(funcName);
+    logger.warn(`Generating multisig tx to ${funcName} FastBTCBiDi ...`);
+    await sendWithMultisig(multisigDeployment.address, targetDeployment.address, data, signerAcc);
+};
+
+const isFastBtcPaused = async (hre) => {
+    const { ethers } = hre;
+    return await (await ethers.getContract("FastBTCBiDiPauseFreeze")).paused();
+};
+
+const printIsFastBtcPaused = async (hre) => {
+    const paused = await isFastBtcPaused(hre);
+    logger.warn(`FastBTC Bridge contract is ${paused ? "paused" : "not paused"}`);
+};
+
+task("pausing:is-fastbtc-paused", "Log FastBTCBiDi is paused or not paused").setAction(
+    async ({}, hre) => {
+        await printIsFastBtcFrozen(hre);
+    }
+);
 
 const printIsFastBtcFrozen = async (hre) => {
     const frozen = await isFastBtcFrozen(hre);
-    logger.warn(`Staking contract is ${frozen ? "frozen" : "not frozen"}`);
+    logger.warn(`FastBTC Bridge contract is ${frozen ? "frozen" : "not frozen"}`);
 };
 
 task("pausing:is-fastbtc-frozen", "Log FastBTCBiDi is frozen or not frozen").setAction(
@@ -412,3 +450,21 @@ task("pausing:unfreeze-fastbtc", "Unfreeze BiDi FastBTC")
     .setAction(async ({ signer }, hre) => {
         await freezeUnfreezeBiDiFastBTC(hre, signer, false);
     });
+
+task("pausing:pause-fastbtc", "Pause BiDi FastBTC")
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ signer }, hre) => {
+        await pauseUnpauseBiDiFastBTC(hre, signer, true);
+    });
+
+task("pausing:unpause-fastbtc", "Unpause BiDi FastBTC")
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ signer }, hre) => {
+        await pauseUnpauseBiDiFastBTC(hre, signer, false);
+    });
+
+task("pausing:is-fastbtc-paused", "Log FastBTCBiDi is paused or not paused").setAction(
+    async ({}, hre) => {
+        await printIsFastBtcPaused(hre);
+    }
+);

@@ -231,7 +231,11 @@ contract("FeeSharingCollector:", (accounts) => {
         await sovryn.setFeesController(feeSharingCollector.address);
 
         // Set loan pool for wRBTC -- because our fee sharing proxy required the loanPool of wRBTC
-        loanTokenLogicWrbtc = await LoanTokenLogicWrbtc.new();
+        // Loan token
+        const initLoanTokenLogicWrbtc = await getLoanTokenLogicWrbtc(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+        loanTokenLogicWrbtc = initLoanTokenLogicWrbtc[0];
+        loanTokenLogicBeaconWrbtc = initLoanTokenLogicWrbtc[1];
+
         loanTokenWrbtc = await LoanToken.new(
             root,
             loanTokenLogicWrbtc.address,
@@ -240,7 +244,13 @@ contract("FeeSharingCollector:", (accounts) => {
         );
         await loanTokenWrbtc.initialize(WRBTC.address, "iWRBTC", "iWRBTC");
 
-        loanTokenWrbtc = await LoanTokenLogicWrbtc.at(loanTokenWrbtc.address);
+        /** Initialize the loan token logic proxy */
+        loanTokenWrbtc = await ILoanTokenLogicProxy.at(loanTokenWrbtc.address);
+        await loanTokenWrbtc.setBeaconAddress(loanTokenLogicBeaconWrbtc.address);
+
+        /** Use interface of LoanTokenModules */
+        loanTokenWrbtc = await ILoanTokenModules.at(loanTokenWrbtc.address);
+
         const loanTokenAddressWrbtc = await loanTokenWrbtc.loanTokenAddress();
         await sovryn.setLoanPool([loanTokenWrbtc.address], [loanTokenAddressWrbtc]);
 

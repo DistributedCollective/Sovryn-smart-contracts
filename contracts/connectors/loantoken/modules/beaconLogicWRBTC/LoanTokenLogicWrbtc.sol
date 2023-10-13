@@ -1,7 +1,4 @@
-/**
- * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0.
- */
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
@@ -11,7 +8,7 @@ import "../../LoanTokenLogicStandard.sol";
 contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
     /**
      * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
-     * Every new public function, the sginature needs to be included in this function.
+     * Every new public function, the signature needs to be included in this function.
      *
      * @dev This function will return the list of function signature in this contract that are available for public call
      * Then this function will be called by LoanTokenLogicBeacon, and the function signatures will be registred in LoanTokenLogicBeacon.
@@ -26,77 +23,50 @@ contract LoanTokenLogicWrbtc is LoanTokenLogicStandard {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](32);
+        bytes4[] memory res = new bytes4[](28);
 
-        // Loan Token Logic Standard
-        res[0] = this.mint.selector;
-        res[1] = this.burn.selector;
-        res[2] = this.borrow.selector;
-        res[3] = this.marginTrade.selector;
-        res[4] = this.marginTradeAffiliate.selector;
-        res[5] = this.transfer.selector;
-        res[6] = this.transferFrom.selector;
-        res[7] = this.profitOf.selector;
-        res[8] = this.tokenPrice.selector;
-        res[9] = this.checkpointPrice.selector;
-        res[10] = this.marketLiquidity.selector;
-        res[11] = this.avgBorrowInterestRate.selector;
-        res[12] = this.borrowInterestRate.selector;
-        res[13] = this.nextBorrowInterestRate.selector;
-        res[14] = this.supplyInterestRate.selector;
-        res[15] = this.nextSupplyInterestRate.selector;
-        res[16] = this.totalSupplyInterestRate.selector;
-        res[17] = this.totalAssetBorrow.selector;
-        res[18] = this.totalAssetSupply.selector;
-        res[19] = this.getMaxEscrowAmount.selector;
-        res[20] = this.assetBalanceOf.selector;
-        res[21] = this.getEstimatedMarginDetails.selector;
-        res[22] = this.getDepositAmountForBorrow.selector;
-        res[23] = this.getBorrowAmountForDeposit.selector;
-        res[24] = this.checkPriceDivergence.selector;
-        res[25] = this.calculateSupplyInterestRate.selector;
-
-        // Loan Token WRBTC
-        res[26] = this.mintWithBTC.selector;
-        res[27] = this.burnToBTC.selector;
+        // Loan Token Logic Standard, Trade & Borrow
+        res[0] = this.borrow.selector;
+        res[1] = this.marginTrade.selector;
+        res[2] = this.marginTradeAffiliate.selector;
+        res[3] = this.transfer.selector;
+        res[4] = this.transferFrom.selector;
+        res[5] = this.profitOf.selector;
+        res[6] = this.tokenPrice.selector;
+        res[7] = this.checkpointPrice.selector;
+        res[8] = this.marketLiquidity.selector;
+        res[9] = this.avgBorrowInterestRate.selector;
+        res[10] = this.borrowInterestRate.selector;
+        res[11] = this.nextBorrowInterestRate.selector;
+        res[12] = this.supplyInterestRate.selector;
+        res[13] = this.nextSupplyInterestRate.selector;
+        res[14] = this.totalSupplyInterestRate.selector;
+        res[15] = this.totalAssetBorrow.selector;
+        res[16] = this.totalAssetSupply.selector;
+        res[17] = this.getMaxEscrowAmount.selector;
+        res[18] = this.assetBalanceOf.selector;
+        res[19] = this.getEstimatedMarginDetails.selector;
+        res[20] = this.getDepositAmountForBorrow.selector;
+        res[21] = this.getBorrowAmountForDeposit.selector;
+        res[22] = this.checkPriceDivergence.selector;
+        res[23] = this.calculateSupplyInterestRate.selector;
 
         // Advanced Token
-        res[28] = this.approve.selector;
+        res[24] = this.approve.selector;
 
         // Advanced Token Storage
-        res[29] = this.totalSupply.selector;
-        res[30] = this.balanceOf.selector;
-        res[31] = this.allowance.selector;
+        res[25] = this.totalSupply.selector;
+        res[26] = this.balanceOf.selector;
+        res[27] = this.allowance.selector;
 
         return (res, stringToBytes32("LoanTokenLogicWrbtc"));
     }
 
-    function mintWithBTC(address receiver, bool useLM)
-        external
-        payable
-        nonReentrant
-        globallyNonReentrant
-        returns (uint256 mintAmount)
-    {
-        if (useLM) return _mintWithLM(receiver, msg.value);
-        else return _mintToken(receiver, msg.value);
-    }
-
-    function burnToBTC(
-        address receiver,
-        uint256 burnAmount,
-        bool useLM
-    ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
-        if (useLM) loanAmountPaid = _burnFromLM(burnAmount);
-        else loanAmountPaid = _burnToken(burnAmount);
-
-        if (loanAmountPaid != 0) {
-            IWrbtcERC20(wrbtcTokenAddress).withdraw(loanAmountPaid);
-            Address.sendValue(receiver, loanAmountPaid);
-        }
-    }
-
-    /* Internal functions */
+    /**
+     * @dev internal override functions
+     * @dev Put all of internal override function dedicated to the loanTokenWrtbc module here
+     * e.g: _verifyTransfers will override the implementation of _verifyTransfers in loanTokenLogicSplit
+     */
 
     /**
      * @notice Handle transfers prior to adding newPrincipal to loanTokenSent.

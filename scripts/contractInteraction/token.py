@@ -83,6 +83,7 @@ def getBalanceNoPrintOf(contractAddress, acct):
 
 def getTotalSupply(contractAddress):
     contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=conf.acct)
+    print("Total supply for", contract.name())
     balance = contract.totalSupply()
     print(balance)
     return balance

@@ -2,7 +2,7 @@
     "_format": "hh-sol-artifact-1",
     "contractName": "Timelock",
     "sourceName": "contracts/governance/Timelock.sol",
-    "address": "0xF09631d220f9Da04F707F4bfA24376b1cac630B1",
+    "address": "0xebC7e986Bbe2a5D8c3Fb483916faC75cA59944dB",
     "abi": [
         {
             "inputs": [

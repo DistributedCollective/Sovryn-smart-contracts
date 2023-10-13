@@ -9,7 +9,8 @@ const ISovryn = artifacts.require("ISovryn");
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
-const LoanTokenLogicLMMockup = artifacts.require("LoanTokenLogicLMMockup");
+const LoanTokenLogic = artifacts.require("LoanTokenLogic");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLMMockup");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
@@ -25,6 +26,7 @@ const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
+const mutexUtils = require("../reentrancy/utils");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 const wei = web3.utils.toWei;
@@ -42,6 +44,9 @@ contract("CallOptionalReturn", (accounts) => {
     });
 
     beforeEach(async () => {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         //Token
         underlyingToken = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
         testWrbtc = await TestWrbtc.new();
@@ -95,17 +100,21 @@ contract("CallOptionalReturn", (accounts) => {
         /** Register Loan Token Modules to the Beacon */
         await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
 
-        let loanTokenLogicLM = await LoanTokenLogicLMMockup.new();
+        let loanTokenLogic = await LoanTokenLogic.new();
+        let loanTokenLogicLM = await LoanTokenLogicLM.new();
 
         /** Register Loan Token Logic LM to the Beacon */
         await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
 
+        /** Register Loan Token Logic to the Beacon */
+        await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogic.address);
+
         /** Deploy LoanTokenLogicProxy */
-        let loanTokenLogic = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
+        let loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
 
         loanToken = await LoanToken.new(
             lender,
-            loanTokenLogic.address,
+            loanTokenLogicProxy.address,
             sovryn.address,
             testWrbtc.address
         );
