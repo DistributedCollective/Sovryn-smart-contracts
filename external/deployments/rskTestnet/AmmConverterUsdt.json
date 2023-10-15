@@ -1,6 +1,25 @@
 {
-    "address": "0x20d5c55c92615d416d73b34c8afed99288e99be1",
+    "address": "0x133eBE9c8bA524C9B1B601E794dF527f390729bF",
     "abi": [
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "name": "_reserveToken",
+                    "type": "address"
+                }
+            ],
+            "name": "reserveStakedBalance",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
         {
             "constant": false,
             "inputs": [
@@ -17,17 +36,26 @@
         },
         {
             "constant": true,
-            "inputs": [
+            "inputs": [],
+            "name": "primaryReserveToken",
+            "outputs": [
                 {
                     "name": "",
                     "type": "address"
                 }
             ],
-            "name": "protocolFeeTokensHeld",
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "maxStakedBalanceEnabled",
             "outputs": [
                 {
                     "name": "",
-                    "type": "uint256"
+                    "type": "bool"
                 }
             ],
             "payable": false,
@@ -84,6 +112,28 @@
             "type": "function"
         },
         {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_primaryReserveToken",
+                    "type": "address"
+                },
+                {
+                    "name": "_primaryReserveOracle",
+                    "type": "address"
+                },
+                {
+                    "name": "_secondaryReserveOracle",
+                    "type": "address"
+                }
+            ],
+            "name": "activate",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
             "constant": true,
             "inputs": [],
             "name": "hasETHReserve",
@@ -99,19 +149,9 @@
         },
         {
             "constant": false,
-            "inputs": [
-                {
-                    "name": "receiver",
-                    "type": "address"
-                }
-            ],
-            "name": "withdrawFees",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
+            "inputs": [],
+            "name": "disableMaxStakedBalances",
+            "outputs": [],
             "payable": false,
             "stateMutability": "nonpayable",
             "type": "function"
@@ -216,11 +256,11 @@
         {
             "constant": true,
             "inputs": [],
-            "name": "onlyOwnerCanUpdateRegistry",
+            "name": "priceOracle",
             "outputs": [
                 {
                     "name": "",
-                    "type": "bool"
+                    "type": "address"
                 }
             ],
             "payable": false,
@@ -229,8 +269,13 @@
         },
         {
             "constant": true,
-            "inputs": [],
-            "name": "token1Decimal",
+            "inputs": [
+                {
+                    "name": "_reserveToken",
+                    "type": "address"
+                }
+            ],
+            "name": "reserveAmplifiedBalance",
             "outputs": [
                 {
                     "name": "",
@@ -245,15 +290,29 @@
             "constant": true,
             "inputs": [
                 {
-                    "name": "_token",
+                    "name": "_poolToken",
                     "type": "address"
                 }
             ],
-            "name": "getProtocolFeeTokensHeld",
+            "name": "liquidationLimit",
             "outputs": [
                 {
                     "name": "",
                     "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "onlyOwnerCanUpdateRegistry",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
                 }
             ],
             "payable": false,
@@ -309,11 +368,15 @@
             "constant": false,
             "inputs": [
                 {
-                    "name": "_amount",
+                    "name": "_reserve1MaxStakedBalance",
+                    "type": "uint256"
+                },
+                {
+                    "name": "_reserve2MaxStakedBalance",
                     "type": "uint256"
                 }
             ],
-            "name": "liquidate",
+            "name": "setMaxStakedBalances",
             "outputs": [],
             "payable": false,
             "stateMutability": "nonpayable",
@@ -350,6 +413,52 @@
                 {
                     "name": "",
                     "type": "uint16"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_reserveToken",
+                    "type": "address"
+                },
+                {
+                    "name": "_amount",
+                    "type": "uint256"
+                },
+                {
+                    "name": "_minReturn",
+                    "type": "uint256"
+                }
+            ],
+            "name": "addLiquidity",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": true,
+            "stateMutability": "payable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "name": "_reserveToken",
+                    "type": "address"
+                }
+            ],
+            "name": "poolToken",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address"
                 }
             ],
             "payable": false,
@@ -421,6 +530,33 @@
             "type": "function"
         },
         {
+            "constant": true,
+            "inputs": [
+                {
+                    "name": "_poolToken",
+                    "type": "address"
+                },
+                {
+                    "name": "_amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "removeLiquidityReturnAndFee",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
             "constant": false,
             "inputs": [
                 {
@@ -429,6 +565,20 @@
                 }
             ],
             "name": "withdrawETH",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_dynamicFeeFactor",
+                    "type": "uint256"
+                }
+            ],
+            "name": "setDynamicFeeFactor",
             "outputs": [],
             "payable": false,
             "stateMutability": "nonpayable",
@@ -450,25 +600,6 @@
             "outputs": [],
             "payable": false,
             "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": true,
-            "inputs": [
-                {
-                    "name": "_x",
-                    "type": "uint256"
-                }
-            ],
-            "name": "decimalLength",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "pure",
             "type": "function"
         },
         {
@@ -495,59 +626,9 @@
             "type": "function"
         },
         {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "_oracle",
-                    "type": "address"
-                }
-            ],
-            "name": "setOracle",
-            "outputs": [],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
             "constant": true,
             "inputs": [],
             "name": "registry",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "address"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "_reserveTokens",
-                    "type": "address[]"
-                },
-                {
-                    "name": "_reserveAmounts",
-                    "type": "uint256[]"
-                },
-                {
-                    "name": "_minReturn",
-                    "type": "uint256"
-                }
-            ],
-            "name": "addLiquidity",
-            "outputs": [],
-            "payable": true,
-            "stateMutability": "payable",
-            "type": "function"
-        },
-        {
-            "constant": true,
-            "inputs": [],
-            "name": "oracle",
             "outputs": [
                 {
                     "name": "",
@@ -575,11 +656,11 @@
         {
             "constant": true,
             "inputs": [],
-            "name": "DENOMINATOR",
+            "name": "maxConversionFee",
             "outputs": [
                 {
                     "name": "",
-                    "type": "uint256"
+                    "type": "uint32"
                 }
             ],
             "payable": false,
@@ -588,12 +669,17 @@
         },
         {
             "constant": true,
-            "inputs": [],
-            "name": "maxConversionFee",
+            "inputs": [
+                {
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "maxStakedBalances",
             "outputs": [
                 {
                     "name": "",
-                    "type": "uint32"
+                    "type": "uint256"
                 }
             ],
             "payable": false,
@@ -617,34 +703,19 @@
         {
             "constant": true,
             "inputs": [],
-            "name": "token0Decimal",
+            "name": "referenceRate",
             "outputs": [
                 {
-                    "name": "",
+                    "name": "n",
+                    "type": "uint256"
+                },
+                {
+                    "name": "d",
                     "type": "uint256"
                 }
             ],
             "payable": false,
             "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "constant": true,
-            "inputs": [
-                {
-                    "name": "_values",
-                    "type": "uint256[]"
-                }
-            ],
-            "name": "geometricMean",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "pure",
             "type": "function"
         },
         {
@@ -680,56 +751,11 @@
         },
         {
             "constant": false,
-            "inputs": [
-                {
-                    "name": "_amount",
-                    "type": "uint256"
-                },
-                {
-                    "name": "_reserveTokens",
-                    "type": "address[]"
-                },
-                {
-                    "name": "_reserveMinReturnAmounts",
-                    "type": "uint256[]"
-                }
-            ],
-            "name": "removeLiquidity",
-            "outputs": [],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
             "inputs": [],
             "name": "restoreRegistry",
             "outputs": [],
             "payable": false,
             "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": true,
-            "inputs": [
-                {
-                    "name": "_n",
-                    "type": "uint256"
-                },
-                {
-                    "name": "_d",
-                    "type": "uint256"
-                }
-            ],
-            "name": "roundDiv",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "pure",
             "type": "function"
         },
         {
@@ -740,6 +766,38 @@
                 {
                     "name": "",
                     "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_reserveToken",
+                    "type": "address"
+                },
+                {
+                    "name": "_balance",
+                    "type": "uint256"
+                }
+            ],
+            "name": "setReserveStakedBalance",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "referenceRateUpdateTime",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256"
                 }
             ],
             "payable": false,
@@ -758,20 +816,6 @@
             ],
             "payable": false,
             "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "_amount",
-                    "type": "uint256"
-                }
-            ],
-            "name": "fund",
-            "outputs": [],
-            "payable": true,
-            "stateMutability": "payable",
             "type": "function"
         },
         {
@@ -855,6 +899,20 @@
         },
         {
             "constant": true,
+            "inputs": [],
+            "name": "amplificationFactor",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint8"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "pure",
+            "type": "function"
+        },
+        {
+            "constant": true,
             "inputs": [
                 {
                     "name": "",
@@ -909,6 +967,38 @@
         },
         {
             "constant": true,
+            "inputs": [],
+            "name": "effectiveTokensRate",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "secondaryReserveToken",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
             "inputs": [
                 {
                     "name": "_reserveToken",
@@ -916,6 +1006,47 @@
                 }
             ],
             "name": "reserveBalance",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_poolToken",
+                    "type": "address"
+                },
+                {
+                    "name": "_amount",
+                    "type": "uint256"
+                },
+                {
+                    "name": "_minReturn",
+                    "type": "uint256"
+                }
+            ],
+            "name": "removeLiquidity",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "dynamicFeeFactor",
             "outputs": [
                 {
                     "name": "",
@@ -962,6 +1093,24 @@
             "type": "function"
         },
         {
+            "constant": true,
+            "inputs": [],
+            "name": "effectiveReserveWeights",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
             "constant": false,
             "inputs": [
                 {
@@ -973,25 +1122,6 @@
             "outputs": [],
             "payable": false,
             "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": true,
-            "inputs": [
-                {
-                    "name": "lpTokens",
-                    "type": "uint256"
-                }
-            ],
-            "name": "getExpectedOutAmount",
-            "outputs": [
-                {
-                    "name": "amountOut",
-                    "type": "uint256[2]"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "view",
             "type": "function"
         },
         {
@@ -1011,6 +1141,24 @@
         {
             "constant": true,
             "inputs": [],
+            "name": "lastConversionRate",
+            "outputs": [
+                {
+                    "name": "n",
+                    "type": "uint256"
+                },
+                {
+                    "name": "d",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
             "name": "token",
             "outputs": [
                 {
@@ -1025,7 +1173,7 @@
         {
             "inputs": [
                 {
-                    "name": "_token",
+                    "name": "_poolTokensContainer",
                     "type": "address"
                 },
                 {
@@ -1050,27 +1198,17 @@
             "anonymous": false,
             "inputs": [
                 {
-                    "indexed": true,
-                    "name": "_connectorToken",
-                    "type": "address"
-                },
-                {
                     "indexed": false,
-                    "name": "_tokenSupply",
+                    "name": "_prevFactor",
                     "type": "uint256"
                 },
                 {
                     "indexed": false,
-                    "name": "_connectorBalance",
+                    "name": "_newFactor",
                     "type": "uint256"
-                },
-                {
-                    "indexed": false,
-                    "name": "_connectorWeight",
-                    "type": "uint32"
                 }
             ],
-            "name": "PriceDataUpdate",
+            "name": "DynamicFeeFactorUpdate",
             "type": "event"
         },
         {
@@ -1191,11 +1329,6 @@
                     "indexed": false,
                     "name": "_conversionFee",
                     "type": "int256"
-                },
-                {
-                    "indexed": false,
-                    "name": "_protocolFee",
-                    "type": "int256"
                 }
             ],
             "name": "Conversion",
@@ -1243,38 +1376,6 @@
                 }
             ],
             "name": "ConversionFeeUpdate",
-            "type": "event"
-        },
-        {
-            "anonymous": false,
-            "inputs": [
-                {
-                    "indexed": true,
-                    "name": "sender",
-                    "type": "address"
-                },
-                {
-                    "indexed": true,
-                    "name": "receiver",
-                    "type": "address"
-                },
-                {
-                    "indexed": false,
-                    "name": "token",
-                    "type": "address"
-                },
-                {
-                    "indexed": false,
-                    "name": "protocolFeeAmount",
-                    "type": "uint256"
-                },
-                {
-                    "indexed": false,
-                    "name": "wRBTCConverted",
-                    "type": "uint256"
-                }
-            ],
-            "name": "WithdrawFees",
             "type": "event"
         },
         {

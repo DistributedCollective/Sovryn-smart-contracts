@@ -1,5 +1,5 @@
 {
-    "address": "0x74690fD0Ac8602e6AFB16BB4f0A634b1c9A67735",
+    "address": "0x74690FD0Ac8602E6AfB16bB4F0a634b1c9A67735",
     "contractName": "ConverterFactory",
     "sourceContractTypeToValidate": "ContractRegistry",
     "sourceContractNameToValidate": "AmmContractRegistry",
