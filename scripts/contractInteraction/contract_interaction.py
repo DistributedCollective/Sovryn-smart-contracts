@@ -225,6 +225,10 @@ def main():
 
 def governanceTransfer():
 
+    ###############################################################
+    ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE SIP EXECUTION ###
+    ###############################################################
+    
     # # It is critically important to first transfer pauser role
     setNewContractGuardian()
 
