@@ -30,6 +30,7 @@ def readLoan(loanId):
     print('principal:', loan['principal'] /1e18)
     print('collateral:', loan['collateral']/1e18)
     print('currentMargin', loan['currentMargin']/1e18)
+    print('maintenanceMargin', loan['maintenanceMargin']/1e18)
     print('complete object:')
     print(sovryn.getLoan(loanId).dict())
     print('--------------------------------')
