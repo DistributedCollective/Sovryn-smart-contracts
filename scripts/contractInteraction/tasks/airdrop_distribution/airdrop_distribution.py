@@ -20,6 +20,33 @@ def main():
     
     # - LIQUID DISTRIBUTION - 
 
+    #
+    # - Distribute RBTC -
+    # 
+
+    #RBTCAmount = 1 * 10**16 # 1.00
+    # 0.
+    #print("RBTC balance of exchequer multisig: \n", getContractBTCBalance(conf.contracts['multisig'])/10**18) # check multisig is funded with XUSD
+    # 1.
+    '''
+    print("GenericTokenSender Owner is: ")
+    readOwner(conf.contracts['GenericTokenSender']) # check the token sender owner address
+    print("Script executor address is: ",conf.acct) # check the token sender owner address
+    '''
+    #sendFromMultisig(conf.contracts["GenericTokenSender"], RBTCAmount) # direct liquid RBTC distribution 
+    
+    # 2.
+    # print("RBTC balance of Generic Token: \n", getContractBTCBalance(conf.contracts['GenericTokenSender'])/10**18) # check multisig is funded
+    
+    '''
+    rbtcDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-RBTC-YY-MM.csv'
+    dryRun = False # false to execute, true to verify the file structure
+    multiplier = 1 # NO DECIMALS! AMOUNTS SHOULD BE IN WEI (satoshi)!
+    '''
+    # sendDirect('RBTC', rbtcDistributionPath, dryRun, multiplier)
+
+
+
     # TODO:
     # 1. verify amounts format - should be 2 decimals strictly: 1000.01,"1000.00", "1,000.01" 
     # 2. trim address field to remove leading and trailing spaces

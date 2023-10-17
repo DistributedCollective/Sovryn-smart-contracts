@@ -4,6 +4,8 @@ running sovryn distribution from GenericTokenSender
 import csv
 from scripts.contractInteraction.contract_interaction_imports  import *
 
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+
 def sendDirect(currency, path, dryRun, multiplier):
     '''
     direct token sender script - takes addresses from the file by path
@@ -16,11 +18,11 @@ def sendDirect(currency, path, dryRun, multiplier):
 
     # amounts examples: "8,834", 7400, "800.01", 800.01
     # TODO: set proper file path of the distribution
-    data = parseFile(path, multiplier) # multiplier usually 10**16 because we remove decimal point symbol
+    data = parseFileRBTC (path) if currency == "RBTC" else parseFile(path, multiplier) # multiplier usually 10**16 because we remove decimal point symbol
     totalAmount += data["totalAmount"]
     # first do a dry run to check the amount then uncomment the next line to do actual distribution
     if(not dryRun):
-        tokenSender.transferTokensUsingList(conf.contracts[currency], data["receivers"], data["amounts"])
+        tokenSender.transferTokensUsingList(conf.contracts[currency] if currency != "RBTC" else ZERO_ADDRESS, data["receivers"], data["amounts"])
 
     # 282.05, 564.10, 641.03
     print("=======================================")
@@ -46,6 +48,39 @@ def parseFile(fileName, multiplier):
                 errorMsg+="\n" + tokenOwner + ' amount: ' + row[1]
             amount = row[1].replace(",", "").replace(".", "")
             amount = int(amount) * multiplier
+            totalAmount += amount
+
+            receivers.append(tokenOwner)
+            amounts.append(amount)
+
+            print("=======================================")
+            print("'" + tokenOwner + "', ")
+            print(amount)
+
+    print(receivers)
+    print(amounts)
+    if(errorMsg != ''):
+        raise Exception('Formatting error: ' + errorMsg)
+    return {
+               "totalAmount": totalAmount,
+               "receivers": receivers,
+                "amounts": amounts
+            }
+
+def parseFileRBTC(fileName):
+    print(fileName)
+    totalAmount = 0
+    receivers = []
+    amounts = []
+    errorMsg = ''
+    with open(fileName, 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            tokenOwner = row[0].replace(" ", "")
+            amount = row[1].replace(",", "").replace(".", "").replace(" ","")
+            if int(amount) != int(row[1]):
+                errorMsg+="\n" + tokenOwner + ' amount: ' + row[1]
+            amount = int(amount)
             totalAmount += amount
 
             receivers.append(tokenOwner)
