@@ -52,40 +52,6 @@ const sampleGovernorAdminSIP = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
-const getArgsSip0047 = async (hre) => {
-    const {
-        ethers,
-        deployments: { get },
-    } = hre;
-    const abiCoder = new ethers.utils.AbiCoder();
-    const multisigDeployment = await get("MultiSigWallet");
-    const staking = await get("Staking");
-    const multisigAddress = multisigDeployment.address;
-    const stakingAddress = staking.address;
-    let guardianAddress;
-    if (network.tags.testnet) {
-        guardianAddress = "0xE79232Db7d096e781647405B28398121AEA08536".toLowerCase();
-    } else if (network.tags.mainnet) {
-        guardianAddress = "0xDd8e07A57560AdA0A2D84a96c457a5e6DDD488b7".toLowerCase();
-    } else {
-        logger.error("Unknown network");
-        process.exit(1);
-    }
-    const args = {
-        targets: [stakingAddress, stakingAddress],
-        values: [0, 0],
-        signatures: ["addPauser(address)", "removePauser(address)"],
-        data: [
-            abiCoder.encode(["address"], [guardianAddress]),
-            abiCoder.encode(["address"], [multisigAddress]),
-        ],
-        description:
-            // WARNING: the sha256sum value shown is for the current state of the document which will have to be changed with the guardian signer addresses
-            "SIP-0047: Changing Staking contract pauser from Exchequer to Guardian, Details: https://github.com/DistributedCollective/SIPS/blob/251a84d39cce5fd91c219ef5dbb01043b2338458/SIP-0047.md, sha256: a04970554a038bc3d76652828ec0e5e9482287be73aa558d811117550facf3a1",
-    };
-    return { args, governor: "GovernorOwner" };
-};
-
 const getArgsSip0049 = async (hre) => {
     const {
         ethers,
@@ -286,6 +252,38 @@ const getArgsSip0065 = async (hre) => {
             "SIP-0065: Transfer of SOV from Adoption and Development Funds to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/cd3d249cddb6a5d0af59209c337c6864ad922007/SIP-0065.md, sha256: d6a703af4d3866ff6a7f927b680da23f450338d5346dca5d3d1e6b5751c45550",
     };
 
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSip0047 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const multisigDeployment = await get("MultiSigWallet");
+    const staking = await get("Staking");
+    const multisigAddress = multisigDeployment.address;
+    const stakingAddress = staking.address;
+    let guardianAddress;
+    if (network.tags.mainnet) {
+        guardianAddress = "0xDd8e07A57560AdA0A2D84a96c457a5e6DDD488b7".toLowerCase();
+    } else {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+    const args = {
+        targets: [stakingAddress, stakingAddress],
+        values: [0, 0],
+        signatures: ["addPauser(address)", "removePauser(address)"],
+        data: [
+            abiCoder.encode(["address"], [guardianAddress]),
+            abiCoder.encode(["address"], [multisigAddress]),
+        ],
+        description:
+            // WARNING: the sha256sum value shown is for the current state of the document which will have to be changed with the guardian signer addresses
+            "SIP-0047: Changing Staking contract pauser from Exchequer to Guardian, Details: [TBD], sha256: [TBD]",
+    };
     return { args, governor: "GovernorOwner" };
 };
 
