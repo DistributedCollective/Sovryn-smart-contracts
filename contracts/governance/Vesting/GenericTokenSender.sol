@@ -37,6 +37,8 @@ contract GenericTokenSender is AdminRole {
         }
     }
 
+    function() external payable {}
+
     /**
      * @notice Transfer tokens to given address.
      * @param _token The address of the token.
@@ -56,11 +58,14 @@ contract GenericTokenSender is AdminRole {
         address _receiver,
         uint256 _amount
     ) internal {
-        require(_token != address(0), "token address invalid");
         require(_receiver != address(0), "receiver address invalid");
         require(_amount != 0, "amount invalid");
-
-        require(IERC20(_token).transfer(_receiver, _amount), "transfer failed");
+        if (_token != address(0)) {
+            require(IERC20(_token).transfer(_receiver, _amount), "transfer failed");
+        } else {
+            (bool success, ) = _receiver.call.value(_amount)("");
+            require(success, "RBTC transfer failed");
+        }
         emit TokensTransferred(_token, _receiver, _amount);
     }
 }
