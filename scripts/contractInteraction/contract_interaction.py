@@ -235,7 +235,6 @@ def governanceTransfer():
     ####################################################################
     ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE GUARDIANS TRANSFER ###
     ####################################################################
-    
 
     # # ---------- Transfer ownership to gov ----------
     # # core protocol
