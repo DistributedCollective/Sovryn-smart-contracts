@@ -222,15 +222,20 @@ def main():
 
     #transferOwnershipFromMultisig(conf.contracts["FourYearVestingFactory"], '0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b')
 
-
-def governanceTransfer():
-
-    ###############################################################
-    ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE SIP EXECUTION ###
-    ###############################################################
+def guardiansTransfer():
+    ####################################################################
+    ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE SIP-0047 EXECUTION ###
+    ####################################################################
     
     # # It is critically important to first transfer pauser role
     setNewContractGuardian()
+
+def governanceTransfer():
+
+    ####################################################################
+    ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE GUARDIANS TRANSFER ###
+    ####################################################################
+    
 
     # # ---------- Transfer ownership to gov ----------
     # # core protocol
