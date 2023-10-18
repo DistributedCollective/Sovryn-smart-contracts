@@ -391,7 +391,8 @@ const getArgsSip0046Part1 = async (hre) => {
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0046 Part 1: Accepting ownership of AMM contracts Part 1",
+        description:
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 1), Details: https://github.com/DistributedCollective/SIPS/blob/710a44f/SIP-0046_part-1.md, sha256: a86f78a40020c1a8003d1e99ee859dc26c7d6066cf9178ed3fa8c9a515c7940f",
     };
 
     return { args, governor: "GovernorAdmin" };
@@ -501,7 +502,8 @@ const getArgsSip0046Part2 = async (hre) => {
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0046 Part 2: Accepting ownership of AMM contracts Part 2",
+        description:
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 2), Details: https://github.com/DistributedCollective/SIPS/blob/35bc5cc/SIP-0046_part-2.md, sha256: 9bd25a6da349ddb051138ee70c0096a7964888fd880ac6a79a34160889300a96",
     };
 
     return { args, governor: "GovernorAdmin" };
@@ -629,7 +631,8 @@ const getArgsSip0046Part3 = async (hre) => {
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0046 Part 3: Accepting ownership of AMM contracts Part 3",
+        description:
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 3), Details: https://github.com/DistributedCollective/SIPS/blob/9c3845e/SIP-0046_part-3.md, sha256: 526fe02f17e44bfedaae629263ae1be9fb864aa9965882444c8416e73378113f",
     };
 
     return { args, governor: "GovernorOwner" };
@@ -719,7 +722,8 @@ const getArgsSip0046Part4 = async (hre) => {
         values: values,
         signatures: signatures,
         data: datas,
-        description: "SIP-0046 Part 4: Accepting ownership of AMM contracts Part 4",
+        description:
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 4), Details: https://github.com/DistributedCollective/SIPS/blob/1a7ae29/SIP-0046_part-4.md, sha256: e3112628e770bd5ec6f0d02e542b1dc19840476a1af02c9b8207e42ee44d3f27",
     };
 
     return { args, governor: "GovernorOwner" };
