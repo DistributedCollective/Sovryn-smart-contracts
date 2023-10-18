@@ -282,7 +282,7 @@ const getArgsSip0047 = async (hre) => {
         ],
         description:
             // WARNING: the sha256sum value shown is for the current state of the document which will have to be changed with the guardian signer addresses
-            "SIP-0047: Changing Staking contract pauser from Exchequer to Guardian, Details: [TBD], sha256: [TBD]",
+            "SIP-0047: Changing of the Guardians, Details: https://github.com/DistributedCollective/SIPS/blob/2fc9b00/SIP-0047.md, sha256: 3c6567d238f0d0df83aa939fdf7080807adc42914f22280121781ea4a332a977",
     };
     return { args, governor: "GovernorOwner" };
 };
