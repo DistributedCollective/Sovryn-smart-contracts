@@ -281,7 +281,7 @@ const getArgsSip0047 = async (hre) => {
             abiCoder.encode(["address"], [multisigAddress]),
         ],
         description:
-            "SIP-0047: Changing of the Guardians, Details: https://github.com/DistributedCollective/SIPS/blob/6cb8963/SIP-0047.md, sha256: 5215fcc0c0f3061fc3b4e26e6e8b60b1b4ccb7bb073edd684855e2734f8a6b45",
+            "SIP-0047: Changing of the Guardians, Details: https://github.com/DistributedCollective/SIPS/blob/e4e19b5/SIP-0047.md, sha256: 7fb02a6784711f46857673e06e2ed7e838fc8b8c8a99c86b13933f469eba72ba",
     };
     return { args, governor: "GovernorOwner" };
 };
