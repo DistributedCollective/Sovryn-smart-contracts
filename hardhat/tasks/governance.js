@@ -51,14 +51,24 @@ async function getVestingsOf(hre, address) {
     return await (await ethers.getContract("VestingRegistry")).getVestingsOf(address);
 }
 
-async function getCurrentVotingPower(hre, stakerAddress, governorDeploymentName) {
+async function getCurrentVotingPower(hre, stakerAddress, governorDeploymentName, blockNumber) {
     const { ethers } = hre;
     const staking = await ethers.getContract("Staking");
     const governor = await ethers.getContract(governorDeploymentName);
     const sov = await ethers.getContract("SOV");
-    const balance = await sov.balanceOf(stakerAddress);
-    const votingPower = await staking.getCurrentVotes(stakerAddress);
-    const proposalThreshold = await governor.proposalThreshold();
+    let balance;
+    let votingPower;
+    let proposalThreshold;
+    if (blockNumber == undefined) {
+        balance = await sov.balanceOf(stakerAddress);
+        votingPower = await staking.getCurrentVotes(stakerAddress);
+        proposalThreshold = await governor.proposalThreshold();
+    } else if (blockNumber) {
+        const pastBlock = blockNumber * 1;
+        balance = await sov.balanceOf(stakerAddress, { blockTag: pastBlock });
+        votingPower = await staking.getCurrentVotes(stakerAddress, { blockTag: pastBlock });
+        proposalThreshold = await governor.proposalThreshold({ blockTag: pastBlock });
+    }
 
     return { stakerAddress, balance, votingPower, proposalThreshold };
 }
@@ -514,7 +524,6 @@ task("governance:getVestingsOf", "Get vesting contracts of an address")
         console.error("Error:", error);
     });
     */
-
 task("governance:currentVotingPower", "Get current voting power of a staker's address")
     .addParam("address", "The staker's address to get current voting power for")
     .addParam("governor", "GovernorOwner or GovernorAdmin", "GovernorOwner", types.string)
@@ -556,5 +565,50 @@ task("governance:currentVotingPower", "Get current voting power of a staker's ad
             .div(data.proposalThreshold)
             .div(ethers.utils.parseEther("0.01"))}%
         `
+        );
+    });
+
+task("governance:getVotingPower", "Get current voting power of a staker's address")
+    .addParam("address", "The staker's address to get current voting power for")
+    .addParam("governor", "GovernorOwner or GovernorAdmin", "GovernorOwner", types.string)
+    .addOptionalParam("pastBlock", "time travel to the given block number stage")
+    .setAction(async ({ address, governor: governorDeploymentName, pastBlock }, hre) => {
+        /*
+    
+        staking = Contract.from_abi("Staking", address=contracts['Staking'], abi=interface.IStaking.abi, owner=acctAddress)
+        governor = Contract.from_abi("GovernorAlpha", address=contracts['GovernorOwner'], abi=GovernorAlpha.abi, owner=acctAddress)
+        SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acctAddress)
+        balance = SOVtoken.balanceOf(acctAddress)
+
+        votingPower = staking.getCurrentVotes(acctAddress)
+        proposalThreshold = governor.proposalThreshold()
+
+        print('=============================================================')
+        print('Staker address:        '+str(acctAddress))
+        print('Staker's SOV Balance:  '+str(balance))
+        print('Staker's Voting Power:   '+str(votingPower))
+        print('Proposal Threshold:  '+str(proposalThreshold))
+        print('=============================================================')
+        */
+        //return { stakerAddress, balance, votingPower, proposalThreshold };
+        const data = await getCurrentVotingPower(hre, address, governorDeploymentName, pastBlock);
+        logger.warn(
+            `
+            Staker address: ${data.stakerAddress} 
+            Balance: ${data.balance} 
+            Voting power: ${data.votingPower} 
+            Proposal threshold of ${governorDeploymentName}: ${data.proposalThreshold}
+            ${
+                data.proposalThreshold.gt(data.votingPower)
+                    ? `Staker VP lacks ${
+                          data.proposalThreshold.sub(data.votingPower) / 1e18
+                      } to create proposals`
+                    : "Staker has enough VP to create proposals"
+            }
+            VP/threshold: ${data.votingPower
+                .mul(ethers.utils.parseEther("1"))
+                .div(data.proposalThreshold)
+                .div(ethers.utils.parseEther("0.01"))}%
+            `
         );
     });

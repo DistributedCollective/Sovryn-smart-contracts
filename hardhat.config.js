@@ -159,6 +159,20 @@ module.exports = {
     },
     networks: {
         hardhat: {
+            chains: {
+                30: {
+                    hardforkHistory: {
+                        istanbul: 2000000,
+                        london: 4000000,
+                    },
+                },
+                31: {
+                    hardforkHistory: {
+                        istanbul: 1000000,
+                        london: 3000000,
+                    },
+                },
+            },
             chainId: 31337,
             allowUnlimitedContractSize: true,
             accounts: { mnemonic: "test test test test test test test test test test test junk" },
