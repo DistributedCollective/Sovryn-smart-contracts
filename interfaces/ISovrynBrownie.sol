@@ -271,20 +271,6 @@ contract ISovrynBrownie is
         uint256 withdrawAmount
     ) external returns (uint256 actualWithdrawAmount);
 
-    function extendLoanByInterest(
-        bytes32 loanId,
-        address payer,
-        uint256 depositAmount,
-        bool useCollateral,
-        bytes calldata loanDataBytes
-    ) external payable returns (uint256 secondsExtended);
-
-    function reduceLoanByInterest(
-        bytes32 loanId,
-        address receiver,
-        uint256 withdrawAmount
-    ) external returns (uint256 secondsReduced);
-
     function withdrawAccruedInterest(address loanToken) external;
 
     function getLenderInterestData(address lender, address loanToken)
@@ -380,12 +366,6 @@ contract ISovrynBrownie is
         uint256 count,
         bool unsafeOnly
     ) external view returns (LoanReturnDataV2[] memory loansDataV2);
-
-    ////// Protocol Migration //////
-
-    function setLegacyOracles(address[] calldata refs, address[] calldata oracles) external;
-
-    function getLegacyOracle(address ref) external view returns (address);
 
     ////// Affiliates Module //////
     function getUserNotFirstTradeFlag(address user) external view returns (bool);
