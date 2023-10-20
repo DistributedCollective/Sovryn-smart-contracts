@@ -444,13 +444,7 @@ contract LoanOpenings is
         MarginTradeStructHelpers.SentAmounts memory sentValues,
         bytes memory loanDataBytes
     ) internal returns (MarginTradeStructHelpers.SentAmounts memory) {
-        // bytes32 loanIdLocal = loanId;
-        // address loanCollateralTokenLocalParam = loanParamsLocal.collateralToken;
-        // address loanTokenLocalParam = loanParamsLocal.loanToken;
-        // address borrower = sentAddresses.borrower;
-        // uint256 loanTokenSent = sentValues.loanTokenSent;
         uint256 receivedAmount;
-        // bytes memory loanDataBytesLocal = loanDataBytes;
         (receivedAmount, , sentValues.loanToCollateralSwapRate) = _loanSwap(
             loanId,
             loanParamsLocal.loanToken,
