@@ -264,47 +264,47 @@ task("sips:queue-timer", "Queue SIP for execution with timer")
     )
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .setAction(async ({ proposal: proposalId, signer, governor }, hre) => {
-        const {
-            deployments: { get },
-            getNamedAccounts,
-        } = hre;
-        const signerAcc = ethers.utils.isAddress(signer)
-            ? signer
-            : (await hre.getNamedAccounts())[signer];
-
-        const governorContract = await ethers.getContract(
-            governor,
-            await ethers.getSigner(signerAcc)
-        );
+        const governorContract = await ethers.getContract(governor);
         let proposal = await governorContract.proposals(proposalId);
         let currentBlockNumber = await ethers.provider.getBlockNumber();
-        let passedTime = 0;
+        let passedTime;
         let delayTime;
         let intervalId;
         const logTime = () => {
             logTimer(delayTime, passedTime);
             passedTime++;
         };
+
         while (currentBlockNumber <= proposal.endBlock) {
-            delayTime = (proposal.endBlock - currentBlockNumber) * 30000;
+            passedTime = 0;
+            delayTime = (proposal.endBlock + 1 - currentBlockNumber) * 30000;
+            console.log(`${delayTime}, ${proposal.endBlock + 1}, ${currentBlockNumber}`);
+            if (delayTime == 0) break;
             logger.warn(
                 `${new Date().toUTCString()}, current block ${currentBlockNumber}, target block ${
-                    proposal.endBlock
+                    proposal.endBlock + 1
                 }:  pausing for ${delayTime / 1000} secs (${delayTime / 30000} blocks)`
             );
             intervalId = setInterval(logTime, 1000);
             await delay(delayTime);
+            process.stdout.write("");
+            process.stdout.clearLine();
+            process.stdout.cursorTo(0);
+            clearInterval(intervalId);
             currentBlockNumber = await ethers.provider.getBlockNumber();
         }
         clearInterval(intervalId);
         const proposalState = await governorContract.state(proposalId);
         if (proposalState !== 4) {
             throw new Error("Proposal NOT Succeeded");
+        } else {
+            logger.info("Queueing SIP...");
         }
-        (await governorContract.queue(proposalId)).wait();
-        proposal = await governorContract.proposals(proposalId);
-        console.log("");
-        logger.success(`Proposal ${proposalId} queued. Execution ETA: ${proposal.eta}.`);
+        await hre.run("sips:queue", {
+            proposal: proposalId,
+            governor: "GovernorOwner",
+            signer: signer,
+        });
     });
 
 task("sips:execute-timer", "Execute SIP with countdown")
