@@ -392,7 +392,7 @@ const getArgsSip0046Part1 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0046: Transferring ownership of Sovryn contracts (Part 1), Details: https://github.com/DistributedCollective/SIPS/blob/710a44f/SIP-0046_part-1.md, sha256: a86f78a40020c1a8003d1e99ee859dc26c7d6066cf9178ed3fa8c9a515c7940f",
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 1), Details: hhttps://github.com/DistributedCollective/SIPS/blob/5029109/SIP-0046_part-1.md, sha256: 4771e1014fa6e213a0d352797466fa88368c28e438bb455b923795d16ab7e0b5",
     };
 
     return { args, governor: "GovernorAdmin" };
@@ -503,7 +503,7 @@ const getArgsSip0046Part2 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0046: Transferring ownership of Sovryn contracts (Part 2), Details: https://github.com/DistributedCollective/SIPS/blob/35bc5cc/SIP-0046_part-2.md, sha256: 9bd25a6da349ddb051138ee70c0096a7964888fd880ac6a79a34160889300a96",
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 2), Details: https://github.com/DistributedCollective/SIPS/blob/0a7782d/SIP-0046_part-2.md, sha256: c1880b8b3b223c2dc53bb72d5f1c78f5c1ef6e44167b58fb00c6bec143bf896e",
     };
 
     return { args, governor: "GovernorAdmin" };
@@ -632,7 +632,7 @@ const getArgsSip0046Part3 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0046: Transferring ownership of Sovryn contracts (Part 3), Details: https://github.com/DistributedCollective/SIPS/blob/9c3845e/SIP-0046_part-3.md, sha256: 526fe02f17e44bfedaae629263ae1be9fb864aa9965882444c8416e73378113f",
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 3), Details: https://github.com/DistributedCollective/SIPS/blob/873e1da/SIP-0046_part-3.md, sha256: 0204ccd3b9556105915f9dc243b42a610cbe2f5f082b7d3fa7ab361c66a929e9",
     };
 
     return { args, governor: "GovernorOwner" };
@@ -723,7 +723,7 @@ const getArgsSip0046Part4 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0046: Transferring ownership of Sovryn contracts (Part 4), Details: https://github.com/DistributedCollective/SIPS/blob/1a7ae29/SIP-0046_part-4.md, sha256: e3112628e770bd5ec6f0d02e542b1dc19840476a1af02c9b8207e42ee44d3f27",
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 4), Details: https://github.com/DistributedCollective/SIPS/blob/f350a00/SIP-0046_part-4.md, sha256: 51f041f0a2df9bb6cae180b2cb30fb92ba9b46a016d6e228401e0ee4bcbeef7d",
     };
 
     return { args, governor: "GovernorOwner" };
