@@ -5,7 +5,6 @@ import "../openzeppelin/PausableOz.sol";
 import "../openzeppelin/IERC20_.sol";
 
 import "./IAirSwapFeeConnector.sol";
-import "./IFeeVault.sol";
 import "./ISwapERC20.sol";
 
 contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
@@ -35,22 +34,33 @@ contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
         uint256 outputFee
     );
 
+    /// @notice Set the input fee in points, ie 25 means 2.5 percent.
+    ///         The input fee is collected on the sent tokens before 
+    ///         the actual conversion.
+    /// @param inputFeeInPoints The new fee in points
     function setInputFee(uint256 _inputFeeInPoints) public onlyOwner {
         inputFeeInPoints = _inputFeeInPoints;
         emit InputFeeChanged(msg.sender, inputFeeInPoints);
     }
 
+    /// @notice Set the output fee in points, ie 25 means 2.5 percent.
+    ///         The output fee is collected after the conversion.
+    /// @param outputFeeInPoints The new fee in points
     function setOutputFee(uint256 _outputFeeInPoints) public onlyOwner {
         outputFeeInPoints = _outputFeeInPoints;
         emit OutputFeeChanged(msg.sender, outputFeeInPoints);
     }
 
+    /// @notice Set the address to which fees are sent
+    /// @param _newAddress The new address
     function setFeeVaultAddress(address _newAddress) public onlyOwner {
         feeVaultAddress = _newAddress;
         require(feeVaultAddress != address(0), "invalid vault");
         emit FeeVaultAddressChangedEvent(msg.sender, feeVaultAddress);
     }
 
+    /// @notice Set the address of the AirSwap contract
+    /// @param _newAddress The new address
     function setSwapERC20Address(address _newAddress) public onlyOwner {
         swapERC20Address = _newAddress;
         require(swapERC20Address != address(0), "invalid swapper");
@@ -65,6 +75,18 @@ contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
         return _receiveAmount.mul(outputFeeInPoints).div(POINTS);
     }
 
+    /// @notice Swap one token for another.
+    /// @param _senderToken The token which is to be sent
+    /// @param _totalSenderAmount The amount to be sent before the input fee is collected. 
+    /// @param _signerWallet Address of the market maker wallet
+    /// @param _signerToken Address of the token to convert to
+    /// @param _signerAmount Amount of resulting token from the conversion
+    /// @param _recipient Address to send the resulting tokens after collecting the output fee
+    /// @param _nonce A one time nonce
+    /// @param _expiry Date at which the original proposal will expire
+    /// @param _v v part of the ECDSA signature
+    /// @param _r r part of the ECDSA signature
+    /// @param _s s part of the ECDSA signature
     function swap(
         address _senderToken,
         uint256 _totalSenderAmount,
@@ -84,7 +106,6 @@ contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
         require(swapERC20Address != address(0), "invalid swapper");
 
         // first we move all the funds here
-
         require(
             IERC20_(_senderToken).transferFrom(sender, address(this), _totalSenderAmount),
             "transfer failed"
@@ -129,6 +150,7 @@ contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
             "transfer failed"
         );
 
+        // emit the event
         emit SwapEvent(
             sender,
             _recipient,
