@@ -7,7 +7,6 @@ import "../openzeppelin/IERC20_.sol";
 import "./IFeeLogic.sol";
 
 contract FeeLogic is Ownable, IFeeLogic {
-
     using SafeMath for uint256;
 
     uint256 public constant POINTS = 1000;

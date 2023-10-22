@@ -1,8 +1,8 @@
 pragma solidity 0.5.17;
 
 interface IAirSwapFeeConnector {
-
     function setFeeLogic(address feeLogicAddress) external;
+
     function setFeeVault(address feeVaultAddress) external;
 
     function swap(
@@ -16,5 +16,6 @@ interface IAirSwapFeeConnector {
         uint256 expiry,
         uint8 v,
         bytes32 r,
-        bytes32 s) external;
+        bytes32 s
+    ) external;
 }
