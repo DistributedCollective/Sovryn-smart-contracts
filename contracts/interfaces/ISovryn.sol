@@ -85,7 +85,9 @@ contract ISovryn is
 
     function setFeesController(address newController) external;
 
-    function withdrawFees(address[] calldata tokens, address receiver) external;
+    function withdrawFees(address[] calldata tokens, address receiver)
+        external
+        returns (uint256 totalWRBTCWithdrawn);
 
     function withdrawLendingFees(
         address token,
@@ -186,7 +188,7 @@ contract ISovryn is
         // loanTokenReceived: total loanToken deposit (amount not sent to borrower in the case of Torque loans)
         // collateralTokenReceived: total collateralToken deposit
         bytes calldata loanDataBytes
-    ) external payable returns (uint256);
+    ) external payable returns (uint256 newPrincipal, uint256 newCollateral);
 
     function setDelegatedManager(
         bytes32 loanId,
@@ -377,13 +379,13 @@ contract ISovryn is
         uint256 depositAmount,
         bool useCollateral,
         bytes calldata /// loanDataBytes, for future use.
-    ) external;
+    ) external returns (uint256 secondsExtended);
 
     function reduceLoanDuration(
         bytes32 loanId,
         address receiver,
         uint256 withdrawAmount
-    ) external;
+    ) external returns (uint256 secondsReduced);
 
     ////// Swaps External //////
     function swapExternal(
@@ -414,7 +416,7 @@ contract ISovryn is
 
     function getUserNotFirstTradeFlag(address user) external view returns (bool);
 
-    function setUserNotFirstTradeFlag(address user) external view returns (bool);
+    function setUserNotFirstTradeFlag(address user) external;
 
     function payTradingFeeToAffiliatesReferrer(
         address referrer,
@@ -446,7 +448,7 @@ contract ISovryn is
         address token,
         address receiver,
         uint256 amount
-    ) external returns (uint256 withdrawAmount);
+    ) external;
 
     function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
 

@@ -181,7 +181,7 @@ contract ISovrynBrownie is
         // loanTokenReceived: total loanToken deposit (amount not sent to borrower in the case of Torque loans)
         // collateralTokenReceived: total collateralToken deposit
         bytes calldata loanDataBytes
-    ) external payable returns (uint256);
+    ) external payable returns (uint256 newPrincipal, uint256 newCollateral);
 
     function setDelegatedManager(
         bytes32 loanId,
@@ -367,10 +367,23 @@ contract ISovrynBrownie is
         bool unsafeOnly
     ) external view returns (LoanReturnDataV2[] memory loansDataV2);
 
+    function extendLoanDuration(
+        bytes32 loanId,
+        uint256 depositAmount,
+        bool useCollateral,
+        bytes calldata /// loanDataBytes, for future use.
+    ) external returns (uint256 secondsExtended);
+
+    function reduceLoanDuration(
+        bytes32 loanId,
+        address receiver,
+        uint256 withdrawAmount
+    ) external returns (uint256 secondsReduced);
+
     ////// Affiliates Module //////
     function getUserNotFirstTradeFlag(address user) external view returns (bool);
 
-    function setUserNotFirstTradeFlag(address user) external view returns (bool);
+    function setUserNotFirstTradeFlag(address user) external;
 
     function payTradingFeeToAffiliatesReferrer(
         address referrer,
@@ -402,7 +415,7 @@ contract ISovrynBrownie is
         address token,
         address receiver,
         uint256 amount
-    ) external returns (uint256 withdrawAmount);
+    ) external;
 
     function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
 
