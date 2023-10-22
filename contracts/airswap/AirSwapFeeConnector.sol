@@ -1,24 +1,28 @@
 pragma solidity 0.5.17;
 
 import "../openzeppelin/SafeMath.sol";
-import "../openzeppelin/Ownable.sol";
+import "../openzeppelin/PausableOz.sol";
 import "../openzeppelin/IERC20_.sol";
 
 import "./IAirSwapFeeConnector.sol";
-import "./IFeeLogic.sol";
 import "./IFeeVault.sol";
 import "./ISwapERC20.sol";
 
-contract AirSwapFeeConnector is Ownable, IAirSwapFeeConnector {
+contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
     using SafeMath for uint256;
 
-    address public feeLogicAddress;
-    address public feeVaultAddress;
-    address public swapERC20Address;
+    uint256 public constant POINTS = 1000;
 
-    event FeeLogicAddressChangedEvent(address indexed sender, address newAddress);
+    uint256 public inputFeeInPoints = 0;
+    uint256 public outputFeeInPoints = 0;
+
+    address public feeVaultAddress = address(0);
+    address public swapERC20Address = address(0);
+
     event FeeVaultAddressChangedEvent(address indexed sender, address newAddress);
     event SwapERC20AddressChangedEvent(address indexed sender, address newAddress);
+    event InputFeeChanged(address indexed sender, uint256 feeInPoints);
+    event OutputFeeChanged(address indexed sender, uint256 feeInPoints);
 
     event SwapEvent(
         address indexed sender,
@@ -31,21 +35,34 @@ contract AirSwapFeeConnector is Ownable, IAirSwapFeeConnector {
         uint256 outputFee
     );
 
-    /*** setters  ***/
+    function setInputFee(uint256 _inputFeeInPoints) public onlyOwner {
+        inputFeeInPoints = _inputFeeInPoints;
+        emit InputFeeChanged(msg.sender, inputFeeInPoints);
+    }
+
+    function setOutputFee(uint256 _outputFeeInPoints) public onlyOwner {
+        outputFeeInPoints = _outputFeeInPoints;
+        emit OutputFeeChanged(msg.sender, outputFeeInPoints);
+    }
 
     function setFeeVaultAddress(address _newAddress) public onlyOwner {
         feeVaultAddress = _newAddress;
+        require(feeVaultAddress != address(0), "invalid vault");
         emit FeeVaultAddressChangedEvent(msg.sender, feeVaultAddress);
-    }
-
-    function setFeeLogicAddress(address _newAddress) public onlyOwner {
-        feeLogicAddress = _newAddress;
-        emit FeeLogicAddressChangedEvent(msg.sender, feeLogicAddress);
     }
 
     function setSwapERC20Address(address _newAddress) public onlyOwner {
         swapERC20Address = _newAddress;
+        require(swapERC20Address != address(0), "invalid swapper");
         emit SwapERC20AddressChangedEvent(msg.sender, swapERC20Address);
+    }
+
+    function calculateInputFee(uint256 _sendAmount) public view returns (uint256) {
+        return _sendAmount.mul(inputFeeInPoints).div(POINTS);
+    }
+
+    function calculateOutputFee(uint256 _receiveAmount) public view returns (uint256) {
+        return _receiveAmount.mul(outputFeeInPoints).div(POINTS);
     }
 
     function swap(
@@ -63,6 +80,9 @@ contract AirSwapFeeConnector is Ownable, IAirSwapFeeConnector {
     ) public {
         address sender = msg.sender;
 
+        require(feeVaultAddress != address(0), "invalid vault");
+        require(swapERC20Address != address(0), "invalid swapper");
+
         // first we move all the funds here
 
         require(
@@ -71,7 +91,7 @@ contract AirSwapFeeConnector is Ownable, IAirSwapFeeConnector {
         );
 
         // then we collect the input fee
-        uint256 inputFee = IFeeLogic(feeLogicAddress).calculateInputFee(_totalSenderAmount);
+        uint256 inputFee = calculateInputFee(_totalSenderAmount);
         require(
             IERC20_(_senderToken).transferFrom(address(this), feeVaultAddress, inputFee),
             "transfer failed"
@@ -95,7 +115,7 @@ contract AirSwapFeeConnector is Ownable, IAirSwapFeeConnector {
         );
 
         // now we collect the output fee
-        uint256 outputFee = IFeeLogic(feeLogicAddress).calculateOutputFee(_signerAmount);
+        uint256 outputFee = calculateOutputFee(_signerAmount);
         require(
             IERC20_(_signerToken).transferFrom(address(this), feeVaultAddress, outputFee),
             "transfer failed"
