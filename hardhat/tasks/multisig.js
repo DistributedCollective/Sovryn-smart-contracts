@@ -148,10 +148,13 @@ task("multisig:revoke-sig", "Revoke multisig tx confirmation")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
     .setAction(async ({ id, signer, multisig }, hre) => {
+        const {
+            ethers,
+            deployments: { get },
+        } = hre;
         const signerAcc = ethers.utils.isAddress(signer)
             ? signer
             : (await hre.getNamedAccounts())[signer];
-        const { ethers } = hre;
         if (!ethers.utils.isAddress(multisig)) {
             multisig = ethers.constants.AddressZero;
         }
