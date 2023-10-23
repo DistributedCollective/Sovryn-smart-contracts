@@ -1,7 +1,6 @@
 {
     "_format": "hh-sol-artifact-1",
-    "contractName": "Freezable",
-    "sourceName": "contracts/Freezable.sol",
+    "contractName": "FastBTCBiDi",
     "address": "0x1A8E78B41bc5Ab9Ebb6996136622B9b41A601b5C",
     "abi": [
         {

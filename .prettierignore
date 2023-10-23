@@ -27,3 +27,4 @@ tmp/
 out/
 foundry/forge-std
 cache_forge/
+safe/

@@ -74,7 +74,7 @@ task("multisig:sign-txs", "Sign multiple multisig tx")
             if (typeof txId !== "string" || txId.indexOf("-") === -1) {
                 await signWithMultisig(ms.address, txId, signerAcc);
             } else {
-                const txnRangeArray = ids.split("-", 2).map((num) => parseInt(num));
+                const txnRangeArray = txId.split("-", 2).map((num) => parseInt(num));
                 for (let id = txnRangeArray[0]; id <= txnRangeArray[1]; id++) {
                     await signWithMultisig(ms.address, id, signerAcc);
                 }

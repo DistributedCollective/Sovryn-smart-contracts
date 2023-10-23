@@ -29,6 +29,7 @@ def main():
     '''
 
     # call the function you want here
+
     
     #used often:
 
@@ -36,12 +37,12 @@ def main():
     ## 2 options by priority
     #getTotalSupply(conf.contracts["iDLLR"])
     #amount = 100000e18
+
+    # either from watcher or from XUSD #
     ## 1) from watcher
     #withdrawTokensFromWatcher(conf.contracts["DLLR"], amount, conf.contracts["multisig"])
-    ## 2) XUSD -> ZUSD -> mint DLLR(ZUSD)
-    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], amount)
-    #mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], amount)
-    
+    ## 2) XUSD -> DLLR 
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], amount)
     #lendToPoolWithMS(conf.contracts["iDLLR"], conf.contracts["DLLR"], amount)
 
     #printV1ConverterData("0xa9c3d9681215ef7623dc28ea6b75bf87fdf285d9")
@@ -55,10 +56,10 @@ def main():
     #print("fastBTC.balance()", loadBiDiFastBTC().balance()/1e18)
     #withdrawRBTCFromFastBTCBiDi(30e18, '0xD9ECB390a6a32ae651D5C614974c5570c50A5D89')
     #readPauser(conf.contracts['iXUSD'])
-    #getBalance(conf.contracts['ZUSD'], '0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a')
-    #transferTokensFromWallet(conf.contracts['ZUSD'], '0xae2a6e86d5f5d534fb372693b0ccda8d0ba9744d', 40e18)
-    #redeemFromAggregator('0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a', conf.contracts['ZUSD'], 40e18)
-    #mintAggregatedToken('0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a', conf.contracts['ZUSD'], 1e18)
+    #getBalance(conf.contracts['DLLR'], '0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a') ## testnet
+    #transferTokensFromWallet(conf.contracts['DLLR'], '0xae2a6e86d5f5d534fb372693b0ccda8d0ba9744d', 40e18)
+    #redeemFromAggregator('0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a', conf.contracts['ZUSD'], 40e18) ## testnet
+    #mintAggregatedToken('0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a', conf.contracts['ZUSD'], 1e18)  ## testnet
     #bal = getBalance(conf.contracts['SOV'], conf.contracts['Watcher'])
     #bal = getBalance(conf.contracts['FastBTCBiDi'], conf.contracts['Watcher'])
     #print(getContractBTCBalance(conf.contracts['multisig'])/1e18)
@@ -68,6 +69,7 @@ def main():
 
     #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 300000e18)
     #sendTokensFromMultisig(conf.contracts['SOV'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 250000e18)
+    #sendFromMultisig(conf.contracts['GenericTokenSender'], 0.014e18)
     #sendFromMultisig('0xc0AAcbDB9Ce627A348B91CfDB67eC6b2FBC3dCbd', 0.1e18)
     #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
     #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
@@ -174,13 +176,13 @@ def main():
     #transferRBTCFromFastBTCOffRampToOnRamp(20e18)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
 
-    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], 16658.600400155126 * 10**18)
+    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], 16658.600400155126 * 10**18)
     #mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 249999e18)
     #minReturn = getReturnForFirstLiquidityProvisionOnV1([10e18, 250000e18])
     #addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterDLLR'], [conf.contracts['WRBTC'], conf.contracts['DLLR']], [0.1e18,2500e18] , 1)
     #acceptOwnershipWithMultisig(conf.contracts['ConverterDLLR'])
-    #redeemFromAggregator(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], 5e18)
-    #mintAggregatedToken(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 5e18)
+    #redeemFromAggregator(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], 5e18)
+    #mintAggregatedToken(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 5e18) #can be still used if having free ZUSD
     #buyWRBTC(0.0002e18)
     #addLiquidityV1( conf.contracts['ConverterDLLR'], [conf.contracts['WRBTC'], conf.contracts['DLLR']], [0.0002e18,5e18])
 

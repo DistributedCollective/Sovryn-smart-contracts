@@ -102,6 +102,18 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
     function setBeaconAddress(address _newBeaconAddress) external onlyAdmin {
         _setBeaconAddress(_newBeaconAddress);
     }
+
+    /**
+     * @dev External function to return the LoanTokenLogicProxy of loan token (target of LoanToken contract).
+     * Ideally this getter should be added in the LoanToken contract
+     * but since LoanToken contract can't be changed, adding the getter in this contract will do
+     * because it will use the context of LoanToken contract.
+     *
+     * @return target address of LoanToken contract
+     */
+    function getTarget() external view returns (address) {
+        return target_;
+    }
 }
 
 interface ILoanTokenLogicBeacon {
