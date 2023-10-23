@@ -374,10 +374,10 @@ const getArgsSip0046Part1 = async (hre) => {
         }
 
         if (newTargetOwner.toLowerCase() !== timeLockAdminDeployment.address.toLowerCase()) {
-            logger.error(
+            logger.warn(
                 `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock admin (${timeLockAdminDeployment.address})`
             );
-            return process.exit;
+            // return process.exit; - no need to revert because the first step ownership transfer setting `newOwner` should be done only after the SIP passed
         }
 
         targets.push(deploymentTarget.deployment.address);
@@ -392,7 +392,7 @@ const getArgsSip0046Part1 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0046: Transferring ownership of Sovryn contracts (Part 1), Details: hhttps://github.com/DistributedCollective/SIPS/blob/5029109/SIP-0046_part-1.md, sha256: 4771e1014fa6e213a0d352797466fa88368c28e438bb455b923795d16ab7e0b5",
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 1), Details: https://github.com/DistributedCollective/SIPS/blob/5029109/SIP-0046_part-1.md, sha256: 4771e1014fa6e213a0d352797466fa88368c28e438bb455b923795d16ab7e0b5",
     };
 
     return { args, governor: "GovernorAdmin" };
@@ -485,10 +485,10 @@ const getArgsSip0046Part2 = async (hre) => {
         }
 
         if (newTargetOwner.toLowerCase() !== timeLockAdminDeployment.address.toLowerCase()) {
-            logger.error(
+            logger.warn(
                 `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock admin (${timeLockAdminDeployment.address})`
             );
-            return process.exit;
+            // return process.exit; - no need to revert because the first step ownership transfer setting `newOwner` should be done only after the SIP passed
         }
 
         targets.push(deploymentTarget.deployment.address);
@@ -590,7 +590,7 @@ const getArgsSip0046Part3 = async (hre) => {
     const signatures = [];
     const datas = [];
     for (let i = 0; i < deploymentTargets.length; i++) {
-        deploymentTarget = deploymentTargets[i];
+        const deploymentTarget = deploymentTargets[i];
         const isValid = await validateAmmOnchainAddresses(deploymentTarget);
         if (!isValid) {
             logger.error(
@@ -614,10 +614,10 @@ const getArgsSip0046Part3 = async (hre) => {
         }
 
         if (newTargetOwner.toLowerCase() !== timeLockOwnerDeployment.address.toLowerCase()) {
-            logger.error(
+            logger.warn(
                 `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock owner (${timeLockOwnerDeployment.address})`
             );
-            return process.exit;
+            // return process.exit; - no need to revert because the first step ownership transfer setting `newOwner` should be done only after the SIP passed
         }
 
         targets.push(deploymentTarget.deployment.address);
@@ -681,7 +681,7 @@ const getArgsSip0046Part4 = async (hre) => {
     const signatures = [];
     const datas = [];
     for (let i = 0; i < deploymentTargets.length; i++) {
-        deploymentTarget = deploymentTargets[i];
+        const deploymentTarget = deploymentTargets[i];
         const isValid = await validateAmmOnchainAddresses(deploymentTarget);
         if (!isValid) {
             logger.error(
@@ -705,10 +705,10 @@ const getArgsSip0046Part4 = async (hre) => {
         }
 
         if (newTargetOwner.toLowerCase() !== timeLockOwnerDeployment.address.toLowerCase()) {
-            logger.error(
+            logger.warn(
                 `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock owner (${timeLockOwnerDeployment.address})`
             );
-            return process.exit;
+            // return process.exit; - no need to revert because the first step ownership transfer setting `newOwner` should be done only after the SIP passed
         }
 
         targets.push(deploymentTarget.deployment.address);
