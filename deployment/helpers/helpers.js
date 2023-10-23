@@ -43,8 +43,10 @@ const getStakingModulesNames = () => {
 
 const getLoanTokenModulesNames = () => {
     return {
-        LoanTokenLogicLM: "LoanTokenLogicLM",
+        LoanTokenLogic: "LoanTokenLogic",
         LoanTokenLogicWrbtc: "LoanTokenLogicWrbtc",
+        LoanTokenLogicLM: "LoanTokenLogicLM",
+        LoanTokenLogicWrbtcLM: "LoanTokenLogicWrbtcLM",
         LoanTokenSettingsLowerAdmin: "LoanTokenSettingsLowerAdmin",
     };
 };
@@ -530,7 +532,7 @@ const deployWithCustomProxy = async (
                 logicDeploymentTx.address,
             ]);
             logger.warn(
-                `Creating multisig tx to set ${logicArtifactName} (${logicDeploymentTx.address}) as implementation for ${proxyName} (${proxyDeployment.address}...`
+                `Creating multisig tx to set ${logicArtifactName} (${logicDeploymentTx.address}) as implementation for ${proxyName} (${proxyDeployment.address})...`
             );
             log();
             await sendWithMultisig(multisigDeployment.address, proxy.address, data, deployer);
@@ -579,9 +581,51 @@ const getTxRevertReason = async (txHash) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const getLoanTokensData = async () => {
+    const {
+        deployments: { get },
+    } = hre;
+    const loanTokenLogicBeaconLMDeployment = await get("LoanTokenLogicBeaconLM");
+    const loanTokenLogicBeaconWrbtcDeployment = await get("LoanTokenLogicBeaconWrbtc");
+    const loanTokens = [
+        {
+            name: "iBPRO",
+            deployment: await get("LoanToken_iBPRO"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
+        {
+            name: "iDLLR",
+            deployment: await get("LoanToken_iDLLR"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
+        {
+            name: "iDOC",
+            deployment: await get("LoanToken_iDOC"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
+        {
+            name: "iUSDT",
+            deployment: await get("LoanToken_iUSDT"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
+        {
+            name: "iXUSD",
+            deployment: await get("LoanToken_iXUSD"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
+        {
+            name: "iRBTC",
+            deployment: await get("LoanToken_iRBTC"),
+            beaconAddress: loanTokenLogicBeaconWrbtcDeployment.address,
+        },
+    ];
+    return loanTokens;
+};
+
 module.exports = {
     getStakingModulesNames,
     getLoanTokenModulesNames,
+    getLoanTokensData,
     stakingRegisterModuleWithMultisig,
     parseEthersLog,
     getEthersLog,

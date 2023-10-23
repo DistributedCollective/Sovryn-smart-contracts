@@ -145,6 +145,7 @@ contract("SwapsExternal", (accounts) => {
             WRBTC.address
         );
         await loanTokenWrbtc.initialize(WRBTC.address, "iWRBTC", "iWRBTC");
+        await feeSharingCollectorProxy.initialize(WRBTC.address, loanTokenWrbtc.address);
 
         loanTokenWrbtc = await LoanTokenLogicWrbtc.at(loanTokenWrbtc.address);
         const loanTokenAddressWrbtc = await loanTokenWrbtc.loanTokenAddress();

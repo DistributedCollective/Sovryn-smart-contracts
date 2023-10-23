@@ -3,7 +3,7 @@ const { getContractNameFromScriptFileName } = require("../helpers/utils");
 const hre = require("hardhat");
 const { sendWithMultisig } = require("../helpers/helpers");
 const col = require("cli-color");
-const { getLoanTokenModulesNames } = require("../helpers/helpers");
+const { getLoanTokenModulesNames, getLoanTokensData } = require("../helpers/helpers");
 
 const { arrayToUnique } = require("../helpers/utils");
 
@@ -42,38 +42,7 @@ const func = async function (hre) {
         loanTokenLogicBeaconWRBTCDeployment.abi
     );
 
-    const loanTokens = [
-        {
-            name: "iBPro",
-            deployment: await get("LoanToken_iBPRO"),
-            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
-        },
-        {
-            name: "iDLLR",
-            deployment: await get("LoanToken_iDLLR"),
-            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
-        },
-        {
-            name: "iDOC",
-            deployment: await get("LoanToken_iDOC"),
-            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
-        },
-        {
-            name: "iUSDT",
-            deployment: await get("LoanToken_iUSDT"),
-            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
-        },
-        {
-            name: "iXUSD",
-            deployment: await get("LoanToken_iXUSD"),
-            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
-        },
-        {
-            name: "iRBTC",
-            deployment: await get("LoanToken_iRBTC"),
-            beaconAddress: loanTokenLogicBeaconWRBTCDeployment.address,
-        },
-    ];
+    const loanTokens = await getLoanTokensData();
 
     if (hre.network.tags["testnet"] || hre.network.tags["mainnet"]) {
         const multisigDeployment = await get("MultiSigWallet");

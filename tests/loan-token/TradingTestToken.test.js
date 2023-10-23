@@ -60,12 +60,15 @@ const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
 const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25 * 10**13
+const mutexUtils = require("../reentrancy/utils");
 
 contract("LoanTokenTrading", (accounts) => {
     let owner;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
         SUSD = await getSUSD();
         RBTC = await getRBTC();
         WRBTC = await getWRBTC();

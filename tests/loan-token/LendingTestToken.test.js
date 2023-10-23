@@ -49,6 +49,7 @@ const {
     decodeLogs,
     getSOV,
 } = require("../Utils/initializer.js");
+const mutexUtils = require("../reentrancy/utils");
 
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
@@ -63,6 +64,9 @@ contract("LoanTokenLending", (accounts) => {
     let sovryn, loanToken;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();
