@@ -28,53 +28,16 @@ const { AddressZero } = ethers.constants;
 const testnetUrl = "https://testnet.sovryn.app/rpc";
 const mainnetUrl = "https://mainnet-dev.sovryn.app/rpc";
 
-// some random stakers
-const testnetUsers = [
-    "0xA64A9275b64676466bb76fa51E3f1ab276535D19".toLowerCase(),
-    "0x720FeDf6Bbe72343438e333Ddd5475301D301A68".toLowerCase(),
-    "0x60C8a2C109EDb1D3706347D7CC61f4298fa45dFc".toLowerCase(),
-];
-// according the affected ussers reported by @CEK
-const mainnetUsers = [
-    "0xAD4166C6204025cE9676c7b0c9b9Fe7eb8E946c4".toLowerCase(),
-    //"0xaf23BFe09055319f352AF6f7664A6B2B4352aa3F".toLowerCase(),
-    //"0x92565d3c6e454178901e24af0fb039ead2694786".toLowerCase(),
-    //"0x38862f26fb16dcb7f58a91c23f1f9cc159bb0000".toLowerCase(),
-];
-
-const testnetRewardAssets = [
-    "0xe67Fe227e0504e8e96A34C3594795756dC26e14B".toLowerCase(), // iWRBTC
-    "0xeabd29be3c3187500df86a2613c6470e12f2d77d".toLowerCase(), // rBTC
-    "0xe67cbA98C183A1693fC647d63AeeEC4053656dBB".toLowerCase(), // ZERO
-    "0x6a9A07972D07e58F0daf5122d11E069288A375fb".toLowerCase(), // SOV
-];
-
-const mainnetRewardAssets = [
-    // "0xeabd29be3c3187500df86a2613c6470e12f2d77d".toLowerCase(), // rBTC
-    // "0xa9DcDC63eaBb8a2b6f39D7fF9429d88340044a7A".toLowerCase(), // iWRBTC
-    "0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d".toLowerCase(), // ZUSD
-    // "0xEFc78fc7d48b64958315949279Ba181c2114ABBd".toLowerCase(), // SOV
-];
-
-const mainnetTokenAddressToName = {
-    "0xeabd29be3c3187500df86a2613c6470e12f2d77d": "rBTC",
-    "0xa9dcdc63eabb8a2b6f39d7ff9429d88340044a7a": "iWRBTC",
-    "0xdb107fa69e33f05180a4c2ce9c2e7cb481645c2d": "ZUSD",
-    "0xefc78fc7d48b64958315949279ba181c2114abbd": "SOV",
-};
-
 testnetData = {
     url: testnetUrl,
     chainId: 31,
     atBlock: 4418245,
-    users: testnetUsers,
     tokens: testnetRewardAssets,
 };
 mainnetData = {
     url: mainnetUrl,
     chainId: 30,
     atBlock: 5749587,
-    users: mainnetUsers,
     tokens: mainnetRewardAssets,
 };
 const { url, chainId, atBlock, users, tokens } = network.tags.mainnet ? mainnetData : testnetData;
