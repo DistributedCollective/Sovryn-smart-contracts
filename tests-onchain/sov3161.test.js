@@ -13,6 +13,7 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const hre = require("hardhat");
 const logger = new Logs().showInConsole(true);
+const { decodeLogs } = require("../tests/Utils/initializer.js");
 
 const {
     ethers,
@@ -22,8 +23,11 @@ const {
     network,
 } = hre;
 
-const ONE_RBTC = ethers.utils.parseEther("1.0");
+const oneEth = ethers.utils.parseEther("1.0");
 const { AddressZero } = ethers.constants;
+const { BN, expectRevert } = require("@openzeppelin/test-helpers");
+const emptyBytes32 = ethers.utils.hexZeroPad('0x', 32);
+const LoanOpenings = artifacts.require("LoanOpenings");
 
 const testnetUrl = "https://testnet.sovryn.app/rpc";
 const mainnetUrl = "https://mainnet-dev.sovryn.app/rpc";
@@ -32,13 +36,13 @@ testnetData = {
     url: testnetUrl,
     chainId: 31,
     atBlock: 4418245,
-    tokens: testnetRewardAssets,
+    tokens: [],
 };
 mainnetData = {
     url: mainnetUrl,
     chainId: 30,
     atBlock: 5749587,
-    tokens: mainnetRewardAssets,
+    tokens: [],
 };
 const { url, chainId, atBlock, users, tokens } = network.tags.mainnet ? mainnetData : testnetData;
 
@@ -56,8 +60,8 @@ const getImpersonatedSigner = async (addressToImpersonate) => {
 
 // QA Tests
 describe("Check if Borrowing from existing loan using excessive collateral of the loan works", async () => {
-    let snapshot;
-    let feeSharingCollectorProxy, feeSharingCollectorDeployment, feeSharingCollector;
+    let snapshot, multisigSigner;
+    let feeSharingCollectorProxy, feeSharingCollectorDeployment, feeSharingCollector, protocol, priceFeeds, XUSD, wRBTC;
 
     before(async () => {
         await network.provider.request({
@@ -79,15 +83,21 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
         );
 
         deployResult = await deploy("LoanOpenings", {
+            contract: "LoanOpenings",
             from: (await ethers.getSigners())[0].address,
-            log: true,
         });
 
-        const multisigSigner = await getImpersonatedSigner((await get("MultiSigWallet")).address);
+        multisigSigner = await getImpersonatedSignerFromJsonRpcProvider((await get("MultiSigWallet")).address);
 
-        const protocol = await ethers.getContract("SovrynProtocol", multisigSigner);
+        protocol = await ethers.getContract("ISovryn", multisigSigner);
         (await protocol.replaceContract(deployResult.address)).wait();
 
+        priceFeeds = await ethers.getContract("PriceFeeds", multisigSigner);
+        wRBTC = await ethers.getContract("WRBTC");
+        XUSD = await ethers.getContract("XUSD")
+
+        await wRBTC.connect(multisigSigner).deposit({value: ethers.utils.parseEther("1")})
+        
         // await deployments.fixture(["FeeSharingCollector"], {
         //     keepExistingDeployments: true,
         // });
@@ -120,13 +130,15 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
         // prepare the test
 
         // determine borrowing parameter
-        const withdrawAmount = oneEth.mul(new BN(100)); // I want to borrow 100 USD
+        const withdrawAmount = oneEth.mul(100); //borrow 100 USD
+        const loanToken = await ethers.getContract("LoanToken_iXUSD");
+
         // compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
-        let collateralTokenSent = await sovryn.getRequiredCollateral(
-            SUSD.address,
-            RBTC.address,
+        let collateralTokenSent = await protocol.getRequiredCollateral(
+            XUSD.address,
+            wRBTC.address,
             withdrawAmount,
-            wei("20", "ether"), // <- minInitialMargin // new BN(10).pow(new BN(18)).mul(new BN(50)), //
+            ethers.utils.parseEther("20"), // <- minInitialMargin // new BN(10).pow(new BN(18)).mul(new BN(50)), //
             true
         );
         // console.log(
@@ -137,56 +149,61 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
         collateralTokenSent = await loanToken.getDepositAmountForBorrow(
             withdrawAmount,
             durationInSeconds,
-            RBTC.address
+            wRBTC.address
         );
 
-        // console.log(
-        //     `required RBTC collateral to borrow 100 USD using loanToken.getDepositAmountForBorrow for 10 days: ${collateralTokenSent}`
-        // );
+        console.log(
+            `required RBTC collateral to borrow 100 USD using loanToken.getDepositAmountForBorrow for 10 days: ${collateralTokenSent}`
+        );
 
         const { rate: exchange_rate, precision } = await priceFeeds.queryRate(
-            RBTC.address,
-            SUSD.address
+            wRBTC.address,
+            XUSD.address
         );
         // console.log(`ex rate: ${exchange_rate}`);
 
         // approve the transfer of the collateral
-        await RBTC.approve(loanToken.address, collateralTokenSent.muln(2));
-        const borrower = accounts[0];
+        await wRBTC.connect(multisigSigner).approve(loanToken.address, collateralTokenSent.mul(2));
+        const borrower = (await get("MultiSigWallet")).address;
+        const receiver = (await get("MultiSigWallet")).address;
 
-        const { receipt } = await loanToken.borrow(
-            "0x0", // bytes32 loanId
+        console.log("sender wrbtc balance: ", (await wRBTC.balanceOf(borrower)).toString());
+        console.log("collateral sent: ", (collateralTokenSent.mul(2).toString()));
+
+        const borrowTx = await loanToken.connect(multisigSigner).borrow(
+            emptyBytes32, // bytes32 loanId
             withdrawAmount, // uint256 withdrawAmount
             durationInSeconds, // uint256 initialLoanDuration
-            collateralTokenSent.muln(2), // uint256 collateralTokenSent
-            RBTC.address, // address collateralTokenAddress
+            collateralTokenSent.mul(2), // uint256 collateralTokenSent
+            wRBTC.address, // address collateralTokenAddress
             borrower, // address borrower
-            account1, // address receiver
-            "0x0" // bytes memory loanDataBytes
+            receiver, // address receiver
+            emptyBytes32 // bytes memory loanDataBytes
         );
+        const receipt = await borrowTx.wait();
 
-        let decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Borrow");
-        // console.log(decode);
+        let decode = decodeLogs(receipt.events, LoanOpenings, "Borrow");
         const loanId = decode[0].args["loanId"];
+        
 
         const maxDrawdown = await priceFeeds.getMaxDrawdown(
-            SUSD.address,
-            RBTC.address,
+            XUSD.address,
+            wRBTC.address,
             withdrawAmount,
-            collateralTokenSent.muln(2),
-            wei("20", "ether")
+            collateralTokenSent.mul(2),
+            ethers.utils.parseEther("20")
         );
 
         const borrowAmountForMaxDrawdown = await loanToken.getBorrowAmountForDeposit(
             maxDrawdown,
             durationInSeconds,
-            RBTC.address
+            wRBTC.address
         );
 
         const requiredCollateral = await loanToken.getDepositAmountForBorrow(
             borrowAmountForMaxDrawdown,
             durationInSeconds,
-            RBTC.address
+            wRBTC.address
         );
 
         // const coef = requiredCollateral.mul(oneEth).div(maxDrawdown);
@@ -201,34 +218,33 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
         // console.log(`adjustedBorrowAmount: ${adjustedBorrowAmount}`);
 
         await expectRevert(
-            loanToken.borrow(
+            loanToken.connect(multisigSigner).borrow(
                 loanId, // bytes32 loanId
-                borrowAmountForMaxDrawdown.muln(1.009), // uint256 withdrawAmount - less than 0.9% error tolerance
+                borrowAmountForMaxDrawdown.mul(1009000).div(1000000), // uint256 withdrawAmount - less than 0.9% error tolerance
                 durationInSeconds, // uint256 initialLoanDuration
-                new BN(0), // uint256 collateralTokenSent
-                RBTC.address, // address collateralTokenAddress
+                "0", // uint256 collateralTokenSent
+                wRBTC.address, // address collateralTokenAddress
                 borrower, // address borrower
-                account1, // address receiver
-                "0x0" // bytes memory loanDataBytes
+                receiver, // address receiver
+                emptyBytes32 // bytes memory loanDataBytes
             ),
             "collateral insufficient"
         );
 
-        const { receipt: receipt2 } = await loanToken.borrow(
+        const { receipt: receipt2 } = await loanToken.connect(multisigSigner).borrow(
             loanId, // bytes32 loanId
             borrowAmountForMaxDrawdown, // uint256 withdrawAmount
             durationInSeconds, // uint256 initialLoanDuration
-            new BN(0), // uint256 collateralTokenSent
-            RBTC.address, // address collateralTokenAddress
+            "0", // uint256 collateralTokenSent
+            wRBTC.address, // address collateralTokenAddress
             borrower, // address borrower
-            account1, // address receiver
-            "0x0" // bytes memory loanDataBytes
+            receiver, // address receiver
+            emptyBytes32 // bytes memory loanDataBytes
         );
 
-        decode = decodeLogs(receipt2.rawLogs, LoanOpenings, "Borrow");
+        decode = decodeLogs(receipt2.events, LoanOpenings, "Borrow");
         const currentMargin = decode[0].args["currentMargin"];
-        expect(ethers.BigNumber.from(currentMargin).gte(wei("15", "ether")), "Invalid margin"); // wei("15", "ether") - maintenance margin
-        //console.log(decode);
+        expect(ethers.BigNumber.from(currentMargin).gte(ethers.utils.parseEther("15")), "Invalid margin"); // wei("15", "ether") - maintenance margin
     });
 
     it("Test increasing existing loan debt by borrowing collateral < required collateral", async () => {
@@ -269,18 +285,18 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
         // console.log(`ex rate: ${exchange_rate}`);
 
         // approve the transfer of the collateral
-        await RBTC.approve(loanToken.address, collateralTokenSent.muln(2));
+        await RBTC.approve(loanToken.address, collateralTokenSent.mul(2));
         const borrower = accounts[0];
 
         const { receipt } = await loanToken.borrow(
-            "0x0", // bytes32 loanId
+            emptyBytes32, // bytes32 loanId
             withdrawAmount, // uint256 withdrawAmount
             durationInSeconds, // uint256 initialLoanDuration
-            collateralTokenSent.muln(2), // uint256 collateralTokenSent
+            collateralTokenSent.mul(2), // uint256 collateralTokenSent
             RBTC.address, // address collateralTokenAddress
             borrower, // address borrower
             account1, // address receiver
-            "0x0" // bytes memory loanDataBytes
+            emptyBytes32 // bytes memory loanDataBytes
         );
 
         let decode = decodeLogs(receipt.rawLogs, LoanOpenings, "Borrow");
@@ -291,7 +307,7 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
             SUSD.address,
             RBTC.address,
             withdrawAmount,
-            collateralTokenSent.muln(2),
+            collateralTokenSent.mul(2),
             wei("20", "ether")
         );
 
@@ -322,13 +338,13 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
         await expectRevert(
             loanToken.borrow(
                 loanId, // bytes32 loanId
-                borrowAmountForMaxDrawdown.muln(1.009), // uint256 withdrawAmount - less than 0.9% error tolerance
+                borrowAmountForMaxDrawdown.mul(1.009), // uint256 withdrawAmount - less than 0.9% error tolerance
                 durationInSeconds, // uint256 initialLoanDuration
                 new BN(0), // uint256 collateralTokenSent
                 RBTC.address, // address collateralTokenAddress
                 borrower, // address borrower
                 account1, // address receiver
-                "0x0" // bytes memory loanDataBytes
+                emptyBytes32 // bytes memory loanDataBytes
             ),
             "collateral insufficient"
         );
@@ -342,7 +358,7 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
             RBTC.address, // address collateralTokenAddress
             borrower, // address borrower
             account1, // address receiver
-            "0x0" // bytes memory loanDataBytes
+            emptyBytes32 // bytes memory loanDataBytes
         );
 
         decode = decodeLogs(receipt2.rawLogs, LoanOpenings, "Borrow");
@@ -354,7 +370,7 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
             SUSD.address,
             RBTC.address,
             withdrawAmount,
-            collateralTokenSent.muln(2),
+            collateralTokenSent.mul(2),
             wei("20", "ether")
         );
         //console.log(`postMaxDrawdown: ${postMaxDrawdown}`);
