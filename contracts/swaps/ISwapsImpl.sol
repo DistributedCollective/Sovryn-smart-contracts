@@ -6,25 +6,9 @@
 pragma solidity 0.5.17;
 
 import "../interfaces/IERC20.sol";
+import "./connectors/interfaces/ISovrynSwapNetwork.sol";
 
 interface ISwapsImpl {
-    function internalSwap(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        address receiverAddress,
-        address returnToSenderAddress,
-        uint256 minSourceTokenAmount,
-        uint256 maxSourceTokenAmount,
-        uint256 requiredDestTokenAmount
-    ) external payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed);
-
-    function internalExpectedRate(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        uint256 sourceTokenAmount,
-        address optionalContractAddress
-    ) external view returns (uint256);
-
     function internalExpectedReturn(
         address sourceTokenAddress,
         address destTokenAddress,
@@ -32,4 +16,9 @@ interface ISwapsImpl {
         address sovrynSwapContractRegistryAddress,
         IERC20[] calldata defaultPath
     ) external view returns (uint256 expectedReturn);
+
+    function getSovrynSwapNetworkContract(address sovrynSwapRegistryAddress)
+        external
+        view
+        returns (ISovrynSwapNetwork);
 }

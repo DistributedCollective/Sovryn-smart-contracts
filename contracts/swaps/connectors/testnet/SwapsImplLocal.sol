@@ -10,6 +10,7 @@ import "../../../openzeppelin/SafeERC20.sol";
 import "../../ISwapsImpl.sol";
 import "../../../feeds/IPriceFeeds.sol";
 import "../../../testhelpers/TestToken.sol";
+import "../interfaces/IContractRegistry.sol";
 
 /**
  * @title Swaps Implementation Local contract.
@@ -23,72 +24,32 @@ contract SwapsImplLocal is State, ISwapsImpl {
     using SafeERC20 for IERC20;
 
     /**
-     * @notice Swap two tokens.
-     *
-     * @param sourceTokenAddress The address of the source tokens.
-     * @param destTokenAddress The address of the destiny tokens.
-     *
-     * @return destTokenAmountReceived The amount of destiny tokens sent.
-     * @return sourceTokenAmountUsed The amount of source tokens spent.
+     * Get the hex name of a contract.
+     * @param source The name of the contract.
      * */
-    function internalSwap(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        address, /*receiverAddress*/
-        address returnToSenderAddress,
-        uint256 minSourceTokenAmount,
-        uint256 maxSourceTokenAmount,
-        uint256 requiredDestTokenAmount
-    ) public payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
-        require(sourceTokenAddress != destTokenAddress, "source == dest");
-
-        (uint256 tradeRate, uint256 precision) =
-            IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
-
-        if (requiredDestTokenAmount == 0) {
-            sourceTokenAmountUsed = minSourceTokenAmount;
-            destTokenAmountReceived = minSourceTokenAmount.mul(tradeRate).div(precision);
-        } else {
-            destTokenAmountReceived = requiredDestTokenAmount;
-            sourceTokenAmountUsed = requiredDestTokenAmount.mul(precision).div(tradeRate);
-            require(sourceTokenAmountUsed <= minSourceTokenAmount, "destAmount too great");
-        }
-
-        TestToken(sourceTokenAddress).burn(address(this), sourceTokenAmountUsed);
-        TestToken(destTokenAddress).mint(address(this), destTokenAmountReceived);
-
-        if (returnToSenderAddress != address(this)) {
-            if (sourceTokenAmountUsed < maxSourceTokenAmount) {
-                /// Send unused source token back.
-                IERC20(sourceTokenAddress).safeTransfer(
-                    returnToSenderAddress,
-                    maxSourceTokenAmount - sourceTokenAmountUsed
-                );
-            }
+    function getContractHexName(string memory source) public pure returns (bytes32 result) {
+        assembly {
+            result := mload(add(source, 32))
         }
     }
 
     /**
-     * @notice Calculate the expected price rate of swapping a given amount
-     *   of tokens.
-     *
-     * @param sourceTokenAddress The address of the source tokens.
-     * @param destTokenAddress The address of the destiny tokens.
-     * @param sourceTokenAmount The amount of source tokens.
-     * @param unused Fourth parameter ignored.
-     *
-     * @return precision The expected price rate.
+     * Look up the Sovryn swap network contract registered at the given address.
+     * @param sovrynSwapRegistryAddress The address of the registry.
      * */
-    function internalExpectedRate(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        uint256 sourceTokenAmount,
-        address unused
-    ) public view returns (uint256) {
-        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-            IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
-
-        return sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
+    function getSovrynSwapNetworkContract(address sovrynSwapRegistryAddress)
+        public
+        view
+        returns (ISovrynSwapNetwork)
+    {
+        /// State variable sovrynSwapContractRegistryAddress is part of
+        /// State.sol and set in ProtocolSettings.sol and this function
+        /// needs to work without delegate call as well -> therefore pass it.
+        IContractRegistry contractRegistry = IContractRegistry(sovrynSwapRegistryAddress);
+        return
+            ISovrynSwapNetwork(
+                contractRegistry.addressOf(getContractHexName("SovrynSwapNetwork"))
+            );
     }
 
     /**

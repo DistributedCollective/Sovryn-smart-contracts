@@ -280,7 +280,7 @@ contract("SwapsExternal", (accounts) => {
                         value: wei("1", "ether"),
                     }
                 ),
-                "swap failed"
+                "source == dest"
             );
         });
 
@@ -301,7 +301,7 @@ contract("SwapsExternal", (accounts) => {
                     0,
                     "0x"
                 ),
-                "swap failed"
+                "invalid tokens"
             );
         });
 
