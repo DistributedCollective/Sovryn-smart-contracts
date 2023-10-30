@@ -216,7 +216,9 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
                 );
                 break;
             }
-            logger.info(`=== Transferring ownership of oracle ${oracleAddress} ===`);
+            logger.info(
+                `=== Transferring ownership of ${timeLockAdminListOracleTransfer.sourceConverter} (type: ${timeLockAdminListOracleTransfer.sourceConverterType}) oracle  ${oracleAddress} ===`
+            );
             const result = await transferOwnershipAMMContractsToGovernance(
                 oracleAddress,
                 timelockAdmin.address,
@@ -232,7 +234,7 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
         );
         for (let timeLockAdminListTransfer of timeLockAdminListTransfers) {
             logger.info(
-                `=== Transferring ownership of ${timeLockAdminListTransfer.contractAddress} ===`
+                `=== Transferring ownership of ${timeLockAdminListTransfer.contractName} ${timeLockAdminListTransfer.contractAddress} ===`
             );
             const result = await transferOwnershipAMMContractsToGovernance(
                 timeLockAdminListTransfer.contractAddress,
@@ -249,7 +251,7 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
         );
         for (let timeLockOwnerListTransfer of timeLockOwnerListTransfers) {
             logger.info(
-                `=== Transferring ownership of ${timeLockOwnerListTransfer.contractAddress} ===`
+                `=== Transferring ownership of ${timeLockOwnerListTransfer.contractName} ${timeLockOwnerListTransfer.contractAddress} ===`
             );
             const result = await transferOwnershipAMMContractsToGovernance(
                 timeLockOwnerListTransfer.contractAddress,

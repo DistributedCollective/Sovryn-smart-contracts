@@ -137,7 +137,7 @@ const transferOwnershipAMMContractsToGovernance = async (
     }
 
     logger.info(
-        `Transferring ownership for ${contractName} (${contractAddress}) from ${multisig.address} to ${newOwnerAddress}`
+        `Transferring ownership of ${contractName} (${contractAddress}) from ${multisig.address} to ${newOwnerAddress}`
     );
     let data = ownershipInterface.encodeFunctionData("transferOwnership", [newOwnerAddress]);
     let txId = await sendWithMultisigReturningId(
