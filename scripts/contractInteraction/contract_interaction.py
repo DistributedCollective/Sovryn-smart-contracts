@@ -29,8 +29,19 @@ def main():
     '''
 
     # call the function you want here
+    # transferProtocolAdminRoleToGovernance()
 
-    
+    # iDLLR
+    # print("Transferring iDLLR admin to: ", conf.contracts['TimelockAdmin'])
+    # loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDLLR'], abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    # data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    # sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # # iDLLR
+    # loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDLLR'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    # print("Transferring iDLLR ownserhip to: ", conf.contracts['TimelockOwner'])
+    # data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    # sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
     #used often:
 
     #### GET DLLR ####
@@ -230,10 +241,30 @@ def guardiansTransfer():
     ####################################################################
     
     # # It is critically important to first transfer pauser role
-    setNewContractGuardian()
+    setNewContractGuardian() 
 
-def governanceTransfer():
+def governanceTransferStep1():
 
+    ### THIS SCRIPT SHOULD RUN FIRST TO AVOID EARLY OWNERSHIP TRANSFER WHICH WOULD REQUIRE A SEPARATE SIP ###
+
+    # # ---------- Transfer ownership to gov ----------
+    # # core protocol
+    transferProtocolAdminRoleToGovernance()
+
+    # # loan token
+    transferLoanTokenAdminRoleToGovernance()
+
+    # # Governance
+    # # lockedSOV
+    transferLockedSOVOwnershipToGovernance()
+
+    # # Staking
+    # transferStakingOwnershipToGovernance() -> @todo: SIP to add admin and remove exchequer
+
+    # # VestingRegistry
+    addVestingRegistryGovernanceAdmin()
+
+def governanceTransferStep2():
     ####################################################################
     ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE GUARDIANS TRANSFER ###
     ####################################################################
@@ -244,7 +275,6 @@ def governanceTransfer():
 
     # # loan token
     transferBeaconOwnershipToGovernance()
-    transferLoanTokenAdminRoleToGovernance()
     transferLoanTokenOwnershipToGovernance()
 
     # # oracles
@@ -255,13 +285,15 @@ def governanceTransfer():
 
     # # Governance
     # # lockedSOV
-    transferLockedSOVOwnershipToGovernance()
+    removeExchequerFromLockedSOVAdmin()
 
     # # Staking
-    transferStakingOwnershipToGovernance()
+    # transferStakingOwnershipToGovernance() -> requires a SIP
 
     # # StakingRewards
     transferStakingRewardsOwnershipToGovernance()
 
     # # VestingRegistry
     transferVestingRegistryOwnershipToGovernance()
+
+    removeExchequerFromLockedSOVAdmin()

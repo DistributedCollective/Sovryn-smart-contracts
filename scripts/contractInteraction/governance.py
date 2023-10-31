@@ -35,13 +35,18 @@ def cancelProposal(type, proposalId):
     else:
         raise Exception("Guardian address is not multisig")
 
+def removeExchequerFromLockedSOVAdmin():
+    print("Remove LockedSOVaddress admin for exchequer multisig: ", conf.contracts['multisig'])
+    lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts["LockedSOV"], abi=LockedSOV.abi, owner=conf.acct)
+    data = lockedSOV.removeAdmin.encode_input(conf.contracts['multisig'])
+    sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
+
 def transferLockedSOVOwnershipToGovernance():
     print("Add LockedSOV admin for address: ", conf.contracts['TimelockAdmin'])
     lockedSOV = Contract.from_abi("LockedSOV", address=conf.contracts["LockedSOV"], abi=LockedSOV.abi, owner=conf.acct)
-    # TODO: Need to check whether we need to remove the other admin or not
     data = lockedSOV.addAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
-
+   
 def proposalState(type, proposalId):
     governor = Contract.from_abi("GovernorAlpha", address=conf.contracts[type], abi=GovernorAlpha.abi, owner=conf.acct)
     print(governor.state(proposalId))
