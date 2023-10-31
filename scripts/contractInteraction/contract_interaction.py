@@ -29,6 +29,8 @@ def main():
     '''
 
     # call the function you want here
+    #governanceTransferStep1()
+    #governanceTransferStep2()
     # transferProtocolAdminRoleToGovernance()
 
     # iDLLR
@@ -295,5 +297,3 @@ def governanceTransferStep2():
 
     # # VestingRegistry
     transferVestingRegistryOwnershipToGovernance()
-
-    removeExchequerFromLockedSOVAdmin()
