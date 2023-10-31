@@ -452,13 +452,13 @@ def freezeOrUnfreezeStakingWithdawal(flag):
     data = staking.freezeUnfreeze.encode_input(flag)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
-def addPauser(address):
+def addStakingPauser(address):
     # Get the proxy contract instance
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.addPauser.encode_input(address)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
-def removePauser(address):
+def removeStakingPauser(address):
     # Get the proxy contract instance
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.removePauser.encode_input(address)
@@ -530,15 +530,21 @@ def transferStakingRewardsOwnershipToGovernance():
     data = stakingRewards.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], stakingRewards.address, data, conf.acct)
 
-def transferVestingRegistryOwnershipToGovernance():
+def addVestingRegistryGovernanceAdmin():
     # add governor admin as admin
     print("Add Vesting Registry admin for address: ", conf.contracts['TimelockAdmin'])
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     data = vestingRegistry.addAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
+def transferVestingRegistryOwnershipToGovernance():
+    # transfer ownerhip to TimelockOwner
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    data = vestingRegistry.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
     '''
-    # add Exchequer admin as admin
+    # add Exchequer admin as admin - it is already an admin
     print("Add Vesting Registry admin for multisig: ", conf.contracts['multisig'])
     data = vestingRegistry.addAdmin.encode_input(conf.contracts['multisig'])
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)

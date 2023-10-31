@@ -725,13 +725,44 @@ const getArgsSip0046Part4 = async (hre) => {
         description:
             "SIP-0046: Transferring ownership of Sovryn contracts (Part 4), Details: https://github.com/DistributedCollective/SIPS/blob/f350a00/SIP-0046_part-4.md, sha256: 51f041f0a2df9bb6cae180b2cb30fb92ba9b46a016d6e228401e0ee4bcbeef7d",
     };
+    return { args, governor: "GovernorOwner" };
+};
 
+const getArgsSip0047 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const multisigDeployment = await get("MultiSigWallet");
+    const staking = await get("Staking");
+    const multisigAddress = multisigDeployment.address;
+    const stakingAddress = staking.address;
+    let guardianAddress;
+    if (network.tags.mainnet) {
+        guardianAddress = "0xDd8e07A57560AdA0A2D84a96c457a5e6DDD488b7".toLowerCase();
+    } else {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+    const args = {
+        targets: [stakingAddress, stakingAddress],
+        values: [0, 0],
+        signatures: ["addPauser(address)", "removePauser(address)"],
+        data: [
+            abiCoder.encode(["address"], [guardianAddress]),
+            abiCoder.encode(["address"], [multisigAddress]),
+        ],
+        description:
+            "SIP-0047: Changing of the Guardians, Details: https://github.com/DistributedCollective/SIPS/blob/018582f/SIP-0047.md, sha256: be610df85582328b0205412dd6da87e2805d1a8656d591e0c09bc9783888b831",
+    };
     return { args, governor: "GovernorOwner" };
 };
 
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
+    getArgsSip0047,
     getArgsSip0058,
     getArgsSip0049,
     getArgsSip0063,
