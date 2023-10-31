@@ -955,6 +955,12 @@ def transferLoanTokenAdminRoleToGovernance():
     data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
+    # iDLLR
+    print("Transferring iDLLR admin to: ", conf.contracts['TimelockAdmin'])
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDLLR'], abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
 def transferLoanTokenOwnershipToGovernance():
     # iDOC
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDOC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
@@ -983,6 +989,12 @@ def transferLoanTokenOwnershipToGovernance():
     # iBPro
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iBPro'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     print("Transferring iBPro ownserhip to: ", conf.contracts['TimelockOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # iDLLR
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDLLR'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print("Transferring iDLLR ownserhip to: ", conf.contracts['TimelockOwner'])
     data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
