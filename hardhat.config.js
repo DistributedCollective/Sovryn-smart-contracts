@@ -156,6 +156,9 @@ module.exports = {
             rskForkedMainnet: 0,
             rskMainnet: 0,
         },
+        proposer2: {
+            default: 1,
+        },
     },
     networks: {
         hardhat: {

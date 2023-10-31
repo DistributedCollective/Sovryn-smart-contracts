@@ -46,9 +46,15 @@ def loadBTCAddressValidator():
     return Contract.from_abi("FastBTC", address = conf.contracts['BTCAddressValidator'], abi = abi, owner = conf.acct)
  
 
-def addPauser(address):
+def addFastBTCPauser(address):
     fastBTC = loadFastBTCAccessControl()
     data = fastBTC.addPauser.encode_input(address)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
+def removeFastBTCPauser(address):
+    fastBTC = loadFastBTCAccessControl()
+    data = fastBTC.removePauser.encode_input(address)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
 
