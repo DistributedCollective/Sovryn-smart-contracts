@@ -296,4 +296,7 @@ def governanceTransferStep2():
     transferStakingRewardsOwnershipToGovernance()
 
     # # VestingRegistry
+    # transferVestingRegistryOwnershipToGovernance()
+
+    # getLMInfo()
     transferVestingRegistryOwnershipToGovernance()

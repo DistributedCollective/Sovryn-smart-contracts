@@ -501,28 +501,6 @@ def createProposalSIP0050():
     print(description)
     #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
-# SIP to set the max vesting withdraw iterations in staking contract
-def createProposalSIP005x():
-    maxWithdrawIterations = 50 # need to be changed by referring to the SIP-050
-    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-
-    # Action
-    targets = [contracts['Staking']]
-    values = [0]
-    signatures = ["setMaxVestingWithdrawIterations(uint256)"]
-    data = staking.setMaxVestingWithdrawIterations.encode_input(maxWithdrawIterations)
-    datas = ["0x" + data[10:]]
-    # TODO finalize the details with github link & checksum
-    description = "SIP-005x: Set max vesting withdraw iterations"
-
-     # Create Proposal
-    print(signatures)
-    print(datas)
-    print(description)
-
-    # @note WE DON'T NEED SIP - can be set via admin (multisig)
-    #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
-
 def createProposalSIP0056():
     # Action
     target = [contracts['SOV']]
@@ -565,23 +543,3 @@ def createProposalSIP0065():
     print(datas)
     print(description)
     createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
-
-def createProposalSIP0047(newGuardian):
-    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-    stakingLogic = Contract.from_abi("StakingLogic5", address=contracts['StakingLogic5'], abi=interface.IStaking.abi, owner=acct)
-
-    # Action
-    targets = [contracts['Staking']]
-    values = [0, 0]
-    signatures = ["addPauser(address)", "removePauser(address)"]
-    data1 = stakingLogic.addPauser.encode_input(newGuardian)
-    data2 = stakingLogic.removePauser.encode_input(contracts['multisig'])
-    datas = ["0x" + data1[10:], "0x" + data2[10:]]
-    # TODO
-    description = ""
-
-    # Create Proposal
-    print(signatures)
-    print(datas)
-    print(description)
-    # createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)

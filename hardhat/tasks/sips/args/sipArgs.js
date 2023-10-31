@@ -1,5 +1,8 @@
 const { HardhatRuntimeEnvironment } = require("hardhat/types");
 const { getStakingModulesNames } = require("../../../../deployment/helpers/helpers");
+const { validateAmmOnchainAddresses, getAmmOracleAddress } = require("../../../helpers");
+const Logs = require("node-logs");
+const logger = new Logs().showInConsole(true);
 
 const sampleGovernorOwnerSIP = async (hre) => {
     /*
@@ -255,6 +258,476 @@ const getArgsSip0065 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0046Part1 = async (hre) => {
+    const {
+        deployments: { get },
+        ethers,
+    } = hre;
+
+    const ownershipABI = [
+        "function owner() view returns(address)",
+        "function newOwner() view returns(address)",
+    ];
+    const ownershipInterface = new ethers.utils.Interface(ownershipABI);
+    const multisigDeployment = await get("MultiSigWallet");
+    const timeLockAdminDeployment = await get("TimelockAdmin");
+
+    const deploymentTargets = [
+        {
+            deployment: await get("AmmSovrynSwapNetwork"),
+            contractName: "SovrynSwapNetwork",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+        {
+            deployment: await get("AmmSwapSettings"),
+            contractName: "SwapSettings",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+        {
+            deployment: "oracle",
+            contractName: "MocOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterMoc",
+        },
+        {
+            deployment: "oracle",
+            contractName: "SovOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterSov",
+        },
+        {
+            deployment: "oracle",
+            contractName: "EthOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterEth",
+        },
+        {
+            deployment: "oracle",
+            contractName: "BnbOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterBnb",
+        },
+        {
+            deployment: "oracle",
+            contractName: "XusdOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterXusd",
+        },
+        {
+            deployment: "oracle",
+            contractName: "FishOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterFish",
+        },
+        {
+            deployment: "oracle",
+            contractName: "RifOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterRif",
+        },
+    ];
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    for (let i = 0; i < deploymentTargets.length; i++) {
+        deploymentTarget = deploymentTargets[i];
+        if (deploymentTarget.deployment === "oracle") {
+            const oracleAddress = await getAmmOracleAddress(
+                deploymentTarget.sourceContractNameToValidate,
+                deploymentTarget.sourceContractTypeToValidate
+            );
+            if (oracleAddress === ethers.constants.AddressZero) {
+                logger.error(`Zero address for oracle converter ${deploymentTarget.contractName}`);
+                return process.exit;
+            }
+            const oracleArtifact = await deployments.getArtifact("Oracle");
+            deploymentTarget.deployment = await ethers.getContractAt(
+                oracleArtifact.abi,
+                oracleAddress
+            );
+        } else {
+            const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+            if (!isValid) {
+                logger.error(
+                    `validation amm onchain address is failed for ${deploymentTarget.contractName}`
+                );
+                return process.exit;
+            }
+        }
+
+        const ammContract = await ethers.getContractAt(
+            ownershipInterface,
+            deploymentTarget.deployment.address
+        );
+        const currentOwner = await ammContract.owner();
+        const newTargetOwner = await ammContract.newOwner();
+
+        if (currentOwner.toLowerCase() !== multisigDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - Current owner (${currentOwner}) is not the multisig (${multisigDeployment.address})`
+            );
+            return process.exit;
+        }
+
+        if (newTargetOwner.toLowerCase() !== timeLockAdminDeployment.address.toLowerCase()) {
+            logger.warn(
+                `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock admin (${timeLockAdminDeployment.address})`
+            );
+            // return process.exit; - no need to revert because the first step ownership transfer setting `newOwner` should be done only after the SIP passed
+        }
+
+        targets.push(deploymentTarget.deployment.address);
+        values.push(0);
+        signatures.push("acceptOwnership()");
+        datas.push("0x");
+    }
+
+    const args = {
+        targets: targets,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 1), Details: https://github.com/DistributedCollective/SIPS/blob/5029109/SIP-0046_part-1.md, sha256: 4771e1014fa6e213a0d352797466fa88368c28e438bb455b923795d16ab7e0b5",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
+const getArgsSip0046Part2 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+
+    const ownershipABI = [
+        "function owner() view returns(address)",
+        "function newOwner() view returns(address)",
+    ];
+    const ownershipInterface = new ethers.utils.Interface(ownershipABI);
+    const multisigDeployment = await get("MultiSigWallet");
+    const timeLockAdminDeployment = await get("TimelockAdmin");
+
+    const deploymentTargets = [
+        {
+            deployment: "oracle",
+            contractName: "MyntOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterMynt",
+        },
+        {
+            deployment: "oracle",
+            contractName: "DllrOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterDllr",
+        },
+        {
+            deployment: await get("AmmConversionPathFinder"),
+            contractName: "ConversionPathFinder",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+        {
+            deployment: await get("AmmConverterUpgrader"),
+            contractName: "ConverterUpgrader",
+        },
+        {
+            deployment: await get("AmmConverterRegistryData"),
+            contractName: "ConverterRegistryData",
+        },
+        {
+            deployment: await get("AmmOracleWhitelist"),
+            contractName: "OracleWhitelist",
+        },
+        {
+            deployment: await get("AmmRbtcWrapperProxy"),
+            contractName: "RbtcWrapperProxy",
+        },
+    ];
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    for (let i = 0; i < deploymentTargets.length; i++) {
+        deploymentTarget = deploymentTargets[i];
+        if (deploymentTarget.deployment === "oracle") {
+            const oracleAddress = await getAmmOracleAddress(
+                deploymentTarget.sourceContractNameToValidate,
+                deploymentTarget.sourceContractTypeToValidate
+            );
+            if (oracleAddress === ethers.constants.AddressZero) return process.exit;
+            const oracleArtifact = await deployments.getArtifact("Oracle");
+            deploymentTarget.deployment = await ethers.getContractAt(
+                oracleArtifact.abi,
+                oracleAddress
+            );
+        } else {
+            const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+            if (!isValid) return process.exit;
+        }
+
+        const ammContract = await ethers.getContractAt(
+            ownershipInterface,
+            deploymentTarget.deployment.address
+        );
+        const currentOwner = await ammContract.owner();
+        const newTargetOwner = await ammContract.newOwner();
+
+        if (currentOwner.toLowerCase() !== multisigDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - Current owner (${currentOwner}) is not the multisig (${multisigDeployment.address})`
+            );
+            return process.exit;
+        }
+
+        if (newTargetOwner.toLowerCase() !== timeLockAdminDeployment.address.toLowerCase()) {
+            logger.warn(
+                `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock admin (${timeLockAdminDeployment.address})`
+            );
+            // return process.exit; - no need to revert because the first step ownership transfer setting `newOwner` should be done only after the SIP passed
+        }
+
+        targets.push(deploymentTarget.deployment.address);
+        values.push(0);
+        signatures.push("acceptOwnership()");
+        datas.push("0x");
+    }
+
+    const args = {
+        targets: targets,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 2), Details: https://github.com/DistributedCollective/SIPS/blob/0a7782d/SIP-0046_part-2.md, sha256: c1880b8b3b223c2dc53bb72d5f1c78f5c1ef6e44167b58fb00c6bec143bf896e",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
+const getArgsSip0046Part3 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+
+    const ownershipABI = [
+        "function owner() view returns(address)",
+        "function newOwner() view returns(address)",
+    ];
+    const ownershipInterface = new ethers.utils.Interface(ownershipABI);
+    const multisigDeployment = await get("MultiSigWallet");
+    const timeLockOwnerDeployment = await get("TimelockOwner");
+
+    const deploymentTargets = [
+        {
+            deployment: await get("AmmConverterDoc"),
+            contractName: "ConverterDoc",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterUsdt"),
+            contractName: "ConverterUsdt",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterBpro"),
+            contractName: "ConverterBpro",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterBnb"),
+            contractName: "ConverterBnb",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterMoc"),
+            contractName: "ConverterMoc",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterXusd"),
+            contractName: "ConverterXusd",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterSov"),
+            contractName: "ConverterSov",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterEth"),
+            contractName: "ConverterEth",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterFish"),
+            contractName: "ConverterFish",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterMynt"),
+            contractName: "ConverterMynt",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+    ];
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    for (let i = 0; i < deploymentTargets.length; i++) {
+        const deploymentTarget = deploymentTargets[i];
+        const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+        if (!isValid) {
+            logger.error(
+                `validation amm onchain address is failed for ${deploymentTarget.contractName}`
+            );
+            return process.exit;
+        }
+
+        const ammContract = await ethers.getContractAt(
+            ownershipInterface,
+            deploymentTarget.deployment.address
+        );
+        const currentOwner = await ammContract.owner();
+        const newTargetOwner = await ammContract.newOwner();
+
+        if (currentOwner.toLowerCase() !== multisigDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - Current owner (${currentOwner}) is not the multisig (${multisigDeployment.address})`
+            );
+            return process.exit;
+        }
+
+        if (newTargetOwner.toLowerCase() !== timeLockOwnerDeployment.address.toLowerCase()) {
+            logger.warn(
+                `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock owner (${timeLockOwnerDeployment.address})`
+            );
+            // return process.exit; - no need to revert because the first step ownership transfer setting `newOwner` should be done only after the SIP passed
+        }
+
+        targets.push(deploymentTarget.deployment.address);
+        values.push(0);
+        signatures.push("acceptOwnership()");
+        datas.push("0x");
+    }
+
+    const args = {
+        targets: targets,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 3), Details: https://github.com/DistributedCollective/SIPS/blob/873e1da/SIP-0046_part-3.md, sha256: 0204ccd3b9556105915f9dc243b42a610cbe2f5f082b7d3fa7ab361c66a929e9",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSip0046Part4 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+
+    const ownershipABI = [
+        "function owner() view returns(address)",
+        "function newOwner() view returns(address)",
+    ];
+    const ownershipInterface = new ethers.utils.Interface(ownershipABI);
+    const multisigDeployment = await get("MultiSigWallet");
+    const timeLockOwnerDeployment = await get("TimelockOwner");
+
+    const deploymentTargets = [
+        {
+            deployment: await get("AmmConverterRif"),
+            contractName: "ConverterRif",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterDllr"),
+            contractName: "ConverterDllr",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmContractRegistry"),
+            contractName: "ContractRegistry",
+        },
+        {
+            deployment: await get("AmmConverterFactory"),
+            contractName: "ConverterFactory",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+    ];
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    for (let i = 0; i < deploymentTargets.length; i++) {
+        const deploymentTarget = deploymentTargets[i];
+        const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+        if (!isValid) {
+            logger.error(
+                `validation amm onchain address is failed for ${deploymentTarget.contractName}`
+            );
+            return process.exit;
+        }
+
+        const ammContract = await ethers.getContractAt(
+            ownershipInterface,
+            deploymentTarget.deployment.address
+        );
+        const currentOwner = await ammContract.owner();
+        const newTargetOwner = await ammContract.newOwner();
+
+        if (currentOwner.toLowerCase() !== multisigDeployment.address.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - Current owner (${currentOwner}) is not the multisig (${multisigDeployment.address})`
+            );
+            return process.exit;
+        }
+
+        if (newTargetOwner.toLowerCase() !== timeLockOwnerDeployment.address.toLowerCase()) {
+            logger.warn(
+                `${deploymentTarget.contractName} - New target owner (${newTargetOwner}) is not the timelock owner (${timeLockOwnerDeployment.address})`
+            );
+            // return process.exit; - no need to revert because the first step ownership transfer setting `newOwner` should be done only after the SIP passed
+        }
+
+        targets.push(deploymentTarget.deployment.address);
+        values.push(0);
+        signatures.push("acceptOwnership()");
+        datas.push("0x");
+    }
+
+    const args = {
+        targets: targets,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-0046: Transferring ownership of Sovryn contracts (Part 4), Details: https://github.com/DistributedCollective/SIPS/blob/f350a00/SIP-0046_part-4.md, sha256: 51f041f0a2df9bb6cae180b2cb30fb92ba9b46a016d6e228401e0ee4bcbeef7d",
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
 const getArgsSip0047 = async (hre) => {
     const {
         ethers,
@@ -294,4 +767,8 @@ module.exports = {
     getArgsSip0049,
     getArgsSip0063,
     getArgsSip0065,
+    getArgsSip0046Part1,
+    getArgsSip0046Part2,
+    getArgsSip0046Part3,
+    getArgsSip0046Part4,
 };

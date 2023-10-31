@@ -3,12 +3,12 @@ const { task } = require("hardhat/config");
 const { ethers } = require("ethers");
 const Logs = require("node-logs");
 const {
-    signWithMultisig,
-    multisigCheckTx,
-    multisigRevokeConfirmation,
-    multisigExecuteTx,
-    multisigAddOwner,
-    multisigRemoveOwner,
+    signWithMultisig, // <---- this calls and executes multisig.confirmTransaction(txId)
+    multisigCheckTx, // this calls and prints multisig.transactions (public mapping)
+    multisigRevokeConfirmation, // this calls and executes multisig.revokeConfirmation(txId)
+    multisigExecuteTx, // <---- this calls and executes multisig.executeTransaction(txId)
+    multisigAddOwner, // this calls and executes multisig.addOwner(newOwner)
+    multisigRemoveOwner, // this calls and executes multisig.removeOwner(owner)
 } = require("../../deployment/helpers/helpers");
 
 const logger = new Logs().showInConsole(true);
