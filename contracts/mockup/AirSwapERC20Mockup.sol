@@ -5,7 +5,6 @@ import "../airswap/ISwapERC20.sol";
 
 // This contract is only for testing purposes
 contract AirSwapERC20Mockup is ISwapERC20 {
-
     int16 public swapCalled = 0;
 
     address public recipient;

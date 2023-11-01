@@ -11,18 +11,18 @@ contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
     using SafeMath for uint256;
 
     struct SwapRequest {
-            address sender;
-            address recipient;
-            uint256 nonce;
-            uint256 expiry;
-            address signerWallet;
-            address signerToken;
-            uint256 signerAmount;
-            address senderToken;
-            uint256 totalSenderAmount;
-            uint8 v;
-            bytes32 r;
-            bytes32 s;
+        address sender;
+        address recipient;
+        uint256 nonce;
+        uint256 expiry;
+        address signerWallet;
+        address signerToken;
+        uint256 signerAmount;
+        address senderToken;
+        uint256 totalSenderAmount;
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
     }
 
     uint256 public constant POINTS = 1000;
@@ -119,24 +119,29 @@ contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
         require(feeVaultAddress != address(0), "invalid vault");
         require(swapERC20Address != address(0), "invalid swapper");
 
-        SwapRequest memory swapRequest = SwapRequest(
-            _sender,
-            _recipient,
-            _nonce,
-            _expiry,
-            _signerWallet,
-            _signerToken,
-            _signerAmount,
-            _senderToken,
-            _totalSenderAmount,
-            _v,
-            _r,
-            _s
-        );
+        SwapRequest memory swapRequest =
+            SwapRequest(
+                _sender,
+                _recipient,
+                _nonce,
+                _expiry,
+                _signerWallet,
+                _signerToken,
+                _signerAmount,
+                _senderToken,
+                _totalSenderAmount,
+                _v,
+                _r,
+                _s
+            );
 
         // first we move all the funds here
         require(
-            IERC20_(swapRequest.senderToken).transferFrom(swapRequest.sender, address(this), swapRequest.totalSenderAmount),
+            IERC20_(swapRequest.senderToken).transferFrom(
+                swapRequest.sender,
+                address(this),
+                swapRequest.totalSenderAmount
+            ),
             "transfer failed 1"
         );
 
@@ -175,7 +180,10 @@ contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
 
         // now we send the user her due
         require(
-            IERC20_(swapRequest.signerToken).transfer(swapRequest.recipient, receiveAmountAfterFee),
+            IERC20_(swapRequest.signerToken).transfer(
+                swapRequest.recipient,
+                receiveAmountAfterFee
+            ),
             "transfer failed 4"
         );
 

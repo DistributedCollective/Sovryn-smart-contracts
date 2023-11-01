@@ -12,7 +12,7 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
-//require("@nomicfoundation/hardhat-foundry");
+require("@nomicfoundation/hardhat-foundry");
 
 require("./hardhat/tasks");
 
