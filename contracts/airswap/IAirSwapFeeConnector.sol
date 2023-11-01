@@ -5,9 +5,8 @@ pragma solidity 0.5.17;
  *  @author Derek Mattr dharkmattr@gmail.com
  */
 interface IAirSwapFeeConnector {
-
     /// @notice Set the input fee in points, ie 25 means 2.5 percent.
-    ///         The input fee is collected on the sent tokens before 
+    ///         The input fee is collected on the sent tokens before
     ///         the actual conversion.
     /// @param inputFeeInPoints The new fee in points
     function setInputFee(uint256 inputFeeInPoints) external;
@@ -26,28 +25,29 @@ interface IAirSwapFeeConnector {
     function setSwapERC20Address(address newAddress) external;
 
     /// @notice Swap one token for another.
-    /// @param senderToken The token which is to be sent
-    /// @param totalSenderAmount The amount to be sent before the input fee is collected. 
-    /// @param signerWallet Address of the market maker wallet
-    /// @param signerAmount Amount of resulting token from the conversion
-    /// @param recipient Address to send the resulting tokens after collecting the output fee
-    /// @param recipient Address to send the resulting tokens after collecting the output fee
-    /// @param nonce A one time nonce
-    /// @param expiry Date at which the original proposal will expire
-    /// @param v v part of the ECDSA signature
-    /// @param r r part of the ECDSA signature
-    /// @param s s part of the ECDSA signature
+    /// @param _sender Address which is sending the tokens
+    /// @param _recipient Address to send the resulting tokens after collecting the output fee
+    /// @param _nonce A one time nonce
+    /// @param _expiry Date at which the original proposal will expire
+    /// @param _signerWallet Address of the market maker wallet
+    /// @param _signerToken Address of the token to convert to
+    /// @param _signerAmount Amount of resulting token from the conversion
+    /// @param _totalSenderAmount The amount to be sent before the input fee is collected.
+    /// @param _v v part of the ECDSA signature
+    /// @param _r r part of the ECDSA signature
+    /// @param _s s part of the ECDSA signature
     function swap(
-        address senderToken,
-        uint256 totalSenderAmount,
-        address signerWallet,
-        address signerToken,
-        uint256 signerAmount,
-        address recipient,
-        uint256 nonce,
-        uint256 expiry,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        address _sender,
+        address _recipient,
+        uint256 _nonce,
+        uint256 _expiry,
+        address _signerWallet,
+        address _signerToken,
+        uint256 _signerAmount,
+        address _senderToken,
+        uint256 _totalSenderAmount,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
     ) external;
 }
