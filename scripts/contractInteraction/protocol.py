@@ -437,6 +437,7 @@ def withdrawFees():
         conf.contracts['BPro'],
         conf.contracts['SOV'],
         conf.contracts['WRBTC'],
+        conf.contracts['DLLR'],
     ])
 
 def withdrawFeesAMM():
