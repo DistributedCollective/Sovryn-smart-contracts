@@ -178,5 +178,6 @@
     "MyntMarketMaker": "0xf75170ce8d4060b8D5fc24E996FA00A94bb8A232",
     "MyntCollateral": "0x6a9A07972D07e58F0daf5122d11E069288A375fb",
     "MyntBondedToken": "0x139483e22575826183F5b56dd242f8f2C1AEf327",
+    "MyntFixedRateConverter": "0x36c6554ee2fccab1389af309ab0793abce0e91f3",
     "FastBTCAccessControl": "0x4F143735Fc8c0b6E4053db43398bFCC63A9beF45"
 }

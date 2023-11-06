@@ -194,5 +194,6 @@
     "MyntCollateral": "0xefc78fc7d48b64958315949279ba181c2114abbd",
     "MyntBondedToken": "0x2e6B1d146064613E8f521Eb3c6e65070af964EbB",
     "MyntKernel": "0x5e6687a03e4c96d7B7e3b9fE96dA1660E7c9A5a7",
+    "MyntFixedRateConverter": "",
     "FastBTCMultisig": "0x0f279e810B95E0d425622b9b40D7bCD0B5C4B19d"
 }

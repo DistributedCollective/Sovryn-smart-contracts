@@ -21,3 +21,4 @@ from scripts.contractInteraction.prices import *
 from scripts.contractInteraction.fastbtc import *
 from scripts.contractInteraction.bondingcurve import *
 from scripts.contractInteraction.aggregator import *
+from scripts.contractInteraction.mynt import *
