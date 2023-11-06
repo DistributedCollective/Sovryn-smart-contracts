@@ -110,20 +110,6 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
     }
 
     /**
-     * @notice Withdraws all tokens from the staking contract and
-     * forwards them to an address specified by the token owner.
-     * @param receiver The receiving address.
-     * @dev Can be called only by owner.
-     * @dev **WARNING** This function should not be no longer used by Sovryn Protocol.
-     * Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.
-     * */
-    function governanceWithdrawTokens(address receiver) public {
-        require(msg.sender == address(staking), "unauthorized");
-
-        _withdrawTokens(receiver, true);
-    }
-
-    /**
      * @notice Withdraws unlocked tokens from the staking contract and
      * forwards them to an address specified by the token owner.
      * @param receiver The receiving address.

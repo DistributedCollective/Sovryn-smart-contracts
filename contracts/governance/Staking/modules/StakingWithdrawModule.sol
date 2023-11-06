@@ -352,9 +352,19 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         onlyAuthorized
         whenNotFrozen
     {
-        vestingWhitelist[vesting] = true;
-        ITeamVesting(vesting).governanceWithdrawTokens(receiver);
-        vestingWhitelist[vesting] = false;
+        require(vestingRegistryLogic.isTeamVesting(vesting), "Only team vesting allowed");
+
+        ITeamVesting teamVesting = ITeamVesting(vesting);
+        uint256 teamVestingStartDate = teamVesting.startDate();
+        uint256 teamVestingEndDate = teamVesting.endDate();
+        uint256 teamVestingCliff = teamVesting.cliff();
+        for (
+            uint256 i = teamVestingStartDate + teamVestingCliff;
+            i <= teamVestingEndDate;
+            i += FOUR_WEEKS
+        ) {
+            _cancelTeamVesting(vesting, receiver, i);
+        }
 
         emit VestingTokensWithdrawn(vesting, receiver);
     }
