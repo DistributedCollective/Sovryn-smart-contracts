@@ -508,7 +508,9 @@ contract("Staking", (accounts) => {
                 36 * WEEK,
                 feeSharingCollectorProxy.address
             );
+
             vesting = await VestingLogic.at(vesting.address);
+            await staking.addContractCodeHash(vesting.address);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -596,6 +598,7 @@ contract("Staking", (accounts) => {
                 feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
+            await staking.addContractCodeHash(vesting.address);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);

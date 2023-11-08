@@ -99,7 +99,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         address _vesting,
         address _receiver,
         uint256 _startFrom
-    ) private {
+    ) private returns (uint256 end, bool isPartiallyCancelled) {
         require(_receiver != address(0), "receiver address invalid");
 
         ITeamVesting teamVesting = ITeamVesting(_vesting);
@@ -140,8 +140,10 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
 
         if (adjustedEnd < end) {
             emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd);
+            return (adjustedEnd, true);
         } else {
             emit TeamVestingCancelled(msg.sender, _receiver);
+            return (end, false);
         }
     }
 
@@ -356,14 +358,15 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
 
         ITeamVesting teamVesting = ITeamVesting(vesting);
         uint256 teamVestingStartDate = teamVesting.startDate();
-        uint256 teamVestingEndDate = teamVesting.endDate();
-        uint256 teamVestingCliff = teamVesting.cliff();
-        for (
-            uint256 i = teamVestingStartDate + teamVestingCliff;
-            i <= teamVestingEndDate;
-            i += FOUR_WEEKS
-        ) {
-            _cancelTeamVesting(vesting, receiver, i);
+
+        uint256 startFrom = teamVestingStartDate;
+        bool withdrawFlag = true;
+
+        while (withdrawFlag) {
+            (uint256 end, bool isPartiallyCancelled) =
+                _cancelTeamVesting(vesting, receiver, startFrom);
+            startFrom = end + TWO_WEEKS;
+            withdrawFlag = isPartiallyCancelled ? true : false;
         }
 
         emit VestingTokensWithdrawn(vesting, receiver);
