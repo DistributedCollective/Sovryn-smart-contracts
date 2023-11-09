@@ -758,6 +758,39 @@ const getArgsSip0047 = async (hre) => {
     };
     return { args, governor: "GovernorOwner" };
 };
+const getArgsSip_SOV_3161 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const protocol = await ethers.getContract("ISovryn");
+    const loanOpeningsModule = await get("LoanOpenings");
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget("setDelegatedManager(bytes32,address,bool)")) ==
+        loanOpeningsModule.address
+    ) {
+        logger.error("LoanOpenings module deployment already registered in the protocol");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [protocol.address],
+        values: [0],
+        signatures: ["replaceContract(address)"],
+        data: [abiCoder.encode(["address"], [loanOpeningsModule.address])],
+        description:
+            "SIP-XXXX: _______________, Details: https://github.com/DistributedCollective/SIPS/blob/_______/________.md, sha256: ____________",
+    };
+    return { args, governor: "GovernorOwner" };
+};
 
 module.exports = {
     sampleGovernorAdminSIP,
@@ -771,4 +804,5 @@ module.exports = {
     getArgsSip0046Part2,
     getArgsSip0046Part3,
     getArgsSip0046Part4,
+    getArgsSip_SOV_3161,
 };
