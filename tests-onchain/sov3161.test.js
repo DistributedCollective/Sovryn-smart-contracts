@@ -1,4 +1,6 @@
-// @todo run on a local forked rsk testnet node!
+// @todo run on a local forked rsk testnet or mainnet nodes
+//  npx hardhat node --fork https://testnet.sovryn.app/rpc --no-deploy
+//  npx hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy
 const Logs = require("node-logs");
 const log = console.log;
 const { expect } = require("chai");
