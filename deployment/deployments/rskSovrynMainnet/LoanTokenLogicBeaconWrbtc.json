@@ -1,5 +1,5 @@
 {
-  "address": "0xF8c5a9B496cDda3A884A9381bF717D8F35d6a86A",
+  "address": "0x845eF7Be59664899398282Ef42239634aBDd752C",
   "abi": [
     {
       "anonymous": false,
@@ -31,6 +31,31 @@
         }
       ],
       "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "oldPauser",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newPauser",
+          "type": "address"
+        }
+      ],
+      "name": "SetPauser",
       "type": "event"
     },
     {
@@ -216,6 +241,21 @@
       "type": "function"
     },
     {
+      "constant": true,
+      "inputs": [],
+      "name": "pauser",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "constant": false,
       "inputs": [
         {
@@ -255,6 +295,21 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "newPauser",
+          "type": "address"
+        }
+      ],
+      "name": "setPauser",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
           "name": "newOwner",
           "type": "address"
         }
@@ -274,5 +329,299 @@
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ]
+  ],
+  "transactionHash": "0xaac1c715243cc6d79501a53cf03abe82c127b4cf6dd844351bc984bc8a8586b0",
+  "receipt": {
+    "to": null,
+    "from": "0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae",
+    "contractAddress": "0x845eF7Be59664899398282Ef42239634aBDd752C",
+    "transactionIndex": 0,
+    "gasUsed": "1348225",
+    "logsBloom": "0x00000000000020000000000000000000000000000000000000800000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000020000000000000000001800000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000100000000000020000000000000000000000000000000000000000000000000000000100000000000",
+    "blockHash": "0xf34fcce1cdee99302e4121bcd3063f220ffd8dc33ce4fcb76424da3f501a12ca",
+    "transactionHash": "0xaac1c715243cc6d79501a53cf03abe82c127b4cf6dd844351bc984bc8a8586b0",
+    "logs": [
+      {
+        "transactionIndex": 0,
+        "blockNumber": 5708869,
+        "transactionHash": "0xaac1c715243cc6d79501a53cf03abe82c127b4cf6dd844351bc984bc8a8586b0",
+        "address": "0x845eF7Be59664899398282Ef42239634aBDd752C",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x00000000000000000000000013be55487d37fe3c66ee7305e1e9c1ac85de75ae"
+        ],
+        "data": "0x",
+        "logIndex": 0,
+        "blockHash": "0xf34fcce1cdee99302e4121bcd3063f220ffd8dc33ce4fcb76424da3f501a12ca"
+      }
+    ],
+    "blockNumber": 5708869,
+    "cumulativeGasUsed": "1348225",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "95f62a041e12061a65b869c91b08367b",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Paused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"oldPauser\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newPauser\",\"type\":\"address\"}],\"name\":\"SetPauser\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Unpaused\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"activeModuleIndex\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"moduleName\",\"type\":\"bytes32\"}],\"name\":\"getActiveFuncSignatureList\",\"outputs\":[{\"internalType\":\"bytes4[]\",\"name\":\"signatureList\",\"type\":\"bytes4[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"moduleName\",\"type\":\"bytes32\"}],\"name\":\"getModuleUpgradeLogLength\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"sig\",\"type\":\"bytes4\"}],\"name\":\"getTarget\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"moduleUpgradeLog\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"implementation\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"updateTimestamp\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"pauser\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"loanTokenModuleAddress\",\"type\":\"address\"}],\"name\":\"registerLoanTokenModule\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"moduleName\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"rollback\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newPauser\",\"type\":\"address\"}],\"name\":\"setPauser\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"getActiveFuncSignatureList(bytes32)\":{\"details\":\"get all active function signature list based on the module name.\",\"params\":{\"moduleName\":\"in bytes32.\"},\"return\":\"the array of function signature.\"},\"getModuleUpgradeLogLength(bytes32)\":{\"details\":\"Get total length of the module upgrade log.\",\"params\":{\"moduleName\":\"in bytes32.\"},\"return\":\"length of module upgrade log.\"},\"getTarget(bytes4)\":{\"params\":{\"sig\":\"The signature.\"},\"return\":\"The address for a given signature.\"},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"pause()\":{\"details\":\"Called by the owner to pause, triggers stopped state.\"},\"paused()\":{\"details\":\"Returns true if the contract is paused, and false otherwise.\"},\"registerLoanTokenModule(address)\":{\"details\":\"This function will store the updated protocol module to the storage (For rollback purposes)\",\"params\":{\"loanTokenModuleAddress\":\"The module target address\"}},\"rollback(bytes32,uint256)\":{\"params\":{\"index\":\"index / version of previous deployment\",\"moduleName\":\"Name of module in bytes32 format\"}},\"setPauser(address)\":{\"params\":{\"newPauser\":\"The new address of the pauser.\"}},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"},\"unpause()\":{\"details\":\"Called by the owner to unpause, returns to normal state.\"}},\"title\":\"Loan Token Logic Beacon contract.\"},\"userdoc\":{\"methods\":{\"getTarget(bytes4)\":{\"notice\":\"External getter for target addresses.\"},\"registerLoanTokenModule(address)\":{\"notice\":\"Register the loanTokenModule (LoanTokenSettingsLowerAdmin, LoanTokenLogicLM / LoanTokenLogicWrbtc, etc)\"},\"rollback(bytes32,uint256)\":{\"notice\":\"This function will rollback particular module to the spesific index / version of deployment\"},\"setPauser(address)\":{\"notice\":\"Set the pauser address.     * only pauser can perform this action.\"}},\"notice\":\"This contract stored the target logic implementation of LoanTokens which has the same logic implementation (LoanTokenLogicLM / LoanTokenLogicWrbtc) Apart from storing the target logic implementation, this contract also has a pause functionality. By implementing pause/unpause functionality in this beacon contract, we can pause the loan token that has the same Logic (LoanTokenLogicLM / LoanTokenLogicWrbtc) at one call. Meanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause specific LoanToken\"}},\"settings\":{\"compilationTarget\":{\"contracts/connectors/loantoken/LoanTokenLogicBeacon.sol\":\"LoanTokenLogicBeacon\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/connectors/loantoken/LoanTokenLogicBeacon.sol\":{\"content\":\"pragma solidity 0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"../../mixins/EnumerableBytes32Set.sol\\\";\\nimport \\\"../../mixins/EnumerableBytes4Set.sol\\\";\\nimport \\\"../../utils/PausableRole.sol\\\";\\nimport \\\"../../openzeppelin/Address.sol\\\";\\n\\n/**\\n * @title Loan Token Logic Beacon contract.\\n *\\n * @notice This contract stored the target logic implementation of LoanTokens which has the same logic implementation (LoanTokenLogicLM / LoanTokenLogicWrbtc)\\n * Apart from storing the target logic implementation, this contract also has a pause functionality.\\n * By implementing pause/unpause functionality in this beacon contract, we can pause the loan token that has the same Logic (LoanTokenLogicLM / LoanTokenLogicWrbtc) at one call.\\n * Meanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause specific LoanToken\\n */\\n\\ncontract LoanTokenLogicBeacon is PausableRole {\\n    using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses\\n    using EnumerableBytes4Set for EnumerableBytes4Set.Bytes4Set; // enumerable map of bytes4 or addresses\\n\\n    mapping(bytes4 => address) private logicTargets;\\n\\n    struct LoanTokenLogicModuleUpdate {\\n        address implementation; // address implementaion of the module\\n        uint256 updateTimestamp; // time of update\\n    }\\n\\n    mapping(bytes32 => LoanTokenLogicModuleUpdate[]) public moduleUpgradeLog; /** the module name as the key */\\n\\n    mapping(bytes32 => uint256) public activeModuleIndex; /** To store the current active index log for module */\\n\\n    mapping(bytes32 => EnumerableBytes4Set.Bytes4Set) private activeFuncSignatureList; /** Store the current active function signature  */\\n\\n    /**\\n     * @dev Modifier to make a function callable only when the contract is not paused.\\n     * This is the overriden function from the pausable contract, so that we can use custom error message.\\n     */\\n    modifier whenNotPaused() {\\n        require(!_paused, \\\"LoanTokenLogicBeacon:paused mode\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @notice Register the loanTokenModule (LoanTokenSettingsLowerAdmin, LoanTokenLogicLM / LoanTokenLogicWrbtc, etc)\\n     *\\n     * @dev This function will store the updated protocol module to the storage (For rollback purposes)\\n     *\\n     * @param loanTokenModuleAddress The module target address\\n     */\\n    function registerLoanTokenModule(address loanTokenModuleAddress) external onlyOwner {\\n        bytes32 moduleName = _registerLoanTokenModule(loanTokenModuleAddress);\\n\\n        // Store the upgrade to the log\\n        moduleUpgradeLog[moduleName].push(\\n            LoanTokenLogicModuleUpdate(loanTokenModuleAddress, block.timestamp)\\n        );\\n        activeModuleIndex[moduleName] = moduleUpgradeLog[moduleName].length - 1;\\n    }\\n\\n    /**\\n     * @notice Register the loanTokenModule (LoanTokenSettingsLowerAdmin, LoanTokenLogicLM / LoanTokenLogicWrbtc, etc)\\n     *\\n     * @dev This registration will require target contract to have the exact function getListFunctionSignatures() which will return functionSignatureList and the moduleName in bytes32\\n     *\\n     * @param loanTokenModuleAddress the target logic of the loan token module\\n     *\\n     * @return the module name\\n     */\\n    function _registerLoanTokenModule(address loanTokenModuleAddress) private returns (bytes32) {\\n        require(\\n            Address.isContract(loanTokenModuleAddress),\\n            \\\"LoanTokenModuleAddress is not a contract\\\"\\n        );\\n\\n        // Get the list of function signature on this loanTokenModulesAddress\\n        (bytes4[] memory functionSignatureList, bytes32 moduleName) =\\n            ILoanTokenLogicModules(loanTokenModuleAddress).getListFunctionSignatures();\\n\\n        /// register / update the module function signature address implementation\\n        for (uint256 i; i < functionSignatureList.length; i++) {\\n            require(functionSignatureList[i] != bytes4(0x0), \\\"ERR_EMPTY_FUNC_SIGNATURE\\\");\\n            logicTargets[functionSignatureList[i]] = loanTokenModuleAddress;\\n            if (!activeFuncSignatureList[moduleName].contains(functionSignatureList[i]))\\n                activeFuncSignatureList[moduleName].addBytes4(functionSignatureList[i]);\\n        }\\n\\n        /// delete the \\\"removed\\\" module function signature in the current implementation\\n        bytes4[] memory activeSignatureListEnum =\\n            activeFuncSignatureList[moduleName].enumerate(\\n                0,\\n                activeFuncSignatureList[moduleName].length()\\n            );\\n        for (uint256 i; i < activeSignatureListEnum.length; i++) {\\n            bytes4 activeSigBytes = activeSignatureListEnum[i];\\n            if (logicTargets[activeSigBytes] != loanTokenModuleAddress) {\\n                logicTargets[activeSigBytes] = address(0);\\n                activeFuncSignatureList[moduleName].removeBytes4(activeSigBytes);\\n            }\\n        }\\n\\n        return moduleName;\\n    }\\n\\n    /**\\n     * @dev get all active function signature list based on the module name.\\n     *\\n     * @param moduleName in bytes32.\\n     *\\n     * @return the array of function signature.\\n     */\\n    function getActiveFuncSignatureList(bytes32 moduleName)\\n        public\\n        view\\n        returns (bytes4[] memory signatureList)\\n    {\\n        signatureList = activeFuncSignatureList[moduleName].enumerate(\\n            0,\\n            activeFuncSignatureList[moduleName].length()\\n        );\\n        return signatureList;\\n    }\\n\\n    /**\\n     * @dev Get total length of the module upgrade log.\\n     *\\n     * @param moduleName in bytes32.\\n     *\\n     * @return length of module upgrade log.\\n     */\\n    function getModuleUpgradeLogLength(bytes32 moduleName) external view returns (uint256) {\\n        return moduleUpgradeLog[moduleName].length;\\n    }\\n\\n    /**\\n     * @notice This function will rollback particular module to the spesific index / version of deployment\\n     *\\n     * @param moduleName Name of module in bytes32 format\\n     * @param index index / version of previous deployment\\n     */\\n    function rollback(bytes32 moduleName, uint256 index) external onlyOwner {\\n        address loanTokenModuleAddress = moduleUpgradeLog[moduleName][index].implementation;\\n        moduleName = _registerLoanTokenModule(loanTokenModuleAddress);\\n        activeModuleIndex[moduleName] = index;\\n    }\\n\\n    /**\\n     * @notice External getter for target addresses.\\n     * @param sig The signature.\\n     * @return The address for a given signature.\\n     * */\\n    function getTarget(bytes4 sig) external view whenNotPaused returns (address) {\\n        return logicTargets[sig];\\n    }\\n}\\n\\ninterface ILoanTokenLogicModules {\\n    function getListFunctionSignatures()\\n        external\\n        pure\\n        returns (bytes4[] memory, bytes32 moduleName);\\n}\\n\",\"keccak256\":\"0x3d1dd9f92557d34e91b5ae252191b6029056a292d0f7b49a0fe3b8b6d9595b59\"},\"contracts/mixins/EnumerableBytes32Set.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\n/**\\n * @title Library for managing loan sets.\\n *\\n * @notice Sets have the following properties:\\n *\\n * - Elements are added, removed, and checked for existence in constant time\\n * (O(1)).\\n * - Elements are enumerated in O(n). No guarantees are made on the ordering.\\n *\\n * Include with `using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;`.\\n * */\\nlibrary EnumerableBytes32Set {\\n    struct Bytes32Set {\\n        /// Position of the value in the `values` array, plus 1 because index 0\\n        /// means a value is not in the set.\\n        mapping(bytes32 => uint256) index;\\n        bytes32[] values;\\n    }\\n\\n    /**\\n     * @notice Add an address value to a set. O(1).\\n     *\\n     * @param set The set of values.\\n     * @param addrvalue The address to add.\\n     *\\n     * @return False if the value was already in the set.\\n     */\\n    function addAddress(Bytes32Set storage set, address addrvalue) internal returns (bool) {\\n        bytes32 value;\\n        assembly {\\n            value := addrvalue\\n        }\\n        return addBytes32(set, value);\\n    }\\n\\n    /**\\n     * @notice Add a value to a set. O(1).\\n     *\\n     * @param set The set of values.\\n     * @param value The new value to add.\\n     *\\n     * @return False if the value was already in the set.\\n     */\\n    function addBytes32(Bytes32Set storage set, bytes32 value) internal returns (bool) {\\n        if (!contains(set, value)) {\\n            set.index[value] = set.values.push(value);\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @notice Remove an address value from a set. O(1).\\n     *\\n     * @param set The set of values.\\n     * @param addrvalue The address to remove.\\n     *\\n     * @return False if the address was not present in the set.\\n     */\\n    function removeAddress(Bytes32Set storage set, address addrvalue) internal returns (bool) {\\n        bytes32 value;\\n        assembly {\\n            value := addrvalue\\n        }\\n        return removeBytes32(set, value);\\n    }\\n\\n    /**\\n     * @notice Remove a value from a set. O(1).\\n     *\\n     * @param set The set of values.\\n     * @param value The value to remove.\\n     *\\n     * @return False if the value was not present in the set.\\n     */\\n    function removeBytes32(Bytes32Set storage set, bytes32 value) internal returns (bool) {\\n        if (contains(set, value)) {\\n            uint256 toDeleteIndex = set.index[value] - 1;\\n            uint256 lastIndex = set.values.length - 1;\\n\\n            /// If the element we're deleting is the last one,\\n            /// we can just remove it without doing a swap.\\n            if (lastIndex != toDeleteIndex) {\\n                bytes32 lastValue = set.values[lastIndex];\\n\\n                /// Move the last value to the index where the deleted value is.\\n                set.values[toDeleteIndex] = lastValue;\\n\\n                /// Update the index for the moved value.\\n                set.index[lastValue] = toDeleteIndex + 1; // All indexes are 1-based\\n            }\\n\\n            /// Delete the index entry for the deleted value.\\n            delete set.index[value];\\n\\n            /// Delete the old entry for the moved value.\\n            set.values.pop();\\n\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @notice Find out whether a value exists in the set.\\n     *\\n     * @param set The set of values.\\n     * @param value The value to find.\\n     *\\n     * @return True if the value is in the set. O(1).\\n     */\\n    function contains(Bytes32Set storage set, bytes32 value) internal view returns (bool) {\\n        return set.index[value] != 0;\\n    }\\n\\n    /**\\n     * @dev Returns true if the value is in the set. O(1).\\n     */\\n    function containsAddress(Bytes32Set storage set, address addrvalue)\\n        internal\\n        view\\n        returns (bool)\\n    {\\n        bytes32 value;\\n        assembly {\\n            value := addrvalue\\n        }\\n        return set.index[value] != 0;\\n    }\\n\\n    /**\\n     * @notice Get all set values.\\n     *\\n     * @param set The set of values.\\n     * @param start The offset of the returning set.\\n     * @param count The limit of number of values to return.\\n     *\\n     * @return An array with all values in the set. O(N).\\n     *\\n     * @dev Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * WARNING: This function may run out of gas on large sets: use {length} and\\n     * {get} instead in these cases.\\n     */\\n    function enumerate(\\n        Bytes32Set storage set,\\n        uint256 start,\\n        uint256 count\\n    ) internal view returns (bytes32[] memory output) {\\n        uint256 end = start + count;\\n        require(end >= start, \\\"addition overflow\\\");\\n        end = set.values.length < end ? set.values.length : end;\\n        if (end == 0 || start >= end) {\\n            return output;\\n        }\\n\\n        output = new bytes32[](end - start);\\n        for (uint256 i; i < end - start; i++) {\\n            output[i] = set.values[i + start];\\n        }\\n        return output;\\n    }\\n\\n    /**\\n     * @notice Get the legth of the set.\\n     *\\n     * @param set The set of values.\\n     *\\n     * @return the number of elements on the set. O(1).\\n     */\\n    function length(Bytes32Set storage set) internal view returns (uint256) {\\n        return set.values.length;\\n    }\\n\\n    /**\\n     * @notice Get an item from the set by its index.\\n     *\\n     * @dev Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * Requirements:\\n     *\\n     * - `index` must be strictly less than {length}.\\n     *\\n     * @param set The set of values.\\n     * @param index The index of the value to return.\\n     *\\n     * @return the element stored at position `index` in the set. O(1).\\n     */\\n    function get(Bytes32Set storage set, uint256 index) internal view returns (bytes32) {\\n        return set.values[index];\\n    }\\n}\\n\",\"keccak256\":\"0xa2801a585c566e07f21c1ebccd0cd0447dd5fd9fe6c1ff2b58d4d979d88a6db0\"},\"contracts/mixins/EnumerableBytes4Set.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\n/**\\n * @title Library for managing loan sets.\\n *\\n * @notice Sets have the following properties:\\n *\\n * - Elements are added, removed, and checked for existence in constant time\\n * (O(1)).\\n * - Elements are enumerated in O(n). No guarantees are made on the ordering.\\n *\\n * Include with `using EnumerableBytes4Set for EnumerableBytes4Set.Bytes4Set;`.\\n * */\\nlibrary EnumerableBytes4Set {\\n    struct Bytes4Set {\\n        /// Position of the value in the `values` array, plus 1 because index 0\\n        /// means a value is not in the set.\\n        mapping(bytes4 => uint256) index;\\n        bytes4[] values;\\n    }\\n\\n    /**\\n     * @notice Add a value to a set. O(1).\\n     *\\n     * @param set The set of values.\\n     * @param value The new value to add.\\n     *\\n     * @return False if the value was already in the set.\\n     */\\n    function addBytes4(Bytes4Set storage set, bytes4 value) internal returns (bool) {\\n        if (!contains(set, value)) {\\n            set.index[value] = set.values.push(value);\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @notice Remove a value from a set. O(1).\\n     *\\n     * @param set The set of values.\\n     * @param value The value to remove.\\n     *\\n     * @return False if the value was not present in the set.\\n     */\\n    function removeBytes4(Bytes4Set storage set, bytes4 value) internal returns (bool) {\\n        if (contains(set, value)) {\\n            uint256 toDeleteIndex = set.index[value] - 1;\\n            uint256 lastIndex = set.values.length - 1;\\n\\n            /// If the element we're deleting is the last one,\\n            /// we can just remove it without doing a swap.\\n            if (lastIndex != toDeleteIndex) {\\n                bytes4 lastValue = set.values[lastIndex];\\n\\n                /// Move the last value to the index where the deleted value is.\\n                set.values[toDeleteIndex] = lastValue;\\n\\n                /// Update the index for the moved value.\\n                set.index[lastValue] = toDeleteIndex + 1; // All indexes are 1-based\\n            }\\n\\n            /// Delete the index entry for the deleted value.\\n            delete set.index[value];\\n\\n            /// Delete the old entry for the moved value.\\n            set.values.pop();\\n\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @notice Find out whether a value exists in the set.\\n     *\\n     * @param set The set of values.\\n     * @param value The value to find.\\n     *\\n     * @return True if the value is in the set. O(1).\\n     */\\n    function contains(Bytes4Set storage set, bytes4 value) internal view returns (bool) {\\n        return set.index[value] != 0;\\n    }\\n\\n    /**\\n     * @notice Get all set values.\\n     *\\n     * @param set The set of values.\\n     * @param start The offset of the returning set.\\n     * @param count The limit of number of values to return.\\n     *\\n     * @return An array with all values in the set. O(N).\\n     *\\n     * @dev Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * WARNING: This function may run out of gas on large sets: use {length} and\\n     * {get} instead in these cases.\\n     */\\n    function enumerate(\\n        Bytes4Set storage set,\\n        uint256 start,\\n        uint256 count\\n    ) internal view returns (bytes4[] memory output) {\\n        uint256 end = start + count;\\n        require(end >= start, \\\"addition overflow\\\");\\n        end = set.values.length < end ? set.values.length : end;\\n        if (end == 0 || start >= end) {\\n            return output;\\n        }\\n\\n        output = new bytes4[](end - start);\\n        for (uint256 i; i < end - start; i++) {\\n            output[i] = set.values[i + start];\\n        }\\n        return output;\\n    }\\n\\n    /**\\n     * @notice Get the legth of the set.\\n     *\\n     * @param set The set of values.\\n     *\\n     * @return the number of elements on the set. O(1).\\n     */\\n    function length(Bytes4Set storage set) internal view returns (uint256) {\\n        return set.values.length;\\n    }\\n\\n    /**\\n     * @notice Get an item from the set by its index.\\n     *\\n     * @dev Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * Requirements:\\n     *\\n     * - `index` must be strictly less than {length}.\\n     *\\n     * @param set The set of values.\\n     * @param index The index of the value to return.\\n     *\\n     * @return the element stored at position `index` in the set. O(1).\\n     */\\n    function get(Bytes4Set storage set, uint256 index) internal view returns (bytes4) {\\n        return set.values[index];\\n    }\\n}\\n\",\"keccak256\":\"0x9dddffd475e2532204ac1c33ba211788b04d83c59e16416b341ea1f2f3a3fd44\"},\"contracts/openzeppelin/Address.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev Collection of functions related to the address type\\n */\\nlibrary Address {\\n    /**\\n     * @dev Returns true if `account` is a contract.\\n     *\\n     * [IMPORTANT]\\n     * ====\\n     * It is unsafe to assume that an address for which this function returns\\n     * false is an externally-owned account (EOA) and not a contract.\\n     *\\n     * Among others, `isContract` will return false for the following\\n     * types of addresses:\\n     *\\n     *  - an externally-owned account\\n     *  - a contract in construction\\n     *  - an address where a contract will be created\\n     *  - an address where a contract lived, but was destroyed\\n     * ====\\n     */\\n    function isContract(address account) internal view returns (bool) {\\n        // According to EIP-1052, 0x0 is the value returned for not-yet created accounts\\n        // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned\\n        // for accounts without code, i.e. `keccak256('')`\\n        bytes32 codehash;\\n        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;\\n        // solhint-disable-next-line no-inline-assembly\\n        assembly {\\n            codehash := extcodehash(account)\\n        }\\n        return (codehash != accountHash && codehash != 0x0);\\n    }\\n\\n    /**\\n     * @dev Converts an `address` into `address payable`. Note that this is\\n     * simply a type cast: the actual underlying value is not changed.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function toPayable(address account) internal pure returns (address payable) {\\n        return address(uint160(account));\\n    }\\n\\n    /**\\n     * @dev Replacement for Solidity's `transfer`: sends `amount` wei to\\n     * `recipient`, forwarding all available gas and reverting on errors.\\n     *\\n     * https://eips.ethereum.org/EIPS/eip-1884[EIP1884] increases the gas cost\\n     * of certain opcodes, possibly making contracts go over the 2300 gas limit\\n     * imposed by `transfer`, making them unable to receive funds via\\n     * `transfer`. {sendValue} removes this limitation.\\n     *\\n     * https://diligence.consensys.net/posts/2019/09/stop-using-soliditys-transfer-now/[Learn more].\\n     *\\n     * IMPORTANT: because control is transferred to `recipient`, care must be\\n     * taken to not create reentrancy vulnerabilities. Consider using\\n     * {ReentrancyGuard} or the\\n     * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html\\n     *   #use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function sendValue(address recipient, uint256 amount) internal {\\n        require(address(this).balance >= amount, \\\"Address: insufficient balance\\\");\\n\\n        // solhint-disable-next-line avoid-call-value\\n        (bool success, ) = recipient.call.value(amount)(\\\"\\\");\\n        require(success, \\\"Address: unable to send value, recipient may have reverted\\\");\\n    }\\n}\\n\",\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\"},\"contracts/openzeppelin/Context.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\ncontract Context {\\n    // Empty internal constructor, to prevent people from mistakenly deploying\\n    // an instance of this contract, which should be used via inheritance.\\n    constructor() internal {}\\n\\n    // solhint-disable-previous-line no-empty-blocks\\n\\n    function _msgSender() internal view returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\"},\"contracts/openzeppelin/Ownable.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\ncontract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() internal {\\n        address msgSender = _msgSender();\\n        _owner = msgSender;\\n        emit OwnershipTransferred(address(0), msgSender);\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(isOwner(), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns true if the caller is the current owner.\\n     */\\n    function isOwner() public view returns (bool) {\\n        return _msgSender() == _owner;\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public onlyOwner {\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     */\\n    function _transferOwnership(address newOwner) internal {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        emit OwnershipTransferred(_owner, newOwner);\\n        _owner = newOwner;\\n    }\\n}\\n\",\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\"},\"contracts/openzeppelin/PausableOz.sol\":{\"content\":\"pragma solidity 0.5.17;\\n\\nimport \\\"./Ownable.sol\\\";\\n\\ncontract PausableOz is Ownable {\\n    /**\\n     * @dev Emitted when the pause is triggered by the owner (`account`).\\n     */\\n    event Paused(address account);\\n\\n    /**\\n     * @dev Emitted when the pause is lifted by the owner (`account`).\\n     */\\n    event Unpaused(address account);\\n\\n    bool internal _paused;\\n\\n    constructor() internal {}\\n\\n    /**\\n     * @dev Returns true if the contract is paused, and false otherwise.\\n     */\\n    function paused() public view returns (bool) {\\n        return _paused;\\n    }\\n\\n    /**\\n     * @dev Modifier to make a function callable only when the contract is not paused.\\n     */\\n    modifier whenNotPaused() {\\n        require(!_paused, \\\"Pausable: paused\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Modifier to make a function callable only when the contract is paused.\\n     */\\n    modifier whenPaused() {\\n        require(_paused, \\\"Pausable: not paused\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Called by the owner to pause, triggers stopped state.\\n     */\\n    function pause() public onlyOwner whenNotPaused {\\n        _paused = true;\\n        emit Paused(_msgSender());\\n    }\\n\\n    /**\\n     * @dev Called by the owner to unpause, returns to normal state.\\n     */\\n    function unpause() public onlyOwner whenPaused {\\n        _paused = false;\\n        emit Unpaused(_msgSender());\\n    }\\n}\\n\",\"keccak256\":\"0x4a5bfd9174a70922a663afdca4ec7462acfcd5642797c1dc7fd830f2bdc233d3\"},\"contracts/utils/PausableRole.sol\":{\"content\":\"pragma solidity 0.5.17;\\n\\nimport \\\"../openzeppelin/PausableOz.sol\\\";\\n\\ncontract PausableRole is PausableOz {\\n    address public pauser;\\n\\n    event SetPauser(address indexed sender, address indexed oldPauser, address indexed newPauser);\\n\\n    /**\\n     * @dev Modifier to make a function callable only when the caller is pauser or owner\\n     */\\n    modifier onlyPauserOrOwner() {\\n        require(isOwner() || msg.sender == pauser, \\\"Pausable: unauthorized\\\"); // SS02\\n        _;\\n    }\\n\\n    /**\\n     * @notice Set the pauser address.\\n     *\\n     * only pauser can perform this action.\\n     *\\n     * @param newPauser The new address of the pauser.\\n     * */\\n    function setPauser(address newPauser) external onlyOwner {\\n        address oldPauser = pauser;\\n        pauser = newPauser;\\n\\n        emit SetPauser(msg.sender, oldPauser, newPauser);\\n    }\\n\\n    /**\\n     * @dev Called by the owner to pause, triggers stopped state.\\n     */\\n    function pause() public onlyPauserOrOwner whenNotPaused {\\n        _paused = true;\\n        emit Paused(_msgSender());\\n    }\\n\\n    /**\\n     * @dev Called by the owner to unpause, returns to normal state.\\n     */\\n    function unpause() public onlyPauserOrOwner whenPaused {\\n        _paused = false;\\n        emit Unpaused(_msgSender());\\n    }\\n}\\n\",\"keccak256\":\"0x3bf693ef3e013c532c5b01201cf0c88cfbe017a471d3fd1c52e61380e3f44672\"}},\"version\":1}",
+  "bytecode": "0x608060405260006100176001600160e01b0361006616565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a35061006a565b3390565b61128f806100796000396000f3fe608060405234801561001057600080fd5b50600436106100f55760003560e01c80637405ca3c116100975780638f32d59b116100665780638f32d59b146101ec578063953aa60b146101f45780639fd0506d14610207578063f2fde38b1461020f576100f5565b80637405ca3c1461019b5780638456cb59146101bc57806387d3b26c146101c45780638da5cb5b146101e4576100f5565b80632d88af4a116100d35780632d88af4a1461014b578063374e40471461015e5780633f4ba83a1461017e5780635c975abb14610186576100f5565b80630e317e8b146100fa5780631873c0611461010f5780631f88c4a214610138575b600080fd5b61010d610108366004610e01565b610222565b005b61012261011d366004610de3565b6102a4565b60405161012f9190611180565b60405180910390f35b610122610146366004610de3565b6102b6565b61010d610159366004610d74565b6102c8565b61017161016c366004610e31565b610340565b60405161012f91906110aa565b61010d610391565b61018e610440565b60405161012f91906110f2565b6101ae6101a9366004610e01565b610450565b60405161012f9291906110c6565b61010d610493565b6101d76101d2366004610de3565b610532565b60405161012f91906110e1565b610171610571565b61018e610580565b61010d610202366004610d74565b6105a4565b61017161064a565b61010d61021d366004610d74565b610659565b61022a610580565b61024f5760405162461bcd60e51b815260040161024690611140565b60405180910390fd5b600082815260036020526040812080548390811061026957fe5b60009182526020909120600290910201546001600160a01b0316905061028e81610689565b6000908152600460205260409020919091555050565b60009081526003602052604090205490565b60046020526000908152604090205481565b6102d0610580565b6102ec5760405162461bcd60e51b815260040161024690611140565b600180546001600160a01b038381166001600160a01b03198316811790935560405191169190829033907f5c2719f5971dd7f2a96ca230f606a73203fc01c5db7731bde30a4e5c0387817290600090a45050565b60008054600160a01b900460ff161561036b5760405162461bcd60e51b815260040161024690611100565b506001600160e01b0319166000908152600260205260409020546001600160a01b031690565b610399610580565b806103ae57506001546001600160a01b031633145b6103ca5760405162461bcd60e51b815260040161024690611170565b600054600160a01b900460ff166103f35760405162461bcd60e51b815260040161024690611110565b6000805460ff60a01b191690557f5db9ee0a495bf2e6ff9c91a7834c1ba4fdd244a5e8aa4e537bd38aeae4b073aa610429610927565b60405161043691906110b8565b60405180910390a1565b600054600160a01b900460ff1690565b6003602052816000526040600020818154811061046957fe5b6000918252602090912060029091020180546001909101546001600160a01b039091169250905082565b61049b610580565b806104b057506001546001600160a01b031633145b6104cc5760405162461bcd60e51b815260040161024690611170565b600054600160a01b900460ff16156104f65760405162461bcd60e51b815260040161024690611100565b6000805460ff60a01b1916600160a01b1790557f62e78cea01bee320cd4e420270b5ea74000d11b0c9f74754ebdbfc544b05a258610429610927565b600081815260056020526040812060609161056b916105509061092b565b6000858152600560205260409020919063ffffffff61093216565b92915050565b6000546001600160a01b031690565b600080546001600160a01b0316610595610927565b6001600160a01b031614905090565b6105ac610580565b6105c85760405162461bcd60e51b815260040161024690611140565b60006105d382610689565b6000818152600360209081526040808320815180830183526001600160a01b039788168152428185019081528254600180820185558488528688209351600290920290930180546001600160a01b03191691909a161789555197019690965592825293546004909452206000199290920190915550565b6001546001600160a01b031681565b610661610580565b61067d5760405162461bcd60e51b815260040161024690611140565b61068681610a2f565b50565b600061069482610ab0565b6106b05760405162461bcd60e51b815260040161024690611160565b60606000836001600160a01b03166390967de56040518163ffffffff1660e01b815260040160006040518083038186803b1580156106ed57600080fd5b505afa158015610701573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526107299190810190610d92565b9150915060005b825181101561085757825160009084908390811061074a57fe5b60200260200101516001600160e01b031916141561077a5760405162461bcd60e51b815260040161024690611150565b846002600085848151811061078b57fe5b60200260200101516001600160e01b0319166001600160e01b031916815260200190815260200160002060006101000a8154816001600160a01b0302191690836001600160a01b031602179055506108118382815181106107e857fe5b602002602001015160056000858152602001908152602001600020610aec90919063ffffffff16565b61084f5761084d83828151811061082457fe5b602002602001015160056000858152602001908152602001600020610b0b90919063ffffffff16565b505b600101610730565b506000818152600560205260408120606091610876916105509061092b565b905060005b815181101561091d57600082828151811061089257fe5b6020908102919091018101516001600160e01b03198116600090815260029092526040909120549091506001600160a01b03888116911614610914576001600160e01b03198116600090815260026020908152604080832080546001600160a01b031916905586835260059091529020610912908263ffffffff610b8416565b505b5060010161087b565b5090949350505050565b3390565b6001015490565b6060828201838110156109575760405162461bcd60e51b815260040161024690611130565b60018501548111610968578061096e565b60018501545b905080158061097d5750808410155b156109885750610a28565b8381036040519080825280602002602001820160405280156109b4578160200160208202803883390190505b50915060005b848203811015610a255785600101858201815481106109d557fe5b90600052602060002090600891828204019190066004029054906101000a900460e01b838281518110610a0457fe5b6001600160e01b0319909216602092830291909101909101526001016109ba565b50505b9392505050565b6001600160a01b038116610a555760405162461bcd60e51b815260040161024690611120565b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470818114801590610ae457508115155b949350505050565b6001600160e01b03191660009081526020919091526040902054151590565b6000610b178383610aec565b610b7c575060018281018054808301808355600092835260208084206008840401805463ffffffff60079095166004026101000a948502191660e088901c94909402939093179092556001600160e01b0319851683529085905260409091205561056b565b50600061056b565b6000610b908383610aec565b15610b7c576001600160e01b0319821660009081526020849052604090205460018401546000199182019101808214610c5d576000856001018281548110610bd457fe5b90600052602060002090600891828204019190066004029054906101000a900460e01b905080866001018481548110610c0957fe5b600091825260208083206008830401805463ffffffff60079094166004026101000a938402191660e09590951c929092029390931790556001600160e01b0319929092168252869052604090206001830190555b6001600160e01b0319841660009081526020869052604081205560018501805480610c8457fe5b600082815260209020600860001990920191820401805463ffffffff600460078516026101000a02191690559055506001915061056b9050565b803561056b81611226565b600082601f830112610cda57600080fd5b8151610ced610ce8826111b5565b61118e565b91508181835260208401935060208101905083856020840282011115610d1257600080fd5b60005b83811015610d3e5781610d288882610d69565b8452506020928301929190910190600101610d15565b5050505092915050565b803561056b8161123a565b805161056b8161123a565b803561056b81611243565b805161056b81611243565b600060208284031215610d8657600080fd5b6000610ae48484610cbe565b60008060408385031215610da557600080fd5b825167ffffffffffffffff811115610dbc57600080fd5b610dc885828601610cc9565b9250506020610dd985828601610d53565b9150509250929050565b600060208284031215610df557600080fd5b6000610ae48484610d48565b60008060408385031215610e1457600080fd5b6000610e208585610d48565b9250506020610dd985828601610d48565b600060208284031215610e4357600080fd5b6000610ae48484610d5e565b6000610e5b8383610edd565b505060200190565b610e6c81611215565b82525050565b610e6c816111e9565b6000610e86826111dc565b610e9081856111e0565b9350610e9b836111d6565b8060005b83811015610ec9578151610eb38882610e4f565b9750610ebe836111d6565b925050600101610e9f565b509495945050505050565b610e6c816111f4565b610e6c816111fc565b6000610ef36020836111e0565b7f4c6f616e546f6b656e4c6f676963426561636f6e3a706175736564206d6f6465815260200192915050565b6000610f2c6014836111e0565b7314185d5cd8589b194e881b9bdd081c185d5cd95960621b815260200192915050565b6000610f5c6026836111e0565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b6000610fa46011836111e0565b706164646974696f6e206f766572666c6f7760781b815260200192915050565b6000610fd1600c836111e0565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b6000610ff96018836111e0565b7f4552525f454d5054595f46554e435f5349474e41545552450000000000000000815260200192915050565b60006110326028836111e0565b7f4c6f616e546f6b656e4d6f64756c6541646472657373206973206e6f7420612081526718dbdb9d1c9858dd60c21b602082015260400192915050565b600061107c6016836111e0565b7514185d5cd8589b194e881d5b985d5d1a1bdc9a5e995960521b815260200192915050565b610e6c816111f9565b6020810161056b8284610e72565b6020810161056b8284610e63565b604081016110d48285610e72565b610a2860208301846110a1565b60208082528101610a288184610e7b565b6020810161056b8284610ed4565b6020808252810161056b81610ee6565b6020808252810161056b81610f1f565b6020808252810161056b81610f4f565b6020808252810161056b81610f97565b6020808252810161056b81610fc4565b6020808252810161056b81610fec565b6020808252810161056b81611025565b6020808252810161056b8161106f565b6020810161056b82846110a1565b60405181810167ffffffffffffffff811182821017156111ad57600080fd5b604052919050565b600067ffffffffffffffff8211156111cc57600080fd5b5060209081020190565b60200190565b5190565b90815260200190565b600061056b82611209565b151590565b90565b6001600160e01b03191690565b6001600160a01b031690565b600061056b82600061056b826111e9565b61122f816111e9565b811461068657600080fd5b61122f816111f9565b61122f816111fc56fea365627a7a72315820259c6f734f8374ebf4fe635be709b372b6b5f1a1a95976b5f69095e3de50a6e56c6578706572696d656e74616cf564736f6c63430005110040",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100f55760003560e01c80637405ca3c116100975780638f32d59b116100665780638f32d59b146101ec578063953aa60b146101f45780639fd0506d14610207578063f2fde38b1461020f576100f5565b80637405ca3c1461019b5780638456cb59146101bc57806387d3b26c146101c45780638da5cb5b146101e4576100f5565b80632d88af4a116100d35780632d88af4a1461014b578063374e40471461015e5780633f4ba83a1461017e5780635c975abb14610186576100f5565b80630e317e8b146100fa5780631873c0611461010f5780631f88c4a214610138575b600080fd5b61010d610108366004610e01565b610222565b005b61012261011d366004610de3565b6102a4565b60405161012f9190611180565b60405180910390f35b610122610146366004610de3565b6102b6565b61010d610159366004610d74565b6102c8565b61017161016c366004610e31565b610340565b60405161012f91906110aa565b61010d610391565b61018e610440565b60405161012f91906110f2565b6101ae6101a9366004610e01565b610450565b60405161012f9291906110c6565b61010d610493565b6101d76101d2366004610de3565b610532565b60405161012f91906110e1565b610171610571565b61018e610580565b61010d610202366004610d74565b6105a4565b61017161064a565b61010d61021d366004610d74565b610659565b61022a610580565b61024f5760405162461bcd60e51b815260040161024690611140565b60405180910390fd5b600082815260036020526040812080548390811061026957fe5b60009182526020909120600290910201546001600160a01b0316905061028e81610689565b6000908152600460205260409020919091555050565b60009081526003602052604090205490565b60046020526000908152604090205481565b6102d0610580565b6102ec5760405162461bcd60e51b815260040161024690611140565b600180546001600160a01b038381166001600160a01b03198316811790935560405191169190829033907f5c2719f5971dd7f2a96ca230f606a73203fc01c5db7731bde30a4e5c0387817290600090a45050565b60008054600160a01b900460ff161561036b5760405162461bcd60e51b815260040161024690611100565b506001600160e01b0319166000908152600260205260409020546001600160a01b031690565b610399610580565b806103ae57506001546001600160a01b031633145b6103ca5760405162461bcd60e51b815260040161024690611170565b600054600160a01b900460ff166103f35760405162461bcd60e51b815260040161024690611110565b6000805460ff60a01b191690557f5db9ee0a495bf2e6ff9c91a7834c1ba4fdd244a5e8aa4e537bd38aeae4b073aa610429610927565b60405161043691906110b8565b60405180910390a1565b600054600160a01b900460ff1690565b6003602052816000526040600020818154811061046957fe5b6000918252602090912060029091020180546001909101546001600160a01b039091169250905082565b61049b610580565b806104b057506001546001600160a01b031633145b6104cc5760405162461bcd60e51b815260040161024690611170565b600054600160a01b900460ff16156104f65760405162461bcd60e51b815260040161024690611100565b6000805460ff60a01b1916600160a01b1790557f62e78cea01bee320cd4e420270b5ea74000d11b0c9f74754ebdbfc544b05a258610429610927565b600081815260056020526040812060609161056b916105509061092b565b6000858152600560205260409020919063ffffffff61093216565b92915050565b6000546001600160a01b031690565b600080546001600160a01b0316610595610927565b6001600160a01b031614905090565b6105ac610580565b6105c85760405162461bcd60e51b815260040161024690611140565b60006105d382610689565b6000818152600360209081526040808320815180830183526001600160a01b039788168152428185019081528254600180820185558488528688209351600290920290930180546001600160a01b03191691909a161789555197019690965592825293546004909452206000199290920190915550565b6001546001600160a01b031681565b610661610580565b61067d5760405162461bcd60e51b815260040161024690611140565b61068681610a2f565b50565b600061069482610ab0565b6106b05760405162461bcd60e51b815260040161024690611160565b60606000836001600160a01b03166390967de56040518163ffffffff1660e01b815260040160006040518083038186803b1580156106ed57600080fd5b505afa158015610701573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526107299190810190610d92565b9150915060005b825181101561085757825160009084908390811061074a57fe5b60200260200101516001600160e01b031916141561077a5760405162461bcd60e51b815260040161024690611150565b846002600085848151811061078b57fe5b60200260200101516001600160e01b0319166001600160e01b031916815260200190815260200160002060006101000a8154816001600160a01b0302191690836001600160a01b031602179055506108118382815181106107e857fe5b602002602001015160056000858152602001908152602001600020610aec90919063ffffffff16565b61084f5761084d83828151811061082457fe5b602002602001015160056000858152602001908152602001600020610b0b90919063ffffffff16565b505b600101610730565b506000818152600560205260408120606091610876916105509061092b565b905060005b815181101561091d57600082828151811061089257fe5b6020908102919091018101516001600160e01b03198116600090815260029092526040909120549091506001600160a01b03888116911614610914576001600160e01b03198116600090815260026020908152604080832080546001600160a01b031916905586835260059091529020610912908263ffffffff610b8416565b505b5060010161087b565b5090949350505050565b3390565b6001015490565b6060828201838110156109575760405162461bcd60e51b815260040161024690611130565b60018501548111610968578061096e565b60018501545b905080158061097d5750808410155b156109885750610a28565b8381036040519080825280602002602001820160405280156109b4578160200160208202803883390190505b50915060005b848203811015610a255785600101858201815481106109d557fe5b90600052602060002090600891828204019190066004029054906101000a900460e01b838281518110610a0457fe5b6001600160e01b0319909216602092830291909101909101526001016109ba565b50505b9392505050565b6001600160a01b038116610a555760405162461bcd60e51b815260040161024690611120565b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470818114801590610ae457508115155b949350505050565b6001600160e01b03191660009081526020919091526040902054151590565b6000610b178383610aec565b610b7c575060018281018054808301808355600092835260208084206008840401805463ffffffff60079095166004026101000a948502191660e088901c94909402939093179092556001600160e01b0319851683529085905260409091205561056b565b50600061056b565b6000610b908383610aec565b15610b7c576001600160e01b0319821660009081526020849052604090205460018401546000199182019101808214610c5d576000856001018281548110610bd457fe5b90600052602060002090600891828204019190066004029054906101000a900460e01b905080866001018481548110610c0957fe5b600091825260208083206008830401805463ffffffff60079094166004026101000a938402191660e09590951c929092029390931790556001600160e01b0319929092168252869052604090206001830190555b6001600160e01b0319841660009081526020869052604081205560018501805480610c8457fe5b600082815260209020600860001990920191820401805463ffffffff600460078516026101000a02191690559055506001915061056b9050565b803561056b81611226565b600082601f830112610cda57600080fd5b8151610ced610ce8826111b5565b61118e565b91508181835260208401935060208101905083856020840282011115610d1257600080fd5b60005b83811015610d3e5781610d288882610d69565b8452506020928301929190910190600101610d15565b5050505092915050565b803561056b8161123a565b805161056b8161123a565b803561056b81611243565b805161056b81611243565b600060208284031215610d8657600080fd5b6000610ae48484610cbe565b60008060408385031215610da557600080fd5b825167ffffffffffffffff811115610dbc57600080fd5b610dc885828601610cc9565b9250506020610dd985828601610d53565b9150509250929050565b600060208284031215610df557600080fd5b6000610ae48484610d48565b60008060408385031215610e1457600080fd5b6000610e208585610d48565b9250506020610dd985828601610d48565b600060208284031215610e4357600080fd5b6000610ae48484610d5e565b6000610e5b8383610edd565b505060200190565b610e6c81611215565b82525050565b610e6c816111e9565b6000610e86826111dc565b610e9081856111e0565b9350610e9b836111d6565b8060005b83811015610ec9578151610eb38882610e4f565b9750610ebe836111d6565b925050600101610e9f565b509495945050505050565b610e6c816111f4565b610e6c816111fc565b6000610ef36020836111e0565b7f4c6f616e546f6b656e4c6f676963426561636f6e3a706175736564206d6f6465815260200192915050565b6000610f2c6014836111e0565b7314185d5cd8589b194e881b9bdd081c185d5cd95960621b815260200192915050565b6000610f5c6026836111e0565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b6000610fa46011836111e0565b706164646974696f6e206f766572666c6f7760781b815260200192915050565b6000610fd1600c836111e0565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b6000610ff96018836111e0565b7f4552525f454d5054595f46554e435f5349474e41545552450000000000000000815260200192915050565b60006110326028836111e0565b7f4c6f616e546f6b656e4d6f64756c6541646472657373206973206e6f7420612081526718dbdb9d1c9858dd60c21b602082015260400192915050565b600061107c6016836111e0565b7514185d5cd8589b194e881d5b985d5d1a1bdc9a5e995960521b815260200192915050565b610e6c816111f9565b6020810161056b8284610e72565b6020810161056b8284610e63565b604081016110d48285610e72565b610a2860208301846110a1565b60208082528101610a288184610e7b565b6020810161056b8284610ed4565b6020808252810161056b81610ee6565b6020808252810161056b81610f1f565b6020808252810161056b81610f4f565b6020808252810161056b81610f97565b6020808252810161056b81610fc4565b6020808252810161056b81610fec565b6020808252810161056b81611025565b6020808252810161056b8161106f565b6020810161056b82846110a1565b60405181810167ffffffffffffffff811182821017156111ad57600080fd5b604052919050565b600067ffffffffffffffff8211156111cc57600080fd5b5060209081020190565b60200190565b5190565b90815260200190565b600061056b82611209565b151590565b90565b6001600160e01b03191690565b6001600160a01b031690565b600061056b82600061056b826111e9565b61122f816111e9565b811461068657600080fd5b61122f816111f9565b61122f816111fc56fea365627a7a72315820259c6f734f8374ebf4fe635be709b372b6b5f1a1a95976b5f69095e3de50a6e56c6578706572696d656e74616cf564736f6c63430005110040",
+  "devdoc": {
+    "methods": {
+      "getActiveFuncSignatureList(bytes32)": {
+        "details": "get all active function signature list based on the module name.",
+        "params": {
+          "moduleName": "in bytes32."
+        },
+        "return": "the array of function signature."
+      },
+      "getModuleUpgradeLogLength(bytes32)": {
+        "details": "Get total length of the module upgrade log.",
+        "params": {
+          "moduleName": "in bytes32."
+        },
+        "return": "length of module upgrade log."
+      },
+      "getTarget(bytes4)": {
+        "params": {
+          "sig": "The signature."
+        },
+        "return": "The address for a given signature."
+      },
+      "isOwner()": {
+        "details": "Returns true if the caller is the current owner."
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "pause()": {
+        "details": "Called by the owner to pause, triggers stopped state."
+      },
+      "paused()": {
+        "details": "Returns true if the contract is paused, and false otherwise."
+      },
+      "registerLoanTokenModule(address)": {
+        "details": "This function will store the updated protocol module to the storage (For rollback purposes)",
+        "params": {
+          "loanTokenModuleAddress": "The module target address"
+        }
+      },
+      "rollback(bytes32,uint256)": {
+        "params": {
+          "index": "index / version of previous deployment",
+          "moduleName": "Name of module in bytes32 format"
+        }
+      },
+      "setPauser(address)": {
+        "params": {
+          "newPauser": "The new address of the pauser."
+        }
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      },
+      "unpause()": {
+        "details": "Called by the owner to unpause, returns to normal state."
+      }
+    },
+    "title": "Loan Token Logic Beacon contract."
+  },
+  "userdoc": {
+    "methods": {
+      "getTarget(bytes4)": {
+        "notice": "External getter for target addresses."
+      },
+      "registerLoanTokenModule(address)": {
+        "notice": "Register the loanTokenModule (LoanTokenSettingsLowerAdmin, LoanTokenLogicLM / LoanTokenLogicWrbtc, etc)"
+      },
+      "rollback(bytes32,uint256)": {
+        "notice": "This function will rollback particular module to the spesific index / version of deployment"
+      },
+      "setPauser(address)": {
+        "notice": "Set the pauser address.     * only pauser can perform this action."
+      }
+    },
+    "notice": "This contract stored the target logic implementation of LoanTokens which has the same logic implementation (LoanTokenLogicLM / LoanTokenLogicWrbtc) Apart from storing the target logic implementation, this contract also has a pause functionality. By implementing pause/unpause functionality in this beacon contract, we can pause the loan token that has the same Logic (LoanTokenLogicLM / LoanTokenLogicWrbtc) at one call. Meanwhile the pause/unpause function in the LoanTokenLogicProxy is used to pause/unpause specific LoanToken"
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 54419,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 54526,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+        "label": "_paused",
+        "offset": 20,
+        "slot": "0",
+        "type": "t_bool"
+      },
+      {
+        "astId": 61563,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+        "label": "pauser",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 543,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+        "label": "logicTargets",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_bytes4,t_address)"
+      },
+      {
+        "astId": 553,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+        "label": "moduleUpgradeLog",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_mapping(t_bytes32,t_array(t_struct(LoanTokenLogicModuleUpdate)548_storage)dyn_storage)"
+      },
+      {
+        "astId": 557,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+        "label": "activeModuleIndex",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_mapping(t_bytes32,t_uint256)"
+      },
+      {
+        "astId": 561,
+        "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+        "label": "activeFuncSignatureList",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_mapping(t_bytes32,t_struct(Bytes4Set)36541_storage)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_bytes4)dyn_storage": {
+        "base": "t_bytes4",
+        "encoding": "dynamic_array",
+        "label": "bytes4[]",
+        "numberOfBytes": "32"
+      },
+      "t_array(t_struct(LoanTokenLogicModuleUpdate)548_storage)dyn_storage": {
+        "base": "t_struct(LoanTokenLogicModuleUpdate)548_storage",
+        "encoding": "dynamic_array",
+        "label": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_bytes4": {
+        "encoding": "inplace",
+        "label": "bytes4",
+        "numberOfBytes": "4"
+      },
+      "t_mapping(t_bytes32,t_array(t_struct(LoanTokenLogicModuleUpdate)548_storage)dyn_storage)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate[])",
+        "numberOfBytes": "32",
+        "value": "t_array(t_struct(LoanTokenLogicModuleUpdate)548_storage)dyn_storage"
+      },
+      "t_mapping(t_bytes32,t_struct(Bytes4Set)36541_storage)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => struct EnumerableBytes4Set.Bytes4Set)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Bytes4Set)36541_storage"
+      },
+      "t_mapping(t_bytes32,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_bytes4,t_address)": {
+        "encoding": "mapping",
+        "key": "t_bytes4",
+        "label": "mapping(bytes4 => address)",
+        "numberOfBytes": "32",
+        "value": "t_address"
+      },
+      "t_mapping(t_bytes4,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_bytes4",
+        "label": "mapping(bytes4 => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_struct(Bytes4Set)36541_storage": {
+        "encoding": "inplace",
+        "label": "struct EnumerableBytes4Set.Bytes4Set",
+        "members": [
+          {
+            "astId": 36537,
+            "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+            "label": "index",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_mapping(t_bytes4,t_uint256)"
+          },
+          {
+            "astId": 36540,
+            "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+            "label": "values",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_bytes4)dyn_storage"
+          }
+        ],
+        "numberOfBytes": "64"
+      },
+      "t_struct(LoanTokenLogicModuleUpdate)548_storage": {
+        "encoding": "inplace",
+        "label": "struct LoanTokenLogicBeacon.LoanTokenLogicModuleUpdate",
+        "members": [
+          {
+            "astId": 545,
+            "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+            "label": "implementation",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address"
+          },
+          {
+            "astId": 547,
+            "contract": "contracts/connectors/loantoken/LoanTokenLogicBeacon.sol:LoanTokenLogicBeacon",
+            "label": "updateTimestamp",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "64"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
 }

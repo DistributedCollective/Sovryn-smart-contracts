@@ -29,8 +29,21 @@ def main():
     '''
 
     # call the function you want here
+    #governanceTransferStep1()
+    #governanceTransferStep2()
+    # transferProtocolAdminRoleToGovernance()
 
-    
+    # iDLLR
+    # print("Transferring iDLLR admin to: ", conf.contracts['TimelockAdmin'])
+    # loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDLLR'], abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    # data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    # sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # # iDLLR
+    # loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDLLR'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    # print("Transferring iDLLR ownserhip to: ", conf.contracts['TimelockOwner'])
+    # data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    # sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
     #used often:
 
     #### GET DLLR ####
@@ -69,6 +82,7 @@ def main():
 
     #sendTokensFromMultisig(conf.contracts['XUSD'], conf.contracts['Watcher'], 300000e18)
     #sendTokensFromMultisig(conf.contracts['SOV'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 250000e18)
+    #sendFromMultisig(conf.contracts['GenericTokenSender'], 0.014e18)
     #sendFromMultisig('0xc0AAcbDB9Ce627A348B91CfDB67eC6b2FBC3dCbd', 0.1e18)
     #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
     #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
@@ -148,8 +162,7 @@ def main():
     #setMaxTransferSatoshi(300000000)
     #bal = getBalance(conf.contracts['iRBTC'], conf.contracts['multisig'])
     #transferTokens(conf.contracts['iRBTC'], bal)
-    
-    
+
     #MULTIPLE TXS CONFIRM & CHECK - the range is exact tx ids boundaries numbers
     #confirmMultipleTxsWithMS(1511, 1513)
 
@@ -223,16 +236,48 @@ def main():
     #printLendingPoolsData()
 
     #transferOwnershipFromMultisig(conf.contracts["FourYearVestingFactory"], '0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b')
+    # withdrawSovFromMyntReserved(2000000000000000000000)
 
+def guardiansTransfer():
+    ####################################################################
+    ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE SIP-0047 EXECUTION ###
+    ####################################################################
+    
+    # # It is critically important to first transfer pauser role
+    setNewContractGuardian() 
 
-def governanceTransfer():
+def governanceTransferStep1():
+
+    ### THIS SCRIPT SHOULD RUN FIRST TO AVOID EARLY OWNERSHIP TRANSFER WHICH WOULD REQUIRE A SEPARATE SIP ###
+
+    # # ---------- Transfer ownership to gov ----------
+    # # core protocol
+    transferProtocolAdminRoleToGovernance()
+
+    # # loan token
+    transferLoanTokenAdminRoleToGovernance()
+
+    # # Governance
+    # # lockedSOV
+    transferLockedSOVOwnershipToGovernance()
+
+    # # Staking
+    # transferStakingOwnershipToGovernance() -> @todo: SIP to add admin and remove exchequer
+
+    # # VestingRegistry
+    addVestingRegistryGovernanceAdmin()
+
+def governanceTransferStep2():
+    ####################################################################
+    ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE GUARDIANS TRANSFER ###
+    ####################################################################
+
     # # ---------- Transfer ownership to gov ----------
     # # core protocol
     transferProtocolOwnershipToGovernance()
 
     # # loan token
     transferBeaconOwnershipToGovernance()
-    transferLoanTokenAdminRoleToGovernance()
     transferLoanTokenOwnershipToGovernance()
 
     # # oracles
@@ -243,13 +288,16 @@ def governanceTransfer():
 
     # # Governance
     # # lockedSOV
-    transferLockedSOVOwnershipToGovernance()
+    removeExchequerFromLockedSOVAdmin()
 
     # # Staking
-    transferStakingOwnershipToGovernance()
+    # transferStakingOwnershipToGovernance() -> requires a SIP
 
     # # StakingRewards
     transferStakingRewardsOwnershipToGovernance()
 
     # # VestingRegistry
+    # transferVestingRegistryOwnershipToGovernance()
+
+    # getLMInfo()
     transferVestingRegistryOwnershipToGovernance()

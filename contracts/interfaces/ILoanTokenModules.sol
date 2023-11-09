@@ -260,6 +260,13 @@ interface ILoanTokenModules {
         bool useLM
     ) external returns (uint256 loanAmountPaid);
 
+    function marketLiquidity() external view returns (uint256);
+
+    function calculateSupplyInterestRate(uint256 assetBorrow, uint256 assetSupply)
+        external
+        view
+        returns (uint256);
+
     /** START LOAN TOKEN LOGIC STORAGE */
     function pauser() external view returns (address);
 

@@ -263,6 +263,28 @@ contract("LoanTokenAdministration", (accounts) => {
             );
         });
 
+        it("getTarget in loanTokenLogicProxy should return correct target address", async () => {
+            /** Deploy LoanTokenLogicBeacon */
+            const loanTokenLogicBeaconLM = await LoanTokenLogicBeacon.new();
+
+            /** Deploy LoanTokenLogicProxy */
+            loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
+
+            loanToken = await LoanToken.new(
+                owner,
+                loanTokenLogicProxy.address,
+                sovryn.address,
+                WRBTC.address
+            );
+            await loanToken.initialize(SUSD.address, "SUSD", "SUSD"); //iToken
+
+            /** Initialize the loan token logic proxy */
+            loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+            await loanToken.setBeaconAddress(loanTokenLogicBeaconLM.address);
+
+            expect(await loanToken.getTarget()).to.equal(loanTokenLogicProxy.address);
+        });
+
         it("Should revert if target not active in loan token proxy", async () => {
             /** Deploy LoanTokenLogicBeacon */
             const loanTokenLogicBeaconLM = await LoanTokenLogicBeacon.new();

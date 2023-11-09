@@ -23,7 +23,8 @@ def main():
 
     # Call the function you want here
 
-    createProposalSIP0065()
+    newGuardian = contracts['ContractsGuardian']
+    createProposalSIP0047(newGuardian)
 
 
     balanceAfter = acct.balance()
@@ -500,28 +501,6 @@ def createProposalSIP0050():
     print(description)
     #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
-# SIP to set the max vesting withdraw iterations in staking contract
-def createProposalSIP005x():
-    maxWithdrawIterations = 50 # need to be changed by referring to the SIP-050
-    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-
-    # Action
-    targets = [contracts['Staking']]
-    values = [0]
-    signatures = ["setMaxVestingWithdrawIterations(uint256)"]
-    data = staking.setMaxVestingWithdrawIterations.encode_input(maxWithdrawIterations)
-    datas = ["0x" + data[10:]]
-    # TODO finalize the details with github link & checksum
-    description = "SIP-005x: Set max vesting withdraw iterations"
-
-     # Create Proposal
-    print(signatures)
-    print(datas)
-    print(description)
-
-    # @note WE DON'T NEED SIP - can be set via admin (multisig)
-    #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
-
 def createProposalSIP0056():
     # Action
     target = [contracts['SOV']]
@@ -564,4 +543,3 @@ def createProposalSIP0065():
     print(datas)
     print(description)
     createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
-
