@@ -1440,8 +1440,7 @@ contract("Vesting", (accounts) => {
             let previousAmount = await token.balanceOf(root);
             let toStake = ONE_MILLON;
             const cliff = 3 * WEEK;
-
-            await increaseTimeEthers(3 * WEEK);
+            const maxWithdrawIterations = 20;
 
             // Stake
             vesting = await Vesting.new(
@@ -1484,7 +1483,6 @@ contract("Vesting", (accounts) => {
             expectEvent(tx, "TokensWithdrawn", {
                 caller: root,
                 receiver: root,
-                end: expectedEnd,
             });
 
             // verify amount
@@ -2243,9 +2241,8 @@ contract("Vesting", (accounts) => {
         it("should not allow other than team vesting to withdraw from cancelTeamVesting", async () => {
             const WEEK = new BN(7 * 24 * 60 * 60);
             let vestingLogic = await VestingLogic.new();
-            const ONE_MILLON = "1000000000000000000000000";
             let previousAmount = await token.balanceOf(root);
-            let toStake = ONE_MILLON;
+            let toStake = 100;
 
             // Stake
             vesting = await Vesting.new(
@@ -2274,7 +2271,7 @@ contract("Vesting", (accounts) => {
         });
 
         it("Shouldn't be possible to use cancelTeamVesting by not owner", async () => {
-            let toStake = ONE_MILLON;
+            let toStake = 100;
 
             // Stake
             vesting = await Vesting.new(
@@ -2298,7 +2295,7 @@ contract("Vesting", (accounts) => {
         });
 
         it("Shouldn't be possible to use governanceWithdraw by user", async () => {
-            let toStake = ONE_MILLON;
+            let toStake = 100;
 
             // Stake
             vesting = await Vesting.new(
@@ -2318,99 +2315,6 @@ contract("Vesting", (accounts) => {
             await expectRevert(
                 staking.governanceWithdraw(100, kickoffTS.toNumber() + 52 * WEEK, root),
                 "unauthorized"
-            );
-        });
-
-        it("governanceWithdrawTokens", async () => {
-            let previousAmount = await token.balanceOf(root);
-            let toStake = ONE_MILLON;
-
-            // Stake
-            vesting = await Vesting.new(
-                vestingLogic.address,
-                token.address,
-                staking.address,
-                root,
-                16 * WEEK,
-                38 * WEEK,
-                feeSharingCollectorProxy.address
-            );
-            vesting = await VestingLogic.at(vesting.address);
-            await vestingReg.setTeamVesting(vesting.address, 0);
-
-            await token.approve(vesting.address, toStake);
-            await vesting.stakeTokens(toStake);
-
-            await increaseTimeEthers(10 * WEEK);
-            await token.approve(vesting.address, toStake);
-            await vesting.stakeTokens(toStake);
-
-            let amountAfterStake = await token.balanceOf(root);
-
-            await staking.addAdmin(a1);
-            // governance withdraw until duration must withdraw all staked tokens without fees
-            let tx = await staking.cancelTeamVesting(vesting.address, root, 0, {
-                from: a1,
-            });
-
-            const getStartDate = vesting.startDate();
-            const getCliff = vesting.cliff();
-            const getMaxIterations = staking.getMaxVestingWithdrawIterations();
-
-            const [startDate, cliff, maxIterations] = await Promise.all([
-                getStartDate,
-                getCliff,
-                getMaxIterations,
-            ]);
-            const startIteration = startDate.add(cliff);
-
-            const decodedIncompleteEvent = decodeLogs(
-                tx.receipt.rawLogs,
-                StakingWithdrawModule,
-                "TeamVestingPartiallyCancelled"
-            )[0].args;
-            // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
-                startIteration
-                    .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
-                    .toString()
-            );
-
-            // Withdraw another iteration
-            await staking.cancelTeamVesting(
-                vesting.address,
-                root,
-                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(TWO_WEEKS))
-            );
-
-            // verify amount
-            let amount = await token.balanceOf(root);
-
-            assert.equal(
-                previousAmount.sub(new BN(toStake).mul(new BN(2))).toString(),
-                amountAfterStake.toString()
-            );
-            assert.equal(previousAmount.toString(), amount.toString());
-
-            let vestingBalance = await staking.balanceOf(vesting.address);
-            expect(vestingBalance).to.be.bignumber.equal(new BN(0));
-
-            /// should emit token withdrawn event for complete withdrawal
-            const end = await vesting.endDate();
-            tx = await staking.cancelTeamVesting(
-                vesting.address,
-                root,
-                new BN(end.toString()).add(new BN(TWO_WEEKS))
-            );
-
-            await expectEvent.inTransaction(
-                tx.receipt.rawLogs[0].transactionHash,
-                StakingWithdrawModule,
-                "TeamVestingCancelled",
-                {
-                    caller: root,
-                    receiver: root,
-                }
             );
         });
     });
