@@ -19,7 +19,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 
     event TokensStaked(address indexed caller, uint256 amount);
     event VotesDelegated(address indexed caller, address delegatee);
-    event TokensWithdrawn(address indexed caller, address receiver);
+    event TokensWithdrawn(address indexed caller, address receiver, uint256 end);
     event DividendsCollected(
         address indexed caller,
         address loanPoolToken,
@@ -115,7 +115,22 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @param receiver The receiving address.
      * */
     function withdrawTokens(address receiver) public onlyOwners {
-        _withdrawTokens(receiver, false);
+        _withdrawTokens(receiver, false, block.timestamp);
+    }
+
+    /**
+     * @notice Withdraws unlocked tokens partially (based on the max withdraw iteration that has been set) from the staking contract and
+     * forwards them to an address specified by the token owner.
+     * @param receiver The receiving address.
+     * @param startFrom The start value for the iterations.
+     * */
+    function withdrawTokensPartially(address receiver, uint256 startFrom) public onlyOwners {
+        uint256 maxVestingWithdrawIterations = staking.getMaxVestingWithdrawIterations();
+        /// @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
+        uint256 totalIterationValue =
+            (startFrom + (FOUR_WEEKS * (maxVestingWithdrawIterations - 1)));
+        uint256 adjustedEnd = endDate < totalIterationValue ? endDate : totalIterationValue;
+        _withdrawTokens(receiver, false, adjustedEnd);
     }
 
     /**
@@ -126,7 +141,11 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @param isGovernance Whether all tokens (true)
      * or just unlocked tokens (false).
      * */
-    function _withdrawTokens(address receiver, bool isGovernance) internal {
+    function _withdrawTokens(
+        address receiver,
+        bool isGovernance,
+        uint256 endRegularWithdrawal
+    ) internal {
         require(receiver != address(0), "receiver address invalid");
 
         uint96 stake;
@@ -139,7 +158,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         if (staking.allUnlocked() || isGovernance) {
             end = endDate;
         } else {
-            end = block.timestamp;
+            end = endRegularWithdrawal < block.timestamp ? endRegularWithdrawal : block.timestamp;
         }
 
         /// @dev Withdraw for each unlocked position.
@@ -159,7 +178,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
             }
         }
 
-        emit TokensWithdrawn(msg.sender, receiver);
+        emit TokensWithdrawn(msg.sender, receiver, end);
     }
 
     /**

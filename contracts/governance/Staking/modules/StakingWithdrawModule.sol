@@ -358,8 +358,9 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
 
         ITeamVesting teamVesting = ITeamVesting(vesting);
         uint256 teamVestingStartDate = teamVesting.startDate();
+        uint256 teamVestingCliff = teamVesting.cliff();
 
-        uint256 startFrom = teamVestingStartDate;
+        uint256 startFrom = teamVestingStartDate + teamVestingCliff;
         bool withdrawFlag = true;
 
         while (withdrawFlag) {
