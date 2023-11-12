@@ -200,13 +200,31 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
         // console.log("loanId: ", loanId);
         // console.log("decode[0].args: ", decode[0].args);
 
+        const newPrincipal = decode[0].args["newPrincipal"];
+        const newCollateral = decode[0].args["newCollateral"];
+        console.log(`new principal: ${newPrincipal / 1e18}`);
+        console.log(`new collateral: ${newCollateral / 1e18}`);
         const maxDrawdown = await priceFeeds.getMaxDrawdown(
+            XUSD.address,
+            wRBTC.address,
+            newPrincipal, //withdrawAmount,
+            newCollateral, //collateralTokenSent.mul(2),
+            ethers.utils.parseEther("50")
+        );
+
+        console.log(`old principal (withdrawAmount): ${withdrawAmount / 1e18}`);
+        console.log(
+            `old collateral (collateralTokenSent x 2: ${collateralTokenSent.mul(2) / 1e18}`
+        );
+        const oldMaxDrawdown = await priceFeeds.getMaxDrawdown(
             XUSD.address,
             wRBTC.address,
             withdrawAmount, // decode[0].args["newPrincipal"],
             collateralTokenSent.mul(2), // decode[0].args["newCollateral"],
             ethers.utils.parseEther("50")
         );
+        console.log(`old MaxDrawdown: ${oldMaxDrawdown / 1e18}`);
+        console.log(`new MaxDrawdown: ${maxDrawdown / 1e18}`);
 
         const borrowAmountForMaxDrawdown = await loanToken.getBorrowAmountForDeposit(
             maxDrawdown,
@@ -237,7 +255,7 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
         await expectRevert(
             loanToken.connect(borrowerSigner).borrow(
                 loanId, // bytes32 loanId
-                borrowAmountForMaxDrawdown.mul(10115).div(10000), // uint256 withdrawAmount - less than 1.15% error tolerance
+                borrowAmountForMaxDrawdown.mul(1015).div(1000), // uint256 withdrawAmount - less than 1.5% error tolerance
                 durationInSeconds, // uint256 initialLoanDuration
                 "0", // uint256 collateralTokenSent
                 wRBTC.address, // address collateralTokenAddress
