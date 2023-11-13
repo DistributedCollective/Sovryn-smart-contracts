@@ -253,13 +253,17 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
             );
 
             const coef = requiredCollateral.mul(oneEth).div(maxDrawdown);
-            const adjustedBorrowAmount = borrowAmountForMaxDrawdown.div(coef).mul(oneEth);
+            const adjustedBorrowAmount = borrowAmountForMaxDrawdown.mul(oneEth).div(coef);
 
             // console.log(`maxDrawdown: ${maxDrawdown}`);
             // console.log(`borrowAmount for maxDrawdown: ${borrowAmountForMaxDrawdown}`);
-            // console.log(`requiredCollateral for borrowAmount for maxDrawdown: ${requiredCollateral}`);
-            // console.log(`coef = requiredCollateral.mul(oneEth).div(maxDrawdown): ${coef}`);
-            // console.log(`adjustedBorrowAmount: ${adjustedBorrowAmount}`);
+            console.log(
+                `requiredCollateral for borrowAmount for maxDrawdown ${
+                    borrowAmountForMaxDrawdown / 1e18
+                }: ${requiredCollateral / 1e18}`
+            );
+            console.log(`coef = requiredCollateral.mul(oneEth).div(maxDrawdown): ${coef / 1e18}`);
+            console.log(`adjustedBorrowAmount: ${adjustedBorrowAmount / 1e18}`);
 
             // console.log(`
             //     borrowAmountForMaxDrawdown.mul(1012).div(1000): ${borrowAmountForMaxDrawdown
@@ -370,6 +374,8 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
 
             const newPrincipal = decode[0].args["newPrincipal"];
             const newCollateral = decode[0].args["newCollateral"];
+            console.log(`newPrincipal: ${newPrincipal / 1e18}`);
+            console.log(`newCollateral: ${newCollateral / 1e18}`);
             const maxDrawdown = await priceFeeds.getMaxDrawdown(
                 underlyingToken.address,
                 wRBTC.address,
@@ -389,6 +395,8 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
                 durationInSeconds,
                 wRBTC.address
             );
+
+            log(`required collateral: ${requiredCollateral / 1e18}`);
 
             // const coef = requiredCollateral.mul(oneEth).div(maxDrawdown);
             // const adjustedBorrowAmount = borrowAmountForMaxDrawdown.div(coef).mul(oneEth);
@@ -417,6 +425,17 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
             ).wait();
 
             decode = decodeLogs(receipt2.events, LoanOpenings, "Borrow");
+            let newPrincipal2 = decode[0].args["newPrincipal"];
+            let newCollateral2 = decode[0].args["newCollateral"];
+            console.log(`newPrincipal2 log: ${newPrincipal2 / 1e18}`);
+            console.log(`newCollateral2 log: ${newCollateral2 / 1e18}`);
+
+            const loan = await protocol.getLoan(loanId);
+            newPrincipal2 = loan.principal;
+            newCollateral2 = loan.collateral;
+            console.log(`newPrincipal2: ${newPrincipal2 / 1e18}`);
+            console.log(`newCollateral2: ${newCollateral2 / 1e18}`);
+
             const currentMargin = decode[0].args["currentMargin"];
             expect(
                 ethers.BigNumber.from(currentMargin).gte(ethers.utils.parseEther("15")),
@@ -426,12 +445,16 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
             const postMaxDrawdown = await priceFeeds.getMaxDrawdown(
                 underlyingToken.address,
                 wRBTC.address,
-                newPrincipal,
-                newCollateral,
+                newPrincipal2,
+                newCollateral2,
                 ethers.utils.parseEther("50")
             );
-            //console.log(`postMaxDrawdown: ${postMaxDrawdown}`);
-            expect(postMaxDrawdown.eq(maxDrawdown.div(2)));
+            console.log(`postMaxDrawdown: ${postMaxDrawdown / 1e18}`);
+            console.log(`maxDrawdown: ${maxDrawdown / 1e18}`);
+            expect(maxDrawdown.div(2).sub(postMaxDrawdown).toNumber() / 1e18).to.be.closeTo(
+                0,
+                0.0001
+            );
             log(">>> test passed");
         }
     });
