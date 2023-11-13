@@ -67,13 +67,12 @@ const getImpersonatedSigner = async (addressToImpersonate) => {
 
 // QA Tests
 describe("Check if Borrowing from existing loan using excessive collateral of the loan works", async () => {
-    let snapshot, accounts, borrower, borrowerSigner, receiver, receiverSigner;
+    let snapshot, accounts, borrower, borrowerSigner, receiver, receiverSigner, lendingPools;
     let feeSharingCollectorProxy,
         feeSharingCollectorDeployment,
         feeSharingCollector,
         protocol,
         priceFeeds,
-        XUSD,
         wRBTC;
 
     before(async () => {
@@ -88,6 +87,15 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
                 },
             ],
         });*/
+        lendingPools = [
+            { pool: "LoanToken_iXUSD", token: "XUSD" },
+            { pool: "LoanToken_iDLLR", token: "DLLR" },
+            { pool: "LoanToken_iDOC", token: "DoC" },
+            // { pool: "LoanToken_iBPRO", token: "BPro" },
+            // {pool: "LoanToken_iRBTC", token: "WRBTC"}, // ?
+            // { pool: "LoanToken_iUSDT", token: "USDT" },
+        ];
+
         accounts = await ethers.getSigners();
         borrowerSigner = accounts[1]; //(await get("MultiSigWallet")).address;
         borrower = borrowerSigner.address; //accounts[1]; //(await get("MultiSigWallet")).address;
@@ -110,7 +118,6 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
 
         priceFeeds = await ethers.getContract("PriceFeeds", ownerSigner);
         wRBTC = await ethers.getContract("WRBTC");
-        XUSD = await ethers.getContract("XUSD");
 
         await wRBTC.connect(accounts[1]).deposit({ value: ethers.utils.parseEther("1") });
 
@@ -139,277 +146,293 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
     it("Test increasing existing loan debt by borrowing with 0 collateral", async () => {
         // determine borrowing parameter
         const withdrawAmount = oneEth.mul(100); //borrow 100 USD
-        const loanToken = await ethers.getContract("LoanToken_iXUSD");
 
-        // compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
-        let collateralTokenSent = await protocol.getRequiredCollateral(
-            XUSD.address,
-            wRBTC.address,
-            withdrawAmount,
-            ethers.utils.parseEther("50"), // <- minInitialMargin // new BN(10).pow(new BN(18)).mul(new BN(50)), //
-            true
-        );
-        // console.log(
-        //     `collateralTokenSent: required RBTC collateral to borrow 100 USD with 50% margin: ${collateralTokenSent}`
-        // );
+        for (let i = 0; i < lendingPools.length; i++) {
+            log(`======= TESTING ${lendingPools[i].pool} =======`);
+            const loanToken = await ethers.getContract(lendingPools[i].pool);
+            const underlyingToken = await ethers.getContract(lendingPools[i].token);
 
-        const durationInSeconds = 60 * 60 * 24 * 10; //10 days
-        // getDepositAmountForBorrow uses getRequiredCollateral, but adds borrowing fee first to calculate total principal amout for loan token
-        collateralTokenSent = await loanToken.getDepositAmountForBorrow(
-            withdrawAmount,
-            durationInSeconds,
-            wRBTC.address
-        );
+            // compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
+            console.log(`lendingPools[i].token: ${lendingPools[i].token}`);
+            let collateralTokenSent = await protocol.getRequiredCollateral(
+                underlyingToken.address,
+                wRBTC.address,
+                withdrawAmount,
+                ethers.utils.parseEther("50"), // <- minInitialMargin // new BN(10).pow(new BN(18)).mul(new BN(50)), //
+                true
+            );
+            // console.log(
+            //     `collateralTokenSent: required RBTC collateral to borrow 100 USD with 50% margin: ${collateralTokenSent}`
+            // );
 
-        // console.log(
-        //     `getDepositAmountForBorrow: required RBTC collateral to borrow 100 USD with 50% margin: ${collateralTokenSent}`
-        // );
+            const durationInSeconds = 60 * 60 * 24 * 10; //10 days
+            // getDepositAmountForBorrow uses getRequiredCollateral, but adds borrowing fee first to calculate total principal amout for loan token
+            collateralTokenSent = await loanToken.getDepositAmountForBorrow(
+                withdrawAmount,
+                durationInSeconds,
+                wRBTC.address
+            );
 
-        // console.log(
-        //     `required RBTC collateral to borrow 100 USD using loanToken.getDepositAmountForBorrow for 10 days: ${collateralTokenSent}`
-        // );
+            // console.log(
+            //     `getDepositAmountForBorrow: required RBTC collateral to borrow 100 USD with 50% margin: ${collateralTokenSent}`
+            // );
 
-        const { rate: exchange_rate, precision } = await priceFeeds.queryRate(
-            wRBTC.address,
-            XUSD.address
-        );
-        // console.log(`ex rate: ${exchange_rate}`);
+            // console.log(
+            //     `required RBTC collateral to borrow 100 USD using loanToken.getDepositAmountForBorrow for 10 days: ${collateralTokenSent}`
+            // );
 
-        // approve the transfer of the collateral
-        await wRBTC.connect(borrowerSigner).approve(loanToken.address, collateralTokenSent.mul(2));
+            // const { rate: exchange_rate, precision } = await priceFeeds.queryRate(
+            //     wRBTC.address,
+            //     underlyingToken.address
+            // );
+            // console.log(`ex rate: ${exchange_rate}`);
 
-        // console.log("sender wrbtc balance: ", (await wRBTC.balanceOf(borrower)).toString());
-        // console.log("collateral sent: ", collateralTokenSent.mul(2).toString());
+            // approve the transfer of the collateral
+            await wRBTC
+                .connect(borrowerSigner)
+                .approve(loanToken.address, collateralTokenSent.mul(2));
 
-        const receipt = await (
-            await loanToken.connect(borrowerSigner).borrow(
-                emptyBytes32, // bytes32 loanId
-                withdrawAmount, // uint256 withdrawAmount
-                durationInSeconds, // uint256 initialLoanDuration
-                collateralTokenSent.mul(2), // uint256 collateralTokenSent
-                wRBTC.address, // address collateralTokenAddress
-                borrower, // address borrower
-                receiver, // address receiver
-                emptyBytes32 // bytes memory loanDataBytes
-            )
-        ).wait();
+            // console.log("sender wrbtc balance: ", (await wRBTC.balanceOf(borrower)).toString());
+            // console.log("collateral sent: ", collateralTokenSent.mul(2).toString());
 
-        let decode = decodeLogs(receipt.events, LoanOpenings, "Borrow");
-        const loanId = decode[0].args["loanId"];
+            const receipt = await (
+                await loanToken.connect(borrowerSigner).borrow(
+                    emptyBytes32, // bytes32 loanId
+                    withdrawAmount, // uint256 withdrawAmount
+                    durationInSeconds, // uint256 initialLoanDuration
+                    collateralTokenSent.mul(2), // uint256 collateralTokenSent
+                    wRBTC.address, // address collateralTokenAddress
+                    borrower, // address borrower
+                    receiver, // address receiver
+                    emptyBytes32 // bytes memory loanDataBytes
+                )
+            ).wait();
 
-        // console.log("loanId: ", loanId);
-        // console.log("decode[0].args: ", decode[0].args);
+            let decode = decodeLogs(receipt.events, LoanOpenings, "Borrow");
+            const loanId = decode[0].args["loanId"];
 
-        const newPrincipal = decode[0].args["newPrincipal"];
-        const newCollateral = decode[0].args["newCollateral"];
-        console.log(`new principal: ${newPrincipal / 1e18}`);
-        console.log(`new collateral: ${newCollateral / 1e18}`);
-        const maxDrawdown = await priceFeeds.getMaxDrawdown(
-            XUSD.address,
-            wRBTC.address,
-            newPrincipal, //withdrawAmount,
-            newCollateral, //collateralTokenSent.mul(2),
-            ethers.utils.parseEther("50")
-        );
+            // console.log("loanId: ", loanId);
+            // console.log("decode[0].args: ", decode[0].args);
 
-        console.log(`old principal (withdrawAmount): ${withdrawAmount / 1e18}`);
-        console.log(
-            `old collateral (collateralTokenSent x 2: ${collateralTokenSent.mul(2) / 1e18}`
-        );
-        const oldMaxDrawdown = await priceFeeds.getMaxDrawdown(
-            XUSD.address,
-            wRBTC.address,
-            withdrawAmount, // decode[0].args["newPrincipal"],
-            collateralTokenSent.mul(2), // decode[0].args["newCollateral"],
-            ethers.utils.parseEther("50")
-        );
-        console.log(`old MaxDrawdown: ${oldMaxDrawdown / 1e18}`);
-        console.log(`new MaxDrawdown: ${maxDrawdown / 1e18}`);
+            const newPrincipal = decode[0].args["newPrincipal"];
+            const newCollateral = decode[0].args["newCollateral"];
+            console.log(`new principal: ${newPrincipal / 1e18}`);
+            console.log(`new collateral: ${newCollateral / 1e18}`);
+            const maxDrawdown = await priceFeeds.getMaxDrawdown(
+                underlyingToken.address,
+                wRBTC.address,
+                newPrincipal, //withdrawAmount,
+                newCollateral, //collateralTokenSent.mul(2),
+                ethers.utils.parseEther("50")
+            );
 
-        const borrowAmountForMaxDrawdown = await loanToken.getBorrowAmountForDeposit(
-            maxDrawdown,
-            durationInSeconds,
-            wRBTC.address
-        );
+            console.log(`old principal (withdrawAmount): ${withdrawAmount / 1e18}`);
+            console.log(
+                `old collateral (collateralTokenSent x 2: ${collateralTokenSent.mul(2) / 1e18}`
+            );
+            const oldMaxDrawdown = await priceFeeds.getMaxDrawdown(
+                underlyingToken.address,
+                wRBTC.address,
+                withdrawAmount, // decode[0].args["newPrincipal"],
+                collateralTokenSent.mul(2), // decode[0].args["newCollateral"],
+                ethers.utils.parseEther("50")
+            );
+            console.log(`old MaxDrawdown: ${oldMaxDrawdown / 1e18}`);
+            console.log(`new MaxDrawdown: ${maxDrawdown / 1e18}`);
 
-        const requiredCollateral = await loanToken.getDepositAmountForBorrow(
-            borrowAmountForMaxDrawdown,
-            durationInSeconds,
-            wRBTC.address
-        );
+            const borrowAmountForMaxDrawdown = await loanToken.getBorrowAmountForDeposit(
+                maxDrawdown,
+                durationInSeconds,
+                wRBTC.address
+            );
 
-        const coef = requiredCollateral.mul(oneEth).div(maxDrawdown);
-        const adjustedBorrowAmount = borrowAmountForMaxDrawdown.div(coef).mul(oneEth);
+            const requiredCollateral = await loanToken.getDepositAmountForBorrow(
+                borrowAmountForMaxDrawdown,
+                durationInSeconds,
+                wRBTC.address
+            );
 
-        // console.log(`maxDrawdown: ${maxDrawdown}`);
-        // console.log(`borrowAmount for maxDrawdown: ${borrowAmountForMaxDrawdown}`);
-        // console.log(`requiredCollateral for borrowAmount for maxDrawdown: ${requiredCollateral}`);
-        // console.log(`coef = requiredCollateral.mul(oneEth).div(maxDrawdown): ${coef}`);
-        // console.log(`adjustedBorrowAmount: ${adjustedBorrowAmount}`);
+            const coef = requiredCollateral.mul(oneEth).div(maxDrawdown);
+            const adjustedBorrowAmount = borrowAmountForMaxDrawdown.div(coef).mul(oneEth);
 
-        // console.log(`
-        //     borrowAmountForMaxDrawdown.mul(1012).div(1000): ${borrowAmountForMaxDrawdown
-        //         .mul(1012)
-        //         .div(1000)}`);
+            // console.log(`maxDrawdown: ${maxDrawdown}`);
+            // console.log(`borrowAmount for maxDrawdown: ${borrowAmountForMaxDrawdown}`);
+            // console.log(`requiredCollateral for borrowAmount for maxDrawdown: ${requiredCollateral}`);
+            // console.log(`coef = requiredCollateral.mul(oneEth).div(maxDrawdown): ${coef}`);
+            // console.log(`adjustedBorrowAmount: ${adjustedBorrowAmount}`);
 
-        await expectRevert(
-            loanToken.connect(borrowerSigner).borrow(
-                loanId, // bytes32 loanId
-                borrowAmountForMaxDrawdown.mul(1015).div(1000), // uint256 withdrawAmount - less than 1.5% error tolerance
-                durationInSeconds, // uint256 initialLoanDuration
-                "0", // uint256 collateralTokenSent
-                wRBTC.address, // address collateralTokenAddress
-                borrower, // address borrower
-                receiver, // address receiver
-                emptyBytes32 // bytes memory loanDataBytes
-            ),
-            "collateral insufficient"
-        );
+            // console.log(`
+            //     borrowAmountForMaxDrawdown.mul(1012).div(1000): ${borrowAmountForMaxDrawdown
+            //         .mul(1012)
+            //         .div(1000)}`);
 
-        const receipt2 = await (
-            await loanToken.connect(borrowerSigner).borrow(
-                loanId, // bytes32 loanId
-                borrowAmountForMaxDrawdown, // uint256 withdrawAmount
-                durationInSeconds, // uint256 initialLoanDuration
-                "0", // uint256 collateralTokenSent
-                wRBTC.address, // address collateralTokenAddress
-                borrower, // address borrower
-                receiver, // address receiver
-                emptyBytes32 // bytes memory loanDataBytes
-            )
-        ).wait();
+            await expectRevert(
+                loanToken.connect(borrowerSigner).borrow(
+                    loanId, // bytes32 loanId
+                    borrowAmountForMaxDrawdown.mul(1025).div(1000), // uint256 withdrawAmount - less than 1.5% error tolerance
+                    durationInSeconds, // uint256 initialLoanDuration
+                    "0", // uint256 collateralTokenSent
+                    wRBTC.address, // address collateralTokenAddress
+                    borrower, // address borrower
+                    receiver, // address receiver
+                    emptyBytes32 // bytes memory loanDataBytes
+                ),
+                "collateral insufficient"
+            );
 
-        decode = decodeLogs(receipt2.events, LoanOpenings, "Borrow");
-        const currentMargin = decode[0].args["currentMargin"];
-        expect(
-            ethers.BigNumber.from(currentMargin).gte(ethers.utils.parseEther("15")),
-            "Invalid margin"
-        ); // wei("15", "ether") - maintenance margin
+            const receipt2 = await (
+                await loanToken.connect(borrowerSigner).borrow(
+                    loanId, // bytes32 loanId
+                    borrowAmountForMaxDrawdown, // uint256 withdrawAmount
+                    durationInSeconds, // uint256 initialLoanDuration
+                    "0", // uint256 collateralTokenSent
+                    wRBTC.address, // address collateralTokenAddress
+                    borrower, // address borrower
+                    receiver, // address receiver
+                    emptyBytes32 // bytes memory loanDataBytes
+                )
+            ).wait();
+
+            decode = decodeLogs(receipt2.events, LoanOpenings, "Borrow");
+            const currentMargin = decode[0].args["currentMargin"];
+            expect(
+                ethers.BigNumber.from(currentMargin).gte(ethers.utils.parseEther("15")),
+                "Invalid margin"
+            ); // wei("15", "ether") - maintenance margin
+            log(">>> test passed");
+        }
     });
 
     it("Test increasing existing loan debt by borrowing collateral < required collateral", async () => {
-        // determine borrowing parameter
         const withdrawAmount = oneEth.mul(100); //borrow 100 USD
-        const loanToken = await ethers.getContract("LoanToken_iXUSD");
+        for (let i = 0; i < lendingPools.length; i++) {
+            log(`======= TESTING ${lendingPools[i].pool} =======`);
+            const loanToken = await ethers.getContract(lendingPools[i].pool);
+            const underlyingToken = await ethers.getContract(lendingPools[i].token);
+            // determine borrowing parameter
 
-        let collateralTokenSent = await protocol.getRequiredCollateral(
-            XUSD.address,
-            wRBTC.address,
-            withdrawAmount,
-            ethers.utils.parseEther("50"), // <- minInitialMargin // new BN(10).pow(new BN(18)).mul(new BN(50)), //
-            true
-        );
-        // console.log(
-        //     `required RBTC collateral to borrow 100 USD with 50% margin: ${collateralTokenSent}`
-        // );
+            let collateralTokenSent = await protocol.getRequiredCollateral(
+                underlyingToken.address,
+                wRBTC.address,
+                withdrawAmount,
+                ethers.utils.parseEther("50"), // <- minInitialMargin // new BN(10).pow(new BN(18)).mul(new BN(50)), //
+                true
+            );
+            // console.log(
+            //     `required RBTC collateral to borrow 100 USD with 50% margin: ${collateralTokenSent}`
+            // );
 
-        const durationInSeconds = 60 * 60 * 24 * 10; //10 days
-        collateralTokenSent = await loanToken.getDepositAmountForBorrow(
-            withdrawAmount,
-            durationInSeconds,
-            wRBTC.address
-        );
+            const durationInSeconds = 60 * 60 * 24 * 10; //10 days
+            collateralTokenSent = await loanToken.getDepositAmountForBorrow(
+                withdrawAmount,
+                durationInSeconds,
+                wRBTC.address
+            );
 
-        // console.log(
-        //     `required RBTC collateral to borrow 100 USD using loanToken.getDepositAmountForBorrow for 10 days: ${collateralTokenSent}`
-        // );
+            // console.log(
+            //     `required RBTC collateral to borrow 100 USD using loanToken.getDepositAmountForBorrow for 10 days: ${collateralTokenSent}`
+            // );
 
-        const { rate: exchange_rate, precision } = await priceFeeds.queryRate(
-            wRBTC.address,
-            XUSD.address
-        );
-        // console.log(`ex rate: ${exchange_rate}`);
+            const { rate: exchange_rate, precision } = await priceFeeds.queryRate(
+                wRBTC.address,
+                underlyingToken.address
+            );
+            // console.log(`ex rate: ${exchange_rate}`);
 
-        // approve the transfer of the collateral
-        await wRBTC.connect(borrowerSigner).approve(loanToken.address, collateralTokenSent.mul(5));
+            // approve the transfer of the collateral
+            await wRBTC
+                .connect(borrowerSigner)
+                .approve(loanToken.address, collateralTokenSent.mul(5));
 
-        // console.log("borrower balance:", await ethers.provider.getBalance(borrower));
-        await setBalance(borrower, ethers.utils.parseEther("5"));
-        // console.log("sender wrbtc balance: ", (await wRBTC.balanceOf(borrower)).toString());
-        // console.log("collateral sent: ", collateralTokenSent.mul(2).toString());
+            // console.log("borrower balance:", await ethers.provider.getBalance(borrower));
+            await setBalance(borrower, ethers.utils.parseEther("5"));
+            // console.log("sender wrbtc balance: ", (await wRBTC.balanceOf(borrower)).toString());
+            // console.log("collateral sent: ", collateralTokenSent.mul(2).toString());
 
-        const receipt = await (
-            await loanToken.connect(borrowerSigner).borrow(
-                emptyBytes32, // bytes32 loanId
-                withdrawAmount, // uint256 withdrawAmount
-                durationInSeconds, // uint256 initialLoanDuration
-                collateralTokenSent.mul(2), // uint256 collateralTokenSent
-                wRBTC.address, // address collateralTokenAddress
-                borrower, // address borrower
-                receiver, // address receiver
-                emptyBytes32 // bytes memory loanDataBytes
-            )
-        ).wait();
+            const receipt = await (
+                await loanToken.connect(borrowerSigner).borrow(
+                    emptyBytes32, // bytes32 loanId
+                    withdrawAmount, // uint256 withdrawAmount
+                    durationInSeconds, // uint256 initialLoanDuration
+                    collateralTokenSent.mul(2), // uint256 collateralTokenSent
+                    wRBTC.address, // address collateralTokenAddress
+                    borrower, // address borrower
+                    receiver, // address receiver
+                    emptyBytes32 // bytes memory loanDataBytes
+                )
+            ).wait();
 
-        let decode = decodeLogs(receipt.events, LoanOpenings, "Borrow");
-        const loanId = decode[0].args["loanId"];
+            let decode = decodeLogs(receipt.events, LoanOpenings, "Borrow");
+            const loanId = decode[0].args["loanId"];
 
-        // console.log("loanId: ", loanId);
-        // console.log("decode[0].args: ", decode[0].args);
+            // console.log("loanId: ", loanId);
+            // console.log("decode[0].args: ", decode[0].args);
 
-        const newPrincipal = decode[0].args["newPrincipal"];
-        const newCollateral = decode[0].args["newCollateral"];
-        const maxDrawdown = await priceFeeds.getMaxDrawdown(
-            XUSD.address,
-            wRBTC.address,
-            newPrincipal, //withdrawAmount,
-            newCollateral, //collateralTokenSent.mul(2),
-            ethers.utils.parseEther("50")
-        );
+            const newPrincipal = decode[0].args["newPrincipal"];
+            const newCollateral = decode[0].args["newCollateral"];
+            const maxDrawdown = await priceFeeds.getMaxDrawdown(
+                underlyingToken.address,
+                wRBTC.address,
+                newPrincipal, //withdrawAmount,
+                newCollateral, //collateralTokenSent.mul(2),
+                ethers.utils.parseEther("50")
+            );
 
-        const borrowAmountForMaxDrawdown = await loanToken.getBorrowAmountForDeposit(
-            maxDrawdown,
-            durationInSeconds,
-            wRBTC.address
-        );
+            const borrowAmountForMaxDrawdown = await loanToken.getBorrowAmountForDeposit(
+                maxDrawdown,
+                durationInSeconds,
+                wRBTC.address
+            );
 
-        const requiredCollateral = await loanToken.getDepositAmountForBorrow(
-            borrowAmountForMaxDrawdown,
-            durationInSeconds,
-            wRBTC.address
-        );
+            const requiredCollateral = await loanToken.getDepositAmountForBorrow(
+                borrowAmountForMaxDrawdown,
+                durationInSeconds,
+                wRBTC.address
+            );
 
-        // const coef = requiredCollateral.mul(oneEth).div(maxDrawdown);
-        // const adjustedBorrowAmount = borrowAmountForMaxDrawdown.div(coef).mul(oneEth);
+            // const coef = requiredCollateral.mul(oneEth).div(maxDrawdown);
+            // const adjustedBorrowAmount = borrowAmountForMaxDrawdown.div(coef).mul(oneEth);
 
-        // console.log(`maxDrawdown: ${maxDrawdown}`);
-        // console.log(`borrowAmount for maxDrawdown: ${borrowAmountForMaxDrawdown}`);
-        // console.log(
-        //     `requiredCollateral for borrowAmount for maxDrawdown: ${requiredCollateral}`
-        // );
-        // console.log(`coef = requiredCollateral.mul(oneEth).div(maxDrawdown): ${coef}`);
-        // console.log(`adjustedBorrowAmount: ${adjustedBorrowAmount}`);
+            // console.log(`maxDrawdown: ${maxDrawdown}`);
+            // console.log(`borrowAmount for maxDrawdown: ${borrowAmountForMaxDrawdown}`);
+            // console.log(
+            //     `requiredCollateral for borrowAmount for maxDrawdown: ${requiredCollateral}`
+            // );
+            // console.log(`coef = requiredCollateral.mul(oneEth).div(maxDrawdown): ${coef}`);
+            // console.log(`adjustedBorrowAmount: ${adjustedBorrowAmount}`);
 
-        // approve the transfer of the collateral
+            // approve the transfer of the collateral
 
-        const receipt2 = await (
-            await loanToken.connect(borrowerSigner).borrow(
-                loanId, // bytes32 loanId
-                borrowAmountForMaxDrawdown, // uint256 withdrawAmount
-                durationInSeconds, // uint256 initialLoanDuration
-                requiredCollateral.div(2), // uint256 collateralTokenSent
-                wRBTC.address, // address collateralTokenAddress
-                borrower, // address borrower
-                receiver, // address receiver
-                emptyBytes32 // bytes memory loanDataBytes
-            )
-        ).wait();
+            const receipt2 = await (
+                await loanToken.connect(borrowerSigner).borrow(
+                    loanId, // bytes32 loanId
+                    borrowAmountForMaxDrawdown, // uint256 withdrawAmount
+                    durationInSeconds, // uint256 initialLoanDuration
+                    requiredCollateral.div(2), // uint256 collateralTokenSent
+                    wRBTC.address, // address collateralTokenAddress
+                    borrower, // address borrower
+                    receiver, // address receiver
+                    emptyBytes32 // bytes memory loanDataBytes
+                )
+            ).wait();
 
-        decode = decodeLogs(receipt2.events, LoanOpenings, "Borrow");
-        const currentMargin = decode[0].args["currentMargin"];
-        expect(
-            ethers.BigNumber.from(currentMargin).gte(ethers.utils.parseEther("15")),
-            "Invalid margin"
-        ); // wei("15", "ether") - maintenance margin
+            decode = decodeLogs(receipt2.events, LoanOpenings, "Borrow");
+            const currentMargin = decode[0].args["currentMargin"];
+            expect(
+                ethers.BigNumber.from(currentMargin).gte(ethers.utils.parseEther("15")),
+                "Invalid margin"
+            ); // wei("15", "ether") - maintenance margin
 
-        const postMaxDrawdown = await priceFeeds.getMaxDrawdown(
-            XUSD.address,
-            wRBTC.address,
-            newPrincipal,
-            newCollateral,
-            ethers.utils.parseEther("50")
-        );
-        //console.log(`postMaxDrawdown: ${postMaxDrawdown}`);
-        expect(postMaxDrawdown.eq(maxDrawdown.div(2)));
+            const postMaxDrawdown = await priceFeeds.getMaxDrawdown(
+                underlyingToken.address,
+                wRBTC.address,
+                newPrincipal,
+                newCollateral,
+                ethers.utils.parseEther("50")
+            );
+            //console.log(`postMaxDrawdown: ${postMaxDrawdown}`);
+            expect(postMaxDrawdown.eq(maxDrawdown.div(2)));
+            log(">>> test passed");
+        }
     });
 });
