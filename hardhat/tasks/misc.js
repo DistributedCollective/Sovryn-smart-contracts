@@ -259,7 +259,7 @@ task("getBalanceOf", "Get ERC20 or native token balance of an account or address
                     logger.success(
                         `${tokenSymbol} (${
                             tokenContract.address
-                        }) balance of the user ${account} (${accountAddress}): 
+                        }) balance of the account ${account} (${accountAddress}): 
                         ${balance / decimalsDivider}`
                     );
                 }
