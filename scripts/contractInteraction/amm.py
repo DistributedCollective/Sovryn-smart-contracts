@@ -298,6 +298,7 @@ def printV1ConverterData(converterAddress): #, reserve1, reserve2
             print('oracle:', converter.oracle())
         except:
             print('NO ORACLE!')
+    print('converter.conversionFee():', converter.conversionFee()) 
     print('converter.reserveRatio():', converter.reserveRatio())
     print('amm converter pool token (anchor):', anchor)
     print('reserve token: (balance, weight, deprecated1, deprecated2, isSet)')
