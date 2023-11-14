@@ -213,48 +213,56 @@ task("misc:forkedchain:vestingStake", "Stakes from vesting contract")
     });
 
 task("getBalanceOf", "Get ERC20 or native token balance of an account or address")
-    .addParam("account", "Address or contract name to get balance of")
-    .addOptionalParam("token", "'RBTC' or ERC20 token name e.g. 'SOV', default: 'RBTC'", "RBTC")
+    .addParam(
+        "accounts",
+        "Address(es) or named account(s) contract name(s) to get balance of: 'deployer' or 'MultiSigWallet,deployer,0x542fda317318ebf1d3deaf76e0b632741a7e677d'"
+    )
+    .addOptionalParam(
+        "tokens",
+        "'RBTC' or ERC20 token name(s) or address(es) e.g. 'SOV' or 'SOV,RBTC,0x542fda317318ebf1d3deaf76e0b632741a7e677d', default: 'RBTC'",
+        "RBTC"
+    )
     .addOptionalParam("decimals", "Return decimal or int amount?", true, types.boolean)
-    .setAction(async ({ account, decimals, token }, hre) => {
-        const {
-            ethers,
-            deployments: { get },
-        } = hre;
+    .setAction(async ({ accounts, decimals, tokens }, hre) => {
+        const { ethers } = hre;
 
-        let accountAddress = ethers.utils.isAddress(account)
-            ? account
-            : (await hre.getNamedAccounts())[account];
-        accountAddress = ethers.utils.isAddress(accountAddress)
-            ? accountAddress
-            : (await ethers.getContract(account)).address;
+        const tokensArray = tokens.split(",");
+        for (let token of tokensArray) {
+            const accountsArray = accounts.split(",");
+            for (let account of accountsArray) {
+                let accountAddress = ethers.utils.isAddress(account)
+                    ? account
+                    : (await hre.getNamedAccounts())[account];
+                accountAddress = ethers.utils.isAddress(accountAddress)
+                    ? accountAddress
+                    : (await ethers.getContract(account)).address;
 
-        if (!ethers.utils.isAddress(accountAddress)) {
-            throw Error("Invalid account to get balance of!");
-        }
+                if (!ethers.utils.isAddress(accountAddress)) {
+                    throw Error("Invalid account to get balance of!");
+                }
 
-        if (token === "RBTC") {
-            const balance = await ethers.provider.getBalance(accountAddress);
-            logger.success(
-                `RBTC balance of the account ${account} (${accountAddress}): ${
-                    balance / (decimals ? 1e18 : 1)
-                }`
-            );
-        } else {
-            const tokenContract = ethers.utils.isAddress(token)
-                ? await ethers.getContractAt("IERC20", token)
-                : await ethers.getContract(token);
-            const tokenSymbol = await tokenContract.symbol();
-            const decimalsDivider = ethers.BigNumber.from(decimals ? 10 : 1).pow(
-                await tokenContract.decimals()
-            );
-            const balance = await tokenContract.balanceOf(accountAddress);
-            logger.success(
-                `Token ${tokenSymbol} (${
-                    tokenContract.address
-                }) balance of the user ${account} (${accountAddress}): ${
-                    balance / decimalsDivider
-                }`
-            );
+                if (token === "RBTC") {
+                    const balance = await ethers.provider.getBalance(accountAddress);
+                    logger.success(
+                        `RBTC balance of the account ${account} (${accountAddress}): 
+                        ${balance / (decimals ? 1e18 : 1)}`
+                    );
+                } else {
+                    const tokenContract = ethers.utils.isAddress(token)
+                        ? await ethers.getContractAt("IERC20", token)
+                        : await ethers.getContract(token);
+                    const tokenSymbol = await tokenContract.symbol();
+                    const decimalsDivider = ethers.BigNumber.from(decimals ? 10 : 1).pow(
+                        await tokenContract.decimals()
+                    );
+                    const balance = await tokenContract.balanceOf(accountAddress);
+                    logger.success(
+                        `${tokenSymbol} (${
+                            tokenContract.address
+                        }) balance of the user ${account} (${accountAddress}): 
+                        ${balance / decimalsDivider}`
+                    );
+                }
+            }
         }
     });
