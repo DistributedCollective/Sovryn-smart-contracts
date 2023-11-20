@@ -153,7 +153,7 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
             const underlyingToken = await ethers.getContract(lendingPools[i].token);
 
             // compute the required collateral. params: address loanToken, address collateralToken, uint256 newPrincipal,uint256 marginAmount, bool isTorqueLoan
-            console.log(`lendingPools[i].token: ${lendingPools[i].token}`);
+            // console.log(`lendingPools[i].token: ${lendingPools[i].token}`);
             let collateralTokenSent = await protocol.getRequiredCollateral(
                 underlyingToken.address,
                 wRBTC.address,
@@ -216,31 +216,31 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
 
             const newPrincipal = decode[0].args["newPrincipal"];
             const newCollateral = decode[0].args["newCollateral"];
-            console.log(`new principal: ${newPrincipal / 1e18}`);
-            console.log(`new collateral: ${newCollateral / 1e18}`);
+            // console.log(`new principal: ${newPrincipal / 1e18}`);
+            // console.log(`new collateral: ${newCollateral / 1e18}`);
             const maxDrawdown = await priceFeeds.getMaxDrawdown(
-                underlyingToken.address,
-                wRBTC.address,
+                underlyingToken.address, //borrowing token address
+                wRBTC.address, // collateral token address
                 newPrincipal, //withdrawAmount,
                 newCollateral, //collateralTokenSent.mul(2),
                 ethers.utils.parseEther("50")
             );
 
-            console.log(`old principal (withdrawAmount): ${withdrawAmount / 1e18}`);
-            console.log(
-                `old collateral (collateralTokenSent x 2: ${collateralTokenSent.mul(2) / 1e18}`
-            );
-            const oldMaxDrawdown = await priceFeeds.getMaxDrawdown(
-                underlyingToken.address,
-                wRBTC.address,
-                withdrawAmount, // decode[0].args["newPrincipal"],
-                collateralTokenSent.mul(2), // decode[0].args["newCollateral"],
-                ethers.utils.parseEther("50")
-            );
-            console.log(`old MaxDrawdown: ${oldMaxDrawdown / 1e18}`);
-            console.log(`new MaxDrawdown: ${maxDrawdown / 1e18}`);
+            // console.log(`old principal (withdrawAmount): ${withdrawAmount / 1e18}`);
+            // console.log(
+            //     `old collateral (collateralTokenSent x 2: ${collateralTokenSent.mul(2) / 1e18}`
+            // );
+            // const oldMaxDrawdown = await priceFeeds.getMaxDrawdown(
+            //     underlyingToken.address,
+            //     wRBTC.address,
+            //     withdrawAmount, // decode[0].args["newPrincipal"],
+            //     collateralTokenSent.mul(2), // decode[0].args["newCollateral"],
+            //     ethers.utils.parseEther("50")
+            // );
+            // console.log(`old MaxDrawdown: ${oldMaxDrawdown / 1e18}`);
+            // console.log(`new MaxDrawdown: ${maxDrawdown / 1e18}`);
 
-            const borrowAmountForMaxDrawdown = await loanToken.getBorrowAmountForDeposit(
+            let borrowAmountForMaxDrawdown = await loanToken.getBorrowAmountForDeposit(
                 maxDrawdown,
                 durationInSeconds,
                 wRBTC.address
@@ -252,18 +252,20 @@ describe("Check if Borrowing from existing loan using excessive collateral of th
                 wRBTC.address
             );
 
-            const coef = requiredCollateral.mul(oneEth).div(maxDrawdown);
-            const adjustedBorrowAmount = borrowAmountForMaxDrawdown.mul(oneEth).div(coef);
+            if (requiredCollateral > borrowAmountForMaxDrawdown) {
+                const coef = requiredCollateral.mul(oneEth).div(maxDrawdown);
+                borrowAmountForMaxDrawdown = borrowAmountForMaxDrawdown.mul(oneEth).div(coef);
+            }
 
             // console.log(`maxDrawdown: ${maxDrawdown}`);
             // console.log(`borrowAmount for maxDrawdown: ${borrowAmountForMaxDrawdown}`);
-            console.log(
-                `requiredCollateral for borrowAmount for maxDrawdown ${
-                    borrowAmountForMaxDrawdown / 1e18
-                }: ${requiredCollateral / 1e18}`
-            );
-            console.log(`coef = requiredCollateral.mul(oneEth).div(maxDrawdown): ${coef / 1e18}`);
-            console.log(`adjustedBorrowAmount: ${adjustedBorrowAmount / 1e18}`);
+            // console.log(
+            //     `requiredCollateral for borrowAmount for maxDrawdown ${
+            //         borrowAmountForMaxDrawdown / 1e18
+            //     }: ${requiredCollateral / 1e18}`
+            // );
+            //console.log(`coef = requiredCollateral.mul(oneEth).div(maxDrawdown): ${coef / 1e18}`);
+            //console.log(`adjustedBorrowAmount: ${adjustedBorrowAmount / 1e18}`);
 
             // console.log(`
             //     borrowAmountForMaxDrawdown.mul(1012).div(1000): ${borrowAmountForMaxDrawdown
