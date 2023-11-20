@@ -3,12 +3,10 @@ pragma solidity 0.5.17;
 import "../../core/State.sol";
 import "../../feeds/IPriceFeeds.sol";
 import "../../openzeppelin/SafeERC20.sol";
-import "../ISwapsImpl.sol";
 import "./interfaces/ISovrynSwapNetwork.sol";
 import "./interfaces/IContractRegistry.sol";
 
 /**
- * @dev WARNING: This contract is deprecated, all public functions are moved to the protocol modules.
  * @title Swaps Implementation Sovryn contract.
  *
  * @notice This contract code comes from bZx. bZx is a protocol for tokenized
@@ -17,8 +15,12 @@ import "./interfaces/IContractRegistry.sol";
  * This contract contains the implementation of swap process and rate
  * calculations for Sovryn network.
  * */
-contract SwapsImplSovrynSwap is State, ISwapsImpl {
+contract SwapsImplSovrynSwapInternal is State {
     using SafeERC20 for IERC20;
+
+    constructor() internal {
+        // abstract
+    }
 
     /// bytes32 contractName = hex"42616e636f724e6574776f726b"; /// "SovrynSwapNetwork"
 
@@ -76,7 +78,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         uint256 minSourceTokenAmount,
         uint256 maxSourceTokenAmount,
         uint256 requiredDestTokenAmount
-    ) public payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+    ) internal returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
         require(sourceTokenAddress != destTokenAddress, "source == dest");
         require(
             supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress],
@@ -221,7 +223,7 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
         address destTokenAddress,
         uint256 sourceTokenAmount,
         address sovrynSwapContractRegistryAddress
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
         ISovrynSwapNetwork sovrynSwapNetwork =
             getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
 
@@ -247,25 +249,18 @@ contract SwapsImplSovrynSwap is State, ISwapsImpl {
      * @param destTokenAddress The address of the destination token contract.
      * @param sourceTokenAmount The amount of source tokens to get the return for.
      * @param sovrynSwapContractRegistry The sovryn swap contract reigstry address.
-     * @param defaultPath The default path for specific pairs.
      * */
     function internalExpectedReturn(
         address sourceTokenAddress,
         address destTokenAddress,
         uint256 sourceTokenAmount,
-        address sovrynSwapContractRegistry,
-        IERC20[] memory defaultPath
-    ) public view returns (uint256 expectedReturn) {
+        address sovrynSwapContractRegistry
+    ) internal view returns (uint256 expectedReturn) {
         ISovrynSwapNetwork sovrynSwapNetwork =
             getSovrynSwapNetworkContract(sovrynSwapContractRegistry);
 
         IERC20[] memory path =
-            defaultPath.length >= 3
-                ? defaultPath
-                : sovrynSwapNetwork.conversionPath(
-                    IERC20(sourceTokenAddress),
-                    IERC20(destTokenAddress)
-                );
+            getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
 
         /// Is returning the total amount of destination tokens.
         expectedReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);

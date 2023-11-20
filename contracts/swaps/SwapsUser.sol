@@ -10,17 +10,18 @@ import "../feeds/IPriceFeeds.sol";
 import "../events/SwapsEvents.sol";
 import "../mixins/FeesHelper.sol";
 import "./ISwapsImpl.sol";
+import "./connectors/SwapsImplSovrynSwapInternal.sol";
 
 /**
  * @title Perform token swaps for loans and trades.
  * */
-contract SwapsUser is State, SwapsEvents, FeesHelper {
+contract SwapsUser is State, SwapsEvents, FeesHelper, SwapsImplSovrynSwapInternal {
     /**
      * @notice Internal loan swap.
      *
      * @param loanId The ID of the loan.
      * @param sourceToken The address of the source tokens.
-     * @param destToken The address of destiny tokens.
+     * @param destToken The address of destination tokens.
      * @param user The user address.
      * @param minSourceTokenAmount The minimum amount of source tokens to swap.
      * @param maxSourceTokenAmount The maximum amount of source tokens to swap.
@@ -89,7 +90,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
     }
 
     /**
-     * @notice Calculate amount of source and destiny tokens.
+     * @notice Calculate amount of source and destination tokens.
      *
      * @dev Wrapper for _swapsCall_internal function.
      *
@@ -99,7 +100,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
      * @param miscBool True/false to bypassFee.
      * @param loanDataBytes Additional loan data (not in use yet).
      *
-     * @return destTokenAmountReceived The amount of destiny tokens received.
+     * @return destTokenAmountReceived The amount of destination tokens received.
      * @return sourceTokenAmountUsed The amount of source tokens used.
      * */
     function _swapsCall(
@@ -203,64 +204,52 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
     }
 
     /**
-     * @notice Calculate amount of source and destiny tokens.
+     * @notice Calculate amount of source and destination tokens.
      *
      * @dev Calls swapsImpl::internalSwap
      *
      * @param addrs The array of addresses.
      * @param vals The array of values.
      *
-     * @return destTokenAmountReceived The amount of destiny tokens received.
+     * @return destTokenAmountReceived The amount of destination tokens received.
      * @return sourceTokenAmountUsed The amount of source tokens used.
      * */
     function _swapsCall_internal(address[5] memory addrs, uint256[3] memory vals)
         internal
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
-        bytes memory data =
-            abi.encodeWithSelector(
-                ISwapsImpl(swapsImpl).internalSwap.selector,
-                addrs[0], /// sourceToken
-                addrs[1], /// destToken
-                addrs[2], /// receiverAddress
-                addrs[3], /// returnToSenderAddress
-                vals[0], /// minSourceTokenAmount
-                vals[1], /// maxSourceTokenAmount
-                vals[2] /// requiredDestTokenAmount
-            );
-
-        bool success;
-        (success, data) = swapsImpl.delegatecall(data);
-        require(success, "swap failed");
-
-        assembly {
-            destTokenAmountReceived := mload(add(data, 32))
-            sourceTokenAmountUsed := mload(add(data, 64))
-        }
+        (destTokenAmountReceived, sourceTokenAmountUsed) = internalSwap(
+            addrs[0], /// sourceToken
+            addrs[1], /// destToken
+            addrs[2], /// receiverAddress
+            addrs[3], /// returnToSenderAddress
+            vals[0], /// minSourceTokenAmount
+            vals[1], /// maxSourceTokenAmount
+            vals[2] /// requiredDestTokenAmount
+        );
     }
 
     /**
-     * @notice Calculate expected amount of destiny tokens.
+     * @notice Calculate expected amount of destination tokens.
      *
      * @dev Calls swapsImpl::internalExpectedReturn
      *
      * @param sourceToken The address of the source tokens.
-     * @param destToken The address of the destiny tokens.
+     * @param destToken The address of the destination tokens.
      * @param sourceTokenAmount The amount of the source tokens.
      *
-     * @param destTokenAmount The amount of destiny tokens.
+     * @param destTokenAmount The amount of destination tokens.
      * */
     function _swapsExpectedReturn(
         address sourceToken,
         address destToken,
         uint256 sourceTokenAmount
     ) internal view returns (uint256 destTokenAmount) {
-        destTokenAmount = ISwapsImpl(swapsImpl).internalExpectedReturn(
+        destTokenAmount = internalExpectedReturn(
             sourceToken,
             destToken,
             sourceTokenAmount,
-            sovrynSwapContractRegistryAddress,
-            defaultPathConversion[sourceToken][destToken]
+            sovrynSwapContractRegistryAddress
         );
     }
 
