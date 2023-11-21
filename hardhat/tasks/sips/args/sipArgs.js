@@ -759,6 +759,30 @@ const getArgsSip0047 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+/** @todo update sip number */
+const getArgsSip00XX = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const swapsImplSovrynSwapModuleDeployment = await get("SwapsImplSovrynSwapModule");
+    const swapUserDeployment = await get("SwapUser");
+    const sovrynProtocolDeployment = await get("SovrynProtocol");
+    const args = {
+        targets: [sovrynProtocolDeployment.address, sovrynProtocolDeployment.address],
+        values: [0, 0],
+        signatures: ["replaceContract(address)", "replaceContract(address)"],
+        data: [
+            abiCoder.encode(["address"], [swapsImplSovrynSwapModuleDeployment.address]),
+            abiCoder.encode(["address"], [swapUserDeployment.address]),
+        ],
+        /** @todo change sip description */
+        description: "",
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -771,4 +795,5 @@ module.exports = {
     getArgsSip0046Part2,
     getArgsSip0046Part3,
     getArgsSip0046Part4,
+    getArgsSip00XX,
 };
