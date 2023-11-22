@@ -49,13 +49,18 @@ def main():
     #### GET DLLR ####
     ## 2 options by priority
     #getTotalSupply(conf.contracts["iDLLR"])
-    #amount = 100000e18
+    #amount = 105000e18
 
     # either from watcher or from XUSD #
     ## 1) from watcher
-    #withdrawTokensFromWatcher(conf.contracts["DLLR"], amount, conf.contracts["multisig"])
+    # withdrawTokensFromWatcher(conf.contracts["DLLR"], amount, conf.contracts["multisig"])
     ## 2) XUSD -> DLLR 
-    #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], amount)
+    # withdrawTokensFromWatcher(conf.contracts["XUSD"], amount, conf.contracts["multisig"])
+    ## 2.1) redeem to a multisig 
+    # redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], amount)
+    ## 2.2) redeem to an arbitrary address
+    # redeemFromAggregatorWithMsTo(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], amount, '0x2064242b697830535A2d76BE352e82Cf85E0EC2c')
+
     #lendToPoolWithMS(conf.contracts["iDLLR"], conf.contracts["DLLR"], amount)
 
     #printV1ConverterData("0xa9c3d9681215ef7623dc28ea6b75bf87fdf285d9")

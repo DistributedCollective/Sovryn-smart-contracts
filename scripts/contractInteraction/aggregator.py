@@ -22,6 +22,11 @@ def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
     data = aggregator.redeem.encode_input(tokenAddress, amount)
     sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
 
+def redeemFromAggregatorWithMsTo(aggregatorAddress, tokenAddress, amount, recipient):
+    aggregator = loadAggregator(aggregatorAddress)
+    data = aggregator.redeemTo.encode_input(tokenAddress, amount, recipient)
+    sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
+
 def redeemBTCWithXUSD(amountOfXUSD):
     redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DoC'], amountOfXUSD)
     tokenApproveFromMS(conf.contracts['DoC'], conf.contracts['MoneyOnChain'], amountOfXUSD)
