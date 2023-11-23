@@ -16,7 +16,7 @@ def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
     aggregator = loadAggregator(aggregatorAddress)
     aggregator.redeem(tokenAddress, amount)
 
-#used to exchange XUSD -> USDT on the aggregator
+#used to exchange XUSD -> basket tokens like DLLR on the aggregator
 def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
     aggregator = loadAggregator(aggregatorAddress)
     data = aggregator.redeem.encode_input(tokenAddress, amount)
