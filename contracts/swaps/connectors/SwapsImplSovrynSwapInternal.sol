@@ -28,7 +28,7 @@ contract SwapsImplSovrynSwapInternal is State {
      * Get the hex name of a contract.
      * @param source The name of the contract.
      * */
-    function getContractHexName(string memory source) public pure returns (bytes32 result) {
+    function _getContractHexName(string memory source) internal pure returns (bytes32 result) {
         assembly {
             result := mload(add(source, 32))
         }
@@ -38,8 +38,8 @@ contract SwapsImplSovrynSwapInternal is State {
      * Look up the Sovryn swap network contract registered at the given address.
      * @param sovrynSwapRegistryAddress The address of the registry.
      * */
-    function getSovrynSwapNetworkContract(address sovrynSwapRegistryAddress)
-        public
+    function _getSovrynSwapNetworkContract(address sovrynSwapRegistryAddress)
+        internal
         view
         returns (ISovrynSwapNetwork)
     {
@@ -49,7 +49,7 @@ contract SwapsImplSovrynSwapInternal is State {
         IContractRegistry contractRegistry = IContractRegistry(sovrynSwapRegistryAddress);
         return
             ISovrynSwapNetwork(
-                contractRegistry.addressOf(getContractHexName("SovrynSwapNetwork"))
+                contractRegistry.addressOf(_getContractHexName("SovrynSwapNetwork"))
             );
     }
 
@@ -86,7 +86,7 @@ contract SwapsImplSovrynSwapInternal is State {
         );
 
         ISovrynSwapNetwork sovrynSwapNetwork =
-            getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+            _getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
 
         IERC20[] memory path =
             getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
@@ -225,7 +225,7 @@ contract SwapsImplSovrynSwapInternal is State {
         address sovrynSwapContractRegistryAddress
     ) internal view returns (uint256) {
         ISovrynSwapNetwork sovrynSwapNetwork =
-            getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+            _getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
 
         IERC20[] memory path =
             getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
@@ -257,7 +257,7 @@ contract SwapsImplSovrynSwapInternal is State {
         address sovrynSwapContractRegistry
     ) internal view returns (uint256 expectedReturn) {
         ISovrynSwapNetwork sovrynSwapNetwork =
-            getSovrynSwapNetworkContract(sovrynSwapContractRegistry);
+            _getSovrynSwapNetworkContract(sovrynSwapContractRegistry);
 
         IERC20[] memory path =
             getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);

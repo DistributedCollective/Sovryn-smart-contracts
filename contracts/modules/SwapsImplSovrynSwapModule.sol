@@ -37,6 +37,26 @@ contract SwapsImplSovrynSwapModule is SwapsImplSovrynSwapInternal, ModulesCommon
     }
 
     /**
+     * Get the hex name of a contract.
+     * @param source The name of the contract.
+     * */
+    function getContractHexName(string memory source) public pure returns (bytes32 result) {
+        return _getContractHexName(source);
+    }
+
+    /**
+     * Look up the Sovryn swap network contract registered at the given address.
+     * @param sovrynSwapRegistryAddress The address of the registry.
+     * */
+    function getSovrynSwapNetworkContract(address sovrynSwapRegistryAddress)
+        public
+        view
+        returns (ISovrynSwapNetwork)
+    {
+        return _getSovrynSwapNetworkContract(sovrynSwapRegistryAddress);
+    }
+
+    /**
      * @notice Get the expected rate for 1 source token when exchanging the
      *   given amount of source tokens.
      *
