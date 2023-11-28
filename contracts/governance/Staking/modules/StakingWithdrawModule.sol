@@ -94,12 +94,15 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param _receiver The receiving address.
      * @param _startFrom The start value for the iterations.
      * or just unlocked tokens (false).
+     *
+     * @return nextStartFrom the value of start from to be used for next withdrawal.
+     * @return notCompleted flag that indicates that the cancel team vesting is not completely done.
      * */
     function _cancelTeamVesting(
         address _vesting,
         address _receiver,
         uint256 _startFrom
-    ) private returns (uint256 end, bool isPartiallyCancelled) {
+    ) private returns (uint256 nextStartFrom, bool notCompleted) {
         require(_receiver != address(0), "receiver address invalid");
 
         ITeamVesting teamVesting = ITeamVesting(_vesting);
@@ -139,8 +142,9 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         }
 
         if (adjustedEnd < end) {
+            nextStartFrom = adjustedEnd + TWO_WEEKS;
             emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd);
-            return (adjustedEnd, true);
+            return (nextStartFrom, true);
         } else {
             emit TeamVestingCancelled(msg.sender, _receiver);
             return (end, false);
@@ -363,11 +367,12 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         uint256 startFrom = teamVestingStartDate + teamVestingCliff;
         bool withdrawFlag = true;
 
+        uint256 nextStartFrom = startFrom;
+        bool notCompleted;
+
         while (withdrawFlag) {
-            (uint256 end, bool isPartiallyCancelled) =
-                _cancelTeamVesting(vesting, receiver, startFrom);
-            startFrom = end + TWO_WEEKS;
-            withdrawFlag = isPartiallyCancelled ? true : false;
+            (nextStartFrom, notCompleted) = _cancelTeamVesting(vesting, receiver, nextStartFrom);
+            withdrawFlag = notCompleted ? true : false;
         }
 
         emit VestingTokensWithdrawn(vesting, receiver);

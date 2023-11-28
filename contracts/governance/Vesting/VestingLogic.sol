@@ -139,6 +139,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @dev Once here the caller permission is taken for granted.
      * @param receiver The receiving address.
      * @param isGovernance Whether all tokens (true)
+     * @param endRegularWithdrawal end time for regular withdrawal
      * or just unlocked tokens (false).
      * */
     function _withdrawTokens(
