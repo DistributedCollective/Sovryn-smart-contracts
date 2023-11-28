@@ -115,7 +115,8 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @param receiver The receiving address.
      * */
     function withdrawTokens(address receiver) public onlyOwners {
-        _withdrawTokens(receiver, false, block.timestamp);
+        uint256 startFrom = startDate + cliff;
+        _withdrawTokens(receiver, false, startFrom, block.timestamp);
     }
 
     /**
@@ -123,14 +124,21 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * forwards them to an address specified by the token owner.
      * @param receiver The receiving address.
      * @param startFrom The start value for the iterations.
+     * @param maxWithdrawIterations max withdrawal iteration
      * */
-    function withdrawTokensPartially(address receiver, uint256 startFrom) public onlyOwners {
-        uint256 maxVestingWithdrawIterations = staking.getMaxVestingWithdrawIterations();
-        /// @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
-        uint256 totalIterationValue =
-            (startFrom + (FOUR_WEEKS * (maxVestingWithdrawIterations - 1)));
-        uint256 adjustedEnd = endDate < totalIterationValue ? endDate : totalIterationValue;
-        _withdrawTokens(receiver, false, adjustedEnd);
+    function withdrawTokensStartingFrom(
+        address receiver,
+        uint256 startFrom,
+        uint256 maxWithdrawIterations
+    ) public onlyOwners {
+        uint256 defaultStartFrom = startDate + cliff;
+
+        startFrom = startFrom < defaultStartFrom ? defaultStartFrom : startFrom;
+
+        // @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
+        uint256 totalIterationValue = (startFrom + (FOUR_WEEKS * (maxWithdrawIterations - 1)));
+        uint256 withdrawUntil = endDate < totalIterationValue ? endDate : totalIterationValue;
+        _withdrawTokens(receiver, false, startFrom, withdrawUntil);
     }
 
     /**
@@ -139,13 +147,15 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @dev Once here the caller permission is taken for granted.
      * @param receiver The receiving address.
      * @param isGovernance Whether all tokens (true)
-     * @param endRegularWithdrawal end time for regular withdrawal
+     * @param startFrom start withdrawal from
+     * @param withdrawUntil end time for regular withdrawal
      * or just unlocked tokens (false).
      * */
     function _withdrawTokens(
         address receiver,
         bool isGovernance,
-        uint256 endRegularWithdrawal
+        uint256 startFrom,
+        uint256 withdrawUntil
     ) internal {
         require(receiver != address(0), "receiver address invalid");
 
@@ -159,13 +169,13 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         if (staking.allUnlocked() || isGovernance) {
             end = endDate;
         } else {
-            end = endRegularWithdrawal < block.timestamp ? endRegularWithdrawal : block.timestamp;
+            end = withdrawUntil < block.timestamp ? withdrawUntil : block.timestamp;
         }
 
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
         ///		workaround found, but it doesn't work with TWO_WEEKS
-        for (uint256 i = startDate + cliff; i <= end; i += FOUR_WEEKS) {
+        for (uint256 i = startFrom; i <= end; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
 

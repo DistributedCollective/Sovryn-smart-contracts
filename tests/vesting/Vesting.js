@@ -1432,7 +1432,7 @@ contract("Vesting", (accounts) => {
         });
     });
 
-    describe("withdrawTokensPartially", () => {
+    describe("withdrawTokensStartingFrom", () => {
         let vesting;
 
         it("should withdraw unlocked tokens (cliff = 3 weeks)", async () => {
@@ -1468,7 +1468,11 @@ contract("Vesting", (accounts) => {
 
             // withdraw
             // let tx = await vesting.withdrawTokens(root);
-            let tx = await vesting.withdrawTokensPartially(root, start.add(new BN(cliff)));
+            let tx = await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(new BN(cliff)),
+                maxWithdrawIterations
+            );
 
             const endDate = await vesting.endDate();
             const regularEndDateWithMaxIterations = start.add(
@@ -1527,7 +1531,11 @@ contract("Vesting", (accounts) => {
             // withdraw
             const start = await vesting.startDate();
 
-            let tx = await vesting.withdrawTokensPartially(root, start.add(new BN(cliff)));
+            let tx = await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(new BN(cliff)),
+                maxWithdrawIterations
+            );
 
             // check event
             expectEvent(tx, "TokensWithdrawn", {
@@ -1550,7 +1558,7 @@ contract("Vesting", (accounts) => {
             let previousAmount = await token.balanceOf(root);
             let toStake = ONE_MILLON;
             const cliff = 26 * WEEK;
-            const maxWithdrawIterations = 10;
+            let maxWithdrawIterations = 10;
 
             // Stake
             vesting = await Vesting.new(
@@ -1577,7 +1585,11 @@ contract("Vesting", (accounts) => {
             // withdraw
             const start = await vesting.startDate();
 
-            let tx = await vesting.withdrawTokensPartially(root, start.add(new BN(cliff)));
+            let tx = await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(new BN(cliff)),
+                maxWithdrawIterations
+            );
 
             const decodedIncompleteEvent = decodeLogs(
                 tx.receipt.rawLogs,
@@ -1585,9 +1597,11 @@ contract("Vesting", (accounts) => {
                 "TokensWithdrawn"
             )[0].args;
             await staking.setMaxVestingWithdrawIterations(15);
-            let tx2 = await vesting.withdrawTokensPartially(
+            maxWithdrawIterations = 15;
+            let tx2 = await vesting.withdrawTokensStartingFrom(
                 root,
-                new BN(decodedIncompleteEvent["end"])
+                new BN(decodedIncompleteEvent["end"]),
+                maxWithdrawIterations
             );
 
             // check event
@@ -1644,7 +1658,11 @@ contract("Vesting", (accounts) => {
             const start = await vesting.startDate();
 
             /** Withdraw Partial */
-            let tx = await vesting.withdrawTokensPartially(root, start.add(new BN(cliff)));
+            let tx = await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(new BN(cliff)),
+                maxWithdrawIterations
+            );
 
             /** Withdraw all */
             let tx2 = await vesting.withdrawTokens(root);
@@ -1705,7 +1723,11 @@ contract("Vesting", (accounts) => {
 
             // withdraw
             const start = await vesting.startDate();
-            let tx = await vesting.withdrawTokensPartially(root, start.add(new BN(cliff)));
+            let tx = await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(new BN(cliff)),
+                maxWithdrawIterations
+            );
 
             const endDate = await vesting.endDate();
             const regularEndDateWithMaxIterations = start.add(
@@ -1766,7 +1788,11 @@ contract("Vesting", (accounts) => {
 
             // withdraw
             const start = await vesting.startDate();
-            let tx = await vesting.withdrawTokensPartially(root, start.add(new BN(cliff)));
+            let tx = await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(new BN(cliff)),
+                maxWithdrawIterations
+            );
 
             const endDate = await vesting.endDate();
             const regularEndDateWithMaxIterations = start.add(
@@ -1828,7 +1854,11 @@ contract("Vesting", (accounts) => {
 
             // withdraw
             const start = await vesting.startDate();
-            await vesting.withdrawTokensPartially(root, start.add(new BN(cliff)));
+            await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(new BN(cliff)),
+                maxWithdrawIterations
+            );
 
             let stakes = await staking.getStakes(vesting.address);
             expect(stakes.dates.length).equal(1);
@@ -1837,7 +1867,7 @@ contract("Vesting", (accounts) => {
         it("should do nothing if withdrawing a second time", async () => {
             // This part should be tested on staking contract, function getPriorUserStakeByDate
             let previousAmount = await token.balanceOf(root);
-            await vesting.withdrawTokensPartially(root, 0);
+            await vesting.withdrawTokensStartingFrom(root, 0, maxWithdrawIterations);
             let amount = await token.balanceOf(root);
 
             assert.equal(previousAmount.toString(), amount.toString());
@@ -1871,7 +1901,12 @@ contract("Vesting", (accounts) => {
             await increaseTimeEthers(25 * WEEK);
 
             const start = await vesting.startDate();
-            await vesting.withdrawTokensPartially(root, start.add(new BN(cliff)), { from: a1 });
+            await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(new BN(cliff)),
+                maxWithdrawIterations,
+                { from: a1 }
+            );
             let amount = await token.balanceOf(root);
 
             assert.equal(
@@ -1883,16 +1918,18 @@ contract("Vesting", (accounts) => {
 
         it("should fail if the caller is neither owner nor token owner", async () => {
             await expectRevert(
-                vesting.withdrawTokensPartially(root, 0, { from: a2 }),
+                vesting.withdrawTokensStartingFrom(root, 0, maxWithdrawIterations, { from: a2 }),
                 "unauthorized"
             );
             await expectRevert(
-                vesting.withdrawTokensPartially(root, 0, { from: a3 }),
+                vesting.withdrawTokensStartingFrom(root, 0, maxWithdrawIterations, { from: a3 }),
                 "unauthorized"
             );
 
-            await vesting.withdrawTokensPartially(root, 0, { from: root });
-            await vesting.withdrawTokensPartially(root, 0, { from: a1 });
+            await vesting.withdrawTokensStartingFrom(root, 0, maxWithdrawIterations, {
+                from: root,
+            });
+            await vesting.withdrawTokensStartingFrom(root, 0, maxWithdrawIterations, { from: a1 });
         });
 
         it("cancelTeamVesting should fail if recipient is zero address", async () => {
