@@ -21,7 +21,7 @@ const PriceFeedsMoC = artifacts.require("PriceFeedsMoC");
 const PriceFeeds = artifacts.require("PriceFeeds");
 const PriceFeedsMoCMockup = artifacts.require("PriceFeedsMoCMockup");
 const PriceFeedRSKOracleMockup = artifacts.require("PriceFeedRSKOracleMockup");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
 
 const {
     getSUSD,

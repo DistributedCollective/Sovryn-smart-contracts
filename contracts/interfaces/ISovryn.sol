@@ -153,18 +153,16 @@ contract ISovryn is
 
     function getContractHexName(string calldata source) external pure returns (bytes32 result);
 
-    function swapsImplInternalExpectedRate(
+    function swapsImplExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount,
-        address sovrynSwapContractRegistryAddress
+        uint256 sourceTokenAmount
     ) external view returns (uint256);
 
-    function swapsImplInternalExpectedReturn(
+    function swapsImplExpectedReturn(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount,
-        address sovrynSwapContractRegistry
+        uint256 sourceTokenAmount
     ) external view returns (uint256 expectedReturn);
 
     ////// Loan Settings //////

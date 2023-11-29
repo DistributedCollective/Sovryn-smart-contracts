@@ -81,25 +81,23 @@ contract("SwapsImplSovrynSwapModule", (accounts) => {
             expect(sovrynSwapNetwork).not.equal(ZERO_BYTES32);
         });
 
-        it("should able to call swapsImplInternalExpectedRate", async () => {
+        it("should able to call swapsImplExpectedRate", async () => {
             const sovrynSwapContractRegistry = await sovryn.sovrynSwapContractRegistryAddress();
-            const expectedRate = await sovryn.swapsImplInternalExpectedRate(
+            const expectedRate = await sovryn.swapsImplExpectedRate(
                 WRBTC.address,
                 SUSD.address,
-                wei("1", "ether"),
-                sovrynSwapContractRegistry
+                wei("1", "ether")
             );
             const priceFeedRate = await priceFeeds.rates(WRBTC.address, SUSD.address);
             expect(expectedRate.toString()).to.equal(priceFeedRate.toString());
         });
 
-        it("should able to call swapsImplInternalExpectedReturn", async () => {
+        it("should able to call swapsImplExpectedReturn", async () => {
             const sovrynSwapContractRegistry = await sovryn.sovrynSwapContractRegistryAddress();
-            const expectedRate = await sovryn.swapsImplInternalExpectedReturn(
+            const expectedRate = await sovryn.swapsImplExpectedReturn(
                 WRBTC.address,
                 SUSD.address,
-                wei("1", "ether"),
-                sovrynSwapContractRegistry
+                wei("1", "ether")
             );
             const priceFeedRate = await priceFeeds.rates(WRBTC.address, SUSD.address);
             expect(expectedRate.toString()).to.equal(priceFeedRate.toString());

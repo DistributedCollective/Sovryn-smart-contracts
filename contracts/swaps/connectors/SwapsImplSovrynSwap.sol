@@ -3,7 +3,6 @@ pragma solidity 0.5.17;
 import "../../core/State.sol";
 import "../../feeds/IPriceFeeds.sol";
 import "../../openzeppelin/SafeERC20.sol";
-import "../ISwapsImpl.sol";
 import "./interfaces/ISovrynSwapNetwork.sol";
 import "./interfaces/IContractRegistry.sol";
 
@@ -17,10 +16,14 @@ import "./interfaces/IContractRegistry.sol";
  * This contract contains the implementation of swap process and rate
  * calculations for Sovryn network.
  * */
-contract SwapsImplSovrynSwap is State, ISwapsImpl {
+contract SwapsImplSovrynSwap is State {
     using SafeERC20 for IERC20;
 
     /// bytes32 contractName = hex"42616e636f724e6574776f726b"; /// "SovrynSwapNetwork"
+
+    constructor() internal {
+        // abstract
+    }
 
     /**
      * Get the hex name of a contract.

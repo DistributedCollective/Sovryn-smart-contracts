@@ -27,8 +27,8 @@ contract SwapsImplSovrynSwapModule is SwapsImplSovrynSwapInternal, ModulesCommon
             logicTargets[this.getSovrynSwapNetworkContract.selector];
         _setTarget(this.getSovrynSwapNetworkContract.selector, target);
         _setTarget(this.getContractHexName.selector, target);
-        _setTarget(this.swapsImplInternalExpectedRate.selector, target);
-        _setTarget(this.swapsImplInternalExpectedReturn.selector, target);
+        _setTarget(this.swapsImplExpectedRate.selector, target);
+        _setTarget(this.swapsImplExpectedReturn.selector, target);
         emit ProtocolModuleContractReplaced(
             prevModuleContractAddress,
             target,
@@ -64,19 +64,12 @@ contract SwapsImplSovrynSwapModule is SwapsImplSovrynSwapInternal, ModulesCommon
      * @param destTokenAddress The address of the destination token contract.
      * @param sourceTokenAmount The amount of source tokens to get the rate for.
      * */
-    function swapsImplInternalExpectedRate(
+    function swapsImplExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount,
-        address sovrynSwapContractRegistryAddress
+        uint256 sourceTokenAmount
     ) external view returns (uint256) {
-        return
-            internalExpectedRate(
-                sourceTokenAddress,
-                destTokenAddress,
-                sourceTokenAmount,
-                sovrynSwapContractRegistryAddress
-            );
+        return _getExpectedRate(sourceTokenAddress, destTokenAddress, sourceTokenAmount);
     }
 
     /**
@@ -84,26 +77,18 @@ contract SwapsImplSovrynSwapModule is SwapsImplSovrynSwapInternal, ModulesCommon
      *   amount of source tokens.
      *
      * @notice Right now, this function is being called directly by _swapsExpectedReturn from the protocol
-     * So, this function is not using getConversionPath function since it will try to read the defaultPath storage which is stored in the protocol's slot, and it will cause an issue for direct call.
+     * So, this function is not using _getConversionPath function since it will try to read the defaultPath storage which is stored in the protocol's slot, and it will cause an issue for direct call.
      * Instead, this function is accepting additional parameters called defaultPath which value can be declared by the caller (protocol in this case).
      *
      * @param sourceTokenAddress The address of the source token contract.
      * @param destTokenAddress The address of the destination token contract.
      * @param sourceTokenAmount The amount of source tokens to get the return for.
-     * @param sovrynSwapContractRegistry The sovryn swap contract reigstry address.
      * */
-    function swapsImplInternalExpectedReturn(
+    function swapsImplExpectedReturn(
         address sourceTokenAddress,
         address destTokenAddress,
-        uint256 sourceTokenAmount,
-        address sovrynSwapContractRegistry
+        uint256 sourceTokenAmount
     ) external view returns (uint256 expectedReturn) {
-        return
-            internalExpectedReturn(
-                sourceTokenAddress,
-                destTokenAddress,
-                sourceTokenAmount,
-                sovrynSwapContractRegistry
-            );
+        return _getExpectedReturn(sourceTokenAddress, destTokenAddress, sourceTokenAmount);
     }
 }

@@ -26,7 +26,7 @@ const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
 
 const {
     lend_to_the_pool,

@@ -72,7 +72,7 @@ const VestingRegistry = artifacts.require("VestingRegistry3");
 
 const LiquidityPoolV1Converter = artifacts.require("LiquidityPoolV1ConverterMockup");
 
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsExternal = artifacts.require("SwapsExternal");
 

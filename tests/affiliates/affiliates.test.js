@@ -44,7 +44,7 @@ const TestToken = artifacts.require("TestToken");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
 const Affiliates = artifacts.require("Affiliates");
 const mutexUtils = require("../reentrancy/utils");
 

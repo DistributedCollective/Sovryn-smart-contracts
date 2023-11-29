@@ -36,7 +36,6 @@ const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const Affiliates = artifacts.require("Affiliates");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
@@ -271,7 +270,7 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
     await sovryn.setWrbtcToken(WRBTC.address);
 
     // loanOpening
-    const swaps = await SwapsImplSovrynSwap.new();
+    const swaps = await SwapsImplSovrynSwapModule.new();
     await sovryn.replaceContract((await LoanOpenings.new()).address);
     await sovryn.setPriceFeedContract(priceFeeds.address);
     await sovryn.setSwapsImplContract(swaps.address);

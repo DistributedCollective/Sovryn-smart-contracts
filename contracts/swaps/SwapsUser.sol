@@ -9,7 +9,6 @@ import "../core/State.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../events/SwapsEvents.sol";
 import "../mixins/FeesHelper.sol";
-import "./ISwapsImpl.sol";
 import "./connectors/SwapsImplSovrynSwapInternal.sol";
 
 /**
@@ -218,7 +217,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper, SwapsImplSovrynSwapInterna
         internal
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
-        (destTokenAmountReceived, sourceTokenAmountUsed) = internalSwap(
+        (destTokenAmountReceived, sourceTokenAmountUsed) = _swap(
             addrs[0], /// sourceToken
             addrs[1], /// destToken
             addrs[2], /// receiverAddress
@@ -245,12 +244,7 @@ contract SwapsUser is State, SwapsEvents, FeesHelper, SwapsImplSovrynSwapInterna
         address destToken,
         uint256 sourceTokenAmount
     ) internal view returns (uint256 destTokenAmount) {
-        destTokenAmount = internalExpectedReturn(
-            sourceToken,
-            destToken,
-            sourceTokenAmount,
-            sovrynSwapContractRegistryAddress
-        );
+        destTokenAmount = _getExpectedReturn(sourceToken, destToken, sourceTokenAmount);
     }
 
     /**

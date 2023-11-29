@@ -760,7 +760,7 @@ const getArgsSip0047 = async (hre) => {
 };
 
 /** @todo update sip number */
-const getArgsSip00XX = async (hre) => {
+const getArgsSip_SOV_3497 = async (hre) => {
     const {
         ethers,
         deployments: { get },
@@ -795,5 +795,5 @@ module.exports = {
     getArgsSip0046Part2,
     getArgsSip0046Part3,
     getArgsSip0046Part4,
-    getArgsSip00XX,
+    getArgsSip_SOV_3497,
 };
