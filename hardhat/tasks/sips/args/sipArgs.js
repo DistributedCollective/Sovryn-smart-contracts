@@ -1,5 +1,8 @@
 const { HardhatRuntimeEnvironment } = require("hardhat/types");
-const { getStakingModulesNames } = require("../../../../deployment/helpers/helpers");
+const {
+    getStakingModulesNames,
+    getProtocolModules,
+} = require("../../../../deployment/helpers/helpers");
 const { validateAmmOnchainAddresses, getAmmOracleAddress } = require("../../../helpers");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
@@ -767,18 +770,39 @@ const getArgsSip_SOV_3497 = async (hre) => {
     } = hre;
     const abiCoder = new ethers.utils.AbiCoder();
     const swapsImplSovrynSwapModuleDeployment = await get("SwapsImplSovrynSwapModule");
-    const swapUserDeployment = await get("SwapUser");
+    const modulesList = getProtocolModules();
     const sovrynProtocolDeployment = await get("SovrynProtocol");
+    const sovrynProtocol = await ethers.getContract("SovrynProtocol");
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+
+    for (const moduleProp in modulesList) {
+        const module = modulesList[moduleProp];
+        const moduleDeployment = await get(module.moduleName);
+        const currentModuleAddress = await sovrynProtocol.getTarget(module.sampleFunction);
+
+        if (currentModuleAddress == moduleDeployment.address) {
+            log(col.bgYellow(`Skipping Protocol Modules ${module.moduleName}`));
+            continue;
+        }
+
+        targets.push(sovrynProtocolDeployment.address);
+        values.push(0);
+        signatures.push("replaceContract(address)");
+        datas.push(abiCoder.encode(["address"], [moduleDeployment.address]));
+    }
+
+    /** @todo change sip description */
+    const description = "";
     const args = {
-        targets: [sovrynProtocolDeployment.address, sovrynProtocolDeployment.address],
-        values: [0, 0],
-        signatures: ["replaceContract(address)", "replaceContract(address)"],
-        data: [
-            abiCoder.encode(["address"], [swapsImplSovrynSwapModuleDeployment.address]),
-            abiCoder.encode(["address"], [swapUserDeployment.address]),
-        ],
-        /** @todo change sip description */
-        description: "",
+        targets: targets,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description: description,
     };
     return { args, governor: "GovernorOwner" };
 };
