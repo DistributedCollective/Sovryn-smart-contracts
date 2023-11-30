@@ -6,6 +6,7 @@ const {
 const { validateAmmOnchainAddresses, getAmmOracleAddress } = require("../../../helpers");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
+const col = require("cli-color");
 
 const sampleGovernorOwnerSIP = async (hre) => {
     /*
@@ -766,7 +767,7 @@ const getArgsSip0047 = async (hre) => {
 const getArgsSip_SOV_3497 = async (hre) => {
     const {
         ethers,
-        deployments: { get },
+        deployments: { get, log },
     } = hre;
     const abiCoder = new ethers.utils.AbiCoder();
     const swapsImplSovrynSwapModuleDeployment = await get("SwapsImplSovrynSwapModule");
@@ -779,6 +780,22 @@ const getArgsSip_SOV_3497 = async (hre) => {
     const signatures = [];
     const datas = [];
 
+    let isValidDeployment = false;
+
+    for (const moduleProp in modulesList) {
+        const module = modulesList[moduleProp];
+        const moduleDeployment = await get(module.moduleName);
+        const currentModuleAddress = await sovrynProtocol.getTarget(module.sampleFunction);
+
+        if (currentModuleAddress != moduleDeployment.address) {
+            isValidDeployment = true;
+        }
+    }
+
+    if (!isValidDeployment) {
+        throw new Error(col.bgYellow(`No modules are available to be upgraded`));
+    }
+
     for (const moduleProp in modulesList) {
         const module = modulesList[moduleProp];
         const moduleDeployment = await get(module.moduleName);
@@ -787,6 +804,12 @@ const getArgsSip_SOV_3497 = async (hre) => {
         if (currentModuleAddress == moduleDeployment.address) {
             log(col.bgYellow(`Skipping Protocol Modules ${module.moduleName}`));
             continue;
+        } else {
+            log(
+                col.bgBlue(
+                    `Adding module ${module.moduleName} for registration/replacement on the protocol`
+                )
+            );
         }
 
         targets.push(sovrynProtocolDeployment.address);

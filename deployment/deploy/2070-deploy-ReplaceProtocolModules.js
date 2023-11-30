@@ -15,8 +15,6 @@ const func = async function (hre) {
     const sovrynProtocolInterface = new ethers.utils.Interface(sovrynProtocolDeployment.abi);
 
     const modulesList = getProtocolModules();
-    let modulesFrom = [];
-    let modulesTo = [];
     for (const moduleProp in modulesList) {
         const module = modulesList[moduleProp];
         const moduleDeployment = await get(module.moduleName);
@@ -54,7 +52,7 @@ const func = async function (hre) {
             log(col.bgBlue("Protocol modules are deployed"));
             log(
                 col.bgBlue(
-                    "Prepare and run SIP function in sips.js to create the proposal with params:"
+                    "Prepare a SIP creation function in sipArgs.js and run hardhat task `sips:create` to create proposal replacing modules:"
                 )
             );
         } else {

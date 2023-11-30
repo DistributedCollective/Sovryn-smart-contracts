@@ -13,8 +13,7 @@ const func = async function (hre) {
     // @dev use to narrow down module contracts to redeploy
     // e.g. you have three contracts modified but want to deploy only one
     // then add the modules not ready for deployment to `dontDeployModules`
-    const dontDeployModules = {
-        /*
+    const deployModules = {
         Affiliates: {
             moduleName: "Affiliates",
             sampleFunction: "setAffiliatesReferrer(address,address)",
@@ -55,12 +54,11 @@ const func = async function (hre) {
             moduleName: "SwapsImplSovrynSwapModule",
             sampleFunction: "getSovrynSwapNetworkContract(address)",
         },
-        */
     };
     log(col.bgYellow("Deploying ProtocolModules..."));
     const modulesList = getProtocolModules();
-    const protocolModulesName = Object.keys(modulesList).filter(
-        (k) => !dontDeployModules.hasOwnProperty(k)
+    const protocolModulesName = Object.keys(modulesList).filter((k) =>
+        deployModules.hasOwnProperty(k)
     );
     for (let i = 0; i < protocolModulesName.length; i++) {
         const tx = await deploy(protocolModulesName[i], {

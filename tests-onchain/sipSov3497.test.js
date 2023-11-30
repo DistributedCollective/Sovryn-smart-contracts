@@ -1,4 +1,7 @@
-//@note hh test tests-onchain/sip0047.test.js --network rskForkedMainnet
+// first run a local forked mainnet node in a separate terminal window:
+//     npx hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy
+// now run the test:
+//     npx hardhat test tests-onchain/sipSov3497.test.js --network rskForkedMainnet
 
 const {
     impersonateAccount,
@@ -30,14 +33,17 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
         return provider.getSigner(addressToImpersonate);
     };
 
-    const setupTest = createFixture(async ({ deployments, getNamedAccounts }) => {
-        const { deployer } = await getNamedAccounts();
+    const setupTest = createFixture(async ({ deployments }) => {
+        const deployer = (await ethers.getSigners())[0].address;
         const deployerSigner = await ethers.getSigner(deployer);
 
         const multisigAddress = (await get("MultiSigWallet")).address;
         const multisigSigner = await getImpersonatedSignerFromJsonRpcProvider(multisigAddress);
 
         await setBalance(deployer, ONE_RBTC.mul(10));
+        await deployments.fixture(["ProtocolModules"], {
+            keepExistingDeployments: true,
+        }); // start from a fresh deployments
 
         const staking = await ethers.getContract("Staking", deployerSigner);
         const sovrynProtocol = await ethers.getContract("ISovryn", deployerSigner);
@@ -86,7 +92,7 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
                     {
                         forking: {
                             jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
-                            blockNumber: 5730100, // block num at the time of the test creation with no pauser switched
+                            blockNumber: 5857778, // block num at the time no new modules deployed yet
                         },
                     },
                 ],
