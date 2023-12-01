@@ -15,6 +15,7 @@ const func = async function (hre) {
     const sovrynProtocolInterface = new ethers.utils.Interface(sovrynProtocolDeployment.abi);
 
     const modulesList = getProtocolModules();
+    const modulesToReplace = [];
     for (const moduleProp in modulesList) {
         const module = modulesList[moduleProp];
         const moduleDeployment = await get(module.moduleName);
@@ -25,6 +26,10 @@ const func = async function (hre) {
             continue;
         }
 
+        modulesToReplace.push({
+            moduleName: module.moduleName,
+            moduleAddress: moduleDeployment.address,
+        });
         log(col.bgYellow(`Replacing Protocol Modules ${module.moduleName}`));
 
         if (hre.network.tags["testnet"]) {
@@ -55,6 +60,11 @@ const func = async function (hre) {
                     "Prepare a SIP creation function in sipArgs.js and run hardhat task `sips:create` to create proposal replacing modules:"
                 )
             );
+
+            console.log(col.yellow("modulesToReplace:"));
+            for (const moduleToReplace of modulesToReplace) {
+                console.log(`${moduleToReplace.moduleName}: ${moduleToReplace.moduleAddress}\n`);
+            }
         } else {
             // hh ganache
             await sovrynProtocol.replaceContract(moduleDeployment.address);
