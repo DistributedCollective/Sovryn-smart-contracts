@@ -1,6 +1,6 @@
 pragma solidity 0.5.17;
 
-interface ISwapERC20 {
+interface IAirswapSwapERC20 {
     function swap(
         address recipient,
         uint256 nonce,

@@ -1,8 +1,8 @@
 const { expectRevert, expectEvent, BN, constants } = require("@openzeppelin/test-helpers");
 const { artifacts } = require("hardhat");
 
-const AirSwapERC20Mockup = artifacts.require("AirSwapERC20Mockup");
-const AirSwapFeeConnector = artifacts.require("AirSwapFeeConnector");
+const AirswapERC20Mockup = artifacts.require("AirswapERC20Mockup");
+const AirswapFeeConnector = artifacts.require("AirswapFeeConnector");
 const TestToken = artifacts.require("TestToken");
 
 const { ZERO_ADDRESS } = constants;
@@ -20,7 +20,7 @@ function bnToComparableNumber(bn) {
 contract("AirSwap Integration", (accounts) => {
     let deployerAddress, senderAddress, marketMakerAddress, recipientAddress, feeVaultAddress;
     let testToken1, testToken1Address, testToken2, testToken2Address;
-    let airSwapERC20Mockup, airSwapFeeConnector;
+    let airSwapERC20Mockup, airswapFeeConnector;
     let fakeAddress;
 
     describe.only("AirSwap Integration test", async () => {
@@ -33,8 +33,8 @@ contract("AirSwap Integration", (accounts) => {
                 feeVaultAddress,
             ] = accounts;
 
-            airSwapERC20Mockup = await AirSwapERC20Mockup.new();
-            airSwapFeeConnector = await AirSwapFeeConnector.new();
+            airSwapERC20Mockup = await AirswapERC20Mockup.new();
+            airswapFeeConnector = await AirswapFeeConnector.new();
 
             testToken1 = await TestToken.new("TST1", "TST1", 18, INITIAL_AMOUNT_BN);
             testToken1Address = testToken1.address;
@@ -53,15 +53,15 @@ contract("AirSwap Integration", (accounts) => {
             const fakeFee = new BN(Math.floor(10 ^ (18 * Math.random)));
             it("owner only", async () => {
                 await expectRevert(
-                    airSwapFeeConnector.setInputFee(fakeFee, { from: senderAddress }),
+                    airswapFeeConnector.setInputFee(fakeFee, { from: senderAddress }),
                     "unauthorized"
                 );
             });
             it("can be set", async () => {
-                const { tx } = await airSwapFeeConnector.setInputFee(fakeFee);
-                const fee = await airSwapFeeConnector.inputFeeInPoints();
+                const { tx } = await airswapFeeConnector.setInputFee(fakeFee);
+                const fee = await airswapFeeConnector.inputFeeInPoints();
                 expect(fee.toString()).to.be.equal(fakeFee.toString());
-                await expectEvent.inTransaction(tx, airSwapFeeConnector, "InputFeeChangedEvent", {
+                await expectEvent.inTransaction(tx, airswapFeeConnector, "InputFeeChangedEvent", {
                     sender: deployerAddress,
                     feeInPoints: fakeFee,
                 });
@@ -72,15 +72,15 @@ contract("AirSwap Integration", (accounts) => {
             const fakeFee = new BN(Math.floor(10 ^ (18 * Math.random)));
             it("owner only", async () => {
                 await expectRevert(
-                    airSwapFeeConnector.setOutputFee(fakeFee, { from: senderAddress }),
+                    airswapFeeConnector.setOutputFee(fakeFee, { from: senderAddress }),
                     "unauthorized"
                 );
             });
             it("can be set", async () => {
-                const { tx } = await airSwapFeeConnector.setOutputFee(fakeFee);
-                const fee = await airSwapFeeConnector.outputFeeInPoints();
+                const { tx } = await airswapFeeConnector.setOutputFee(fakeFee);
+                const fee = await airswapFeeConnector.outputFeeInPoints();
                 expect(fee.toString()).to.be.equal(fakeFee.toString());
-                await expectEvent.inTransaction(tx, airSwapFeeConnector, "OutputFeeChangedEvent", {
+                await expectEvent.inTransaction(tx, airswapFeeConnector, "OutputFeeChangedEvent", {
                     sender: deployerAddress,
                     feeInPoints: fakeFee,
                 });
@@ -90,17 +90,17 @@ contract("AirSwap Integration", (accounts) => {
         describe("feeVaultAddress", async () => {
             it("owner only", async () => {
                 await expectRevert(
-                    airSwapFeeConnector.setFeeVaultAddress(fakeAddress, { from: senderAddress }),
+                    airswapFeeConnector.setFeeVaultAddress(fakeAddress, { from: senderAddress }),
                     "unauthorized"
                 );
             });
             it("can be set", async () => {
-                const { tx } = await airSwapFeeConnector.setFeeVaultAddress(fakeAddress);
-                const address = await airSwapFeeConnector.feeVaultAddress();
+                const { tx } = await airswapFeeConnector.setFeeVaultAddress(fakeAddress);
+                const address = await airswapFeeConnector.feeVaultAddress();
                 expect(address).to.be.equal(fakeAddress);
                 await expectEvent.inTransaction(
                     tx,
-                    airSwapFeeConnector,
+                    airswapFeeConnector,
                     "FeeVaultAddressChangedEvent",
                     {
                         sender: deployerAddress,
@@ -113,17 +113,17 @@ contract("AirSwap Integration", (accounts) => {
         describe("swapERC20Address", async () => {
             it("owner only", async () => {
                 await expectRevert(
-                    airSwapFeeConnector.setSwapERC20Address(fakeAddress, { from: senderAddress }),
+                    airswapFeeConnector.setSwapERC20Address(fakeAddress, { from: senderAddress }),
                     "unauthorized"
                 );
             });
             it("can be set", async () => {
-                const { tx } = await airSwapFeeConnector.setSwapERC20Address(fakeAddress);
-                const address = await airSwapFeeConnector.swapERC20Address();
+                const { tx } = await airswapFeeConnector.setSwapERC20Address(fakeAddress);
+                const address = await airswapFeeConnector.swapERC20Address();
                 expect(address).to.be.equal(fakeAddress);
                 await expectEvent.inTransaction(
                     tx,
-                    airSwapFeeConnector,
+                    airswapFeeConnector,
                     "SwapERC20AddressChangedEvent",
                     {
                         sender: deployerAddress,
@@ -151,10 +151,10 @@ contract("AirSwap Integration", (accounts) => {
                 const expectedOutputFee = (outputAmount * outputFeePoints) / POINTS;
                 const expectedOutputAmountAfterFee = outputAmount - expectedOutputFee;
 
-                await airSwapFeeConnector.setSwapERC20Address(airSwapERC20Mockup.address);
-                await airSwapFeeConnector.setFeeVaultAddress(feeVaultAddress);
-                await airSwapFeeConnector.setInputFee(inputFeePoints);
-                await airSwapFeeConnector.setOutputFee(outputFeePoints);
+                await airswapFeeConnector.setSwapERC20Address(airSwapERC20Mockup.address);
+                await airswapFeeConnector.setFeeVaultAddress(feeVaultAddress);
+                await airswapFeeConnector.setInputFee(inputFeePoints);
+                await airswapFeeConnector.setOutputFee(outputFeePoints);
                 await airSwapERC20Mockup.reset();
 
                 function numberToBn(n) {
@@ -163,12 +163,12 @@ contract("AirSwap Integration", (accounts) => {
 
                 // first we need to approve
                 await testToken1.approve(
-                    airSwapFeeConnector.address,
+                    airswapFeeConnector.address,
                     numberToBn(totalInputAmount)
                 );
 
                 // then we can convert
-                const { tx } = await airSwapFeeConnector.swap(
+                const { tx } = await airswapFeeConnector.swap(
                     deployerAddress,
                     recipientAddress,
                     fakeNonce,
@@ -183,7 +183,7 @@ contract("AirSwap Integration", (accounts) => {
                     fakeS
                 );
 
-                await expectEvent.inTransaction(tx, airSwapFeeConnector, "SwapEvent", {
+                await expectEvent.inTransaction(tx, airswapFeeConnector, "SwapEvent", {
                     sender: deployerAddress,
                     recipient: recipientAddress,
                     sendToken: testToken1Address,

@@ -1,13 +1,13 @@
 pragma solidity 0.5.17;
 
-import "../openzeppelin/SafeMath.sol";
-import "../openzeppelin/PausableOz.sol";
-import "../openzeppelin/IERC20_.sol";
+import "../../openzeppelin/SafeMath.sol";
+import "../../openzeppelin/PausableOz.sol";
+import "../../openzeppelin/IERC20_.sol";
 
-import "./IAirSwapFeeConnector.sol";
-import "./ISwapERC20.sol";
+import "./IAirswapFeeConnector.sol";
+import "./IAirswapSwapERC20.sol";
 
-contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
+contract AirswapFeeConnector is PausableOz, IAirswapFeeConnector {
     using SafeMath for uint256;
 
     struct SwapRequest {
@@ -155,7 +155,7 @@ contract AirSwapFeeConnector is PausableOz, IAirSwapFeeConnector {
         uint256 senderAmountAfterFee = swapRequest.totalSenderAmount.sub(inputFee);
 
         // now we do the swap
-        ISwapERC20(swapERC20Address).swap(
+        IAirswapSwapERC20(swapERC20Address).swap(
             address(this),
             swapRequest.nonce,
             swapRequest.expiry,

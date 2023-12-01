@@ -4,7 +4,7 @@ pragma solidity 0.5.17;
  *  @title A proxy to the AirSwap ERC20 contract that collects fees before and after the conversion.
  *  @author Derek Mattr dharkmattr@gmail.com
  */
-interface IAirSwapFeeConnector {
+interface IAirswapFeeConnector {
     /// @notice Set the input fee in points, ie 25 means 2.5 percent.
     ///         The input fee is collected on the sent tokens before
     ///         the actual conversion.

@@ -1,10 +1,10 @@
 pragma solidity 0.5.17;
 
 import "../openzeppelin/IERC20_.sol";
-import "../airswap/ISwapERC20.sol";
+import "../integrations/airswap/IAirswapSwapERC20.sol";
 
 // This contract is only for testing purposes
-contract AirSwapERC20Mockup is ISwapERC20 {
+contract AirswapERC20Mockup is IAirswapSwapERC20 {
     int16 public swapCalled = 0;
 
     address public recipient;
