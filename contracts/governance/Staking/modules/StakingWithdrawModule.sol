@@ -95,7 +95,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param _startFrom The start value for the iterations.
      * or just unlocked tokens (false).
      *
-     * @return nextStartFrom the value of start from to be used for next withdrawal.
+     * @return nextStartFrom is a timestamp to be used for next withdrawal.
      * @return notCompleted flag that indicates that the cancel team vesting is not completely done.
      * */
     function _cancelTeamVesting(
@@ -143,7 +143,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
 
         if (adjustedEnd < end) {
             nextStartFrom = adjustedEnd + TWO_WEEKS;
-            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd);
+            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd, nextStartFrom);
             return (nextStartFrom, true);
         } else {
             emit TeamVestingCancelled(msg.sender, _receiver);
