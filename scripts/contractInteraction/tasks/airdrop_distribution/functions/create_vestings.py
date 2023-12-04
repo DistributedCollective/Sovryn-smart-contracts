@@ -107,16 +107,16 @@ def parseFile(fileName, multiplier):
     with open(fileName, 'r') as file:
         reader = csv.reader(file)
         for row in reader:
-            tokenOwner = row[3].replace(" ", "")
+            tokenOwner = row[4].replace(" ", "")
             decimals = row[0].split('.')
             if(len(decimals) != 2 or len(decimals[1]) != 2):
                 errorMsg+="\n" + tokenOwner + ' amount: ' + row[0]
             amount = row[0].replace(",", "").replace(".", "")
             amount = int(amount) * multiplier
-            cliff = int(row[5])
-            duration = int(row[6])
+            cliff = int(row[6])
+            duration = int(row[7])
             isTeam = True
-            if (row[7] == "OwnerVesting"):
+            if (row[8] == "OwnerVesting"):
                 isTeam = False
             totalAmount += amount
 
