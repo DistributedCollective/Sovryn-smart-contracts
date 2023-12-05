@@ -355,3 +355,22 @@ task("sips:execute-timer", "Execute SIP with countdown")
             logger.error(`Proposal ${proposalId} is NOT executed`);
         }
     });
+
+task("sips:decode-sip-data", "Decodes SIP data and writes it to a file")
+    .addParam("data", "The ABI-encoded data to decode")
+    .setAction(async (taskArgs, hre) => {
+        // Import fs module
+        //const fs = require("fs");
+
+        // Retrieve the data from the task arguments
+        const dataToDecode = taskArgs.data;
+
+        // Define the ABI components you want to decode
+        const types = ["address[]", "uint256[]", "string[]", "bytes[]", "string"];
+
+        // Decode the data using ethers.js
+        const obj = ethers.utils.defaultAbiCoder.decode(types, dataToDecode);
+
+        // Write the decoded data to a file
+        console.log(JSON.stringify(obj, null, 2));
+    });
