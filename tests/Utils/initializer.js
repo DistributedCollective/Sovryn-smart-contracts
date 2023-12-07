@@ -22,6 +22,7 @@ const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 
 const SwapsExternal = artifacts.require("SwapsExternal");
 const SwapsImplSovrynSwapModule = artifacts.require("SwapsImplSovrynSwapModule");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenLogic = artifacts.require("LoanTokenLogic");
@@ -253,6 +254,17 @@ const getPriceFeedsRBTC = async (WRBTC, SUSD, RBTC, sovryn, BZRX) => {
 const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
     const sovrynproxy = await sovrynProtocol.new();
     const sovryn = await ISovryn.at(sovrynproxy.address);
+
+    /** Deploy SwapsImplSovrynSwapLib */
+    try {
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await LoanMaintenance.link(swapsImplSovrynSwapLib);
+        await SwapsExternal.link(swapsImplSovrynSwapLib);
+        await LoanClosingsWith.link(swapsImplSovrynSwapLib);
+        await LoanClosingsRollover.link(swapsImplSovrynSwapLib);
+        await SwapsImplSovrynSwapModule.link(swapsImplSovrynSwapLib);
+        await LoanOpenings.link(swapsImplSovrynSwapLib);
+    } catch (err) {}
 
     await sovryn.replaceContract((await ProtocolSettings.new()).address);
     await sovryn.replaceContract((await LoanSettings.new()).address);

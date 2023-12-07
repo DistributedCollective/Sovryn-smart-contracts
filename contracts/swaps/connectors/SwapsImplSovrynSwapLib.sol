@@ -1,10 +1,11 @@
 pragma solidity 0.5.17;
+pragma experimental ABIEncoderV2;
 
-import "../../core/State.sol";
 import "../../feeds/IPriceFeeds.sol";
 import "../../openzeppelin/SafeERC20.sol";
 import "./interfaces/ISovrynSwapNetwork.sol";
 import "./interfaces/IContractRegistry.sol";
+import "../../interfaces/ISovryn.sol";
 
 /**
  * @title Swaps Implementation Sovryn contract.
@@ -15,11 +16,18 @@ import "./interfaces/IContractRegistry.sol";
  * This contract contains the implementation of swap process and rate
  * calculations for Sovryn network.
  * */
-contract SwapsImplSovrynSwapInternal is State {
+library SwapsImplSovrynSwapLib {
+    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    constructor() internal {
-        // abstract
+    struct SwapParams {
+        address sourceTokenAddress;
+        address destTokenAddress;
+        address receiverAddress;
+        address returnToSenderAddress;
+        uint256 minSourceTokenAmount;
+        uint256 maxSourceTokenAmount;
+        uint256 requiredDestTokenAmount;
     }
 
     /// bytes32 contractName = hex"42616e636f724e6574776f726b"; /// "SovrynSwapNetwork"
@@ -28,7 +36,7 @@ contract SwapsImplSovrynSwapInternal is State {
      * Get the hex name of a contract.
      * @param source The name of the contract.
      * */
-    function _getContractHexName(string memory source) internal pure returns (bytes32 result) {
+    function getContractHexName(string memory source) public pure returns (bytes32 result) {
         assembly {
             result := mload(add(source, 32))
         }
@@ -38,8 +46,8 @@ contract SwapsImplSovrynSwapInternal is State {
      * Look up the Sovryn swap network contract registered at the given address.
      * @param sovrynSwapRegistryAddress The address of the registry.
      * */
-    function _getSovrynSwapNetworkContract(address sovrynSwapRegistryAddress)
-        internal
+    function getSovrynSwapNetworkContract(address sovrynSwapRegistryAddress)
+        public
         view
         returns (ISovrynSwapNetwork)
     {
@@ -49,7 +57,7 @@ contract SwapsImplSovrynSwapInternal is State {
         IContractRegistry contractRegistry = IContractRegistry(sovrynSwapRegistryAddress);
         return
             ISovrynSwapNetwork(
-                contractRegistry.addressOf(_getContractHexName("SovrynSwapNetwork"))
+                contractRegistry.addressOf(getContractHexName("SovrynSwapNetwork"))
             );
     }
 
@@ -62,60 +70,67 @@ contract SwapsImplSovrynSwapInternal is State {
      * On loan closure: minSourceTokenAmount <= maxSourceTokenAmount and requiredDestTokenAmount >= 0
      *      -> same as on rollover. minimum amount is not considered at all.
      *
-     * @param sourceTokenAddress The address of the source tokens.
-     * @param destTokenAddress The address of the destination tokens.
-     * @param receiverAddress The address who will received the swap token results
-     * @param returnToSenderAddress The address to return unspent tokens to (when called by the protocol, it's always the protocol contract).
-     * @param minSourceTokenAmount The minimum amount of source tokens to swapped (only considered if requiredDestTokens == 0).
-     * @param maxSourceTokenAmount The maximum amount of source tokens to swapped.
-     * @param requiredDestTokenAmount The required amount of destination tokens.
+     * @param params SwapParams struct
+     * sourceTokenAddress The address of the source tokens.
+     * destTokenAddress The address of the destination tokens.
+     * receiverAddress The address who will received the swap token results
+     * returnToSenderAddress The address to return unspent tokens to (when called by the protocol, it's always the protocol contract).
+     * minSourceTokenAmount The minimum amount of source tokens to swapped (only considered if requiredDestTokens == 0).
+     * maxSourceTokenAmount The maximum amount of source tokens to swapped.
+     * requiredDestTokenAmount The required amount of destination tokens.
      * */
-    function _swap(
-        address sourceTokenAddress,
-        address destTokenAddress,
-        address receiverAddress,
-        address returnToSenderAddress,
-        uint256 minSourceTokenAmount,
-        uint256 maxSourceTokenAmount,
-        uint256 requiredDestTokenAmount
-    ) internal returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
-        require(sourceTokenAddress != destTokenAddress, "source == dest");
+    function swap(SwapParams memory params)
+        public
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
+    {
+        require(params.sourceTokenAddress != params.destTokenAddress, "source == dest");
+
+        ISovryn iSovryn = ISovryn(address(this));
         require(
-            supportedTokens[sourceTokenAddress] && supportedTokens[destTokenAddress],
+            iSovryn.supportedTokens(params.sourceTokenAddress) &&
+                iSovryn.supportedTokens(params.destTokenAddress),
             "invalid tokens"
         );
 
         ISovrynSwapNetwork sovrynSwapNetwork =
-            _getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+            getSovrynSwapNetworkContract(iSovryn.sovrynSwapContractRegistryAddress());
 
         IERC20[] memory path =
-            _getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
+            _getConversionPath(
+                params.sourceTokenAddress,
+                params.destTokenAddress,
+                sovrynSwapNetwork
+            );
 
         uint256 minReturn = 1;
-        sourceTokenAmountUsed = minSourceTokenAmount;
+        sourceTokenAmountUsed = params.minSourceTokenAmount;
 
         /// If the required amount of destination tokens is passed, we need to
         /// calculate the estimated amount of source tokens regardless of the
         /// minimum source token amount (name is misleading).
-        if (requiredDestTokenAmount > 0) {
+        if (params.requiredDestTokenAmount > 0) {
             sourceTokenAmountUsed = _estimateSourceTokenAmount(
-                sourceTokenAddress,
-                destTokenAddress,
-                requiredDestTokenAmount,
-                maxSourceTokenAmount
+                params.sourceTokenAddress,
+                params.destTokenAddress,
+                params.requiredDestTokenAmount,
+                params.maxSourceTokenAmount
             );
             /// sovrynSwapNetwork.rateByPath does not return a rate, but instead the amount of destination tokens returned.
             require(
                 sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed) >=
-                    requiredDestTokenAmount,
+                    params.requiredDestTokenAmount,
                 "insufficient source tokens provided."
             );
-            minReturn = requiredDestTokenAmount;
+            minReturn = params.requiredDestTokenAmount;
         }
 
         require(sourceTokenAmountUsed > 0, "cannot swap 0 tokens");
 
-        _allowTransfer(sourceTokenAmountUsed, sourceTokenAddress, address(sovrynSwapNetwork));
+        _allowTransfer(
+            sourceTokenAmountUsed,
+            params.sourceTokenAddress,
+            address(sovrynSwapNetwork)
+        );
 
         /// @dev Note: the kyber connector uses .call() to interact with kyber
         /// to avoid bubbling up. here we allow bubbling up.
@@ -123,7 +138,7 @@ contract SwapsImplSovrynSwapInternal is State {
             path,
             sourceTokenAmountUsed,
             minReturn,
-            receiverAddress,
+            params.receiverAddress,
             address(0),
             0
         );
@@ -132,12 +147,12 @@ contract SwapsImplSovrynSwapInternal is State {
         /// return the remainder to the specified address.
         /// @dev Note: for the case that the swap is used without the
         /// protocol. Not sure if it should, though. needs to be discussed.
-        if (returnToSenderAddress != address(this)) {
-            if (sourceTokenAmountUsed < maxSourceTokenAmount) {
+        if (params.returnToSenderAddress != address(this)) {
+            if (sourceTokenAmountUsed < params.maxSourceTokenAmount) {
                 /// Send unused source token back.
-                IERC20(sourceTokenAddress).safeTransfer(
-                    returnToSenderAddress,
-                    maxSourceTokenAmount - sourceTokenAmountUsed
+                IERC20(params.sourceTokenAddress).safeTransfer(
+                    params.returnToSenderAddress,
+                    params.maxSourceTokenAmount - sourceTokenAmountUsed
                 );
             }
         }
@@ -181,13 +196,14 @@ contract SwapsImplSovrynSwapInternal is State {
         uint256 requiredDestTokenAmount,
         uint256 maxSourceTokenAmount
     ) internal view returns (uint256 estimatedSourceAmount) {
+        ISovryn iSovryn = ISovryn(address(this));
         uint256 sourceToDestPrecision =
-            IPriceFeeds(priceFeeds).queryPrecision(sourceTokenAddress, destTokenAddress);
+            IPriceFeeds(iSovryn.priceFeeds()).queryPrecision(sourceTokenAddress, destTokenAddress);
         if (sourceToDestPrecision == 0) return maxSourceTokenAmount;
 
         /// Compute the expected rate for the maxSourceTokenAmount -> if spending less, we can't get a worse rate.
         uint256 expectedRate =
-            _getExpectedRate(sourceTokenAddress, destTokenAddress, maxSourceTokenAmount);
+            getExpectedRate(sourceTokenAddress, destTokenAddress, maxSourceTokenAmount);
 
         /// Compute the source tokens needed to get the required amount with the worst case rate.
         estimatedSourceAmount = requiredDestTokenAmount.mul(sourceToDestPrecision).div(
@@ -197,7 +213,7 @@ contract SwapsImplSovrynSwapInternal is State {
         /// If the actual rate is exactly the same as the worst case rate, we get rounding issues. So, add a small buffer.
         /// buffer = min(estimatedSourceAmount/1000 , sourceBuffer) with sourceBuffer = 10000
         uint256 buffer = estimatedSourceAmount.div(1000);
-        if (buffer > sourceBuffer) buffer = sourceBuffer;
+        if (buffer > iSovryn.sourceBuffer()) buffer = iSovryn.sourceBuffer();
         estimatedSourceAmount = estimatedSourceAmount.add(buffer);
 
         /// Never spend more than the maximum.
@@ -213,13 +229,14 @@ contract SwapsImplSovrynSwapInternal is State {
      * @param destTokenAddress The address of the destination token contract.
      * @param sourceTokenAmount The amount of source tokens to get the rate for.
      * */
-    function _getExpectedRate(
+    function getExpectedRate(
         address sourceTokenAddress,
         address destTokenAddress,
         uint256 sourceTokenAmount
-    ) internal view returns (uint256) {
+    ) public view returns (uint256) {
+        ISovryn iSovryn = ISovryn(address(this));
         ISovrynSwapNetwork sovrynSwapNetwork =
-            _getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+            getSovrynSwapNetworkContract(iSovryn.sovrynSwapContractRegistryAddress());
 
         IERC20[] memory path =
             _getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
@@ -243,13 +260,14 @@ contract SwapsImplSovrynSwapInternal is State {
      * @param destTokenAddress The address of the destination token contract.
      * @param sourceTokenAmount The amount of source tokens to get the return for.
      * */
-    function _getExpectedReturn(
+    function getExpectedReturn(
         address sourceTokenAddress,
         address destTokenAddress,
         uint256 sourceTokenAmount
-    ) internal view returns (uint256 expectedReturn) {
+    ) public view returns (uint256 expectedReturn) {
+        ISovryn iSovryn = ISovryn(address(this));
         ISovrynSwapNetwork sovrynSwapNetwork =
-            _getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+            getSovrynSwapNetworkContract(iSovryn.sovrynSwapContractRegistryAddress());
 
         IERC20[] memory path =
             _getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
@@ -263,8 +281,9 @@ contract SwapsImplSovrynSwapInternal is State {
         address destTokenAddress,
         ISovrynSwapNetwork sovrynSwapNetwork
     ) private view returns (IERC20[] memory path) {
+        ISovryn iSovryn = ISovryn(address(this));
         IERC20[] memory _defaultPathConversion =
-            defaultPathConversion[sourceTokenAddress][destTokenAddress];
+            iSovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress);
 
         /// will use the defaultPath if it's set, otherwise query from the SovrynSwapNetwork.
         path = _defaultPathConversion.length >= 3

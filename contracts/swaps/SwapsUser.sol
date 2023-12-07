@@ -9,12 +9,12 @@ import "../core/State.sol";
 import "../feeds/IPriceFeeds.sol";
 import "../events/SwapsEvents.sol";
 import "../mixins/FeesHelper.sol";
-import "./connectors/SwapsImplSovrynSwapInternal.sol";
+import "./connectors/SwapsImplSovrynSwapLib.sol";
 
 /**
  * @title Perform token swaps for loans and trades.
  * */
-contract SwapsUser is State, SwapsEvents, FeesHelper, SwapsImplSovrynSwapInternal {
+contract SwapsUser is State, SwapsEvents, FeesHelper {
     /**
      * @notice Internal loan swap.
      *
@@ -217,15 +217,17 @@ contract SwapsUser is State, SwapsEvents, FeesHelper, SwapsImplSovrynSwapInterna
         internal
         returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
     {
-        (destTokenAmountReceived, sourceTokenAmountUsed) = _swap(
-            addrs[0], /// sourceToken
-            addrs[1], /// destToken
-            addrs[2], /// receiverAddress
-            addrs[3], /// returnToSenderAddress
-            vals[0], /// minSourceTokenAmount
-            vals[1], /// maxSourceTokenAmount
-            vals[2] /// requiredDestTokenAmount
-        );
+        SwapsImplSovrynSwapLib.SwapParams memory swapParams;
+
+        swapParams.sourceTokenAddress = addrs[0];
+        swapParams.destTokenAddress = addrs[1];
+        swapParams.receiverAddress = addrs[2];
+        swapParams.returnToSenderAddress = addrs[3];
+        swapParams.minSourceTokenAmount = vals[0];
+        swapParams.maxSourceTokenAmount = vals[1];
+        swapParams.requiredDestTokenAmount = vals[2];
+
+        (destTokenAmountReceived, sourceTokenAmountUsed) = SwapsImplSovrynSwapLib.swap(swapParams);
     }
 
     /**
@@ -244,7 +246,11 @@ contract SwapsUser is State, SwapsEvents, FeesHelper, SwapsImplSovrynSwapInterna
         address destToken,
         uint256 sourceTokenAmount
     ) internal view returns (uint256 destTokenAmount) {
-        destTokenAmount = _getExpectedReturn(sourceToken, destToken, sourceTokenAmount);
+        destTokenAmount = SwapsImplSovrynSwapLib.getExpectedReturn(
+            sourceToken,
+            destToken,
+            sourceTokenAmount
+        );
     }
 
     /**

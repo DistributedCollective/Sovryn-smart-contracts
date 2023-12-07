@@ -27,6 +27,7 @@ const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const {
     lend_to_the_pool,
@@ -142,6 +143,9 @@ contract("LoanTokenLending", (accounts) => {
 
     before(async () => {
         [lender, account1, account2, account3, account4, ...accounts] = accounts;
+
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

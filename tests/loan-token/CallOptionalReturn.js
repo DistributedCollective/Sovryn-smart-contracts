@@ -27,6 +27,7 @@ const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 const mutexUtils = require("../reentrancy/utils");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const TOTAL_SUPPLY = web3.utils.toWei("1000", "ether");
 const wei = web3.utils.toWei;
@@ -41,6 +42,17 @@ contract("CallOptionalReturn", (accounts) => {
 
     before(async () => {
         [lender, account1, ...accounts] = accounts;
+
+        try {
+            /** Deploy SwapsImplSovrynSwapLib */
+            const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await SwapsExternal.link(swapsImplSovrynSwapLib);
+            await LoanClosingsWith.link(swapsImplSovrynSwapLib);
+            await LoanClosingsRollover.link(swapsImplSovrynSwapLib);
+            await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+            await LoanOpenings.link(swapsImplSovrynSwapLib);
+        } catch (err) {}
     });
 
     beforeEach(async () => {

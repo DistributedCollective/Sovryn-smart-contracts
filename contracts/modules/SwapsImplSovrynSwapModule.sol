@@ -1,10 +1,10 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-import "../swaps/connectors/SwapsImplSovrynSwapInternal.sol";
+import "../swaps/connectors/SwapsImplSovrynSwapLib.sol";
 import "../events/ModulesCommonEvents.sol";
 
-contract SwapsImplSovrynSwapModule is SwapsImplSovrynSwapInternal, ModulesCommonEvents {
+contract SwapsImplSovrynSwapModule is State, ModulesCommonEvents {
     /**
      * @notice Empty public constructor.
      * */
@@ -41,7 +41,7 @@ contract SwapsImplSovrynSwapModule is SwapsImplSovrynSwapInternal, ModulesCommon
      * @param source The name of the contract.
      * */
     function getContractHexName(string memory source) public pure returns (bytes32 result) {
-        return _getContractHexName(source);
+        return SwapsImplSovrynSwapLib.getContractHexName(source);
     }
 
     /**
@@ -53,7 +53,7 @@ contract SwapsImplSovrynSwapModule is SwapsImplSovrynSwapInternal, ModulesCommon
         view
         returns (ISovrynSwapNetwork)
     {
-        return _getSovrynSwapNetworkContract(sovrynSwapRegistryAddress);
+        return SwapsImplSovrynSwapLib.getSovrynSwapNetworkContract(sovrynSwapRegistryAddress);
     }
 
     /**
@@ -69,7 +69,12 @@ contract SwapsImplSovrynSwapModule is SwapsImplSovrynSwapInternal, ModulesCommon
         address destTokenAddress,
         uint256 sourceTokenAmount
     ) external view returns (uint256) {
-        return _getExpectedRate(sourceTokenAddress, destTokenAddress, sourceTokenAmount);
+        return
+            SwapsImplSovrynSwapLib.getExpectedRate(
+                sourceTokenAddress,
+                destTokenAddress,
+                sourceTokenAmount
+            );
     }
 
     /**
@@ -89,6 +94,11 @@ contract SwapsImplSovrynSwapModule is SwapsImplSovrynSwapInternal, ModulesCommon
         address destTokenAddress,
         uint256 sourceTokenAmount
     ) external view returns (uint256 expectedReturn) {
-        return _getExpectedReturn(sourceTokenAddress, destTokenAddress, sourceTokenAmount);
+        return
+            SwapsImplSovrynSwapLib.getExpectedReturn(
+                sourceTokenAddress,
+                destTokenAddress,
+                sourceTokenAmount
+            );
     }
 }

@@ -17,42 +17,52 @@ const func = async function (hre) {
         Affiliates: {
             moduleName: "Affiliates",
             sampleFunction: "setAffiliatesReferrer(address,address)",
+            requireSwapsImplSovrynSwapLib: false,
         },
         LoanClosingsLiquidation: {
             moduleName: "LoanClosingsLiquidation",
             sampleFunction: "liquidate(bytes32,address,uint256)",
+            requireSwapsImplSovrynSwapLib: true,
         },
         LoanClosingsRollover: {
             moduleName: "LoanClosingsRollover",
             sampleFunction: "rollover(bytes32,bytes)",
+            requireSwapsImplSovrynSwapLib: true,
         },
         LoanClosingsWith: {
             moduleName: "LoanClosingsWith",
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
+            requireSwapsImplSovrynSwapLib: true,
         },
         LoanOpenings: {
             moduleName: "LoanOpenings",
             sampleFunction: "setDelegatedManager(bytes32,address,bool)",
+            requireSwapsImplSovrynSwapLib: true,
         },
         LoanMaintenance: {
             moduleName: "LoanMaintenance",
             sampleFunction: "getActiveLoans(uint256,uint256,bool)",
+            requireSwapsImplSovrynSwapLib: true,
         },
         LoanSettings: {
             moduleName: "LoanSettings",
             sampleFunction: "minInitialMargin(bytes32)",
+            requireSwapsImplSovrynSwapLib: false,
         },
         ProtocolSettings: {
             moduleName: "ProtocolSettings",
             sampleFunction: "getPauser()",
+            requireSwapsImplSovrynSwapLib: false,
         },
         SwapsExternal: {
             moduleName: "SwapsExternal",
             sampleFunction: "getSwapExpectedReturn(address,address,uint256)",
+            requireSwapsImplSovrynSwapLib: true,
         },
         SwapsImplSovrynSwapModule: {
             moduleName: "SwapsImplSovrynSwapModule",
             sampleFunction: "getSovrynSwapNetworkContract(address)",
+            requireSwapsImplSovrynSwapLib: true,
         },
     };
     log(col.bgYellow("Deploying ProtocolModules..."));
@@ -60,12 +70,26 @@ const func = async function (hre) {
     const protocolModulesName = Object.keys(modulesList).filter((k) =>
         deployModules.hasOwnProperty(k)
     );
+
+    const swapsImplSovrynSwapLibDeployment = await get("SwapsImplSovrynSwapLib");
+
     for (let i = 0; i < protocolModulesName.length; i++) {
-        const tx = await deploy(protocolModulesName[i], {
+        let libraries = {};
+
+        const module = deployModules[protocolModulesName[i]];
+
+        if (module.requireSwapsImplSovrynSwapLib) {
+            libraries = {
+                SwapsImplSovrynSwapLib: swapsImplSovrynSwapLibDeployment.address,
+            };
+        }
+        const tx = await deploy(module.moduleName, {
             from: deployer,
             args: [],
             log: true,
+            libraries: libraries,
         });
+
         if (tx.newlyDeployed) {
             totalGas = totalGas.add(tx.receipt.cumulativeGasUsed);
             log("cumulative gas:", tx.receipt.cumulativeGasUsed.toString());
@@ -77,5 +101,7 @@ const func = async function (hre) {
         log("=====================================================================");
     }
 };
+
 func.tags = ["ProtocolModules"];
+func.dependencies = ["SwapsImplSovrynSwapLib"];
 module.exports = func;
