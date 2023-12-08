@@ -22,7 +22,7 @@ const func = async function (hre) {
         LoanClosingsLiquidation: {
             moduleName: "LoanClosingsLiquidation",
             sampleFunction: "liquidate(bytes32,address,uint256)",
-            requireSwapsImplSovrynSwapLib: true,
+            requireSwapsImplSovrynSwapLib: false,
         },
         LoanClosingsRollover: {
             moduleName: "LoanClosingsRollover",
