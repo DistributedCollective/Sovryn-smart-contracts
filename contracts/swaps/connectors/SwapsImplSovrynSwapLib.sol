@@ -235,7 +235,9 @@ library SwapsImplSovrynSwapLib {
         uint256 sourceTokenAmount
     ) public view returns (uint256) {
         ISovrynSwapNetwork sovrynSwapNetwork =
-            getSovrynSwapNetworkContract(ISovryn(address(this)).sovrynSwapContractRegistryAddress());
+            getSovrynSwapNetworkContract(
+                ISovryn(address(this)).sovrynSwapContractRegistryAddress()
+            );
 
         IERC20[] memory path =
             _getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
@@ -265,7 +267,9 @@ library SwapsImplSovrynSwapLib {
         uint256 sourceTokenAmount
     ) public view returns (uint256 expectedReturn) {
         ISovrynSwapNetwork sovrynSwapNetwork =
-            getSovrynSwapNetworkContract(ISovryn(address(this)).sovrynSwapContractRegistryAddress());
+            getSovrynSwapNetworkContract(
+                ISovryn(address(this)).sovrynSwapContractRegistryAddress()
+            );
 
         IERC20[] memory path =
             _getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
