@@ -234,9 +234,8 @@ library SwapsImplSovrynSwapLib {
         address destTokenAddress,
         uint256 sourceTokenAmount
     ) public view returns (uint256) {
-        ISovryn iSovryn = ISovryn(address(this));
         ISovrynSwapNetwork sovrynSwapNetwork =
-            getSovrynSwapNetworkContract(iSovryn.sovrynSwapContractRegistryAddress());
+            getSovrynSwapNetworkContract(ISovryn(address(this)).sovrynSwapContractRegistryAddress());
 
         IERC20[] memory path =
             _getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
@@ -265,9 +264,8 @@ library SwapsImplSovrynSwapLib {
         address destTokenAddress,
         uint256 sourceTokenAmount
     ) public view returns (uint256 expectedReturn) {
-        ISovryn iSovryn = ISovryn(address(this));
         ISovrynSwapNetwork sovrynSwapNetwork =
-            getSovrynSwapNetworkContract(iSovryn.sovrynSwapContractRegistryAddress());
+            getSovrynSwapNetworkContract(ISovryn(address(this)).sovrynSwapContractRegistryAddress());
 
         IERC20[] memory path =
             _getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
@@ -281,9 +279,8 @@ library SwapsImplSovrynSwapLib {
         address destTokenAddress,
         ISovrynSwapNetwork sovrynSwapNetwork
     ) private view returns (IERC20[] memory path) {
-        ISovryn iSovryn = ISovryn(address(this));
         IERC20[] memory _defaultPathConversion =
-            iSovryn.getDefaultPathConversion(sourceTokenAddress, destTokenAddress);
+            ISovryn(address(this)).getDefaultPathConversion(sourceTokenAddress, destTokenAddress);
 
         /// will use the defaultPath if it's set, otherwise query from the SovrynSwapNetwork.
         path = _defaultPathConversion.length >= 3
