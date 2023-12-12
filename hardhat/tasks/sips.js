@@ -363,7 +363,7 @@ task("sips:decode-sip-data", "Decodes SIP data and writes it to a file")
         //const fs = require("fs");
 
         // Retrieve the data from the task arguments
-        const dataToDecode = taskArgs.data;
+        const dataToDecode = `0x${taskArgs.data.toString().substring(10)}`;
 
         // Define the ABI components you want to decode
         const types = ["address[]", "uint256[]", "string[]", "bytes[]", "string"];
