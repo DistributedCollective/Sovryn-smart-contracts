@@ -73,26 +73,6 @@ interface IAirswapFeeConnector {
     /// @param _bitocracyFeeBps Bitocracy fee in basis points
     function setBitocracyFeeBps(uint256 _bitocracyFeeBps) external;
 
-    
-    /// @notice Set the input fee in points, ie 25 means 2.5 percent.
-    ///         The input fee is collected on the sent tokens before
-    ///         the actual conversion.
-    /// @param inputFeeInPoints The new fee in points
-    function setInputFee(uint256 inputFeeInPoints) external;
-
-    /// @notice Set the out fee in points, ie 25 means 2.5 percent.
-    ///         The output fee is collecte after the conversion.
-    /// @param outputFeeInPoints The new fee in points
-    function setOutputFee(uint256 outputFeeInPoints) external;
-
-    /// @notice Set the address to which fees are sent
-    /// @param newAddress The new address
-    function setFeeVaultAddress(address newAddress) external;
-
-    /// @notice Set the address of the AirSwap contract
-    /// @param newAddress The new address
-    function setSwapERC20Address(address newAddress) external;
-
     /// @notice Swap one token for another.
     /// @param _sender Address which is sending the tokens
     /// @param _recipient Address to send the resulting tokens after collecting the output fee
