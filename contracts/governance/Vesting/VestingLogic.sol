@@ -133,6 +133,7 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
     ) public onlyOwners {
         uint256 defaultStartFrom = startDate + cliff;
 
+        startFrom = staking.timestampToLockDate(startFrom);
         startFrom = startFrom < defaultStartFrom ? defaultStartFrom : startFrom;
 
         // @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1

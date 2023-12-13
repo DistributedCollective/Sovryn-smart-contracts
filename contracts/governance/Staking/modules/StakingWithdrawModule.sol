@@ -143,7 +143,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
 
         if (adjustedEnd < end) {
             nextStartFrom = adjustedEnd + TWO_WEEKS;
-            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd, nextStartFrom);
+            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, nextStartFrom);
             return (nextStartFrom, true);
         } else {
             emit TeamVestingCancelled(msg.sender, _receiver);
@@ -364,13 +364,19 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         uint256 teamVestingStartDate = teamVesting.startDate();
         uint256 teamVestingCliff = teamVesting.cliff();
 
-        uint256 startFrom = teamVestingStartDate + teamVestingCliff;
+        uint256 nextStartFrom = teamVestingStartDate + teamVestingCliff;
         bool withdrawFlag = true;
 
-        uint256 nextStartFrom = startFrom;
         bool notCompleted;
 
+        /**
+         * The withdrawal is limited to certain iterations (set in maxVestingWithdrawIterations), so in order to withdraw all, we need to iterate until it is fully withdrawn.
+         */
         while (withdrawFlag) {
+            /**
+             * notCompleted is the flag whether the withdrawal is fully withdrawn or not.
+             * As long as the notCompleted is true, we will keep the iteration using the nextStartFrom.
+             */
             (nextStartFrom, notCompleted) = _cancelTeamVesting(vesting, receiver, nextStartFrom);
             withdrawFlag = notCompleted ? true : false;
         }

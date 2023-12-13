@@ -8,7 +8,6 @@ import "./TeamVesting.sol";
  * @notice Team tokens and investor tokens are vested. Therefore, a smart
  * contract needs to be developed to enforce the vesting schedule.
  *
- * @dev TODO add tests for governanceWithdrawTokens.
  * */
 contract Vesting is TeamVesting {
     /**
@@ -39,12 +38,4 @@ contract Vesting is TeamVesting {
             _feeSharingCollectorProxy
         )
     {}
-
-    /**
-     * @dev We need to add this implementation to prevent proxy call VestingLogic.governanceWithdrawTokens
-     * @param receiver The receiver of the token withdrawal.
-     * */
-    function governanceWithdrawTokens(address receiver) public {
-        revert("operation not supported");
-    }
 }

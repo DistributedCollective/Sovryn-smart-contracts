@@ -439,7 +439,9 @@ contract("Staking", (accounts) => {
                 "TeamVestingPartiallyCancelled"
             )[0].args;
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
@@ -449,7 +451,7 @@ contract("Staking", (accounts) => {
             await staking.cancelTeamVesting(
                 vesting.address,
                 root,
-                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(TWO_WEEKS))
+                new BN(decodedIncompleteEvent["nextStartFrom"])
             );
 
             // verify amount
@@ -787,8 +789,11 @@ contract("Staking", (accounts) => {
                 StakingWithdrawModule,
                 "TeamVestingPartiallyCancelled"
             )[0].args;
+
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
@@ -798,7 +803,7 @@ contract("Staking", (accounts) => {
             await staking.cancelTeamVesting(
                 vesting.address,
                 root,
-                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(TWO_WEEKS))
+                new BN(decodedIncompleteEvent["nextStartFrom"])
             );
 
             // verify amount

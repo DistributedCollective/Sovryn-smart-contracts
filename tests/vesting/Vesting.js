@@ -1002,7 +1002,9 @@ contract("Vesting", (accounts) => {
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
@@ -1049,16 +1051,16 @@ contract("Vesting", (accounts) => {
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
             );
 
             // Withdrawn another one (next start from should be added by TWO WEEKS)
-            const nextStartIteration = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
-                new BN(TWO_WEEKS)
-            );
+            const nextStartIteration = new BN(decodedIncompleteEvent["nextStartFrom"]);
             const tx2 = await staking.cancelTeamVesting(vesting.address, root, nextStartIteration);
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
@@ -1068,7 +1070,9 @@ contract("Vesting", (accounts) => {
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 nextStartIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
@@ -1115,22 +1119,22 @@ contract("Vesting", (accounts) => {
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
             );
 
             // Withdrawn another one but skip 10 iterations
-            const nextStartIteration = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
+            const nextStartIteration = new BN(decodedIncompleteEvent["nextStartFrom"]).add(
                 new BN(15).mul(new BN(TWO_WEEKS))
             );
             await staking.cancelTeamVesting(vesting.address, root, nextStartIteration);
 
             // Withdrawn skipped iterations
-            const skippedIterations = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
-                new BN(TWO_WEEKS)
-            );
+            const skippedIterations = new BN(decodedIncompleteEvent["nextStartFrom"]);
             let block = await ethers.provider.getBlock("latest");
             let currentBlockNumber = block.number;
 
@@ -1187,7 +1191,9 @@ contract("Vesting", (accounts) => {
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 skippedIterations
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
@@ -1386,7 +1392,9 @@ contract("Vesting", (accounts) => {
                 "TeamVestingPartiallyCancelled"
             )[0].args;
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
@@ -1396,7 +1404,7 @@ contract("Vesting", (accounts) => {
             await staking.cancelTeamVesting(
                 vesting.address,
                 root,
-                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(TWO_WEEKS))
+                new BN(decodedIncompleteEvent["nextStartFrom"])
             );
 
             // verify amount
@@ -1867,7 +1875,13 @@ contract("Vesting", (accounts) => {
         it("should do nothing if withdrawing a second time", async () => {
             // This part should be tested on staking contract, function getPriorUserStakeByDate
             let previousAmount = await token.balanceOf(root);
-            await vesting.withdrawTokensStartingFrom(root, 0, maxWithdrawIterations);
+            const start = await vesting.startDate();
+            const cliff = await vesting.cliff();
+            await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(cliff),
+                maxWithdrawIterations
+            );
             let amount = await token.balanceOf(root);
 
             assert.equal(previousAmount.toString(), amount.toString());
@@ -1917,19 +1931,28 @@ contract("Vesting", (accounts) => {
         });
 
         it("should fail if the caller is neither owner nor token owner", async () => {
+            const start = await vesting.startDate();
+            const cliff = await vesting.cliff();
+            const startTime = start.add(cliff);
             await expectRevert(
-                vesting.withdrawTokensStartingFrom(root, 0, maxWithdrawIterations, { from: a2 }),
+                vesting.withdrawTokensStartingFrom(root, startTime, maxWithdrawIterations, {
+                    from: a2,
+                }),
                 "unauthorized"
             );
             await expectRevert(
-                vesting.withdrawTokensStartingFrom(root, 0, maxWithdrawIterations, { from: a3 }),
+                vesting.withdrawTokensStartingFrom(root, startTime, maxWithdrawIterations, {
+                    from: a3,
+                }),
                 "unauthorized"
             );
 
-            await vesting.withdrawTokensStartingFrom(root, 0, maxWithdrawIterations, {
+            await vesting.withdrawTokensStartingFrom(root, startTime, maxWithdrawIterations, {
                 from: root,
             });
-            await vesting.withdrawTokensStartingFrom(root, 0, maxWithdrawIterations, { from: a1 });
+            await vesting.withdrawTokensStartingFrom(root, startTime, maxWithdrawIterations, {
+                from: a1,
+            });
         });
 
         it("cancelTeamVesting should fail if recipient is zero address", async () => {
@@ -1997,7 +2020,9 @@ contract("Vesting", (accounts) => {
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
@@ -2044,16 +2069,16 @@ contract("Vesting", (accounts) => {
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
             );
 
             // Withdrawn another one (next start from should be added by TWO WEEKS)
-            const nextStartIteration = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
-                new BN(TWO_WEEKS)
-            );
+            const nextStartIteration = new BN(decodedIncompleteEvent["nextStartFrom"]);
             const tx2 = await staking.cancelTeamVesting(vesting.address, root, nextStartIteration);
             decodedIncompleteEvent = decodeLogs(
                 tx2.receipt.rawLogs,
@@ -2063,7 +2088,9 @@ contract("Vesting", (accounts) => {
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 nextStartIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
@@ -2110,22 +2137,22 @@ contract("Vesting", (accounts) => {
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
             );
 
             // Withdrawn another one but skip 10 iterations
-            const nextStartIteration = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
-                new BN(15).mul(new BN(TWO_WEEKS))
-            );
+            const nextStartIteration = new BN(decodedIncompleteEvent["nextStartFrom"])
+                .sub(new BN(TWO_WEEKS))
+                .add(new BN(15).mul(new BN(TWO_WEEKS)));
             await staking.cancelTeamVesting(vesting.address, root, nextStartIteration);
 
             // Withdrawn skipped iterations
-            const skippedIterations = new BN(decodedIncompleteEvent["lastProcessedDate"]).add(
-                new BN(TWO_WEEKS)
-            );
+            const skippedIterations = new BN(decodedIncompleteEvent["nextStartFrom"]);
             let block = await ethers.provider.getBlock("latest");
             let currentBlockNumber = block.number;
 
@@ -2182,7 +2209,9 @@ contract("Vesting", (accounts) => {
             )[0].args;
             expect(decodedIncompleteEvent["caller"]).to.equal(root);
             expect(decodedIncompleteEvent["receiver"]).to.equal(root);
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 skippedIterations
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()

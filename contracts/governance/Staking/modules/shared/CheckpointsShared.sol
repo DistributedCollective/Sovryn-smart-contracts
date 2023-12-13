@@ -84,7 +84,6 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
     event TeamVestingPartiallyCancelled(
         address indexed caller,
         address receiver,
-        uint256 lastProcessedDate,
         uint256 nextStartFrom
     );
 

@@ -759,6 +759,27 @@ const getArgsSip0047 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSipSov625 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const staking = await get("Staking");
+    const stakingAddress = staking.address;
+    const vestingLogicDeployment = await get("VestingLogic");
+
+    const args = {
+        targets: [stakingAddress],
+        values: [0, 0],
+        signatures: ["addContractCodeHash(address)"],
+        data: [abiCoder.encode(["address"], [vestingLogicDeployment.address])],
+        /** @todo change SIP description */
+        description: "SIP-Sov625: Add vestingLogic contract code hash to staking contract",
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -771,4 +792,5 @@ module.exports = {
     getArgsSip0046Part2,
     getArgsSip0046Part3,
     getArgsSip0046Part4,
+    getArgsSipSov625,
 };
