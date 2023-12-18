@@ -763,8 +763,7 @@ const getArgsSip0047 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
-/** @todo update sip number */
-const getArgsSip_SOV_3497 = async (hre) => {
+const getArgsSip0073 = async (hre) => {
     const {
         ethers,
         deployments: { get, log },
@@ -818,8 +817,8 @@ const getArgsSip_SOV_3497 = async (hre) => {
         datas.push(abiCoder.encode(["address"], [moduleDeployment.address]));
     }
 
-    /** @todo change sip description */
-    const description = "";
+    const description =
+        "SIP-0073: Refactor Sovryn Protocol Interface with AMM, Details: https://github.com/DistributedCollective/SIPS/blob/c988248/SIP-0073.md, sha256: 243f9045b7a122f84cd6589efc524eda2c8a17668424840adf7cdebdfcb19b62";
     const args = {
         targets: targets,
         values: values,
@@ -842,5 +841,5 @@ module.exports = {
     getArgsSip0046Part2,
     getArgsSip0046Part3,
     getArgsSip0046Part4,
-    getArgsSip_SOV_3497,
+    getArgsSip0073,
 };
