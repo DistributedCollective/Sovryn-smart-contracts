@@ -1,7 +1,7 @@
 // first run a local forked mainnet node in a separate terminal window:
 //     npx hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy
 // now run the test:
-//     npx hardhat test tests-onchain/sipSov3497.test.js --network rskForkedMainnet
+//     npx hardhat test tests-onchain/sip0073.test.js --network rskForkedMainnet
 
 const {
     impersonateAccount,
@@ -41,9 +41,9 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
         const multisigSigner = await getImpersonatedSignerFromJsonRpcProvider(multisigAddress);
 
         await setBalance(deployer, ONE_RBTC.mul(10));
-        await deployments.fixture(["ProtocolModules"], {
+        /*await deployments.fixture(["ProtocolModules"], {
             keepExistingDeployments: true,
-        }); // start from a fresh deployments
+        }); // start from a fresh deployments*/
 
         const staking = await ethers.getContract("Staking", deployerSigner);
         const sovrynProtocol = await ethers.getContract("ISovryn", deployerSigner);
@@ -80,7 +80,7 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
     });
 
     /// @todo change the SIP name
-    describe("SIP-Sov3497 Testing", () => {
+    describe("SIP-0073 Test creation and execution", () => {
         it("SIP-Sov3497 is executable and valid", async () => {
             if (!hre.network.tags["forked"]) {
                 console.error("ERROR: Must run on a forked net");
@@ -123,7 +123,7 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
 
             // CREATE PROPOSAL AND VERIFY
             const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
-            await hre.run("sips:create", { argsFunc: "getArgsSip_SOV_3497" });
+            await hre.run("sips:create", { argsFunc: "getArgsSip0073" });
             const proposalId = await governorOwner.latestProposalIds(deployer);
             expect(
                 proposalId,
