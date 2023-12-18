@@ -80,8 +80,8 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
     });
 
     /// @todo change the SIP name
-    describe("SIP-Sov3497 Testing", () => {
-        it("SIP-Sov3497 is executable and valid", async () => {
+    describe("SIP-0073 Test creation and execution", () => {
+        it("SIP-0073 is executable and valid", async () => {
             if (!hre.network.tags["forked"]) {
                 console.error("ERROR: Must run on a forked net");
                 return;
@@ -123,7 +123,7 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
 
             // CREATE PROPOSAL AND VERIFY
             const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
-            await hre.run("sips:create", { argsFunc: "getArgsSip_SOV_3497" });
+            await hre.run("sips:create", { argsFunc: "getArgsSip0073" });
             const proposalId = await governorOwner.latestProposalIds(deployer);
             expect(
                 proposalId,
