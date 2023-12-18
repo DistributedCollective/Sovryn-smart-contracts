@@ -46,7 +46,7 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
         }); // start from a fresh deployments
 
         const staking = await ethers.getContract("Staking", deployerSigner);
-        const sovrynProtocol = await ethers.getContract("ISovryn", deployerSigner);
+        const sovrynProtocol = await ethers.getContract("SovrynProtocol", deployerSigner);
 
         const god = await deployments.get("GovernorOwner");
         const governorOwner = await ethers.getContractAt(
@@ -92,7 +92,7 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
                     {
                         forking: {
                             jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
-                            blockNumber: 5857778, // block num at the time no new modules deployed yet
+                            blockNumber: 5911035, // block num at the time no new modules deployed yet
                         },
                     },
                 ],
