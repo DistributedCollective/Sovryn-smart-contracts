@@ -27,6 +27,7 @@ const ISovryn = artifacts.require("ISovryn");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const SwapsExternal = artifacts.require("SwapsExternal");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const {
     getSUSD,
@@ -910,6 +911,13 @@ contract("ProtocolSettings", (accounts) => {
         it("shouldn't revert: setSovrynSwapContractRegistryAddress w/ registryAddress not a contract", async () => {
             const sovrynproxy = await sovrynProtocol.new();
             const sovryn = await ISovryn.at(sovrynproxy.address);
+
+            try {
+                /** Deploy SwapsImplSovrynSwapLib */
+                const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+                await LoanMaintenance.link(swapsImplSovrynSwapLib);
+                await SwapsExternal.link(swapsImplSovrynSwapLib);
+            } catch (err) {}
 
             await sovryn.replaceContract((await ProtocolSettings.new()).address);
             await sovryn.replaceContract((await LoanSettings.new()).address);

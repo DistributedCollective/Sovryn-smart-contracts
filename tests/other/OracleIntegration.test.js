@@ -21,7 +21,8 @@ const PriceFeedsMoC = artifacts.require("PriceFeedsMoC");
 const PriceFeeds = artifacts.require("PriceFeeds");
 const PriceFeedsMoCMockup = artifacts.require("PriceFeedsMoCMockup");
 const PriceFeedRSKOracleMockup = artifacts.require("PriceFeedRSKOracleMockup");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const {
     getSUSD,
@@ -47,6 +48,11 @@ contract("OracleIntegration", (accounts) => {
         swapsImpl = await SwapsImplSovrynSwap.new();
         await sovryn.setSwapsImplContract(swapsImpl.address);
     }
+
+    before(async () => {
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+    });
 
     beforeEach(async () => {
         await loadFixture(deploymentAndInitFixture);

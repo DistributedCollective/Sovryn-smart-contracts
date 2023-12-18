@@ -12,7 +12,6 @@ import "../openzeppelin/SafeERC20.sol";
 import "../mixins/ProtocolTokenUser.sol";
 import "../modules/interfaces/ProtocolSwapExternalInterface.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
-import "../swaps/ISwapsImpl.sol";
 import "../governance/IFeeSharingCollector.sol";
 import "../feeds/IPriceFeeds.sol";
 
