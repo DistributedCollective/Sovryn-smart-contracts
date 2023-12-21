@@ -104,13 +104,13 @@ def updateLMConfig():
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
 
     MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
-    # SOV/rBTC - 25k SOV
+    # SOV/rBTC - 7.5k SOV
     ALLOCATION_POINT_BTC_SOV = 7500 # (WR)BTC/SOV
 
-    # xUSD/rBTC - 1 SOV
-    ALLOCATION_POINT_BTC_XUSD = 5000 # (WR)BTC/XUSD
+    # xUSD/rBTC - 2k SOV
+    ALLOCATION_POINT_BTC_XUSD = 2000 # (WR)BTC/XUSD
 
-    # DLLR/rBTC - 25k SOV
+    # DLLR/rBTC - 15k SOV
     ALLOCATION_POINT_BTC_DLLR =  15000 # (WR)BTC/DLLR
 
     ALLOCATION_POINT_DEFAULT = 1 # 13 tokens with 1 alloc point to account: (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF | (WR)BTC/MYNT | (WR)BTC/BNB | (WR)BTC/ETH | iXUSD
@@ -120,12 +120,15 @@ def updateLMConfig():
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
 
     print('LiquidityMiningConfigToken:', lm.getPoolInfo(contracts['LiquidityMiningConfigToken']))
-    print('WRBTC/DLLR:',lm.getPoolInfo(contracts['(WR)BTC/DLLR']))
+    #print('WRBTC/DLLR:',lm.getPoolInfo(contracts['(WR)BTC/DLLR']))
+    print('WRBTC/XUSD:',lm.getPoolInfo(contracts['(WR)BTC/XUSD']))
 
     # update this before executing
     data = lm.updateTokens.encode_input(
-        [contracts['(WR)BTC/SOV'], contracts['(WR)BTC/DLLR'], contracts['LiquidityMiningConfigToken']],
-        [ALLOCATION_POINT_BTC_SOV, ALLOCATION_POINT_BTC_DLLR, ALLOCATION_POINT_CONFIG_TOKEN],
+        #[contracts['(WR)BTC/SOV'], contracts['(WR)BTC/DLLR'], contracts['LiquidityMiningConfigToken']],
+        [contracts['(WR)BTC/XUSD'], contracts['LiquidityMiningConfigToken']],
+        #[ALLOCATION_POINT_BTC_SOV, ALLOCATION_POINT_BTC_DLLR, ALLOCATION_POINT_CONFIG_TOKEN],
+        [ALLOCATION_POINT_BTC_XUSD, ALLOCATION_POINT_CONFIG_TOKEN],
         True
     )
     tx = multisig.submitTransaction(lm.address,0,data)

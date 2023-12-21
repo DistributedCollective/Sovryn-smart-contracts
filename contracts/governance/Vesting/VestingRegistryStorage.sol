@@ -21,6 +21,7 @@ contract VestingRegistryStorage is Initializable, AdminRole {
     IVestingFactory public vestingFactory;
 
     ///@notice the Locked SOV contract
+    ///@dev NOTES: No need to update lockedSOV in this contract, since it might break the vestingRegistry if the new lockedSOV does not have the same value of cliff & duration.
     ILockedSOV public lockedSOV;
 
     ///@notice the list of vesting registries

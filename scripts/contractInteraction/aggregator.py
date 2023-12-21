@@ -16,10 +16,15 @@ def redeemFromAggregator(aggregatorAddress, tokenAddress, amount):
     aggregator = loadAggregator(aggregatorAddress)
     aggregator.redeem(tokenAddress, amount)
 
-#used to exchange XUSD -> USDT on the aggregator
+#used to exchange XUSD -> basket tokens like DLLR on the aggregator
 def redeemFromAggregatorWithMS(aggregatorAddress, tokenAddress, amount):
     aggregator = loadAggregator(aggregatorAddress)
     data = aggregator.redeem.encode_input(tokenAddress, amount)
+    sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
+
+def redeemFromAggregatorWithMsTo(aggregatorAddress, tokenAddress, amount, recipient):
+    aggregator = loadAggregator(aggregatorAddress)
+    data = aggregator.redeemTo.encode_input(tokenAddress, amount, recipient)
     sendWithMultisig(conf.contracts['multisig'], aggregator.address, data, conf.acct)
 
 def redeemBTCWithXUSD(amountOfXUSD):

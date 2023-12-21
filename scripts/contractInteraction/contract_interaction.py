@@ -29,8 +29,9 @@ def main():
     '''
 
     # call the function you want here
-    #governanceTransferStep1()
-    #governanceTransferStep2()
+
+    #sendFromMultisig(conf.contracts['Watcher'], 1e18)
+
     # transferProtocolAdminRoleToGovernance()
 
     # iDLLR
@@ -49,13 +50,19 @@ def main():
     #### GET DLLR ####
     ## 2 options by priority
     #getTotalSupply(conf.contracts["iDLLR"])
-    #amount = 100000e18
+    #amount = 105000e18
 
     # either from watcher or from XUSD #
     ## 1) from watcher
-    #withdrawTokensFromWatcher(conf.contracts["DLLR"], amount, conf.contracts["multisig"])
+    # withdrawTokensFromWatcher(conf.contracts["DLLR"], amount, conf.contracts["multisig"])
     ## 2) XUSD -> DLLR 
+    # withdrawTokensFromWatcher(conf.contracts["XUSD"], amount, conf.contracts["multisig"])
+    ## 2.1) redeem to a multisig 
     #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], amount)
+    ## 2.2) redeem to an arbitrary address
+    # redeemFromAggregatorWithMsTo(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], amount, '0x2064242b697830535a2d76be352e82cf85e0ec2c')
+    #sendTokensFromMultisig(conf.contracts['DLLR'], '0x2064242b697830535a2d76be352e82cf85e0ec2c', amount)
+
     #lendToPoolWithMS(conf.contracts["iDLLR"], conf.contracts["DLLR"], amount)
 
     #printV1ConverterData("0xa9c3d9681215ef7623dc28ea6b75bf87fdf285d9")
@@ -139,7 +146,7 @@ def main():
     #testTradeOpeningAndClosing(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['WRBTC'], 50e18, 2e18, True, 0)
     #testTradeOpeningAndClosingWithCollateral(conf.contracts['sovrynProtocol'], conf.contracts['iDLLR'], conf.contracts['DLLR'], conf.contracts['WRBTC'], 0.002e18, 2e18, True, 0.002e18)
 
-   # executeOnMultisig(1339)
+    #executeOnMultisig(1339)
     #executeOnMultisig(1343)
     #confirmWithMS(1540)
     #checkTx(1540)
