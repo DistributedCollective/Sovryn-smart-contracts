@@ -16,4 +16,6 @@ interface ITeamVesting {
     function duration() external view returns (uint256);
 
     function tokenOwner() external view returns (address);
+
+    function governanceWithdrawTokens(address receiver) external;
 }

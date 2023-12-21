@@ -38,4 +38,12 @@ contract Vesting is TeamVesting {
             _feeSharingCollectorProxy
         )
     {}
+
+    /**
+     * @dev We need to add this implementation to prevent proxy call VestingLogic.governanceWithdrawTokens
+     * @param receiver The receiver of the token withdrawal.
+     * */
+    function governanceWithdrawTokens(address receiver) public {
+        revert("operation not supported");
+    }
 }

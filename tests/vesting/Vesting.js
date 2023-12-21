@@ -1750,6 +1750,7 @@ contract("Vesting", (accounts) => {
             expectEvent(tx, "TokensWithdrawn", {
                 caller: root,
                 receiver: root,
+                startFrom: start.add(new BN(cliff)),
                 end: expectedEnd,
             });
 
@@ -1814,6 +1815,7 @@ contract("Vesting", (accounts) => {
             expectEvent(tx, "TokensWithdrawn", {
                 caller: root,
                 receiver: root,
+                startFrom: start.add(new BN(cliff)),
                 end: expectedEnd,
             });
 
