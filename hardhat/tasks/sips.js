@@ -21,14 +21,14 @@ const sipArgsList = require("./sips/args/sipArgs");
 const logger = new Logs().showInConsole(true);
 
 task("sips:state", "Get proposal state")
-    .addParam("proposal", "Proposal Id", undefined, types.string)
+    .addParam("id", "Proposal Id", undefined, types.string)
     .addParam(
         "governor",
         "Governor deployment name: 'GovernorOwner' or 'GovernorAdmin'",
         undefined,
         types.string
     )
-    .setAction(async ({ proposal, governor }, hre) => {
+    .setAction(async ({ id, governor }, hre) => {
         const {
             deployments: { get },
         } = hre;
@@ -43,9 +43,54 @@ task("sips:state", "Get proposal state")
             "Expired",
             "Executed",
         ];
-        logger.info(
-            `SIP ${proposal} state: ${proposalStates[await governorContract.state(proposal)]}`
-        );
+        logger.info(`SIP ${id} state: ${proposalStates[await governorContract.state(id)]}`);
+    });
+
+task("sips:sip-details", "Get proposal state")
+    .addParam("id", "Proposal Id", undefined, types.string)
+    .addParam(
+        "governor",
+        "Governor deployment name: 'GovernorOwner' or 'GovernorAdmin'",
+        undefined,
+        types.string
+    )
+    .setAction(async ({ id, governor }, hre) => {
+        const {
+            deployments: { get },
+        } = hre;
+        const governorContract = await ethers.getContract(governor);
+        const proposal = await governorContract.proposals(id);
+        const state = await governorContract.state(id);
+        const proposalStates = [
+            "Pending",
+            "Active",
+            "Canceled",
+            "Defeated",
+            "Succeeded",
+            "Queued",
+            "Expired",
+            "Executed",
+        ];
+        const totalVotes = proposal.forVotes.add(proposal.againstVotes);
+        const majorityPercentageVotes = await governorContract.majorityPercentageVotes();
+        const totalVotesMajorityPercentage = totalVotes.div(100).mul(majorityPercentageVotes);
+        logger.info(`
+            id:           ${proposal.id} 
+            state:        ${proposalStates[state]}
+            startBlock:   ${proposal.startBlock}
+            endBlock:     ${proposal.endBlock}
+            for:          ${proposal.forVotes}
+            against:      ${proposal.againstVotes}
+            quorum:       ${proposal.quorum}
+            total votes:  ${totalVotes} (${totalVotes < proposal.quorum ? "<" : ">="} quorum)
+            majority:     ${totalVotesMajorityPercentage}, satisfied: ${
+            proposal.forVotes.sub(totalVotesMajorityPercentage) > 0
+        }
+            majority %:   ${majorityPercentageVotes}
+            startTime:    ${new Date(proposal.startTime.mul(1000).toNumber()).toUTCString()}
+            eta:          ${new Date(proposal.eta.mul(1000).toNumber()).toUTCString()}
+            proposer:     ${proposal.proposer}
+        `);
     });
 
 task("sips:create", "Create SIP to Sovryn Governance")
