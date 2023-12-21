@@ -9,7 +9,6 @@ pragma experimental ABIEncoderV2;
 import "../core/State.sol";
 import "../mixins/VaultController.sol";
 import "../swaps/SwapsUser.sol";
-import "../swaps/ISwapsImpl.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
 
 /**

@@ -22,6 +22,7 @@ const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const LoanMaintenanceEvents = artifacts.require("LoanMaintenanceEvents");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const {
     getSUSD,
@@ -46,6 +47,8 @@ const zeroAddress = constants.ZERO_ADDRESS;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
 
+const mutexUtils = require("../reentrancy/utils");
+
 // This decodes longs for a single event type, and returns a decoded object in
 // the same form truffle-contract uses on its receipts
 
@@ -54,6 +57,9 @@ contract("ProtocolAddingMargin", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();
@@ -76,6 +82,12 @@ contract("ProtocolAddingMargin", (accounts) => {
 
     before(async () => {
         [owner, account1, ...accounts] = accounts;
+
+        try {
+            /** Deploy SwapsImplSovrynSwapLib */
+            const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+        } catch (err) {}
     });
 
     beforeEach(async () => {

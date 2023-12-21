@@ -21,6 +21,9 @@ const LoanMaintenance = artifacts.require("LoanMaintenance");
 const FeesEvents = artifacts.require("FeesEvents");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
+
+const mutexUtils = require("../reentrancy/utils");
 
 const {
     getSUSD,
@@ -68,6 +71,9 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();
@@ -92,6 +98,10 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
     before(async () => {
         [owner] = accounts;
+
+        /** Deploy SwapsImplSovrynSwapLib */
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await LoanMaintenance.link(swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

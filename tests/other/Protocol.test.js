@@ -27,9 +27,10 @@ const SwapsExternal = artifacts.require("SwapsExternal");
 const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
 const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 contract("Protocol", (accounts) => {
-    let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds;
+    let sovryn, SUSD, WRBTC, RBTC, BZRX, priceFeeds, swapsImplSovrynSwapLib;
     const ONE_ADDRESS = "0x0000000000000000000000000000000000000001";
 
     before(async () => {
@@ -41,6 +42,7 @@ contract("Protocol", (accounts) => {
         priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
         sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+        swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
     });
 
     describe("Protocol Tests", () => {
@@ -128,6 +130,8 @@ contract("Protocol", (accounts) => {
         it("Test replaceContract - LoanClosingsRollover", async () => {
             const selector = "rollover(bytes32,bytes)";
             let oldLoanClosingsRolloverAddr = await sovryn.getTarget(selector);
+
+            await LoanClosingsRollover.link(swapsImplSovrynSwapLib);
             let newLoanClosingsRolloverAddr = await LoanClosingsRollover.new();
             let tx = await sovryn.replaceContract(newLoanClosingsRolloverAddr.address);
             expectEvent(tx, "ProtocolModuleContractReplaced", {
@@ -138,18 +142,21 @@ contract("Protocol", (accounts) => {
         });
 
         it("Test replaceContract - LoanClosingsWith", async () => {
+            await LoanClosingsWith.link(swapsImplSovrynSwapLib);
             let newLoanClosingsWithAddr = await LoanClosingsWith.new();
             let tx = await sovryn.replaceContract(newLoanClosingsWithAddr.address);
             expectEvent(tx, "ProtocolModuleContractReplaced");
         });
 
         it("Test replaceContract - LoanMaintenance", async () => {
+            await LoanMaintenance.link(swapsImplSovrynSwapLib);
             let newLoanMaintenanceAddr = await LoanMaintenance.new();
             let tx = await sovryn.replaceContract(newLoanMaintenanceAddr.address);
             expectEvent(tx, "ProtocolModuleContractReplaced");
         });
 
         it("Test replaceContract - LoanOpenings", async () => {
+            await LoanOpenings.link(swapsImplSovrynSwapLib);
             let newLoanOpeningsAddr = await LoanOpenings.new();
             let tx = await sovryn.replaceContract(newLoanOpeningsAddr.address);
             expectEvent(tx, "ProtocolModuleContractReplaced");
@@ -174,6 +181,7 @@ contract("Protocol", (accounts) => {
         });
 
         it("Test replaceContract - SwapsExternal", async () => {
+            await SwapsExternal.link(swapsImplSovrynSwapLib);
             let newSwapsExternalAddr = await SwapsExternal.new();
             let tx = await sovryn.replaceContract(newSwapsExternalAddr.address);
             expectEvent(tx, "ProtocolModuleContractReplaced");
