@@ -35,7 +35,7 @@ contract StakingRewardsStorage is Ownable {
     uint256 public maxDuration;
 
     /// @notice Represents the time when the contract is deployed
-    uint256 public startTime;
+    uint256 public rewardsProgramStartTime;
 
     /// @notice Represents the block when the Staking Rewards pogram is stopped
     uint256 public stopBlock;
