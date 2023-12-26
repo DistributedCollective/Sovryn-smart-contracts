@@ -152,7 +152,7 @@ contract("StakingRewards", (accounts) => {
         });
 
         it("should revert if rewards are claimed before completion of two weeks from start date", async () => {
-            await expectRevert(stakingRewards.collectReward(0, { from: a2 }), "no valid reward");
+            await expectRevert(stakingRewards.claimReward(0, { from: a2 }), "no valid reward");
         });
 
         it("should compute and send rewards to the stakers a1, a2 and a3 correctly after 2 weeks", async () => {
@@ -214,7 +214,7 @@ contract("StakingRewards", (accounts) => {
             await increaseTimeAndBlocks(1209600);
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 });
             beforeBalance = await SOV.balanceOf(a2);
-            await stakingRewards.collectReward(0, { from: a2 });
+            await stakingRewards.claimReward(0, { from: a2 });
             afterBalance = await SOV.balanceOf(a2);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);
@@ -224,7 +224,7 @@ contract("StakingRewards", (accounts) => {
 
         it("should revert if the user tries to claim rewards early", async () => {
             await increaseTimeAndBlocks(86400); // One day
-            await expectRevert(stakingRewards.collectReward(0, { from: a2 }), "no valid reward");
+            await expectRevert(stakingRewards.claimReward(0, { from: a2 }), "no valid reward");
         });
 
         it("should compute and send rewards to the staker after recalculating withdrawn stake", async () => {
@@ -237,7 +237,7 @@ contract("StakingRewards", (accounts) => {
             await increaseTimeAndBlocks(3600);
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 }); // For entire duration
             beforeBalance = await SOV.balanceOf(a2);
-            await stakingRewards.collectReward(0, { from: a2 }); // For maxDuration only
+            await stakingRewards.claimReward(0, { from: a2 }); // For maxDuration only
             afterBalance = await SOV.balanceOf(a2);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);
@@ -259,7 +259,7 @@ contract("StakingRewards", (accounts) => {
             await increaseTimeAndBlocks(3600); // Increase a few blocks
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 });
             beforeBalance = await SOV.balanceOf(a2);
-            await stakingRewards.collectReward(0, { from: a2 });
+            await stakingRewards.claimReward(0, { from: a2 });
             afterBalance = await SOV.balanceOf(a2);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);
@@ -270,7 +270,7 @@ contract("StakingRewards", (accounts) => {
         it("should compute and send rewards to the staker a3 as applicable", async () => {
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a3 }); // For entire duration
             beforeBalance = await SOV.balanceOf(a3);
-            let tx = await stakingRewards.collectReward(0, { from: a3 });
+            let tx = await stakingRewards.claimReward(0, { from: a3 });
             console.log("gasUsed: " + tx.receipt.gasUsed);
             afterBalance = await SOV.balanceOf(a3);
             rewards = afterBalance.sub(beforeBalance); // For maxDuration only
@@ -284,7 +284,7 @@ contract("StakingRewards", (accounts) => {
             await staking.stake(wei("1000", "ether"), inTwoYears, a2, a2, { from: a2 });
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 });
             beforeBalance = await SOV.balanceOf(a2);
-            await stakingRewards.collectReward(0, { from: a2 });
+            await stakingRewards.claimReward(0, { from: a2 });
             afterBalance = await SOV.balanceOf(a2);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);
@@ -298,7 +298,7 @@ contract("StakingRewards", (accounts) => {
             await staking.withdraw(wei("3000", "ether"), inTwoYears, a2, { from: a2 }); // Withdraw second stake
             await increaseTimeAndBlocks(3600); // Increase a few blocks
             beforeBalance = await SOV.balanceOf(a2);
-            await expectRevert(stakingRewards.collectReward(0, { from: a2 }), "no valid reward");
+            await expectRevert(stakingRewards.claimReward(0, { from: a2 }), "no valid reward");
             afterBalance = await SOV.balanceOf(a2);
             rewards = afterBalance.sub(beforeBalance);
             totalRewards = new BN(totalRewards).add(new BN(rewards));
@@ -343,7 +343,7 @@ contract("StakingRewards", (accounts) => {
             await expectRevert(stakingRewards.stop(), "Already stopped");
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a1 }); // For entire duration
             beforeBalance = await SOV.balanceOf(a1);
-            await stakingRewards.collectReward(0, { from: a1 }); // For maxDuration only
+            await stakingRewards.claimReward(0, { from: a1 }); // For maxDuration only
             afterBalance = await SOV.balanceOf(a1);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);
@@ -354,7 +354,7 @@ contract("StakingRewards", (accounts) => {
         it("should be able to process again immediately when processing after the max duration", async () => {
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a1 });
             beforeBalance = await SOV.balanceOf(a1);
-            await stakingRewards.collectReward(0, { from: a1 });
+            await stakingRewards.claimReward(0, { from: a1 });
             afterBalance = await SOV.balanceOf(a1);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);
@@ -393,14 +393,14 @@ contract("StakingRewards", (accounts) => {
 
             /// @dev Optimization: Following tx takes 4s to execute on a standard laptop!
             await expectRevert(
-                stakingRewards.collectReward(0, { from: a3 }),
+                stakingRewards.claimReward(0, { from: a3 }),
                 "not enough funds to reward user"
             );
         });
 
         it("should revert if sender is a ZERO Address", async () => {
             await expectRevert(
-                stakingRewards.collectReward(0, { from: constants.ZERO_ADDRESS }),
+                stakingRewards.claimReward(0, { from: constants.ZERO_ADDRESS }),
                 "unknown account 0x0000000000000000000000000000000000000000"
             );
         });

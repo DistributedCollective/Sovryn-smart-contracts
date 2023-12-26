@@ -155,7 +155,7 @@ contract("StakingRewards - First Period", (accounts) => {
         it("should compute and send Rewards to the stakers a1, a2 and a3 correctly after 4 weeks", async () => {
             await increaseTimeAndBlocks(1209614);
             await stakingRewards.setBlock();
-            let startTime = await stakingRewards.startTime();
+            let startTime = await stakingRewards.rewardsProgramStartTime();
             await stakingRewards.setHistoricalBlock(parseInt(startTime));
             await stakingRewards.setHistoricalBlock(parseInt(startTime) + 1209600);
             let fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a1 });
@@ -196,7 +196,7 @@ contract("StakingRewards - First Period", (accounts) => {
         it("should be able to stake and get rewards after 30 weeks", async () => {
             let block = await web3.eth.getBlock("latest");
             let timestamp = block.timestamp;
-            let startTime = await stakingRewards.startTime();
+            let startTime = await stakingRewards.rewardsProgramStartTime();
             await increaseTimeAndBlocks(12096000); // 20 weeks
 
             // Transferred SOVs to a4
@@ -225,12 +225,12 @@ contract("StakingRewards - First Period", (accounts) => {
 
             await increaseTimeAndBlocks(3628800); // 6 Weeks
 
-            let tx = await stakingRewards.collectReward(0, { from: a4 });
+            let tx = await stakingRewards.claimReward(0, { from: a4 });
             console.log("when restartTime = ", 0, ", gasUsed: " + tx.receipt.gasUsed); // 2.6M
 
             // Using restartTime saves gas
             let restartTime = new BN(startTime).add(new BN(13 * 1209600));
-            tx = await stakingRewards.collectReward(restartTime, { from: a5 });
+            tx = await stakingRewards.claimReward(restartTime, { from: a5 });
             console.log(
                 "when restartTime = ",
                 restartTime.toString(),
