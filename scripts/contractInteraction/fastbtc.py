@@ -112,6 +112,12 @@ def addFeeStructure(feeStructureIndex, newBaseFeeSatoshi, newDynamicFee):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
 
+def setMinTransferSatoshi(amount):
+    fastBTC = loadBiDiFastBTC()
+    data = fastBTC.setMinTransferSatoshi.encode_input(amount)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], fastBTC.address, data, conf.acct)
+
 def setCurrentFeeStructure(feeStructureIndex):
     fastBTC = loadBiDiFastBTC()
     data = fastBTC.setCurrentFeeStructure.encode_input(feeStructureIndex)

@@ -72,7 +72,8 @@ const VestingRegistry = artifacts.require("VestingRegistry3");
 
 const LiquidityPoolV1Converter = artifacts.require("LiquidityPoolV1ConverterMockup");
 
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsExternal = artifacts.require("SwapsExternal");
 
@@ -136,6 +137,16 @@ contract("FeeSharingCollector:", (accounts) => {
 
     before(async () => {
         [root, account1, account2, account3, account4, ...accounts] = accounts;
+
+        try {
+            /** Deploy SwapsImplSovrynSwapLib */
+            const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await SwapsExternal.link(swapsImplSovrynSwapLib);
+            await LoanClosingsWith.link(swapsImplSovrynSwapLib);
+            await LoanClosingsRollover.link(swapsImplSovrynSwapLib);
+            await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        } catch (err) {}
     });
 
     async function protocolDeploymentFixture(_wallets, _provider) {
@@ -296,6 +307,7 @@ contract("FeeSharingCollector:", (accounts) => {
         );
 
         tradingFeePercent = await sovryn.tradingFeePercent();
+
         await lend_btc_before_cashout(loanTokenWrbtc, new BN(wei("10", "ether")), root);
 
         const maxDisagreement = new BN(wei("5", "ether"));

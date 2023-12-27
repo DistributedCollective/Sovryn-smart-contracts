@@ -7,7 +7,6 @@ pragma solidity 0.5.17;
 
 import "../../../core/State.sol";
 import "../../../openzeppelin/SafeERC20.sol";
-import "../../ISwapsImpl.sol";
 import "../../../feeds/IPriceFeeds.sol";
 import "../../../testhelpers/TestToken.sol";
 
@@ -19,7 +18,7 @@ import "../../../testhelpers/TestToken.sol";
  *
  * This contract contains the implementation of swap process and rate calculations.
  * */
-contract SwapsImplLocal is State, ISwapsImpl {
+contract SwapsImplLocal is State {
     using SafeERC20 for IERC20;
 
     /**

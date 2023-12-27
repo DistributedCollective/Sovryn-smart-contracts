@@ -27,7 +27,7 @@ def main():
     #sendAggregatedTokensFromWallet(contracts['ETHes'], contracts['Aggregator-ETH-RSK'], '0xf5972e2bcc10404367cbdca2a3319470fbea3ff7', 2e17)
 
     #send eSOV send eSOV over the bridge to our gate.io address
-    sendTokensToETHFromMultisig(contracts['SOV'], '0x5092019A3E0334586273A21a701F1BD859ECAbD6', 270000e18)
+    #sendTokensToETHFromMultisig(contracts['SOV'], '0x5092019A3E0334586273A21a701F1BD859ECAbD6', 260000e18)
     
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
 

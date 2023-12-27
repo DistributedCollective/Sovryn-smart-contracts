@@ -22,6 +22,7 @@ const LoanClosingsWithoutInvariantCheck = artifacts.require("LoanClosingsWithout
 const TestCrossReentrancyRBTC = artifacts.require("TestCrossReentrancyRBTC");
 const TestCrossReentrancyERC777 = artifacts.require("TestCrossReentrancyERC777");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const mutexUtils = require("../reentrancy/utils");
 
 const {
@@ -80,6 +81,9 @@ contract("LoanTokenBorrowing", (accounts) => {
 
     before(async () => {
         [owner, account1] = accounts;
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await LoanClosingsWithoutInvariantCheck.link(swapsImplSovrynSwapLib);
+        await LoanClosingsWithMockup.link(swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

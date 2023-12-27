@@ -29,8 +29,12 @@ def main():
     '''
 
     # call the function you want here
+    
 
-    #sendFromMultisig(conf.contracts['Watcher'], 1e18)
+    ##################################
+
+    #getReleaseScheduleFromDevelopmentFund()
+    #getReleaseScheduleFromAdoptionFund()
 
     # transferProtocolAdminRoleToGovernance()
 
@@ -235,8 +239,9 @@ def main():
     #balance = contract.balanceOf(conf.acct)
     #print(balance/1e18)
 
-    #addFeeStructure(2,21400,20)
-    #setCurrentFeeStructure(2)
+    #setMinTransferSatoshi(100000)
+    #addFeeStructure(3,50000,20)
+    #setCurrentFeeStructure(3)
 
     #readTokenOwnerFromFunds()
 

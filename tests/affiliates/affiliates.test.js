@@ -44,7 +44,8 @@ const TestToken = artifacts.require("TestToken");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const Affiliates = artifacts.require("Affiliates");
 const mutexUtils = require("../reentrancy/utils");
 
@@ -155,6 +156,7 @@ contract("Affiliates", (accounts) => {
         // initialize
         feeds = await PriceFeedsLocal.new(WRBTC.address, sovryn.address);
         await feeds.setRates(doc.address, WRBTC.address, wei("0.01", "ether"));
+
         swapsSovryn = await SwapsImplSovrynSwap.new();
         const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
         await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
@@ -227,6 +229,9 @@ contract("Affiliates", (accounts) => {
 
     before(async () => {
         [owner, trader, referrer, account1, account2, ...accounts] = accounts;
+
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {
