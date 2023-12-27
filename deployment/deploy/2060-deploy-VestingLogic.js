@@ -2,6 +2,7 @@ const path = require("path");
 const { getContractNameFromScriptFileName } = require("../helpers/utils");
 const col = require("cli-color");
 const { sendWithMultisig } = require("../helpers/helpers");
+const { getArgsSipSov625 } = require("../../hardhat/tasks/sips/args/sipArgs");
 const func = async function (hre) {
     const {
         deployments: { deploy, get, log },
@@ -35,24 +36,30 @@ const func = async function (hre) {
     const vestingRegistry = await ethers.getContract("VestingRegistry");
     const staking = await ethers.getContract("Staking");
 
-    /** VestingRegistry still owned by Exchequer for Mainnet & tetstnet */
     const multisigDeployment = await get("MultiSigWallet");
-    const data = vestingRegistry.interface.encodeFunctionData("setVestingFactory", [
-        vestingFactoryDeployment.address,
-    ]);
-    log(
-        col.bgYellow(
-            "Generating multisig transaction to set the new vestingFactory contract in vestingRegistry..."
-        )
-    );
-    await sendWithMultisig(multisigDeployment.address, vestingRegistry.address, data, deployer);
-    log(
-        col.bgBlue(
-            `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
-        )
-    );
 
     if (hre.network.tags["testnet"]) {
+        const data = vestingRegistry.interface.encodeFunctionData("setVestingFactory", [
+            vestingFactoryDeployment.address,
+        ]);
+
+        log(
+            col.bgYellow(
+                "Generating multisig transaction to set the new vestingFactory contract in vestingRegistry..."
+            )
+        );
+        await sendWithMultisig(
+            multisigDeployment.address,
+            vestingRegistry.address,
+            data,
+            deployer
+        );
+        log(
+            col.bgBlue(
+                `>>> DONE. Requires Multisig (${multisigDeployment.address}) signatures to execute tx <<<`
+            )
+        );
+
         const dataAddContractCodeHash = staking.interface.encodeFunctionData(
             "addContractCodeHash",
             [vestingLogicDeployment.address]
@@ -74,11 +81,15 @@ const func = async function (hre) {
             )
         );
     } else if (hre.network.tags["mainnet"]) {
+        /** TODO: update the sipArgs depends on the actual SIP number */
         log(
             col.bgBlue(
                 "Prepare and run SIP function in sips.js to create the proposal with params: getArgsSipSov625"
             )
         );
+
+        const sipArgs = await getArgsSipSov625(hre);
+        log(col.bgBlue(JSON.stringify(sipArgs)));
     }
 };
 func.tags = ["DeployVestingLogic"];

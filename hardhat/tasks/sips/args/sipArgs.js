@@ -768,14 +768,20 @@ const getArgsSipSov625 = async (hre) => {
     const staking = await get("Staking");
     const stakingAddress = staking.address;
     const vestingLogicDeployment = await get("VestingLogic");
+    const vestingRegistryDeployment = await get("VestingRegistry");
+    const vestingFactoryDeployment = await get("VestingFactory");
 
     const args = {
-        targets: [stakingAddress],
+        targets: [vestingRegistryDeployment.address, stakingAddress],
         values: [0, 0],
-        signatures: ["addContractCodeHash(address)"],
-        data: [abiCoder.encode(["address"], [vestingLogicDeployment.address])],
+        signatures: ["setVestingFactory(address)", "addContractCodeHash(address)"],
+        data: [
+            abiCoder.encode(["address"], [vestingFactoryDeployment.address]),
+            abiCoder.encode(["address"], [vestingLogicDeployment.address]),
+        ],
         /** @todo change SIP description */
-        description: "SIP-Sov625: Add vestingLogic contract code hash to staking contract",
+        description:
+            "SIP-Sov625: Set vestingFactory in vestingRegistry & Add vestingLogic contract code hash to staking contract",
     };
     return { args, governor: "GovernorOwner" };
 };

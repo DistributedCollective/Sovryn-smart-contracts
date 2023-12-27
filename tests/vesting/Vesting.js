@@ -2313,6 +2313,116 @@ contract("Vesting", (accounts) => {
                 "Only team vesting allowed"
             );
         });
+
+        it("should withdraw unlocked tokens with all unlocked (endAt < vesting endDate)", async () => {
+            // Save current amount
+            let previousAmount = await token.balanceOf(root);
+            let toStake = ONE_MILLON;
+            const cliff = 26 * WEEK;
+            const maxWithdrawIterations = 20;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                cliff,
+                104 * WEEK,
+                feeSharingCollectorProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
+            await staking.unlockAllTokens();
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            let amountAfterStake = await token.balanceOf(root);
+
+            // time travel
+            await increaseTimeEthers(104 * WEEK);
+
+            // withdraw
+            const start = await vesting.startDate();
+
+            let tx = await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(new BN(cliff)),
+                maxWithdrawIterations
+            );
+
+            // check event
+            expectEvent(tx, "TokensWithdrawn", {
+                caller: root,
+                receiver: root,
+            });
+
+            // verify amount
+            let amount = await token.balanceOf(root);
+
+            assert.equal(
+                previousAmount.sub(new BN(toStake)).toString(),
+                amountAfterStake.toString()
+            );
+            assert.equal(previousAmount.toString(), amount.toString());
+        });
+
+        it("should withdraw unlocked tokens with all unlocked (endAt > vesting endDate)", async () => {
+            // Save current amount
+            let previousAmount = await token.balanceOf(root);
+            let toStake = ONE_MILLON;
+            const cliff = 26 * WEEK;
+            const maxWithdrawIterations = 20;
+
+            // Stake
+            vesting = await Vesting.new(
+                vestingLogic.address,
+                token.address,
+                staking.address,
+                root,
+                cliff,
+                104 * WEEK,
+                feeSharingCollectorProxy.address
+            );
+            vesting = await VestingLogic.at(vesting.address);
+
+            await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
+            await staking.unlockAllTokens();
+
+            await token.approve(vesting.address, toStake);
+            await vesting.stakeTokens(toStake);
+
+            let amountAfterStake = await token.balanceOf(root);
+
+            // time travel
+            await increaseTimeEthers(104 * WEEK);
+
+            // withdraw
+            const start = await vesting.startDate();
+
+            let tx = await vesting.withdrawTokensStartingFrom(
+                root,
+                start.add(new BN(cliff)),
+                maxWithdrawIterations * 105 // exceed the duration
+            );
+
+            // check event
+            expectEvent(tx, "TokensWithdrawn", {
+                caller: root,
+                receiver: root,
+            });
+
+            // verify amount
+            let amount = await token.balanceOf(root);
+
+            assert.equal(
+                previousAmount.sub(new BN(toStake)).toString(),
+                amountAfterStake.toString()
+            );
+            assert.equal(previousAmount.toString(), amount.toString());
+        });
     });
 
     describe("collectDividends", async () => {

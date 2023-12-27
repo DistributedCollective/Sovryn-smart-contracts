@@ -167,8 +167,15 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
 
         uint96 stake;
 
-        uint256 end = endAt < block.timestamp ? endAt : block.timestamp;
-        if (end > endDate && block.timestamp > endDate) end = endDate;
+        /// @dev Usually we just need to iterate over the possible dates until now.
+        uint256 end;
+
+        if (staking.allUnlocked()) {
+            end = endAt < endDate ? endAt : endDate;
+        } else {
+            end = endAt < block.timestamp ? endAt : block.timestamp;
+            if (end > endDate) end = endDate;
+        }
 
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
