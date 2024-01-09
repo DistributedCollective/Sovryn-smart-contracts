@@ -35,6 +35,11 @@ const func = async function (hre) {
     const vestingFactoryDeployment = await get("VestingFactory");
     const vestingRegistry = await ethers.getContract("VestingRegistry");
     const staking = await ethers.getContract("Staking");
+    const vestingFactory = await ethers.getContract("VestingFactory");
+
+    log(col.bgYellow("Transferring ownership of vestingFactory to VestingRegistry..."));
+    await vestingFactory.transferOwnership(vestingRegistry.address);
+    log(col.bgYellow(`New vestingFactory owner ${await vestingFactory.owner()}`));
 
     const multisigDeployment = await get("MultiSigWallet");
 
