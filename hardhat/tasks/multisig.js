@@ -14,7 +14,7 @@ const {
 const logger = new Logs().showInConsole(true);
 
 task("multisig:sign-tx", "Sign multisig tx")
-    .addParam("id", "Multisig transaction to sign", undefined, types.string)
+    .addPositionalParam("id", "Multisig transaction to sign", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
     .setAction(async ({ id, signer, multisig }, hre) => {
@@ -42,7 +42,7 @@ task("multisig:sign-tx", "Sign multisig tx")
     });
 
 task("multisig:sign-txs", "Sign multiple multisig tx")
-    .addParam(
+    .addPositionalParam(
         "ids",
         "Multisig transactions to sign. Supports '12,14,16-20,22' format where '16-20' is a continuous range of integers",
         undefined,
@@ -102,7 +102,7 @@ task("multisig:execute-tx", "Execute multisig tx by one of tx signers")
     });
 
 task("multisig:check-tx", "Check multisig tx")
-    .addParam("id", "Multisig transaction id to check", undefined, types.string)
+    .addPositionalParam("id", "Multisig transaction id to check", undefined, types.string)
     .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
     .setAction(async ({ id, multisig }, hre) => {
         const { ethers } = hre;
@@ -114,7 +114,7 @@ task("multisig:check-tx", "Check multisig tx")
     });
 
 task("multisig:check-txs", "Check multiple multisig txs")
-    .addParam("ids", "Multisig transaction ids list to check", undefined, types.string)
+    .addPositionalParam("ids", "Multisig transaction ids list to check", undefined, types.string)
     .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
     .setAction(async ({ ids, multisig }, hre) => {
         const { ethers } = hre;
