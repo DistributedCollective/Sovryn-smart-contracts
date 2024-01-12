@@ -29,9 +29,10 @@ def main():
     '''
 
     # call the function you want here
-    
 
     ##################################
+
+    #cancelTeamVestingsOfAccount('0x56B00ca0a274fB53449fBF2DB0253B809E364975')
 
     #getReleaseScheduleFromDevelopmentFund()
     #getReleaseScheduleFromAdoptionFund()
