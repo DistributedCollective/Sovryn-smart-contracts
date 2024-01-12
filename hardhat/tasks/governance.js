@@ -51,6 +51,10 @@ async function getVestingsOf(hre, address) {
     return await (await ethers.getContract("VestingRegistry")).getVestingsOf(address);
 }
 
+async function getStakesOf(hre, address) {
+    return await (await ethers.getContract("Staking")).getStakes(address);
+}
+
 async function getVotingPower(hre, stakerAddress, governorDeploymentName, blockNumber) {
     const { ethers } = hre;
     const staking = await ethers.getContract("Staking");
@@ -512,6 +516,31 @@ task("governance:getVestingsOf", "Get vesting contracts of an address")
     .addParam("address", "The address to get vestings of")
     .setAction(async ({ address }, hre) => {
         logger.warn(await getVestingsOf(hre, address));
+    });
+
+task(
+    "governance:getVestingsWithSchedule",
+    "Get vesting contracts and release schedule of an address"
+)
+    .addParam("address", "The address to get vestings of")
+    .setAction(async ({ address }, hre) => {
+        const vestings = await getVestingsOf(hre, address);
+        for (const vesting of vestings) {
+            logger.warn(
+                `Vesting contract ${vesting.vestingAddress}: vesting type ${
+                    vesting.vestingType
+                }, vesting creation type ${[vesting.vestingCreationType]}`
+            );
+
+            const [dates, stakes] = await getStakesOf(hre, vesting.vestingAddress);
+            let stakesAndDates = dates.map((item, i) =>
+                Object.assign({}, { date: item }, { stake: stakes[i] })
+            );
+            stakesAndDates.forEach((item) => {
+                const date = new Date(item.date.mul(1000).toNumber());
+                logger.info(`${date.toUTCString()}: ${item.stake / 1e18}`);
+            });
+        }
     });
 
 /*// Usage

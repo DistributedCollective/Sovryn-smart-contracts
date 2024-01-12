@@ -51,6 +51,51 @@ const getLoanTokenModulesNames = () => {
     };
 };
 
+const getProtocolModules = () => {
+    return {
+        Affiliates: {
+            moduleName: "Affiliates",
+            sampleFunction: "setAffiliatesReferrer(address,address)",
+        },
+        LoanClosingsLiquidation: {
+            moduleName: "LoanClosingsLiquidation",
+            sampleFunction: "liquidate(bytes32,address,uint256)",
+        },
+        LoanClosingsRollover: {
+            moduleName: "LoanClosingsRollover",
+            sampleFunction: "rollover(bytes32,bytes)",
+        },
+        LoanClosingsWith: {
+            moduleName: "LoanClosingsWith",
+            sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
+        },
+        LoanOpenings: {
+            moduleName: "LoanOpenings",
+            sampleFunction: "setDelegatedManager(bytes32,address,bool)",
+        },
+        LoanMaintenance: {
+            moduleName: "LoanMaintenance",
+            sampleFunction: "getActiveLoans(uint256,uint256,bool)",
+        },
+        LoanSettings: {
+            moduleName: "LoanSettings",
+            sampleFunction: "minInitialMargin(bytes32)",
+        },
+        ProtocolSettings: {
+            moduleName: "ProtocolSettings",
+            sampleFunction: "getPauser()",
+        },
+        SwapsExternal: {
+            moduleName: "SwapsExternal",
+            sampleFunction: "getSwapExpectedReturn(address,address,uint256)",
+        },
+        SwapsImplSovrynSwapModule: {
+            moduleName: "SwapsImplSovrynSwapModule",
+            sampleFunction: "getSovrynSwapNetworkContract(address)",
+        },
+    };
+};
+
 const stakingRegisterModuleWithMultisig = () => {
     return process.env.STAKING_REG_WITH_MULTISIG == "true";
 };
@@ -625,6 +670,7 @@ const getLoanTokensData = async () => {
 module.exports = {
     getStakingModulesNames,
     getLoanTokenModulesNames,
+    getProtocolModules,
     getLoanTokensData,
     stakingRegisterModuleWithMultisig,
     parseEthersLog,

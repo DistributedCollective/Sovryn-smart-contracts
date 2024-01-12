@@ -10,7 +10,6 @@ const {
     multisigRemoveOwner,
 } = require("../../deployment/helpers/helpers");
 const { transferOwnershipAMMContractsToGovernance, getAmmOracleAddress } = require("../helpers");
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 const logger = new Logs().showInConsole(true);
 
@@ -210,7 +209,7 @@ task("amm:transferOwnershipToGovernance", "Transferring ownership of AMM contrac
                 timeLockAdminListOracleTransfer.sourceConverter,
                 timeLockAdminListOracleTransfer.sourceConverterType
             );
-            if (oracleAddress === ZERO_ADDRESS) {
+            if (oracleAddress === ethers.constants.AddressZero) {
                 logger.error(
                     `Could not find the oracle from ${timeLockAdminListOracleTransfer.sourceConverter}`
                 );

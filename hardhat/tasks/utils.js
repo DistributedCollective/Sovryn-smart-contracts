@@ -39,26 +39,62 @@ task(
         const contractAddress = ethers.utils.isAddress(address)
             ? address
             : deployment.implementation ?? deployment.address;
+        const artifactBytecode = artifact.deployedBytecode;
+        const onchainBytecode = await provider.getCode(contractAddress);
         // console.log("onchain bytecode: ", await provider.getCode(contractAddress));
         // console.log();
         // console.log("artifact deployedBytecode: ", artifact.deployedBytecode);
-
-        if ((await provider.getCode(contractAddress)) == artifact.deployedBytecode) {
-            logger.success(
-                `Bytecodes MATCH of the contract ${
-                    ethers.utils.isAddress(contract) ? "" : contract
-                } deployed at ${contractAddress}, chainId: ${
-                    (await ethers.provider.getNetwork()).chainId
-                }`
-            );
-        } else {
+        const sameLength = onchainBytecode.length === artifactBytecode.length;
+        if (!sameLength) {
             logger.error(
-                `Bytecodes DO NOT MATCH of the contract ${
+                `Bytecode lengths DO NOT MATCH of the contract ${
                     ethers.utils.isAddress(contract) ? "" : contract
                 } deployed at ${contractAddress}, chainId: ${
                     (await ethers.provider.getNetwork()).chainId
                 }`
             );
+            process.exit(1);
+        }
+        const isPair = artifactBytecode.length % 2 === 0;
+        if (!isPair) {
+            logger.error(
+                `Bytecode lengths is not pair for the contract ${
+                    ethers.utils.isAddress(contract) ? "" : contract
+                } deployed at ${contractAddress}, chainId: ${
+                    (await ethers.provider.getNetwork()).chainId
+                }`
+            );
+            process.exit(1);
+        }
+        let N;
+        if (sameLength && isPair) {
+            for (let i = 2; i <= artifactBytecode.length; i += 2) {
+                if (
+                    onchainBytecode.slice(-i).slice(0, 2) !==
+                    artifactBytecode.slice(-i).slice(0, 2)
+                ) {
+                    N = i - 2;
+                    break;
+                }
+            }
+            const U = N + 64;
+            if (onchainBytecode.slice(0, -U) === artifactBytecode.slice(0, -U)) {
+                logger.success(
+                    `Bytecodes MATCH of the contract ${
+                        ethers.utils.isAddress(contract) ? "" : contract
+                    } deployed at ${contractAddress}, chainId: ${
+                        (await ethers.provider.getNetwork()).chainId
+                    }`
+                );
+            } else {
+                logger.error(
+                    `Bytecodes DO NOT MATCH of the contract ${
+                        ethers.utils.isAddress(contract) ? "" : contract
+                    } deployed at ${contractAddress}, chainId: ${
+                        (await ethers.provider.getNetwork()).chainId
+                    }`
+                );
+            }
         }
     });
 

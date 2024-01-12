@@ -1,8 +1,12 @@
 const { HardhatRuntimeEnvironment } = require("hardhat/types");
-const { getStakingModulesNames } = require("../../../../deployment/helpers/helpers");
+const {
+    getStakingModulesNames,
+    getProtocolModules,
+} = require("../../../../deployment/helpers/helpers");
 const { validateAmmOnchainAddresses, getAmmOracleAddress } = require("../../../helpers");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
+const col = require("cli-color");
 
 const sampleGovernorOwnerSIP = async (hre) => {
     /*
@@ -758,6 +762,72 @@ const getArgsSip0047 = async (hre) => {
     };
     return { args, governor: "GovernorOwner" };
 };
+
+const getArgsSip0073 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get, log },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const swapsImplSovrynSwapModuleDeployment = await get("SwapsImplSovrynSwapModule");
+    const modulesList = getProtocolModules();
+    const sovrynProtocolDeployment = await get("SovrynProtocol");
+    const sovrynProtocol = await ethers.getContract("SovrynProtocol");
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+
+    let isValidDeployment = false;
+
+    for (const moduleProp in modulesList) {
+        const module = modulesList[moduleProp];
+        const moduleDeployment = await get(module.moduleName);
+        const currentModuleAddress = await sovrynProtocol.getTarget(module.sampleFunction);
+
+        if (currentModuleAddress != moduleDeployment.address) {
+            isValidDeployment = true;
+        }
+    }
+
+    if (!isValidDeployment) {
+        throw new Error(col.bgYellow(`No modules are available to be upgraded`));
+    }
+
+    for (const moduleProp in modulesList) {
+        const module = modulesList[moduleProp];
+        const moduleDeployment = await get(module.moduleName);
+        const currentModuleAddress = await sovrynProtocol.getTarget(module.sampleFunction);
+
+        if (currentModuleAddress == moduleDeployment.address) {
+            log(col.bgYellow(`Skipping Protocol Modules ${module.moduleName}`));
+            continue;
+        } else {
+            log(
+                col.bgBlue(
+                    `Adding module ${module.moduleName} for registration/replacement on the protocol`
+                )
+            );
+        }
+
+        targets.push(sovrynProtocolDeployment.address);
+        values.push(0);
+        signatures.push("replaceContract(address)");
+        datas.push(abiCoder.encode(["address"], [moduleDeployment.address]));
+    }
+
+    const description =
+        "SIP-0073: Refactor Sovryn Protocol Interface with AMM, Details: https://github.com/DistributedCollective/SIPS/blob/c988248/SIP-0073.md, sha256: 243f9045b7a122f84cd6589efc524eda2c8a17668424840adf7cdebdfcb19b62";
+    const args = {
+        targets: targets,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description: description,
+    };
+    return { args, governor: "GovernorOwner" };
+};
 const getArgsSip_SOV_3161 = async (hre) => {
     const {
         ethers,
@@ -804,5 +874,6 @@ module.exports = {
     getArgsSip0046Part2,
     getArgsSip0046Part3,
     getArgsSip0046Part4,
+    getArgsSip0073,
     getArgsSip_SOV_3161,
 };

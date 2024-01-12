@@ -1,6 +1,5 @@
 const Logs = require("node-logs");
 const { sendWithMultisig, sendWithMultisigReturningId } = require("../deployment/helpers/helpers");
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const logger = new Logs().showInConsole(true);
 
 const sourceContractTypesToValidate = {
@@ -28,7 +27,7 @@ const getAmmOracleAddress = async function (converterName, converterType) {
         return registeredAddressOnchain;
     } else {
         logger.error(`Converter type ${converterType} is invalid`);
-        return ZERO_ADDRESS;
+        return ethers.constants.AddressZero;
     }
 };
 

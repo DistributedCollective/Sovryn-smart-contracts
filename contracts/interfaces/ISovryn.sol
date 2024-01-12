@@ -145,6 +145,26 @@ contract ISovryn is
 
     function isProtocolPaused() external view returns (bool);
 
+    ////// SwapsImplSovrynSwapModule //////
+    function getSovrynSwapNetworkContract(address sovrynSwapRegistryAddress)
+        public
+        view
+        returns (address);
+
+    function getContractHexName(string calldata source) external pure returns (bytes32 result);
+
+    function swapsImplExpectedRate(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint256 sourceTokenAmount
+    ) external view returns (uint256);
+
+    function swapsImplExpectedReturn(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint256 sourceTokenAmount
+    ) external view returns (uint256 expectedReturn);
+
     ////// Loan Settings //////
 
     function setupLoanParams(LoanParams[] calldata loanParamsList)

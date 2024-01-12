@@ -48,6 +48,9 @@ def createVestings(path, dryRun, multiplier):
         elif teamVesting[3] == 39 or teamVesting[3] == 22: # 3 year vestings. if cliff < 6 use FourYearVesting
             vestingCreationType = 5 #type 4 is reserved for 4 year vestings - a separate contract
             print("Make sure 3 year vesting 2 contracts split is really expected!")
+        elif teamVesting[3] == 32 or teamVesting[3] == 16: # 3 year vestings. ad-hoc to reissue a contract with 2 periods unlocked
+            vestingCreationType = 5 #type 4 is reserved for 4 year vestings - a separate contract
+            print("Make sure 3 year vesting 2 contracts split is really expected!")
         elif teamVesting[3] == 37 or teamVesting[3] == 19: # Strategic investores round may 22
             vestingCreationType = 6 #type 4 is reserved for 4 year vestings - a separate contract
             print("Make sure 3 year vesting 2 contracts split is really expected!")
@@ -109,8 +112,8 @@ def parseFile(fileName, multiplier):
         for row in reader:
             tokenOwner = row[3].replace(" ", "")
             decimals = row[0].split('.')
-            if(len(decimals) != 2 or len(decimals[1]) != 2):
-                errorMsg+="\n" + tokenOwner + ' amount: ' + row[0]
+            #if(len(decimals) != 2 or len(decimals[1]) != 2): @todo uncomment 
+            #    errorMsg+="\n" + tokenOwner + ' amount: ' + row[0]
             amount = row[0].replace(",", "").replace(".", "")
             amount = int(amount) * multiplier
             cliff = int(row[5])

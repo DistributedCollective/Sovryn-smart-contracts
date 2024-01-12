@@ -3,7 +3,7 @@
   "contractName": "ISovryn",
   "sourceName": "contracts/interfaces/ISovryn.sol",
   "address":"0x25380305f223B32FDB844152abD2E82BC5Ad99c3",
- "abi": [
+  "abi": [
     {
       "anonymous": false,
       "inputs": [
@@ -2296,7 +2296,12 @@
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "",
+          "name": "newPrincipal",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "newCollateral",
           "type": "uint256"
         }
       ],
@@ -2671,47 +2676,6 @@
           "type": "bytes32"
         },
         {
-          "internalType": "address",
-          "name": "payer",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "depositAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "useCollateral",
-          "type": "bool"
-        },
-        {
-          "internalType": "bytes",
-          "name": "loanDataBytes",
-          "type": "bytes"
-        }
-      ],
-      "name": "extendLoanByInterest",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "secondsExtended",
-          "type": "uint256"
-        }
-      ],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "loanId",
-          "type": "bytes32"
-        },
-        {
           "internalType": "uint256",
           "name": "depositAmount",
           "type": "uint256"
@@ -2728,7 +2692,13 @@
         }
       ],
       "name": "extendLoanDuration",
-      "outputs": [],
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "secondsExtended",
+          "type": "uint256"
+        }
+      ],
       "payable": false,
       "stateMutability": "nonpayable",
       "type": "function"
@@ -3198,6 +3168,27 @@
     },
     {
       "constant": true,
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "source",
+          "type": "string"
+        }
+      ],
+      "name": "getContractHexName",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "result",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "constant": true,
       "inputs": [],
       "name": "getDedicatedSOVRebate",
       "outputs": [
@@ -3292,27 +3283,6 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "ref",
-          "type": "address"
-        }
-      ],
-      "name": "getLegacyOracle",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
         }
       ],
       "payable": false,
@@ -3858,6 +3828,27 @@
       "constant": true,
       "inputs": [],
       "name": "getSovTokenAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sovrynSwapRegistryAddress",
+          "type": "address"
+        }
+      ],
+      "name": "getSovrynSwapNetworkContract",
       "outputs": [
         {
           "internalType": "address",
@@ -4992,7 +4983,7 @@
           "type": "uint256"
         }
       ],
-      "name": "reduceLoanByInterest",
+      "name": "reduceLoanDuration",
       "outputs": [
         {
           "internalType": "uint256",
@@ -5000,31 +4991,6 @@
           "type": "uint256"
         }
       ],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "loanId",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address",
-          "name": "receiver",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "withdrawAmount",
-          "type": "uint256"
-        }
-      ],
-      "name": "reduceLoanDuration",
-      "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
       "type": "function"
@@ -5244,26 +5210,6 @@
         }
       ],
       "name": "setFeesController",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        {
-          "internalType": "address[]",
-          "name": "refs",
-          "type": "address[]"
-        },
-        {
-          "internalType": "address[]",
-          "name": "oracles",
-          "type": "address[]"
-        }
-      ],
-      "name": "setLegacyOracles",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
@@ -5655,7 +5601,7 @@
       "type": "function"
     },
     {
-      "constant": true,
+      "constant": false,
       "inputs": [
         {
           "internalType": "address",
@@ -5664,15 +5610,9 @@
         }
       ],
       "name": "setUserNotFirstTradeFlag",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
+      "outputs": [],
       "payable": false,
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -5922,6 +5862,68 @@
       "type": "function"
     },
     {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sourceTokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "destTokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "sourceTokenAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "swapsImplExpectedRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sourceTokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "destTokenAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "sourceTokenAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "swapsImplExpectedReturn",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "expectedReturn",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "constant": false,
       "inputs": [
         {
@@ -6085,13 +6087,7 @@
         }
       ],
       "name": "withdrawAffiliatesReferrerTokenFees",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "withdrawAmount",
-          "type": "uint256"
-        }
-      ],
+      "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
       "type": "function"
@@ -6166,6 +6162,32 @@
         {
           "internalType": "uint256",
           "name": "actualWithdrawAmount",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "tokens",
+          "type": "address[]"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        }
+      ],
+      "name": "withdrawFees",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "totalWRBTCWithdrawn",
           "type": "uint256"
         }
       ],
