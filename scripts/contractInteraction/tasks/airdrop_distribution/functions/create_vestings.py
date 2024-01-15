@@ -112,8 +112,8 @@ def parseFile(fileName, multiplier):
         for row in reader:
             tokenOwner = row[3].replace(" ", "")
             decimals = row[0].split('.')
-            #if(len(decimals) != 2 or len(decimals[1]) != 2): @todo uncomment 
-            #    errorMsg+="\n" + tokenOwner + ' amount: ' + row[0]
+            if(len(decimals) != 2 or 18 - len(decimals[1]) != math.log10(multiplier)): 
+                errorMsg+="\n" + tokenOwner + ' amount: ' + row[0]
             amount = row[0].replace(",", "").replace(".", "")
             amount = int(amount) * multiplier
             cliff = int(row[5])

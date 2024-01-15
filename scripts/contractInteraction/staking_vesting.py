@@ -62,7 +62,7 @@ def readTeamVestingContractForAddress(userAddress):
     address = vestingRegistry.getTeamVesting(userAddress)
     print(address)
 
-def cancelTeamVestings(userAddress):
+def cancelTeamVestingsOfAccount(userAddress):
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
     vestings = vestingRegistry.getVestingsOf(userAddress)
