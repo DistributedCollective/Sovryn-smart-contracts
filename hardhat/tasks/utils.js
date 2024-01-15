@@ -17,7 +17,7 @@ task(
 )
     .addParam(
         "contract",
-        "Deployed contract artifact name or address to compare bytecode with the repository artifact",
+        "Deployed contract artifact name or hh deployment name to compare deployedBytecode with onchain deployment",
         undefined,
         types.string
     )
@@ -28,28 +28,28 @@ task(
         types.string
     )
     .addOptionalParam(
-        "artifacted",
-        "wether or not to use artifact's deployBytecode - use if there is no bytecode data in deployment files",
-        undefined,
-        types.string
+        "useArtifact",
+        "Take deployBytecode for comparison from artifact. Falls back to it if there is no deployedBytecode data in the deployment data or use explicitly.",
+        false,
+        types.boolean
     )
-    .setAction(async ({ contract, address, artifacted }, hre) => {
+    .setAction(async ({ contract, address, useArtifact }, hre) => {
         const {
             ethers: { provider },
-            deployments: { get, getArtifact },
+            deployments: { get, getOrNull, getArtifact },
             ethers,
         } = hre;
 
         let deploymentObject;
-        const artifactFlag = artifacted ? JSON.parse(artifacted) : false;
         let expectedBytecode;
-        if (artifactFlag) {
+
+        if (useArtifact) {
             deploymentObject = await getArtifact(contract);
             expectedBytecode = deploymentObject.deployedBytecode;
             logger.info("Trying to compare on-chain bytecode with artifact's deployedBytecode");
         } else {
-            deploymentObject = await get(contract);
-            expectedBytecode = deploymentObject.deployedBytecode;
+            deploymentObject = await getOrNull(contract);
+            expectedBytecode = deploymentObject ? deploymentObject.deployedBytecode : false;
             const bytecodeExists = expectedBytecode ?? false;
             if (!bytecodeExists) {
                 logger.error("No deployedBytecode found in deployment object");
