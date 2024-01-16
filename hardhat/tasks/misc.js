@@ -230,6 +230,7 @@ task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or ad
         for (let token of tokensArray) {
             const accountsArray = accounts.split(",");
             for (let account of accountsArray) {
+                account = account.toLowerCase();
                 let accountAddress = ethers.utils.isAddress(account)
                     ? account
                     : (await hre.getNamedAccounts())[account];
