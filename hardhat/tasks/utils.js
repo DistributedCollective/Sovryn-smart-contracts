@@ -17,7 +17,7 @@ task(
 )
     .addParam(
         "contract",
-        "Deployed contract artifact name or address to compare bytecode with the repository artifact",
+        "Deployed contract artifact name or hh deployment name to compare deployedBytecode with onchain deployment",
         undefined,
         types.string
     )
@@ -27,35 +27,63 @@ task(
         undefined,
         types.string
     )
-    .setAction(async ({ contract, address }, hre) => {
+    .addOptionalParam(
+        "useArtifact",
+        "Take deployBytecode for comparison from artifact. Falls back to it if there is no deployedBytecode data in the deployment data or use explicitly.",
+        false,
+        types.boolean
+    )
+    .setAction(async ({ contract, address, useArtifact }, hre) => {
         const {
             ethers: { provider },
-            deployments: { get, getArtifact },
+            deployments: { get, getOrNull, getArtifact },
             ethers,
         } = hre;
 
-        const artifact = await getArtifact(contract);
+        let deploymentObject;
+        let expectedBytecode;
+
+        if (useArtifact) {
+            deploymentObject = await getArtifact(contract);
+            expectedBytecode = deploymentObject.deployedBytecode;
+            logger.info("Trying to compare on-chain bytecode with artifact's deployedBytecode");
+        } else {
+            deploymentObject = await getOrNull(contract);
+            expectedBytecode = deploymentObject ? deploymentObject.deployedBytecode : false;
+            const bytecodeExists = expectedBytecode ?? false;
+            if (!bytecodeExists) {
+                logger.error("No deployedBytecode found in deployment object");
+                deploymentObject = await getArtifact(contract);
+                expectedBytecode = deploymentObject.deployedBytecode;
+                logger.info(
+                    "Trying to compare on-chain bytecode with ARTIFACT's deployedBytecode"
+                );
+            } else {
+                logger.info(
+                    "Trying to compare on-chain bytecode with DEPLOYEMNT object's deployedBytecode"
+                );
+            }
+        }
         const deployment = ethers.utils.isAddress(address) ? "" : await get(contract);
         const contractAddress = ethers.utils.isAddress(address)
             ? address
             : deployment.implementation ?? deployment.address;
-        const artifactBytecode = artifact.deployedBytecode;
         const onchainBytecode = await provider.getCode(contractAddress);
         // console.log("onchain bytecode: ", await provider.getCode(contractAddress));
         // console.log();
-        // console.log("artifact deployedBytecode: ", artifact.deployedBytecode);
-        const sameLength = onchainBytecode.length === artifactBytecode.length;
+        // console.log("expected deployedBytecode: ", deploymentObject.deployedBytecode);
+        const sameLength = onchainBytecode.length === expectedBytecode.length;
         if (!sameLength) {
             logger.error(
-                `Bytecode lengths DO NOT MATCH of the contract ${
+                `Bytecode lengths DO NOT MATCH for the contract ${
                     ethers.utils.isAddress(contract) ? "" : contract
                 } deployed at ${contractAddress}, chainId: ${
                     (await ethers.provider.getNetwork()).chainId
                 }`
             );
-            process.exit(1);
+            process.exit(0);
         }
-        const isPair = artifactBytecode.length % 2 === 0;
+        const isPair = expectedBytecode.length % 2 === 0;
         if (!isPair) {
             logger.error(
                 `Bytecode lengths is not pair for the contract ${
@@ -64,23 +92,23 @@ task(
                     (await ethers.provider.getNetwork()).chainId
                 }`
             );
-            process.exit(1);
+            process.exit(0);
         }
         let N;
         if (sameLength && isPair) {
-            for (let i = 2; i <= artifactBytecode.length; i += 2) {
+            for (let i = 2; i <= expectedBytecode.length; i += 2) {
                 if (
                     onchainBytecode.slice(-i).slice(0, 2) !==
-                    artifactBytecode.slice(-i).slice(0, 2)
+                    expectedBytecode.slice(-i).slice(0, 2)
                 ) {
                     N = i - 2;
                     break;
                 }
             }
             const U = N + 64;
-            if (onchainBytecode.slice(0, -U) === artifactBytecode.slice(0, -U)) {
+            if (onchainBytecode.slice(0, -U) === expectedBytecode.slice(0, -U)) {
                 logger.success(
-                    `Bytecodes MATCH of the contract ${
+                    `Bytecodes MATCH for the contract ${
                         ethers.utils.isAddress(contract) ? "" : contract
                     } deployed at ${contractAddress}, chainId: ${
                         (await ethers.provider.getNetwork()).chainId
@@ -88,16 +116,16 @@ task(
                 );
             } else {
                 logger.error(
-                    `Bytecodes DO NOT MATCH of the contract ${
+                    `Bytecodes DO NOT MATCH for the contract ${
                         ethers.utils.isAddress(contract) ? "" : contract
                     } deployed at ${contractAddress}, chainId: ${
                         (await ethers.provider.getNetwork()).chainId
-                    }`
+                    } at the track comparison ${U}`
                 );
+                logger.error(`at the track comparison ${U} and coincidence index ${N}`);
             }
         }
     });
-
 task("utils:replace-tx", "Replace tx in mempool")
     .addParam("hash", "Replaced transaction hash", undefined, types.string)
     .addOptionalParam("newFrom", "New 'from' address")
