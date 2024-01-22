@@ -1,8 +1,9 @@
 pragma solidity 0.5.17;
 
 import "../openzeppelin/Ownable.sol";
+import "./AdminManagerRole.sol";
 
-contract AdminRole is Ownable {
+contract AdminRole is Ownable, AdminManagerRole {
     /// @dev user => flag whether user has admin role.
     mapping(address => bool) public admins;
 
@@ -22,7 +23,7 @@ contract AdminRole is Ownable {
      * @notice Add account to ACL.
      * @param _admin The addresses of the account to grant permissions.
      * */
-    function addAdmin(address _admin) public onlyOwner {
+    function addAdmin(address _admin) public onlyOwnerOrAdminManager {
         admins[_admin] = true;
         emit AdminAdded(_admin);
     }
@@ -31,7 +32,7 @@ contract AdminRole is Ownable {
      * @notice Remove account from ACL.
      * @param _admin The addresses of the account to revoke permissions.
      * */
-    function removeAdmin(address _admin) public onlyOwner {
+    function removeAdmin(address _admin) public onlyOwnerOrAdminManager {
         admins[_admin] = false;
         emit AdminRemoved(_admin);
     }
