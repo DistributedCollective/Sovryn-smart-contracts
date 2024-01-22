@@ -829,6 +829,63 @@ const getArgsSip0073 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSov3686 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const vestingRegistryDeployment = await get("VestingRegistry");
+    const liquidityMiningDeployment = await get("LiquidityMining");
+
+    const newVestingRegistryImplDeployment = await get("VestingRegistry_Implementation");
+    const newLiquidityMiningImplDeployment = await get("LiquidityMining_Implementation");
+    const multisigDeployment = await get("MultiSigWallet");
+
+    const vestingRegistry = await ethers.getContract("VestingRegistry");
+    const liquidityMining = await ethers.getContract("LiquidityMining");
+
+    if (
+        (await vestingRegistry.getImplementation()) ==
+        newVestingRegistryImplDeployment.implementation
+    ) {
+        throw new Error(`New VestingRegistry impl is the same with the current one`);
+    }
+
+    if (
+        (await liquidityMining.getImplementation()) ==
+        newLiquidityMiningImplDeployment.implementation
+    ) {
+        throw new Error(`New LiquidityMining impl is the same with the current one`);
+    }
+
+    const args = {
+        targets: [
+            vestingRegistryDeployment.address,
+            liquidityMiningDeployment.address,
+            vestingRegistryDeployment.address,
+            liquidityMiningDeployment.address,
+        ],
+        values: [0, 0, 0, 0],
+        signatures: [
+            "setImplementation(address)",
+            "setImplementation(address)",
+            "setAdminManager(address)",
+            "setAdminManager(address)",
+        ],
+        data: [
+            abiCoder.encode(["address"], [newVestingRegistryImplDeployment.address]),
+            abiCoder.encode(["address"], [newLiquidityMiningImplDeployment.address]),
+            abiCoder.encode(["address"], [multisigDeployment.address]),
+            abiCoder.encode(["address"], [multisigDeployment.address]),
+        ],
+        /** @todo change SIP description */
+        description: "SIP-Sov3686: xxx",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -842,4 +899,5 @@ module.exports = {
     getArgsSip0046Part3,
     getArgsSip0046Part4,
     getArgsSip0073,
+    getArgsSov3686,
 };
