@@ -27,5 +27,10 @@ task("setAdminManager", "SetAdminManager to the contract that implement adminMan
             adminManagerTargetDeployment.address,
         ]);
 
-        // await sendWithMultisig(multisigDeployment.address, contractTargetDeployment.address, data, signerAcc);
+        await sendWithMultisig(
+            multisigDeployment.address,
+            contractTargetDeployment.address,
+            data,
+            signerAcc
+        );
     });
