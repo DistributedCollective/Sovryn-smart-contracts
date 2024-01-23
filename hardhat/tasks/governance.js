@@ -513,7 +513,7 @@ task("governance:createFourYearVestings", "Create vestings")
     });
 
 task("governance:getVestingsOf", "Get vesting contracts of an address")
-    .addParam("address", "The address to get vestings of")
+    .addPositionalParam("address", "The address to get vestings of")
     .setAction(async ({ address }, hre) => {
         logger.warn(await getVestingsOf(hre, address));
     });
@@ -522,9 +522,9 @@ task(
     "governance:getVestingsWithSchedule",
     "Get vesting contracts and release schedule of an address"
 )
-    .addParam("address", "The address to get vestings of")
+    .addPositionalParam("address", "The address to get vestings of")
     .setAction(async ({ address }, hre) => {
-        const vestings = await getVestingsOf(hre, address);
+        const vestings = await getVestingsOf(hre, address.toLowerCase());
         for (const vesting of vestings) {
             logger.warn(
                 `Vesting contract ${vesting.vestingAddress}: vesting type ${
@@ -538,7 +538,7 @@ task(
             );
             stakesAndDates.forEach((item) => {
                 const date = new Date(item.date.mul(1000).toNumber());
-                logger.info(`${date.toUTCString()}: ${item.stake / 1e18}`);
+                logger.info(`${date.toUTCString()} (${item.date}): ${item.stake / 1e18}`);
             });
         }
     });

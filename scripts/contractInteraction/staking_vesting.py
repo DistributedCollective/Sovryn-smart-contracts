@@ -62,6 +62,17 @@ def readTeamVestingContractForAddress(userAddress):
     address = vestingRegistry.getTeamVesting(userAddress)
     print(address)
 
+def cancelTeamVestingsOfAccount(userAddress, startFrom):
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    vestings = vestingRegistry.getVestingsOf(userAddress)
+    for vesting in vestings:
+        vestingContract = Contract.from_abi("VestingLogic", address=vesting[2], abi=VestingLogic.abi, owner=conf.acct)
+        if(vestingContract.owner() == conf.contracts['multisig']):
+            print('Cancelling team vesting: ', vesting[2])
+            data = staking.cancelTeamVesting.encode_input(vesting[2],conf.contracts['multisig'], startFrom)
+            sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
 def readLMVestingContractForAddress(userAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry3'], abi=VestingRegistry.abi, owner=conf.acct)
     address = vestingRegistry.getVesting(userAddress)
@@ -80,6 +91,12 @@ def addVestingAdmin(admin):
     vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
     data = vestingRegistry.addAdmin.encode_input(admin)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+def setMaxVestingWithdrawIterations(num):
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    data = staking.setMaxVestingWithdrawIterations.encode_input(num)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
 def removeVestingAdmin(admin):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)

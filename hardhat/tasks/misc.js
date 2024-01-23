@@ -212,8 +212,8 @@ task("misc:forkedchain:vestingStake", "Stakes from vesting contract")
         logger.warning(await staking.getStakes(vesting));
     });
 
-task("getBalanceOf", "Get ERC20 or native token balance of an account or address")
-    .addParam(
+task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or address")
+    .addPositionalParam(
         "accounts",
         "Address(es) or named account(s) contract name(s) to get balance of: 'deployer' or 'MultiSigWallet,deployer,0x542fda317318ebf1d3deaf76e0b632741a7e677d'"
     )
@@ -230,9 +230,11 @@ task("getBalanceOf", "Get ERC20 or native token balance of an account or address
         for (let token of tokensArray) {
             const accountsArray = accounts.split(",");
             for (let account of accountsArray) {
-                let accountAddress = ethers.utils.isAddress(account)
-                    ? account
+                const accountAddressLowerCase = account.toLowerCase();
+                let accountAddress = ethers.utils.isAddress(accountAddressLowerCase)
+                    ? accountAddressLowerCase
                     : (await hre.getNamedAccounts())[account];
+
                 accountAddress = ethers.utils.isAddress(accountAddress)
                     ? accountAddress
                     : (await ethers.getContract(account)).address;
