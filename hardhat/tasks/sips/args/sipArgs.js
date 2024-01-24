@@ -851,6 +851,7 @@ const SIPSOV3613Electron = async (hre) => {
     const newStabilityPoolImplementation = await get("StabilityPool_Implementation");
     const newBorrowerOperationsImplementation = await get("BorrowerOperations_Implementation");
     const newTroveManagerImplementation = await get("TroveManager_Implementation");
+    const newTroveManagerRedeemOps = await get("TroveManagerRedeemOps");
 
     const stabilityPoolProxy = await get("StabilityPool_Proxy");
     const borrowerOperationsProxy = await get("BorrowerOperations_Proxy");
@@ -858,8 +859,6 @@ const SIPSOV3613Electron = async (hre) => {
 
     /** SOV3564 Mynt */
     const myntAdminProxy = await get("MyntAdminProxy");
-    const massetManagerProxy = await get("MassetManager");
-    const newMassetManagerImpl = await get("MassetManager_Implementation");
 
     const mocIntegrationProxy = await get("MocIntegration"); // MocIntegration
     const newMocIntegrationImpl = await get("MocIntegration_Implementation");
@@ -886,9 +885,8 @@ const SIPSOV3613Electron = async (hre) => {
             stabilityPoolProxy.address,
             borrowerOperationsProxy.address,
             troveManagerProxy.address,
+            troveManagerProxy.address,
             myntAdminProxy.address,
-            myntAdminProxy.address,
-            mAssetManager.address,
         ],
         values: [0, 0, 0, 0, 0, 0, 0, 0, 0],
         signatures: [
@@ -898,9 +896,8 @@ const SIPSOV3613Electron = async (hre) => {
             "setImplementation(address)",
             "setImplementation(address)",
             "setImplementation(address)",
+            "setTroveManagerRedeemOps(address)",
             "upgrade(address,address)",
-            "upgrade(address,address)",
-            "setMassetTokenTransferWithPermit(address)",
         ],
         data: [
             abiCoder.encode(["address"], [loanOpeningsModule.address]),
@@ -909,15 +906,11 @@ const SIPSOV3613Electron = async (hre) => {
             abiCoder.encode(["address"], [newStabilityPoolImplementation.address]),
             abiCoder.encode(["address"], [newBorrowerOperationsImplementation.address]),
             abiCoder.encode(["address"], [newTroveManagerImplementation.address]),
+            abiCoder.encode(["address"], [newTroveManagerRedeemOps.address]),
             abiCoder.encode(
                 ["address", "address"],
                 [mocIntegrationProxy.address, newMocIntegrationImpl.address]
             ),
-            abiCoder.encode(
-                ["address", "address"],
-                [massetManagerProxy.address, newMassetManagerImpl.address]
-            ),
-            abiCoder.encode(["address"], [DllrTransferWithPermit.address]),
         ],
         // @todo updatee sip description
         description:
