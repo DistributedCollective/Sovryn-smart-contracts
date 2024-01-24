@@ -1,0 +1,467 @@
+{
+    "address": "",
+    "abi": [
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_moc",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_doc",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_dllr",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_massetManager",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "previousAdmin",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newAdmin",
+                    "type": "address"
+                }
+            ],
+            "name": "AdminChanged",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "beacon",
+                    "type": "address"
+                }
+            ],
+            "name": "BeaconUpgraded",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "fromDLLR",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "toRBTC",
+                    "type": "uint256"
+                }
+            ],
+            "name": "GetDocFromDllrAndRedeemRBTC",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint8",
+                    "name": "version",
+                    "type": "uint8"
+                }
+            ],
+            "name": "Initialized",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "newMocVendorAccount",
+                    "type": "address"
+                }
+            ],
+            "name": "MocVendorAccountSet",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "previousOwner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnershipTransferred",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "implementation",
+                    "type": "address"
+                }
+            ],
+            "name": "Upgraded",
+            "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "dllr",
+            "outputs": [
+                {
+                    "internalType": "contract IDLLR",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "doc",
+            "outputs": [
+                {
+                    "internalType": "contract IERC20",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_dllrAmount",
+                    "type": "uint256"
+                },
+                {
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "deadline",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint8",
+                            "name": "v",
+                            "type": "uint8"
+                        },
+                        {
+                            "internalType": "bytes32",
+                            "name": "r",
+                            "type": "bytes32"
+                        },
+                        {
+                            "internalType": "bytes32",
+                            "name": "s",
+                            "type": "bytes32"
+                        }
+                    ],
+                    "internalType": "struct PermitParams",
+                    "name": "_permitParams",
+                    "type": "tuple"
+                }
+            ],
+            "name": "getDocFromDllrAndRedeemRBTC",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getProxyImplementation",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address payable",
+                    "name": "_mocVendorAccount",
+                    "type": "address"
+                }
+            ],
+            "name": "initialize",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "massetManager",
+            "outputs": [
+                {
+                    "internalType": "contract IMassetManager",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "moc",
+            "outputs": [
+                {
+                    "internalType": "contract IMocMintRedeemDoc",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "mocVendorAccount",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "renounceOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address payable",
+                    "name": "newMocVedorAccount",
+                    "type": "address"
+                }
+            ],
+            "name": "setMocVendorAccount",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "transferOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "stateMutability": "payable",
+            "type": "receive"
+        }
+    ],
+    "numDeployments": 4,
+    "bytecode": "0x61010060405234801561001157600080fd5b50604051610c80380380610c8083398101604081905261003091610119565b6001600160a01b0384161580159061005057506001600160a01b03831615155b801561006457506001600160a01b03821615155b801561007857506001600160a01b03811615155b6100db5760405162461bcd60e51b815260206004820152602a60248201527f4d6f63496e746567726174696f6e3a3a206e6f206e756c6c2061646472657373604482015269195cc8185b1b1bddd95960b21b606482015260840160405180910390fd5b6001600160a01b0393841660805291831660a052821660c0521660e05261016d565b80516001600160a01b038116811461011457600080fd5b919050565b6000806000806080858703121561012f57600080fd5b610138856100fd565b9350610146602086016100fd565b9250610154604086016100fd565b9150610162606086016100fd565b905092959194509250565b60805160a05160c05160e051610abf6101c1600039600081816101eb01526103ab01526000818160c90152610298015260008181610184015261037101526000818161013b01526104b00152610abf6000f3fe6080604052600436106100ab5760003560e01c806390e4b7201161006457806390e4b720146101c4578063b5c89bab146101d9578063c4d66de81461020d578063e50855171461022d578063f2fde38b1461024d578063fc1768191461026d57600080fd5b806333c507ae146100b7578063460f2de1146101075780635342825314610129578063715018a61461015d5780637a0a3ac5146101725780638da5cb5b146101a657600080fd5b366100b257005b600080fd5b3480156100c357600080fd5b506100eb7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b03909116815260200160405180910390f35b34801561011357600080fd5b5061012761012236600461096a565b61028d565b005b34801561013557600080fd5b506100eb7f000000000000000000000000000000000000000000000000000000000000000081565b34801561016957600080fd5b5061012761061a565b34801561017e57600080fd5b506100eb7f000000000000000000000000000000000000000000000000000000000000000081565b3480156101b257600080fd5b506033546001600160a01b03166100eb565b3480156101d057600080fd5b506100eb61062e565b3480156101e557600080fd5b506100eb7f000000000000000000000000000000000000000000000000000000000000000081565b34801561021957600080fd5b506101276102283660046109b7565b610666565b34801561023957600080fd5b506101276102483660046109b7565b610781565b34801561025957600080fd5b506101276102683660046109b7565b610795565b34801561027957600080fd5b506097546100eb906001600160a01b031681565b306001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001663605629d633838686356102d26040890160208a016109db565b604080516001600160e01b031960e089901b1681526001600160a01b0396871660048201529590941660248601526044850192909252606484015260ff16608483015285013560a4820152606085013560c482015260e401600060405180830381600087803b15801561034457600080fd5b505af1158015610358573d6000803e3d6000fd5b505060405163fb2c922360e01b81526001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000811660048301526024820187905284811660448301528693507f000000000000000000000000000000000000000000000000000000000000000016915063fb2c9223906064016020604051808303816000875af11580156103f5573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061041991906109fe565b146104825760405162461bcd60e51b815260206004820152602e60248201527f4d6f63496e746567726174696f6e3a3a2072656465656d656420696e636f727260448201526d1958dd08111bd0c8185b5bdd5b9d60921b60648201526084015b60405180910390fd5b60975460405163b7aa53e760e01b8152600481018590526001600160a01b03918216602482015282821631917f0000000000000000000000000000000000000000000000000000000000000000169063b7aa53e790604401600060405180830381600087803b1580156104f457600080fd5b505af1158015610508573d6000803e3d6000fd5b50505050600081836001600160a01b0316316105249190610a17565b604051909150600090339083908381818185875af1925050503d8060008114610569576040519150601f19603f3d011682016040523d82523d6000602084013e61056e565b606091505b50509050806105d95760405162461bcd60e51b815260206004820152603160248201527f4d6f63496e746567726174696f6e3a3a206572726f72207472616e7366657272604482015270696e672072656465656d6564205242544360781b6064820152608401610479565b60408051878152602081018490527f9d8e423b23af97e1b68e81e339269059cbacc1c8754155bf6f0fd3e5adf8abe8910160405180910390a1505050505050565b61062261080b565b61062c6000610865565b565b60006106617f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc546001600160a01b031690565b905090565b600054610100900460ff16158080156106865750600054600160ff909116105b806106a05750303b1580156106a0575060005460ff166001145b6107035760405162461bcd60e51b815260206004820152602e60248201527f496e697469616c697a61626c653a20636f6e747261637420697320616c72656160448201526d191e481a5b9a5d1a585b1a5e995960921b6064820152608401610479565b6000805460ff191660011790558015610726576000805461ff0019166101001790555b61072e6108b7565b610737826108e6565b801561077d576000805461ff0019169055604051600181527f7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb38474024989060200160405180910390a15b5050565b61078961080b565b610792816108e6565b50565b61079d61080b565b6001600160a01b0381166108025760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b6064820152608401610479565b61079281610865565b6033546001600160a01b0316331461062c5760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e65726044820152606401610479565b603380546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b600054610100900460ff166108de5760405162461bcd60e51b815260040161047990610a3e565b61062c61093a565b609780546001600160a01b0319166001600160a01b0383169081179091556040519081527fc2a1feb9d65ecb31b0e93a520a66d19319929a2bf58046d92d762c04e7dd06c99060200160405180910390a150565b600054610100900460ff166109615760405162461bcd60e51b815260040161047990610a3e565b61062c33610865565b60008082840360a081121561097e57600080fd5b833592506080601f198201121561099457600080fd5b506020830190509250929050565b6001600160a01b038116811461079257600080fd5b6000602082840312156109c957600080fd5b81356109d4816109a2565b9392505050565b6000602082840312156109ed57600080fd5b813560ff811681146109d457600080fd5b600060208284031215610a1057600080fd5b5051919050565b81810381811115610a3857634e487b7160e01b600052601160045260246000fd5b92915050565b6020808252602b908201527f496e697469616c697a61626c653a20636f6e7472616374206973206e6f74206960408201526a6e697469616c697a696e6760a81b60608201526080019056fea26469706673582212202a5366146f46faa5442344d8b38cb389baf682ed6006aecb0bc51ebfd3050eaa64736f6c63430008110033",
+    "deployedBytecode": "0x6080604052600436106100ab5760003560e01c806390e4b7201161006457806390e4b720146101c4578063b5c89bab146101d9578063c4d66de81461020d578063e50855171461022d578063f2fde38b1461024d578063fc1768191461026d57600080fd5b806333c507ae146100b7578063460f2de1146101075780635342825314610129578063715018a61461015d5780637a0a3ac5146101725780638da5cb5b146101a657600080fd5b366100b257005b600080fd5b3480156100c357600080fd5b506100eb7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b03909116815260200160405180910390f35b34801561011357600080fd5b5061012761012236600461096a565b61028d565b005b34801561013557600080fd5b506100eb7f000000000000000000000000000000000000000000000000000000000000000081565b34801561016957600080fd5b5061012761061a565b34801561017e57600080fd5b506100eb7f000000000000000000000000000000000000000000000000000000000000000081565b3480156101b257600080fd5b506033546001600160a01b03166100eb565b3480156101d057600080fd5b506100eb61062e565b3480156101e557600080fd5b506100eb7f000000000000000000000000000000000000000000000000000000000000000081565b34801561021957600080fd5b506101276102283660046109b7565b610666565b34801561023957600080fd5b506101276102483660046109b7565b610781565b34801561025957600080fd5b506101276102683660046109b7565b610795565b34801561027957600080fd5b506097546100eb906001600160a01b031681565b306001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001663605629d633838686356102d26040890160208a016109db565b604080516001600160e01b031960e089901b1681526001600160a01b0396871660048201529590941660248601526044850192909252606484015260ff16608483015285013560a4820152606085013560c482015260e401600060405180830381600087803b15801561034457600080fd5b505af1158015610358573d6000803e3d6000fd5b505060405163fb2c922360e01b81526001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000811660048301526024820187905284811660448301528693507f000000000000000000000000000000000000000000000000000000000000000016915063fb2c9223906064016020604051808303816000875af11580156103f5573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061041991906109fe565b146104825760405162461bcd60e51b815260206004820152602e60248201527f4d6f63496e746567726174696f6e3a3a2072656465656d656420696e636f727260448201526d1958dd08111bd0c8185b5bdd5b9d60921b60648201526084015b60405180910390fd5b60975460405163b7aa53e760e01b8152600481018590526001600160a01b03918216602482015282821631917f0000000000000000000000000000000000000000000000000000000000000000169063b7aa53e790604401600060405180830381600087803b1580156104f457600080fd5b505af1158015610508573d6000803e3d6000fd5b50505050600081836001600160a01b0316316105249190610a17565b604051909150600090339083908381818185875af1925050503d8060008114610569576040519150601f19603f3d011682016040523d82523d6000602084013e61056e565b606091505b50509050806105d95760405162461bcd60e51b815260206004820152603160248201527f4d6f63496e746567726174696f6e3a3a206572726f72207472616e7366657272604482015270696e672072656465656d6564205242544360781b6064820152608401610479565b60408051878152602081018490527f9d8e423b23af97e1b68e81e339269059cbacc1c8754155bf6f0fd3e5adf8abe8910160405180910390a1505050505050565b61062261080b565b61062c6000610865565b565b60006106617f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc546001600160a01b031690565b905090565b600054610100900460ff16158080156106865750600054600160ff909116105b806106a05750303b1580156106a0575060005460ff166001145b6107035760405162461bcd60e51b815260206004820152602e60248201527f496e697469616c697a61626c653a20636f6e747261637420697320616c72656160448201526d191e481a5b9a5d1a585b1a5e995960921b6064820152608401610479565b6000805460ff191660011790558015610726576000805461ff0019166101001790555b61072e6108b7565b610737826108e6565b801561077d576000805461ff0019169055604051600181527f7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb38474024989060200160405180910390a15b5050565b61078961080b565b610792816108e6565b50565b61079d61080b565b6001600160a01b0381166108025760405162461bcd60e51b815260206004820152602660248201527f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206160448201526564647265737360d01b6064820152608401610479565b61079281610865565b6033546001600160a01b0316331461062c5760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e65726044820152606401610479565b603380546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b600054610100900460ff166108de5760405162461bcd60e51b815260040161047990610a3e565b61062c61093a565b609780546001600160a01b0319166001600160a01b0383169081179091556040519081527fc2a1feb9d65ecb31b0e93a520a66d19319929a2bf58046d92d762c04e7dd06c99060200160405180910390a150565b600054610100900460ff166109615760405162461bcd60e51b815260040161047990610a3e565b61062c33610865565b60008082840360a081121561097e57600080fd5b833592506080601f198201121561099457600080fd5b506020830190509250929050565b6001600160a01b038116811461079257600080fd5b6000602082840312156109c957600080fd5b81356109d4816109a2565b9392505050565b6000602082840312156109ed57600080fd5b813560ff811681146109d457600080fd5b600060208284031215610a1057600080fd5b5051919050565b81810381811115610a3857634e487b7160e01b600052601160045260246000fd5b92915050565b6020808252602b908201527f496e697469616c697a61626c653a20636f6e7472616374206973206e6f74206960408201526a6e697469616c697a696e6760a81b60608201526080019056fea26469706673582212202a5366146f46faa5442344d8b38cb389baf682ed6006aecb0bc51ebfd3050eaa64736f6c63430008110033",
+    "implementation": "0x17DC9E96c814C041351EE07a9AA29A7Fe100d859",
+    "devdoc": {
+        "kind": "dev",
+        "methods": {
+            "constructor": {
+                "params": {
+                    "_dllr": "DLLR contract address",
+                    "_doc": "DoC contract address",
+                    "_massetManager": "MassetManager contract address",
+                    "_moc": "MoC main contract address"
+                }
+            },
+            "getDocFromDllrAndRedeemRBTC(uint256,(uint256,uint8,bytes32,bytes32))": {
+                "params": {
+                    "_dllrAmount": "The amount of the DLLR (mAsset) that will be burned in exchange for _toToken",
+                    "_permitParams": "EIP-2612 permit params:        _deadline Expiration time of the signature.        _v Last 1 byte of ECDSA signature.        _r First 32 bytes of ECDSA signature.        _s 32 bytes after _r in ECDSA signature."
+                }
+            },
+            "getProxyImplementation()": {
+                "details": "get the implementation logic address referring to ERC1967 standard.",
+                "returns": {
+                    "_0": "logic implementation address."
+                }
+            },
+            "owner()": {
+                "details": "Returns the address of the current owner."
+            },
+            "renounceOwnership()": {
+                "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner."
+            },
+            "transferOwnership(address)": {
+                "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+            }
+        },
+        "version": 1
+    },
+    "userdoc": {
+        "kind": "user",
+        "methods": {
+            "getDocFromDllrAndRedeemRBTC(uint256,(uint256,uint8,bytes32,bytes32))": {
+                "notice": "how getDocFromDllrAndRedeemRBTC function works: ------------------------------------------------------------------------------------------- |               Mynt                         |                Money On Chain              | ------------------------------------------------------------------------------------------- | get DLLR (EIP-2612) -> convert DLLR to DoC | -> get RBTC from DoC -> send RBTC to user  | -------------------------------------------------------------------------------------------"
+            },
+            "setMocVendorAccount(address)": {
+                "notice": "Set MoC registered Vendor account to receive markup fees https://docs.moneyonchain.com/main-rbtc-contract/integration-with-moc-platform/vendors"
+            }
+        },
+        "notice": "This contract provides compound functions with Money On Chain wrapping them in one transaction for convenience and to save on gas",
+        "version": 1
+    },
+    "storageLayout": {
+        "storage": [
+            {
+                "astId": 534,
+                "contract": "contracts/integration/MoC/MocIntegration.sol:MocIntegration",
+                "label": "_initialized",
+                "offset": 0,
+                "slot": "0",
+                "type": "t_uint8"
+            },
+            {
+                "astId": 537,
+                "contract": "contracts/integration/MoC/MocIntegration.sol:MocIntegration",
+                "label": "_initializing",
+                "offset": 1,
+                "slot": "0",
+                "type": "t_bool"
+            },
+            {
+                "astId": 1094,
+                "contract": "contracts/integration/MoC/MocIntegration.sol:MocIntegration",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "1",
+                "type": "t_array(t_uint256)50_storage"
+            },
+            {
+                "astId": 10,
+                "contract": "contracts/integration/MoC/MocIntegration.sol:MocIntegration",
+                "label": "_owner",
+                "offset": 0,
+                "slot": "51",
+                "type": "t_address"
+            },
+            {
+                "astId": 130,
+                "contract": "contracts/integration/MoC/MocIntegration.sol:MocIntegration",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "52",
+                "type": "t_array(t_uint256)49_storage"
+            },
+            {
+                "astId": 516,
+                "contract": "contracts/integration/MoC/MocIntegration.sol:MocIntegration",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "101",
+                "type": "t_array(t_uint256)50_storage"
+            },
+            {
+                "astId": 5786,
+                "contract": "contracts/integration/MoC/MocIntegration.sol:MocIntegration",
+                "label": "mocVendorAccount",
+                "offset": 0,
+                "slot": "151",
+                "type": "t_address"
+            }
+        ],
+        "types": {
+            "t_address": {
+                "encoding": "inplace",
+                "label": "address",
+                "numberOfBytes": "20"
+            },
+            "t_array(t_uint256)49_storage": {
+                "base": "t_uint256",
+                "encoding": "inplace",
+                "label": "uint256[49]",
+                "numberOfBytes": "1568"
+            },
+            "t_array(t_uint256)50_storage": {
+                "base": "t_uint256",
+                "encoding": "inplace",
+                "label": "uint256[50]",
+                "numberOfBytes": "1600"
+            },
+            "t_bool": {
+                "encoding": "inplace",
+                "label": "bool",
+                "numberOfBytes": "1"
+            },
+            "t_uint256": {
+                "encoding": "inplace",
+                "label": "uint256",
+                "numberOfBytes": "32"
+            },
+            "t_uint8": {
+                "encoding": "inplace",
+                "label": "uint8",
+                "numberOfBytes": "1"
+            }
+        }
+    }
+}
