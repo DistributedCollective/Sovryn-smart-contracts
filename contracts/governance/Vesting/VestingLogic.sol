@@ -8,6 +8,7 @@ import "../IFeeSharingCollector.sol";
 import "./IVesting.sol";
 import "../ApprovalReceiver.sol";
 import "./VestingStorage.sol";
+import "../../openzeppelin/SafeMath.sol";
 
 /**
  * @title Vesting Logic contract.
@@ -15,11 +16,17 @@ import "./VestingStorage.sol";
  * @dev Deployed by a VestingFactory contract.
  * */
 contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
+    using SafeMath for uint256;
     /* Events */
 
     event TokensStaked(address indexed caller, uint256 amount);
     event VotesDelegated(address indexed caller, address delegatee);
-    event TokensWithdrawn(address indexed caller, address receiver);
+    event TokensWithdrawn(
+        address indexed caller,
+        address receiver,
+        uint256 startFrom,
+        uint256 end
+    );
     event DividendsCollected(
         address indexed caller,
         address loanPoolToken,
@@ -110,26 +117,36 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
     }
 
     /**
-     * @notice Withdraws all tokens from the staking contract and
-     * forwards them to an address specified by the token owner.
-     * @param receiver The receiving address.
-     * @dev Can be called only by owner.
-     * @dev **WARNING** This function should not be no longer used by Sovryn Protocol.
-     * Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.
-     * */
-    function governanceWithdrawTokens(address receiver) public {
-        require(msg.sender == address(staking), "unauthorized");
-
-        _withdrawTokens(receiver, true);
-    }
-
-    /**
      * @notice Withdraws unlocked tokens from the staking contract and
      * forwards them to an address specified by the token owner.
      * @param receiver The receiving address.
      * */
     function withdrawTokens(address receiver) public onlyOwners {
-        _withdrawTokens(receiver, false);
+        uint256 startFrom = startDate + cliff;
+        _withdrawTokens(receiver, startFrom, block.timestamp);
+    }
+
+    /**
+     * @notice Withdraws unlocked tokens partially (based on the max withdraw iteration that has been set) from the staking contract and
+     * forwards them to an address specified by the token owner.
+     * @param receiver The receiving address.
+     * @param startFrom The start value for the iterations.
+     * @param maxWithdrawIterations max withdrawal iteration to work around block gas limit issue.
+     * */
+    function withdrawTokensStartingFrom(
+        address receiver,
+        uint256 startFrom,
+        uint256 maxWithdrawIterations
+    ) public onlyOwners {
+        uint256 defaultStartFrom = startDate + cliff;
+
+        startFrom = _timestampToLockDate(startFrom);
+        startFrom = startFrom < defaultStartFrom ? defaultStartFrom : startFrom;
+
+        // @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
+        uint256 maxWithdrawDate = (startFrom + (FOUR_WEEKS * (maxWithdrawIterations.sub(1))));
+        uint256 endAt = endDate < maxWithdrawDate ? endDate : maxWithdrawDate;
+        _withdrawTokens(receiver, startFrom, endAt);
     }
 
     /**
@@ -137,10 +154,15 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * to an address specified by the token owner. Low level function.
      * @dev Once here the caller permission is taken for granted.
      * @param receiver The receiving address.
-     * @param isGovernance Whether all tokens (true)
+     * @param startFrom start withdrawal from date.
+     * @param endAt end time for regular withdrawal
      * or just unlocked tokens (false).
      * */
-    function _withdrawTokens(address receiver, bool isGovernance) internal {
+    function _withdrawTokens(
+        address receiver,
+        uint256 startFrom,
+        uint256 endAt
+    ) internal {
         require(receiver != address(0), "receiver address invalid");
 
         uint96 stake;
@@ -148,32 +170,27 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         /// @dev Usually we just need to iterate over the possible dates until now.
         uint256 end;
 
-        /// @dev In the unlikely case that all tokens have been unlocked early,
-        ///   allow to withdraw all of them.
-        if (staking.allUnlocked() || isGovernance) {
-            end = endDate;
+        if (staking.allUnlocked()) {
+            end = endAt < endDate ? endAt : endDate;
         } else {
-            end = block.timestamp;
+            end = endAt < block.timestamp ? endAt : block.timestamp;
+            if (end > endDate) end = endDate;
         }
 
         /// @dev Withdraw for each unlocked position.
         /// @dev Don't change FOUR_WEEKS to TWO_WEEKS, a lot of vestings already deployed with FOUR_WEEKS
         ///		workaround found, but it doesn't work with TWO_WEEKS
-        for (uint256 i = startDate + cliff; i <= end; i += FOUR_WEEKS) {
+        for (uint256 i = startFrom; i <= end; i += FOUR_WEEKS) {
             /// @dev Read amount to withdraw.
             stake = staking.getPriorUserStakeByDate(address(this), i, block.number - 1);
 
             /// @dev Withdraw if > 0
             if (stake > 0) {
-                if (isGovernance) {
-                    staking.governanceWithdraw(stake, i, receiver);
-                } else {
-                    staking.withdraw(stake, i, receiver);
-                }
+                staking.withdraw(stake, i, receiver);
             }
         }
 
-        emit TokensWithdrawn(msg.sender, receiver);
+        emit TokensWithdrawn(msg.sender, receiver, startFrom, end);
     }
 
     /**
@@ -223,5 +240,18 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
         bytes4[] memory selectors = new bytes4[](1);
         selectors[0] = this.stakeTokensWithApproval.selector;
         return selectors;
+    }
+
+    function _timestampToLockDate(uint256 timestamp) internal view returns (uint256 lockDate) {
+        // Optimize gas costs by reading kickoffTS from storage only once.
+        uint256 start = startDate + cliff;
+        require(timestamp >= start, "timestamp < contract creation"); // WS23
+        /**
+         * @dev If staking timestamp does not match any of the unstaking dates
+         * , set the lockDate to the closest one before the timestamp.
+         * E.g. Passed timestamps lies 7 weeks after kickoff -> only stake for 6 weeks.
+         * */
+        uint256 periodFromKickoff = (timestamp - start) / FOUR_WEEKS;
+        lockDate = periodFromKickoff * FOUR_WEEKS + start;
     }
 }

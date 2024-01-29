@@ -94,12 +94,15 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param _receiver The receiving address.
      * @param _startFrom The start value for the iterations.
      * or just unlocked tokens (false).
+     *
+     * @return nextStartFrom is a timestamp to be used for next withdrawal.
+     * @return notCompleted flag that indicates that the cancel team vesting is not completely done.
      * */
     function _cancelTeamVesting(
         address _vesting,
         address _receiver,
         uint256 _startFrom
-    ) private {
+    ) private returns (uint256 nextStartFrom, bool notCompleted) {
         require(_receiver != address(0), "receiver address invalid");
 
         ITeamVesting teamVesting = ITeamVesting(_vesting);
@@ -139,9 +142,12 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         }
 
         if (adjustedEnd < end) {
-            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, adjustedEnd);
+            nextStartFrom = adjustedEnd + TWO_WEEKS;
+            emit TeamVestingPartiallyCancelled(msg.sender, _receiver, nextStartFrom);
+            return (nextStartFrom, true);
         } else {
             emit TeamVestingCancelled(msg.sender, _receiver);
+            return (end, false);
         }
     }
 
@@ -342,7 +348,6 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @notice Withdraw tokens for vesting contract.
      * @param vesting The address of Vesting contract.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
-     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.
      * @dev This function is dedicated only to support backward compatibility for sovryn ecosystem that has been implementing this staking contract.
      * @dev Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.
      * https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/4bbfe5bd0311ca71e4ef0e3af810d3791d8e4061/contracts/governance/Staking/modules/StakingWithdrawModule.sol#L78
@@ -352,9 +357,28 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         onlyAuthorized
         whenNotFrozen
     {
-        vestingWhitelist[vesting] = true;
-        ITeamVesting(vesting).governanceWithdrawTokens(receiver);
-        vestingWhitelist[vesting] = false;
+        require(vestingRegistryLogic.isTeamVesting(vesting), "Only team vesting allowed");
+
+        ITeamVesting teamVesting = ITeamVesting(vesting);
+        uint256 teamVestingStartDate = teamVesting.startDate();
+        uint256 teamVestingCliff = teamVesting.cliff();
+
+        uint256 nextStartFrom = teamVestingStartDate + teamVestingCliff;
+        bool withdrawFlag = true;
+
+        bool notCompleted;
+
+        /**
+         * The withdrawal is limited to certain iterations (set in maxVestingWithdrawIterations), so in order to withdraw all, we need to iterate until it is fully withdrawn.
+         */
+        while (withdrawFlag) {
+            /**
+             * notCompleted is the flag whether the withdrawal is fully withdrawn or not.
+             * As long as the notCompleted is true, we will keep the iteration using the nextStartFrom.
+             */
+            (nextStartFrom, notCompleted) = _cancelTeamVesting(vesting, receiver, nextStartFrom);
+            withdrawFlag = notCompleted ? true : false;
+        }
 
         emit VestingTokensWithdrawn(vesting, receiver);
     }
