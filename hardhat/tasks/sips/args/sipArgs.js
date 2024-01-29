@@ -862,7 +862,8 @@ const getArgsSip_SOV_3161 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
-const SIPSOV3613Electron = async (hre) => {
+const getArgsSip0074 = async (hre) => {
+    // Electron release
     const {
         ethers,
         deployments: { get },
@@ -966,5 +967,5 @@ module.exports = {
     getArgsSip0046Part4,
     getArgsSip0073,
     getArgsSip_SOV_3161,
-    SIPSOV3613Electron,
+    getArgsSip0074,
 };
