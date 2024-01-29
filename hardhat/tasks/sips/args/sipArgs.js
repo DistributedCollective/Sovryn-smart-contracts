@@ -858,7 +858,7 @@ const SIPSOV3613Electron = async (hre) => {
     const troveManagerProxy = await get("TroveManager_Proxy");
 
     /** SOV3564 Mynt */
-    const myntAdminProxy = await get("MyntAdminProxy")
+    const myntAdminProxy = await get("MyntAdminProxy");
 
     const mocIntegrationProxy = await get("MocIntegration"); // MocIntegration
     const newMocIntegrationImpl = await get("MocIntegration_Implementation");
