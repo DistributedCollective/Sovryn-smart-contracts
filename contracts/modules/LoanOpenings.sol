@@ -352,6 +352,9 @@ contract LoanOpenings is
             "invalid interest"
         );
 
+        // @note this fix is for borrowing only
+        uint256 sentNewPrincipal = isTorqueLoan ? sentValues.newPrincipal : 0;
+
         /// Initialize loan.
         Loan storage loanLocal =
             loans[
@@ -397,24 +400,12 @@ contract LoanOpenings is
             }
         } else {
             /// Update collateral after trade.
-            uint256 receivedAmount;
-            (receivedAmount, , sentValues.loanToCollateralSwapRate) = _loanSwap(
+            sentValues = _updateCollateralAfterTrade(
                 loanId,
-                loanParamsLocal.loanToken,
-                loanParamsLocal.collateralToken,
-                sentAddresses.borrower, /// borrower
-                sentValues.loanTokenSent, /// loanTokenUsable (minSourceTokenAmount)
-                0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
-                0, /// requiredDestTokenAmount (enforces that all of loanTokenUsable is swapped)
-                false, /// bypassFee
+                loanParamsLocal,
+                sentAddresses,
+                sentValues,
                 loanDataBytes
-            );
-            sentValues.collateralTokenSent = sentValues.collateralTokenSent.add(receivedAmount);
-
-            /// Check the minEntryPrice with the rate
-            require(
-                sentValues.loanToCollateralSwapRate >= sentValues.minEntryPrice,
-                "entry price above the minimum"
             );
         }
 
@@ -425,7 +416,8 @@ contract LoanOpenings is
                 loanLocal,
                 initialMargin,
                 sentValues.collateralTokenSent,
-                collateralAmountRequired
+                collateralAmountRequired,
+                sentNewPrincipal
             ),
             "collateral insufficient"
         );
@@ -443,6 +435,36 @@ contract LoanOpenings is
         _finalizeOpen(loanParamsLocal, loanLocal, sentAddresses, sentValues, isTorqueLoan);
 
         return (sentValues.newPrincipal, sentValues.collateralTokenSent); /// newPrincipal, newCollateral
+    }
+
+    function _updateCollateralAfterTrade(
+        bytes32 loanId,
+        LoanParams memory loanParamsLocal,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentValues,
+        bytes memory loanDataBytes
+    ) internal returns (MarginTradeStructHelpers.SentAmounts memory) {
+        uint256 receivedAmount;
+        (receivedAmount, , sentValues.loanToCollateralSwapRate) = _loanSwap(
+            loanId,
+            loanParamsLocal.loanToken,
+            loanParamsLocal.collateralToken,
+            sentAddresses.borrower, /// borrower
+            sentValues.loanTokenSent, /// loanTokenUsable (minSourceTokenAmount)
+            0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
+            0, /// requiredDestTokenAmount (enforces that all of loanTokenUsable is swapped)
+            false, /// bypassFee
+            loanDataBytes
+        );
+        sentValues.collateralTokenSent = sentValues.collateralTokenSent.add(receivedAmount);
+
+        /// Check the minEntryPrice with the rate
+        require(
+            sentValues.loanToCollateralSwapRate >= sentValues.minEntryPrice,
+            "entry price above the minimum"
+        );
+
+        return sentValues;
     }
 
     /**
@@ -608,6 +630,7 @@ contract LoanOpenings is
      * @param initialMargin The initial amount of margin.
      * @param newCollateral The amount of new collateral.
      * @param collateralAmountRequired The amount of required collateral.
+     * @param newPrincipal The amount to borrow.
      *
      * @return Whether the collateral is satisfied.
      * */
@@ -616,7 +639,8 @@ contract LoanOpenings is
         Loan memory loanLocal,
         uint256 initialMargin,
         uint256 newCollateral,
-        uint256 collateralAmountRequired
+        uint256 collateralAmountRequired,
+        uint256 newPrincipal
     ) internal view returns (bool) {
         /// Allow at most 2% under-collateralized.
         collateralAmountRequired = collateralAmountRequired.mul(98 ether).div(100 ether);
@@ -628,7 +652,7 @@ contract LoanOpenings is
                     IPriceFeeds(priceFeeds).getMaxDrawdown(
                         loanParamsLocal.loanToken,
                         loanParamsLocal.collateralToken,
-                        loanLocal.principal,
+                        loanLocal.principal.sub(newPrincipal), // sub(newPrincipal) to exclude the new borrowed amount from the total principal to calculate maxDrawdown for existing loan
                         loanLocal.collateral,
                         initialMargin
                     );
