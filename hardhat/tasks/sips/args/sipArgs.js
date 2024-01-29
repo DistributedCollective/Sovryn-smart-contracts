@@ -857,6 +857,96 @@ const getArgsSip0073 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const SIPSOV3613Electron = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    /** SOV3161 */
+    const protocol = await ethers.getContract("ISovryn");
+    const loanOpeningsModule = await get("LoanOpenings");
+
+    /** SOV625 */
+    const staking = await get("Staking");
+    const stakingAddress = staking.address;
+    const vestingLogicDeployment = await get("VestingLogic");
+    const vestingRegistryDeployment = await get("VestingRegistry");
+    const vestingFactoryDeployment = await get("VestingFactory");
+
+    /** SOV3564 Zero */
+    const newStabilityPoolImplementation = await get("StabilityPool_Implementation");
+    const newBorrowerOperationsImplementation = await get("BorrowerOperations_Implementation");
+    const newTroveManagerImplementation = await get("TroveManager_Implementation");
+    const newTroveManagerRedeemOps = await get("TroveManagerRedeemOps");
+
+    const stabilityPoolProxy = await get("StabilityPool_Proxy");
+    const borrowerOperationsProxy = await get("BorrowerOperations_Proxy");
+    const troveManagerProxy = await get("TroveManager_Proxy");
+
+    /** SOV3564 Mynt */
+    const myntAdminProxy = await get("MyntAdminProxy");
+
+    const mocIntegrationProxy = await get("MocIntegration"); // MocIntegration
+    const newMocIntegrationImpl = await get("MocIntegration_Implementation");
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget("setDelegatedManager(bytes32,address,bool)")) ==
+        loanOpeningsModule.address
+    ) {
+        logger.error("LoanOpenings module deployment already registered in the protocol");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [
+            protocol.address,
+            vestingRegistryDeployment.address,
+            stakingAddress,
+            stabilityPoolProxy.address,
+            borrowerOperationsProxy.address,
+            troveManagerProxy.address,
+            troveManagerProxy.address,
+            myntAdminProxy.address,
+        ],
+        values: [0, 0, 0, 0, 0, 0, 0, 0],
+        signatures: [
+            "replaceContract(address)",
+            "setVestingFactory(address)",
+            "addContractCodeHash(address)",
+            "setImplementation(address)",
+            "setImplementation(address)",
+            "setImplementation(address)",
+            "setTroveManagerRedeemOps(address)",
+            "upgrade(address,address)",
+        ],
+        data: [
+            abiCoder.encode(["address"], [loanOpeningsModule.address]),
+            abiCoder.encode(["address"], [vestingFactoryDeployment.address]),
+            abiCoder.encode(["address"], [vestingLogicDeployment.address]),
+            abiCoder.encode(["address"], [newStabilityPoolImplementation.address]),
+            abiCoder.encode(["address"], [newBorrowerOperationsImplementation.address]),
+            abiCoder.encode(["address"], [newTroveManagerImplementation.address]),
+            abiCoder.encode(["address"], [newTroveManagerRedeemOps.address]),
+            abiCoder.encode(
+                ["address", "address"],
+                [mocIntegrationProxy.address, newMocIntegrationImpl.address]
+            ),
+        ],
+        // @todo updatee sip description
+        description:
+            "SIP-XXXX: _______________, Details: https://github.com/DistributedCollective/SIPS/blob/_______/________.md, sha256: ____________",
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -871,4 +961,5 @@ module.exports = {
     getArgsSip0046Part4,
     getArgsSipSov625,
     getArgsSip0073,
+    SIPSOV3613Electron,
 };

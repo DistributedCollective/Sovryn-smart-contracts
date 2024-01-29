@@ -158,9 +158,9 @@ def main():
     '''
 
     '''
-    vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-23-09.csv'
-    dryRun = False # False to execute, True to verify the file structure
-    multiplier = 10**16 # multiplier == 10**16 <- amounts must with 2 decimals
+    vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-**-**.csv'
+    dryRun = True # False to execute, True to verify the file structure
+    multiplier = 10**16 # multiplier == 10**(18 - decimals) e.g. 16 <- amounts must with 2 decimals
     createVestings(vestingDistributionPath, dryRun, multiplier)
     '''
    

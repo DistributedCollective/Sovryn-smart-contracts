@@ -212,8 +212,8 @@ task("misc:forkedchain:vestingStake", "Stakes from vesting contract")
         logger.warning(await staking.getStakes(vesting));
     });
 
-task("getBalanceOf", "Get ERC20 or native token balance of an account or address")
-    .addParam(
+task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or address")
+    .addPositionalParam(
         "accounts",
         "Address(es) or named account(s) contract name(s) to get balance of: 'deployer' or 'MultiSigWallet,deployer,0x542fda317318ebf1d3deaf76e0b632741a7e677d'"
     )
