@@ -43,6 +43,8 @@ const {
     decodeLogs,
     verify_sov_reward_payment,
     CONSTANTS,
+    getMockLoanTokenWRBTC,
+    getMockLoanToken,
 } = require("../Utils/initializer.js");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
@@ -69,8 +71,8 @@ contract("LoanTokenBorrowing", (accounts) => {
 
         sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-        loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD, true);
-        loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD, true);
+        loanToken = await getMockLoanToken(owner, sovryn, WRBTC, SUSD);
+        loanTokenWRBTC = await getMockLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
         await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
         SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
@@ -1414,7 +1416,7 @@ contract("LoanTokenBorrowing", (accounts) => {
 
             await sovryn.setSupportedTokens([TestERC777.address], [true]);
 
-            loanToken = await getLoanToken(owner, sovryn, WRBTC, TestERC777, true);
+            loanToken = await getMockLoanToken(owner, sovryn, WRBTC, TestERC777);
             loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, TestERC777);
             await loan_pool_setup(
                 sovryn,

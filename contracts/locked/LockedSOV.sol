@@ -341,7 +341,7 @@ contract LockedSOV is ILockedSOV {
     function startMigration(address _newLockedSOV) external onlyAdmin {
         require(_newLockedSOV != address(0), "New Locked SOV Address is Invalid.");
         newLockedSOV = ILockedSOV(_newLockedSOV);
-        SOV.approve(_newLockedSOV, SOV.balanceOf(address(this)));
+        SOV.approve(_newLockedSOV, uint256(-1));
         migration = true;
 
         emit MigrationStarted(msg.sender, _newLockedSOV);

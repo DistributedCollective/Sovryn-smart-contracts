@@ -52,6 +52,8 @@ const {
     getSovryn,
     open_margin_trade_position,
     decodeLogs,
+    getMockLoanToken,
+    getMockLoanTokenWRBTC,
 } = require("../Utils/initializer.js");
 const { ZERO_ADDRESS, ZERO_BYTES32 } = require("@openzeppelin/test-helpers/src/constants");
 
@@ -77,8 +79,8 @@ contract("LoanTokenTrading", (accounts) => {
 
         sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
 
-        loanToken = await getLoanToken(owner, sovryn, WRBTC, SUSD, true);
-        loanTokenWRBTC = await getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD, true);
+        loanToken = await getMockLoanToken(owner, sovryn, WRBTC, SUSD);
+        loanTokenWRBTC = await getMockLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD);
         await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
         SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);

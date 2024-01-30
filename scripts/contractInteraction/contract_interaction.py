@@ -32,6 +32,7 @@ def main():
 
     ##################################
 
+    #cancelTeamVestingsOfAccount('0x673b37941AB527e0EEe13C1Ff09298ef1911d7D6', 1703845695)
     #cancelTeamVestingsOfAccount('0x56B00ca0a274fB53449fBF2DB0253B809E364975')
 
     #getReleaseScheduleFromDevelopmentFund()

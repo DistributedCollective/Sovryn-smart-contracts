@@ -139,7 +139,7 @@ task("multisig:check-txs", "Check multiple multisig txs")
     });
 
 task("multisig:revoke-sig", "Revoke multisig tx confirmation")
-    .addParam(
+    .addPositionalParam(
         "id",
         "Multisig transaction ids to revoke confirmation from",
         undefined,
@@ -170,7 +170,12 @@ task("multisig:revoke-sig", "Revoke multisig tx confirmation")
     });
 
 task("multisig:revoke-sigs", "Revoke multisig tx confirmation")
-    .addParam("ids", "Multisig transaction to revoke confirmation from", undefined, types.string)
+    .addPositionalParam(
+        "ids",
+        "Multisig transaction to revoke confirmation from",
+        undefined,
+        types.string
+    )
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
     .setAction(async ({ ids, signer, multisig }, hre) => {
