@@ -152,6 +152,12 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
             // VERIFY execution
             expect((await governorOwner.proposals(proposalId)).executed).to.be.true;
 
+            // VERIFY LoanOpenings
+            expect(
+                (await sovrynProtocol.getTarget("setDelegatedManager(bytes32,address,bool)")) ==
+                    (await get("LoanOpenings")).address
+            ).to.be.true;
+
             // VERIFY vesting factory has been registered in vestingRegistry
             const vestingRegistry = await ethers.getContract("VestingRegistry");
             const vestingFactoryDeployment = await get("VestingFactory");
