@@ -300,7 +300,15 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 
 // Loan Token
 
-const getLoanTokenLogic = async (isMockLoanToken = false) => {
+const getLoanTokenLogic = async () => {
+    return await _getLoanTokenLogic(false);
+};
+
+const getMockLoanTokenLogic = async () => {
+    return await _getLoanTokenLogic(true);
+};
+
+const _getLoanTokenLogic = async (isMockLoanToken) => {
     /** Deploy LoanTokenLogicBeacon */
     const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
 
@@ -330,7 +338,16 @@ const getLoanTokenLogic = async (isMockLoanToken = false) => {
 
     return [loanTokenLogicProxy, loanTokenLogicBeacon];
 };
-const getLoanTokenLogicWrbtc = async (isMockLoanToken = false) => {
+
+const getLoanTokenLogicWrbtc = async () => {
+    return await _getLoanTokenLogicWrbtc(false);
+};
+
+const getMockLoanTokenLogicWrbtc = async () => {
+    return await _getLoanTokenLogicWrbtc(true);
+};
+
+const _getLoanTokenLogicWrbtc = async (isMockLoanToken) => {
     /** Deploy LoanTokenLogicBeacon */
     const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
 
@@ -344,7 +361,6 @@ const getLoanTokenLogicWrbtc = async (isMockLoanToken = false) => {
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicWrbtcLM.address);
 
-    /** Deploy LoanTokenLogicWRBTC */
     let loanTokenLogicWrbtc;
     if (isMockLoanToken) {
         loanTokenLogicWrbtc = await MockLoanTokenLogic.new();
@@ -366,8 +382,22 @@ const getLoanTokenSettings = async () => {
     return loanSettings;
 };
 
-const getLoanToken = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
-    const initLoanTokenLogic = await getLoanTokenLogic(mockLogic); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+const getLoanToken = async (owner, sovryn, WRBTC, SUSD) => {
+    return await _getLoanToken(owner, sovryn, WRBTC, SUSD, false);
+};
+
+const getMockLoanToken = async (owner, sovryn, WRBTC, SUSD) => {
+    return await _getLoanToken(owner, sovryn, WRBTC, SUSD, true);
+};
+
+const _getLoanToken = async (owner, sovryn, WRBTC, SUSD, mockLogic) => {
+    let initLoanTokenLogic;
+    if (mockLogic) {
+        initLoanTokenLogic = await getMockLoanTokenLogic(); // function will return [MockLoanTokenLogicProxy, LoanTokenLogicBeacon]
+    } else {
+        initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+    }
+
     loanTokenLogic = initLoanTokenLogic[0];
     loanTokenLogicBeacon = initLoanTokenLogic[1];
 
@@ -393,8 +423,22 @@ const getLoanToken = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
     return loanToken;
 };
 
-const getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
-    const initLoanTokenLogic = await getLoanTokenLogicWrbtc(mockLogic); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+const getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD) => {
+    return await _getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD, false);
+};
+
+const getMockLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD) => {
+    return await _getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD, true);
+};
+
+const _getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
+    let initLoanTokenLogic;
+    if (mockLogic) {
+        initLoanTokenLogic = await getMockLoanTokenLogicWrbtc(); // function will return [MockLoanTokenLogicProxy, LoanTokenLogicBeacon]
+    } else {
+        initLoanTokenLogic = await getLoanTokenLogicWrbtc(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+    }
+
     loanTokenLogicWrbtc = initLoanTokenLogic[0];
     loanTokenLogicBeacon = initLoanTokenLogic[1];
 
@@ -684,9 +728,13 @@ module.exports = {
     getBZRX,
     getSOV,
     getLoanTokenLogic,
+    getMockLoanTokenLogic,
     getLoanTokenLogicWrbtc,
+    getMockLoanTokenLogicWrbtc,
     getLoanToken,
+    getMockLoanToken,
     getLoanTokenWRBTC,
+    getMockLoanTokenWRBTC,
 
     // staking
     deployAndGetStakingModulesProxyAtStakingProxy,
