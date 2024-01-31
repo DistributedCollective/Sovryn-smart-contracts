@@ -83,7 +83,7 @@ task("multisig:sign-txs", "Sign multiple multisig tx")
     });
 
 task("multisig:execute-tx", "Execute multisig tx by one of tx signers")
-    .addParam("id", "Multisig transaction to sign", undefined, types.string)
+    .addPositionalParam("id", "Multisig transaction to sign", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
     .setAction(async ({ id, signer, multisig }, hre) => {
@@ -99,6 +99,36 @@ task("multisig:execute-tx", "Execute multisig tx by one of tx signers")
             multisig = ethers.constants.AddressZero;
         }
         await multisigExecuteTx(id, signerAcc, multisig);
+    });
+
+task("multisig:execute-txs", "Execute multisig tx by one of tx signers")
+    .addPositionalParam("ids", "Multisig transaction to sign", undefined, types.string)
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
+    .setAction(async ({ id, signer, multisig }, hre) => {
+        const { ethers } = hre;
+        const signerAcc = ethers.utils.isAddress(signer)
+            ? signer
+            : (await hre.getNamedAccounts())[signer];
+        if (!ethers.utils.isAddress(multisig)) {
+            multisig = ethers.constants.AddressZero;
+        }
+        const code = await ethers.provider.getCode(multisig);
+        if (code === "0x") {
+            multisig = ethers.constants.AddressZero;
+        }
+
+        const txnArray = ids.split(",");
+        for (let txId of txnArray) {
+            if (typeof txId !== "string" || txId.indexOf("-") === -1) {
+                await multisigExecuteTx(txId, signerAcc, multisig);
+            } else {
+                const txnRangeArray = txId.split("-", 2).map((num) => parseInt(num));
+                for (let id = txnRangeArray[0]; id <= txnRangeArray[1]; id++) {
+                    await multisigExecuteTx(txId, signerAcc, multisig);
+                }
+            }
+        }
     });
 
 task("multisig:check-tx", "Check multisig tx")

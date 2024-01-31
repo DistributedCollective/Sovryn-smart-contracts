@@ -72,7 +72,7 @@ async function getVotingPower(hre, stakerAddress, governorDeploymentName, blockN
     return { blockNumber, stakerAddress, balance, votingPower, proposalThreshold };
 }
 
-async function createVestings(hre, path, multiplier, signerAcc) {
+async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
     /*
      * vested token sender script - takes addresses from the file by path
      * dryRun - true to check that the data will be processed correctly, false - execute distribution
@@ -210,7 +210,7 @@ async function createVestings(hre, path, multiplier, signerAcc) {
             if (vestingAddress === ethers.constants.AddressZero) {
                 throw new Error("Vesting address is zero!");
             }
-            if ((await SOVtoken.allowance(deployerAcc, vestingAddress)) < amount) {
+            if ((await SOVtoken.allowance(signerAcc, vestingAddress)) < amount) {
                 console.log(
                     "Approving amount",
                     amount.div(ethers.utils.parseEther("1")).toNumber(),
@@ -265,7 +265,7 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
                 console.log("reading row:", row[3]);
                 const tokenOwner = row[3].replace(" ", "");
                 const decimals = row[0].split(".");
-                if (decimals.length !== 2 || decimals[1].length !== 2) {
+                if (decimals.length !== 2 || 18 - decimals[1].length !== Math.log10(multiplier)) {
                     errorMsg += "\n" + tokenOwner + " amount: " + row[0];
                 }
                 let amount = row[0].replace(",", "").replace(".", "");
@@ -299,10 +299,12 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
 
 task("governance:createVestings", "Create vestings")
     .addParam("path", "The file path")
+    .addParam("decimals", "Number of decimals for amount", 16, types.int)
+    .addFlag("dryRun", "Dry run")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ path, dryRun }, hre) => {
-        const multiplier = (1e16).toString();
-        await createVestings(hre, path, multiplier, signer);
+    .setAction(async ({ path, signer, dryRun, decimals }, hre) => {
+        const multiplier = (10 ** decimals).toString();
+        await createVestings(hre, dryRun, path, multiplier, signer);
     });
 
 const VestingType = {
