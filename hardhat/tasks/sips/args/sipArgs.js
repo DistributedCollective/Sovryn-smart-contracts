@@ -836,14 +836,11 @@ const getArgsSov3686 = async (hre) => {
     } = hre;
     const abiCoder = new ethers.utils.AbiCoder();
     const vestingRegistryDeployment = await get("VestingRegistry");
-    const liquidityMiningDeployment = await get("LiquidityMining");
 
     const newVestingRegistryImplDeployment = await get("VestingRegistry_Implementation");
-    const newLiquidityMiningImplDeployment = await get("LiquidityMining_Implementation");
     const multisigDeployment = await get("MultiSigWallet");
 
     const vestingRegistry = await ethers.getContract("VestingRegistry");
-    const liquidityMining = await ethers.getContract("LiquidityMining");
 
     if (
         (await vestingRegistry.getImplementation()) ==
@@ -852,31 +849,12 @@ const getArgsSov3686 = async (hre) => {
         throw new Error(`New VestingRegistry impl is the same with the current one`);
     }
 
-    if (
-        (await liquidityMining.getImplementation()) ==
-        newLiquidityMiningImplDeployment.implementation
-    ) {
-        throw new Error(`New LiquidityMining impl is the same with the current one`);
-    }
-
     const args = {
-        targets: [
-            vestingRegistryDeployment.address,
-            liquidityMiningDeployment.address,
-            vestingRegistryDeployment.address,
-            liquidityMiningDeployment.address,
-        ],
-        values: [0, 0, 0, 0],
-        signatures: [
-            "setImplementation(address)",
-            "setImplementation(address)",
-            "setAdminManager(address)",
-            "setAdminManager(address)",
-        ],
+        targets: [vestingRegistryDeployment.address, vestingRegistryDeployment.address],
+        values: [0, 0],
+        signatures: ["setImplementation(address)", "setAdminManager(address)"],
         data: [
             abiCoder.encode(["address"], [newVestingRegistryImplDeployment.address]),
-            abiCoder.encode(["address"], [newLiquidityMiningImplDeployment.address]),
-            abiCoder.encode(["address"], [multisigDeployment.address]),
             abiCoder.encode(["address"], [multisigDeployment.address]),
         ],
         /** @todo change SIP description */

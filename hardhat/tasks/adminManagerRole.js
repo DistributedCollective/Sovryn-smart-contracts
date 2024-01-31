@@ -6,10 +6,7 @@ const { sendWithMultisig } = require("../../deployment/helpers/helpers");
 task("setAdminManager", "SetAdminManager to the contract that implement adminManagerRole")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .addParam("adminManagerTarget", "Admin manager target: 'MultiSigWallet'")
-    .addParam(
-        "contractTarget",
-        "Contract name target: e.g: 'VestingRegistry' or 'LiquidityMining' "
-    )
+    .addParam("contractTarget", "Contract name target: e.g: 'VestingRegistry'")
     .setAction(async ({ signer, adminManagerTarget, contractTarget }, hre) => {
         const {
             deployments: { get },

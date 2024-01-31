@@ -157,17 +157,9 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
                 newVestingRegistryImplDeployment.address
             );
 
-            // VERIFY LiquidityMining has been upgraded
-            const liquidityMining = await ethers.getContract("LiquidityMining");
-            const newLiquidityMiningImplDeployment = await get("LiquidityMining_Implementation");
-            expect(await liquidityMining.getImplementation()).to.equal(
-                newLiquidityMiningImplDeployment.address
-            );
-
-            // VERIFY Exchequer multisig has been registered as AdminManager in VestingRegistry & LiquidityMining
+            // VERIFY Exchequer multisig has been registered as AdminManager in VestingRegistry
             const multisigDeployment = await get("MultiSigWallet");
             expect(await vestingRegistry.getAdminManager()).to.equal(multisigDeployment.address);
-            expect(await liquidityMining.getAdminManager()).to.equal(multisigDeployment.address);
         });
     });
 });
