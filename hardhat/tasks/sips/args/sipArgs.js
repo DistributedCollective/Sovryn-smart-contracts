@@ -976,7 +976,7 @@ const getArgsSip0074 = async (hre) => {
         ],
         // @todo updatee sip description
         description:
-            "SIP-XXXX: _______________, Details: https://github.com/DistributedCollective/SIPS/blob/_______/________.md, sha256: ____________",
+            "SIP-0074: Smart Contracts Upgrade Electron, Details: https://github.com/DistributedCollective/SIPS/blob/a86ac0e/SIP-0074.md, sha256: c595e86f84b392ca38c027b911631eba0cbe212871b66425005647a22381313a",
     };
     return { args, governor: "GovernorOwner" };
 };
