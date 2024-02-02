@@ -110,22 +110,18 @@ contract ProtocolSettings is
      * setting wrong address will break inter module functions calling
      * should be set once
      */
-    function setSovrynProtocolAddress(address newProtocolAddress)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setSovrynProtocolAddress(
+        address newProtocolAddress
+    ) external onlyAdminOrOwner whenNotPaused {
         address oldProtocolAddress = protocolAddress;
         protocolAddress = newProtocolAddress;
 
         emit SetProtocolAddress(msg.sender, oldProtocolAddress, newProtocolAddress);
     }
 
-    function setSOVTokenAddress(address newSovTokenAddress)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setSOVTokenAddress(
+        address newSovTokenAddress
+    ) external onlyAdminOrOwner whenNotPaused {
         require(Address.isContract(newSovTokenAddress), "newSovTokenAddress not a contract");
 
         address oldTokenAddress = sovTokenAddress;
@@ -134,11 +130,9 @@ contract ProtocolSettings is
         emit SetSOVTokenAddress(msg.sender, oldTokenAddress, newSovTokenAddress);
     }
 
-    function setLockedSOVAddress(address newLockedSOVAddress)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setLockedSOVAddress(
+        address newLockedSOVAddress
+    ) external onlyAdminOrOwner whenNotPaused {
         require(Address.isContract(newLockedSOVAddress), "newLockSOVAddress not a contract");
 
         address oldLockedSOVAddress = lockedSOVAddress;
@@ -152,11 +146,9 @@ contract ProtocolSettings is
      *
      * @param newBasisPoint Basis point value.
      */
-    function setTradingRebateRewardsBasisPoint(uint256 newBasisPoint)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setTradingRebateRewardsBasisPoint(
+        uint256 newBasisPoint
+    ) external onlyAdminOrOwner whenNotPaused {
         require(newBasisPoint <= 9999, "value too high");
 
         uint256 oldBasisPoint = tradingRebateRewardsBasisPoint;
@@ -170,11 +162,9 @@ contract ProtocolSettings is
      *
      * @param newMinReferrals The new minimum number of referrals.
      * */
-    function setMinReferralsToPayoutAffiliates(uint256 newMinReferrals)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setMinReferralsToPayoutAffiliates(
+        uint256 newMinReferrals
+    ) external onlyAdminOrOwner whenNotPaused {
         uint256 oldMinReferrals = minReferralsToPayout;
         minReferralsToPayout = newMinReferrals;
 
@@ -211,11 +201,10 @@ contract ProtocolSettings is
      * @param pools The array of addresses of new loan pool instances.
      * @param assets The array of addresses of the corresponding underlying tokens.
      * */
-    function setLoanPool(address[] calldata pools, address[] calldata assets)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setLoanPool(
+        address[] calldata pools,
+        address[] calldata assets
+    ) external onlyAdminOrOwner whenNotPaused {
         require(pools.length == assets.length, "count mismatch");
 
         for (uint256 i = 0; i < pools.length; i++) {
@@ -247,11 +236,10 @@ contract ProtocolSettings is
      * @param toggles The array of flags indicating whether
      *   the corresponding token is supported or not.
      * */
-    function setSupportedTokens(address[] calldata addrs, bool[] calldata toggles)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setSupportedTokens(
+        address[] calldata addrs,
+        bool[] calldata toggles
+    ) external onlyAdminOrOwner whenNotPaused {
         require(addrs.length == toggles.length, "count mismatch");
 
         for (uint256 i = 0; i < addrs.length; i++) {
@@ -267,7 +255,7 @@ contract ProtocolSettings is
      * @param newValue The new value for lendingFeePercent.
      * */
     function setLendingFeePercent(uint256 newValue) external onlyAdminOrOwner whenNotPaused {
-        require(newValue <= 10**20, "value too high");
+        require(newValue <= 10 ** 20, "value too high");
         uint256 oldValue = lendingFeePercent;
         lendingFeePercent = newValue;
 
@@ -280,7 +268,7 @@ contract ProtocolSettings is
      * @param newValue The new value for tradingFeePercent.
      * */
     function setTradingFeePercent(uint256 newValue) external onlyAdminOrOwner whenNotPaused {
-        require(newValue <= 10**20, "value too high");
+        require(newValue <= 10 ** 20, "value too high");
         uint256 oldValue = tradingFeePercent;
         tradingFeePercent = newValue;
 
@@ -293,7 +281,7 @@ contract ProtocolSettings is
      * @param newValue The new value for borrowingFeePercent.
      * */
     function setBorrowingFeePercent(uint256 newValue) external onlyAdminOrOwner whenNotPaused {
-        require(newValue <= 10**20, "value too high");
+        require(newValue <= 10 ** 20, "value too high");
         uint256 oldValue = borrowingFeePercent;
         borrowingFeePercent = newValue;
 
@@ -306,7 +294,7 @@ contract ProtocolSettings is
      * @param newValue the new value for swapExternalFeePercent
      */
     function setSwapExternalFeePercent(uint256 newValue) external onlyAdminOrOwner whenNotPaused {
-        require(newValue <= 10**20, "value too high");
+        require(newValue <= 10 ** 20, "value too high");
         uint256 oldValue = swapExtrernalFeePercent;
         swapExtrernalFeePercent = newValue;
 
@@ -319,7 +307,7 @@ contract ProtocolSettings is
      * @param newValue The new value for affiliateFeePercent.
      * */
     function setAffiliateFeePercent(uint256 newValue) external onlyAdminOrOwner whenNotPaused {
-        require(newValue <= 10**20, "value too high");
+        require(newValue <= 10 ** 20, "value too high");
         uint256 oldValue = affiliateFeePercent;
         affiliateFeePercent = newValue;
 
@@ -331,12 +319,10 @@ contract ProtocolSettings is
      *
      * @param newValue The new value for affiliateTradingTokenFeePercent.
      * */
-    function setAffiliateTradingTokenFeePercent(uint256 newValue)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
-        require(newValue <= 10**20, "value too high");
+    function setAffiliateTradingTokenFeePercent(
+        uint256 newValue
+    ) external onlyAdminOrOwner whenNotPaused {
+        require(newValue <= 10 ** 20, "value too high");
         uint256 oldValue = affiliateTradingTokenFeePercent;
         affiliateTradingTokenFeePercent = newValue;
 
@@ -348,12 +334,10 @@ contract ProtocolSettings is
      *
      * @param newValue The new value for liquidationIncentivePercent.
      * */
-    function setLiquidationIncentivePercent(uint256 newValue)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
-        require(newValue <= 10**20, "value too high");
+    function setLiquidationIncentivePercent(
+        uint256 newValue
+    ) external onlyAdminOrOwner whenNotPaused {
+        require(newValue <= 10 ** 20, "value too high");
         uint256 oldValue = liquidationIncentivePercent;
         liquidationIncentivePercent = newValue;
 
@@ -465,11 +449,10 @@ contract ProtocolSettings is
      *
      * @return The withdrawn total amount in wRBTC
      * */
-    function withdrawFees(address[] calldata tokens, address receiver)
-        external
-        whenNotPaused
-        returns (uint256 totalWRBTCWithdrawn)
-    {
+    function withdrawFees(
+        address[] calldata tokens,
+        address receiver
+    ) external whenNotPaused returns (uint256 totalWRBTCWithdrawn) {
         require(msg.sender == feesController, "unauthorized");
 
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -521,15 +504,15 @@ contract ProtocolSettings is
 
                     (amountConvertedToWRBTC, ) = ProtocolSwapExternalInterface(protocolAddress)
                         .swapExternal(
-                        tokens[i], // source token address
-                        address(wrbtcToken), // dest token address
-                        feesController, // set feeSharingCollector as receiver
-                        protocolAddress, // protocol as the sender
-                        tempAmount, // source token amount
-                        0, // reqDestToken
-                        0, // minReturn
-                        "" // loan data bytes
-                    );
+                            tokens[i], // source token address
+                            address(wrbtcToken), // dest token address
+                            feesController, // set feeSharingCollector as receiver
+                            protocolAddress, // protocol as the sender
+                            tempAmount, // source token amount
+                            0, // reqDestToken
+                            0, // minReturn
+                            "" // loan data bytes
+                        );
 
                     /// Will revert if disagreement found.
                     IPriceFeeds(priceFeeds).checkPriceDisagreement(
@@ -680,12 +663,10 @@ contract ProtocolSettings is
      * @return The protocol token address.
      * @return Withdrawal success (true/false).
      * */
-    function withdrawProtocolToken(address receiver, uint256 amount)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-        returns (address, bool)
-    {
+    function withdrawProtocolToken(
+        address receiver,
+        uint256 amount
+    ) external onlyAdminOrOwner whenNotPaused returns (address, bool) {
         return _withdrawProtocolToken(receiver, amount);
     }
 
@@ -710,11 +691,10 @@ contract ProtocolSettings is
      *
      * @return The array of loan pools.
      * */
-    function getLoanPoolsList(uint256 start, uint256 count)
-        external
-        view
-        returns (bytes32[] memory)
-    {
+    function getLoanPoolsList(
+        uint256 start,
+        uint256 count
+    ) external view returns (bytes32[] memory) {
         return loanPoolsSet.enumerate(start, count);
     }
 
@@ -734,11 +714,9 @@ contract ProtocolSettings is
      *
      * @param registryAddress the address of the registry contract.
      * */
-    function setSovrynSwapContractRegistryAddress(address registryAddress)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setSovrynSwapContractRegistryAddress(
+        address registryAddress
+    ) external onlyAdminOrOwner whenNotPaused {
         require(Address.isContract(registryAddress), "registryAddress not a contract");
 
         address oldSovrynSwapContractRegistryAddress = sovrynSwapContractRegistryAddress;
@@ -770,11 +748,9 @@ contract ProtocolSettings is
      *
      * @param _protocolTokenAddress The address of the protocol token contract.
      * */
-    function setProtocolTokenAddress(address _protocolTokenAddress)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setProtocolTokenAddress(
+        address _protocolTokenAddress
+    ) external onlyAdminOrOwner whenNotPaused {
         require(Address.isContract(_protocolTokenAddress), "_protocolTokenAddress not a contract");
 
         address oldProtocolTokenAddress = protocolTokenAddress;
@@ -788,11 +764,9 @@ contract ProtocolSettings is
      *
      * @param baseRewardValue The base reward.
      * */
-    function setRolloverBaseReward(uint256 baseRewardValue)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setRolloverBaseReward(
+        uint256 baseRewardValue
+    ) external onlyAdminOrOwner whenNotPaused {
         require(baseRewardValue > 0, "Base reward is zero");
 
         uint256 oldValue = rolloverBaseReward;
@@ -807,7 +781,7 @@ contract ProtocolSettings is
      * @param rebatePercent The fee rebate percent.
      * */
     function setRebatePercent(uint256 rebatePercent) external onlyAdminOrOwner whenNotPaused {
-        require(rebatePercent <= 10**20, "Fee rebate is too high");
+        require(rebatePercent <= 10 ** 20, "Fee rebate is too high");
 
         uint256 oldRebatePercent = feeRebatePercent;
         feeRebatePercent = rebatePercent;
@@ -848,11 +822,10 @@ contract ProtocolSettings is
      *
      * @return The percent rebates of the pairs.
      * */
-    function getSpecialRebates(address sourceTokenAddress, address destTokenAddress)
-        external
-        view
-        returns (uint256 specialRebatesPercent)
-    {
+    function getSpecialRebates(
+        address sourceTokenAddress,
+        address destTokenAddress
+    ) external view returns (uint256 specialRebatesPercent) {
         return specialRebates[sourceTokenAddress][destTokenAddress];
     }
 
@@ -903,10 +876,9 @@ contract ProtocolSettings is
      */
     function getDedicatedSOVRebate() public view returns (uint256) {
         uint256 sovProtocolBalance = IERC20(sovTokenAddress).balanceOf(address(this));
-        uint256 sovFees =
-            lendingFeeTokensHeld[sovTokenAddress].add(tradingFeeTokensHeld[sovTokenAddress]).add(
-                borrowingFeeTokensHeld[sovTokenAddress]
-            );
+        uint256 sovFees = lendingFeeTokensHeld[sovTokenAddress]
+            .add(tradingFeeTokensHeld[sovTokenAddress])
+            .add(borrowingFeeTokensHeld[sovTokenAddress]);
 
         return sovProtocolBalance >= sovFees ? sovProtocolBalance.sub(sovFees) : 0;
     }
@@ -916,11 +888,9 @@ contract ProtocolSettings is
      *
      * @param newRolloverFlexFeePercent uint256 value of new rollover flex fee percentage (0.1 ether = 0.1%)
      */
-    function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setRolloverFlexFeePercent(
+        uint256 newRolloverFlexFeePercent
+    ) external onlyAdminOrOwner whenNotPaused {
         require(newRolloverFlexFeePercent <= 1e18, "value too high");
         uint256 oldRolloverFlexFeePercent = rolloverFlexFeePercent;
         rolloverFlexFeePercent = newRolloverFlexFeePercent;
@@ -940,11 +910,10 @@ contract ProtocolSettings is
      *
      * @return default path of the conversion.
      */
-    function getDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)
-        external
-        view
-        returns (IERC20[] memory)
-    {
+    function getDefaultPathConversion(
+        address sourceTokenAddress,
+        address destTokenAddress
+    ) external view returns (IERC20[] memory) {
         return defaultPathConversion[sourceTokenAddress][destTokenAddress];
     }
 
@@ -954,11 +923,9 @@ contract ProtocolSettings is
      * @param defaultPath array of addresses for the default path.
      *
      */
-    function setDefaultPathConversion(IERC20[] calldata defaultPath)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function setDefaultPathConversion(
+        IERC20[] calldata defaultPath
+    ) external onlyAdminOrOwner whenNotPaused {
         address sourceTokenAddress = address(defaultPath[0]);
         address destTokenAddress = address(defaultPath[defaultPath.length - 1]);
 
@@ -985,18 +952,18 @@ contract ProtocolSettings is
      * @param sourceTokenAddress source token address.
      * @param destTokenAddress destination token address
      */
-    function removeDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)
-        external
-        onlyAdminOrOwner
-        whenNotPaused
-    {
+    function removeDefaultPathConversion(
+        address sourceTokenAddress,
+        address destTokenAddress
+    ) external onlyAdminOrOwner whenNotPaused {
         require(
             defaultPathConversion[sourceTokenAddress][destTokenAddress].length > 0,
             "DEFAULT_PATH_EMPTY"
         );
 
-        IERC20[] memory defaultPathValue =
-            defaultPathConversion[sourceTokenAddress][destTokenAddress];
+        IERC20[] memory defaultPathValue = defaultPathConversion[sourceTokenAddress][
+            destTokenAddress
+        ];
         delete defaultPathConversion[sourceTokenAddress][destTokenAddress];
 
         emit RemoveDefaultPathConversion(

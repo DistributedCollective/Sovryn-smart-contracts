@@ -117,12 +117,12 @@ contract Proxy {
             returndatacopy(pointer, 0, size)
 
             switch result
-                case 0 {
-                    revert(pointer, size)
-                }
-                default {
-                    return(pointer, size)
-                }
+            case 0 {
+                revert(pointer, size)
+            }
+            default {
+                return(pointer, size)
+            }
         }
     }
 }

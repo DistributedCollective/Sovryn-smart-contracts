@@ -62,8 +62,10 @@ interface ILoanTokenModules {
 
     function setupLoanParams(LoanParams[] calldata loanParamsList, bool areTorqueLoans) external;
 
-    function disableLoanParams(address[] calldata collateralTokens, bool[] calldata isTorqueLoans)
-        external;
+    function disableLoanParams(
+        address[] calldata collateralTokens,
+        bool[] calldata isTorqueLoans
+    ) external;
 
     function setDemandCurve(
         uint256 _baseRate,
@@ -80,8 +82,10 @@ interface ILoanTokenModules {
         bool isPaused
     ) external;
 
-    function setTransactionLimits(address[] calldata addresses, uint256[] calldata limits)
-        external;
+    function setTransactionLimits(
+        address[] calldata addresses,
+        uint256[] calldata limits
+    ) external;
 
     function changeLoanTokenNameAndSymbol(string calldata _name, string calldata _symbol) external;
 
@@ -156,11 +160,7 @@ interface ILoanTokenModules {
 
     function transfer(address _to, uint256 _value) external returns (bool);
 
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) external returns (bool);
+    function transferFrom(address _from, address _to, uint256 _value) external returns (bool);
 
     function setLiquidityMiningAddress(address LMAddress) external;
 
@@ -175,14 +175,7 @@ interface ILoanTokenModules {
         uint256 loanTokenSent,
         uint256 collateralTokenSent,
         address collateralTokenAddress // address(0) means ETH
-    )
-        external
-        view
-        returns (
-            uint256 principal,
-            uint256 collateral,
-            uint256 interestRate
-        );
+    ) external view returns (uint256 principal, uint256 collateral, uint256 interestRate);
 
     function getDepositAmountForBorrow(
         uint256 borrowAmount,
@@ -202,10 +195,9 @@ interface ILoanTokenModules {
         uint256 minEntryPrice
     ) external view;
 
-    function getMaxEscrowAmount(uint256 leverageAmount)
-        external
-        view
-        returns (uint256 maxEscrowAmount);
+    function getMaxEscrowAmount(
+        uint256 leverageAmount
+    ) external view returns (uint256 maxEscrowAmount);
 
     function checkpointPrice(address _user) external view returns (uint256 price);
 
@@ -225,10 +217,10 @@ interface ILoanTokenModules {
 
     function loanTokenAddress() external view returns (address);
 
-    function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount)
-        external
-        view
-        returns (uint256, uint256);
+    function getMarginBorrowAmountAndRate(
+        uint256 leverageAmount,
+        uint256 depositAmount
+    ) external view returns (uint256, uint256);
 
     function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external;
 
@@ -249,10 +241,10 @@ interface ILoanTokenModules {
     ) external returns (uint256 redeemed);
 
     /** START LOAN TOKEN LOGIC WRBTC */
-    function mintWithBTC(address receiver, bool useLM)
-        external
-        payable
-        returns (uint256 mintAmount);
+    function mintWithBTC(
+        address receiver,
+        bool useLM
+    ) external payable returns (uint256 mintAmount);
 
     function burnToBTC(
         address receiver,
@@ -262,10 +254,10 @@ interface ILoanTokenModules {
 
     function marketLiquidity() external view returns (uint256);
 
-    function calculateSupplyInterestRate(uint256 assetBorrow, uint256 assetSupply)
-        external
-        view
-        returns (uint256);
+    function calculateSupplyInterestRate(
+        uint256 assetBorrow,
+        uint256 assetSupply
+    ) external view returns (uint256);
 
     /** START LOAN TOKEN LOGIC STORAGE */
     function pauser() external view returns (address);

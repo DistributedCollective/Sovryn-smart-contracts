@@ -788,9 +788,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
         it("EarnRewardFail events should be fired if lockedSOV reverted when extend loan_duration with collateral sov token reward (special rebates not set or 0)", async () => {
             // prepare the test
             await sovryn.setLockedSOVAddress(
-                (
-                    await LockedSOVFailedMockup.new(SOV.address, [owner])
-                ).address
+                (await LockedSOVFailedMockup.new(SOV.address, [owner])).address
             );
             const [loan_id, borrower] = await borrow_indefinite_loan(
                 loanToken,
@@ -845,9 +843,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const basisPoint = 9000;
             // prepare the test
             await sovryn.setLockedSOVAddress(
-                (
-                    await LockedSOVFailedMockup.new(SOV.address, [owner])
-                ).address
+                (await LockedSOVFailedMockup.new(SOV.address, [owner])).address
             );
             await sovryn.setTradingRebateRewardsBasisPoint(basisPoint);
             const [loan_id, borrower] = await borrow_indefinite_loan(
@@ -902,9 +898,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
         it("EarnRewardFail events should be fired if lockedSOV reverted when extend loan_duration with collateral sov token reward payment (special rebates is set)", async () => {
             // prepare the test
             await sovryn.setLockedSOVAddress(
-                (
-                    await LockedSOVFailedMockup.new(SOV.address, [owner])
-                ).address
+                (await LockedSOVFailedMockup.new(SOV.address, [owner])).address
             );
             await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
             const [loan_id, borrower] = await borrow_indefinite_loan(
@@ -1232,9 +1226,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
         it("EarnRewardFail events should be fired if lockedSOV reverted when Test reduce loan_duration with collateral sov token reward payment (special rebates not set or 0", async () => {
             // prepare the test
             await sovryn.setLockedSOVAddress(
-                (
-                    await LockedSOVFailedMockup.new(SOV.address, [owner])
-                ).address
+                (await LockedSOVFailedMockup.new(SOV.address, [owner])).address
             );
             const duration_in_seconds = 20 * 24 * 60 * 60; // 20 days
             const [loan_id, borrower] = await borrow_indefinite_loan(
@@ -1291,9 +1283,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
         it("EarnRewardFail events should be fired if lockedSOV reverted when Test reduce loan_duration with collateral sov token reward payment (special rebates is set)", async () => {
             // prepare the test
             await sovryn.setLockedSOVAddress(
-                (
-                    await LockedSOVFailedMockup.new(SOV.address, [owner])
-                ).address
+                (await LockedSOVFailedMockup.new(SOV.address, [owner])).address
             );
             await sovryn.setSpecialRebates(SUSD.address, RBTC.address, wei("200", "ether"));
             const duration_in_seconds = 20 * 24 * 60 * 60; // 20 days

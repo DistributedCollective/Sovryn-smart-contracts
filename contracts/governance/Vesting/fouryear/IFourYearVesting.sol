@@ -10,7 +10,8 @@ pragma solidity ^0.5.17;
 interface IFourYearVesting {
     function endDate() external returns (uint256);
 
-    function stakeTokens(uint256 _amount, uint256 _restartStakeSchedule)
-        external
-        returns (uint256 lastSchedule, uint256 remainingAmount);
+    function stakeTokens(
+        uint256 _amount,
+        uint256 _restartStakeSchedule
+    ) external returns (uint256 lastSchedule, uint256 remainingAmount);
 }

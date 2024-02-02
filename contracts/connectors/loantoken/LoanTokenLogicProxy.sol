@@ -51,12 +51,12 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
             let ptr := mload(0x40)
             returndatacopy(ptr, 0, size)
             switch result
-                case 0 {
-                    revert(ptr, size)
-                }
-                default {
-                    return(ptr, size)
-                }
+            case 0 {
+                revert(ptr, size)
+            }
+            default {
+                return(ptr, size)
+            }
         }
     }
 
@@ -117,8 +117,7 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
 }
 
 interface ILoanTokenLogicBeacon {
-    function getTarget(bytes4 functionSignature)
-        external
-        view
-        returns (address logicTargetAddress);
+    function getTarget(
+        bytes4 functionSignature
+    ) external view returns (address logicTargetAddress);
 }

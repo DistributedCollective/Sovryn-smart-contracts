@@ -69,7 +69,7 @@ contract InterestUser is VaultController, FeesHelper {
         address interestToken,
         uint256 interestOwedNow
     ) internal {
-        uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).div(10**20);
+        uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).div(10 ** 20);
         /// TODO: refactor: data incapsulation violation and DRY design principles
         /// uint256 lendingFee = interestOwedNow.mul(lendingFeePercent).divCeil(10**20); is better but produces errors in tests because of this
 

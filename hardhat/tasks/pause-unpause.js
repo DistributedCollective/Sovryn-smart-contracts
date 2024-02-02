@@ -216,9 +216,7 @@ const printLoanTokenFunctionsPaused = async (hre, loanTokensListParam) => {
     for (let loanTokenDeploymentName of tokens) {
         const loanToken = await ethers.getContractAt(
             "ILoanTokenModules",
-            (
-                await get(loanTokenDeploymentName)
-            ).address
+            (await get(loanTokenDeploymentName)).address
         );
         for (let funcName of Object.keys(loanTokenFunctionsList)) {
             let funcId = loanTokenFunctionsList[funcName];

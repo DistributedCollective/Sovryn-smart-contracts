@@ -10,6 +10,4 @@ import "../../proxy/UpgradableProxy.sol";
  * by using this contract instead, that inherits from UpgradableProxy with
  * the possibility of being enhanced and re-deployed.
  * */
-contract StakingRewardsProxy is StakingRewardsStorage, UpgradableProxy {
-
-}
+contract StakingRewardsProxy is StakingRewardsStorage, UpgradableProxy {}

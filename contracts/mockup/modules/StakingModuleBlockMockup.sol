@@ -29,11 +29,10 @@ contract StakingModuleBlockMockup is
         priorTotalVotingPower = _priorTotalVotingPower;
     }
 
-    function getPriorTotalVotingPower(uint32 blockNumber, uint256 time)
-        public
-        view
-        returns (uint96 totalVotingPower)
-    {
+    function getPriorTotalVotingPower(
+        uint32 blockNumber,
+        uint256 time
+    ) public view returns (uint96 totalVotingPower) {
         return
             priorTotalVotingPower != 0
                 ? priorTotalVotingPower
@@ -77,11 +76,7 @@ contract StakingModuleBlockMockup is
     /**
      * @dev We need this function to simulate zero delegate checkpoint value.
      */
-    function setDelegateStake(
-        address delegatee,
-        uint256 lockedTS,
-        uint96 value
-    ) public {
+    function setDelegateStake(address delegatee, uint256 lockedTS, uint96 value) public {
         uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
         uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
         _writeDelegateCheckpoint(delegatee, lockedTS, nCheckpoints, 0);

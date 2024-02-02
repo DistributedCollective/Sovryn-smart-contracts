@@ -49,11 +49,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
      * @dev If until is not a valid lock date, the next lock date after until is used.
      * */
-    function withdraw(
-        uint96 amount,
-        uint256 until,
-        address receiver
-    ) external whenNotFrozen {
+    function withdraw(uint96 amount, uint256 until, address receiver) external whenNotFrozen {
         // adjust until here to avoid adjusting multiple times, and to make sure an adjusted date is passed to
         // _notSameBlockAsStakingCheckpoint
         until = _adjustDateForOrigin(until);
@@ -95,24 +91,19 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param _startFrom The start value for the iterations.
      * or just unlocked tokens (false).
      * */
-    function _cancelTeamVesting(
-        address _vesting,
-        address _receiver,
-        uint256 _startFrom
-    ) private {
+    function _cancelTeamVesting(address _vesting, address _receiver, uint256 _startFrom) private {
         require(_receiver != address(0), "receiver address invalid");
 
         ITeamVesting teamVesting = ITeamVesting(_vesting);
 
-        VestingConfig memory vestingConfig =
-            VestingConfig(
-                _vesting,
-                teamVesting.startDate(),
-                teamVesting.endDate(),
-                teamVesting.cliff(),
-                teamVesting.duration(),
-                teamVesting.tokenOwner()
-            );
+        VestingConfig memory vestingConfig = VestingConfig(
+            _vesting,
+            teamVesting.startDate(),
+            teamVesting.endDate(),
+            teamVesting.cliff(),
+            teamVesting.duration(),
+            teamVesting.tokenOwner()
+        );
 
         /// @dev In the unlikely case that all tokens have been unlocked early,
         /// allow to withdraw all of them, as long as the itrations less than maxVestingWithdrawIterations.
@@ -123,8 +114,8 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         _startFrom = _startFrom >= defaultStart ? _startFrom : defaultStart;
 
         /// @dev max iterations need to be decreased by 1, otherwise the iteration will always be surplus by 1
-        uint256 totalIterationValue =
-            (_startFrom + (TWO_WEEKS * (maxVestingWithdrawIterations - 1)));
+        uint256 totalIterationValue = (_startFrom +
+            (TWO_WEEKS * (maxVestingWithdrawIterations - 1)));
         uint256 adjustedEnd = end < totalIterationValue ? end : totalIterationValue;
 
         /// @dev Withdraw for each unlocked position.
@@ -246,11 +237,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
     }
 
     // @dev withdraws tokens for lock date 2 weeks later than given lock date
-    function _withdrawNext(
-        uint256 until,
-        address receiver,
-        bool isGovernance
-    ) internal {
+    function _withdrawNext(uint256 until, address receiver, bool isGovernance) internal {
         if (_isVestingContract(msg.sender)) {
             // nextLock needs to be adjusted to the next valid lock date to make sure we don't accidentally
             // withdraw stakes that are in the future and would get slashed (if until is not
@@ -271,11 +258,10 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param until The date until which the tokens were staked. Adjusted to the next valid lock date, if necessary.
      * @return Amount to withraw and penalty amount
      * */
-    function getWithdrawAmounts(uint96 amount, uint256 until)
-        external
-        view
-        returns (uint96, uint96)
-    {
+    function getWithdrawAmounts(
+        uint96 amount,
+        uint256 until
+    ) external view returns (uint96, uint96) {
         until = _adjustDateForOrigin(until);
         _validateWithdrawParams(msg.sender, amount, until);
         uint96 punishedAmount = _getPunishedAmount(amount, until);
@@ -300,11 +286,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
      * */
-    function _validateWithdrawParams(
-        address account,
-        uint96 amount,
-        uint256 until
-    ) internal view {
+    function _validateWithdrawParams(address account, uint96 amount, uint256 until) internal view {
         require(amount > 0, "Amount of tokens to withdraw must be > 0"); // S10
         uint96 balance = _getPriorUserStakeByDate(account, until, block.number - 1);
         require(amount <= balance, "Staking::withdraw: not enough balance"); // S11
@@ -328,11 +310,9 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      *
      * @param newMaxIterations new max iterations value.
      */
-    function setMaxVestingWithdrawIterations(uint256 newMaxIterations)
-        external
-        onlyAuthorized
-        whenNotFrozen
-    {
+    function setMaxVestingWithdrawIterations(
+        uint256 newMaxIterations
+    ) external onlyAuthorized whenNotFrozen {
         require(newMaxIterations > 0, "Invalid max iterations");
         emit MaxVestingWithdrawIterationsUpdated(maxVestingWithdrawIterations, newMaxIterations);
         maxVestingWithdrawIterations = newMaxIterations;
@@ -347,11 +327,10 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * @dev Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.
      * https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/4bbfe5bd0311ca71e4ef0e3af810d3791d8e4061/contracts/governance/Staking/modules/StakingWithdrawModule.sol#L78
      * */
-    function governanceWithdrawVesting(address vesting, address receiver)
-        public
-        onlyAuthorized
-        whenNotFrozen
-    {
+    function governanceWithdrawVesting(
+        address vesting,
+        address receiver
+    ) public onlyAuthorized whenNotFrozen {
         vestingWhitelist[vesting] = true;
         ITeamVesting(vesting).governanceWithdrawTokens(receiver);
         vestingWhitelist[vesting] = false;

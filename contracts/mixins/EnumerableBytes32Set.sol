@@ -125,11 +125,10 @@ library EnumerableBytes32Set {
     /**
      * @dev Returns true if the value is in the set. O(1).
      */
-    function containsAddress(Bytes32Set storage set, address addrvalue)
-        internal
-        view
-        returns (bool)
-    {
+    function containsAddress(
+        Bytes32Set storage set,
+        address addrvalue
+    ) internal view returns (bool) {
         bytes32 value;
         assembly {
             value := addrvalue

@@ -69,8 +69,11 @@ contract PriceFeedV1PoolOracle is IPriceFeedsExt, Ownable {
         address _priceFeeds = msg.sender;
 
         uint256 precision = IPriceFeeds(_priceFeeds).queryPrecision(wRBTCAddress, docAddress);
-        uint256 valueInUSD =
-            IPriceFeeds(_priceFeeds).queryReturn(wRBTCAddress, docAddress, _valueInBTC);
+        uint256 valueInUSD = IPriceFeeds(_priceFeeds).queryReturn(
+            wRBTCAddress,
+            docAddress,
+            _valueInBTC
+        );
 
         /// Need to multiply by query precision (doc's precision) and divide by 1*10^18 (Because the based price in v1 pool is using 18 decimals)
         return valueInUSD.mul(precision).div(1e18);
