@@ -1,39 +1,32 @@
 pragma solidity ^0.5.17;
 
-import "./StakingRewardsStorage.sol";
-import "../../openzeppelin/SafeMath.sol";
-import "../../openzeppelin/Address.sol";
+import { StakingRewardsOsStorage, IStaking, IERC20Mintable } from "./StakingRewardsOsStorage.sol";
+import { SafeMath } from "../../openzeppelin/SafeMath.sol";
+import { Address } from "../../openzeppelin/Address.sol";
 
 /**
  * @title Staking Rewards Contract.
  * @notice This is a trial incentive program.
- * In this, the SOV emitted and becoming liquid from the Adoption Fund could be utilized
- * to offset the higher APY's offered for Liquidity Mining events.
- * Vesting contract stakes are excluded from these rewards.
- * Only wallets which have staked previously liquid SOV are eligible for these rewards.
- * Tokenholders who stake their SOV receive staking rewards, a pro-rata share
- * of the revenue that the platform generates from various transaction fees
- * plus revenues from stakers who have a portion of their SOV slashed for
- * early unstaking.
+ * In this, the osSOV minted to voluntary stakers and is locked until transferred to BitcoinOS
  * */
-contract StakingRewards is StakingRewardsStorage {
+contract StakingRewardsOs is StakingRewardsOsStorage {
     using SafeMath for uint256;
 
-    /// @notice Emitted when SOV is withdrawn
-    /// @param receiver The address which recieves the SOV
+    /// @notice Emitted when osSOV is withdrawn
+    /// @param receiver The address which recieves the osSOV
     /// @param amount The amount withdrawn from the Smart Contract
     event RewardWithdrawn(address indexed receiver, uint256 amount);
 
     /**
      * @notice Replacement of constructor by initialize function for Upgradable Contracts
      * This function will be called only once by the owner.
-     * @param _SOV SOV token address
+     * @param _osSOV osSOV token address
      * @param _staking StakingProxy address should be passed
      * */
-    function initialize(address _SOV, IStaking _staking) external onlyOwner {
-        require(_SOV != address(0), "Invalid SOV Address.");
-        require(Address.isContract(_SOV), "_SOV not a contract");
-        SOV = IERC20(_SOV);
+    function initialize(address _osSOV, IStaking _staking) external onlyOwner {
+        require(_osSOV != address(0), "Invalid osSOV Address.");
+        require(Address.isContract(_osSOV), "_osSOV not a contract");
+        osSOV = IERC20Mintable(_osSOV);
         staking = _staking;
         rewardsProgramStartTime = staking.timestampToLockDate(block.timestamp);
         setMaxDuration(15 * TWO_WEEKS);
@@ -42,18 +35,17 @@ contract StakingRewards is StakingRewardsStorage {
 
     /**
      * @notice Stops the current rewards program.
-     * @dev All stakes existing on the contract at the point in time of
-     * cancellation continue accruing rewards until the end of the staking
-     * period being rewarded
+     * @dev Users will get rewards
      * */
     function stop() external onlyOwner {
         require(stopBlock == 0, "Already stopped");
         stopBlock = _getCurrentBlockNumber();
+        stopRewardsTimestamp = staking.timestampToLockDate(block.timestamp);
     }
 
     /**
      * @notice Collect rewards
-     * @dev User calls this function to collect SOV staking rewards accrued by this contract
+     * @dev User calls this function to collect osSOV staking rewards accrued by this contract
      * The weighted stake is calculated using getPriorWeightedStake. Block number sent to the functon
      * must be a finalised block, hence we deduct 1 from the current block. User is only allowed to withdraw
      * after intervals of 14 days.
@@ -63,19 +55,18 @@ contract StakingRewards is StakingRewardsStorage {
      * from the duration that elapsed without generating rewards.
      * */
     function claimReward(uint256 _startTime) external {
-        (uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true, _startTime);
-        require(withdrawalTime > 0 && amount > 0, "no valid reward");
-        withdrawals[msg.sender] = withdrawalTime;
+        require(
+            stopBlock == 0 || userLastWithdrawTimestamp[msg.sender] < stopRewardsTimestamp,
+            "Entire reward already paid"
+        );
+        (uint256 withdrawalTime, uint256 amount) = _getStakerCurrentReward(
+            msg.sender,
+            true,
+            _startTime
+        );
+        require(withdrawalTime > 0 && amount > 0, "No valid reward");
+        userLastWithdrawTimestamp[msg.sender] = withdrawalTime;
         _payReward(msg.sender, amount);
-    }
-
-    /**
-     * @notice Withdraws all token from the contract by Multisig.
-     * @param _receiverAddress The address where the tokens has to be transferred.
-     */
-    function withdrawTokensByOwner(address _receiverAddress) external onlyOwner {
-        uint256 value = SOV.balanceOf(address(this));
-        _transferSOV(_receiverAddress, value);
     }
 
     /**
@@ -118,8 +109,7 @@ contract StakingRewards is StakingRewardsStorage {
 
     /**
      * @notice Internal function to calculate weighted stake
-     * @dev If the rewards program is stopped, the user will still continue to
-     * earn till the end of staking period based on the stop block.
+     * @dev Users will receive rewards uo till the stop block
      * @param _staker Staker address
      * @param _block Last finalised block
      * @param _date The date to compute prior weighted stakes
@@ -147,24 +137,14 @@ contract StakingRewards is StakingRewardsStorage {
      * @notice Internal function to pay rewards
      * @dev Base rate is annual, but we pay interest for 14 days,
      * which is 1/26 of one staking year (1092 days)
-     * @param _staker User address
-     * @param amount the reward amount
+     * @param _staker Staker address
+     * @param _amount the reward amount
      * */
-    function _payReward(address _staker, uint256 amount) internal {
-        require(SOV.balanceOf(address(this)) >= amount, "not enough funds to reward user");
-        claimedBalances[_staker] = claimedBalances[_staker].add(amount);
-        _transferSOV(_staker, amount);
-    }
-
-    /**
-     * @notice transfers SOV tokens to given address
-     * @param _receiver the address of the SOV receiver
-     * @param _amount the amount to be transferred
-     */
-    function _transferSOV(address _receiver, uint256 _amount) internal {
+    function _payReward(address _staker, uint256 _amount) internal {
         require(_amount != 0, "amount invalid");
-        require(SOV.transfer(_receiver, _amount), "transfer failed");
-        emit RewardWithdrawn(_receiver, _amount);
+        claimedBalances[_staker] = claimedBalances[_staker].add(_amount);
+        osSOV.mint(_staker, _amount);
+        emit RewardWithdrawn(_staker, _amount);
     }
 
     /**
@@ -190,7 +170,7 @@ contract StakingRewards is StakingRewardsStorage {
 
     /**
      * @notice Get staker's current accumulated reward
-     * @dev The collectReward() function internally calls this function to calculate reward amount
+     * @dev The getStakerCurrentReward() function internally calls this function to calculate reward amount
      * @param _considerMaxDuration True: Runs for the maximum duration - used in tx not to run out of gas
      * False - to query total rewards
      * @param _startTime The time from which the staking rewards calculation shall restart.
@@ -201,15 +181,31 @@ contract StakingRewards is StakingRewardsStorage {
         bool _considerMaxDuration,
         uint256 _startTime
     ) public view returns (uint256 lastStakerWithdrawalTimestamp, uint256 amount) {
+        address staker = msg.sender;
+        uint256 lastWithdrawTimestamp = userLastWithdrawTimestamp[staker];
+        if (stopBlock != 0 && lastWithdrawTimestamp >= stopBlock) {
+            return (0, lastWithdrawTimestamp);
+        }
+        return _getStakerCurrentReward(staker, _considerMaxDuration, _startTime);
+    }
+
+    function _getStakerCurrentReward(
+        address _staker,
+        bool _considerMaxDuration,
+        uint256 _startTime
+    ) internal view returns (uint256 lastStakerWithdrawalTimestamp, uint256 amount) {
+        uint256 lastWithdrawTimestamp = userLastWithdrawTimestamp[_staker];
+        if (stopBlock != 0 && lastWithdrawTimestamp >= stopRewardsTimestamp) {
+            return (0, lastWithdrawTimestamp);
+        }
+
         uint256 weightedStake;
         uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
         uint256 withdrawalEndTimestamp;
-        address staker = msg.sender;
-        uint256 lastWithdrawalTimestamp = withdrawals[staker];
 
         uint256 lastStakingLockDate = staking.timestampToLockDate(block.timestamp);
-        lastStakerWithdrawalTimestamp = lastWithdrawalTimestamp > 0
-            ? lastWithdrawalTimestamp
+        lastStakerWithdrawalTimestamp = lastWithdrawTimestamp > 0
+            ? lastWithdrawTimestamp
             : rewardsProgramStartTime;
         if (lastStakingLockDate <= lastStakerWithdrawalTimestamp) return (0, 0);
         /* Normally the restart time is 0. If this function returns a valid lastStakerWithdrawalTimestamp
@@ -240,7 +236,7 @@ contract StakingRewards is StakingRewardsStorage {
             }
             if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
             weightedStake = weightedStake.add(
-                _computWeightedStakeForDate(staker, referenceBlock, i)
+                _computWeightedStakeForDate(_staker, referenceBlock, i)
             );
         }
         lastStakerWithdrawalTimestamp = withdrawalEndTimestamp;

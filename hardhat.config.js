@@ -13,6 +13,7 @@ require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("@nomicfoundation/hardhat-foundry");
+//require("@nomiclabs/hardhat-solhint");
 
 require("./hardhat/tasks");
 
@@ -132,7 +133,7 @@ module.exports = {
     abiExporter: {
         clear: true,
         runOnCompile: true,
-        flat: true,
+        flat: false,
         spacing: 4,
     },
     contractSizer: {
