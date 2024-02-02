@@ -132,8 +132,11 @@ contract StakingRewards is StakingRewardsStorage {
     ) internal view returns (uint256 weightedStake) {
         weightedStake = staking.getPriorWeightedStake(_staker, _block, _date);
         if (stopBlock > 0 && stopBlock < _block) {
-            uint256 previousWeightedStake =
-                staking.getPriorWeightedStake(_staker, stopBlock, _date);
+            uint256 previousWeightedStake = staking.getPriorWeightedStake(
+                _staker,
+                stopBlock,
+                _date
+            );
             if (previousWeightedStake < weightedStake) {
                 weightedStake = previousWeightedStake;
             }

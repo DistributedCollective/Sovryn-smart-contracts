@@ -126,9 +126,7 @@ describe("Check if Fee Sharing Collector was properly fixed", async () => {
         // });
 
         const exchequerSigner = await getImpersonatedSignerFromJsonRpcProvider(
-            (
-                await get("MultiSigWallet")
-            ).address
+            (await get("MultiSigWallet")).address
         );
 
         feeSharingCollectorProxy = await ethers.getContract(

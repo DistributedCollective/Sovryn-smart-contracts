@@ -33,7 +33,7 @@ contract SwapsImplLocal is State {
     function internalSwap(
         address sourceTokenAddress,
         address destTokenAddress,
-        address, /*receiverAddress*/
+        address /*receiverAddress*/,
         address returnToSenderAddress,
         uint256 minSourceTokenAmount,
         uint256 maxSourceTokenAmount,
@@ -41,8 +41,10 @@ contract SwapsImplLocal is State {
     ) public payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
         require(sourceTokenAddress != destTokenAddress, "source == dest");
 
-        (uint256 tradeRate, uint256 precision) =
-            IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
+        (uint256 tradeRate, uint256 precision) = IPriceFeeds(priceFeeds).queryRate(
+            sourceTokenAddress,
+            destTokenAddress
+        );
 
         if (requiredDestTokenAmount == 0) {
             sourceTokenAmountUsed = minSourceTokenAmount;
@@ -84,8 +86,8 @@ contract SwapsImplLocal is State {
         uint256 sourceTokenAmount,
         address unused
     ) public view returns (uint256) {
-        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-            IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
+        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds)
+            .queryRate(sourceTokenAddress, destTokenAddress);
 
         return sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
     }
@@ -109,8 +111,8 @@ contract SwapsImplLocal is State {
         address unused,
         IERC20[] memory defaultPath
     ) public view returns (uint256) {
-        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-            IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
+        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds)
+            .queryRate(sourceTokenAddress, destTokenAddress);
 
         return sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
     }

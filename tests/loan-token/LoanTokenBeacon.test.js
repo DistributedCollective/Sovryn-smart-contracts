@@ -17,6 +17,7 @@ const {
     getPriceFeeds,
     getSovryn,
     CONSTANTS,
+    getMockLoanTokenLogic,
 } = require("../Utils/initializer.js");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants.js");
 
@@ -407,7 +408,7 @@ contract("LoanTokenLogicBeacon", (accounts) => {
         });
 
         it("Registering module without getListFunctionSignatures() in the target should fail", async () => {
-            const initLoanTokenLogic = await getLoanTokenLogic(true); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+            const initLoanTokenLogic = await getMockLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
             loanTokenLogic = initLoanTokenLogic[0];
             loanTokenLogicBeacon = initLoanTokenLogic[1];
 

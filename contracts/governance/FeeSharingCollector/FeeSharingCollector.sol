@@ -136,11 +136,10 @@ contract FeeSharingCollector is
      * @param wrbtcToken wrbtc token address
      * @param loanWrbtcToken address of loan token wrbtc (IWrbtc)
      */
-    function initialize(address wrbtcToken, address loanWrbtcToken)
-        external
-        onlyOwner
-        oneTimeExecution(this.initialize.selector)
-    {
+    function initialize(
+        address wrbtcToken,
+        address loanWrbtcToken
+    ) external onlyOwner oneTimeExecution(this.initialize.selector) {
         require(
             wrbtcTokenAddress == address(0) && loanTokenWrbtcAddress == address(0),
             "wrbtcToken or loanWrbtcToken has been initialized"
@@ -203,11 +202,10 @@ contract FeeSharingCollector is
             wrbtcToken.withdraw(wrbtcAmountWithdrawn);
 
             /// @notice Update unprocessed amount of tokens
-            uint96 amount96 =
-                safe96(
-                    wrbtcAmountWithdrawn,
-                    "FeeSharingCollector::withdrawFees: wrbtc token amount exceeds 96 bits"
-                );
+            uint96 amount96 = safe96(
+                wrbtcAmountWithdrawn,
+                "FeeSharingCollector::withdrawFees: wrbtc token amount exceeds 96 bits"
+            );
 
             _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
         }
@@ -234,19 +232,19 @@ contract FeeSharingCollector is
 
         uint96 totalPoolTokenAmount;
         for (uint256 i = 0; i < _converters.length; i++) {
-            uint256 wrbtcAmountWithdrawn =
-                IConverterAMM(_converters[i]).withdrawFees(address(this));
+            uint256 wrbtcAmountWithdrawn = IConverterAMM(_converters[i]).withdrawFees(
+                address(this)
+            );
 
             if (wrbtcAmountWithdrawn > 0) {
                 // unwrap wrbtc to rbtc, and hold the rbtc
                 wrbtcToken.withdraw(wrbtcAmountWithdrawn);
 
                 /// @notice Update unprocessed amount of tokens
-                uint96 amount96 =
-                    safe96(
-                        wrbtcAmountWithdrawn,
-                        "FeeSharingCollector::withdrawFeesAMM: wrbtc token amount exceeds 96 bits"
-                    );
+                uint96 amount96 = safe96(
+                    wrbtcAmountWithdrawn,
+                    "FeeSharingCollector::withdrawFeesAMM: wrbtc token amount exceeds 96 bits"
+                );
 
                 totalPoolTokenAmount = add96(
                     totalPoolTokenAmount,
@@ -311,12 +309,11 @@ contract FeeSharingCollector is
     function _addCheckpoint(address _token, uint96 _amount) internal {
         if (block.timestamp - lastFeeWithdrawalTime[_token] >= FEE_WITHDRAWAL_INTERVAL) {
             lastFeeWithdrawalTime[_token] = block.timestamp;
-            uint96 amount =
-                add96(
-                    unprocessedAmount[_token],
-                    _amount,
-                    "FeeSharingCollector::_addCheckpoint: amount exceeds 96 bits"
-                );
+            uint96 amount = add96(
+                unprocessedAmount[_token],
+                _amount,
+                "FeeSharingCollector::_addCheckpoint: amount exceeds 96 bits"
+            );
 
             /// @notice Reset unprocessed amount of tokens to zero.
             unprocessedAmount[_token] = 0;
@@ -348,8 +345,12 @@ contract FeeSharingCollector is
             _receiver = msg.sender;
         }
         uint256 processedUserCheckpoints = processedCheckpoints[user][_token];
-        (uint256 amount, uint256 end) =
-            _getAccumulatedFees(user, _token, processedUserCheckpoints, _maxCheckpoints);
+        (uint256 amount, uint256 end) = _getAccumulatedFees(
+            user,
+            _token,
+            processedUserCheckpoints,
+            _maxCheckpoints
+        );
         if (amount == 0) {
             if (end > processedUserCheckpoints) {
                 emit UserFeeProcessedNoWithdraw(msg.sender, _token, processedUserCheckpoints, end);
@@ -420,22 +421,23 @@ contract FeeSharingCollector is
                 "_fromCheckpoint should be <= totalTokenCheckpoints"
             );
 
-            Checkpoint memory prevCheckpoint =
-                tokenCheckpoints[tokenData.tokenAddress][fromCheckpointIndex - 1];
+            Checkpoint memory prevCheckpoint = tokenCheckpoints[tokenData.tokenAddress][
+                fromCheckpointIndex - 1
+            ];
 
-            uint96 weightedStake =
-                staking.getPriorWeightedStake(
-                    _user,
-                    prevCheckpoint.blockNumber - 1,
-                    prevCheckpoint.timestamp
-                );
+            uint96 weightedStake = staking.getPriorWeightedStake(
+                _user,
+                prevCheckpoint.blockNumber - 1,
+                prevCheckpoint.timestamp
+            );
             require(
                 weightedStake == 0,
                 "User weighted stake should be zero at previous checkpoint"
             );
 
-            Checkpoint memory fromCheckpoint =
-                tokenCheckpoints[tokenData.tokenAddress][fromCheckpointIndex];
+            Checkpoint memory fromCheckpoint = tokenCheckpoints[tokenData.tokenAddress][
+                fromCheckpointIndex
+            ];
             weightedStake = staking.getPriorWeightedStake(
                 _user,
                 fromCheckpoint.blockNumber - 1,
@@ -497,12 +499,13 @@ contract FeeSharingCollector is
             uint256 endToken;
             uint256 totalAmount;
 
-            uint256 previousProcessedUserCheckpoints =
-                processedCheckpoints[msg.sender][tokenData.tokenAddress];
-            uint256 startingCheckpoint =
-                tokenData.fromCheckpoint > previousProcessedUserCheckpoints
-                    ? tokenData.fromCheckpoint
-                    : previousProcessedUserCheckpoints;
+            uint256 previousProcessedUserCheckpoints = processedCheckpoints[msg.sender][
+                tokenData.tokenAddress
+            ];
+            uint256 startingCheckpoint = tokenData.fromCheckpoint >
+                previousProcessedUserCheckpoints
+                ? tokenData.fromCheckpoint
+                : previousProcessedUserCheckpoints;
 
             if (
                 tokenData.tokenAddress == wrbtcTokenAddress ||
@@ -626,10 +629,10 @@ contract FeeSharingCollector is
         (totalAmount, endTokenCheckpoint) = _withdraw(_token, _maxCheckpoints, _receiver);
     }
 
-    function _withdrawRbtcToken(address _token, uint32 _maxCheckpoints)
-        internal
-        returns (uint256 totalAmount, uint256 endTokenCheckpoint)
-    {
+    function _withdrawRbtcToken(
+        address _token,
+        uint32 _maxCheckpoints
+    ) internal returns (uint256 totalAmount, uint256 endTokenCheckpoint) {
         address user = msg.sender;
 
         IWrbtcERC20 wrbtcToken = IWrbtcERC20(wrbtcTokenAddress);
@@ -684,8 +687,10 @@ contract FeeSharingCollector is
             address _token = _tokens[i];
             uint256 startingCheckpoint = processedCheckpoints[msg.sender][_token];
 
-            (uint256 totalAmount, uint256 endToken) =
-                _withdrawRbtcToken(_tokens[i], _maxCheckpoints);
+            (uint256 totalAmount, uint256 endToken) = _withdrawRbtcToken(
+                _tokens[i],
+                _maxCheckpoints
+            );
             rbtcAmountToSend = rbtcAmountToSend.add(totalAmount);
 
             uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint);
@@ -743,15 +748,7 @@ contract FeeSharingCollector is
         address _token,
         uint256 _startFrom,
         uint256 _maxCheckpoints
-    )
-        external
-        view
-        returns (
-            uint256 checkpointNum,
-            bool hasSkippedCheckpoints,
-            bool hasFees
-        )
-    {
+    ) external view returns (uint256 checkpointNum, bool hasSkippedCheckpoints, bool hasFees) {
         return _getNextPositiveUserCheckpoint(_user, _token, _startFrom, _maxCheckpoints);
     }
 
@@ -769,15 +766,7 @@ contract FeeSharingCollector is
         address _token,
         uint256 _startFrom,
         uint256 _maxCheckpoints
-    )
-        internal
-        view
-        returns (
-            uint256 checkpointNum,
-            bool hasSkippedCheckpoints,
-            bool hasFees
-        )
-    {
+    ) internal view returns (uint256 checkpointNum, bool hasSkippedCheckpoints, bool hasFees) {
         if (staking.isVestingContract(_user)) {
             return (0, false, false);
         }
@@ -790,8 +779,9 @@ contract FeeSharingCollector is
             return (totalCheckpoints, false, false);
         }
 
-        uint256 startFrom =
-            _startFrom > processedUserCheckpoints ? _startFrom : processedUserCheckpoints;
+        uint256 startFrom = _startFrom > processedUserCheckpoints
+            ? _startFrom
+            : processedUserCheckpoints;
 
         uint256 end = startFrom.add(_maxCheckpoints);
         if (end >= totalCheckpoints) {
@@ -802,12 +792,11 @@ contract FeeSharingCollector is
         // also an index for the next checkpoint because an array index starts wtih 0
         for (uint256 i = startFrom; i < end; i++) {
             Checkpoint storage tokenCheckpoint = tokenCheckpoints[_token][i];
-            uint96 weightedStake =
-                staking.getPriorWeightedStake(
-                    _user,
-                    tokenCheckpoint.blockNumber - 1,
-                    tokenCheckpoint.timestamp
-                );
+            uint96 weightedStake = staking.getPriorWeightedStake(
+                _user,
+                tokenCheckpoint.blockNumber - 1,
+                tokenCheckpoint.timestamp
+            );
             if (weightedStake > 0) {
                 // i is the index and we need to return checkpoint num which is i + 1
                 return (i + 1, i > processedUserCheckpoints, true);
@@ -886,13 +875,12 @@ contract FeeSharingCollector is
         fees = new uint256[](arrSize);
 
         for (uint256 i = 0; i < fees.length; i++) {
-            (uint256 fee, ) =
-                _getAccumulatedFees(
-                    _user,
-                    _token,
-                    _startFrom + i * _maxCheckpoints,
-                    _maxCheckpoints
-                );
+            (uint256 fee, ) = _getAccumulatedFees(
+                _user,
+                _token,
+                _startFrom + i * _maxCheckpoints,
+                _maxCheckpoints
+            );
             fees[i] = fee;
         }
 
@@ -920,8 +908,9 @@ contract FeeSharingCollector is
             return (0, 0);
         }
         uint256 processedUserCheckpoints = processedCheckpoints[_user][_token];
-        uint256 startOfRange =
-            _startFrom > processedUserCheckpoints ? _startFrom : processedUserCheckpoints;
+        uint256 startOfRange = _startFrom > processedUserCheckpoints
+            ? _startFrom
+            : processedUserCheckpoints;
         endCheckpoint = _maxCheckpoints > 0
             ? _getEndOfRange(startOfRange, _token, _maxCheckpoints)
             : totalTokenCheckpoints[_token];
@@ -951,10 +940,9 @@ contract FeeSharingCollector is
                 cachedWeightedStake = weightedStake;
                 cachedLockDate = lockDate;
             }
-            uint256 share =
-                uint256(checkpoint.numTokens).mul(weightedStake).div(
-                    uint256(checkpoint.totalWeightedStake)
-                );
+            uint256 share = uint256(checkpoint.numTokens).mul(weightedStake).div(
+                uint256(checkpoint.totalWeightedStake)
+            );
             feesAmount = feesAmount.add(share);
         }
         return (feesAmount, endCheckpoint);
@@ -1008,16 +996,14 @@ contract FeeSharingCollector is
      * @param _numTokens The amount of pool tokens.
      * */
     function _writeTokenCheckpoint(address _token, uint96 _numTokens) internal {
-        uint32 blockNumber =
-            safe32(
-                block.number,
-                "FeeSharingCollector::_writeCheckpoint: block number exceeds 32 bits"
-            );
-        uint32 blockTimestamp =
-            safe32(
-                block.timestamp,
-                "FeeSharingCollector::_writeCheckpoint: block timestamp exceeds 32 bits"
-            );
+        uint32 blockNumber = safe32(
+            block.number,
+            "FeeSharingCollector::_writeCheckpoint: block number exceeds 32 bits"
+        );
+        uint32 blockTimestamp = safe32(
+            block.timestamp,
+            "FeeSharingCollector::_writeCheckpoint: block timestamp exceeds 32 bits"
+        );
         uint256 nextCheckpointsIndex = totalTokenCheckpoints[_token];
 
         uint96 totalWeightedStake = _getVoluntaryWeightedStake(blockNumber - 1, block.timestamp);
@@ -1046,11 +1032,10 @@ contract FeeSharingCollector is
      * @param blockNumber the blocknumber
      * @param timestamp the timestamp
      */
-    function _getVoluntaryWeightedStake(uint32 blockNumber, uint256 timestamp)
-        internal
-        view
-        returns (uint96 totalWeightedStake)
-    {
+    function _getVoluntaryWeightedStake(
+        uint32 blockNumber,
+        uint256 timestamp
+    ) internal view returns (uint96 totalWeightedStake) {
         uint96 vestingWeightedStake = staking.getPriorVestingWeightedStake(blockNumber, timestamp);
         totalWeightedStake = staking.getPriorTotalVotingPower(blockNumber, timestamp);
         totalWeightedStake = sub96(
@@ -1155,10 +1140,17 @@ contract FeeSharingCollector is
      * @return rbtc balance of the given user's address.
      */
     function getAccumulatedRBTCFeeBalances(address _user) external view returns (uint256) {
-        (uint256 _rbtcAmount, uint256 _wrbtcAmount, uint256 _iWrbtcAmount, , , ) =
-            _getRBTCBalances(_user, 0);
-        uint256 iWRBTCAmountInRBTC =
-            _iWrbtcAmount.mul(ILoanTokenWRBTC(loanTokenWrbtcAddress).tokenPrice()).div(1e18);
+        (
+            uint256 _rbtcAmount,
+            uint256 _wrbtcAmount,
+            uint256 _iWrbtcAmount,
+            ,
+            ,
+
+        ) = _getRBTCBalances(_user, 0);
+        uint256 iWRBTCAmountInRBTC = _iWrbtcAmount
+            .mul(ILoanTokenWRBTC(loanTokenWrbtcAddress).tokenPrice())
+            .div(1e18);
         return _rbtcAmount.add(_wrbtcAmount).add(iWRBTCAmountInRBTC);
     }
 
@@ -1175,7 +1167,10 @@ contract FeeSharingCollector is
      * @return _endWRBTC end time of accumulated fee calculation for wrbtc
      * @return _endIWRBTC end time of accumulated fee calculation for iwrbtc
      */
-    function _getRBTCBalances(address _user, uint32 _maxCheckpoints)
+    function _getRBTCBalances(
+        address _user,
+        uint32 _maxCheckpoints
+    )
         private
         view
         returns (

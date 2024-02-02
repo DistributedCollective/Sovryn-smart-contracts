@@ -43,18 +43,9 @@ contract VestingFactory is IVestingFactory, Ownable {
         onlyOwner /// @dev owner - VestingRegistry
         returns (address)
     {
-        address vesting =
-            address(
-                new Vesting(
-                    vestingLogic,
-                    _SOV,
-                    _staking,
-                    _tokenOwner,
-                    _cliff,
-                    _duration,
-                    _feeSharing
-                )
-            );
+        address vesting = address(
+            new Vesting(vestingLogic, _SOV, _staking, _tokenOwner, _cliff, _duration, _feeSharing)
+        );
         Ownable(vesting).transferOwnership(_vestingOwner);
         return vesting;
     }
@@ -83,18 +74,17 @@ contract VestingFactory is IVestingFactory, Ownable {
         onlyOwner //owner - VestingRegistry
         returns (address)
     {
-        address vesting =
-            address(
-                new TeamVesting(
-                    vestingLogic,
-                    _SOV,
-                    _staking,
-                    _tokenOwner,
-                    _cliff,
-                    _duration,
-                    _feeSharing
-                )
-            );
+        address vesting = address(
+            new TeamVesting(
+                vestingLogic,
+                _SOV,
+                _staking,
+                _tokenOwner,
+                _cliff,
+                _duration,
+                _feeSharing
+            )
+        );
         Ownable(vesting).transferOwnership(_vestingOwner);
         return vesting;
     }

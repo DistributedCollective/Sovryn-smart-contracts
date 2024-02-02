@@ -36,7 +36,11 @@ contract LoanClosingsShared is
 
     uint256 public constant TINY_AMOUNT = 25e13;
 
-    enum CloseTypes { Deposit, Swap, Liquidation }
+    enum CloseTypes {
+        Deposit,
+        Swap,
+        Liquidation
+    }
 
     /** modifier for invariant check */
     modifier iTokenSupplyUnchanged(bytes32 loanId) {
@@ -73,8 +77,11 @@ contract LoanClosingsShared is
         uint256 loanCloseAmountLessInterest = loanCloseAmount;
 
         //compute the interest which neeeds to be refunded to the borrower (because full interest is paid on loan )
-        uint256 interestRefundToBorrower =
-            _settleInterest(loanParamsLocal, loanLocal, loanCloseAmountLessInterest);
+        uint256 interestRefundToBorrower = _settleInterest(
+            loanParamsLocal,
+            loanLocal,
+            loanCloseAmountLessInterest
+        );
 
         uint256 interestAppliedToPrincipal;
         //if the outstanding loan is bigger than the interest to be refunded, reduce the amount to be paid back / closed by the interest
@@ -208,11 +215,7 @@ contract LoanClosingsShared is
      * @param receiver The address of the receiver.
      * @param assetAmount The loan token amount.
      * */
-    function _withdrawAsset(
-        address assetToken,
-        address receiver,
-        uint256 assetAmount
-    ) internal {
+    function _withdrawAsset(address assetToken, address receiver, uint256 assetAmount) internal {
         if (assetAmount != 0) {
             if (assetToken == address(wrbtcToken)) {
                 vaultEtherWithdraw(receiver, assetAmount);
@@ -254,8 +257,9 @@ contract LoanClosingsShared is
         _payInterest(loanLocal.lender, loanParamsLocal.loanToken);
 
         LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
-        LenderInterest storage lenderInterestLocal =
-            lenderInterest[loanLocal.lender][loanParamsLocal.loanToken];
+        LenderInterest storage lenderInterestLocal = lenderInterest[loanLocal.lender][
+            loanParamsLocal.loanToken
+        ];
 
         uint256 interestTime = block.timestamp;
         if (interestTime > loanLocal.endTimestamp) {
@@ -348,14 +352,7 @@ contract LoanClosingsShared is
         uint256 swapAmount,
         bool returnTokenIsCollateral,
         bytes memory loanDataBytes
-    )
-        internal
-        returns (
-            uint256 loanCloseAmount,
-            uint256 withdrawAmount,
-            address withdrawToken
-        )
-    {
+    ) internal returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) {
         require(swapAmount != 0, "swapAmount == 0");
 
         (Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
@@ -493,16 +490,15 @@ contract LoanClosingsShared is
         uint256 collateralToLoanRate;
 
         /// This is still called even with full loan close to return collateralToLoanRate
-        (bool success, bytes memory data) =
-            _priceFeeds.staticcall(
-                abi.encodeWithSelector(
-                    IPriceFeeds(_priceFeeds).getCurrentMargin.selector,
-                    loanParamsLocal.loanToken,
-                    loanParamsLocal.collateralToken,
-                    loanLocal.principal,
-                    loanLocal.collateral
-                )
-            );
+        (bool success, bytes memory data) = _priceFeeds.staticcall(
+            abi.encodeWithSelector(
+                IPriceFeeds(_priceFeeds).getCurrentMargin.selector,
+                loanParamsLocal.loanToken,
+                loanParamsLocal.collateralToken,
+                loanLocal.principal,
+                loanLocal.collateral
+            )
+        );
         assembly {
             if eq(success, 1) {
                 currentMargin := mload(add(data, 32))
@@ -676,12 +672,12 @@ contract LoanClosingsShared is
         } else if (closeType == CloseTypes.Swap) {
             /// exitPrice = 1 / collateralToLoanSwapRate
             if (collateralToLoanSwapRate != 0) {
-                collateralToLoanSwapRate = SafeMath.div(10**36, collateralToLoanSwapRate);
+                collateralToLoanSwapRate = SafeMath.div(10 ** 36, collateralToLoanSwapRate);
             }
 
             /// currentLeverage = 100 / currentMargin
             if (currentMargin != 0) {
-                currentMargin = SafeMath.div(10**38, currentMargin);
+                currentMargin = SafeMath.div(10 ** 38, currentMargin);
             }
 
             emit CloseWithSwap(
@@ -719,8 +715,10 @@ contract LoanClosingsShared is
      * @return amount in RBTC
      * */
     function _getAmountInRbtc(address asset, uint256 amount) internal view returns (uint256) {
-        (uint256 rbtcRate, uint256 rbtcPrecision) =
-            IPriceFeeds(priceFeeds).queryRate(asset, address(wrbtcToken));
+        (uint256 rbtcRate, uint256 rbtcPrecision) = IPriceFeeds(priceFeeds).queryRate(
+            asset,
+            address(wrbtcToken)
+        );
         return amount.mul(rbtcRate).div(rbtcPrecision);
     }
 

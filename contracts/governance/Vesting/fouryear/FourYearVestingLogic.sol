@@ -64,10 +64,10 @@ contract FourYearVestingLogic is IFourYearVesting, FourYearVestingStorage, Appro
      * @return lastSchedule The max duration for which tokens were staked.
      * @return remainingAmount The amount outstanding - to be staked.
      * */
-    function stakeTokens(uint256 _amount, uint256 _restartStakeSchedule)
-        external
-        returns (uint256 lastSchedule, uint256 remainingAmount)
-    {
+    function stakeTokens(
+        uint256 _amount,
+        uint256 _restartStakeSchedule
+    ) external returns (uint256 lastSchedule, uint256 remainingAmount) {
         (lastSchedule, remainingAmount) = _stakeTokens(msg.sender, _amount, _restartStakeSchedule);
     }
 

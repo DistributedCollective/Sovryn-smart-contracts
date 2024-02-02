@@ -69,10 +69,10 @@ contract TokenSender is Ownable {
      * @param _receivers The addresses of the SOV receivers.
      * @param _amounts The amounts to be transferred.
      * */
-    function transferSOVusingList(address[] memory _receivers, uint256[] memory _amounts)
-        public
-        onlyAuthorized
-    {
+    function transferSOVusingList(
+        address[] memory _receivers,
+        uint256[] memory _amounts
+    ) public onlyAuthorized {
         require(_receivers.length == _amounts.length, "arrays mismatch");
 
         for (uint256 i = 0; i < _receivers.length; i++) {

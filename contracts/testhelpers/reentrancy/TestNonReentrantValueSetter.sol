@@ -11,10 +11,10 @@ contract TestNonReentrantValueSetter is SharedReentrancyGuard {
     }
 
     // this will always fail if `other.setValue` is globallyNonReentrant
-    function setOtherContractValueNonReentrant(address other, uint256 newValue)
-        external
-        globallyNonReentrant
-    {
+    function setOtherContractValueNonReentrant(
+        address other,
+        uint256 newValue
+    ) external globallyNonReentrant {
         TestNonReentrantValueSetter(other).setValue(newValue);
     }
 

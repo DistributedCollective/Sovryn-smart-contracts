@@ -139,11 +139,10 @@ contract LoanMaintenance is
             vaultEtherDeposit(msg.sender, msg.value);
         }
 
-        (uint256 collateralToLoanRate, ) =
-            IPriceFeeds(priceFeeds).queryRate(
-                loanParamsLocal.collateralToken,
-                loanParamsLocal.loanToken
-            );
+        (uint256 collateralToLoanRate, ) = IPriceFeeds(priceFeeds).queryRate(
+            loanParamsLocal.collateralToken,
+            loanParamsLocal.loanToken
+        );
 
         emit DepositCollateral(loanId, depositAmount, collateralToLoanRate);
     }
@@ -172,14 +171,13 @@ contract LoanMaintenance is
             "unauthorized"
         );
 
-        uint256 maxDrawdown =
-            IPriceFeeds(priceFeeds).getMaxDrawdown(
-                loanParamsLocal.loanToken,
-                loanParamsLocal.collateralToken,
-                loanLocal.principal,
-                loanLocal.collateral,
-                loanParamsLocal.maintenanceMargin
-            );
+        uint256 maxDrawdown = IPriceFeeds(priceFeeds).getMaxDrawdown(
+            loanParamsLocal.loanToken,
+            loanParamsLocal.collateralToken,
+            loanLocal.principal,
+            loanLocal.collateral,
+            loanParamsLocal.maintenanceMargin
+        );
 
         if (withdrawAmount > maxDrawdown) {
             actualWithdrawAmount = maxDrawdown;
@@ -305,9 +303,7 @@ contract LoanMaintenance is
 
         lenderInterest[loanLocal.lender][loanParamsLocal.loanToken].owedTotal = lenderInterest[
             loanLocal.lender
-        ][loanParamsLocal.loanToken]
-            .owedTotal
-            .add(depositAmount);
+        ][loanParamsLocal.loanToken].owedTotal.add(depositAmount);
     }
 
     /**
@@ -350,10 +346,11 @@ contract LoanMaintenance is
             block.timestamp
         );
 
-        uint256 interestDepositRemaining =
-            loanLocal.endTimestamp.sub(block.timestamp).mul(loanInterestLocal.owedPerDay).div(
-                86400
-            );
+        uint256 interestDepositRemaining = loanLocal
+            .endTimestamp
+            .sub(block.timestamp)
+            .mul(loanInterestLocal.owedPerDay)
+            .div(86400);
         require(withdrawAmount < interestDepositRemaining, "withdraw amount too high");
 
         /// Withdraw interest.
@@ -380,9 +377,7 @@ contract LoanMaintenance is
 
         lenderInterest[loanLocal.lender][loanParamsLocal.loanToken].owedTotal = lenderInterest[
             loanLocal.lender
-        ][loanParamsLocal.loanToken]
-            .owedTotal
-            .sub(withdrawAmount);
+        ][loanParamsLocal.loanToken].owedTotal.sub(withdrawAmount);
     }
 
     /**
@@ -399,7 +394,10 @@ contract LoanMaintenance is
      * @return interestFeePercent The fee retained by the protocol before interest is paid to the lender.
      * @return principalTotal The total amount of outstanding principal the lender has loaned.
      * */
-    function getLenderInterestData(address lender, address loanToken)
+    function getLenderInterestData(
+        address lender,
+        address loanToken
+    )
         external
         view
         returns (
@@ -441,7 +439,9 @@ contract LoanMaintenance is
      * @return interestDepositTotal The total amount of interest the borrower has deposited.
      * @return interestDepositRemaining The amount of deposited interest that is not yet owed to a lender.
      * */
-    function getLoanInterestData(bytes32 loanId)
+    function getLoanInterestData(
+        bytes32 loanId
+    )
         external
         view
         returns (
@@ -487,8 +487,9 @@ contract LoanMaintenance is
         bool isLender,
         bool unsafeOnly
     ) external view returns (LoanReturnData[] memory loansData) {
-        EnumerableBytes32Set.Bytes32Set storage set =
-            isLender ? lenderLoanSets[user] : borrowerLoanSets[user];
+        EnumerableBytes32Set.Bytes32Set storage set = isLender
+            ? lenderLoanSets[user]
+            : borrowerLoanSets[user];
 
         uint256 end = start.add(count).min256(set.length());
         if (start >= end) {
@@ -501,12 +502,11 @@ contract LoanMaintenance is
             if (itemCount == count) {
                 break;
             }
-            LoanReturnData memory loanData =
-                _getLoan(
-                    set.get(i + start - 1), /// loanId
-                    loanType,
-                    unsafeOnly
-                );
+            LoanReturnData memory loanData = _getLoan(
+                set.get(i + start - 1), /// loanId
+                loanType,
+                unsafeOnly
+            );
             if (loanData.loanId == 0) continue;
 
             loansData[itemCount] = loanData;
@@ -545,8 +545,9 @@ contract LoanMaintenance is
         bool isLender,
         bool unsafeOnly
     ) external view returns (LoanReturnDataV2[] memory loansDataV2) {
-        EnumerableBytes32Set.Bytes32Set storage set =
-            isLender ? lenderLoanSets[user] : borrowerLoanSets[user];
+        EnumerableBytes32Set.Bytes32Set storage set = isLender
+            ? lenderLoanSets[user]
+            : borrowerLoanSets[user];
 
         uint256 end = start.add(count).min256(set.length());
         if (start >= end) {
@@ -559,12 +560,11 @@ contract LoanMaintenance is
             if (itemCount == count) {
                 break;
             }
-            LoanReturnDataV2 memory loanDataV2 =
-                _getLoanV2(
-                    set.get(i + start - 1), /// loanId
-                    loanType,
-                    unsafeOnly
-                );
+            LoanReturnDataV2 memory loanDataV2 = _getLoanV2(
+                set.get(i + start - 1), /// loanId
+                loanType,
+                unsafeOnly
+            );
             if (loanDataV2.loanId == 0) continue;
 
             loansDataV2[itemCount] = loanDataV2;
@@ -639,12 +639,11 @@ contract LoanMaintenance is
             if (itemCount == count) {
                 break;
             }
-            LoanReturnData memory loanData =
-                _getLoan(
-                    activeLoansSet.get(i + start - 1), /// loanId
-                    0, /// loanType
-                    unsafeOnly
-                );
+            LoanReturnData memory loanData = _getLoan(
+                activeLoansSet.get(i + start - 1), /// loanId
+                0, /// loanType
+                unsafeOnly
+            );
             if (loanData.loanId == 0) continue;
 
             loansData[itemCount] = loanData;
@@ -686,12 +685,11 @@ contract LoanMaintenance is
             if (itemCount == count) {
                 break;
             }
-            LoanReturnDataV2 memory loanDataV2 =
-                _getLoanV2(
-                    activeLoansSet.get(i + start - 1), /// loanId
-                    0, /// loanType
-                    unsafeOnly
-                );
+            LoanReturnDataV2 memory loanDataV2 = _getLoanV2(
+                activeLoansSet.get(i + start - 1), /// loanId
+                0, /// loanType
+                unsafeOnly
+            );
             if (loanDataV2.loanId == 0) continue;
 
             loansDataV2[itemCount] = loanDataV2;
@@ -736,8 +734,8 @@ contract LoanMaintenance is
 
         LoanInterest memory loanInterestLocal = loanInterest[loanId];
 
-        (uint256 currentMargin, uint256 collateralToLoanRate) =
-            IPriceFeeds(priceFeeds).getCurrentMargin(
+        (uint256 currentMargin, uint256 collateralToLoanRate) = IPriceFeeds(priceFeeds)
+            .getCurrentMargin(
                 loanParamsLocal.loanToken,
                 loanParamsLocal.collateralToken,
                 loanLocal.principal,
@@ -815,8 +813,8 @@ contract LoanMaintenance is
 
         LoanInterest memory loanInterestLocal = loanInterest[loanId];
 
-        (uint256 currentMargin, uint256 collateralToLoanRate) =
-            IPriceFeeds(priceFeeds).getCurrentMargin(
+        (uint256 currentMargin, uint256 collateralToLoanRate) = IPriceFeeds(priceFeeds)
+            .getCurrentMargin(
                 loanParamsLocal.loanToken,
                 loanParamsLocal.collateralToken,
                 loanLocal.principal,
@@ -878,28 +876,26 @@ contract LoanMaintenance is
         uint256 depositAmount
     ) internal returns (uint256 purchasedLoanToken) {
         /// Reverts in _loanSwap if amountNeeded can't be bought.
-        (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, ) =
-            _loanSwap(
-                loanLocal.id,
-                loanParamsLocal.collateralToken,
-                loanParamsLocal.loanToken,
-                loanLocal.borrower,
-                loanLocal.collateral, /// minSourceTokenAmount
-                0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
-                depositAmount, /// requiredDestTokenAmount (partial spend of loanLocal.collateral to fill this amount)
-                true, /// bypassFee
-                "" /// loanDataBytes
-            );
+        (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, ) = _loanSwap(
+            loanLocal.id,
+            loanParamsLocal.collateralToken,
+            loanParamsLocal.loanToken,
+            loanLocal.borrower,
+            loanLocal.collateral, /// minSourceTokenAmount
+            0, /// maxSourceTokenAmount (0 means minSourceTokenAmount)
+            depositAmount, /// requiredDestTokenAmount (partial spend of loanLocal.collateral to fill this amount)
+            true, /// bypassFee
+            "" /// loanDataBytes
+        );
         loanLocal.collateral = loanLocal.collateral.sub(sourceTokenAmountUsed);
 
         /// Ensure the loan is still healthy.
-        (uint256 currentMargin, ) =
-            IPriceFeeds(priceFeeds).getCurrentMargin(
-                loanParamsLocal.loanToken,
-                loanParamsLocal.collateralToken,
-                loanLocal.principal,
-                loanLocal.collateral
-            );
+        (uint256 currentMargin, ) = IPriceFeeds(priceFeeds).getCurrentMargin(
+            loanParamsLocal.loanToken,
+            loanParamsLocal.collateralToken,
+            loanLocal.principal,
+            loanLocal.collateral
+        );
         require(currentMargin > loanParamsLocal.maintenanceMargin, "unhealthy position");
 
         return destTokenAmountReceived;

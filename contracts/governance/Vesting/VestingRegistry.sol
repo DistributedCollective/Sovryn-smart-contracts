@@ -217,7 +217,7 @@ contract VestingRegistry is Ownable {
          * https://docs.google.com/document/d/10idTD1K6JvoBmtPKGuJ2Ub_mMh6qTLLlTP693GQKMyU/
          * Previous buggy code: uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10**10);
          * */
-        uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10**8);
+        uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10 ** 8);
         require(address(this).balance >= reImburseAmount, "Not enough funds to reimburse");
         msg.sender.transfer(reImburseAmount);
 
@@ -354,8 +354,11 @@ contract VestingRegistry is Ownable {
      * @param _amount The amount of tokens to be vested.
      * */
     function _createVestingForCSOV(uint256 _amount) internal {
-        address vesting =
-            _getOrCreateVesting(msg.sender, CSOV_VESTING_CLIFF, CSOV_VESTING_DURATION);
+        address vesting = _getOrCreateVesting(
+            msg.sender,
+            CSOV_VESTING_CLIFF,
+            CSOV_VESTING_DURATION
+        );
 
         IERC20(SOV).approve(vesting, _amount);
         IVesting(vesting).stakeTokens(_amount);
@@ -460,16 +463,15 @@ contract VestingRegistry is Ownable {
         uint256 type_ = uint256(VestingType.Vesting);
         if (vestingContracts[_tokenOwner][type_] == address(0)) {
             /// @dev TODO: Owner of OwnerVesting contracts - the same address as tokenOwner.
-            address vesting =
-                vestingFactory.deployVesting(
-                    SOV,
-                    staking,
-                    _tokenOwner,
-                    _cliff,
-                    _duration,
-                    feeSharingCollector,
-                    _tokenOwner
-                );
+            address vesting = vestingFactory.deployVesting(
+                SOV,
+                staking,
+                _tokenOwner,
+                _cliff,
+                _duration,
+                feeSharingCollector,
+                _tokenOwner
+            );
             vestingContracts[_tokenOwner][type_] = vesting;
         }
         return vestingContracts[_tokenOwner][type_];
@@ -490,16 +492,15 @@ contract VestingRegistry is Ownable {
     ) internal returns (address) {
         uint256 type_ = uint256(VestingType.TeamVesting);
         if (vestingContracts[_tokenOwner][type_] == address(0)) {
-            address vesting =
-                vestingFactory.deployTeamVesting(
-                    SOV,
-                    staking,
-                    _tokenOwner,
-                    _cliff,
-                    _duration,
-                    feeSharingCollector,
-                    vestingOwner
-                );
+            address vesting = vestingFactory.deployTeamVesting(
+                SOV,
+                staking,
+                _tokenOwner,
+                _cliff,
+                _duration,
+                feeSharingCollector,
+                vestingOwner
+            );
             vestingContracts[_tokenOwner][type_] = vesting;
         }
         return vestingContracts[_tokenOwner][type_];

@@ -186,11 +186,10 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * @param previousLock The old unlocking timestamp.
      * @param until The new unlocking timestamp in seconds.
      * */
-    function extendStakingDuration(uint256 previousLock, uint256 until)
-        external
-        whenNotPaused
-        whenNotFrozen
-    {
+    function extendStakingDuration(
+        uint256 previousLock,
+        uint256 until
+    ) external whenNotPaused whenNotFrozen {
         previousLock = _timestampToLockDate(previousLock);
         until = _timestampToLockDate(until);
 
@@ -404,11 +403,9 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * @param account The address to get stakes.
      * @return The arrays of dates and stakes.
      * */
-    function getStakes(address account)
-        external
-        view
-        returns (uint256[] memory dates, uint96[] memory stakes)
-    {
+    function getStakes(
+        address account
+    ) external view returns (uint256[] memory dates, uint96[] memory stakes) {
         uint256 latest = _timestampToLockDate(block.timestamp + MAX_DURATION);
 
         /// @dev Calculate stakes.

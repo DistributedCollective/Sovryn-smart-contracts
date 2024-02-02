@@ -35,7 +35,7 @@ contract LockedSOVFailedMockup {
 
     /* Modifiers */
 
-    modifier onlyAdmin {
+    modifier onlyAdmin() {
         require(isAdmin[msg.sender], "Only admin can call this.");
         _;
     }

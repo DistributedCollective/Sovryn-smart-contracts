@@ -64,12 +64,10 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
      *
      * @return The amount of loan tokens minted.
      * */
-    function mint(address receiver, uint256 depositAmount)
-        external
-        nonReentrant
-        globallyNonReentrant
-        returns (uint256 mintAmount)
-    {
+    function mint(
+        address receiver,
+        uint256 depositAmount
+    ) external nonReentrant globallyNonReentrant returns (uint256 mintAmount) {
         return _mintToken(receiver, depositAmount);
     }
 
@@ -85,12 +83,10 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
      *
      * @return The amount of underlying tokens payed to lender.
      * */
-    function burn(address receiver, uint256 burnAmount)
-        external
-        nonReentrant
-        globallyNonReentrant
-        returns (uint256 loanAmountPaid)
-    {
+    function burn(
+        address receiver,
+        uint256 burnAmount
+    ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
         loanAmountPaid = _burnToken(burnAmount);
 
         //this needs to be here and not in _burnTokens because of the WRBTC implementation
@@ -105,10 +101,10 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
      * @param depositAmount the amount of underlying assets to be deposited
      * @return the amount of iTokens issued
      */
-    function _mintToken(address receiver, uint256 depositAmount)
-        internal
-        returns (uint256 mintAmount)
-    {
+    function _mintToken(
+        address receiver,
+        uint256 depositAmount
+    ) internal returns (uint256 mintAmount) {
         uint256 currentPrice;
 
         //calculate amount to mint and transfer the underlying asset
@@ -137,16 +133,15 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
      * @param depositAmount the amount of the underyling asset deposited
      * @return the amount to be minted
      */
-    function _prepareMinting(uint256 depositAmount)
-        internal
-        returns (uint256 mintAmount, uint256 currentPrice)
-    {
+    function _prepareMinting(
+        uint256 depositAmount
+    ) internal returns (uint256 mintAmount, uint256 currentPrice) {
         require(depositAmount != 0, "17");
 
         _settleInterest();
 
         currentPrice = _tokenPrice(_totalAssetSupply(0));
-        mintAmount = depositAmount.mul(10**18).div(currentPrice);
+        mintAmount = depositAmount.mul(10 ** 18).div(currentPrice);
 
         if (msg.value == 0) {
             _safeTransferFrom(loanTokenAddress, msg.sender, address(this), depositAmount, "18");
@@ -174,7 +169,7 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
 
         uint256 currentPrice = _tokenPrice(_totalAssetSupply(0));
 
-        uint256 loanAmountOwed = burnAmount.mul(currentPrice).div(10**18);
+        uint256 loanAmountOwed = burnAmount.mul(currentPrice).div(10 ** 18);
         uint256 loanAmountAvailableInContract = _underlyingBalance();
 
         loanAmountPaid = loanAmountOwed;
@@ -198,10 +193,10 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
         _updateCheckpoints(msg.sender, oldBalance, newBalance, currentPrice);
     }
 
-    function _mintWithLM(address receiver, uint256 depositAmount)
-        internal
-        returns (uint256 minted)
-    {
+    function _mintWithLM(
+        address receiver,
+        uint256 depositAmount
+    ) internal returns (uint256 minted) {
         //mint the tokens for the receiver
         minted = _mintToken(receiver, depositAmount);
 
@@ -213,11 +208,10 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
     }
 
     function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
-        uint256 balanceOnLM =
-            ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(
-                address(this),
-                msg.sender
-            );
+        uint256 balanceOnLM = ILiquidityMining(liquidityMiningAddress).getUserPoolTokenBalance(
+            address(this),
+            msg.sender
+        );
         require(balanceOnLM.add(balanceOf(msg.sender)) >= burnAmount, "not enough balance");
 
         if (balanceOnLM > 0) {

@@ -53,11 +53,7 @@ contract GenericTokenSender is AdminRole {
         _transferTokens(_token, _receiver, _amount);
     }
 
-    function _transferTokens(
-        address _token,
-        address _receiver,
-        uint256 _amount
-    ) internal {
+    function _transferTokens(address _token, address _receiver, uint256 _amount) internal {
         require(_receiver != address(0), "receiver address invalid");
         require(_amount != 0, "amount invalid");
         if (_token != address(0)) {

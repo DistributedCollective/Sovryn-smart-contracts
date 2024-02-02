@@ -57,11 +57,9 @@ contract LoanSettings is State, LoanSettingsEvents, ModuleCommonFunctionalities 
      *
      * @return loanParamsIdList The array of loan parameters IDs.
      * */
-    function setupLoanParams(LoanParams[] calldata loanParamsList)
-        external
-        whenNotPaused
-        returns (bytes32[] memory loanParamsIdList)
-    {
+    function setupLoanParams(
+        LoanParams[] calldata loanParamsList
+    ) external whenNotPaused returns (bytes32[] memory loanParamsIdList) {
         loanParamsIdList = new bytes32[](loanParamsList.length);
         for (uint256 i = 0; i < loanParamsList.length; i++) {
             loanParamsIdList[i] = _setupLoanParams(loanParamsList[i]);
@@ -100,11 +98,9 @@ contract LoanSettings is State, LoanSettingsEvents, ModuleCommonFunctionalities 
      *
      * @return loanParamsList The result array of loan parameters.
      * */
-    function getLoanParams(bytes32[] memory loanParamsIdList)
-        public
-        view
-        returns (LoanParams[] memory loanParamsList)
-    {
+    function getLoanParams(
+        bytes32[] memory loanParamsIdList
+    ) public view returns (LoanParams[] memory loanParamsList) {
         loanParamsList = new LoanParams[](loanParamsIdList.length);
         uint256 itemCount;
 
@@ -182,17 +178,16 @@ contract LoanSettings is State, LoanSettingsEvents, ModuleCommonFunctionalities 
      * @return loanParamsId The loan parameters ID.
      * */
     function _setupLoanParams(LoanParams memory loanParamsLocal) internal returns (bytes32) {
-        bytes32 loanParamsId =
-            keccak256(
-                abi.encodePacked(
-                    loanParamsLocal.loanToken,
-                    loanParamsLocal.collateralToken,
-                    loanParamsLocal.minInitialMargin,
-                    loanParamsLocal.maintenanceMargin,
-                    loanParamsLocal.maxLoanTerm,
-                    block.timestamp
-                )
-            );
+        bytes32 loanParamsId = keccak256(
+            abi.encodePacked(
+                loanParamsLocal.loanToken,
+                loanParamsLocal.collateralToken,
+                loanParamsLocal.minInitialMargin,
+                loanParamsLocal.maintenanceMargin,
+                loanParamsLocal.maxLoanTerm,
+                block.timestamp
+            )
+        );
         require(loanParams[loanParamsId].id == 0, "loanParams exists");
 
         require(
