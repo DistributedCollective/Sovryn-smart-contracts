@@ -3,9 +3,10 @@
     "extends": "solhint:recommended",
     "rules": {
         "prettier/prettier": "error",
-        "max-line-length": ["warn", 140],
-        "compiler-version": ["warn"],
-        "no-global-import": "off",
-        "no-console": "warn"
+        "max-line-length": ["warning", 140],
+        "compiler-version": ["warning"],
+        "no-global-import": ["warning"],
+        "no-console": ["warning"],
+        "private-vars-leading-underscore": ["warning"]
     }
 }
