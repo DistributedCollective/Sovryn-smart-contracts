@@ -13,7 +13,7 @@
       }
     },
     {
-      "files": "*.sol",
+      "files": ["*.sol"],
       "options": {
         "parser": "solidity-parse",
         "printWidth": 99,
