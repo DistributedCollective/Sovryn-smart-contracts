@@ -15,7 +15,8 @@ import "../../openzeppelin/Address.sol";
  * of the revenue that the platform generates from various transaction fees
  * plus revenues from stakers who have a portion of their SOV slashed for
  * early unstaking.
- * */
+ *
+ */
 contract StakingRewards is StakingRewardsStorage {
     using SafeMath for uint256;
 
@@ -29,13 +30,14 @@ contract StakingRewards is StakingRewardsStorage {
      * This function will be called only once by the owner.
      * @param _SOV SOV token address
      * @param _staking StakingProxy address should be passed
-     * */
+     *
+     */
     function initialize(address _SOV, IStaking _staking) external onlyOwner {
         require(_SOV != address(0), "Invalid SOV Address.");
         require(Address.isContract(_SOV), "_SOV not a contract");
         SOV = IERC20(_SOV);
         staking = _staking;
-        rewardsProgramStartTime = staking.timestampToLockDate(block.timestamp);
+        startTime = staking.timestampToLockDate(block.timestamp);
         setMaxDuration(15 * TWO_WEEKS);
         deploymentBlock = _getCurrentBlockNumber();
     }
@@ -45,7 +47,8 @@ contract StakingRewards is StakingRewardsStorage {
      * @dev All stakes existing on the contract at the point in time of
      * cancellation continue accruing rewards until the end of the staking
      * period being rewarded
-     * */
+     *
+     */
     function stop() external onlyOwner {
         require(stopBlock == 0, "Already stopped");
         stopBlock = _getCurrentBlockNumber();
@@ -53,17 +56,18 @@ contract StakingRewards is StakingRewardsStorage {
 
     /**
      * @notice Collect rewards
-     * @dev User calls this function to collect SOV staking rewards accrued by this contract
+     * @dev User calls this function to collect SOV staking rewards as per the SIP-0024 program.
      * The weighted stake is calculated using getPriorWeightedStake. Block number sent to the functon
      * must be a finalised block, hence we deduct 1 from the current block. User is only allowed to withdraw
      * after intervals of 14 days.
-     * @param _startTime The time from which to start the staking rewards calculation
+     * @param restartTime The time from which the staking rewards calculation shall restart.
      * The issue is that we can only run for a max duration and if someone stakes for the
      * first time after the max duration is over, the reward will always return 0. Thus, we need to restart
      * from the duration that elapsed without generating rewards.
-     * */
-    function claimReward(uint256 _startTime) external {
-        (uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true, _startTime);
+     *
+     */
+    function collectReward(uint256 restartTime) external {
+        (uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true, restartTime);
         require(withdrawalTime > 0 && amount > 0, "no valid reward");
         withdrawals[msg.sender] = withdrawalTime;
         _payReward(msg.sender, amount);
@@ -111,7 +115,8 @@ contract StakingRewards is StakingRewardsStorage {
      * through the entire duration since the start of rewards program.
      * It should ideally be set to a value, for which the rewards can be easily processed.
      * @param _duration Max duration for which rewards can be collected at a go (in seconds)
-     * */
+     *
+     */
     function setMaxDuration(uint256 _duration) public onlyOwner {
         maxDuration = _duration;
     }
@@ -124,8 +129,9 @@ contract StakingRewards is StakingRewardsStorage {
      * @param _block Last finalised block
      * @param _date The date to compute prior weighted stakes
      * @return The weighted stake
-     * */
-    function _computWeightedStakeForDate(
+     *
+     */
+    function _computeRewardForDate(
         address _staker,
         uint256 _block,
         uint256 _date
@@ -149,7 +155,8 @@ contract StakingRewards is StakingRewardsStorage {
      * which is 1/26 of one staking year (1092 days)
      * @param _staker User address
      * @param amount the reward amount
-     * */
+     *
+     */
     function _payReward(address _staker, uint256 amount) internal {
         require(SOV.balanceOf(address(this)) >= amount, "not enough funds to reward user");
         claimedBalances[_staker] = claimedBalances[_staker].add(amount);
@@ -171,19 +178,22 @@ contract StakingRewards is StakingRewardsStorage {
      * @notice Determine the current Block Number
      * @dev This is segregated from the _getPriorUserStakeByDate function to better test
      * advancing blocks functionality using Mock Contracts
-     * */
+     *
+     */
     function _getCurrentBlockNumber() internal view returns (uint256) {
         return block.number;
     }
 
     /**
      * @notice Internal function to calculate and set block
-     * */
+     *
+     */
     function _setBlock(uint256 _checkpointTime) internal {
+        uint256 currentTS = block.timestamp;
         uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
         require(checkpointBlockDetails[_checkpointTime] == 0, "block number already set");
         uint256 checkpointBlock = lastFinalisedBlock.sub(
-            ((block.timestamp.sub(_checkpointTime)).div(averageBlockTime))
+            ((currentTS.sub(_checkpointTime)).div(averageBlockTime))
         );
         checkpointBlockDetails[_checkpointTime] = checkpointBlock;
     }
@@ -191,59 +201,53 @@ contract StakingRewards is StakingRewardsStorage {
     /**
      * @notice Get staker's current accumulated reward
      * @dev The collectReward() function internally calls this function to calculate reward amount
-     * @param _considerMaxDuration True: Runs for the maximum duration - used in tx not to run out of gas
+     * @param considerMaxDuration True: Runs for the maximum duration - used in tx not to run out of gas
      * False - to query total rewards
-     * @param _startTime The time from which the staking rewards calculation shall restart.
+     * @param restartTime The time from which the staking rewards calculation shall restart.
      * @return The timestamp of last withdrawal
      * @return The accumulated reward
      */
     function getStakerCurrentReward(
-        bool _considerMaxDuration,
-        uint256 _startTime
-    ) public view returns (uint256 lastStakerWithdrawalTimestamp, uint256 amount) {
+        bool considerMaxDuration,
+        uint256 restartTime
+    ) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
         uint256 weightedStake;
         uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
-        uint256 withdrawalEndTimestamp;
+        uint256 currentTS = block.timestamp;
+        uint256 duration;
         address staker = msg.sender;
-        uint256 lastWithdrawalTimestamp = withdrawals[staker];
+        uint256 lastWithdrawal = withdrawals[staker];
 
-        uint256 lastStakingLockDate = staking.timestampToLockDate(block.timestamp);
-        lastStakerWithdrawalTimestamp = lastWithdrawalTimestamp > 0
-            ? lastWithdrawalTimestamp
-            : rewardsProgramStartTime;
-        if (lastStakingLockDate <= lastStakerWithdrawalTimestamp) return (0, 0);
-        /* Normally the restart time is 0. If this function returns a valid lastStakerWithdrawalTimestamp
-		and zero amount - that means there were no valid rewards for that period. So the new period must start
-		from the end of the last interval or till the time no rewards are accumulated i.e. _startTime */
-        if (_startTime >= lastStakerWithdrawalTimestamp) {
-            lastStakerWithdrawalTimestamp = staking.timestampToLockDate(_startTime);
+        uint256 lastStakingInterval = staking.timestampToLockDate(currentTS);
+        lastWithdrawalInterval = lastWithdrawal > 0 ? lastWithdrawal : startTime;
+        if (lastStakingInterval <= lastWithdrawalInterval) return (0, 0);
+        /* Normally the restart time is 0. If this function returns a valid lastWithdrawalInterval
+    and zero amount - that means there were no valid rewards for that period. So the new period must start
+    from the end of the last interval or till the time no rewards are accumulated i.e. restartTime */
+        if (restartTime >= lastWithdrawalInterval) {
+            uint256 latestRestartTime = staking.timestampToLockDate(restartTime);
+            lastWithdrawalInterval = latestRestartTime;
         }
 
-        if (_considerMaxDuration) {
-            uint256 withdrawalMaxEndTimestamp = lastStakerWithdrawalTimestamp.add(maxDuration);
-            withdrawalEndTimestamp = withdrawalMaxEndTimestamp < block.timestamp
-                ? staking.timestampToLockDate(withdrawalMaxEndTimestamp)
-                : lastStakingLockDate;
+        if (considerMaxDuration) {
+            uint256 addedMaxDuration = lastWithdrawalInterval.add(maxDuration);
+            duration = addedMaxDuration < currentTS
+                ? staking.timestampToLockDate(addedMaxDuration)
+                : lastStakingInterval;
         } else {
-            withdrawalEndTimestamp = lastStakingLockDate;
+            duration = lastStakingInterval;
         }
-        for (
-            uint256 i = lastStakerWithdrawalTimestamp;
-            i < withdrawalEndTimestamp;
-            i += TWO_WEEKS
-        ) {
+        for (uint256 i = lastWithdrawalInterval; i < duration; i += TWO_WEEKS) {
             uint256 referenceBlock = checkpointBlockDetails[i];
             if (referenceBlock == 0) {
                 referenceBlock = lastFinalisedBlock.sub(
-                    ((block.timestamp.sub(i)).div(averageBlockTime))
+                    ((currentTS.sub(i)).div(averageBlockTime))
                 );
             }
             if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
-            weightedStake = weightedStake.add(
-                _computWeightedStakeForDate(staker, referenceBlock, i)
-            );
+            weightedStake = weightedStake.add(_computeRewardForDate(staker, referenceBlock, i));
         }
-        lastStakerWithdrawalTimestamp = withdrawalEndTimestamp;
+        lastWithdrawalInterval = duration;
         amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
     }
 }
