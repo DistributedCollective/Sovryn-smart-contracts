@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -15,7 +14,8 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
  * @dev This contract represents a token with dynamic supply.
  *   The owner of the token contract can mint/burn tokens to/from any account
  *   based upon previous governance voting and approval.
- * */
+ *
+ */
 contract OsSOV is ERC20Capped, Ownable, AccessControl, Initializable {
     string private constant _NAME = "BitcoinOS Sovryn Transition Token";
     string private constant _SYMBOL = "osSOV";
