@@ -9,5 +9,7 @@ module.exports = {
     parserOptions: {
         ecmaVersion: 2020,
     },
-    rules: {},
+    rules: {
+        "compiler-version": ["off"],
+    },
 };

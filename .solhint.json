@@ -4,8 +4,9 @@
     "rules": {
         "prettier/prettier": "error",
         "max-line-length": ["warn", 140],
-        "compiler-version": ["warn"],
-        "no-global-import": "off",
-        "no-console": "warn"
+        "compiler-version": "warn",
+        "no-global-import": "warn",
+        "no-console": "warn",
+        "private-vars-leading-underscore": "warn"
     }
 }

@@ -132,8 +132,11 @@ contract StakingRewards is StakingRewardsStorage {
     ) internal view returns (uint256 weightedStake) {
         weightedStake = staking.getPriorWeightedStake(_staker, _block, _date);
         if (stopBlock > 0 && stopBlock < _block) {
-            uint256 previousWeightedStake =
-                staking.getPriorWeightedStake(_staker, stopBlock, _date);
+            uint256 previousWeightedStake = staking.getPriorWeightedStake(
+                _staker,
+                stopBlock,
+                _date
+            );
             if (previousWeightedStake < weightedStake) {
                 weightedStake = previousWeightedStake;
             }
@@ -180,8 +183,9 @@ contract StakingRewards is StakingRewardsStorage {
         uint256 currentTS = block.timestamp;
         uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
         require(checkpointBlockDetails[_checkpointTime] == 0, "block number already set");
-        uint256 checkpointBlock =
-            lastFinalisedBlock.sub(((currentTS.sub(_checkpointTime)).div(averageBlockTime)));
+        uint256 checkpointBlock = lastFinalisedBlock.sub(
+            ((currentTS.sub(_checkpointTime)).div(averageBlockTime))
+        );
         checkpointBlockDetails[_checkpointTime] = checkpointBlock;
     }
 
@@ -194,11 +198,10 @@ contract StakingRewards is StakingRewardsStorage {
      * @return The timestamp of last withdrawal
      * @return The accumulated reward
      */
-    function getStakerCurrentReward(bool considerMaxDuration, uint256 restartTime)
-        public
-        view
-        returns (uint256 lastWithdrawalInterval, uint256 amount)
-    {
+    function getStakerCurrentReward(
+        bool considerMaxDuration,
+        uint256 restartTime
+    ) public view returns (uint256 lastWithdrawalInterval, uint256 amount) {
         uint256 weightedStake;
         uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
         uint256 currentTS = block.timestamp;

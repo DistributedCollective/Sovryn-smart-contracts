@@ -5187,9 +5187,8 @@ contract("FeeSharingCollector:", (accounts) => {
             let amount = 1000;
 
             let tx = await feeSharingCollector.transferRBTC({ from: root, value: amount });
-            let totalAccumulatedRBTCFee = await feeSharingCollector.getAccumulatedRBTCFeeBalances(
-                root
-            );
+            let totalAccumulatedRBTCFee =
+                await feeSharingCollector.getAccumulatedRBTCFeeBalances(root);
             expect(totalAccumulatedRBTCFee.toString()).to.equal(new BN(amount).toString());
 
             expect(
@@ -5232,9 +5231,8 @@ contract("FeeSharingCollector:", (accounts) => {
 
             // second time
             tx = await feeSharingCollector.transferRBTC({ from: root, value: amount * 2 });
-            totalAccumulatedRBTCFee = await feeSharingCollector.getAccumulatedRBTCFeeBalances(
-                root
-            );
+            totalAccumulatedRBTCFee =
+                await feeSharingCollector.getAccumulatedRBTCFeeBalances(root);
 
             // the deposit still in the window of withdraw interval, so the accumulatedFees won't be added at this point.
             expect(totalAccumulatedRBTCFee.toString()).to.equal(new BN(amount).toString());
@@ -5253,9 +5251,8 @@ contract("FeeSharingCollector:", (accounts) => {
             // third time
             tx = await feeSharingCollector.transferRBTC({ from: root, value: amount * 4 });
 
-            totalAccumulatedRBTCFee = await feeSharingCollector.getAccumulatedRBTCFeeBalances(
-                root
-            );
+            totalAccumulatedRBTCFee =
+                await feeSharingCollector.getAccumulatedRBTCFeeBalances(root);
 
             // already passed the withdrawal interval
             expect(totalAccumulatedRBTCFee.toString()).to.equal(new BN(amount * 7).toString());

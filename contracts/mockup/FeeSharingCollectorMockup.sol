@@ -17,28 +17,19 @@ contract FeeSharingCollectorMockup is FeeSharingCollector {
         staking = _staking;
     }
 
-    function withdraw(
-        address _token,
-        uint32 _maxCheckpoints,
-        address _receiver
-    ) public {
+    function withdraw(address _token, uint32 _maxCheckpoints, address _receiver) public {
         testData = TestData(_token, _maxCheckpoints, _receiver);
     }
 
-    function trueWithdraw(
-        address _token,
-        uint32 _maxCheckpoints,
-        address _receiver
-    ) public {
+    function trueWithdraw(address _token, uint32 _maxCheckpoints, address _receiver) public {
         super.withdraw(_token, _maxCheckpoints, _receiver);
     }
 
     function addCheckPoint(address loanPoolToken, uint256 poolTokenAmount) public {
-        uint96 amount96 =
-            safe96(
-                poolTokenAmount,
-                "FeeSharingCollectorProxy::withdrawFees: pool token amount exceeds 96 bits"
-            );
+        uint96 amount96 = safe96(
+            poolTokenAmount,
+            "FeeSharingCollectorProxy::withdrawFees: pool token amount exceeds 96 bits"
+        );
         _addCheckpoint(loanPoolToken, amount96);
     }
 
@@ -46,11 +37,7 @@ contract FeeSharingCollectorMockup is FeeSharingCollector {
         totalTokenCheckpoints[_token] = qty;
     }
 
-    function setUserProcessedCheckpoints(
-        address _user,
-        address _token,
-        uint256 num
-    ) public {
+    function setUserProcessedCheckpoints(address _user, address _token, uint256 num) public {
         processedCheckpoints[_user][_token] = num;
     }
 

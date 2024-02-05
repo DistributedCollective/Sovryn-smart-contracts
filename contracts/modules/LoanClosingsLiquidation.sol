@@ -71,11 +71,7 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
         globallyNonReentrant
         iTokenSupplyUnchanged(loanId)
         whenNotPaused
-        returns (
-            uint256 loanCloseAmount,
-            uint256 seizedAmount,
-            address seizedToken
-        )
+        returns (uint256 loanCloseAmount, uint256 seizedAmount, address seizedToken)
     {
         return _liquidate(loanId, receiver, closeAmount);
     }
@@ -103,18 +99,11 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
         bytes32 loanId,
         address receiver,
         uint256 closeAmount
-    )
-        internal
-        returns (
-            uint256 loanCloseAmount,
-            uint256 seizedAmount,
-            address seizedToken
-        )
-    {
+    ) internal returns (uint256 loanCloseAmount, uint256 seizedAmount, address seizedToken) {
         (Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
 
-        (uint256 currentMargin, uint256 collateralToLoanRate) =
-            IPriceFeeds(priceFeeds).getCurrentMargin(
+        (uint256 currentMargin, uint256 collateralToLoanRate) = IPriceFeeds(priceFeeds)
+            .getCurrentMargin(
                 loanParamsLocal.loanToken,
                 loanParamsLocal.collateralToken,
                 loanLocal.principal,
@@ -125,14 +114,13 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
         loanCloseAmount = closeAmount;
 
         //amounts to restore the desired margin (maintencance + 5%)
-        (uint256 maxLiquidatable, uint256 maxSeizable, ) =
-            _getLiquidationAmounts(
-                loanLocal.principal,
-                loanLocal.collateral,
-                currentMargin,
-                loanParamsLocal.maintenanceMargin,
-                collateralToLoanRate
-            );
+        (uint256 maxLiquidatable, uint256 maxSeizable, ) = _getLiquidationAmounts(
+            loanLocal.principal,
+            loanLocal.collateral,
+            currentMargin,
+            loanParamsLocal.maintenanceMargin,
+            collateralToLoanRate
+        );
 
         if (loanCloseAmount < maxLiquidatable) {
             //close maxLiquidatable if tiny position will remain
@@ -158,13 +146,12 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
         _returnPrincipalWithDeposit(loanParamsLocal.loanToken, address(this), loanCloseAmount);
 
         // a portion of the principal is repaid to the lender out of interest refunded
-        uint256 loanCloseAmountLessInterest =
-            _settleInterestToPrincipal(
-                loanLocal,
-                loanParamsLocal,
-                loanCloseAmount,
-                loanLocal.borrower
-            );
+        uint256 loanCloseAmountLessInterest = _settleInterestToPrincipal(
+            loanLocal,
+            loanParamsLocal,
+            loanCloseAmount,
+            loanLocal.borrower
+        );
 
         if (loanCloseAmount > loanCloseAmountLessInterest) {
             // full interest refund goes to the borrower

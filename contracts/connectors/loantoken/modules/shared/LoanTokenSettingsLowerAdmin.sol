@@ -127,16 +127,17 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
      * @param collateralTokens The array of collateral tokens.
      * @param isTorqueLoans Whether the loan is a torque loan.
      * */
-    function disableLoanParams(address[] calldata collateralTokens, bool[] calldata isTorqueLoans)
-        external
-        onlyAdmin
-    {
+    function disableLoanParams(
+        address[] calldata collateralTokens,
+        bool[] calldata isTorqueLoans
+    ) external onlyAdmin {
         require(collateralTokens.length == isTorqueLoans.length, "count mismatch");
 
         bytes32[] memory loanParamsIdList = new bytes32[](collateralTokens.length);
         for (uint256 i = 0; i < collateralTokens.length; i++) {
-            uint256 id =
-                uint256(keccak256(abi.encodePacked(collateralTokens[i], isTorqueLoans[i])));
+            uint256 id = uint256(
+                keccak256(abi.encodePacked(collateralTokens[i], isTorqueLoans[i]))
+            );
             loanParamsIdList[i] = loanParamsIds[id];
             delete loanParamsIds[id];
         }
@@ -214,13 +215,12 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
     ) public onlyPauserOrOwner {
         bool paused;
         /// keccak256("iToken_FunctionPause")
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    bytes4(keccak256(abi.encodePacked(funcId))),
-                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-                )
-            );
+        bytes32 slot = keccak256(
+            abi.encodePacked(
+                bytes4(keccak256(abi.encodePacked(funcId))),
+                uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+            )
+        );
         assembly {
             paused := sload(slot)
         }
@@ -236,10 +236,10 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
      * @param addresses The token addresses.
      * @param limits The limit denominated in the currency of the token address.
      * */
-    function setTransactionLimits(address[] memory addresses, uint256[] memory limits)
-        public
-        onlyAdmin
-    {
+    function setTransactionLimits(
+        address[] memory addresses,
+        uint256[] memory limits
+    ) public onlyAdmin {
         require(addresses.length == limits.length, "mismatched array lengths");
         for (uint256 i = 0; i < addresses.length; i++) {
             transactionLimit[addresses[i]] = limits[i];
@@ -252,10 +252,10 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
      *	@param _name The new name of the loan token.
      *	@param _symbol The new symbol of the loan token.
      * */
-    function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol)
-        public
-        onlyAdmin
-    {
+    function changeLoanTokenNameAndSymbol(
+        string memory _name,
+        string memory _symbol
+    ) public onlyAdmin {
         name = _name;
         symbol = _symbol;
     }
@@ -321,13 +321,12 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
      * */
     function checkPause(string memory funcId) public view returns (bool isPaused) {
         bytes4 sig = bytes4(keccak256(abi.encodePacked(funcId)));
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    sig,
-                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-                )
-            );
+        bytes32 slot = keccak256(
+            abi.encodePacked(
+                sig,
+                uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+            )
+        );
         assembly {
             isPaused := sload(slot)
         }

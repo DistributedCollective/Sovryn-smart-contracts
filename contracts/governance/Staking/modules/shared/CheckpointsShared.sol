@@ -145,11 +145,7 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
      * @param lockedTS The lock date.
      * @param value The value to add to the staked balance.
      * */
-    function _increaseUserStake(
-        address account,
-        uint256 lockedTS,
-        uint96 value
-    ) internal {
+    function _increaseUserStake(address account, uint256 lockedTS, uint96 value) internal {
         uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
         uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
         uint96 newStake = add96(staked, value, "CP04"); // staked overflow
@@ -162,11 +158,7 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
      * @param lockedTS The lock date.
      * @param value The value to substract to the staked balance.
      * */
-    function _decreaseUserStake(
-        address account,
-        uint256 lockedTS,
-        uint96 value
-    ) internal {
+    function _decreaseUserStake(address account, uint256 lockedTS, uint96 value) internal {
         uint32 nCheckpoints = numUserStakingCheckpoints[account][lockedTS];
         uint96 staked = userStakingCheckpoints[account][lockedTS][nCheckpoints - 1].stake;
         uint96 newStake = sub96(staked, value, "CP05"); // staked underflow
@@ -208,11 +200,7 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
      * @param lockedTS The lock date.
      * @param value The value to add to the staked balance.
      * */
-    function _increaseDelegateStake(
-        address delegatee,
-        uint256 lockedTS,
-        uint96 value
-    ) internal {
+    function _increaseDelegateStake(address delegatee, uint256 lockedTS, uint96 value) internal {
         uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
         uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
         uint96 newStake = add96(staked, value, "CP07"); // block number > 32 bits
@@ -225,11 +213,7 @@ contract CheckpointsShared is StakingStorageShared, SafeMath96 {
      * @param lockedTS The lock date.
      * @param value The value to substract to the staked balance.
      * */
-    function _decreaseDelegateStake(
-        address delegatee,
-        uint256 lockedTS,
-        uint96 value
-    ) internal {
+    function _decreaseDelegateStake(address delegatee, uint256 lockedTS, uint96 value) internal {
         uint32 nCheckpoints = numDelegateStakingCheckpoints[delegatee][lockedTS];
         uint96 staked = delegateStakingCheckpoints[delegatee][lockedTS][nCheckpoints - 1].stake;
         uint96 newStake = 0;

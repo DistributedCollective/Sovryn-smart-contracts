@@ -106,14 +106,13 @@ contract LoanOpenings is
         require(loanParamsLocal.id != 0, "loanParams not exists");
 
         /// Get required collateral.
-        uint256 collateralAmountRequired =
-            _getRequiredCollateral(
-                loanParamsLocal.loanToken,
-                loanParamsLocal.collateralToken,
-                sentValues.newPrincipal,
-                initialMargin,
-                isTorqueLoan
-            );
+        uint256 collateralAmountRequired = _getRequiredCollateral(
+            loanParamsLocal.loanToken,
+            loanParamsLocal.collateralToken,
+            sentValues.newPrincipal,
+            initialMargin,
+            isTorqueLoan
+        );
         require(collateralAmountRequired != 0, "collateral is 0");
 
         return
@@ -176,7 +175,7 @@ contract LoanOpenings is
     ) external view returns (uint256) {
         uint256 maxLoanTerm = 2419200; // 28 days
 
-        uint256 owedPerDay = newPrincipal.mul(interestRate).div(365 * 10**20);
+        uint256 owedPerDay = newPrincipal.mul(interestRate).div(365 * 10 ** 20);
 
         uint256 interestAmountRequired = maxLoanTerm.mul(owedPerDay).div(86400);
 
@@ -233,10 +232,9 @@ contract LoanOpenings is
 				);
 			}*/
 
-            uint256 fee =
-                isTorqueLoan
-                    ? _getBorrowingFee(collateralAmountRequired)
-                    : _getTradingFee(collateralAmountRequired);
+            uint256 fee = isTorqueLoan
+                ? _getBorrowingFee(collateralAmountRequired)
+                : _getTradingFee(collateralAmountRequired);
             if (fee != 0) {
                 collateralAmountRequired = collateralAmountRequired.add(fee);
             }
@@ -269,7 +267,7 @@ contract LoanOpenings is
     ) public view returns (uint256 borrowAmount) {
         if (marginAmount != 0) {
             if (isTorqueLoan) {
-                marginAmount = marginAmount.add(10**20); /// Adjust for over-collateralized loan.
+                marginAmount = marginAmount.add(10 ** 20); /// Adjust for over-collateralized loan.
             }
             uint256 collateral = collateralTokenAmount;
             uint256 fee = isTorqueLoan ? _getBorrowingFee(collateral) : _getTradingFee(collateral);
@@ -277,13 +275,13 @@ contract LoanOpenings is
                 collateral = collateral.sub(fee);
             }
             if (loanToken == collateralToken) {
-                borrowAmount = collateral.mul(10**20).div(marginAmount);
+                borrowAmount = collateral.mul(10 ** 20).div(marginAmount);
             } else {
-                (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-                    IPriceFeeds(priceFeeds).queryRate(collateralToken, loanToken);
+                (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds)
+                    .queryRate(collateralToken, loanToken);
                 if (sourceToDestPrecision != 0) {
                     borrowAmount = collateral
-                        .mul(10**20)
+                        .mul(10 ** 20)
                         .mul(sourceToDestRate)
                         .div(marginAmount)
                         .div(sourceToDestPrecision);
@@ -356,26 +354,24 @@ contract LoanOpenings is
         uint256 sentNewPrincipal = isTorqueLoan ? sentValues.newPrincipal : 0;
 
         /// Initialize loan.
-        Loan storage loanLocal =
-            loans[
-                _initializeLoan(
-                    loanParamsLocal,
-                    loanId,
-                    initialMargin,
-                    sentAddresses,
-                    sentValues.newPrincipal
-                )
-            ];
+        Loan storage loanLocal = loans[
+            _initializeLoan(
+                loanParamsLocal,
+                loanId,
+                initialMargin,
+                sentAddresses,
+                sentValues.newPrincipal
+            )
+        ];
 
         // Get required interest.
-        uint256 amount =
-            _initializeInterest(
-                loanParamsLocal,
-                loanLocal,
-                sentValues.interestRate, /// newRate
-                sentValues.newPrincipal, /// newPrincipal,
-                sentValues.interestInitialAmount /// torqueInterest
-            );
+        uint256 amount = _initializeInterest(
+            loanParamsLocal,
+            loanLocal,
+            sentValues.interestRate, /// newRate
+            sentValues.newPrincipal, /// newPrincipal,
+            sentValues.interestInitialAmount /// torqueInterest
+        );
 
         /// substract out interest from usable loanToken sent.
         sentValues.loanTokenSent = sentValues.loanTokenSent.sub(amount);
@@ -429,7 +425,7 @@ contract LoanOpenings is
             sentValues.interestDuration = loanLocal.endTimestamp.sub(block.timestamp);
         } else {
             /// reclaiming variable -> entryLeverage = 100 / initialMargin
-            sentValues.entryLeverage = SafeMath.div(10**38, initialMargin);
+            sentValues.entryLeverage = SafeMath.div(10 ** 38, initialMargin);
         }
 
         _finalizeOpen(loanParamsLocal, loanLocal, sentAddresses, sentValues, isTorqueLoan);
@@ -497,8 +493,8 @@ contract LoanOpenings is
         bool isTorqueLoan
     ) internal {
         /// @dev TODO: here the actual used rate and margin should go.
-        (uint256 initialMargin, uint256 collateralToLoanRate) =
-            IPriceFeeds(priceFeeds).getCurrentMargin(
+        (uint256 initialMargin, uint256 collateralToLoanRate) = IPriceFeeds(priceFeeds)
+            .getCurrentMargin(
                 loanParamsLocal.loanToken,
                 loanParamsLocal.collateralToken,
                 loanLocal.principal,
@@ -507,16 +503,14 @@ contract LoanOpenings is
         require(initialMargin > loanParamsLocal.maintenanceMargin, "unhealthy position");
 
         if (loanLocal.startTimestamp == block.timestamp) {
-            uint256 loanToCollateralPrecision =
-                IPriceFeeds(priceFeeds).queryPrecision(
-                    loanParamsLocal.loanToken,
-                    loanParamsLocal.collateralToken
-                );
-            uint256 collateralToLoanPrecision =
-                IPriceFeeds(priceFeeds).queryPrecision(
-                    loanParamsLocal.collateralToken,
-                    loanParamsLocal.loanToken
-                );
+            uint256 loanToCollateralPrecision = IPriceFeeds(priceFeeds).queryPrecision(
+                loanParamsLocal.loanToken,
+                loanParamsLocal.collateralToken
+            );
+            uint256 collateralToLoanPrecision = IPriceFeeds(priceFeeds).queryPrecision(
+                loanParamsLocal.collateralToken,
+                loanParamsLocal.loanToken
+            );
             uint256 totalSwapRate = loanToCollateralPrecision.mul(collateralToLoanPrecision);
             loanLocal.startRate = isTorqueLoan
                 ? collateralToLoanRate
@@ -582,7 +576,7 @@ contract LoanOpenings is
             );
         } else {
             /// currentLeverage = 100 / currentMargin
-            margin = SafeMath.div(10**38, margin);
+            margin = SafeMath.div(10 ** 38, margin);
 
             emit Trade(
                 sentAddresses.borrower, /// user (trader)
@@ -648,14 +642,13 @@ contract LoanOpenings is
         if (newCollateral < collateralAmountRequired) {
             /// Check that existing collateral is sufficient coverage.
             if (loanLocal.collateral != 0) {
-                uint256 maxDrawdown =
-                    IPriceFeeds(priceFeeds).getMaxDrawdown(
-                        loanParamsLocal.loanToken,
-                        loanParamsLocal.collateralToken,
-                        loanLocal.principal.sub(newPrincipal), // sub(newPrincipal) to exclude the new borrowed amount from the total principal to calculate maxDrawdown for existing loan
-                        loanLocal.collateral,
-                        initialMargin
-                    );
+                uint256 maxDrawdown = IPriceFeeds(priceFeeds).getMaxDrawdown(
+                    loanParamsLocal.loanToken,
+                    loanParamsLocal.collateralToken,
+                    loanLocal.principal.sub(newPrincipal), // sub(newPrincipal) to exclude the new borrowed amount from the total principal to calculate maxDrawdown for existing loan
+                    loanLocal.collateral,
+                    initialMargin
+                );
                 return newCollateral.add(maxDrawdown) >= collateralAmountRequired;
             } else {
                 return false;
@@ -765,8 +758,9 @@ contract LoanOpenings is
         _payInterest(loanLocal.lender, loanParamsLocal.loanToken);
 
         LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
-        LenderInterest storage lenderInterestLocal =
-            lenderInterest[loanLocal.lender][loanParamsLocal.loanToken];
+        LenderInterest storage lenderInterestLocal = lenderInterest[loanLocal.lender][
+            loanParamsLocal.loanToken
+        ];
 
         uint256 maxLoanTerm = loanParamsLocal.maxLoanTerm;
 
@@ -783,12 +777,12 @@ contract LoanOpenings is
         if (maxLoanTerm == 0 && loanLocal.endTimestamp != 0) {
             previousDepositRemaining = loanLocal
                 .endTimestamp
-                .sub(block.timestamp) /// block.timestamp < endTimestamp was confirmed earlier.
+                .sub(block.timestamp)
                 .mul(loanInterestLocal.owedPerDay)
-                .div(86400);
+                .div(86400); /// block.timestamp < endTimestamp was confirmed earlier.
         }
 
-        uint256 owedPerDay = newPrincipal.mul(newRate).div(365 * 10**20);
+        uint256 owedPerDay = newPrincipal.mul(newRate).div(365 * 10 ** 20);
 
         /// Update stored owedPerDay
         loanInterestLocal.owedPerDay = loanInterestLocal.owedPerDay.add(owedPerDay);
@@ -854,26 +848,26 @@ contract LoanOpenings is
         bool isTorqueLoan
     ) internal view returns (uint256 collateralTokenAmount) {
         if (loanToken == collateralToken) {
-            collateralTokenAmount = newPrincipal.mul(marginAmount).div(10**20);
+            collateralTokenAmount = newPrincipal.mul(marginAmount).div(10 ** 20);
         } else {
             /// Using the price feed instead of the swap expected return
             /// because we need the rate in the inverse direction
             /// so the swap is probably farther off than the price feed.
-            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-                IPriceFeeds(priceFeeds).queryRate(collateralToken, loanToken);
+            (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds)
+                .queryRate(collateralToken, loanToken);
             if (sourceToDestRate != 0) {
                 collateralTokenAmount = newPrincipal
                     .mul(sourceToDestPrecision)
                     .div(sourceToDestRate)
                     .mul(marginAmount)
-                    .div(10**20);
+                    .div(10 ** 20);
                 /*TODO: review
 				collateralTokenAmount = newPrincipal.mul(sourceToDestPrecision).mul(marginAmount).div(sourceToDestRate).div(10**20);*/
             }
         }
         // ./tests/loan-token/TradingTestToken.test.js
         if (isTorqueLoan && collateralTokenAmount != 0) {
-            collateralTokenAmount = collateralTokenAmount.mul(10**20).div(marginAmount).add(
+            collateralTokenAmount = collateralTokenAmount.mul(10 ** 20).div(marginAmount).add(
                 collateralTokenAmount
             );
         }

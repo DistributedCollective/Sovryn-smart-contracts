@@ -87,10 +87,10 @@ interface IStaking {
      * @param time The timestamp for which to calculate the total voting power.
      * @return The total voting power at the given time.
      * */
-    function getPriorTotalVotingPower(uint32 blockNumber, uint256 time)
-        external
-        view
-        returns (uint96);
+    function getPriorTotalVotingPower(
+        uint32 blockNumber,
+        uint256 time
+    ) external view returns (uint96);
 
     /**
      * @notice Get the current votes balance for a user account.
@@ -143,10 +143,10 @@ interface IStaking {
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
-    function getPriorTotalStakesForDate(uint256 date, uint256 blockNumber)
-        external
-        view
-        returns (uint96);
+    function getPriorTotalStakesForDate(
+        uint256 date,
+        uint256 blockNumber
+    ) external view returns (uint96);
 
     /**
      * @notice Delegate votes from `msg.sender` which are locked until lockDate to `delegatee`.
@@ -171,12 +171,7 @@ interface IStaking {
      * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.
      * @param delegatee The address of the delegatee or 0x0 if there is none.
      * */
-    function stake(
-        uint96 amount,
-        uint256 until,
-        address stakeFor,
-        address delegatee
-    ) external;
+    function stake(uint96 amount, uint256 until, address stakeFor, address delegatee) external;
 
     /**
      * @notice Stake the given amount for the given duration of time.
@@ -264,10 +259,9 @@ interface IStaking {
      * @param account The address to get stakes.
      * @return The arrays of dates and stakes.
      * */
-    function getStakes(address account)
-        external
-        view
-        returns (uint256[] memory dates, uint96[] memory stakes);
+    function getStakes(
+        address account
+    ) external view returns (uint256[] memory dates, uint96[] memory stakes);
 
     /**
      * @notice Unstaking is possible every 2 weeks only. This means, to
@@ -343,17 +337,16 @@ interface IStaking {
     /// @notice A record of tokens to be unstaked at a given time in total.
     /// For total voting power computation. Voting weights get adjusted bi-weekly.
     /// @dev totalStakingCheckpoints[date][index] is a checkpoint
-    function totalStakingCheckpoints(uint256 date, uint32 index)
-        external
-        view
-        returns (Checkpoint memory);
+    function totalStakingCheckpoints(
+        uint256 date,
+        uint32 index
+    ) external view returns (Checkpoint memory);
 
     /// @notice The number of total staking checkpoints for each date.
     /// @dev numTotalStakingCheckpoints[date] is a number.
-    function numTotalStakingCheckpoints(uint256 date)
-        external
-        view
-        returns (uint32 checkpointsQty);
+    function numTotalStakingCheckpoints(
+        uint256 date
+    ) external view returns (uint32 checkpointsQty);
 
     /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address.
     /// For delegatee voting power computation. Voting weights get adjusted bi-weekly.
@@ -366,10 +359,10 @@ interface IStaking {
 
     /// @notice The number of total staking checkpoints for each date per delegate.
     /// @dev numDelegateStakingCheckpoints[delegatee][date] is a number.
-    function numDelegateStakingCheckpoints(address delegatee, uint256 date)
-        external
-        view
-        returns (uint32 checkpointsQty);
+    function numDelegateStakingCheckpoints(
+        address delegatee,
+        uint256 date
+    ) external view returns (uint32 checkpointsQty);
 
     /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)
     /// @dev userStakingCheckpoints[user][date][index] is a checkpoint.
@@ -381,10 +374,10 @@ interface IStaking {
 
     /// @notice The number of total staking checkpoints for each date per user.
     /// @dev numUserStakingCheckpoints[user][date] is a number
-    function numUserStakingCheckpoints(address user, uint256 date)
-        external
-        view
-        returns (uint32 checkpointsQty);
+    function numUserStakingCheckpoints(
+        address user,
+        uint256 date
+    ) external view returns (uint32 checkpointsQty);
 
     /// @notice A record of states for signing / validating signatures
     /// @dev nonces[user] is a number.
@@ -413,10 +406,10 @@ interface IStaking {
 
     /// @notice A record of tokens to be unstaked from vesting contract at a given time (lockDate -> vest checkpoint)
     /// @dev vestingCheckpoints[date][index] is a checkpoint.
-    function vestingCheckpoints(uint256 date, uint32 index)
-        external
-        view
-        returns (Checkpoint memory);
+    function vestingCheckpoints(
+        uint256 date,
+        uint32 index
+    ) external view returns (Checkpoint memory);
 
     /// @notice The number of total vesting checkpoints for each date.
     /// @dev numVestingCheckpoints[date] is a number.
@@ -467,10 +460,10 @@ interface IStaking {
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
-    function getPriorVestingStakeByDate(uint256 date, uint256 blockNumber)
-        external
-        view
-        returns (uint96);
+    function getPriorVestingStakeByDate(
+        uint256 date,
+        uint256 blockNumber
+    ) external view returns (uint96);
 
     /**
      * @notice Compute the voting power for a specific date.
@@ -499,10 +492,10 @@ interface IStaking {
      * @param date The staking date to compute the power for.
      * @return The weighted stake the account had as of the given block.
      * */
-    function getPriorVestingWeightedStake(uint256 blockNumber, uint256 date)
-        external
-        view
-        returns (uint96 votes);
+    function getPriorVestingWeightedStake(
+        uint256 blockNumber,
+        uint256 date
+    ) external view returns (uint96 votes);
 
     /**
      * @notice Determine the prior number of stake for an account until a
@@ -543,11 +536,7 @@ interface IStaking {
      * @param until The date until which the tokens were staked.
      * @param receiver The receiver of the tokens. If not specified, send to the msg.sender
      * */
-    function withdraw(
-        uint96 amount,
-        uint256 until,
-        address receiver
-    ) external;
+    function withdraw(uint96 amount, uint256 until, address receiver) external;
 
     /**
      * @notice Withdraw the given amount of tokens.
@@ -558,11 +547,7 @@ interface IStaking {
      * @dev **WARNING** This function should not be no longer used by Sovryn Protocol.
      * Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.
      * */
-    function governanceWithdraw(
-        uint96 amount,
-        uint256 until,
-        address receiver
-    ) external;
+    function governanceWithdraw(uint96 amount, uint256 until, address receiver) external;
 
     /**
      * @notice Withdraw tokens for vesting contract.
@@ -577,10 +562,10 @@ interface IStaking {
      * @param amount The number of tokens to withdraw.
      * @param until The date until which the tokens were staked.
      * */
-    function getWithdrawAmounts(uint96 amount, uint256 until)
-        external
-        view
-        returns (uint96, uint96);
+    function getWithdrawAmounts(
+        uint96 amount,
+        uint256 until
+    ) external view returns (uint96, uint96);
 
     /**
      * @notice Allow the owner to unlock all tokens in case the staking contract
@@ -636,10 +621,10 @@ interface IStaking {
      * @param startDate We compute the weight for the tokens staked until 'date' on 'startDate'.
      * @return The weighted stake the account had as of the given block.
      * */
-    function computeWeightByDate(uint256 date, uint256 startDate)
-        external
-        pure
-        returns (uint96 weight);
+    function computeWeightByDate(
+        uint256 date,
+        uint256 startDate
+    ) external pure returns (uint96 weight);
 
     /**
      * @notice Returns public constant MAX_DURATION
@@ -674,11 +659,7 @@ interface IStaking {
      * @param receiver The receiving address.
      * @param startFrom The start value for the iterations.
      */
-    function cancelTeamVesting(
-        address vesting,
-        address receiver,
-        uint256 startFrom
-    ) external;
+    function cancelTeamVesting(address vesting, address receiver, uint256 startFrom) external;
 
     /**
      * @notice Max iteration for direct withdrawal from staking to prevent out of gas issue.

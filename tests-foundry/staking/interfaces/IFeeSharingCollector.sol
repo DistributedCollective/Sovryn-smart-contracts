@@ -12,11 +12,7 @@ interface IFeeSharingCollector {
 
     function transferTokens(address _token, uint96 _amount) external;
 
-    function withdraw(
-        address _loanPoolToken,
-        uint32 _maxCheckpoints,
-        address _receiver
-    ) external;
+    function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) external;
 }
 
 /**
@@ -35,9 +31,10 @@ interface IProtocol {
      *
      * @return totalWRBTCWithdrawn The withdrawn total amount in wRBTC
      * */
-    function withdrawFees(address[] calldata tokens, address receiver)
-        external
-        returns (uint256 totalWRBTCWithdrawn);
+    function withdrawFees(
+        address[] calldata tokens,
+        address receiver
+    ) external returns (uint256 totalWRBTCWithdrawn);
 
     function underlyingToLoanPool(address token) external view returns (address);
 

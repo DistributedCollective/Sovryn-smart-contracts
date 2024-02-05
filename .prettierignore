@@ -25,6 +25,6 @@ venv/
 deployment/deployments
 tmp/
 out/
-foundry/forge-std
+foundry/
 cache_forge/
 safe/

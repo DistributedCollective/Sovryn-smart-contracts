@@ -39,8 +39,8 @@ contract TestSovrynSwap {
         uint256 _affiliateFee
     ) external payable returns (uint256) {
         //compute the return for the amount of tokens provided
-        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-            IPriceFeeds(priceFeeds).queryRate(address(_path[0]), address(_path[1]));
+        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds)
+            .queryRate(address(_path[0]), address(_path[1]));
         uint256 actualReturn = _amount.mul(sourceToDestRate).div(sourceToDestPrecision);
 
         require(actualReturn >= _minReturn, "insufficient source tokens provided");
@@ -55,8 +55,8 @@ contract TestSovrynSwap {
      * amout of source tokens to be swapped.
      * */
     function rateByPath(IERC20[] calldata _path, uint256 _amount) external view returns (uint256) {
-        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-            IPriceFeeds(priceFeeds).queryRate(address(_path[0]), address(_path[1]));
+        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds)
+            .queryRate(address(_path[0]), address(_path[1]));
 
         return _amount.mul(sourceToDestRate).div(sourceToDestPrecision);
     }
@@ -64,11 +64,10 @@ contract TestSovrynSwap {
     /**
      * returns the conversion path -> always a direct path
      * */
-    function conversionPath(IERC20 _sourceToken, IERC20 _targetToken)
-        external
-        view
-        returns (IERC20[] memory)
-    {
+    function conversionPath(
+        IERC20 _sourceToken,
+        IERC20 _targetToken
+    ) external view returns (IERC20[] memory) {
         IERC20[] memory path = new IERC20[](2);
         path[0] = _sourceToken;
         path[1] = _targetToken;
