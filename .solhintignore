@@ -7,3 +7,5 @@ contracts/interfaces
 contracts/events
 foundry
 tests-foundry
+tmp
+temp
