@@ -5,7 +5,6 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC20, ERC20Capped } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Sovryn Token for BitcoinOS: a 'coupon token' to be transitioned to BitcoinOS.
