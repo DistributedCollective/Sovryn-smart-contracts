@@ -1,8 +1,8 @@
 pragma solidity ^0.5.17;
 
-import "../../interfaces/IERC20Mintable.sol";
-import "../Staking/interfaces/IStaking.sol";
-import "../../openzeppelin/Ownable.sol";
+import { IERC20Mintable } from "../../interfaces/IERC20Mintable.sol";
+import { IStaking } from "../Staking/interfaces/IStaking.sol";
+import { Ownable } from "../../openzeppelin/Ownable.sol";
 
 /**
  * @title Staking Rewards Storage Contract.

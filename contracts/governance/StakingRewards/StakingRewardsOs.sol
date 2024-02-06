@@ -3,13 +3,14 @@ pragma solidity ^0.5.17;
 import { StakingRewardsOsStorage, IStaking, IERC20Mintable } from "./StakingRewardsOsStorage.sol";
 import { SafeMath } from "../../openzeppelin/SafeMath.sol";
 import { Address } from "../../openzeppelin/Address.sol";
+import { Initializable } from "../../openzeppelin/Initializable.sol";
 
 /**
  * @title Staking Rewards Contract.
  * @notice This is a trial incentive program.
  * In this, the osSOV minted to voluntary stakers and is locked until transferred to BitcoinOS
  * */
-contract StakingRewardsOs is StakingRewardsOsStorage {
+contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
     using SafeMath for uint256;
 
     /// @notice Emitted when osSOV is withdrawn
@@ -23,19 +24,27 @@ contract StakingRewardsOs is StakingRewardsOsStorage {
      * @param _osSOV osSOV token address
      * @param _staking StakingProxy address should be passed
      * */
-    function initialize(address _osSOV, IStaking _staking) external onlyOwner {
-        require(_osSOV != address(0), "Invalid osSOV Address.");
+    function initialize(
+        address _owner,
+        address _osSOV,
+        IStaking _staking,
+        uint256 _averageBlockTime
+    ) external initializer {
+        require(_owner != address(0), "_owner address canniot be zero.");
+        require(_osSOV != address(0), "Invalid _osSOV Address.");
         require(Address.isContract(_osSOV), "_osSOV not a contract");
         osSOV = IERC20Mintable(_osSOV);
         staking = _staking;
         rewardsProgramStartTime = staking.timestampToLockDate(block.timestamp);
-        setMaxDuration(15 * TWO_WEEKS);
+        maxDuration = 15 * TWO_WEEKS;
         deploymentBlock = _getCurrentBlockNumber();
+        averageBlockTime = _averageBlockTime;
+        _transferOwnership(_owner);
     }
 
     /**
      * @notice Stops the current rewards program.
-     * @dev Users will get rewards
+     * @dev Users will only get rewards up to the stop block
      * */
     function stop() external onlyOwner {
         require(stopBlock == 0, "Already stopped");

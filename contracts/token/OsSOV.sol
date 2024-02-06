@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { ERC20, ERC20Capped } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Sovryn Token for BitcoinOS: a 'coupon token' to be transitioned to BitcoinOS.
@@ -16,12 +17,12 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
  *   based upon previous governance voting and approval.
  *
  */
-contract OsSOV is ERC20Capped, Ownable, AccessControl, Initializable {
+contract OsSOV is ERC20Capped, AccessControl, Ownable, Initializable {
     string private constant _NAME = "BitcoinOS Sovryn Transition Token";
     string private constant _SYMBOL = "osSOV";
     uint8 private constant _DECIMALS = 18;
 
-    bytes32 public constant AUTHORISED_MINTER = keccak256("AUTHORISED_MINTER");
+    bytes32 public constant AUTHORISED_MINTER_ROLE = keccak256("AUTHORISED_MINTER_ROLE");
 
     /**
      * @dev The token is non transferable.
@@ -38,8 +39,13 @@ contract OsSOV is ERC20Capped, Ownable, AccessControl, Initializable {
      */
     error NonReceivable();
 
+    /**
+     * @dev address passed cannot be zero
+     */
+    error NotAllowedZeroAddressForParam(string param);
+
     modifier onlyMinter(address _address) {
-        require(hasRole(AUTHORISED_MINTER, _address), "Not authorised to mint");
+        require(hasRole(AUTHORISED_MINTER_ROLE, _address), "Not authorised to mint");
         _;
     }
 
@@ -55,10 +61,35 @@ contract OsSOV is ERC20Capped, Ownable, AccessControl, Initializable {
     }
 
     /**
-     * @param _authorizedMinter The address of the minter - Staking Rewards contract
+     * @param _authorizedMinter Address of the minter - Staking Rewards contract
+     * @param _defaultAdmin Address for AcccessControl DEFAULT_ADMIN_ROLE to manage roles: assign and revoke
+     * @param _owner Address for AccessControl OWNER_ROLE to use in onlyOwner() modifier
      */
-    function initialize(address _authorizedMinter) public initializer {
-        _grantRole(AUTHORISED_MINTER, _authorizedMinter);
+    function initialize(
+        address _owner,
+        address _defaultAdmin,
+        address _authorizedMinter
+    ) external initializer {
+        if (_defaultAdmin == address(0)) {
+            revert NotAllowedZeroAddressForParam("_defaultAdmin");
+        }
+        _grantRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
+
+        if (_authorizedMinter != address(0)) {
+            _grantRole(AUTHORISED_MINTER_ROLE, _authorizedMinter);
+        }
+
+        if (_owner == address(0)) {
+            revert NotAllowedZeroAddressForParam("_owner");
+        }
+        _transferOwnership(_owner);
+    }
+
+    /**
+     * @param _adminRole Address for AcccessControl DEFAULT_ADMIN_ROLE to manage roles: assign and revoke
+     */
+    function setDefaultAdminRole(address _adminRole) external onlyOwner {
+        _grantRole(DEFAULT_ADMIN_ROLE, _adminRole);
     }
 
     /**
