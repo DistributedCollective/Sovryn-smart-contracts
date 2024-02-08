@@ -24,6 +24,7 @@ types/
 venv/
 deployment/deployments
 tmp/
+temp/
 out/
 foundry/
 cache_forge/
