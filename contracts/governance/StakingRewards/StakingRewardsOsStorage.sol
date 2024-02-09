@@ -10,18 +10,12 @@ import { Ownable } from "../../openzeppelin/Ownable.sol";
  * only constant, variables and required structures (mappings).
  * Used by StackingRewardsProxy.
  *
- * What is SOV staking rewards - SIP-0024?
- * The purpose of the SOV staking rewards - SIP-0024 is to reward,
+ * What is SOV staking rewards ?
+ * The purpose of the SOV staking rewards program is to reward,
  * "marginal stakers" (ie, stakers by choice, not currently vesting) with liquid SOV
  * at the beginning of each new staking interval.
  * */
 contract StakingRewardsOsStorage is Ownable {
-    /// @notice The SOV token contract.
-    IERC20Mintable public osSOV;
-
-    ///@notice the staking proxy contract address
-    IStaking public staking;
-
     /// @notice 2 weeks in seconds.
     uint256 public constant TWO_WEEKS = 1209600;
 
@@ -31,40 +25,68 @@ contract StakingRewardsOsStorage is Ownable {
     /// @notice DIVISOR is set as 2600000 = 26 (num periods per year) * 10 (max voting weight) * 10000 (900 -> 0.09)
     uint256 public constant DIVISOR = 2600000;
 
+    /// @notice The SOV token contract.
+    IERC20Mintable internal osSOV;
+
+    /// @notice the staking proxy contract address
+    IStaking internal staking;
+
     /// @notice Maximum duration to collect rewards at one go
-    uint256 public maxDuration;
+    uint256 internal maxDuration;
 
     /// @notice Represents the time when the contract is deployed
-    uint256 public rewardsProgramStartTime;
+    uint256 internal rewardsProgramStartTime;
 
     /// @notice Represents the block when the Staking Rewards pogram is stopped
-    uint256 public stopBlock;
+    uint256 internal stopBlock;
+
     /// @notice Timestamp of the stopBlock adjusted to the staking lock timestamp
-    uint256 public stopRewardsTimestamp;
+    uint256 internal stopRewardsTimestamp;
 
     /// @notice User Address -> Last Withdrawn Timestamp
-    mapping(address => uint256) public userLastWithdrawTimestamp;
+    mapping(address => uint256) internal userLastWithdrawTimestamp;
 
     /// @notice User Address -> Claimed Balance
-    mapping(address => uint256) public claimedBalances;
+    mapping(address => uint256) internal claimedBalances;
 
     /// @notice Represents the block when the StakingRwards Program is started
-    uint256 public deploymentBlock;
-
-    /// Moved the variables from Initializable contract to resolve issue caused by incorrect Inheritance Order
-    /**
-     * @dev Indicates that the contract has been initialized.
-     */
-    bool private _initialized;
-
-    /**
-     * @dev Indicates that the contract is in the process of being initialized.
-     */
-    bool private _initializing;
+    uint256 internal deploymentBlock;
 
     /// @notice BlockTime -> BlockNumber for a Staking Checkpoint
-    mapping(uint256 => uint256) public checkpointBlockDetails;
+    mapping(uint256 => uint256) internal checkpointBlockDetails;
 
     /// @notice Average Block Time - making it flexible
-    uint256 public averageBlockTime;
+    uint256 internal averageBlockTime;
+
+    function getOsSOV() external view returns (IERC20Mintable) {
+        return osSOV;
+    }
+
+    function getStaking() external view returns (IStaking) {
+        return staking;
+    }
+
+    function getMaxDuration() external view returns (uint256) {
+        return maxDuration;
+    }
+
+    function getRewardsProgramStartTime() external view returns (uint256) {
+        return rewardsProgramStartTime;
+    }
+
+    function getStopBlock() external view returns (uint256) {
+        return stopBlock;
+    }
+
+    function getStopRewardsTimestamp() external view returns (uint256) {
+        return stopRewardsTimestamp;
+    }
+
+    function getDeploymentBlock() external view returns (uint256) {
+        return deploymentBlock;
+    }
+
+    function getAverageBlockTime() external view returns (uint256) {
+        return averageBlockTime;
+    }
 }

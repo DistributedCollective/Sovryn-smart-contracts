@@ -25,12 +25,10 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
      * @param _staking StakingProxy address should be passed
      * */
     function initialize(
-        address _owner,
         address _osSOV,
         IStaking _staking,
         uint256 _averageBlockTime
-    ) external initializer {
-        require(_owner != address(0), "_owner address canniot be zero.");
+    ) external onlyOwner initializer {
         require(_osSOV != address(0), "Invalid _osSOV Address.");
         require(Address.isContract(_osSOV), "_osSOV not a contract");
         osSOV = IERC20Mintable(_osSOV);
@@ -39,7 +37,6 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
         maxDuration = 15 * TWO_WEEKS;
         deploymentBlock = _getCurrentBlockNumber();
         averageBlockTime = _averageBlockTime;
-        _transferOwnership(_owner);
     }
 
     /**
