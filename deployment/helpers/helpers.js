@@ -587,7 +587,7 @@ const deployWithCustomProxy = async (
             // governance is the owner - need a SIP to register
             // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
         } else {
-            const proxy = await ethers.getContractAt(proxyName, proxyDeployment.address);
+            const proxy = await ethers.getContractAt(proxyArtifactName, proxyDeployment.address);
             await proxy.setImplementation(logicDeploymentTx.address);
             log(
                 `>>> New implementation ${await proxy.getImplementation()} is set to the proxy <<<`

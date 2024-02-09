@@ -1,65 +1,58 @@
-const { upgradeWithTransparentUpgradableProxy } = require("../helpers/helpers");
-const { getContractNameFromScriptFileName } = require("../helpers/utils");
-
-const path = require("path");
-
-const func = async (hre) => {
+const { deployWithCustomProxy } = require("../helpers/helpers");
+const Logs = require("node-logs");
+const { sendWithMultisig } = require("../helpers/helpers");
+const logger = new Logs().showInConsole(true);
+const col = require("cli-color");
+const func = async function (hre) {
     const {
-        deployments: { deploy, getOrNull, get, catchUnknownSigner },
+        deployments: { get, log },
         getNamedAccounts,
     } = hre;
     const { deployer } = await getNamedAccounts();
-    const deploymentName = getContractNameFromScriptFileName(path.basename(__filename));
-    const deployment = await getOrNull(deploymentName);
+    await logger.warn("Deploying StakingRewardsOs...");
+    await deployWithCustomProxy(
+        deployer,
+        "StakingRewardsOs",
+        "StakingRewardsOsProxy",
+        "",
+        "StakingRewardsOs_Proxy",
+        true
+    );
+    const stakingRewards = await ethers.getContract("StakingRewardsOs");
+    const stakingRewardsProxy = await ethers.getContract("StakingRewardsOs_Proxy");
+    const osSOV = await ethers.getContract("OsSOV");
+    const osSOVDeployment = await get("OsSOV");
+    const osSOVAddress = osSOV.address;
+    const stakingAddress = (await get("Staking")).address;
+    const multisigAddress = (await get("MultiSigWallet")).address;
 
-    //     function initialize(
-    //     address _osSOV,
-    //     IStaking _staking,
-    //     uint256 _averageBlockTime
-    // )
+    if ((await stakingRewards.getOsSOV()) === ethers.constants.AddressZero) {
+        await stakingRewards.initialize(osSOVAddress, stakingAddress, 30);
+    }
+    if ((await stakingRewardsProxy.getProxyOwner()) === ethers.constants.AddressZero) {
+        await stakingRewardsProxy.setProxyOwner(multisigAddress);
+    }
+    if ((await stakingRewards.owner()) !== multisigAddress) {
+        await stakingRewards.transferOwnership(multisigAddress);
+    }
 
-    const osSOV = await get("OsSOV");
-    const staking = await get("Staking");
-    const multisig = await get("MultiSigWallet");
-
-    if (deployment) {
-        await upgradeWithTransparentUpgradableProxy(
-            deployer,
-            deploymentName,
-            "TransparentUpgradeableProxy",
-            undefined,
-            `${deploymentName}_Proxy`
-        );
-    } else {
-        console.log("initial deployment");
-        //await catchUnknownSigner(
-        await deploy(deploymentName, {
-            proxy: {
-                owner: multisig.address,
-                proxyContract: "OpenZeppelinTransparentProxy",
-                viaAdminContract: {
-                    name: "TransparentUpgradableProxyAdmin",
-                    artifact: "TransparentUpgradableProxyAdmin",
-                },
-                execute: {
-                    init: {
-                        methodName: "initialize",
-                        args: [
-                            multisig.address, //owner
-                            osSOV.address,
-                            staking.address,
-                            30, //seconds average block time
-                        ],
-                    },
-                },
-            },
-            from: deployer,
-            log: true,
-        });
-        //);
+    const AUTHORISED_MINTER_ROLE = await osSOV.AUTHORISED_MINTER_ROLE();
+    if (!(await osSOV.hasRole(AUTHORISED_MINTER_ROLE, stakingRewards.address))) {
+        if ((await osSOV.owner()) === multisigAddress) {
+            const osSOVInterface = new ethers.utils.Interface(osSOVDeployment.abi);
+            const data = osSOVInterface.encodeFunctionData("grantRole", [
+                AUTHORISED_MINTER_ROLE,
+                stakingRewards.address,
+            ]);
+            log(col.yellow("Granting role AUTHORISED_MINTER_ROLE to StakingRewardsOs..."));
+            await sendWithMultisig(multisigAddress, osSOV.address, data, deployer);
+            log(col.yellow("This multisig tx requires signatures and execution"));
+        } else {
+            await osSOV.grantRole(AUTHORISED_MINTER_ROLE, stakingRewards.address);
+        }
     }
 };
 
 func.tags = ["StakingRewardsOs"];
-func.dependencies = ["TransparentUpgradableProxyAdmin", "OsSOV"];
+func.dependencies = ["OsSOV"];
 module.exports = func;

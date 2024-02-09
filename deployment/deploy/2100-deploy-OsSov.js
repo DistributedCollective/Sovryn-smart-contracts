@@ -1,8 +1,9 @@
 const { upgradeWithTransparentUpgradableProxy } = require("../helpers/helpers");
+const col = require("cli-color");
 
 const func = async (hre) => {
     const {
-        deployments: { deploy, getOrNull, get },
+        deployments: { deploy, getOrNull, get, log },
         getNamedAccounts,
     } = hre;
     const { deployer } = await getNamedAccounts();
@@ -19,7 +20,8 @@ const func = async (hre) => {
             `${deploymentName}_Proxy`
         );
     } else {
-        const tx = await deploy(deploymentName, {
+        log(col.yellow("Deploying OsSOV..."));
+        await deploy(deploymentName, {
             proxy: {
                 owner: multisig.address,
                 proxyContract: "OpenZeppelinTransparentProxy",
