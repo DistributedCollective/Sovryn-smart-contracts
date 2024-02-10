@@ -3,9 +3,9 @@
 View Source: [contracts/governance/ApprovalReceiver.sol](../contracts/governance/ApprovalReceiver.sol)
 
 **↗ Extends: [ErrorDecoder](ErrorDecoder.md), [IApproveAndCall](IApproveAndCall.md)**
-**↘ Derived Contracts: [FourYearVestingLogic](FourYearVestingLogic.md), [SVR](SVR.md), [VestingLogic](VestingLogic.md)**
+**↘ Derived Contracts: [FourYearVestingLogic](FourYearVestingLogic.md), [StakingStakeModule](StakingStakeModule.md), [VestingLogic](VestingLogic.md)**
 
-**ApprovalReceiver**
+## **ApprovalReceiver** contract
 
 ## Modifiers
 
@@ -91,7 +91,7 @@ function receiveApproval(
 
 > ### _getToken
 
-⤿ Overridden Implementation(s): [FourYearVestingLogic._getToken](FourYearVestingLogic.md#_gettoken),[SVR._getToken](SVR.md#_gettoken),[VestingLogic._getToken](VestingLogic.md#_gettoken)
+⤿ Overridden Implementation(s): [FourYearVestingLogic._getToken](FourYearVestingLogic.md#_gettoken),[VestingLogic._getToken](VestingLogic.md#_gettoken)
 
 Returns token address, only this address can be a sender for receiveApproval.
 
@@ -114,12 +114,12 @@ function _getToken() internal view returns (address) {
 
 > ### _getSelectors
 
-⤿ Overridden Implementation(s): [FourYearVestingLogic._getSelectors](FourYearVestingLogic.md#_getselectors),[SVR._getSelectors](SVR.md#_getselectors),[VestingLogic._getSelectors](VestingLogic.md#_getselectors)
+⤿ Overridden Implementation(s): [FourYearVestingLogic._getSelectors](FourYearVestingLogic.md#_getselectors),[VestingLogic._getSelectors](VestingLogic.md#_getselectors)
 
 Returns list of function selectors allowed to be invoked.
 
 ```solidity
-function _getSelectors() internal view
+function _getSelectors() internal pure
 returns(bytes4[])
 ```
 
@@ -127,7 +127,7 @@ returns(bytes4[])
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function _getSelectors() internal view returns (bytes4[] memory) {
+function _getSelectors() internal pure returns (bytes4[] memory) {
         return new bytes4[](0);
     }
 ```
@@ -210,12 +210,11 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -226,9 +225,9 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -241,11 +240,16 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -257,6 +261,7 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -287,6 +292,7 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -306,11 +312,15 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -333,6 +343,7 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -340,18 +351,24 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -364,6 +381,7 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -376,5 +394,5 @@ function _getSig(bytes memory _data) internal pure returns (bytes4 sig) {
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

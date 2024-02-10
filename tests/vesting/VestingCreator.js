@@ -18,7 +18,7 @@ const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
-const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");

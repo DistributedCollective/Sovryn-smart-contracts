@@ -123,18 +123,17 @@ contract VestingRegistryLogic is VestingRegistryStorage {
             require(!isVesting[_vestingAddresses[i]], "vesting exists");
             require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
             require(_vestingAddresses[i] != address(0), "vesting cannot be 0 address");
-            uint256 uid =
-                uint256(
-                    keccak256(
-                        abi.encodePacked(
-                            _tokenOwners[i],
-                            uint256(VestingType.Vesting),
-                            cliff,
-                            duration,
-                            vestingCreationType
-                        )
+            uint256 uid = uint256(
+                keccak256(
+                    abi.encodePacked(
+                        _tokenOwners[i],
+                        uint256(VestingType.Vesting),
+                        cliff,
+                        duration,
+                        vestingCreationType
                     )
-                );
+                )
+            );
             vestings[uid] = Vesting(
                 uint256(VestingType.Vesting),
                 vestingCreationType,
@@ -178,14 +177,13 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 _duration,
         uint256 _vestingCreationType
     ) public onlyAuthorized {
-        address vesting =
-            _getOrCreateVesting(
-                _tokenOwner,
-                _cliff,
-                _duration,
-                uint256(VestingType.Vesting),
-                _vestingCreationType
-            );
+        address vesting = _getOrCreateVesting(
+            _tokenOwner,
+            _cliff,
+            _duration,
+            uint256(VestingType.Vesting),
+            _vestingCreationType
+        );
 
         emit VestingCreated(
             _tokenOwner,
@@ -212,14 +210,13 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 _duration,
         uint256 _vestingCreationType
     ) external onlyAuthorized {
-        address vesting =
-            _getOrCreateVesting(
-                _tokenOwner,
-                _cliff,
-                _duration,
-                uint256(VestingType.TeamVesting),
-                _vestingCreationType
-            );
+        address vesting = _getOrCreateVesting(
+            _tokenOwner,
+            _cliff,
+            _duration,
+            uint256(VestingType.TeamVesting),
+            _vestingCreationType
+        );
 
         emit TeamVestingCreated(
             _tokenOwner,
@@ -267,12 +264,11 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 _vestingCreationType
     ) public view returns (address) {
         uint256 type_ = uint256(VestingType.Vesting);
-        uint256 uid =
-            uint256(
-                keccak256(
-                    abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
-                )
-            );
+        uint256 uid = uint256(
+            keccak256(
+                abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
+            )
+        );
         return vestings[uid].vestingAddress;
     }
 
@@ -286,12 +282,11 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 _vestingCreationType
     ) public view returns (address) {
         uint256 type_ = uint256(VestingType.TeamVesting);
-        uint256 uid =
-            uint256(
-                keccak256(
-                    abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
-                )
-            );
+        uint256 uid = uint256(
+            keccak256(
+                abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
+            )
+        );
         return vestings[uid].vestingAddress;
     }
 
@@ -322,8 +317,8 @@ contract VestingRegistryLogic is VestingRegistryStorage {
     ) public onlyAuthorized {
         require(_vestingAddresses.length == _vestingCreationAndTypes.length, "Unmatched length");
         for (uint256 i = 0; i < _vestingCreationAndTypes.length; i++) {
-            VestingCreationAndTypeDetails memory _vestingCreationAndType =
-                _vestingCreationAndTypes[i];
+            VestingCreationAndTypeDetails
+                memory _vestingCreationAndType = _vestingCreationAndTypes[i];
             address _vestingAddress = _vestingAddresses[i];
 
             vestingCreationAndTypes[_vestingAddress] = _vestingCreationAndType;
@@ -351,12 +346,11 @@ contract VestingRegistryLogic is VestingRegistryStorage {
         uint256 _vestingCreationType
     ) internal returns (address) {
         address vesting;
-        uint256 uid =
-            uint256(
-                keccak256(
-                    abi.encodePacked(_tokenOwner, _type, _cliff, _duration, _vestingCreationType)
-                )
-            );
+        uint256 uid = uint256(
+            keccak256(
+                abi.encodePacked(_tokenOwner, _type, _cliff, _duration, _vestingCreationType)
+            )
+        );
         if (vestings[uid].vestingAddress == address(0)) {
             if (_type == 1) {
                 vesting = vestingFactory.deployVesting(
@@ -464,21 +458,11 @@ contract VestingRegistryLogic is VestingRegistryStorage {
     /**
      * @notice returns cliff and duration for Vesting & TeamVesting contracts
      */
-    function getVestingDetails(address _vestingAddress)
-        external
-        view
-        returns (uint256 cliff, uint256 duration)
-    {
+    function getVestingDetails(
+        address _vestingAddress
+    ) external view returns (uint256 cliff, uint256 duration) {
         VestingLogic vesting = VestingLogic(_vestingAddress);
         return (vesting.cliff(), vesting.duration());
-    }
-
-    /**
-     * @notice returns if the address is a vesting address
-     * @dev will be deprecated due to wrong spelling. use isVestingAddress(address _vestingAddress).
-     */
-    function isVestingAdress(address _vestingAddress) external view returns (bool isVestingAddr) {
-        return isVesting[_vestingAddress];
     }
 
     /**

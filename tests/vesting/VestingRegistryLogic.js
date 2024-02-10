@@ -6,7 +6,7 @@ const { deployAndGetIStaking } = require("../Utils/initializer");
 
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
-const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
@@ -1007,7 +1007,7 @@ contract("VestingRegistryLogic", (accounts) => {
                 lockedTS,
                 numUserStakingCheckpoints - 1
             );
-            assert.equal(ethers.BigNumber.from(numDelegateStakingCheckpoints).toNumber(), 1);
+            assert.equal(numDelegateStakingCheckpoints, 1);
             if (i === start) {
                 assert.equal(delegateStakingCheckpoints.stake.toString(), stakeForFirstInterval);
             } else {

@@ -87,11 +87,16 @@ contract("GenericTokenSender", (accounts) => {
             );
         });
 
-        it("fails if the 0 address is passed as token address", async () => {
-            await expectRevert(
-                tokenSender.transferTokens(ZERO_ADDRESS, account1, 1000),
-                "token address invalid"
-            );
+        it("sends native token if the 0 address is passed as token address", async () => {
+            const hre = require("hardhat");
+            const { setBalance } = require("@nomicfoundation/hardhat-network-helpers");
+            const { ethers } = hre;
+            console.log("tokenSender.address:", tokenSender.address);
+            await setBalance(tokenSender.address, 1000);
+            const balanceBefore = await ethers.provider.getBalance(account1);
+            await tokenSender.transferTokens(ZERO_ADDRESS, account1, 1000);
+            const balanceAfter = await ethers.provider.getBalance(account1);
+            expect(1000).to.equal(balanceAfter.sub(balanceBefore).toNumber());
         });
 
         it("fails if the 0 address is passed as receiver address", async () => {
@@ -178,11 +183,16 @@ contract("GenericTokenSender", (accounts) => {
             );
         });
 
-        it("fails if the 0 address is passed as receiver address", async () => {
-            await expectRevert(
-                tokenSender.transferTokensUsingList(ZERO_ADDRESS, [account1], [1000]),
-                "token address invalid"
-            );
+        it("should send RBTC if 0 token address is passed", async () => {
+            const hre = require("hardhat");
+            const { setBalance } = require("@nomicfoundation/hardhat-network-helpers");
+            const { ethers } = hre;
+            console.log("tokenSender.address:", tokenSender.address);
+            await setBalance(tokenSender.address, 1000);
+            const balanceBefore = await ethers.provider.getBalance(account1);
+            await tokenSender.transferTokensUsingList(ZERO_ADDRESS, [account1], [1000]);
+            const balanceAfter = await ethers.provider.getBalance(account1);
+            expect(1000).to.equal(balanceAfter.sub(balanceBefore).toNumber());
         });
 
         it("fails if the 0 address is passed as receiver address", async () => {

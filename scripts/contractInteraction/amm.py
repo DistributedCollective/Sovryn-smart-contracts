@@ -5,6 +5,7 @@ import time;
 import copy
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
+from web3 import Web3
 from scripts.contractInteraction.token import *
 
 def swapTokens(amount, minReturn, swapNetworkAddress, sourceTokenAddress, destTokenAddress):
@@ -297,6 +298,7 @@ def printV1ConverterData(converterAddress): #, reserve1, reserve2
             print('oracle:', converter.oracle())
         except:
             print('NO ORACLE!')
+    print('converter.conversionFee():', converter.conversionFee()) 
     print('converter.reserveRatio():', converter.reserveRatio())
     print('amm converter pool token (anchor):', anchor)
     print('reserve token: (balance, weight, deprecated1, deprecated2, isSet)')
@@ -344,6 +346,28 @@ def withdrawFromRBTCWrapperProxy(tokenAddress, to, amount):
     abi = json.load(abiFile)
     wrapperProxy = Contract.from_abi("RBTCWrapperProxy", address=conf.contracts['RBTCWrapperProxy'], abi=abi, owner=conf.acct)
     wrapperProxy.withdraw(tokenAddress, to, amount)
+
+def transferOwnershipAMMContractsToGovernance(contractAddress, newOwnerAddress, contractName=''):
+    abiFile =  open('./scripts/contractInteraction/ABIs/Owned.json')
+    abi = json.load(abiFile)
+    ammContract = Contract.from_abi("AMMContract", address=contractAddress, abi=abi, owner=conf.acct)
+
+    if(contractName):
+        # # verify the contract address
+        contractRegistry = Contract.from_abi("sovryn", address=conf.contracts['ammContractRegistry'], abi=interface.IContractRegistry.abi, owner=conf.acct)
+        _contractAddress = contractRegistry.addressOf(web3.toHex(contractName.encode('utf-8')).ljust(66, '0'))
+
+        if(_contractAddress != contractAddress):
+            raise Exception("Unmatched contract address with the on-chain")
+
+    currentOwner = ammContract.owner()
+    if(currentOwner != conf.contracts['multisig']):
+        raise Exception("Multisig is not the owner")
+
+    print("Transferring ownership of {0} to {1}".format(contractAddress, newOwnerAddress))
+    data = ammContract.transferOwnership.encode_input(newOwnerAddress)
+    print(data)
+    sendWithMultisig(conf.contracts['multisig'], ammContract.address, data, conf.acct)
 
 def getExchequerBalances():
     usdtPool = getBalance(conf.contracts['(WR)BTC/USDT2'], conf.contracts['multisig'])

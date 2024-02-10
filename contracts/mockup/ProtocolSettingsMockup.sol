@@ -63,5 +63,7 @@ contract ProtocolSettingsMockup is ProtocolSettings {
         _setTarget(this.setTradingRebateRewardsBasisPoint.selector, target);
         _setTarget(this.getTradingRebateRewardsBasisPoint.selector, target);
         _setTarget(this.getDedicatedSOVRebate.selector, target);
+
+        _setTarget(this.getDefaultPathConversion.selector, target);
     }
 }

@@ -1,0 +1,2704 @@
+{
+  "address": "0xABA8f49e4EDbd95ccd593ED37b86a5716Fde2bED",
+  "abi": [
+    {
+      "inputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "id",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "loanToken",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "collateralToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "minInitialMargin",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "maintenanceMargin",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "maxLoanTerm",
+          "type": "uint256"
+        }
+      ],
+      "name": "LoanParamsDisabled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "id",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "LoanParamsIdDisabled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "id",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "LoanParamsIdSetup",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "id",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "loanToken",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "collateralToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "minInitialMargin",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "maintenanceMargin",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "maxLoanTerm",
+          "type": "uint256"
+        }
+      ],
+      "name": "LoanParamsSetup",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "prevModuleContractAddress",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newModuleContractAddress",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "module",
+          "type": "bytes32"
+        }
+      ],
+      "name": "ProtocolModuleContractReplaced",
+      "type": "event"
+    },
+    {
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "fallback"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "admin",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "affiliateFeePercent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "affiliateRewardsHeld",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "affiliateTradingTokenFeePercent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "affiliatesReferrerBalances",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "affiliatesUserReferrer",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "borrowerNonce",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "borrowerOrders",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "lockedAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "interestRate",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minLoanTerm",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxLoanTerm",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "createdTimestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "expirationTimestamp",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "borrowingFeePercent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "borrowingFeeTokensHeld",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "borrowingFeeTokensPaid",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "delegatedManagers",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "loanParamsIdList",
+          "type": "bytes32[]"
+        }
+      ],
+      "name": "disableLoanParams",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "feeRebatePercent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "feesController",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "loanParamsIdList",
+          "type": "bytes32[]"
+        }
+      ],
+      "name": "getLoanParams",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "id",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bool",
+              "name": "active",
+              "type": "bool"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "loanToken",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "collateralToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minInitialMargin",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maintenanceMargin",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxLoanTerm",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct LoanParamsStruct.LoanParams[]",
+          "name": "loanParamsList",
+          "type": "tuple[]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "start",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "count",
+          "type": "uint256"
+        }
+      ],
+      "name": "getLoanParamsList",
+      "outputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "loanParamsList",
+          "type": "bytes32[]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "lender",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "loanToken",
+          "type": "address"
+        }
+      ],
+      "name": "getTotalPrincipal",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        }
+      ],
+      "name": "initialize",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "lenderInterest",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "principalTotal",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "owedPerDay",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "owedTotal",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "paidTotal",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "updatedTimestamp",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "lenderOrders",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "lockedAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "interestRate",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minLoanTerm",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxLoanTerm",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "createdTimestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "expirationTimestamp",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "lendingFeePercent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "lendingFeeTokensHeld",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "lendingFeeTokensPaid",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "liquidationIncentivePercent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "loanInterest",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "owedPerDay",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "depositTotal",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "updatedTimestamp",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "loanParams",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "id",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "active",
+          "type": "bool"
+        },
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "loanToken",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "collateralToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minInitialMargin",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maintenanceMargin",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxLoanTerm",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "loanPoolToUnderlying",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "loans",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "id",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "loanParamsId",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "pendingTradesId",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "active",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "principal",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "collateral",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startTimestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "endTimestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startMargin",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startRate",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "borrower",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "lender",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "lockedSOVAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "",
+          "type": "bytes4"
+        }
+      ],
+      "name": "logicTargets",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "maxDisagreement",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "maxSwapSize",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "loanParamsId",
+          "type": "bytes32"
+        }
+      ],
+      "name": "minInitialMargin",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "minReferralsToPayout",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "pause",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "priceFeeds",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "protocolAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "protocolTokenAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "protocolTokenHeld",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "protocolTokenPaid",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "rolloverBaseReward",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "rolloverFlexFeePercent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "id",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bool",
+              "name": "active",
+              "type": "bool"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "loanToken",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "collateralToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minInitialMargin",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maintenanceMargin",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxLoanTerm",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct LoanParamsStruct.LoanParams[]",
+          "name": "loanParamsList",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "setupLoanParams",
+      "outputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "loanParamsIdList",
+          "type": "bytes32[]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "sourceBuffer",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "sovTokenAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "sovrynSwapContractRegistryAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "specialRebates",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "supportedTokens",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "swapsImpl",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "tradingFeePercent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "tradingFeeTokensHeld",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "tradingFeeTokensPaid",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "underlyingToLoanPool",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "userNotFirstTradeFlag",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "wrbtcToken",
+      "outputs": [
+        {
+          "internalType": "contract IWrbtcERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xd17048f4aa36d19dfbef9bbfac3a7ccd32d021658de47815ce8afdbfcaf96c85",
+  "receipt": {
+    "to": null,
+    "from": "0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae",
+    "contractAddress": "0xABA8f49e4EDbd95ccd593ED37b86a5716Fde2bED",
+    "transactionIndex": 0,
+    "gasUsed": "2786375",
+    "logsBloom": "0x00000000000020000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000020000000000000000001800000000000000001000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000800000000000000000000000000000000000000000000000000000000000000000010000000000000000000020000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xdb5e9e2c82bdba7c6a82b1eaa6d950de7fbaf7df45a58ca82e820b53ebd92eff",
+    "transactionHash": "0xd17048f4aa36d19dfbef9bbfac3a7ccd32d021658de47815ce8afdbfcaf96c85",
+    "logs": [
+      {
+        "transactionIndex": 0,
+        "blockNumber": 5889040,
+        "transactionHash": "0xd17048f4aa36d19dfbef9bbfac3a7ccd32d021658de47815ce8afdbfcaf96c85",
+        "address": "0xABA8f49e4EDbd95ccd593ED37b86a5716Fde2bED",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x00000000000000000000000013be55487d37fe3c66ee7305e1e9c1ac85de75ae"
+        ],
+        "data": "0x",
+        "logIndex": 0,
+        "blockHash": "0xdb5e9e2c82bdba7c6a82b1eaa6d950de7fbaf7df45a58ca82e820b53ebd92eff"
+      }
+    ],
+    "blockNumber": 5889040,
+    "cumulativeGasUsed": "2786375",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "9310031b42d2950fea7a6220c73f2cc4",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"loanToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"collateralToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"minInitialMargin\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"maintenanceMargin\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"maxLoanTerm\",\"type\":\"uint256\"}],\"name\":\"LoanParamsDisabled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"LoanParamsIdDisabled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"LoanParamsIdSetup\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"loanToken\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"collateralToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"minInitialMargin\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"maintenanceMargin\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"maxLoanTerm\",\"type\":\"uint256\"}],\"name\":\"LoanParamsSetup\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"prevModuleContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newModuleContractAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"module\",\"type\":\"bytes32\"}],\"name\":\"ProtocolModuleContractReplaced\",\"type\":\"event\"},{\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"fallback\"},{\"constant\":true,\"inputs\":[],\"name\":\"admin\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"affiliateFeePercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"affiliateRewardsHeld\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"affiliateTradingTokenFeePercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"affiliatesReferrerBalances\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"affiliatesUserReferrer\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"borrowerNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"borrowerOrders\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"lockedAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"interestRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minLoanTerm\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxLoanTerm\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"createdTimestamp\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expirationTimestamp\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"borrowingFeePercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"borrowingFeeTokensHeld\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"borrowingFeeTokensPaid\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"delegatedManagers\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"loanParamsIdList\",\"type\":\"bytes32[]\"}],\"name\":\"disableLoanParams\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"feeRebatePercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"feesController\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"loanParamsIdList\",\"type\":\"bytes32[]\"}],\"name\":\"getLoanParams\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"active\",\"type\":\"bool\"},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"loanToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"collateralToken\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"minInitialMargin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maintenanceMargin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxLoanTerm\",\"type\":\"uint256\"}],\"internalType\":\"struct LoanParamsStruct.LoanParams[]\",\"name\":\"loanParamsList\",\"type\":\"tuple[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"}],\"name\":\"getLoanParamsList\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"loanParamsList\",\"type\":\"bytes32[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"lender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"loanToken\",\"type\":\"address\"}],\"name\":\"getTotalPrincipal\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"lenderInterest\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"principalTotal\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"owedPerDay\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"owedTotal\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"paidTotal\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"updatedTimestamp\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"lenderOrders\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"lockedAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"interestRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minLoanTerm\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxLoanTerm\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"createdTimestamp\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"expirationTimestamp\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lendingFeePercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"lendingFeeTokensHeld\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"lendingFeeTokensPaid\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"liquidationIncentivePercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"loanInterest\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"owedPerDay\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"depositTotal\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"updatedTimestamp\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"loanParams\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"active\",\"type\":\"bool\"},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"loanToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"collateralToken\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"minInitialMargin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maintenanceMargin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxLoanTerm\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"loanPoolToUnderlying\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"loans\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"loanParamsId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"pendingTradesId\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"active\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"principal\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"collateral\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startTimestamp\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"endTimestamp\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startMargin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startRate\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"borrower\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"lender\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lockedSOVAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"\",\"type\":\"bytes4\"}],\"name\":\"logicTargets\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"maxDisagreement\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"maxSwapSize\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"loanParamsId\",\"type\":\"bytes32\"}],\"name\":\"minInitialMargin\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"minReferralsToPayout\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"pause\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"priceFeeds\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"protocolAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"protocolTokenAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"protocolTokenHeld\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"protocolTokenPaid\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rolloverBaseReward\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rolloverFlexFeePercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"active\",\"type\":\"bool\"},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"loanToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"collateralToken\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"minInitialMargin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maintenanceMargin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxLoanTerm\",\"type\":\"uint256\"}],\"internalType\":\"struct LoanParamsStruct.LoanParams[]\",\"name\":\"loanParamsList\",\"type\":\"tuple[]\"}],\"name\":\"setupLoanParams\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"loanParamsIdList\",\"type\":\"bytes32[]\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"sourceBuffer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"sovTokenAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"sovrynSwapContractRegistryAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"specialRebates\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"supportedTokens\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"swapsImpl\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"tradingFeePercent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"tradingFeeTokensHeld\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"tradingFeeTokensPaid\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"underlyingToLoanPool\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userNotFirstTradeFlag\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"wrbtcToken\",\"outputs\":[{\"internalType\":\"contract IWrbtcERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"disableLoanParams(bytes32[])\":{\"params\":{\"loanParamsIdList\":\"The array of loan parameters IDs to deactivate.\"}},\"getLoanParams(bytes32[])\":{\"params\":{\"loanParamsIdList\":\"The array of loan parameters IDs to match.\"},\"return\":\"loanParamsList The result array of loan parameters.\"},\"getLoanParamsList(address,uint256,uint256)\":{\"params\":{\"count\":\"The page limit.\",\"owner\":\"The address of the loan owner.\",\"start\":\"The page offset.\"},\"return\":\"loanParamsList The result array of loan parameters.\"},\"getTotalPrincipal(address,address)\":{\"params\":{\"lender\":\"The address of the lender.\",\"loanToken\":\"The address of the token instance.\"},\"return\":\"The total principal of the loans.\"},\"initialize(address)\":{\"params\":{\"target\":\"The address of the target contract.\"}},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[])\":{\"details\":\"For each loan calls _setupLoanParams internal function.\",\"params\":{\"loanParamsList\":\"The array of loan parameters.\"},\"return\":\"loanParamsIdList The array of loan parameters IDs.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Loan Settings contract.\"},\"userdoc\":{\"methods\":{\"constructor\":\"Empty public constructor.\",\"disableLoanParams(bytes32[])\":{\"notice\":\"Deactivate LoanParams for future loans. Active loans using it are unaffected.\"},\"getLoanParams(bytes32[])\":{\"notice\":\"Get loan parameters for every matching IDs.\"},\"getLoanParamsList(address,uint256,uint256)\":{\"notice\":\"Get loan parameters for an owner and a given page defined by an offset and a limit.\"},\"getTotalPrincipal(address,address)\":{\"notice\":\"Get the total principal of the loans by a lender.\"},\"initialize(address)\":{\"notice\":\"Set function selectors on target contract.\"},\"setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[])\":{\"notice\":\"Setup loan parameters, by looping every loan and populating its parameters.\"}},\"notice\":\"This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * This contract contains functions to get and set loan parameters.\"}},\"settings\":{\"compilationTarget\":{\"contracts/modules/LoanSettings.sol\":\"LoanSettings\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/core/Objects.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\nimport \\\"./objects/LoanStruct.sol\\\";\\nimport \\\"./objects/LoanParamsStruct.sol\\\";\\nimport \\\"./objects/OrderStruct.sol\\\";\\nimport \\\"./objects/LenderInterestStruct.sol\\\";\\nimport \\\"./objects/LoanInterestStruct.sol\\\";\\n\\n/**\\n * @title Objects contract.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract inherints and aggregates several structures needed to handle\\n * loans on the protocol.\\n * */\\ncontract Objects is\\n    LoanStruct,\\n    LoanParamsStruct,\\n    OrderStruct,\\n    LenderInterestStruct,\\n    LoanInterestStruct\\n{\\n\\n}\\n\",\"keccak256\":\"0xa30b8887af813997ebb480f0aa296245f9f3bd728382060059aa087cd9ee332c\"},\"contracts/core/State.sol\":{\"content\":\"/**\\n * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\nimport \\\"./Objects.sol\\\";\\nimport \\\"../mixins/EnumerableAddressSet.sol\\\";\\nimport \\\"../mixins/EnumerableBytes32Set.sol\\\";\\nimport \\\"../openzeppelin/ReentrancyGuard.sol\\\";\\nimport \\\"../openzeppelin/Ownable.sol\\\";\\nimport \\\"../openzeppelin/SafeMath.sol\\\";\\nimport \\\"../interfaces/IWrbtcERC20.sol\\\";\\nimport \\\"../reentrancy/SharedReentrancyGuard.sol\\\";\\n\\n/**\\n * @title State contract.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract contains the storage values of the Protocol.\\n * */\\ncontract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {\\n    using SafeMath for uint256;\\n    using EnumerableAddressSet for EnumerableAddressSet.AddressSet; // enumerable map of addresses\\n    using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses\\n\\n    /// Handles asset reference price lookups.\\n    address public priceFeeds;\\n\\n    /// Handles asset swaps using dex liquidity.\\n    address public swapsImpl;\\n\\n    /// Contract registry address of the Sovryn swap network.\\n    address public sovrynSwapContractRegistryAddress;\\n\\n    /// Implementations of protocol functions.\\n    mapping(bytes4 => address) public logicTargets;\\n\\n    /// Loans: loanId => Loan\\n    mapping(bytes32 => Loan) public loans;\\n\\n    /// Loan parameters: loanParamsId => LoanParams\\n    mapping(bytes32 => LoanParams) public loanParams;\\n\\n    /// lender => orderParamsId => Order\\n    mapping(address => mapping(bytes32 => Order)) public lenderOrders;\\n\\n    /// borrower => orderParamsId => Order\\n    mapping(address => mapping(bytes32 => Order)) public borrowerOrders;\\n\\n    /// loanId => delegated => approved\\n    mapping(bytes32 => mapping(address => bool)) public delegatedManagers;\\n\\n    /**\\n     *** Interest ***\\n     **/\\n\\n    /// lender => loanToken => LenderInterest object\\n    mapping(address => mapping(address => LenderInterest)) public lenderInterest;\\n\\n    /// loanId => LoanInterest object\\n    mapping(bytes32 => LoanInterest) public loanInterest;\\n\\n    /**\\n     *** Internals ***\\n     **/\\n\\n    /// Implementations set.\\n    EnumerableBytes32Set.Bytes32Set internal logicTargetsSet;\\n\\n    /// Active loans set.\\n    EnumerableBytes32Set.Bytes32Set internal activeLoansSet;\\n\\n    /// Lender loans set.\\n    mapping(address => EnumerableBytes32Set.Bytes32Set) internal lenderLoanSets;\\n\\n    /// Borrow loans set.\\n    mapping(address => EnumerableBytes32Set.Bytes32Set) internal borrowerLoanSets;\\n\\n    /// User loan params set.\\n    mapping(address => EnumerableBytes32Set.Bytes32Set) internal userLoanParamSets;\\n\\n    /// Address controlling fee withdrawals.\\n    address public feesController;\\n\\n    /// 10% fee /// Fee taken from lender interest payments.\\n    uint256 public lendingFeePercent = 10**19;\\n\\n    /// Total interest fees received and not withdrawn per asset.\\n    mapping(address => uint256) public lendingFeeTokensHeld;\\n\\n    /// Total interest fees withdraw per asset.\\n    /// lifetime fees = lendingFeeTokensHeld + lendingFeeTokensPaid\\n    mapping(address => uint256) public lendingFeeTokensPaid;\\n\\n    /// 0.15% fee /// Fee paid for each trade.\\n    uint256 public tradingFeePercent = 15 * 10**16;\\n\\n    /// Total trading fees received and not withdrawn per asset.\\n    mapping(address => uint256) public tradingFeeTokensHeld;\\n\\n    /// Total trading fees withdraw per asset\\n    /// lifetime fees = tradingFeeTokensHeld + tradingFeeTokensPaid\\n    mapping(address => uint256) public tradingFeeTokensPaid;\\n\\n    /// 0.09% fee /// Origination fee paid for each loan.\\n    uint256 public borrowingFeePercent = 9 * 10**16;\\n\\n    /// Total borrowing fees received and not withdrawn per asset.\\n    mapping(address => uint256) public borrowingFeeTokensHeld;\\n\\n    /// Total borrowing fees withdraw per asset.\\n    /// lifetime fees = borrowingFeeTokensHeld + borrowingFeeTokensPaid\\n    mapping(address => uint256) public borrowingFeeTokensPaid;\\n\\n    /// Current protocol token deposit balance.\\n    uint256 public protocolTokenHeld;\\n\\n    /// Lifetime total payout of protocol token.\\n    uint256 public protocolTokenPaid;\\n\\n    /// 5% fee share in form of SOV /// Fee share for affiliate program.\\n    uint256 public affiliateFeePercent = 5 * 10**18;\\n\\n    /// 5% collateral discount /// Discount on collateral for liquidators.\\n    uint256 public liquidationIncentivePercent = 5 * 10**18;\\n\\n    /// loanPool => underlying\\n    mapping(address => address) public loanPoolToUnderlying;\\n\\n    /// underlying => loanPool\\n    mapping(address => address) public underlyingToLoanPool;\\n\\n    /// Loan pools set.\\n    EnumerableBytes32Set.Bytes32Set internal loanPoolsSet;\\n\\n    /// Supported tokens for swaps.\\n    mapping(address => bool) public supportedTokens;\\n\\n    /// % disagreement between swap rate and reference rate.\\n    uint256 public maxDisagreement = 5 * 10**18;\\n\\n    /// Used as buffer for swap source amount estimations.\\n    uint256 public sourceBuffer = 10000;\\n\\n    /// Maximum support swap size in rBTC\\n    uint256 public maxSwapSize = 50 ether;\\n\\n    /// Nonce per borrower. Used for loan id creation.\\n    mapping(address => uint256) public borrowerNonce;\\n\\n    /// Rollover transaction costs around 0.0000168 rBTC, it is denominated in wrBTC.\\n    uint256 public rolloverBaseReward = 16800000000000;\\n    uint256 public rolloverFlexFeePercent = 0.1 ether; /// 0.1%\\n\\n    IWrbtcERC20 public wrbtcToken;\\n    address public protocolTokenAddress;\\n\\n    /// 50% fee rebate\\n    /// potocolToken reward to user, it is worth % of trading/borrowing fee.\\n    uint256 public feeRebatePercent = 50 * 10**18;\\n\\n    address public admin;\\n\\n    /// For modules interaction.\\n    address public protocolAddress;\\n\\n    /**\\n     *** Affiliates ***\\n     **/\\n\\n    /// The flag is set on the user's first trade.\\n    mapping(address => bool) public userNotFirstTradeFlag;\\n\\n    /// User => referrer (affiliate).\\n    mapping(address => address) public affiliatesUserReferrer;\\n\\n    /// List of referral addresses affiliated to the referrer.\\n    mapping(address => EnumerableAddressSet.AddressSet) internal referralsList;\\n\\n    /// @dev Referral threshold for paying out to the referrer.\\n    ///   The referrer reward is being accumulated and locked until the threshold is passed.\\n    uint256 public minReferralsToPayout = 3;\\n\\n    /// @dev Total affiliate SOV rewards that held in the protocol\\n    ///   (Because the minimum referrals is less than the rule)\\n    mapping(address => uint256) public affiliateRewardsHeld;\\n\\n    /// @dev For affiliates SOV Bonus proccess.\\n    address public sovTokenAddress;\\n    address public lockedSOVAddress;\\n\\n    /// @dev 20% fee share of trading token fee.\\n    ///   Fee share of trading token fee for affiliate program.\\n    uint256 public affiliateTradingTokenFeePercent = 20 * 10**18;\\n\\n    /// @dev Addresses of tokens in which commissions were paid to referrers.\\n    mapping(address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList;\\n\\n    /// @dev [referrerAddress][tokenAddress] is a referrer's token balance of accrued fees.\\n    mapping(address => mapping(address => uint256)) public affiliatesReferrerBalances;\\n\\n    mapping(address => mapping(address => uint256)) public specialRebates; // Special rate rebates for spesific pair -- if not set, then use the default one\\n    bool public pause; //Flag to pause all protocol modules\\n\\n    uint256 internal swapExtrernalFeePercent; /// Fee percentage for protocol swap\\n\\n    /// @dev Defines the portion of the trading rebate rewards (SOV) which is to be paid out in a liquid form in basis points. The rest is vested. The max value is 9999 (means 99.99% liquid, 0.01% vested)\\n    uint256 internal tradingRebateRewardsBasisPoint;\\n\\n    /// @dev Defines the defaultPath of conversion swap. This is created to prevent the non-rbtc pairs returning the shortest path which will not give the best rate.\\n    /// Will be used in internal swap.\\n    mapping(address => mapping(address => IERC20[])) internal defaultPathConversion;\\n\\n    address internal pauser;\\n\\n    /**\\n     * @notice Add signature and target to storage.\\n     * @dev Protocol is a proxy and requires a way to add every\\n     *   module function dynamically during deployment.\\n     * */\\n    function _setTarget(bytes4 sig, address target) internal {\\n        logicTargets[sig] = target;\\n\\n        if (target != address(0)) {\\n            logicTargetsSet.addBytes32(bytes32(sig));\\n        } else {\\n            logicTargetsSet.removeBytes32(bytes32(sig));\\n        }\\n    }\\n\\n    modifier onlyAdminOrOwner() {\\n        require(isOwner() || admin == (msg.sender), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    modifier onlyPauserOrOwner() {\\n        require(isOwner() || pauser == (msg.sender), \\\"unauthorized\\\");\\n        _;\\n    }\\n}\\n\",\"keccak256\":\"0xf8dfc02f3dc790c73b390a69898d0281c4473487bc91fec1f28fbebceacd3b3c\"},\"contracts/core/objects/LenderInterestStruct.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\n/**\\n * @title The Lender Interest.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract contains the storage structure of the Lender Interest.\\n * */\\ncontract LenderInterestStruct {\\n    struct LenderInterest {\\n        uint256 principalTotal; /// Total borrowed amount outstanding of asset.\\n        uint256 owedPerDay; /// Interest owed per day for all loans of asset.\\n        uint256 owedTotal; /// Total interest owed for all loans of asset (assuming they go to full term).\\n        uint256 paidTotal; /// Total interest paid so far for asset.\\n        uint256 updatedTimestamp; /// Last update.\\n    }\\n}\\n\",\"keccak256\":\"0x6583baadddded384836cec469980e7973ec09310ae505b4a2ec67fb7bc19e452\"},\"contracts/core/objects/LoanInterestStruct.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\n/**\\n * @title The Loan Interest.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract contains the storage structure of the Loan Interest.\\n * */\\ncontract LoanInterestStruct {\\n    struct LoanInterest {\\n        uint256 owedPerDay; /// Interest owed per day for loan.\\n        uint256 depositTotal; /// Total escrowed interest for loan.\\n        uint256 updatedTimestamp; /// Last update.\\n    }\\n}\\n\",\"keccak256\":\"0xd9034c6adb1b72e1593589dca024dc4730a1ee8bf6b2dca9d22283f2e7159590\"},\"contracts/core/objects/LoanParamsStruct.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\n/**\\n * @title The Loan Parameters.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract contains the storage structure of the Loan Parameters.\\n * */\\ncontract LoanParamsStruct {\\n    struct LoanParams {\\n        /// @dev ID of loan params object.\\n        bytes32 id;\\n        /// @dev If false, this object has been disabled by the owner and can't\\n        ///   be used for future loans.\\n        bool active;\\n        /// @dev Owner of this object.\\n        address owner;\\n        /// @dev The token being loaned.\\n        address loanToken;\\n        /// @dev The required collateral token.\\n        address collateralToken;\\n        /// @dev The minimum allowed initial margin.\\n        uint256 minInitialMargin;\\n        /// @dev An unhealthy loan when current margin is at or below this value.\\n        uint256 maintenanceMargin;\\n        /// @dev The maximum term for new loans (0 means there's no max term).\\n        uint256 maxLoanTerm;\\n    }\\n}\\n\",\"keccak256\":\"0xe15aa97713521da7f501e5225af9d92cf34bd68d286dbfed86aa75aabb323945\"},\"contracts/core/objects/LoanStruct.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\n/**\\n * @title The Loan Object.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract contains the storage structure of the Loan Object.\\n * */\\ncontract LoanStruct {\\n    struct Loan {\\n        bytes32 id; /// ID of the loan.\\n        bytes32 loanParamsId; /// The linked loan params ID.\\n        bytes32 pendingTradesId; /// The linked pending trades ID.\\n        bool active; /// If false, the loan has been fully closed.\\n        uint256 principal; /// Total borrowed amount outstanding.\\n        uint256 collateral; /// Total collateral escrowed for the loan.\\n        uint256 startTimestamp; /// Loan start time.\\n        uint256 endTimestamp; /// For active loans, this is the expected loan end time, for in-active loans, is the actual (past) end time.\\n        uint256 startMargin; /// Initial margin when the loan opened.\\n        uint256 startRate; /// Reference rate when the loan opened for converting collateralToken to loanToken.\\n        address borrower; /// Borrower of this loan.\\n        address lender; /// Lender of this loan.\\n    }\\n}\\n\",\"keccak256\":\"0x7d05c3096a86d5892e4e72f3a01a5a806f13a5ac90ca6339c611e75c603637b4\"},\"contracts/core/objects/OrderStruct.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\n/**\\n * @title The Loan Order.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract contains the storage structure of the Loan Order.\\n * */\\ncontract OrderStruct {\\n    struct Order {\\n        uint256 lockedAmount; /// Escrowed amount waiting for a counterparty.\\n        uint256 interestRate; /// Interest rate defined by the creator of this order.\\n        uint256 minLoanTerm; /// Minimum loan term allowed.\\n        uint256 maxLoanTerm; /// Maximum loan term allowed.\\n        uint256 createdTimestamp; /// Timestamp when this order was created.\\n        uint256 expirationTimestamp; /// Timestamp when this order expires.\\n    }\\n}\\n\",\"keccak256\":\"0xcc053c5da34a5927041162259bf856ba913f3524ca03e63ad0c5877777d17e0f\"},\"contracts/events/LoanSettingsEvents.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\nimport \\\"./ModulesCommonEvents.sol\\\";\\n\\n/**\\n * @title The Loan Settings Events contract.\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract contains the events for loan settings operations.\\n * */\\ncontract LoanSettingsEvents is ModulesCommonEvents {\\n    event LoanParamsSetup(\\n        bytes32 indexed id,\\n        address owner,\\n        address indexed loanToken,\\n        address indexed collateralToken,\\n        uint256 minInitialMargin,\\n        uint256 maintenanceMargin,\\n        uint256 maxLoanTerm\\n    );\\n    event LoanParamsIdSetup(bytes32 indexed id, address indexed owner);\\n\\n    event LoanParamsDisabled(\\n        bytes32 indexed id,\\n        address owner,\\n        address indexed loanToken,\\n        address indexed collateralToken,\\n        uint256 minInitialMargin,\\n        uint256 maintenanceMargin,\\n        uint256 maxLoanTerm\\n    );\\n    event LoanParamsIdDisabled(bytes32 indexed id, address indexed owner);\\n}\\n\",\"keccak256\":\"0xae9c49678a7bc02c2283648939c474c8bfd33781506e05c635c8334c5bf8682f\"},\"contracts/events/ModulesCommonEvents.sol\":{\"content\":\"pragma solidity 0.5.17;\\n\\n/**\\n * @title The common events for all modules\\n * @notice This contract contains the events which will be used by all modules\\n **/\\n\\ncontract ModulesCommonEvents {\\n    event ProtocolModuleContractReplaced(\\n        address indexed prevModuleContractAddress,\\n        address indexed newModuleContractAddress,\\n        bytes32 indexed module\\n    );\\n}\\n\",\"keccak256\":\"0xb07af42d7e6b0fe983889b883691b662a58d2ef8d75b3f32f17faff1871c8b8f\"},\"contracts/interfaces/IERC20.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ncontract IERC20 {\\n    string public name;\\n    uint8 public decimals;\\n    string public symbol;\\n\\n    function totalSupply() external view returns (uint256);\\n\\n    function balanceOf(address _who) external view returns (uint256);\\n\\n    function allowance(address _owner, address _spender) external view returns (uint256);\\n\\n    function approve(address _spender, uint256 _value) external returns (bool);\\n\\n    function transfer(address _to, uint256 _value) external returns (bool);\\n\\n    function transferFrom(\\n        address _from,\\n        address _to,\\n        uint256 _value\\n    ) external returns (bool);\\n\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0xbc0c9bb48f19651930ec9aff366b2e11a1abf89c846e4b2d52d8102b15ce6721\"},\"contracts/interfaces/IWrbtc.sol\":{\"content\":\"/**\\n * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ninterface IWrbtc {\\n    function deposit() external payable;\\n\\n    function withdraw(uint256 wad) external;\\n}\\n\",\"keccak256\":\"0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492\"},\"contracts/interfaces/IWrbtcERC20.sol\":{\"content\":\"/**\\n * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./IWrbtc.sol\\\";\\nimport \\\"./IERC20.sol\\\";\\n\\ncontract IWrbtcERC20 is IWrbtc, IERC20 {}\\n\",\"keccak256\":\"0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5\"},\"contracts/mixins/EnumerableAddressSet.sol\":{\"content\":\"pragma solidity ^0.5.0;\\n\\n/**\\n * @dev Based on Library for managing\\n * https://en.wikipedia.org/wiki/Set_(abstract_data_type)[sets] of primitive\\n * types.\\n *\\n * Sets have the following properties:\\n *\\n * - Elements are added, removed, and checked for existence in constant time\\n * (O(1)).\\n * - Elements are enumerated in O(n). No guarantees are made on the ordering.\\n *\\n * As of v2.5.0, only `address` sets are supported.\\n *\\n * Include with `using EnumerableSet for EnumerableSet.AddressSet;`.\\n *\\n * _Available since v2.5.0._\\n */\\nlibrary EnumerableAddressSet {\\n    struct AddressSet {\\n        // Position of the value in the `values` array, plus 1 because index 0\\n        // means a value is not in the set.\\n        mapping(address => uint256) index;\\n        address[] values;\\n    }\\n\\n    /**\\n     * @dev Add a value to a set. O(1).\\n     * Returns false if the value was already in the set.\\n     */\\n    function add(AddressSet storage set, address value) internal returns (bool) {\\n        if (!contains(set, value)) {\\n            set.index[value] = set.values.push(value);\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @dev Removes a value from a set. O(1).\\n     * Returns false if the value was not present in the set.\\n     */\\n    function remove(AddressSet storage set, address value) internal returns (bool) {\\n        if (contains(set, value)) {\\n            uint256 toDeleteIndex = set.index[value] - 1;\\n            uint256 lastIndex = set.values.length - 1;\\n\\n            // If the element we're deleting is the last one, we can just remove it without doing a swap\\n            if (lastIndex != toDeleteIndex) {\\n                address lastValue = set.values[lastIndex];\\n\\n                // Move the last value to the index where the deleted value is\\n                set.values[toDeleteIndex] = lastValue;\\n                // Update the index for the moved value\\n                set.index[lastValue] = toDeleteIndex + 1; // All indexes are 1-based\\n            }\\n\\n            // Delete the index entry for the deleted value\\n            delete set.index[value];\\n\\n            // Delete the old entry for the moved value\\n            set.values.pop();\\n\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns true if the value is in the set. O(1).\\n     */\\n    function contains(AddressSet storage set, address value) internal view returns (bool) {\\n        return set.index[value] != 0;\\n    }\\n\\n    /**\\n     * @dev Returns an array with all values in the set. O(N).\\n     * Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n\\n     * WARNING: This function may run out of gas on large sets: use {length} and\\n     * {get} instead in these cases.\\n     */\\n    function enumerate(AddressSet storage set) internal view returns (address[] memory) {\\n        address[] memory output = new address[](set.values.length);\\n        for (uint256 i; i < set.values.length; i++) {\\n            output[i] = set.values[i];\\n        }\\n        return output;\\n    }\\n\\n    /**\\n     * @dev Returns a chunk of array as recommended in enumerate() to avoid running of gas.\\n     * Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n\\n     * WARNING: This function may run out of gas on large sets: use {length} and\\n     * {get} instead in these cases.\\n     \\n     * @param start start index of chunk\\n     * @param count num of element to return; if count == 0 then returns all the elements from the @param start\\n     */\\n    function enumerateChunk(\\n        AddressSet storage set,\\n        uint256 start,\\n        uint256 count\\n    ) internal view returns (address[] memory output) {\\n        uint256 end = start + count;\\n        require(end >= start, \\\"addition overflow\\\");\\n        end = (set.values.length < end || count == 0) ? set.values.length : end;\\n        if (end == 0 || start >= end) {\\n            return output;\\n        }\\n\\n        output = new address[](end - start);\\n        for (uint256 i; i < end - start; i++) {\\n            output[i] = set.values[i + start];\\n        }\\n        return output;\\n    }\\n\\n    /**\\n     * @dev Returns the number of elements on the set. O(1).\\n     */\\n    function length(AddressSet storage set) internal view returns (uint256) {\\n        return set.values.length;\\n    }\\n\\n    /** @dev Returns the element stored at position `index` in the set. O(1).\\n     * Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * Requirements:\\n     *\\n     * - `index` must be strictly less than {length}.\\n     */\\n    function get(AddressSet storage set, uint256 index) internal view returns (address) {\\n        return set.values[index];\\n    }\\n}\\n\",\"keccak256\":\"0xea6fba941ec8502aa11a7ab37e74b917d0dc47bb254e359a2870a87ef97d9872\"},\"contracts/mixins/EnumerableBytes32Set.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\n/**\\n * @title Library for managing loan sets.\\n *\\n * @notice Sets have the following properties:\\n *\\n * - Elements are added, removed, and checked for existence in constant time\\n * (O(1)).\\n * - Elements are enumerated in O(n). No guarantees are made on the ordering.\\n *\\n * Include with `using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set;`.\\n * */\\nlibrary EnumerableBytes32Set {\\n    struct Bytes32Set {\\n        /// Position of the value in the `values` array, plus 1 because index 0\\n        /// means a value is not in the set.\\n        mapping(bytes32 => uint256) index;\\n        bytes32[] values;\\n    }\\n\\n    /**\\n     * @notice Add an address value to a set. O(1).\\n     *\\n     * @param set The set of values.\\n     * @param addrvalue The address to add.\\n     *\\n     * @return False if the value was already in the set.\\n     */\\n    function addAddress(Bytes32Set storage set, address addrvalue) internal returns (bool) {\\n        bytes32 value;\\n        assembly {\\n            value := addrvalue\\n        }\\n        return addBytes32(set, value);\\n    }\\n\\n    /**\\n     * @notice Add a value to a set. O(1).\\n     *\\n     * @param set The set of values.\\n     * @param value The new value to add.\\n     *\\n     * @return False if the value was already in the set.\\n     */\\n    function addBytes32(Bytes32Set storage set, bytes32 value) internal returns (bool) {\\n        if (!contains(set, value)) {\\n            set.index[value] = set.values.push(value);\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @notice Remove an address value from a set. O(1).\\n     *\\n     * @param set The set of values.\\n     * @param addrvalue The address to remove.\\n     *\\n     * @return False if the address was not present in the set.\\n     */\\n    function removeAddress(Bytes32Set storage set, address addrvalue) internal returns (bool) {\\n        bytes32 value;\\n        assembly {\\n            value := addrvalue\\n        }\\n        return removeBytes32(set, value);\\n    }\\n\\n    /**\\n     * @notice Remove a value from a set. O(1).\\n     *\\n     * @param set The set of values.\\n     * @param value The value to remove.\\n     *\\n     * @return False if the value was not present in the set.\\n     */\\n    function removeBytes32(Bytes32Set storage set, bytes32 value) internal returns (bool) {\\n        if (contains(set, value)) {\\n            uint256 toDeleteIndex = set.index[value] - 1;\\n            uint256 lastIndex = set.values.length - 1;\\n\\n            /// If the element we're deleting is the last one,\\n            /// we can just remove it without doing a swap.\\n            if (lastIndex != toDeleteIndex) {\\n                bytes32 lastValue = set.values[lastIndex];\\n\\n                /// Move the last value to the index where the deleted value is.\\n                set.values[toDeleteIndex] = lastValue;\\n\\n                /// Update the index for the moved value.\\n                set.index[lastValue] = toDeleteIndex + 1; // All indexes are 1-based\\n            }\\n\\n            /// Delete the index entry for the deleted value.\\n            delete set.index[value];\\n\\n            /// Delete the old entry for the moved value.\\n            set.values.pop();\\n\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @notice Find out whether a value exists in the set.\\n     *\\n     * @param set The set of values.\\n     * @param value The value to find.\\n     *\\n     * @return True if the value is in the set. O(1).\\n     */\\n    function contains(Bytes32Set storage set, bytes32 value) internal view returns (bool) {\\n        return set.index[value] != 0;\\n    }\\n\\n    /**\\n     * @dev Returns true if the value is in the set. O(1).\\n     */\\n    function containsAddress(Bytes32Set storage set, address addrvalue)\\n        internal\\n        view\\n        returns (bool)\\n    {\\n        bytes32 value;\\n        assembly {\\n            value := addrvalue\\n        }\\n        return set.index[value] != 0;\\n    }\\n\\n    /**\\n     * @notice Get all set values.\\n     *\\n     * @param set The set of values.\\n     * @param start The offset of the returning set.\\n     * @param count The limit of number of values to return.\\n     *\\n     * @return An array with all values in the set. O(N).\\n     *\\n     * @dev Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * WARNING: This function may run out of gas on large sets: use {length} and\\n     * {get} instead in these cases.\\n     */\\n    function enumerate(\\n        Bytes32Set storage set,\\n        uint256 start,\\n        uint256 count\\n    ) internal view returns (bytes32[] memory output) {\\n        uint256 end = start + count;\\n        require(end >= start, \\\"addition overflow\\\");\\n        end = set.values.length < end ? set.values.length : end;\\n        if (end == 0 || start >= end) {\\n            return output;\\n        }\\n\\n        output = new bytes32[](end - start);\\n        for (uint256 i; i < end - start; i++) {\\n            output[i] = set.values[i + start];\\n        }\\n        return output;\\n    }\\n\\n    /**\\n     * @notice Get the legth of the set.\\n     *\\n     * @param set The set of values.\\n     *\\n     * @return the number of elements on the set. O(1).\\n     */\\n    function length(Bytes32Set storage set) internal view returns (uint256) {\\n        return set.values.length;\\n    }\\n\\n    /**\\n     * @notice Get an item from the set by its index.\\n     *\\n     * @dev Note that there are no guarantees on the ordering of values inside the\\n     * array, and it may change when more values are added or removed.\\n     *\\n     * Requirements:\\n     *\\n     * - `index` must be strictly less than {length}.\\n     *\\n     * @param set The set of values.\\n     * @param index The index of the value to return.\\n     *\\n     * @return the element stored at position `index` in the set. O(1).\\n     */\\n    function get(Bytes32Set storage set, uint256 index) internal view returns (bytes32) {\\n        return set.values[index];\\n    }\\n}\\n\",\"keccak256\":\"0xa2801a585c566e07f21c1ebccd0cd0447dd5fd9fe6c1ff2b58d4d979d88a6db0\"},\"contracts/mixins/ModuleCommonFunctionalities.sol\":{\"content\":\"pragma solidity 0.5.17;\\n\\nimport \\\"../core/State.sol\\\";\\n\\ncontract ModuleCommonFunctionalities is State {\\n    modifier whenNotPaused() {\\n        require(!pause, \\\"Paused\\\");\\n        _;\\n    }\\n}\\n\",\"keccak256\":\"0x9ed7a6a635ef960b53888b28a2a6bed8b071255cad8cd33f00386a634cbddb74\"},\"contracts/modules/LoanSettings.sol\":{\"content\":\"/**\\n * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"../core/State.sol\\\";\\nimport \\\"../events/LoanSettingsEvents.sol\\\";\\nimport \\\"../mixins/ModuleCommonFunctionalities.sol\\\";\\n\\n/**\\n * @title Loan Settings contract.\\n *\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract contains functions to get and set loan parameters.\\n * */\\ncontract LoanSettings is State, LoanSettingsEvents, ModuleCommonFunctionalities {\\n    /**\\n     * @notice Empty public constructor.\\n     * */\\n    constructor() public {}\\n\\n    /**\\n     * @notice Fallback function is to react to receiving value (rBTC).\\n     * */\\n    function() external {\\n        revert(\\\"LoanSettings - fallback not allowed\\\");\\n    }\\n\\n    /**\\n     * @notice Set function selectors on target contract.\\n     *\\n     * @param target The address of the target contract.\\n     * */\\n    function initialize(address target) external onlyOwner {\\n        address prevModuleContractAddress = logicTargets[this.setupLoanParams.selector];\\n        _setTarget(this.setupLoanParams.selector, target);\\n        _setTarget(this.disableLoanParams.selector, target);\\n        _setTarget(this.getLoanParams.selector, target);\\n        _setTarget(this.getLoanParamsList.selector, target);\\n        _setTarget(this.getTotalPrincipal.selector, target);\\n        _setTarget(this.minInitialMargin.selector, target);\\n        emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, \\\"LoanSettings\\\");\\n    }\\n\\n    /**\\n     * @notice Setup loan parameters, by looping every loan\\n     * and populating its parameters.\\n     *\\n     * @dev For each loan calls _setupLoanParams internal function.\\n     *\\n     * @param loanParamsList The array of loan parameters.\\n     *\\n     * @return loanParamsIdList The array of loan parameters IDs.\\n     * */\\n    function setupLoanParams(LoanParams[] calldata loanParamsList)\\n        external\\n        whenNotPaused\\n        returns (bytes32[] memory loanParamsIdList)\\n    {\\n        loanParamsIdList = new bytes32[](loanParamsList.length);\\n        for (uint256 i = 0; i < loanParamsList.length; i++) {\\n            loanParamsIdList[i] = _setupLoanParams(loanParamsList[i]);\\n        }\\n    }\\n\\n    /**\\n     * @notice Deactivate LoanParams for future loans. Active loans\\n     * using it are unaffected.\\n     *\\n     * @param loanParamsIdList The array of loan parameters IDs to deactivate.\\n     * */\\n    function disableLoanParams(bytes32[] calldata loanParamsIdList) external whenNotPaused {\\n        for (uint256 i = 0; i < loanParamsIdList.length; i++) {\\n            require(msg.sender == loanParams[loanParamsIdList[i]].owner, \\\"unauthorized owner\\\");\\n            loanParams[loanParamsIdList[i]].active = false;\\n\\n            LoanParams memory loanParamsLocal = loanParams[loanParamsIdList[i]];\\n            emit LoanParamsDisabled(\\n                loanParamsLocal.id,\\n                loanParamsLocal.owner,\\n                loanParamsLocal.loanToken,\\n                loanParamsLocal.collateralToken,\\n                loanParamsLocal.minInitialMargin,\\n                loanParamsLocal.maintenanceMargin,\\n                loanParamsLocal.maxLoanTerm\\n            );\\n            emit LoanParamsIdDisabled(loanParamsLocal.id, loanParamsLocal.owner);\\n        }\\n    }\\n\\n    /**\\n     * @notice Get loan parameters for every matching IDs.\\n     *\\n     * @param loanParamsIdList The array of loan parameters IDs to match.\\n     *\\n     * @return loanParamsList The result array of loan parameters.\\n     * */\\n    function getLoanParams(bytes32[] memory loanParamsIdList)\\n        public\\n        view\\n        returns (LoanParams[] memory loanParamsList)\\n    {\\n        loanParamsList = new LoanParams[](loanParamsIdList.length);\\n        uint256 itemCount;\\n\\n        for (uint256 i = 0; i < loanParamsIdList.length; i++) {\\n            LoanParams memory loanParamsLocal = loanParams[loanParamsIdList[i]];\\n            if (loanParamsLocal.id == 0) {\\n                continue;\\n            }\\n            loanParamsList[itemCount] = loanParamsLocal;\\n            itemCount++;\\n        }\\n\\n        if (itemCount < loanParamsList.length) {\\n            assembly {\\n                mstore(loanParamsList, itemCount)\\n            }\\n        }\\n    }\\n\\n    /**\\n     * @notice Get loan parameters for an owner and a given page\\n     * defined by an offset and a limit.\\n     *\\n     * @param owner The address of the loan owner.\\n     * @param start The page offset.\\n     * @param count The page limit.\\n     *\\n     * @return loanParamsList The result array of loan parameters.\\n     * */\\n    function getLoanParamsList(\\n        address owner,\\n        uint256 start,\\n        uint256 count\\n    ) external view returns (bytes32[] memory loanParamsList) {\\n        EnumerableBytes32Set.Bytes32Set storage set = userLoanParamSets[owner];\\n        uint256 end = start.add(count).min256(set.length());\\n        if (start >= end) {\\n            return loanParamsList;\\n        }\\n\\n        loanParamsList = new bytes32[](count);\\n        uint256 itemCount;\\n        for (uint256 i = end - start; i > 0; i--) {\\n            if (itemCount == count) {\\n                break;\\n            }\\n            loanParamsList[itemCount] = set.get(i + start - 1);\\n            itemCount++;\\n        }\\n\\n        if (itemCount < count) {\\n            assembly {\\n                mstore(loanParamsList, itemCount)\\n            }\\n        }\\n    }\\n\\n    /**\\n     * @notice Get the total principal of the loans by a lender.\\n     *\\n     * @param lender The address of the lender.\\n     * @param loanToken The address of the token instance.\\n     *\\n     * @return The total principal of the loans.\\n     * */\\n    function getTotalPrincipal(address lender, address loanToken) external view returns (uint256) {\\n        return lenderInterest[lender][loanToken].principalTotal;\\n    }\\n\\n    /**\\n     * @notice Setup a loan parameters.\\n     *\\n     * @param loanParamsLocal The loan parameters.\\n     *\\n     * @return loanParamsId The loan parameters ID.\\n     * */\\n    function _setupLoanParams(LoanParams memory loanParamsLocal) internal returns (bytes32) {\\n        bytes32 loanParamsId =\\n            keccak256(\\n                abi.encodePacked(\\n                    loanParamsLocal.loanToken,\\n                    loanParamsLocal.collateralToken,\\n                    loanParamsLocal.minInitialMargin,\\n                    loanParamsLocal.maintenanceMargin,\\n                    loanParamsLocal.maxLoanTerm,\\n                    block.timestamp\\n                )\\n            );\\n        require(loanParams[loanParamsId].id == 0, \\\"loanParams exists\\\");\\n\\n        require(\\n            loanParamsLocal.loanToken != address(0) &&\\n                loanParamsLocal.collateralToken != address(0) &&\\n                loanParamsLocal.minInitialMargin > loanParamsLocal.maintenanceMargin &&\\n                (loanParamsLocal.maxLoanTerm == 0 || loanParamsLocal.maxLoanTerm > 3600), /// A defined maxLoanTerm has to be greater than one hour.\\n            \\\"invalid params\\\"\\n        );\\n\\n        loanParamsLocal.id = loanParamsId;\\n        loanParamsLocal.active = true;\\n        loanParamsLocal.owner = msg.sender;\\n\\n        loanParams[loanParamsId] = loanParamsLocal;\\n        userLoanParamSets[msg.sender].addBytes32(loanParamsId);\\n\\n        emit LoanParamsSetup(\\n            loanParamsId,\\n            loanParamsLocal.owner,\\n            loanParamsLocal.loanToken,\\n            loanParamsLocal.collateralToken,\\n            loanParamsLocal.minInitialMargin,\\n            loanParamsLocal.maintenanceMargin,\\n            loanParamsLocal.maxLoanTerm\\n        );\\n        emit LoanParamsIdSetup(loanParamsId, loanParamsLocal.owner);\\n\\n        return loanParamsId;\\n    }\\n\\n    function minInitialMargin(bytes32 loanParamsId) external view returns (uint256) {\\n        return loanParams[loanParamsId].minInitialMargin;\\n    }\\n}\\n\",\"keccak256\":\"0x51493886149fb3642ba34cdc6fbc413773009099b3816b08539a94df759baf09\"},\"contracts/openzeppelin/Context.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\ncontract Context {\\n    // Empty internal constructor, to prevent people from mistakenly deploying\\n    // an instance of this contract, which should be used via inheritance.\\n    constructor() internal {}\\n\\n    // solhint-disable-previous-line no-empty-blocks\\n\\n    function _msgSender() internal view returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\"},\"contracts/openzeppelin/Ownable.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\ncontract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() internal {\\n        address msgSender = _msgSender();\\n        _owner = msgSender;\\n        emit OwnershipTransferred(address(0), msgSender);\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(isOwner(), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns true if the caller is the current owner.\\n     */\\n    function isOwner() public view returns (bool) {\\n        return _msgSender() == _owner;\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public onlyOwner {\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     */\\n    function _transferOwnership(address newOwner) internal {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        emit OwnershipTransferred(_owner, newOwner);\\n        _owner = newOwner;\\n    }\\n}\\n\",\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\"},\"contracts/openzeppelin/ReentrancyGuard.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @title Helps contracts guard against reentrancy attacks.\\n * @author Remco Bloemen <remco@2\\u03c0.com>, Eenae <alexey@mixbytes.io>\\n * @dev If you mark a function `nonReentrant`, you should also\\n * mark it `external`.\\n */\\ncontract ReentrancyGuard {\\n    /// @dev Constant for unlocked guard state - non-zero to prevent extra gas costs.\\n    /// See: https://github.com/OpenZeppelin/openzeppelin-solidity/issues/1056\\n    uint256 internal constant REENTRANCY_GUARD_FREE = 1;\\n\\n    /// @dev Constant for locked guard state\\n    uint256 internal constant REENTRANCY_GUARD_LOCKED = 2;\\n\\n    /**\\n     * @dev We use a single lock for the whole contract.\\n     */\\n    uint256 internal reentrancyLock = REENTRANCY_GUARD_FREE;\\n\\n    /**\\n     * @dev Prevents a contract from calling itself, directly or indirectly.\\n     * If you mark a function `nonReentrant`, you should also\\n     * mark it `external`. Calling one `nonReentrant` function from\\n     * another is not supported. Instead, you can implement a\\n     * `private` function doing the actual work, and an `external`\\n     * wrapper marked as `nonReentrant`.\\n     */\\n    modifier nonReentrant() {\\n        require(reentrancyLock == REENTRANCY_GUARD_FREE, \\\"nonReentrant\\\");\\n        reentrancyLock = REENTRANCY_GUARD_LOCKED;\\n        _;\\n        reentrancyLock = REENTRANCY_GUARD_FREE;\\n    }\\n}\\n\",\"keccak256\":\"0xd347de96ad57d1e45b07a2efe3050c1bd4b809236bbf354acb593de56d21a5c9\"},\"contracts/openzeppelin/SafeMath.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev Wrappers over Solidity's arithmetic operations with added overflow\\n * checks.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * `SafeMath` restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this library instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n */\\nlibrary SafeMath {\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\\n        uint256 c = a + b;\\n        require(c >= a, \\\"SafeMath: addition overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return sub(a, b, \\\"SafeMath: subtraction overflow\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot overflow.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function sub(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        require(b <= a, errorMessage);\\n        uint256 c = a - b;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint256 c = a * b;\\n        require(c / a == b, \\\"SafeMath: multiplication overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return div(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function div(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b != 0, errorMessage);\\n        uint256 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Integer division of two numbers, rounding up and truncating the quotient\\n     */\\n    function divCeil(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return divCeil(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Integer division of two numbers, rounding up and truncating the quotient\\n     */\\n    function divCeil(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b != 0, errorMessage);\\n\\n        if (a == 0) {\\n            return 0;\\n        }\\n        uint256 c = ((a - 1) / b) + 1;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return mod(a, b, \\\"SafeMath: modulo by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts with custom message when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function mod(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        require(b != 0, errorMessage);\\n        return a % b;\\n    }\\n\\n    function min256(uint256 _a, uint256 _b) internal pure returns (uint256) {\\n        return _a < _b ? _a : _b;\\n    }\\n}\\n\",\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\"},\"contracts/reentrancy/Mutex.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/*\\n * @title Global Mutex contract\\n *\\n * @notice A mutex contract that allows only one function to be called at a time out\\n * of a large set of functions. *Anyone* in the network can freely use any instance\\n * of this contract to add a universal mutex to any function in any contract.\\n */\\ncontract Mutex {\\n    /*\\n     * We use an uint to store the mutex state.\\n     */\\n    uint256 public value;\\n\\n    /*\\n     * @notice Increment the mutex state and return the new value.\\n     *\\n     * @dev This is the function that will be called by anyone to change the mutex\\n     * state. It is purposely not protected by any access control\\n     */\\n    function incrementAndGetValue() external returns (uint256) {\\n        /*\\n         * increment value using unsafe math. This is safe because we are\\n         * pretty certain no one will ever increment the value 2^256 times\\n         * in a single transaction.\\n         */\\n        return ++value;\\n    }\\n}\\n\",\"keccak256\":\"0xd10b0fd07d5fed1ae1237e7c87e6501970fce2a86e2b8862e502258b0d3aeb2c\"},\"contracts/reentrancy/SharedReentrancyGuard.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\nimport \\\"./Mutex.sol\\\";\\n\\n/*\\n * @title Abstract contract for shared reentrancy guards\\n *\\n * @notice Exposes a single modifier `globallyNonReentrant` that can be used to ensure\\n * that there's no reentrancy between *any* functions marked with the modifier.\\n *\\n * @dev The Mutex contract address is hardcoded because the address is deployed using a\\n * special deployment method (similar to ERC1820Registry). This contract therefore has no\\n * state and is thus safe to add to the inheritance chain of upgradeable contracts.\\n */\\ncontract SharedReentrancyGuard {\\n    /*\\n     * This is the address of the mutex contract that will be used as the\\n     * reentrancy guard.\\n     *\\n     * The address is hardcoded to avoid changing the memory layout of\\n     * derived contracts (possibly upgradable). Hardcoding the address is possible,\\n     * because the Mutex contract is always deployed to the same address, with the\\n     * same method used in the deployment of ERC1820Registry.\\n     */\\n    Mutex private constant MUTEX = Mutex(0xba10edD6ABC7696Eae685839217BdcC42139612b);\\n\\n    /*\\n     * This is the modifier that will be used to protect functions from\\n     * reentrancy. It will call the mutex contract to increment the mutex\\n     * state and then revert if the mutex state was changed by another\\n     * nested call.\\n     */\\n    modifier globallyNonReentrant() {\\n        uint256 previous = MUTEX.incrementAndGetValue();\\n\\n        _;\\n\\n        /*\\n         * If the mutex state was changed by a nested function call, then\\n         * the value of the state variable will be different from the previous value.\\n         */\\n        require(previous == MUTEX.value(), \\\"reentrancy violation\\\");\\n    }\\n}\\n\",\"keccak256\":\"0x2d0e61b104b91c1764f20fbeb381ba0f8a8889934ba7f6e8a167ed542ec2c124\"}},\"version\":1}",
+  "bytecode": "0x60806040526001600055678ac7230489e80000601555670214e8348c4f000060185567013fbe85edc90000601b55674563918244f40000602055674563918244f40000602155674563918244f400006027556127106028556802b5e3af16b1880000602955650f478e084000602b5567016345785d8a0000602c556802b5e3af16b1880000602f5560036035556801158e460913d000006039553480156100a557600080fd5b5060006100b96001600160e01b0361010c16565b600180546001600160a01b0319166001600160a01b038316908117909155604051919250906000907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a350610110565b3390565b6123528061011f6000396000f3fe608060405234801561001057600080fd5b50600436106103995760003560e01c80638f32d59b116101e9578063cb6eacd11161010f578063edab119f116100ad578063f6ddc8b31161007c578063f6ddc8b314610773578063f706b1f21461077b578063f851a44014610783578063fe30fa6a1461078b57610399565b8063edab119f14610748578063f0e085f514610750578063f2fde38b14610758578063f589a3e71461076b57610399565b8063d288208c116100e9578063d288208c1461071d578063d473c2da14610725578063d485045e1461072d578063e8f627641461074057610399565b8063cb6eacd1146106d0578063cd5d808d146106f7578063cf59e67b1461070a57610399565b8063b30643d911610187578063bdee453c11610156578063bdee453c1461066a578063c4a908151461067d578063c4d66de8146106a8578063ca74a5d9146106bd57610399565b8063b30643d914610634578063b7e1524114610647578063b9cffa3e1461065a578063ba4861e91461066257610399565b8063a1ae275e116101c3578063a1ae275e146105ef578063acc043481461060f578063ae0a853014610617578063afe840091461061f57610399565b80638f32d59b146105cc57806392d894f8146105d4578063959083d3146105e757610399565b80634699f846116102ce5780636e6637301161026c5780637a8faeb81161023b5780637a8faeb8146105a15780638456cb59146105a95780638da5cb5b146105b15780638dc48ba5146105b957610399565b80636e663730146105765780637420ca3e14610589578063742e67981461059157806378d849ed1461059957610399565b8063569fc1fb116102a8578063569fc1fb14610515578063574442cc1461053757806362fff3f61461053f57806368c4ac261461056357610399565b80634699f846146104f25780634a1e88fe146104fa5780634f28cac21461050d57610399565b80632d9cd0761161033b5780633452d2d4116103155780633452d2d4146104a65780633fca506e146104b95780634115a2b6146104cc5780634203e395146104df57610399565b80632d9cd0761461046b5780632f4707641461048b5780633432423c1461049357610399565b80631b7bde74116103775780631b7bde7414610410578063218b39c61461043057806324cc5749146104435780632a3240271461046357610399565b8063065d810f146103ba5780630676c1b7146103e857806317548b79146103fd575b60405162461bcd60e51b81526004016103b190612140565b60405180910390fd5b6103cd6103c83660046119d0565b61079e565b6040516103df969594939291906121e2565b60405180910390f35b6103f06107de565b6040516103df9190611f2c565b6103f061040b366004611b37565b6107ed565b61042361041e366004611996565b610808565b6040516103df9190612160565b6103f061043e366004611970565b610825565b610456610451366004611970565b610840565b6040516103df9190611f9a565b610423610855565b61047e610479366004611a8f565b61085b565b6040516103df9190611f89565b610423610990565b6103cd6104a13660046119d0565b610996565b6104236104b4366004611970565b6109d6565b6104236104c7366004611970565b6109e8565b6104566104da366004611b18565b6109fa565b6104236104ed366004611970565b610a1a565b610423610a2c565b610423610508366004611996565b610a32565b610423610a5f565b610528610523366004611afa565b610a65565b6040516103df9392919061216e565b610423610a86565b61055261054d366004611996565b610a8c565b6040516103df959493929190612196565b610456610571366004611970565b610ac6565b6103f0610584366004611970565b610adb565b6103f0610af6565b610423610b05565b6103f0610b0b565b610423610b1a565b610456610b20565b6103f0610b29565b6103f06105c7366004611970565b610b38565b610456610b53565b6104236105e2366004611970565b610b79565b610423610b8b565b6106026105fd366004611ac4565b610b91565b6040516103df9190611f78565b610423610c3f565b610423610c45565b610627610c4b565b6040516103df91906120d2565b610423610642366004611970565b610c5a565b610423610655366004611970565b610c6c565b6103f0610c7e565b6103f0610c8d565b610423610678366004611970565b610c9c565b61069061068b366004611afa565b610cae565b6040516103df9c9b9a9998979695949392919061201f565b6106bb6106b6366004611970565b610d20565b005b6104236106cb366004611afa565b610e35565b6106e36106de366004611afa565b610e4a565b6040516103df989796959493929190611fa8565b610423610705366004611996565b610e9c565b610602610718366004611a00565b610eb9565b6103f0610fa7565b610423610fb6565b61042361073b366004611970565b610fbc565b6103f0610fce565b610423610fdd565b610423610fe3565b6106bb610766366004611970565b610fe9565b610423611019565b61042361101f565b6103f0611025565b6103f0611034565b6106bb610799366004611a4d565b611043565b6009602090815260009283526040808420909152908252902080546001820154600283015460038401546004850154600590950154939492939192909186565b6031546001600160a01b031681565b6005602052600090815260409020546001600160a01b031681565b603b60209081526000928352604080842090915290825290205481565b6023602052600090815260409020546001600160a01b031681565b60326020526000908152604090205460ff1681565b60185481565b6060815160405190808252806020026020018201604052801561089857816020015b610885611734565b81526020019060019003908161087d5790505b5090506000805b835181101561097c576108b0611734565b600760008684815181106108c057fe5b6020908102919091018101518252818101929092526040908101600020815161010080820184528254808352600184015460ff811615159684019690965294046001600160a01b039081169382019390935260028201548316606082015260038201549092166080830152600481015460a0830152600581015460c08301526006015460e082015291506109545750610974565b8084848151811061096157fe5b6020908102919091010152506001909101905b60010161089f565b50815181101561098a578082525b50919050565b601f5481565b6008602090815260009283526040808420909152908252902080546001820154600283015460038401546004850154600590950154939492939192909186565b601a6020526000908152604090205481565b602a6020526000908152604090205481565b600a60209081526000928352604080842090915290825290205460ff1681565b60166020526000908152604090205481565b60155481565b6001600160a01b038083166000908152600b60209081526040808320938516835292905220545b92915050565b60295481565b600c6020526000908152604090208054600182015460029092015490919083565b602b5481565b600b602090815260009283526040808420909152908252902080546001820154600283015460038401546004909401549293919290919085565b60266020526000908152604090205460ff1681565b6033602052600090815260409020546001600160a01b031681565b6003546001600160a01b031681565b60355481565b6002546001600160a01b031681565b601e5481565b603d5460ff1681565b6001546001600160a01b031690565b6022602052600090815260409020546001600160a01b031681565b6001546000906001600160a01b0316610b6a611254565b6001600160a01b031614905090565b60176020526000908152604090205481565b602c5481565b603d5460609060ff1615610bb75760405162461bcd60e51b81526004016103b1906120e0565b604080518381526020808502820101909152828015610be0578160200160208202803883390190505b50905060005b82811015610c3857610c19848483818110610bfd57fe5b90506101000201803603610c149190810190611b55565b611258565b828281518110610c2557fe5b6020908102919091010152600101610be6565b5092915050565b602f5481565b60205481565b602d546001600160a01b031681565b601d6020526000908152604090205481565b601c6020526000908152604090205481565b6037546001600160a01b031681565b6004546001600160a01b031681565b60366020526000908152604090205481565b600660208190526000918252604090912080546001820154600283015460038401546004850154600586015496860154600787015460088801546009890154600a8a0154600b909a0154989a9799969860ff909616979496949593949293919290916001600160a01b0391821691168c565b610d28610b53565b610d445760405162461bcd60e51b81526004016103b190612110565b6350d713af60e11b600081905260056020527fd30397261808d9f908fb53c9c06f1db90c071662dd2733a285622dd2a05d930b546001600160a01b031690610d8c90836114b4565b610d9d637f187d3560e11b836114b4565b610dae6316ce683b60e11b836114b4565b610dbf63cf59e67b60e01b836114b4565b610dd063250f447f60e11b836114b4565b610de163ca74a5d960e01b836114b4565b6b4c6f616e53657474696e677360a01b826001600160a01b0316826001600160a01b03167f1420e3a2094d671bc2eb897941fa3d94ffa37f0cb6d530651946250a2151cb7f60405160405180910390a45050565b60009081526007602052604090206004015490565b6007602052600090815260409020805460018201546002830154600384015460048501546005860154600690960154949560ff8516956101009095046001600160a01b03908116959481169493169288565b603c60209081526000928352604080842090915290825290205481565b6001600160a01b0383166000908152601360205260408120606091610efc610ee08361152e565b610ef0878763ffffffff61153516565b9063ffffffff61155a16565b9050808510610f0d5750610fa09050565b83604051908082528060200260200182016040528015610f37578160200160208202803883390190505b50925060008582035b8015610f8f5785821415610f5357610f8f565b610f6984600019838a010163ffffffff61157016565b858381518110610f7557fe5b602090810291909101015260019091019060001901610f40565b5084811015610f9c578084525b5050505b9392505050565b6038546001600160a01b031681565b60275481565b60196020526000908152604090205481565b6014546001600160a01b031681565b601b5481565b60285481565b610ff1610b53565b61100d5760405162461bcd60e51b81526004016103b190612110565b61101681611594565b50565b60395481565b60215481565b602e546001600160a01b031681565b6030546001600160a01b031681565b603d5460ff16156110665760405162461bcd60e51b81526004016103b1906120e0565b60005b8181101561124f576007600084848481811061108157fe5b90506020020135815260200190815260200160002060010160019054906101000a90046001600160a01b03166001600160a01b0316336001600160a01b0316146110dd5760405162461bcd60e51b81526004016103b190612150565b6000600760008585858181106110ef57fe5b90506020020135815260200190815260200160002060010160006101000a81548160ff021916908315150217905550611126611734565b6007600085858581811061113657fe5b60209081029290920135835250818101929092526040908101600020815161010080820184528254808352600184015460ff811615159684019690965294046001600160a01b039081168285018190526002840154821660608401819052600385015490921660808401819052600485015460a08501819052600586015460c0860181905260069096015460e0860181905296519498509096929592947f33ba3970cc4ef3751cb2cf450d111607ca946ffdf885fd12fa1b527e7322d4d7946111ff9490611f3a565b60405180910390a480604001516001600160a01b031681600001517f79acc6f251e660ec98b41cefbc34894afd4f95c94f1ebf330c17bf965744581360405160405180910390a350600101611069565b505050565b3390565b600080826060015183608001518460a001518560c001518660e001514260405160200161128a96959493929190611ec2565b60408051601f19818403018152918152815160209283012060008181526007909352912054909150156112cf5760405162461bcd60e51b81526004016103b190612130565b60608301516001600160a01b0316158015906112f7575060808301516001600160a01b031615155b801561130a57508260c001518360a00151115b8015611327575060e083015115806113275750610e108360e00151115b6113435760405162461bcd60e51b81526004016103b190612120565b808352600160208085018281523360408088018281526000878152600786528281208a51815594519685018054925160ff1990931697151597909717610100600160a81b0319166101006001600160a01b03938416021790965560608901516002850180546001600160a01b031990811692841692909217905560808a0151600386018054909216921691909117905560a0880151600484015560c0880151600584015560e08801516006909301929092558352601390915290206114089082611616565b5082608001516001600160a01b031683606001516001600160a01b0316827f65f58dd38f9c97af071dcbb7fb2d3b9e16e6d89858396c9c9243a6ec16b7ec6b86604001518760a001518860c001518960e0015160405161146b9493929190611f3a565b60405180910390a482604001516001600160a01b0316817f6e233dbc3e1e4737da0f210a5bab972f5367ddaef0c4ba4027194f9cd03893ce60405160405180910390a392915050565b6001600160e01b03198216600090815260056020526040902080546001600160a01b0319166001600160a01b0383169081179091551561150f57611509600d6001600160e01b0319841663ffffffff61161616565b5061152a565b61124f600d6001600160e01b0319841663ffffffff61165e16565b5050565b6001015490565b600082820183811015610fa05760405162461bcd60e51b81526004016103b190612100565b60008183106115695781610fa0565b5090919050565b600082600101828154811061158157fe5b9060005260206000200154905092915050565b6001600160a01b0381166115ba5760405162461bcd60e51b81526004016103b1906120f0565b6001546040516001600160a01b038084169216907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a3600180546001600160a01b0319166001600160a01b0392909216919091179055565b6000611622838361171f565b6116565750600180830180548083018083556000928352602080842090920185905584835290859052604090912055610a59565b506000610a59565b600061166a838361171f565b1561165657600082815260208490526040902054600184015460001991820191018082146116e25760008560010182815481106116a357fe5b90600052602060002001549050808660010184815481106116c057fe5b6000918252602080832090910192909255918252869052604090206001830190555b600084815260208690526040812055600185018054806116fe57fe5b60019003818190600052602060002001600090559055600192505050610a59565b60009081526020919091526040902054151590565b6040805161010081018252600080825260208201819052918101829052606081018290526080810182905260a0810182905260c0810182905260e081019190915290565b8035610a59816122e0565b60008083601f84011261179557600080fd5b50813567ffffffffffffffff8111156117ad57600080fd5b6020830191508360208202830111156117c557600080fd5b9250929050565b600082601f8301126117dd57600080fd5b81356117f06117eb82612263565b61223c565b9150818183526020840193506020810190508385602084028201111561181557600080fd5b60005b83811015611841578161182b8882611899565b8452506020928301929190910190600101611818565b5050505092915050565b60008083601f84011261185d57600080fd5b50813567ffffffffffffffff81111561187557600080fd5b602083019150836101008202830111156117c557600080fd5b8035610a59816122f4565b8035610a59816122fd565b8035610a5981612306565b600061010082840312156118c257600080fd5b6118cd61010061223c565b905060006118db8484611899565b82525060206118ec8484830161188e565b602083015250604061190084828501611778565b604083015250606061191484828501611778565b606083015250608061192884828501611778565b60808301525060a061193c84828501611899565b60a08301525060c061195084828501611899565b60c08301525060e061196484828501611899565b60e08301525092915050565b60006020828403121561198257600080fd5b600061198e8484611778565b949350505050565b600080604083850312156119a957600080fd5b60006119b58585611778565b92505060206119c685828601611778565b9150509250929050565b600080604083850312156119e357600080fd5b60006119ef8585611778565b92505060206119c685828601611899565b600080600060608486031215611a1557600080fd5b6000611a218686611778565b9350506020611a3286828701611899565b9250506040611a4386828701611899565b9150509250925092565b60008060208385031215611a6057600080fd5b823567ffffffffffffffff811115611a7757600080fd5b611a8385828601611783565b92509250509250929050565b600060208284031215611aa157600080fd5b813567ffffffffffffffff811115611ab857600080fd5b61198e848285016117cc565b60008060208385031215611ad757600080fd5b823567ffffffffffffffff811115611aee57600080fd5b611a838582860161184b565b600060208284031215611b0c57600080fd5b600061198e8484611899565b60008060408385031215611b2b57600080fd5b60006119b58585611899565b600060208284031215611b4957600080fd5b600061198e84846118a4565b60006101008284031215611b6857600080fd5b600061198e84846118af565b6000611b808383611c6d565b505060200190565b6000611b948383611e14565b50506101000190565b611ba681612297565b82525050565b611ba6611bb882612297565b6122ce565b6000611bc88261228a565b611bd2818561228e565b9350611bdd83612284565b8060005b83811015611c0b578151611bf58882611b74565b9750611c0083612284565b925050600101611be1565b509495945050505050565b6000611c218261228a565b611c2b818561228e565b9350611c3683612284565b8060005b83811015611c0b578151611c4e8882611b88565b9750611c5983612284565b925050600101611c3a565b611ba6816122a2565b611ba6816122a7565b611ba6816122c3565b6000611c8c60068361228e565b6514185d5cd95960d21b815260200192915050565b6000611cae60268361228e565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b6000611cf6601b8361228e565b7f536166654d6174683a206164646974696f6e206f766572666c6f770000000000815260200192915050565b6000611d2f600c8361228e565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b6000611d57600e8361228e565b6d696e76616c696420706172616d7360901b815260200192915050565b6000611d8160118361228e565b706c6f616e506172616d732065786973747360781b815260200192915050565b6000611dae60238361228e565b7f4c6f616e53657474696e6773202d2066616c6c6261636b206e6f7420616c6c6f8152621dd95960ea1b602082015260400192915050565b6000611df360128361228e565b713ab730baba3437b934bd32b21037bbb732b960711b815260200192915050565b8051610100830190611e268482611c6d565b506020820151611e396020850182611c64565b506040820151611e4c6040850182611b9d565b506060820151611e5f6060850182611b9d565b506080820151611e726080850182611b9d565b5060a0820151611e8560a0850182611c6d565b5060c0820151611e9860c0850182611c6d565b5060e0820151611eab60e0850182611c6d565b50505050565b611ba6611ebd826122a7565b6122a7565b6000611ece8289611bac565b601482019150611ede8288611bac565b601482019150611eee8287611eb1565b602082019150611efe8286611eb1565b602082019150611f0e8285611eb1565b602082019150611f1e8284611eb1565b506020019695505050505050565b60208101610a598284611b9d565b60808101611f488287611b9d565b611f556020830186611c6d565b611f626040830185611c6d565b611f6f6060830184611c6d565b95945050505050565b60208082528101610fa08184611bbd565b60208082528101610fa08184611c16565b60208101610a598284611c64565b6101008101611fb7828b611c6d565b611fc4602083018a611c64565b611fd16040830189611b9d565b611fde6060830188611b9d565b611feb6080830187611b9d565b611ff860a0830186611c6d565b61200560c0830185611c6d565b61201260e0830184611c6d565b9998505050505050505050565b610180810161202e828f611c6d565b61203b602083018e611c6d565b612048604083018d611c6d565b612055606083018c611c64565b612062608083018b611c6d565b61206f60a083018a611c6d565b61207c60c0830189611c6d565b61208960e0830188611c6d565b612097610100830187611c6d565b6120a5610120830186611c6d565b6120b3610140830185611b9d565b6120c1610160830184611b9d565b9d9c50505050505050505050505050565b60208101610a598284611c76565b60208082528101610a5981611c7f565b60208082528101610a5981611ca1565b60208082528101610a5981611ce9565b60208082528101610a5981611d22565b60208082528101610a5981611d4a565b60208082528101610a5981611d74565b60208082528101610a5981611da1565b60208082528101610a5981611de6565b60208101610a598284611c6d565b6060810161217c8286611c6d565b6121896020830185611c6d565b61198e6040830184611c6d565b60a081016121a48288611c6d565b6121b16020830187611c6d565b6121be6040830186611c6d565b6121cb6060830185611c6d565b6121d86080830184611c6d565b9695505050505050565b60c081016121f08289611c6d565b6121fd6020830188611c6d565b61220a6040830187611c6d565b6122176060830186611c6d565b6122246080830185611c6d565b61223160a0830184611c6d565b979650505050505050565b60405181810167ffffffffffffffff8111828210171561225b57600080fd5b604052919050565b600067ffffffffffffffff82111561227a57600080fd5b5060209081020190565b60200190565b5190565b90815260200190565b6000610a59826122b7565b151590565b90565b6001600160e01b03191690565b6001600160a01b031690565b6000610a5982612297565b6000610a59826000610a598260601b90565b6122e981612297565b811461101657600080fd5b6122e9816122a2565b6122e9816122a7565b6122e9816122aa56fea365627a7a72315820ede3d37a9101655d693fa2f274c848f52485f96c644491749f6c0bdbf7da1f206c6578706572696d656e74616cf564736f6c63430005110040",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106103995760003560e01c80638f32d59b116101e9578063cb6eacd11161010f578063edab119f116100ad578063f6ddc8b31161007c578063f6ddc8b314610773578063f706b1f21461077b578063f851a44014610783578063fe30fa6a1461078b57610399565b8063edab119f14610748578063f0e085f514610750578063f2fde38b14610758578063f589a3e71461076b57610399565b8063d288208c116100e9578063d288208c1461071d578063d473c2da14610725578063d485045e1461072d578063e8f627641461074057610399565b8063cb6eacd1146106d0578063cd5d808d146106f7578063cf59e67b1461070a57610399565b8063b30643d911610187578063bdee453c11610156578063bdee453c1461066a578063c4a908151461067d578063c4d66de8146106a8578063ca74a5d9146106bd57610399565b8063b30643d914610634578063b7e1524114610647578063b9cffa3e1461065a578063ba4861e91461066257610399565b8063a1ae275e116101c3578063a1ae275e146105ef578063acc043481461060f578063ae0a853014610617578063afe840091461061f57610399565b80638f32d59b146105cc57806392d894f8146105d4578063959083d3146105e757610399565b80634699f846116102ce5780636e6637301161026c5780637a8faeb81161023b5780637a8faeb8146105a15780638456cb59146105a95780638da5cb5b146105b15780638dc48ba5146105b957610399565b80636e663730146105765780637420ca3e14610589578063742e67981461059157806378d849ed1461059957610399565b8063569fc1fb116102a8578063569fc1fb14610515578063574442cc1461053757806362fff3f61461053f57806368c4ac261461056357610399565b80634699f846146104f25780634a1e88fe146104fa5780634f28cac21461050d57610399565b80632d9cd0761161033b5780633452d2d4116103155780633452d2d4146104a65780633fca506e146104b95780634115a2b6146104cc5780634203e395146104df57610399565b80632d9cd0761461046b5780632f4707641461048b5780633432423c1461049357610399565b80631b7bde74116103775780631b7bde7414610410578063218b39c61461043057806324cc5749146104435780632a3240271461046357610399565b8063065d810f146103ba5780630676c1b7146103e857806317548b79146103fd575b60405162461bcd60e51b81526004016103b190612140565b60405180910390fd5b6103cd6103c83660046119d0565b61079e565b6040516103df969594939291906121e2565b60405180910390f35b6103f06107de565b6040516103df9190611f2c565b6103f061040b366004611b37565b6107ed565b61042361041e366004611996565b610808565b6040516103df9190612160565b6103f061043e366004611970565b610825565b610456610451366004611970565b610840565b6040516103df9190611f9a565b610423610855565b61047e610479366004611a8f565b61085b565b6040516103df9190611f89565b610423610990565b6103cd6104a13660046119d0565b610996565b6104236104b4366004611970565b6109d6565b6104236104c7366004611970565b6109e8565b6104566104da366004611b18565b6109fa565b6104236104ed366004611970565b610a1a565b610423610a2c565b610423610508366004611996565b610a32565b610423610a5f565b610528610523366004611afa565b610a65565b6040516103df9392919061216e565b610423610a86565b61055261054d366004611996565b610a8c565b6040516103df959493929190612196565b610456610571366004611970565b610ac6565b6103f0610584366004611970565b610adb565b6103f0610af6565b610423610b05565b6103f0610b0b565b610423610b1a565b610456610b20565b6103f0610b29565b6103f06105c7366004611970565b610b38565b610456610b53565b6104236105e2366004611970565b610b79565b610423610b8b565b6106026105fd366004611ac4565b610b91565b6040516103df9190611f78565b610423610c3f565b610423610c45565b610627610c4b565b6040516103df91906120d2565b610423610642366004611970565b610c5a565b610423610655366004611970565b610c6c565b6103f0610c7e565b6103f0610c8d565b610423610678366004611970565b610c9c565b61069061068b366004611afa565b610cae565b6040516103df9c9b9a9998979695949392919061201f565b6106bb6106b6366004611970565b610d20565b005b6104236106cb366004611afa565b610e35565b6106e36106de366004611afa565b610e4a565b6040516103df989796959493929190611fa8565b610423610705366004611996565b610e9c565b610602610718366004611a00565b610eb9565b6103f0610fa7565b610423610fb6565b61042361073b366004611970565b610fbc565b6103f0610fce565b610423610fdd565b610423610fe3565b6106bb610766366004611970565b610fe9565b610423611019565b61042361101f565b6103f0611025565b6103f0611034565b6106bb610799366004611a4d565b611043565b6009602090815260009283526040808420909152908252902080546001820154600283015460038401546004850154600590950154939492939192909186565b6031546001600160a01b031681565b6005602052600090815260409020546001600160a01b031681565b603b60209081526000928352604080842090915290825290205481565b6023602052600090815260409020546001600160a01b031681565b60326020526000908152604090205460ff1681565b60185481565b6060815160405190808252806020026020018201604052801561089857816020015b610885611734565b81526020019060019003908161087d5790505b5090506000805b835181101561097c576108b0611734565b600760008684815181106108c057fe5b6020908102919091018101518252818101929092526040908101600020815161010080820184528254808352600184015460ff811615159684019690965294046001600160a01b039081169382019390935260028201548316606082015260038201549092166080830152600481015460a0830152600581015460c08301526006015460e082015291506109545750610974565b8084848151811061096157fe5b6020908102919091010152506001909101905b60010161089f565b50815181101561098a578082525b50919050565b601f5481565b6008602090815260009283526040808420909152908252902080546001820154600283015460038401546004850154600590950154939492939192909186565b601a6020526000908152604090205481565b602a6020526000908152604090205481565b600a60209081526000928352604080842090915290825290205460ff1681565b60166020526000908152604090205481565b60155481565b6001600160a01b038083166000908152600b60209081526040808320938516835292905220545b92915050565b60295481565b600c6020526000908152604090208054600182015460029092015490919083565b602b5481565b600b602090815260009283526040808420909152908252902080546001820154600283015460038401546004909401549293919290919085565b60266020526000908152604090205460ff1681565b6033602052600090815260409020546001600160a01b031681565b6003546001600160a01b031681565b60355481565b6002546001600160a01b031681565b601e5481565b603d5460ff1681565b6001546001600160a01b031690565b6022602052600090815260409020546001600160a01b031681565b6001546000906001600160a01b0316610b6a611254565b6001600160a01b031614905090565b60176020526000908152604090205481565b602c5481565b603d5460609060ff1615610bb75760405162461bcd60e51b81526004016103b1906120e0565b604080518381526020808502820101909152828015610be0578160200160208202803883390190505b50905060005b82811015610c3857610c19848483818110610bfd57fe5b90506101000201803603610c149190810190611b55565b611258565b828281518110610c2557fe5b6020908102919091010152600101610be6565b5092915050565b602f5481565b60205481565b602d546001600160a01b031681565b601d6020526000908152604090205481565b601c6020526000908152604090205481565b6037546001600160a01b031681565b6004546001600160a01b031681565b60366020526000908152604090205481565b600660208190526000918252604090912080546001820154600283015460038401546004850154600586015496860154600787015460088801546009890154600a8a0154600b909a0154989a9799969860ff909616979496949593949293919290916001600160a01b0391821691168c565b610d28610b53565b610d445760405162461bcd60e51b81526004016103b190612110565b6350d713af60e11b600081905260056020527fd30397261808d9f908fb53c9c06f1db90c071662dd2733a285622dd2a05d930b546001600160a01b031690610d8c90836114b4565b610d9d637f187d3560e11b836114b4565b610dae6316ce683b60e11b836114b4565b610dbf63cf59e67b60e01b836114b4565b610dd063250f447f60e11b836114b4565b610de163ca74a5d960e01b836114b4565b6b4c6f616e53657474696e677360a01b826001600160a01b0316826001600160a01b03167f1420e3a2094d671bc2eb897941fa3d94ffa37f0cb6d530651946250a2151cb7f60405160405180910390a45050565b60009081526007602052604090206004015490565b6007602052600090815260409020805460018201546002830154600384015460048501546005860154600690960154949560ff8516956101009095046001600160a01b03908116959481169493169288565b603c60209081526000928352604080842090915290825290205481565b6001600160a01b0383166000908152601360205260408120606091610efc610ee08361152e565b610ef0878763ffffffff61153516565b9063ffffffff61155a16565b9050808510610f0d5750610fa09050565b83604051908082528060200260200182016040528015610f37578160200160208202803883390190505b50925060008582035b8015610f8f5785821415610f5357610f8f565b610f6984600019838a010163ffffffff61157016565b858381518110610f7557fe5b602090810291909101015260019091019060001901610f40565b5084811015610f9c578084525b5050505b9392505050565b6038546001600160a01b031681565b60275481565b60196020526000908152604090205481565b6014546001600160a01b031681565b601b5481565b60285481565b610ff1610b53565b61100d5760405162461bcd60e51b81526004016103b190612110565b61101681611594565b50565b60395481565b60215481565b602e546001600160a01b031681565b6030546001600160a01b031681565b603d5460ff16156110665760405162461bcd60e51b81526004016103b1906120e0565b60005b8181101561124f576007600084848481811061108157fe5b90506020020135815260200190815260200160002060010160019054906101000a90046001600160a01b03166001600160a01b0316336001600160a01b0316146110dd5760405162461bcd60e51b81526004016103b190612150565b6000600760008585858181106110ef57fe5b90506020020135815260200190815260200160002060010160006101000a81548160ff021916908315150217905550611126611734565b6007600085858581811061113657fe5b60209081029290920135835250818101929092526040908101600020815161010080820184528254808352600184015460ff811615159684019690965294046001600160a01b039081168285018190526002840154821660608401819052600385015490921660808401819052600485015460a08501819052600586015460c0860181905260069096015460e0860181905296519498509096929592947f33ba3970cc4ef3751cb2cf450d111607ca946ffdf885fd12fa1b527e7322d4d7946111ff9490611f3a565b60405180910390a480604001516001600160a01b031681600001517f79acc6f251e660ec98b41cefbc34894afd4f95c94f1ebf330c17bf965744581360405160405180910390a350600101611069565b505050565b3390565b600080826060015183608001518460a001518560c001518660e001514260405160200161128a96959493929190611ec2565b60408051601f19818403018152918152815160209283012060008181526007909352912054909150156112cf5760405162461bcd60e51b81526004016103b190612130565b60608301516001600160a01b0316158015906112f7575060808301516001600160a01b031615155b801561130a57508260c001518360a00151115b8015611327575060e083015115806113275750610e108360e00151115b6113435760405162461bcd60e51b81526004016103b190612120565b808352600160208085018281523360408088018281526000878152600786528281208a51815594519685018054925160ff1990931697151597909717610100600160a81b0319166101006001600160a01b03938416021790965560608901516002850180546001600160a01b031990811692841692909217905560808a0151600386018054909216921691909117905560a0880151600484015560c0880151600584015560e08801516006909301929092558352601390915290206114089082611616565b5082608001516001600160a01b031683606001516001600160a01b0316827f65f58dd38f9c97af071dcbb7fb2d3b9e16e6d89858396c9c9243a6ec16b7ec6b86604001518760a001518860c001518960e0015160405161146b9493929190611f3a565b60405180910390a482604001516001600160a01b0316817f6e233dbc3e1e4737da0f210a5bab972f5367ddaef0c4ba4027194f9cd03893ce60405160405180910390a392915050565b6001600160e01b03198216600090815260056020526040902080546001600160a01b0319166001600160a01b0383169081179091551561150f57611509600d6001600160e01b0319841663ffffffff61161616565b5061152a565b61124f600d6001600160e01b0319841663ffffffff61165e16565b5050565b6001015490565b600082820183811015610fa05760405162461bcd60e51b81526004016103b190612100565b60008183106115695781610fa0565b5090919050565b600082600101828154811061158157fe5b9060005260206000200154905092915050565b6001600160a01b0381166115ba5760405162461bcd60e51b81526004016103b1906120f0565b6001546040516001600160a01b038084169216907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a3600180546001600160a01b0319166001600160a01b0392909216919091179055565b6000611622838361171f565b6116565750600180830180548083018083556000928352602080842090920185905584835290859052604090912055610a59565b506000610a59565b600061166a838361171f565b1561165657600082815260208490526040902054600184015460001991820191018082146116e25760008560010182815481106116a357fe5b90600052602060002001549050808660010184815481106116c057fe5b6000918252602080832090910192909255918252869052604090206001830190555b600084815260208690526040812055600185018054806116fe57fe5b60019003818190600052602060002001600090559055600192505050610a59565b60009081526020919091526040902054151590565b6040805161010081018252600080825260208201819052918101829052606081018290526080810182905260a0810182905260c0810182905260e081019190915290565b8035610a59816122e0565b60008083601f84011261179557600080fd5b50813567ffffffffffffffff8111156117ad57600080fd5b6020830191508360208202830111156117c557600080fd5b9250929050565b600082601f8301126117dd57600080fd5b81356117f06117eb82612263565b61223c565b9150818183526020840193506020810190508385602084028201111561181557600080fd5b60005b83811015611841578161182b8882611899565b8452506020928301929190910190600101611818565b5050505092915050565b60008083601f84011261185d57600080fd5b50813567ffffffffffffffff81111561187557600080fd5b602083019150836101008202830111156117c557600080fd5b8035610a59816122f4565b8035610a59816122fd565b8035610a5981612306565b600061010082840312156118c257600080fd5b6118cd61010061223c565b905060006118db8484611899565b82525060206118ec8484830161188e565b602083015250604061190084828501611778565b604083015250606061191484828501611778565b606083015250608061192884828501611778565b60808301525060a061193c84828501611899565b60a08301525060c061195084828501611899565b60c08301525060e061196484828501611899565b60e08301525092915050565b60006020828403121561198257600080fd5b600061198e8484611778565b949350505050565b600080604083850312156119a957600080fd5b60006119b58585611778565b92505060206119c685828601611778565b9150509250929050565b600080604083850312156119e357600080fd5b60006119ef8585611778565b92505060206119c685828601611899565b600080600060608486031215611a1557600080fd5b6000611a218686611778565b9350506020611a3286828701611899565b9250506040611a4386828701611899565b9150509250925092565b60008060208385031215611a6057600080fd5b823567ffffffffffffffff811115611a7757600080fd5b611a8385828601611783565b92509250509250929050565b600060208284031215611aa157600080fd5b813567ffffffffffffffff811115611ab857600080fd5b61198e848285016117cc565b60008060208385031215611ad757600080fd5b823567ffffffffffffffff811115611aee57600080fd5b611a838582860161184b565b600060208284031215611b0c57600080fd5b600061198e8484611899565b60008060408385031215611b2b57600080fd5b60006119b58585611899565b600060208284031215611b4957600080fd5b600061198e84846118a4565b60006101008284031215611b6857600080fd5b600061198e84846118af565b6000611b808383611c6d565b505060200190565b6000611b948383611e14565b50506101000190565b611ba681612297565b82525050565b611ba6611bb882612297565b6122ce565b6000611bc88261228a565b611bd2818561228e565b9350611bdd83612284565b8060005b83811015611c0b578151611bf58882611b74565b9750611c0083612284565b925050600101611be1565b509495945050505050565b6000611c218261228a565b611c2b818561228e565b9350611c3683612284565b8060005b83811015611c0b578151611c4e8882611b88565b9750611c5983612284565b925050600101611c3a565b611ba6816122a2565b611ba6816122a7565b611ba6816122c3565b6000611c8c60068361228e565b6514185d5cd95960d21b815260200192915050565b6000611cae60268361228e565b7f4f776e61626c653a206e6577206f776e657220697320746865207a65726f206181526564647265737360d01b602082015260400192915050565b6000611cf6601b8361228e565b7f536166654d6174683a206164646974696f6e206f766572666c6f770000000000815260200192915050565b6000611d2f600c8361228e565b6b1d5b985d5d1a1bdc9a5e995960a21b815260200192915050565b6000611d57600e8361228e565b6d696e76616c696420706172616d7360901b815260200192915050565b6000611d8160118361228e565b706c6f616e506172616d732065786973747360781b815260200192915050565b6000611dae60238361228e565b7f4c6f616e53657474696e6773202d2066616c6c6261636b206e6f7420616c6c6f8152621dd95960ea1b602082015260400192915050565b6000611df360128361228e565b713ab730baba3437b934bd32b21037bbb732b960711b815260200192915050565b8051610100830190611e268482611c6d565b506020820151611e396020850182611c64565b506040820151611e4c6040850182611b9d565b506060820151611e5f6060850182611b9d565b506080820151611e726080850182611b9d565b5060a0820151611e8560a0850182611c6d565b5060c0820151611e9860c0850182611c6d565b5060e0820151611eab60e0850182611c6d565b50505050565b611ba6611ebd826122a7565b6122a7565b6000611ece8289611bac565b601482019150611ede8288611bac565b601482019150611eee8287611eb1565b602082019150611efe8286611eb1565b602082019150611f0e8285611eb1565b602082019150611f1e8284611eb1565b506020019695505050505050565b60208101610a598284611b9d565b60808101611f488287611b9d565b611f556020830186611c6d565b611f626040830185611c6d565b611f6f6060830184611c6d565b95945050505050565b60208082528101610fa08184611bbd565b60208082528101610fa08184611c16565b60208101610a598284611c64565b6101008101611fb7828b611c6d565b611fc4602083018a611c64565b611fd16040830189611b9d565b611fde6060830188611b9d565b611feb6080830187611b9d565b611ff860a0830186611c6d565b61200560c0830185611c6d565b61201260e0830184611c6d565b9998505050505050505050565b610180810161202e828f611c6d565b61203b602083018e611c6d565b612048604083018d611c6d565b612055606083018c611c64565b612062608083018b611c6d565b61206f60a083018a611c6d565b61207c60c0830189611c6d565b61208960e0830188611c6d565b612097610100830187611c6d565b6120a5610120830186611c6d565b6120b3610140830185611b9d565b6120c1610160830184611b9d565b9d9c50505050505050505050505050565b60208101610a598284611c76565b60208082528101610a5981611c7f565b60208082528101610a5981611ca1565b60208082528101610a5981611ce9565b60208082528101610a5981611d22565b60208082528101610a5981611d4a565b60208082528101610a5981611d74565b60208082528101610a5981611da1565b60208082528101610a5981611de6565b60208101610a598284611c6d565b6060810161217c8286611c6d565b6121896020830185611c6d565b61198e6040830184611c6d565b60a081016121a48288611c6d565b6121b16020830187611c6d565b6121be6040830186611c6d565b6121cb6060830185611c6d565b6121d86080830184611c6d565b9695505050505050565b60c081016121f08289611c6d565b6121fd6020830188611c6d565b61220a6040830187611c6d565b6122176060830186611c6d565b6122246080830185611c6d565b61223160a0830184611c6d565b979650505050505050565b60405181810167ffffffffffffffff8111828210171561225b57600080fd5b604052919050565b600067ffffffffffffffff82111561227a57600080fd5b5060209081020190565b60200190565b5190565b90815260200190565b6000610a59826122b7565b151590565b90565b6001600160e01b03191690565b6001600160a01b031690565b6000610a5982612297565b6000610a59826000610a598260601b90565b6122e981612297565b811461101657600080fd5b6122e9816122a2565b6122e9816122a7565b6122e9816122aa56fea365627a7a72315820ede3d37a9101655d693fa2f274c848f52485f96c644491749f6c0bdbf7da1f206c6578706572696d656e74616cf564736f6c63430005110040",
+  "libraries": {},
+  "devdoc": {
+    "methods": {
+      "disableLoanParams(bytes32[])": {
+        "params": {
+          "loanParamsIdList": "The array of loan parameters IDs to deactivate."
+        }
+      },
+      "getLoanParams(bytes32[])": {
+        "params": {
+          "loanParamsIdList": "The array of loan parameters IDs to match."
+        },
+        "return": "loanParamsList The result array of loan parameters."
+      },
+      "getLoanParamsList(address,uint256,uint256)": {
+        "params": {
+          "count": "The page limit.",
+          "owner": "The address of the loan owner.",
+          "start": "The page offset."
+        },
+        "return": "loanParamsList The result array of loan parameters."
+      },
+      "getTotalPrincipal(address,address)": {
+        "params": {
+          "lender": "The address of the lender.",
+          "loanToken": "The address of the token instance."
+        },
+        "return": "The total principal of the loans."
+      },
+      "initialize(address)": {
+        "params": {
+          "target": "The address of the target contract."
+        }
+      },
+      "isOwner()": {
+        "details": "Returns true if the caller is the current owner."
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[])": {
+        "details": "For each loan calls _setupLoanParams internal function.",
+        "params": {
+          "loanParamsList": "The array of loan parameters."
+        },
+        "return": "loanParamsIdList The array of loan parameters IDs."
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      }
+    },
+    "title": "Loan Settings contract."
+  },
+  "userdoc": {
+    "methods": {
+      "constructor": "Empty public constructor.",
+      "disableLoanParams(bytes32[])": {
+        "notice": "Deactivate LoanParams for future loans. Active loans using it are unaffected."
+      },
+      "getLoanParams(bytes32[])": {
+        "notice": "Get loan parameters for every matching IDs."
+      },
+      "getLoanParamsList(address,uint256,uint256)": {
+        "notice": "Get loan parameters for an owner and a given page defined by an offset and a limit."
+      },
+      "getTotalPrincipal(address,address)": {
+        "notice": "Get the total principal of the loans by a lender."
+      },
+      "initialize(address)": {
+        "notice": "Set function selectors on target contract."
+      },
+      "setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[])": {
+        "notice": "Setup loan parameters, by looping every loan and populating its parameters."
+      }
+    },
+    "notice": "This contract code comes from bZx. bZx is a protocol for tokenized margin trading and lending https://bzx.network similar to the dYdX protocol. * This contract contains functions to get and set loan parameters."
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 54790,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "reentrancyLock",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 54606,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 6188,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "priceFeeds",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_address"
+      },
+      {
+        "astId": 6190,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "swapsImpl",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_address"
+      },
+      {
+        "astId": 6192,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "sovrynSwapContractRegistryAddress",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_address"
+      },
+      {
+        "astId": 6196,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "logicTargets",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_mapping(t_bytes4,t_address)"
+      },
+      {
+        "astId": 6200,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "loans",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_mapping(t_bytes32,t_struct(Loan)6566_storage)"
+      },
+      {
+        "astId": 6204,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "loanParams",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_mapping(t_bytes32,t_struct(LoanParams)6538_storage)"
+      },
+      {
+        "astId": 6210,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "lenderOrders",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_mapping(t_address,t_mapping(t_bytes32,t_struct(Order)6582_storage))"
+      },
+      {
+        "astId": 6216,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "borrowerOrders",
+        "offset": 0,
+        "slot": "9",
+        "type": "t_mapping(t_address,t_mapping(t_bytes32,t_struct(Order)6582_storage))"
+      },
+      {
+        "astId": 6222,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "delegatedManagers",
+        "offset": 0,
+        "slot": "10",
+        "type": "t_mapping(t_bytes32,t_mapping(t_address,t_bool))"
+      },
+      {
+        "astId": 6228,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "lenderInterest",
+        "offset": 0,
+        "slot": "11",
+        "type": "t_mapping(t_address,t_mapping(t_address,t_struct(LenderInterest)6508_storage))"
+      },
+      {
+        "astId": 6232,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "loanInterest",
+        "offset": 0,
+        "slot": "12",
+        "type": "t_mapping(t_bytes32,t_struct(LoanInterest)6518_storage)"
+      },
+      {
+        "astId": 6234,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "logicTargetsSet",
+        "offset": 0,
+        "slot": "13",
+        "type": "t_struct(Bytes32Set)36272_storage"
+      },
+      {
+        "astId": 6236,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "activeLoansSet",
+        "offset": 0,
+        "slot": "15",
+        "type": "t_struct(Bytes32Set)36272_storage"
+      },
+      {
+        "astId": 6240,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "lenderLoanSets",
+        "offset": 0,
+        "slot": "17",
+        "type": "t_mapping(t_address,t_struct(Bytes32Set)36272_storage)"
+      },
+      {
+        "astId": 6244,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "borrowerLoanSets",
+        "offset": 0,
+        "slot": "18",
+        "type": "t_mapping(t_address,t_struct(Bytes32Set)36272_storage)"
+      },
+      {
+        "astId": 6248,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "userLoanParamSets",
+        "offset": 0,
+        "slot": "19",
+        "type": "t_mapping(t_address,t_struct(Bytes32Set)36272_storage)"
+      },
+      {
+        "astId": 6250,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "feesController",
+        "offset": 0,
+        "slot": "20",
+        "type": "t_address"
+      },
+      {
+        "astId": 6255,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "lendingFeePercent",
+        "offset": 0,
+        "slot": "21",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6259,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "lendingFeeTokensHeld",
+        "offset": 0,
+        "slot": "22",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 6263,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "lendingFeeTokensPaid",
+        "offset": 0,
+        "slot": "23",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 6270,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "tradingFeePercent",
+        "offset": 0,
+        "slot": "24",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6274,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "tradingFeeTokensHeld",
+        "offset": 0,
+        "slot": "25",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 6278,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "tradingFeeTokensPaid",
+        "offset": 0,
+        "slot": "26",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 6285,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "borrowingFeePercent",
+        "offset": 0,
+        "slot": "27",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6289,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "borrowingFeeTokensHeld",
+        "offset": 0,
+        "slot": "28",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 6293,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "borrowingFeeTokensPaid",
+        "offset": 0,
+        "slot": "29",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 6295,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "protocolTokenHeld",
+        "offset": 0,
+        "slot": "30",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6297,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "protocolTokenPaid",
+        "offset": 0,
+        "slot": "31",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6304,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "affiliateFeePercent",
+        "offset": 0,
+        "slot": "32",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6311,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "liquidationIncentivePercent",
+        "offset": 0,
+        "slot": "33",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6315,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "loanPoolToUnderlying",
+        "offset": 0,
+        "slot": "34",
+        "type": "t_mapping(t_address,t_address)"
+      },
+      {
+        "astId": 6319,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "underlyingToLoanPool",
+        "offset": 0,
+        "slot": "35",
+        "type": "t_mapping(t_address,t_address)"
+      },
+      {
+        "astId": 6321,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "loanPoolsSet",
+        "offset": 0,
+        "slot": "36",
+        "type": "t_struct(Bytes32Set)36272_storage"
+      },
+      {
+        "astId": 6325,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "supportedTokens",
+        "offset": 0,
+        "slot": "38",
+        "type": "t_mapping(t_address,t_bool)"
+      },
+      {
+        "astId": 6332,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "maxDisagreement",
+        "offset": 0,
+        "slot": "39",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6335,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "sourceBuffer",
+        "offset": 0,
+        "slot": "40",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6338,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "maxSwapSize",
+        "offset": 0,
+        "slot": "41",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6342,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "borrowerNonce",
+        "offset": 0,
+        "slot": "42",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 6345,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "rolloverBaseReward",
+        "offset": 0,
+        "slot": "43",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6348,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "rolloverFlexFeePercent",
+        "offset": 0,
+        "slot": "44",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6350,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "wrbtcToken",
+        "offset": 0,
+        "slot": "45",
+        "type": "t_contract(IWrbtcERC20)35073"
+      },
+      {
+        "astId": 6352,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "protocolTokenAddress",
+        "offset": 0,
+        "slot": "46",
+        "type": "t_address"
+      },
+      {
+        "astId": 6359,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "feeRebatePercent",
+        "offset": 0,
+        "slot": "47",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6361,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "admin",
+        "offset": 0,
+        "slot": "48",
+        "type": "t_address"
+      },
+      {
+        "astId": 6363,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "protocolAddress",
+        "offset": 0,
+        "slot": "49",
+        "type": "t_address"
+      },
+      {
+        "astId": 6367,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "userNotFirstTradeFlag",
+        "offset": 0,
+        "slot": "50",
+        "type": "t_mapping(t_address,t_bool)"
+      },
+      {
+        "astId": 6371,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "affiliatesUserReferrer",
+        "offset": 0,
+        "slot": "51",
+        "type": "t_mapping(t_address,t_address)"
+      },
+      {
+        "astId": 6375,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "referralsList",
+        "offset": 0,
+        "slot": "52",
+        "type": "t_mapping(t_address,t_struct(AddressSet)35966_storage)"
+      },
+      {
+        "astId": 6378,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "minReferralsToPayout",
+        "offset": 0,
+        "slot": "53",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6382,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "affiliateRewardsHeld",
+        "offset": 0,
+        "slot": "54",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 6384,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "sovTokenAddress",
+        "offset": 0,
+        "slot": "55",
+        "type": "t_address"
+      },
+      {
+        "astId": 6386,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "lockedSOVAddress",
+        "offset": 0,
+        "slot": "56",
+        "type": "t_address"
+      },
+      {
+        "astId": 6393,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "affiliateTradingTokenFeePercent",
+        "offset": 0,
+        "slot": "57",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6397,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "affiliatesReferrerTokensList",
+        "offset": 0,
+        "slot": "58",
+        "type": "t_mapping(t_address,t_struct(AddressSet)35966_storage)"
+      },
+      {
+        "astId": 6403,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "affiliatesReferrerBalances",
+        "offset": 0,
+        "slot": "59",
+        "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))"
+      },
+      {
+        "astId": 6409,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "specialRebates",
+        "offset": 0,
+        "slot": "60",
+        "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))"
+      },
+      {
+        "astId": 6411,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "pause",
+        "offset": 0,
+        "slot": "61",
+        "type": "t_bool"
+      },
+      {
+        "astId": 6413,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "swapExtrernalFeePercent",
+        "offset": 0,
+        "slot": "62",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6415,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "tradingRebateRewardsBasisPoint",
+        "offset": 0,
+        "slot": "63",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6422,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "defaultPathConversion",
+        "offset": 0,
+        "slot": "64",
+        "type": "t_mapping(t_address,t_mapping(t_address,t_array(t_contract(IERC20)33292)dyn_storage))"
+      },
+      {
+        "astId": 6424,
+        "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+        "label": "pauser",
+        "offset": 0,
+        "slot": "65",
+        "type": "t_address"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_address)dyn_storage": {
+        "base": "t_address",
+        "encoding": "dynamic_array",
+        "label": "address[]",
+        "numberOfBytes": "32"
+      },
+      "t_array(t_bytes32)dyn_storage": {
+        "base": "t_bytes32",
+        "encoding": "dynamic_array",
+        "label": "bytes32[]",
+        "numberOfBytes": "32"
+      },
+      "t_array(t_contract(IERC20)33292)dyn_storage": {
+        "base": "t_contract(IERC20)33292",
+        "encoding": "dynamic_array",
+        "label": "contract IERC20[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_bytes4": {
+        "encoding": "inplace",
+        "label": "bytes4",
+        "numberOfBytes": "4"
+      },
+      "t_contract(IERC20)33292": {
+        "encoding": "inplace",
+        "label": "contract IERC20",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IWrbtcERC20)35073": {
+        "encoding": "inplace",
+        "label": "contract IWrbtcERC20",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_address)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => address)",
+        "numberOfBytes": "32",
+        "value": "t_address"
+      },
+      "t_mapping(t_address,t_array(t_contract(IERC20)33292)dyn_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => contract IERC20[])",
+        "numberOfBytes": "32",
+        "value": "t_array(t_contract(IERC20)33292)dyn_storage"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_address,t_mapping(t_address,t_array(t_contract(IERC20)33292)dyn_storage))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(address => contract IERC20[]))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_array(t_contract(IERC20)33292)dyn_storage)"
+      },
+      "t_mapping(t_address,t_mapping(t_address,t_struct(LenderInterest)6508_storage))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(address => struct LenderInterestStruct.LenderInterest))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_struct(LenderInterest)6508_storage)"
+      },
+      "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(address => uint256))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_uint256)"
+      },
+      "t_mapping(t_address,t_mapping(t_bytes32,t_struct(Order)6582_storage))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(bytes32 => struct OrderStruct.Order))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_bytes32,t_struct(Order)6582_storage)"
+      },
+      "t_mapping(t_address,t_struct(AddressSet)35966_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct EnumerableAddressSet.AddressSet)",
+        "numberOfBytes": "32",
+        "value": "t_struct(AddressSet)35966_storage"
+      },
+      "t_mapping(t_address,t_struct(Bytes32Set)36272_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct EnumerableBytes32Set.Bytes32Set)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Bytes32Set)36272_storage"
+      },
+      "t_mapping(t_address,t_struct(LenderInterest)6508_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct LenderInterestStruct.LenderInterest)",
+        "numberOfBytes": "32",
+        "value": "t_struct(LenderInterest)6508_storage"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_bytes32,t_mapping(t_address,t_bool))": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => mapping(address => bool))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_bool)"
+      },
+      "t_mapping(t_bytes32,t_struct(Loan)6566_storage)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => struct LoanStruct.Loan)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Loan)6566_storage"
+      },
+      "t_mapping(t_bytes32,t_struct(LoanInterest)6518_storage)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => struct LoanInterestStruct.LoanInterest)",
+        "numberOfBytes": "32",
+        "value": "t_struct(LoanInterest)6518_storage"
+      },
+      "t_mapping(t_bytes32,t_struct(LoanParams)6538_storage)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => struct LoanParamsStruct.LoanParams)",
+        "numberOfBytes": "32",
+        "value": "t_struct(LoanParams)6538_storage"
+      },
+      "t_mapping(t_bytes32,t_struct(Order)6582_storage)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => struct OrderStruct.Order)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Order)6582_storage"
+      },
+      "t_mapping(t_bytes32,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_bytes4,t_address)": {
+        "encoding": "mapping",
+        "key": "t_bytes4",
+        "label": "mapping(bytes4 => address)",
+        "numberOfBytes": "32",
+        "value": "t_address"
+      },
+      "t_struct(AddressSet)35966_storage": {
+        "encoding": "inplace",
+        "label": "struct EnumerableAddressSet.AddressSet",
+        "members": [
+          {
+            "astId": 35962,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "index",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_mapping(t_address,t_uint256)"
+          },
+          {
+            "astId": 35965,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "values",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_address)dyn_storage"
+          }
+        ],
+        "numberOfBytes": "64"
+      },
+      "t_struct(Bytes32Set)36272_storage": {
+        "encoding": "inplace",
+        "label": "struct EnumerableBytes32Set.Bytes32Set",
+        "members": [
+          {
+            "astId": 36268,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "index",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_mapping(t_bytes32,t_uint256)"
+          },
+          {
+            "astId": 36271,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "values",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_bytes32)dyn_storage"
+          }
+        ],
+        "numberOfBytes": "64"
+      },
+      "t_struct(LenderInterest)6508_storage": {
+        "encoding": "inplace",
+        "label": "struct LenderInterestStruct.LenderInterest",
+        "members": [
+          {
+            "astId": 6499,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "principalTotal",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6501,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "owedPerDay",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6503,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "owedTotal",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6505,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "paidTotal",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6507,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "updatedTimestamp",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "160"
+      },
+      "t_struct(Loan)6566_storage": {
+        "encoding": "inplace",
+        "label": "struct LoanStruct.Loan",
+        "members": [
+          {
+            "astId": 6543,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "id",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bytes32"
+          },
+          {
+            "astId": 6545,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "loanParamsId",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_bytes32"
+          },
+          {
+            "astId": 6547,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "pendingTradesId",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_bytes32"
+          },
+          {
+            "astId": 6549,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "active",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_bool"
+          },
+          {
+            "astId": 6551,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "principal",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6553,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "collateral",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6555,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "startTimestamp",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6557,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "endTimestamp",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6559,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "startMargin",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6561,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "startRate",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6563,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "borrower",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_address"
+          },
+          {
+            "astId": 6565,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "lender",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_address"
+          }
+        ],
+        "numberOfBytes": "384"
+      },
+      "t_struct(LoanInterest)6518_storage": {
+        "encoding": "inplace",
+        "label": "struct LoanInterestStruct.LoanInterest",
+        "members": [
+          {
+            "astId": 6513,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "owedPerDay",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6515,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "depositTotal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6517,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "updatedTimestamp",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "96"
+      },
+      "t_struct(LoanParams)6538_storage": {
+        "encoding": "inplace",
+        "label": "struct LoanParamsStruct.LoanParams",
+        "members": [
+          {
+            "astId": 6523,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "id",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bytes32"
+          },
+          {
+            "astId": 6525,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "active",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_bool"
+          },
+          {
+            "astId": 6527,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "owner",
+            "offset": 1,
+            "slot": "1",
+            "type": "t_address"
+          },
+          {
+            "astId": 6529,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "loanToken",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address"
+          },
+          {
+            "astId": 6531,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "collateralToken",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_address"
+          },
+          {
+            "astId": 6533,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "minInitialMargin",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6535,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "maintenanceMargin",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6537,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "maxLoanTerm",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "224"
+      },
+      "t_struct(Order)6582_storage": {
+        "encoding": "inplace",
+        "label": "struct OrderStruct.Order",
+        "members": [
+          {
+            "astId": 6571,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "lockedAmount",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6573,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "interestRate",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6575,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "minLoanTerm",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6577,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "maxLoanTerm",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6579,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "createdTimestamp",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6581,
+            "contract": "contracts/modules/LoanSettings.sol:LoanSettings",
+            "label": "expirationTimestamp",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "192"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

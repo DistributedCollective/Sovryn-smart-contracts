@@ -1,0 +1,15 @@
+[
+    {
+        "inputs": [
+            {
+                "internalType": "string[]",
+                "name": "_prefixes",
+                "type": "string[]"
+            }
+        ],
+        "name": "setNonBech32Prefixes",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]

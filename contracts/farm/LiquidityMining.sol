@@ -97,10 +97,9 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @param _unlockedImmediatelyPercent The % which determines how much will be unlocked immediately.
      * @dev 10000 is 100%
      */
-    function setUnlockedImmediatelyPercent(uint256 _unlockedImmediatelyPercent)
-        external
-        onlyAuthorized
-    {
+    function setUnlockedImmediatelyPercent(
+        uint256 _unlockedImmediatelyPercent
+    ) external onlyAuthorized {
         require(
             _unlockedImmediatelyPercent <= 10000,
             "Unlocked immediately percent has to be less than equal to 10000."
@@ -274,11 +273,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @param _from the first block for a calculation
      * @param _to the last block for a calculation
      */
-    function _getPassedBlocksWithBonusMultiplier(uint256 _from, uint256 _to)
-        internal
-        view
-        returns (uint256)
-    {
+    function _getPassedBlocksWithBonusMultiplier(
+        uint256 _from,
+        uint256 _to
+    ) internal view returns (uint256) {
         if (_from < startBlock) {
             _from = startBlock;
         }
@@ -295,11 +293,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         }
     }
 
-    function _getUserAccumulatedReward(uint256 _poolId, address _user)
-        internal
-        view
-        returns (uint256)
-    {
+    function _getUserAccumulatedReward(
+        uint256 _poolId,
+        address _user
+    ) internal view returns (uint256) {
         PoolInfo storage pool = poolInfoList[_poolId];
         UserInfo storage user = userInfoMap[_poolId][_user];
 
@@ -309,7 +306,11 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
             (, uint256 accumulatedRewardPerShare_) = _getPoolAccumulatedReward(pool);
             accumulatedRewardPerShare = accumulatedRewardPerShare.add(accumulatedRewardPerShare_);
         }
-        return user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
+
+        return
+            user.accumulatedReward.add(
+                user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt)
+            );
     }
 
     /**
@@ -317,11 +318,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @param _poolToken the address of pool token
      * @param _user the user address
      */
-    function getUserAccumulatedReward(address _poolToken, address _user)
-        external
-        view
-        returns (uint256)
-    {
+    function getUserAccumulatedReward(
+        address _poolToken,
+        address _user
+    ) external view returns (uint256) {
         uint256 poolId = _getPoolId(_poolToken);
         return _getUserAccumulatedReward(poolId, _user);
     }
@@ -341,8 +341,12 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         PoolInfo storage pool = poolInfoList[poolId];
         uint256 start = block.number;
         uint256 end = start.add(_duration.div(SECONDS_PER_BLOCK));
-        (, uint256 accumulatedRewardPerShare) =
-            _getPoolAccumulatedReward(pool, _amount, start, end);
+        (, uint256 accumulatedRewardPerShare) = _getPoolAccumulatedReward(
+            pool,
+            _amount,
+            start,
+            end
+        );
         return _amount.mul(accumulatedRewardPerShare).div(PRECISION);
     }
 
@@ -380,8 +384,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
             return;
         }
 
-        (uint256 accumulatedReward_, uint256 accumulatedRewardPerShare_) =
-            _getPoolAccumulatedReward(pool);
+        (
+            uint256 accumulatedReward_,
+            uint256 accumulatedRewardPerShare_
+        ) = _getPoolAccumulatedReward(pool);
         pool.accumulatedRewardPerShare = pool.accumulatedRewardPerShare.add(
             accumulatedRewardPerShare_
         );
@@ -390,11 +396,9 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         totalUsersBalance = totalUsersBalance.add(accumulatedReward_);
     }
 
-    function _getPoolAccumulatedReward(PoolInfo storage _pool)
-        internal
-        view
-        returns (uint256, uint256)
-    {
+    function _getPoolAccumulatedReward(
+        PoolInfo storage _pool
+    ) internal view returns (uint256, uint256) {
         return _getPoolAccumulatedReward(_pool, 0, _pool.lastRewardBlock, block.number);
     }
 
@@ -405,10 +409,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         uint256 _endBlock
     ) internal view returns (uint256, uint256) {
         uint256 passedBlocks = _getPassedBlocksWithBonusMultiplier(_startBlock, _endBlock);
-        uint256 accumulatedReward =
-            passedBlocks.mul(rewardTokensPerBlock).mul(_pool.allocationPoint).div(
-                totalAllocationPoint
-            );
+        uint256 accumulatedReward = passedBlocks
+            .mul(rewardTokensPerBlock)
+            .mul(_pool.allocationPoint)
+            .div(totalAllocationPoint);
 
         uint256 poolTokenBalance = _pool.poolToken.balanceOf(address(this));
         poolTokenBalance = poolTokenBalance.add(_additionalAmount);
@@ -422,11 +426,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @param _amount the amount of pool tokens
      * @param _user the address of user, tokens will be deposited to it or to msg.sender
      */
-    function deposit(
-        address _poolToken,
-        uint256 _amount,
-        address _user
-    ) external {
+    function deposit(address _poolToken, uint256 _amount, address _user) external {
         _deposit(_poolToken, _amount, _user, false);
     }
 
@@ -487,11 +487,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         _claimReward(poolId, userAddress, true);
     }
 
-    function _claimReward(
-        uint256 _poolId,
-        address _userAddress,
-        bool _isStakingTokens
-    ) internal {
+    function _claimReward(uint256 _poolId, address _userAddress, bool _isStakingTokens) internal {
         PoolInfo storage pool = poolInfoList[_poolId];
         UserInfo storage user = userInfoMap[_poolId][_userAddress];
 
@@ -528,11 +524,7 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @param _amount the amount of pool tokens
      * @param _user the user address will be used to process a withdrawal (can be passed only by wrapper contract)
      */
-    function withdraw(
-        address _poolToken,
-        uint256 _amount,
-        address _user
-    ) external {
+    function withdraw(address _poolToken, uint256 _amount, address _user) external {
         require(poolIdList[_poolToken] != 0, "Pool token not found");
         address userAddress = _getUserAddress(_user);
 
@@ -577,10 +569,11 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         //update user accumulated reward
         if (user.amount > 0) {
             //add reward for the previous amount of deposited tokens
-            uint256 accumulatedReward =
-                user.amount.mul(pool.accumulatedRewardPerShare).div(PRECISION).sub(
-                    user.rewardDebt
-                );
+            uint256 accumulatedReward = user
+                .amount
+                .mul(pool.accumulatedRewardPerShare)
+                .div(PRECISION)
+                .sub(user.rewardDebt);
             user.accumulatedReward = user.accumulatedReward.add(accumulatedReward);
         }
     }
@@ -756,11 +749,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @param _poolToken the address of pool token
      * @param _user the address of the user
      */
-    function getUserPoolTokenBalance(address _poolToken, address _user)
-        external
-        view
-        returns (uint256)
-    {
+    function getUserPoolTokenBalance(
+        address _poolToken,
+        address _user
+    ) external view returns (uint256) {
         UserInfo memory ui = getUserInfo(_poolToken, _user);
         return ui.amount;
     }
@@ -769,17 +761,16 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * @notice returns the accumulated liquid reward for the given user for each pool token
      * @param _user the address of the user
      */
-    function getUserAccumulatedRewardToBePaidLiquid(address _user)
-        external
-        view
-        returns (uint256)
-    {
+    function getUserAccumulatedRewardToBePaidLiquid(
+        address _user
+    ) external view returns (uint256) {
         uint256 length = poolInfoList.length;
         uint256 result;
         for (uint256 i = 0; i < length; i++) {
             address _poolToken = address(poolInfoList[i].poolToken);
-            uint256 calculatedUnlockedImmediatelyPercent =
-                calcUnlockedImmediatelyPercent(_poolToken);
+            uint256 calculatedUnlockedImmediatelyPercent = calcUnlockedImmediatelyPercent(
+                _poolToken
+            );
             result = result.add(
                 calculatedUnlockedImmediatelyPercent.mul(_getUserAccumulatedReward(i, _user)).div(
                     10000
@@ -799,8 +790,9 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         uint256 result;
         for (uint256 i = 0; i < length; i++) {
             address _poolToken = address(poolInfoList[i].poolToken);
-            uint256 calculatedUnlockedImmediatelyPercent =
-                calcUnlockedImmediatelyPercent(_poolToken);
+            uint256 calculatedUnlockedImmediatelyPercent = calcUnlockedImmediatelyPercent(
+                _poolToken
+            );
             result = result.add(
                 (10000 - calculatedUnlockedImmediatelyPercent)
                     .mul(_getUserAccumulatedReward(i, _user))
@@ -816,8 +808,9 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
      * use the poolTokensUnlockedImmediatelyPercent by default, if it is not set, then use the unlockedImmediatelyPercent
      */
     function calcUnlockedImmediatelyPercent(address _poolToken) public view returns (uint256) {
-        uint256 poolTokenUnlockedImmediatelyPercent =
-            poolTokensUnlockedImmediatelyPercent[_poolToken];
+        uint256 poolTokenUnlockedImmediatelyPercent = poolTokensUnlockedImmediatelyPercent[
+            _poolToken
+        ];
         return
             poolTokenUnlockedImmediatelyPercent > 0
                 ? poolTokenUnlockedImmediatelyPercent

@@ -60,11 +60,7 @@ contract TestTokenLimited {
         return true;
     }
 
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) public returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
         uint256 allowanceAmount = allowed[_from][msg.sender];
         require(
             _value <= balances[_from] && _value <= allowanceAmount && _to != address(0),

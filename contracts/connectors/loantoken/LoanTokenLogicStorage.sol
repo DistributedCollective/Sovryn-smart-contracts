@@ -21,6 +21,9 @@ contract LoanTokenLogicStorage is AdvancedToken {
     /** The address of the liquidity mining contract */
     address public liquidityMiningAddress;
 
+    /** The address of the staking contract */
+    address public stakingContractAddress;
+
     /// @dev Used by flashBorrow function.
     uint256 public constant VERSION = 6;
     /// @dev Used by flashBorrow function.
@@ -38,5 +41,10 @@ contract LoanTokenLogicStorage is AdvancedToken {
         assembly {
             result := mload(add(source, 32))
         }
+    }
+
+    modifier onlyPauserOrOwner() {
+        require(isOwner() || msg.sender == pauser, "unauthorized"); // SS02
+        _;
     }
 }

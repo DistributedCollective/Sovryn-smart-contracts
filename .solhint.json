@@ -1,9 +1,12 @@
 {
-    "extends": "solhint:recommended",
     "plugins": ["prettier"],
+    "extends": "solhint:recommended",
     "rules": {
         "prettier/prettier": "error",
         "max-line-length": ["warn", 140],
-        "compiler-version": ["warn"]
+        "compiler-version": "warn",
+        "no-global-import": "warn",
+        "no-console": "warn",
+        "private-vars-leading-underscore": "warn"
     }
 }

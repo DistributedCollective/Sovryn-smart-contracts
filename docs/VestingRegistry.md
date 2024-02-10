@@ -5,7 +5,7 @@ View Source: [contracts/governance/Vesting/VestingRegistry.sol](../contracts/gov
 
 **↗ Extends: [Ownable](Ownable.md)**
 
-**VestingRegistry**
+## **VestingRegistry** contract
 
 On January 25, 2020, Sovryn launched the Genesis Reservation system.
 Sovryn community members who controlled a special NFT were granted access to
@@ -42,7 +42,7 @@ address public SOV;
 address[] public CSOVtokens;
 uint256 public priceSats;
 address public staking;
-address public feeSharingProxy;
+address public feeSharingCollector;
 address public vestingOwner;
 mapping(address => mapping(uint256 => address)) public vestingContracts;
 mapping(address => bool) public processedList;
@@ -96,7 +96,7 @@ modifier isNotBlacklisted() internal
 
 ## Functions
 
-- [constructor(address _vestingFactory, address _SOV, address[] _CSOVtokens, uint256 _priceSats, address _staking, address _feeSharingProxy, address _vestingOwner)](#constructor)
+- [constructor(address _vestingFactory, address _SOV, address[] _CSOVtokens, uint256 _priceSats, address _staking, address _feeSharingCollector, address _vestingOwner)](#constructor)
 - [addAdmin(address _admin)](#addadmin)
 - [removeAdmin(address _admin)](#removeadmin)
 - [reImburse()](#reimburse)
@@ -128,7 +128,7 @@ modifier isNotBlacklisted() internal
 Contract deployment settings.
 
 ```solidity
-function (address _vestingFactory, address _SOV, address[] _CSOVtokens, uint256 _priceSats, address _staking, address _feeSharingProxy, address _vestingOwner) public nonpayable
+function (address _vestingFactory, address _SOV, address[] _CSOVtokens, uint256 _priceSats, address _staking, address _feeSharingCollector, address _vestingOwner) public nonpayable
 ```
 
 **Arguments**
@@ -140,7 +140,7 @@ function (address _vestingFactory, address _SOV, address[] _CSOVtokens, uint256 
 | _CSOVtokens | address[] | The array of cSOV tokens. | 
 | _priceSats | uint256 | The price of cSOV tokens in satoshis. | 
 | _staking | address | The address of staking contract. | 
-| _feeSharingProxy | address | The address of fee sharing proxy contract. | 
+| _feeSharingCollector | address | The address of fee sharing collector proxy contract. | 
 | _vestingOwner | address | The address of an owner of vesting contract. | 
 
 <details>
@@ -153,12 +153,12 @@ constructor(
         address[] memory _CSOVtokens,
         uint256 _priceSats,
         address _staking,
-        address _feeSharingProxy,
+        address _feeSharingCollector,
         address _vestingOwner
     ) public {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
-        require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+        require(_feeSharingCollector != address(0), "feeSharingCollector address invalid");
         require(_vestingOwner != address(0), "vestingOwner address invalid");
 
         _setVestingFactory(_vestingFactory);
@@ -167,7 +167,7 @@ constructor(
         SOV = _SOV;
         priceSats = _priceSats;
         staking = _staking;
-        feeSharingProxy = _feeSharingProxy;
+        feeSharingCollector = _feeSharingCollector;
         vestingOwner = _vestingOwner;
     }
 ```
@@ -840,7 +840,7 @@ function _getOrCreateVesting(
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollector,
                     _tokenOwner
                 );
             vestingContracts[_tokenOwner][type_] = vesting;
@@ -892,7 +892,7 @@ function _getOrCreateTeamVesting(
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollector,
                     vestingOwner
                 );
             vestingContracts[_tokenOwner][type_] = vesting;
@@ -913,12 +913,11 @@ function _getOrCreateTeamVesting(
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -929,9 +928,9 @@ function _getOrCreateTeamVesting(
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -944,11 +943,16 @@ function _getOrCreateTeamVesting(
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -960,6 +964,7 @@ function _getOrCreateTeamVesting(
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -990,6 +995,7 @@ function _getOrCreateTeamVesting(
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -1009,11 +1015,15 @@ function _getOrCreateTeamVesting(
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -1036,6 +1046,7 @@ function _getOrCreateTeamVesting(
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -1043,18 +1054,24 @@ function _getOrCreateTeamVesting(
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -1067,6 +1084,7 @@ function _getOrCreateTeamVesting(
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -1079,5 +1097,5 @@ function _getOrCreateTeamVesting(
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

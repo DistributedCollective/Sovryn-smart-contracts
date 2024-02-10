@@ -5,7 +5,7 @@ View Source: [contracts/connectors/loantoken/LoanTokenLogicStandard.sol](../cont
 **↗ Extends: [LoanTokenLogicStorage](LoanTokenLogicStorage.md)**
 **↘ Derived Contracts: [LoanTokenLogicLM](LoanTokenLogicLM.md), [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)**
 
-**LoanTokenLogicStandard**
+## **LoanTokenLogicStandard** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized margin
 trading and lending https://bzx.network similar to the dYdX protocol.
@@ -33,12 +33,6 @@ interest payments are split up.
 10% APR since the interest payments don't have to be split between two
 individuals.
 
-**Events**
-
-```js
-event WithdrawRBTCTo(address indexed to, uint256  amount);
-```
-
 ## Functions
 
 - [mint(address receiver, uint256 depositAmount)](#mint)
@@ -46,7 +40,6 @@ event WithdrawRBTCTo(address indexed to, uint256  amount);
 - [borrow(bytes32 loanId, uint256 withdrawAmount, uint256 initialLoanDuration, uint256 collateralTokenSent, address collateralTokenAddress, address borrower, address receiver, bytes )](#borrow)
 - [marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, bytes loanDataBytes)](#margintrade)
 - [marginTradeAffiliate(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, address affiliateReferrer, bytes loanDataBytes)](#margintradeaffiliate)
-- [withdrawRBTCTo(address payable _receiverAddress, uint256 _amount)](#withdrawrbtcto)
 - [transfer(address _to, uint256 _value)](#transfer)
 - [transferFrom(address _from, address _to, uint256 _value)](#transferfrom)
 - [_internalTransferFrom(address _from, address _to, uint256 _value, uint256 _allowanceAmount)](#_internaltransferfrom)
@@ -77,8 +70,8 @@ event WithdrawRBTCTo(address indexed to, uint256  amount);
 - [_totalDeposit(address collateralTokenAddress, uint256 collateralTokenSent, uint256 loanTokenSent)](#_totaldeposit)
 - [_getAmountInRbtc(address asset, uint256 amount)](#_getamountinrbtc)
 - [_getInterestRateAndBorrowAmount(uint256 borrowAmount, uint256 assetSupply, uint256 initialLoanDuration)](#_getinterestrateandborrowamount)
-- [_borrowOrTrade(bytes32 loanId, uint256 withdrawAmount, uint256 initialMargin, address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, bytes loanDataBytes)](#_borrowortrade)
-- [_verifyTransfers(address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, uint256 withdrawalAmount)](#_verifytransfers)
+- [_borrowOrTrade(bytes32 loanId, uint256 withdrawAmount, uint256 initialMargin, address collateralTokenAddress, struct MarginTradeStructHelpers.SentAddresses sentAddresses, struct MarginTradeStructHelpers.SentAmounts sentAmounts, bytes loanDataBytes)](#_borrowortrade)
+- [_verifyTransfers(address collateralTokenAddress, struct MarginTradeStructHelpers.SentAddresses sentAddresses, struct MarginTradeStructHelpers.SentAmounts sentAmounts, uint256 withdrawalAmount)](#_verifytransfers)
 - [_safeTransfer(address token, address to, uint256 amount, string errorMsg)](#_safetransfer)
 - [_safeTransferFrom(address token, address from, address to, uint256 amount, string errorMsg)](#_safetransferfrom)
 - [_callOptionalReturn(address token, bytes data, string errorMsg)](#_calloptionalreturn)
@@ -91,12 +84,9 @@ event WithdrawRBTCTo(address indexed to, uint256  amount);
 - [_getAllInterest()](#_getallinterest)
 - [_getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount)](#_getmarginborrowamountandrate)
 - [_totalAssetSupply(uint256 interestUnPaid)](#_totalassetsupply)
-- [checkPause(string funcId)](#checkpause)
 - [_checkPause()](#_checkpause)
 - [_adjustLoanSize(uint256 interestRate, uint256 maxDuration, uint256 loanSizeBeforeInterest)](#_adjustloansize)
 - [_utilizationRate(uint256 assetBorrow, uint256 assetSupply)](#_utilizationrate)
-- [setLiquidityMiningAddress(address LMAddress)](#setliquidityminingaddress)
-- [getLiquidityMiningAddress()](#getliquidityminingaddress)
 - [_mintWithLM(address receiver, uint256 depositAmount)](#_mintwithlm)
 - [_burnFromLM(uint256 burnAmount)](#_burnfromlm)
 
@@ -114,7 +104,7 @@ amount is the amount to be deposited.
      *
 
 ```solidity
-function mint(address receiver, uint256 depositAmount) external nonpayable nonReentrant 
+function mint(address receiver, uint256 depositAmount) external nonpayable nonReentrant globallyNonReentrant 
 returns(mintAmount uint256)
 ```
 
@@ -136,6 +126,7 @@ The amount of loan tokens minted.
 function mint(address receiver, uint256 depositAmount)
         external
         nonReentrant
+        globallyNonReentrant
         returns (uint256 mintAmount)
     {
         return _mintToken(receiver, depositAmount);
@@ -155,7 +146,7 @@ underlying token in exchange.
      *
 
 ```solidity
-function burn(address receiver, uint256 burnAmount) external nonpayable nonReentrant 
+function burn(address receiver, uint256 burnAmount) external nonpayable nonReentrant globallyNonReentrant 
 returns(loanAmountPaid uint256)
 ```
 
@@ -177,6 +168,7 @@ The amount of underlying tokens payed to lender.
 function burn(address receiver, uint256 burnAmount)
         external
         nonReentrant
+        globallyNonReentrant
         returns (uint256 loanAmountPaid)
     {
         loanAmountPaid = _burnToken(burnAmount);
@@ -198,7 +190,7 @@ The underlying loan token may not be used as collateral.
      *
 
 ```solidity
-function borrow(bytes32 loanId, uint256 withdrawAmount, uint256 initialLoanDuration, uint256 collateralTokenSent, address collateralTokenAddress, address borrower, address receiver, bytes ) public payable nonReentrant 
+function borrow(bytes32 loanId, uint256 withdrawAmount, uint256 initialLoanDuration, uint256 collateralTokenSent, address collateralTokenAddress, address borrower, address receiver, bytes ) public payable nonReentrant globallyNonReentrant 
 returns(uint256, uint256)
 ```
 
@@ -236,6 +228,7 @@ function borrow(
         public
         payable
         nonReentrant /// Note: needs to be removed to allow flashloan use cases.
+        globallyNonReentrant
         returns (
             uint256,
             uint256 /// Returns new principal and new collateral added to loan.
@@ -276,25 +269,29 @@ function borrow(
 
         _settleInterest();
 
-        address[4] memory sentAddresses;
-        uint256[5] memory sentAmounts;
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses;
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts;
 
-        sentAddresses[0] = address(this); /// The lender.
-        sentAddresses[1] = borrower;
-        sentAddresses[2] = receiver;
-        /// sentAddresses[3] = address(0); /// The manager.
+        sentAddresses.lender = address(this); /// The lender.
+        sentAddresses.borrower = borrower;
+        sentAddresses.receiver = receiver;
+        /// sentAddresses.manager = address(0); /// The manager.
 
-        sentAmounts[1] = withdrawAmount;
+        sentAmounts.newPrincipal = withdrawAmount;
 
         /// interestRate, interestInitialAmount, borrowAmount (newBorrowAmount).
-        (sentAmounts[0], sentAmounts[2], sentAmounts[1]) = _getInterestRateAndBorrowAmount(
-            sentAmounts[1],
+        (
+            sentAmounts.interestRate,
+            sentAmounts.interestInitialAmount,
+            sentAmounts.newPrincipal
+        ) = _getInterestRateAndBorrowAmount(
+            sentAmounts.newPrincipal,
             _totalAssetSupply(0), /// Interest is settled above.
             initialLoanDuration
         );
 
-        /// sentAmounts[3] = 0; /// loanTokenSent
-        sentAmounts[4] = collateralTokenSent;
+        /// sentAmounts.loanTokenSent = 0; /// loanTokenSent
+        sentAmounts.collateralTokenSent = collateralTokenSent;
 
         return
             _borrowOrTrade(
@@ -341,7 +338,7 @@ which is why positions need to be closed at the protocol proxy contract.
      *
 
 ```solidity
-function marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, bytes loanDataBytes) public payable nonReentrant 
+function marginTrade(bytes32 loanId, uint256 leverageAmount, uint256 loanTokenSent, uint256 collateralTokenSent, address collateralTokenAddress, address trader, uint256 minEntryPrice, bytes loanDataBytes) public payable nonReentrant globallyNonReentrant 
 returns(uint256, uint256)
 ```
 
@@ -379,6 +376,7 @@ function marginTrade(
         public
         payable
         nonReentrant /// Note: needs to be removed to allow flashloan use cases.
+        globallyNonReentrant
         returns (
             uint256,
             uint256 /// Returns new principal and new collateral added to trade.
@@ -408,39 +406,35 @@ function marginTrade(
             _totalDeposit(collateralTokenAddress, collateralTokenSent, loanTokenSent);
         require(totalDeposit != 0, "12");
 
-        address[4] memory sentAddresses;
-        uint256[5] memory sentAmounts;
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses;
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts;
 
-        sentAddresses[0] = address(this); /// The lender.
-        sentAddresses[1] = trader;
-        sentAddresses[2] = trader;
-        /// sentAddresses[3] = address(0); /// The manager.
+        sentAddresses.lender = address(this);
+        sentAddresses.borrower = trader;
+        sentAddresses.receiver = trader;
+        /// sentAddresses.manager = address(0); /// The manager.
 
-        /// sentAmounts[0] = 0; /// interestRate (found later).
-        sentAmounts[1] = totalDeposit; /// Total amount of deposit.
-        /// sentAmounts[2] = 0; /// interestInitialAmount (interest is calculated based on fixed-term loan).
-        sentAmounts[3] = loanTokenSent;
-        sentAmounts[4] = collateralTokenSent;
+        /// sentAmounts.interestRate = 0; /// interestRate (found later).
+        sentAmounts.newPrincipal = totalDeposit;
+        /// sentAmounts.interestInitialAmount = 0; /// interestInitialAmount (interest is calculated based on fixed-term loan).
+        sentAmounts.loanTokenSent = loanTokenSent;
+        sentAmounts.collateralTokenSent = collateralTokenSent;
 
         _settleInterest();
 
-        (sentAmounts[1], sentAmounts[0]) = _getMarginBorrowAmountAndRate( /// borrowAmount, interestRate
+        (sentAmounts.newPrincipal, sentAmounts.interestRate) = _getMarginBorrowAmountAndRate( /// borrowAmount, interestRate
             leverageAmount,
-            sentAmounts[1] /// depositAmount
+            sentAmounts.newPrincipal /// depositAmount
         );
 
-        checkPriceDivergence(
-            loanTokenSent.add(sentAmounts[1]),
-            collateralTokenAddress,
-            minEntryPrice
-        );
         require(
-            _getAmountInRbtc(loanTokenAddress, sentAmounts[1]) > TINY_AMOUNT,
+            _getAmountInRbtc(loanTokenAddress, sentAmounts.newPrincipal) > TINY_AMOUNT,
             "principal too small"
         );
 
         /// @dev Converting to initialMargin
         leverageAmount = SafeMath.div(10**38, leverageAmount);
+        sentAmounts.minEntryPrice = minEntryPrice;
         return
             _borrowOrTrade(
                 loanId,
@@ -524,37 +518,6 @@ function marginTradeAffiliate(
                 minEntryPrice,
                 loanDataBytes
             );
-    }
-```
-</details>
-
----    
-
-> ### withdrawRBTCTo
-
-Withdraws RBTC from the contract by Multisig.
-
-```solidity
-function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external nonpayable onlyOwner 
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| _receiverAddress | address payable | The address where the rBTC has to be transferred. | 
-| _amount | uint256 | The amount of rBTC to be transferred. | 
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function withdrawRBTCTo(address payable _receiverAddress, uint256 _amount) external onlyOwner {
-        require(_receiverAddress != address(0), "receiver address invalid");
-        require(_amount > 0, "non-zero withdraw amount expected");
-        require(_amount <= address(this).balance, "withdraw amount cannot exceed balance");
-        _receiverAddress.transfer(_amount);
-        emit WithdrawRBTCTo(_receiverAddress, _amount);
     }
 ```
 </details>
@@ -1829,7 +1792,7 @@ Compute principal and collateral.
      *
 
 ```solidity
-function _borrowOrTrade(bytes32 loanId, uint256 withdrawAmount, uint256 initialMargin, address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, bytes loanDataBytes) internal nonpayable
+function _borrowOrTrade(bytes32 loanId, uint256 withdrawAmount, uint256 initialMargin, address collateralTokenAddress, struct MarginTradeStructHelpers.SentAddresses sentAddresses, struct MarginTradeStructHelpers.SentAmounts sentAmounts, bytes loanDataBytes) internal nonpayable
 returns(uint256, uint256)
 ```
 
@@ -1841,8 +1804,8 @@ returns(uint256, uint256)
 | withdrawAmount | uint256 | The amount to be withdrawn (actually borrowed). | 
 | initialMargin | uint256 | The initial margin with 18 decimals | 
 | collateralTokenAddress | address | The address of the token to be used as   collateral. Cannot be the loan token address. | 
-| sentAddresses | address[4] | The addresses to send tokens: lender, borrower,   receiver and manager. | 
-| sentAmounts | uint256[5] | The amounts to send to each address. | 
+| sentAddresses | struct MarginTradeStructHelpers.SentAddresses | The addresses to send tokens: lender, borrower,   receiver and manager. | 
+| sentAmounts | struct MarginTradeStructHelpers.SentAmounts | The amounts to send to each address. | 
 | loanDataBytes | bytes | Additional loan data (not in use for token swaps).      * | 
 
 **Returns**
@@ -1860,19 +1823,19 @@ function _borrowOrTrade(
         uint256 withdrawAmount,
         uint256 initialMargin,
         address collateralTokenAddress,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentAmounts,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
         bytes memory loanDataBytes
     ) internal returns (uint256, uint256) {
         _checkPause();
         require(
-            sentAmounts[1] <= _underlyingBalance() && /// newPrincipal (borrowed amount + fees)
-                sentAddresses[1] != address(0), /// The borrower.
+            sentAmounts.newPrincipal <= _underlyingBalance() && /// newPrincipal (borrowed amount + fees)
+                sentAddresses.borrower != address(0), /// The borrower.
             "24"
         );
 
-        if (sentAddresses[2] == address(0)) {
-            sentAddresses[2] = sentAddresses[1]; /// The receiver = the borrower.
+        if (sentAddresses.receiver == address(0)) {
+            sentAddresses.receiver = sentAddresses.borrower; /// The receiver = the borrower.
         }
 
         /// @dev Handle transfers prior to adding newPrincipal to loanTokenSent
@@ -1883,11 +1846,11 @@ function _borrowOrTrade(
          * @dev Adding the loan token portion from the lender to loanTokenSent
          * (add the loan to the loan tokens sent from the user).
          * */
-        sentAmounts[3] = sentAmounts[3].add(sentAmounts[1]); /// newPrincipal
+        sentAmounts.loanTokenSent = sentAmounts.loanTokenSent.add(sentAmounts.newPrincipal); /// newPrincipal
 
         if (withdrawAmount != 0) {
             /// @dev withdrawAmount already sent to the borrower, so we aren't sending it to the protocol.
-            sentAmounts[3] = sentAmounts[3].sub(withdrawAmount);
+            sentAmounts.loanTokenSent = sentAmounts.loanTokenSent.sub(withdrawAmount);
         }
 
         bool withdrawAmountExist = false; /// Default is false, but added just as to make sure.
@@ -1901,9 +1864,11 @@ function _borrowOrTrade(
                 uint256(keccak256(abi.encodePacked(collateralTokenAddress, withdrawAmountExist)))
             ];
 
-        (sentAmounts[1], sentAmounts[4]) = ProtocolLike(sovrynContractAddress)
+        (sentAmounts.newPrincipal, sentAmounts.collateralTokenSent) = ProtocolLike(
+            sovrynContractAddress
+        )
             .borrowOrTradeFromPool
-            .value(msgValue)( /// newPrincipal, newCollateral
+            .value(msgValue)(
             loanParamsId,
             loanId,
             withdrawAmountExist,
@@ -1911,16 +1876,16 @@ function _borrowOrTrade(
             sentAddresses,
             sentAmounts,
             loanDataBytes
-        );
-        require(sentAmounts[1] != 0, "25");
+        ); /// newPrincipal, newCollateral
+        require(sentAmounts.newPrincipal != 0, "25");
 
         /// @dev Setting not-first-trade flag to prevent binding to an affiliate existing users post factum.
         /// @dev REFACTOR: move to a general interface: ProtocolSettingsLike?
         ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(
-            sentAddresses[1]
+            sentAddresses.borrower
         );
 
-        return (sentAmounts[1], sentAmounts[4]); // newPrincipal, newCollateral
+        return (sentAmounts.newPrincipal, sentAmounts.collateralTokenSent); // newPrincipal, newCollateral
     }
 ```
 </details>
@@ -1935,7 +1900,7 @@ function _borrowOrTrade(
      *
 
 ```solidity
-function _verifyTransfers(address collateralTokenAddress, address[4] sentAddresses, uint256[5] sentAmounts, uint256 withdrawalAmount) internal nonpayable
+function _verifyTransfers(address collateralTokenAddress, struct MarginTradeStructHelpers.SentAddresses sentAddresses, struct MarginTradeStructHelpers.SentAmounts sentAmounts, uint256 withdrawalAmount) internal nonpayable
 returns(msgValue uint256)
 ```
 
@@ -1944,8 +1909,8 @@ returns(msgValue uint256)
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | collateralTokenAddress | address | The address of the token to be used as   collateral. Cannot be the loan token address. | 
-| sentAddresses | address[4] | The addresses to send tokens: lender, borrower,   receiver and manager. | 
-| sentAmounts | uint256[5] | The amounts to send to each address. | 
+| sentAddresses | struct MarginTradeStructHelpers.SentAddresses | The addresses to send tokens: lender, borrower,   receiver and manager. | 
+| sentAmounts | struct MarginTradeStructHelpers.SentAmounts | The amounts to send to each address. | 
 | withdrawalAmount | uint256 | The amount of tokens to withdraw.      * | 
 
 **Returns**
@@ -1958,16 +1923,15 @@ msgValue The amount of rBTC sent minus the collateral on tokens.
 ```javascript
 function _verifyTransfers(
         address collateralTokenAddress,
-        address[4] memory sentAddresses,
-        uint256[5] memory sentAmounts,
+        MarginTradeStructHelpers.SentAddresses memory sentAddresses,
+        MarginTradeStructHelpers.SentAmounts memory sentAmounts,
         uint256 withdrawalAmount
     ) internal returns (uint256 msgValue) {
         address _wrbtcToken = wrbtcTokenAddress;
         address _loanTokenAddress = loanTokenAddress;
-        address receiver = sentAddresses[2];
-        uint256 newPrincipal = sentAmounts[1];
-        uint256 loanTokenSent = sentAmounts[3];
-        uint256 collateralTokenSent = sentAmounts[4];
+        uint256 newPrincipal = sentAmounts.newPrincipal;
+        uint256 loanTokenSent = sentAmounts.loanTokenSent;
+        uint256 collateralTokenSent = sentAmounts.collateralTokenSent;
 
         require(_loanTokenAddress != collateralTokenAddress, "26");
 
@@ -1975,7 +1939,7 @@ function _verifyTransfers(
 
         if (withdrawalAmount != 0) {
             /// withdrawOnOpen == true
-            _safeTransfer(_loanTokenAddress, receiver, withdrawalAmount, "");
+            _safeTransfer(_loanTokenAddress, sentAddresses.receiver, withdrawalAmount, "");
             if (newPrincipal > withdrawalAmount) {
                 _safeTransfer(
                     _loanTokenAddress,
@@ -2538,49 +2502,6 @@ function _totalAssetSupply(uint256 interestUnPaid)
 
 ---    
 
-> ### checkPause
-
-Check whether a function is paused.
-     *
-
-```solidity
-function checkPause(string funcId) public view
-returns(isPaused bool)
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| funcId | string | The function ID, the selector.      * | 
-
-**Returns**
-
-isPaused Whether the function is paused: true or false.
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function checkPause(string memory funcId) public view returns (bool isPaused) {
-        bytes4 sig = bytes4(keccak256(abi.encodePacked(funcId)));
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    sig,
-                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-                )
-            );
-        assembly {
-            isPaused := sload(slot)
-        }
-        return isPaused;
-    }
-```
-</details>
-
----    
-
 > ### _checkPause
 
 Make sure call is not paused.
@@ -2687,53 +2608,6 @@ function _utilizationRate(uint256 assetBorrow, uint256 assetSupply)
 
 ---    
 
-> ### setLiquidityMiningAddress
-
-sets the liquidity mining contract address
-
-```solidity
-function setLiquidityMiningAddress(address LMAddress) external nonpayable onlyOwner 
-```
-
-**Arguments**
-
-| Name        | Type           | Description  |
-| ------------- |------------- | -----|
-| LMAddress | address | the address of the liquidity mining contract | 
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function setLiquidityMiningAddress(address LMAddress) external onlyOwner {
-        liquidityMiningAddress = LMAddress;
-    }
-```
-</details>
-
----    
-
-> ### getLiquidityMiningAddress
-
-We need separate getter for newly added storage variable
-
-```solidity
-function getLiquidityMiningAddress() public view
-returns(address)
-```
-
-<details>
-	<summary><strong>Source Code</strong></summary>
-
-```javascript
-function getLiquidityMiningAddress() public view returns (address) {
-        return liquidityMiningAddress;
-    }
-```
-</details>
-
----    
-
 > ### _mintWithLM
 
 ```solidity
@@ -2828,12 +2702,11 @@ function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -2844,9 +2717,9 @@ function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -2859,11 +2732,16 @@ function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -2875,6 +2753,7 @@ function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -2905,6 +2784,7 @@ function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -2924,11 +2804,15 @@ function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -2951,6 +2835,7 @@ function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -2958,18 +2843,24 @@ function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -2982,6 +2873,7 @@ function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -2994,5 +2886,5 @@ function _burnFromLM(uint256 burnAmount) internal returns (uint256) {
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

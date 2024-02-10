@@ -212,7 +212,7 @@ contract("LoanTokenAdministration", (accounts) => {
                 localLoanToken.toggleFunctionPause("mint(address,uint256)", true, {
                     from: accounts[1],
                 }),
-                "onlyPauser"
+                "unauthorized"
             );
         });
 
@@ -261,6 +261,28 @@ contract("LoanTokenAdministration", (accounts) => {
                 loanToken.setBeaconAddress(loanTokenLogicBeaconLM.address, { from: accounts[1] }),
                 "LoanTokenLogicProxy:unauthorized"
             );
+        });
+
+        it("getTarget in loanTokenLogicProxy should return correct target address", async () => {
+            /** Deploy LoanTokenLogicBeacon */
+            const loanTokenLogicBeaconLM = await LoanTokenLogicBeacon.new();
+
+            /** Deploy LoanTokenLogicProxy */
+            loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
+
+            loanToken = await LoanToken.new(
+                owner,
+                loanTokenLogicProxy.address,
+                sovryn.address,
+                WRBTC.address
+            );
+            await loanToken.initialize(SUSD.address, "SUSD", "SUSD"); //iToken
+
+            /** Initialize the loan token logic proxy */
+            loanToken = await ILoanTokenLogicProxy.at(loanToken.address);
+            await loanToken.setBeaconAddress(loanTokenLogicBeaconLM.address);
+
+            expect(await loanToken.getTarget()).to.equal(loanTokenLogicProxy.address);
         });
 
         it("Should revert if target not active in loan token proxy", async () => {

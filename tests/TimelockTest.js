@@ -148,16 +148,14 @@ contract("Timelock", (accounts) => {
         });
 
         it("sets hash as true in queuedTransactions mapping", async () => {
-            const queueTransactionsHashValueBefore = await timelock.queuedTransactions.call(
-                queuedTxHash
-            );
+            const queueTransactionsHashValueBefore =
+                await timelock.queuedTransactions.call(queuedTxHash);
             expect(queueTransactionsHashValueBefore).to.be.equal(false);
 
             await timelock.queueTransaction(target, value, signature, data, eta, { from: root });
 
-            const queueTransactionsHashValueAfter = await timelock.queuedTransactions.call(
-                queuedTxHash
-            );
+            const queueTransactionsHashValueAfter =
+                await timelock.queuedTransactions.call(queuedTxHash);
             expect(queueTransactionsHashValueAfter).to.be.equal(true);
         });
 
@@ -203,16 +201,14 @@ contract("Timelock", (accounts) => {
         });
 
         it("sets hash from true to false in queuedTransactions mapping", async () => {
-            const queueTransactionsHashValueBefore = await timelock.queuedTransactions.call(
-                queuedTxHash
-            );
+            const queueTransactionsHashValueBefore =
+                await timelock.queuedTransactions.call(queuedTxHash);
             expect(queueTransactionsHashValueBefore).to.be.equal(true);
 
             await timelock.cancelTransaction(target, value, signature, data, eta, { from: root });
 
-            const queueTransactionsHashValueAfter = await timelock.queuedTransactions.call(
-                queuedTxHash
-            );
+            const queueTransactionsHashValueAfter =
+                await timelock.queuedTransactions.call(queuedTxHash);
             expect(queueTransactionsHashValueAfter).to.be.equal(false);
         });
 
@@ -338,9 +334,8 @@ contract("Timelock", (accounts) => {
             const configuredDelayBefore = await timelock.delay.call();
             expect(configuredDelayBefore.toString()).to.be.equal(delay.toString());
 
-            const queueTransactionsHashValueBefore = await timelock.queuedTransactions.call(
-                queuedTxHash
-            );
+            const queueTransactionsHashValueBefore =
+                await timelock.queuedTransactions.call(queuedTxHash);
             expect(queueTransactionsHashValueBefore).to.be.equal(true);
 
             const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
@@ -352,9 +347,8 @@ contract("Timelock", (accounts) => {
                 from: root,
             });
 
-            const queueTransactionsHashValueAfter = await timelock.queuedTransactions.call(
-                queuedTxHash
-            );
+            const queueTransactionsHashValueAfter =
+                await timelock.queuedTransactions.call(queuedTxHash);
             expect(queueTransactionsHashValueAfter).to.be.equal(false);
 
             const configuredDelayAfter = await timelock.delay.call();
@@ -449,9 +443,8 @@ contract("Timelock", (accounts) => {
                 "0x0000000000000000000000000000000000000000"
             );
 
-            const queueTransactionsHashValueBefore = await timelock.queuedTransactions.call(
-                queuedTxHash
-            );
+            const queueTransactionsHashValueBefore =
+                await timelock.queuedTransactions.call(queuedTxHash);
             expect(queueTransactionsHashValueBefore).to.be.equal(true);
 
             const newBlockTimestamp = blockTimestamp.plus(delay).plus(1);
@@ -467,9 +460,8 @@ contract("Timelock", (accounts) => {
                 from: root,
             });
 
-            const queueTransactionsHashValueAfter = await timelock.queuedTransactions.call(
-                queuedTxHash
-            );
+            const queueTransactionsHashValueAfter =
+                await timelock.queuedTransactions.call(queuedTxHash);
             expect(queueTransactionsHashValueAfter).to.be.equal(false);
 
             const configuredPendingAdminAfter = await timelock.pendingAdmin.call();

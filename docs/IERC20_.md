@@ -4,7 +4,7 @@ View Source: [contracts/openzeppelin/IERC20_.sol](../contracts/openzeppelin/IERC
 
 **↘ Derived Contracts: [ERC20](ERC20.md), [ERC20Detailed](ERC20Detailed.md), [LiquidityMiningConfigToken](LiquidityMiningConfigToken.md)**
 
-**IERC20_**
+## **IERC20_** contract
 
 Interface of the ERC20 standard as defined in the EIP. Does not include
 the optional functions; to access them see {ERC20Detailed}.
@@ -29,7 +29,7 @@ event Approval(address indexed owner, address indexed spender, uint256  value);
 
 > ### totalSupply
 
-⤿ Overridden Implementation(s): [ERC20.totalSupply](ERC20.md#totalsupply),[LiquidityMiningConfigToken.totalSupply](LiquidityMiningConfigToken.md#totalsupply)
+⤿ Overridden Implementation(s): [ERC20.totalSupply](ERC20.md#totalsupply)
 
 Returns the amount of tokens in existence.
 
@@ -50,7 +50,7 @@ function totalSupply() external view returns (uint256);
 
 > ### balanceOf
 
-⤿ Overridden Implementation(s): [ERC20.balanceOf](ERC20.md#balanceof),[LiquidityMiningConfigToken.balanceOf](LiquidityMiningConfigToken.md#balanceof)
+⤿ Overridden Implementation(s): [ERC20.balanceOf](ERC20.md#balanceof)
 
 Returns the amount of tokens owned by `account`.
 
@@ -77,7 +77,7 @@ function balanceOf(address account) external view returns (uint256);
 
 > ### transfer
 
-⤿ Overridden Implementation(s): [ERC20.transfer](ERC20.md#transfer),[LiquidityMiningConfigToken.transfer](LiquidityMiningConfigToken.md#transfer)
+⤿ Overridden Implementation(s): [ERC20.transfer](ERC20.md#transfer)
 
 Moves `amount` tokens from the caller's account to `recipient`.
      * Returns a boolean value indicating whether the operation succeeded.
@@ -107,7 +107,7 @@ function transfer(address recipient, uint256 amount) external returns (bool);
 
 > ### allowance
 
-⤿ Overridden Implementation(s): [ERC20.allowance](ERC20.md#allowance),[LiquidityMiningConfigToken.allowance](LiquidityMiningConfigToken.md#allowance)
+⤿ Overridden Implementation(s): [ERC20.allowance](ERC20.md#allowance)
 
 Returns the remaining number of tokens that `spender` will be
 allowed to spend on behalf of `owner` through {transferFrom}. This is
@@ -138,7 +138,7 @@ function allowance(address owner, address spender) external view returns (uint25
 
 > ### approve
 
-⤿ Overridden Implementation(s): [ERC20.approve](ERC20.md#approve),[LiquidityMiningConfigToken.approve](LiquidityMiningConfigToken.md#approve)
+⤿ Overridden Implementation(s): [ERC20.approve](ERC20.md#approve)
 
 Sets `amount` as the allowance of `spender` over the caller's tokens.
      * Returns a boolean value indicating whether the operation succeeded.
@@ -174,7 +174,7 @@ function approve(address spender, uint256 amount) external returns (bool);
 
 > ### transferFrom
 
-⤿ Overridden Implementation(s): [ERC20.transferFrom](ERC20.md#transferfrom),[LiquidityMiningConfigToken.transferFrom](LiquidityMiningConfigToken.md#transferfrom)
+⤿ Overridden Implementation(s): [ERC20.transferFrom](ERC20.md#transferfrom)
 
 Moves `amount` tokens from `sender` to `recipient` using the
 allowance mechanism. `amount` is then deducted from the caller's
@@ -218,12 +218,11 @@ function transferFrom(
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -234,9 +233,9 @@ function transferFrom(
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -249,11 +248,16 @@ function transferFrom(
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -265,6 +269,7 @@ function transferFrom(
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -295,6 +300,7 @@ function transferFrom(
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -314,11 +320,15 @@ function transferFrom(
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -341,6 +351,7 @@ function transferFrom(
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -348,18 +359,24 @@ function transferFrom(
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -372,6 +389,7 @@ function transferFrom(
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -384,5 +402,5 @@ function transferFrom(
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

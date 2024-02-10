@@ -151,15 +151,19 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         //		if  first stake was withdrawn completely and stake was delegated to the staker
         //		(no delegation to another address).
         address previousDelegatee = delegates[stakeFor][until];
+
         if (previousDelegatee != delegatee) {
             // @dev only the user that stakes for himself is allowed to delegate VP to another address
             // which works with vesting stakes and prevents vulnerability of delegating VP to an arbitrary address from
             // any address
+
             if (delegatee != stakeFor) {
                 require(
                     stakeFor == sender,
                     "Only stakeFor account is allowed to change delegatee"
                 );
+            } else if (sender != stakeFor && previousDelegatee != address(0)) {
+                require(stakeFor == sender, "Only sender is allowed to change delegatee");
             }
 
             /// @dev Update delegatee.
@@ -182,11 +186,10 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * @param previousLock The old unlocking timestamp.
      * @param until The new unlocking timestamp in seconds.
      * */
-    function extendStakingDuration(uint256 previousLock, uint256 until)
-        external
-        whenNotPaused
-        whenNotFrozen
-    {
+    function extendStakingDuration(
+        uint256 previousLock,
+        uint256 until
+    ) external whenNotPaused whenNotFrozen {
         previousLock = _timestampToLockDate(previousLock);
         until = _timestampToLockDate(until);
 
@@ -400,11 +403,9 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * @param account The address to get stakes.
      * @return The arrays of dates and stakes.
      * */
-    function getStakes(address account)
-        external
-        view
-        returns (uint256[] memory dates, uint96[] memory stakes)
-    {
+    function getStakes(
+        address account
+    ) external view returns (uint256[] memory dates, uint96[] memory stakes) {
         uint256 latest = _timestampToLockDate(block.timestamp + MAX_DURATION);
 
         /// @dev Calculate stakes.

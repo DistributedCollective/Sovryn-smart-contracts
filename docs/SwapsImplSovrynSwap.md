@@ -5,7 +5,7 @@ View Source: [contracts/swaps/connectors/SwapsImplSovrynSwap.sol](../contracts/s
 
 **↗ Extends: [State](State.md), [ISwapsImpl](ISwapsImpl.md)**
 
-**SwapsImplSovrynSwap**
+## **SwapsImplSovrynSwap** contract
 
 This contract code comes from bZx. bZx is a protocol for tokenized
 margin trading and lending https://bzx.network similar to the dYdX protocol.
@@ -20,7 +20,8 @@ calculations for Sovryn network.
 - [allowTransfer(uint256 tokenAmount, address tokenAddress, address sovrynSwapNetwork)](#allowtransfer)
 - [estimateSourceTokenAmount(address sourceTokenAddress, address destTokenAddress, uint256 requiredDestTokenAmount, uint256 maxSourceTokenAmount)](#estimatesourcetokenamount)
 - [internalExpectedRate(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address sovrynSwapContractRegistryAddress)](#internalexpectedrate)
-- [internalExpectedReturn(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address sovrynSwapContractRegistryAddress)](#internalexpectedreturn)
+- [internalExpectedReturn(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address sovrynSwapContractRegistry, IERC20[] defaultPath)](#internalexpectedreturn)
+- [getConversionPath(address sourceTokenAddress, address destTokenAddress, ISovrynSwapNetwork sovrynSwapNetwork)](#getconversionpath)
 
 ---    
 
@@ -129,10 +130,11 @@ function internalSwap(
 
         ISovrynSwapNetwork sovrynSwapNetwork =
             getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
-        IERC20[] memory path =
-            sovrynSwapNetwork.conversionPath(IERC20(sourceTokenAddress), IERC20(destTokenAddress));
 
-        uint256 minReturn = 0;
+        IERC20[] memory path =
+            getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
+
+        uint256 minReturn = 1;
         sourceTokenAmountUsed = minSourceTokenAmount;
 
         /// If the required amount of destination tokens is passed, we need to
@@ -152,11 +154,6 @@ function internalSwap(
                 "insufficient source tokens provided."
             );
             minReturn = requiredDestTokenAmount;
-        } else if (sourceTokenAmountUsed > 0) {
-            /// For some reason the Sovryn swap network tends to return a bit less than the expected rate.
-            minReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmountUsed).mul(995).div(
-                1000
-            );
         }
 
         require(sourceTokenAmountUsed > 0, "cannot swap 0 tokens");
@@ -333,8 +330,10 @@ function internalExpectedRate(
     ) public view returns (uint256) {
         ISovrynSwapNetwork sovrynSwapNetwork =
             getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+
         IERC20[] memory path =
-            sovrynSwapNetwork.conversionPath(IERC20(sourceTokenAddress), IERC20(destTokenAddress));
+            getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
+
         /// Is returning the total amount of destination tokens.
         uint256 expectedReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);
 
@@ -355,7 +354,7 @@ Get the expected return amount when exchanging the given
      *
 
 ```solidity
-function internalExpectedReturn(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address sovrynSwapContractRegistryAddress) public view
+function internalExpectedReturn(address sourceTokenAddress, address destTokenAddress, uint256 sourceTokenAmount, address sovrynSwapContractRegistry, IERC20[] defaultPath) public view
 returns(expectedReturn uint256)
 ```
 
@@ -366,7 +365,8 @@ returns(expectedReturn uint256)
 | sourceTokenAddress | address | The address of the source token contract. | 
 | destTokenAddress | address | The address of the destination token contract. | 
 | sourceTokenAmount | uint256 | The amount of source tokens to get the return for. | 
-| sovrynSwapContractRegistryAddress | address |  | 
+| sovrynSwapContractRegistry | address | The sovryn swap contract reigstry address. | 
+| defaultPath | IERC20[] | The default path for specific pairs. | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
@@ -376,14 +376,62 @@ function internalExpectedReturn(
         address sourceTokenAddress,
         address destTokenAddress,
         uint256 sourceTokenAmount,
-        address sovrynSwapContractRegistryAddress
+        address sovrynSwapContractRegistry,
+        IERC20[] memory defaultPath
     ) public view returns (uint256 expectedReturn) {
         ISovrynSwapNetwork sovrynSwapNetwork =
-            getSovrynSwapNetworkContract(sovrynSwapContractRegistryAddress);
+            getSovrynSwapNetworkContract(sovrynSwapContractRegistry);
+
         IERC20[] memory path =
-            sovrynSwapNetwork.conversionPath(IERC20(sourceTokenAddress), IERC20(destTokenAddress));
+            defaultPath.length >= 3
+                ? defaultPath
+                : sovrynSwapNetwork.conversionPath(
+                    IERC20(sourceTokenAddress),
+                    IERC20(destTokenAddress)
+                );
+
         /// Is returning the total amount of destination tokens.
         expectedReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);
+    }
+```
+</details>
+
+---    
+
+> ### getConversionPath
+
+```solidity
+function getConversionPath(address sourceTokenAddress, address destTokenAddress, ISovrynSwapNetwork sovrynSwapNetwork) private view
+returns(path contract IERC20[])
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| sourceTokenAddress | address |  | 
+| destTokenAddress | address |  | 
+| sovrynSwapNetwork | ISovrynSwapNetwork |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getConversionPath(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        ISovrynSwapNetwork sovrynSwapNetwork
+    ) private view returns (IERC20[] memory path) {
+        IERC20[] memory _defaultPathConversion =
+            defaultPathConversion[sourceTokenAddress][destTokenAddress];
+
+        /// will use the defaultPath if it's set, otherwise query from the SovrynSwapNetwork.
+        path = _defaultPathConversion.length >= 3
+            ? _defaultPathConversion
+            : sovrynSwapNetwork.conversionPath(
+                IERC20(sourceTokenAddress),
+                IERC20(destTokenAddress)
+            );
     }
 ```
 </details>
@@ -399,12 +447,11 @@ function internalExpectedReturn(
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -415,9 +462,9 @@ function internalExpectedReturn(
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -430,11 +477,16 @@ function internalExpectedReturn(
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -446,6 +498,7 @@ function internalExpectedReturn(
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -476,6 +529,7 @@ function internalExpectedReturn(
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -495,11 +549,15 @@ function internalExpectedReturn(
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -522,6 +580,7 @@ function internalExpectedReturn(
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -529,18 +588,24 @@ function internalExpectedReturn(
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -553,6 +618,7 @@ function internalExpectedReturn(
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -565,5 +631,5 @@ function internalExpectedReturn(
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

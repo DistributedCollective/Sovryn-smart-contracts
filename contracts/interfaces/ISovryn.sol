@@ -85,6 +85,11 @@ contract ISovryn is
 
     function setFeesController(address newController) external;
 
+    function withdrawFees(
+        address[] calldata tokens,
+        address receiver
+    ) external returns (uint256 totalWRBTCWithdrawn);
+
     function withdrawLendingFees(
         address token,
         address receiver,
@@ -103,16 +108,17 @@ contract ISovryn is
         uint256 amount
     ) external returns (bool);
 
-    function withdrawProtocolToken(address receiver, uint256 amount)
-        external
-        returns (address, bool);
+    function withdrawProtocolToken(
+        address receiver,
+        uint256 amount
+    ) external returns (address, bool);
 
     function depositProtocolToken(uint256 amount) external;
 
-    function getLoanPoolsList(uint256 start, uint256 count)
-        external
-        view
-        returns (bytes32[] memory);
+    function getLoanPoolsList(
+        uint256 start,
+        uint256 count
+    ) external view returns (bytes32[] memory);
 
     function isLoanPool(address loanPool) external view returns (bool);
 
@@ -132,28 +138,46 @@ contract ISovryn is
         uint256 specialRebatesPercent
     ) external;
 
-    function getSpecialRebates(address sourceToken, address destToken)
-        external
-        view
-        returns (uint256 specialRebatesPercent);
+    function getSpecialRebates(
+        address sourceToken,
+        address destToken
+    ) external view returns (uint256 specialRebatesPercent);
 
     function togglePaused(bool paused) external;
 
     function isProtocolPaused() external view returns (bool);
 
+    ////// SwapsImplSovrynSwapModule //////
+    function getSovrynSwapNetworkContract(
+        address sovrynSwapRegistryAddress
+    ) public view returns (address);
+
+    function getContractHexName(string calldata source) external pure returns (bytes32 result);
+
+    function swapsImplExpectedRate(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint256 sourceTokenAmount
+    ) external view returns (uint256);
+
+    function swapsImplExpectedReturn(
+        address sourceTokenAddress,
+        address destTokenAddress,
+        uint256 sourceTokenAmount
+    ) external view returns (uint256 expectedReturn);
+
     ////// Loan Settings //////
 
-    function setupLoanParams(LoanParams[] calldata loanParamsList)
-        external
-        returns (bytes32[] memory loanParamsIdList);
+    function setupLoanParams(
+        LoanParams[] calldata loanParamsList
+    ) external returns (bytes32[] memory loanParamsIdList);
 
     // Deactivates LoanParams for future loans. Active loans using it are unaffected.
     function disableLoanParams(bytes32[] calldata loanParamsIdList) external;
 
-    function getLoanParams(bytes32[] calldata loanParamsIdList)
-        external
-        view
-        returns (LoanParams[] memory loanParamsList);
+    function getLoanParams(
+        bytes32[] calldata loanParamsIdList
+    ) external view returns (LoanParams[] memory loanParamsList);
 
     function getLoanParamsList(
         address owner,
@@ -184,13 +208,9 @@ contract ISovryn is
         // loanTokenReceived: total loanToken deposit (amount not sent to borrower in the case of Torque loans)
         // collateralTokenReceived: total collateralToken deposit
         bytes calldata loanDataBytes
-    ) external payable returns (uint256);
+    ) external payable returns (uint256 newPrincipal, uint256 newCollateral);
 
-    function setDelegatedManager(
-        bytes32 loanId,
-        address delegated,
-        bool toggle
-    ) external;
+    function setDelegatedManager(bytes32 loanId, address delegated, bool toggle) external;
 
     function getEstimatedMarginExposure(
         address loanToken,
@@ -226,11 +246,7 @@ contract ISovryn is
     )
         external
         payable
-        returns (
-            uint256 loanCloseAmount,
-            uint256 seizedAmount,
-            address seizedToken
-        );
+        returns (uint256 loanCloseAmount, uint256 seizedAmount, address seizedToken);
 
     function rollover(bytes32 loanId, bytes calldata loanDataBytes) external;
 
@@ -241,11 +257,7 @@ contract ISovryn is
     )
         external
         payable
-        returns (
-            uint256 loanCloseAmount,
-            uint256 withdrawAmount,
-            address withdrawToken
-        );
+        returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken);
 
     function closeWithSwap(
         bytes32 loanId,
@@ -253,13 +265,7 @@ contract ISovryn is
         uint256 swapAmount, // denominated in collateralToken
         bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
         bytes calldata loanDataBytes
-    )
-        external
-        returns (
-            uint256 loanCloseAmount,
-            uint256 withdrawAmount,
-            address withdrawToken
-        );
+    ) external returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken);
 
     ////// Loan Maintenance //////
 
@@ -274,23 +280,12 @@ contract ISovryn is
         uint256 withdrawAmount
     ) external returns (uint256 actualWithdrawAmount);
 
-    function extendLoanByInterest(
-        bytes32 loanId,
-        address payer,
-        uint256 depositAmount,
-        bool useCollateral,
-        bytes calldata loanDataBytes
-    ) external payable returns (uint256 secondsExtended);
-
-    function reduceLoanByInterest(
-        bytes32 loanId,
-        address receiver,
-        uint256 withdrawAmount
-    ) external returns (uint256 secondsReduced);
-
     function withdrawAccruedInterest(address loanToken) external;
 
-    function getLenderInterestData(address lender, address loanToken)
+    function getLenderInterestData(
+        address lender,
+        address loanToken
+    )
         external
         view
         returns (
@@ -302,7 +297,9 @@ contract ISovryn is
             uint256 principalTotal
         );
 
-    function getLoanInterestData(bytes32 loanId)
+    function getLoanInterestData(
+        bytes32 loanId
+    )
         external
         view
         returns (
@@ -384,11 +381,18 @@ contract ISovryn is
         bool unsafeOnly
     ) external view returns (LoanReturnDataV2[] memory loansDataV2);
 
-    ////// Protocol Migration //////
+    function extendLoanDuration(
+        bytes32 loanId,
+        uint256 depositAmount,
+        bool useCollateral,
+        bytes calldata /// loanDataBytes, for future use.
+    ) external returns (uint256 secondsExtended);
 
-    function setLegacyOracles(address[] calldata refs, address[] calldata oracles) external;
-
-    function getLegacyOracle(address ref) external view returns (address);
+    function reduceLoanDuration(
+        bytes32 loanId,
+        address receiver,
+        uint256 withdrawAmount
+    ) external returns (uint256 secondsReduced);
 
     ////// Swaps External //////
     function swapExternal(
@@ -419,7 +423,7 @@ contract ISovryn is
 
     function getUserNotFirstTradeFlag(address user) external view returns (bool);
 
-    function setUserNotFirstTradeFlag(address user) external view returns (bool);
+    function setUserNotFirstTradeFlag(address user) external;
 
     function payTradingFeeToAffiliatesReferrer(
         address referrer,
@@ -432,26 +436,27 @@ contract ISovryn is
 
     function getReferralsList(address referrer) external view returns (address[] memory refList);
 
-    function getAffiliatesReferrerBalances(address referrer)
+    function getAffiliatesReferrerBalances(
+        address referrer
+    )
         external
         view
         returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances);
 
-    function getAffiliatesReferrerTokensList(address referrer)
-        external
-        view
-        returns (address[] memory tokensList);
+    function getAffiliatesReferrerTokensList(
+        address referrer
+    ) external view returns (address[] memory tokensList);
 
-    function getAffiliatesReferrerTokenBalance(address referrer, address token)
-        external
-        view
-        returns (uint256);
+    function getAffiliatesReferrerTokenBalance(
+        address referrer,
+        address token
+    ) external view returns (uint256);
 
     function withdrawAffiliatesReferrerTokenFees(
         address token,
         address receiver,
         uint256 amount
-    ) external returns (uint256 withdrawAmount);
+    ) external;
 
     function withdrawAllAffiliatesReferrerTokenFees(address receiver) external;
 
@@ -474,10 +479,9 @@ contract ISovryn is
         view
         returns (uint256 affiliateTradingTokenFeePercent);
 
-    function getAffiliatesTokenRewardsValueInRbtc(address referrer)
-        external
-        view
-        returns (uint256 rbtcTotalAmount);
+    function getAffiliatesTokenRewardsValueInRbtc(
+        address referrer
+    ) external view returns (uint256 rbtcTotalAmount);
 
     function getSwapExternalFeePercent() external view returns (uint256 swapExternalFeePercent);
 
@@ -489,18 +493,28 @@ contract ISovryn is
 
     function setRolloverFlexFeePercent(uint256 newRolloverFlexFeePercent) external;
 
-    function getDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)
-        external
-        view
-        returns (IERC20[] memory);
+    function getDefaultPathConversion(
+        address sourceTokenAddress,
+        address destTokenAddress
+    ) external view returns (IERC20[] memory);
 
     function setDefaultPathConversion(IERC20[] calldata defaultPath) external;
 
-    function removeDefaultPathConversion(address sourceTokenAddress, address destTokenAddress)
-        external;
+    function removeDefaultPathConversion(
+        address sourceTokenAddress,
+        address destTokenAddress
+    ) external;
 
-    function checkCloseWithDepositIsTinyPosition(bytes32 loanId, uint256 depositAmount)
-        external
-        view
-        returns (bool isTinyPosition, uint256 tinyPositionAmount);
+    function checkCloseWithDepositIsTinyPosition(
+        bytes32 loanId,
+        uint256 depositAmount
+    ) external view returns (bool isTinyPosition, uint256 tinyPositionAmount);
+
+    function setAdmin(address newAdmin) external;
+
+    function getAdmin() external view returns (address);
+
+    function setPauser(address newPauser) external;
+
+    function getPauser() external view returns (address);
 }

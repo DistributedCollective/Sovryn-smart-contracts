@@ -14,8 +14,8 @@ contract ISovrynSwapNetwork {
 
     function rateByPath(IERC20[] calldata _path, uint256 _amount) external view returns (uint256);
 
-    function conversionPath(IERC20 _sourceToken, IERC20 _targetToken)
-        external
-        view
-        returns (IERC20[] memory);
+    function conversionPath(
+        IERC20 _sourceToken,
+        IERC20 _targetToken
+    ) external view returns (IERC20[] memory);
 }

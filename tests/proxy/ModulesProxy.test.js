@@ -9,7 +9,6 @@
  */
 
 const chai = require("chai");
-const { expect } = chai;
 
 const hre = require("hardhat");
 const { ethers, deployments, network, getNamedAccounts } = hre;

@@ -16,11 +16,7 @@ interface IPot {
 }
 
 contract IChai is IERC20 {
-    function move(
-        address src,
-        address dst,
-        uint256 wad
-    ) external returns (bool);
+    function move(address src, address dst, uint256 wad) external returns (bool);
 
     function join(address dst, uint256 wad) external;
 

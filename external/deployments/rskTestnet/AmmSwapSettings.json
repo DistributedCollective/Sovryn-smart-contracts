@@ -1,0 +1,291 @@
+{
+    "address": "0x604cAD937f35fD381a7dd08489028f0FDbE88fc7",
+    "abi": [
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "newSOVTokenAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "setSOVTokenAddress",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [],
+            "name": "acceptOwnership",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "wrbtcAddress",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_protocolFee",
+                    "type": "uint32"
+                }
+            ],
+            "name": "setProtocolFee",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "protocolFee",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "sovTokenAddress",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "newOwner",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "newWrbtcAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "setWrbtcAddress",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "newController",
+                    "type": "address"
+                }
+            ],
+            "name": "setFeesController",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "feesController",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "transferOwnership",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "name": "_feesController",
+                    "type": "address"
+                },
+                {
+                    "name": "_wrbtcAddress",
+                    "type": "address"
+                },
+                {
+                    "name": "_sovTokenAddress",
+                    "type": "address"
+                },
+                {
+                    "name": "_protocolFee",
+                    "type": "uint32"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "name": "_prevProtocolFee",
+                    "type": "uint32"
+                },
+                {
+                    "indexed": false,
+                    "name": "_newProtocolFee",
+                    "type": "uint32"
+                }
+            ],
+            "name": "ProtocolFeeUpdate",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "name": "oldController",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "name": "newController",
+                    "type": "address"
+                }
+            ],
+            "name": "SetFeesController",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "name": "oldWrbtcAddress",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "name": "newWrbtcAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "SetWrbtcAddress",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "name": "oldSOVTokenAddress",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "name": "newSOVTokenAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "SetSOVTokenAddress",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "name": "_prevOwner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "name": "_newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnerUpdate",
+            "type": "event"
+        }
+    ]
+}

@@ -26,7 +26,8 @@ const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const {
     lend_to_the_pool,
@@ -49,6 +50,7 @@ const {
     decodeLogs,
     getSOV,
 } = require("../Utils/initializer.js");
+const mutexUtils = require("../reentrancy/utils");
 
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
@@ -63,6 +65,9 @@ contract("LoanTokenLending", (accounts) => {
     let sovryn, loanToken;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        await mutexUtils.getOrDeployMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();
@@ -138,6 +143,9 @@ contract("LoanTokenLending", (accounts) => {
 
     before(async () => {
         [lender, account1, account2, account3, account4, ...accounts] = accounts;
+
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

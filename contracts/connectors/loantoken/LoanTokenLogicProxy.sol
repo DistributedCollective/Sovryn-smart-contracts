@@ -51,12 +51,12 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
             let ptr := mload(0x40)
             returndatacopy(ptr, 0, size)
             switch result
-                case 0 {
-                    revert(ptr, size)
-                }
-                default {
-                    return(ptr, size)
-                }
+            case 0 {
+                revert(ptr, size)
+            }
+            default {
+                return(ptr, size)
+            }
         }
     }
 
@@ -102,11 +102,22 @@ contract LoanTokenLogicProxy is AdvancedTokenStorage {
     function setBeaconAddress(address _newBeaconAddress) external onlyAdmin {
         _setBeaconAddress(_newBeaconAddress);
     }
+
+    /**
+     * @dev External function to return the LoanTokenLogicProxy of loan token (target of LoanToken contract).
+     * Ideally this getter should be added in the LoanToken contract
+     * but since LoanToken contract can't be changed, adding the getter in this contract will do
+     * because it will use the context of LoanToken contract.
+     *
+     * @return target address of LoanToken contract
+     */
+    function getTarget() external view returns (address) {
+        return target_;
+    }
 }
 
 interface ILoanTokenLogicBeacon {
-    function getTarget(bytes4 functionSignature)
-        external
-        view
-        returns (address logicTargetAddress);
+    function getTarget(
+        bytes4 functionSignature
+    ) external view returns (address logicTargetAddress);
 }

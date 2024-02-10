@@ -11,7 +11,7 @@ const SOV = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const LockedSOV = artifacts.require("LockedSOV");
 const StakingProxy = artifacts.require("StakingProxy");
-const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
@@ -512,7 +512,7 @@ contract("Locked SOV (State)", (accounts) => {
         }
     });
 
-    it("Starting the migration should update the contract status correctly.", async () => {
+    it("Starting the migration should update the contract status correctly, and approved new LockedSOV with unlimited amount", async () => {
         await checkStatus(
             lockedSOV,
             [1, 1, 1, 1, 1, 1, 1, 1],
@@ -540,6 +540,9 @@ contract("Locked SOV (State)", (accounts) => {
             zero,
             false
         );
+
+        const allowance = await sov.allowance(lockedSOV.address, newLockedSOV.address);
+        expect(allowance).to.equal(constants.MAX_UINT256);
     });
 
     it("Using transfer() should correctly transfer locked token to new locked sov.", async () => {

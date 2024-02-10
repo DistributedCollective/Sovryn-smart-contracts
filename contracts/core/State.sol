@@ -86,7 +86,7 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
     address public feesController;
 
     /// 10% fee /// Fee taken from lender interest payments.
-    uint256 public lendingFeePercent = 10**19;
+    uint256 public lendingFeePercent = 10 ** 19;
 
     /// Total interest fees received and not withdrawn per asset.
     mapping(address => uint256) public lendingFeeTokensHeld;
@@ -96,7 +96,7 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
     mapping(address => uint256) public lendingFeeTokensPaid;
 
     /// 0.15% fee /// Fee paid for each trade.
-    uint256 public tradingFeePercent = 15 * 10**16;
+    uint256 public tradingFeePercent = 15 * 10 ** 16;
 
     /// Total trading fees received and not withdrawn per asset.
     mapping(address => uint256) public tradingFeeTokensHeld;
@@ -106,7 +106,7 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
     mapping(address => uint256) public tradingFeeTokensPaid;
 
     /// 0.09% fee /// Origination fee paid for each loan.
-    uint256 public borrowingFeePercent = 9 * 10**16;
+    uint256 public borrowingFeePercent = 9 * 10 ** 16;
 
     /// Total borrowing fees received and not withdrawn per asset.
     mapping(address => uint256) public borrowingFeeTokensHeld;
@@ -122,10 +122,10 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
     uint256 public protocolTokenPaid;
 
     /// 5% fee share in form of SOV /// Fee share for affiliate program.
-    uint256 public affiliateFeePercent = 5 * 10**18;
+    uint256 public affiliateFeePercent = 5 * 10 ** 18;
 
     /// 5% collateral discount /// Discount on collateral for liquidators.
-    uint256 public liquidationIncentivePercent = 5 * 10**18;
+    uint256 public liquidationIncentivePercent = 5 * 10 ** 18;
 
     /// loanPool => underlying
     mapping(address => address) public loanPoolToUnderlying;
@@ -140,7 +140,7 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
     mapping(address => bool) public supportedTokens;
 
     /// % disagreement between swap rate and reference rate.
-    uint256 public maxDisagreement = 5 * 10**18;
+    uint256 public maxDisagreement = 5 * 10 ** 18;
 
     /// Used as buffer for swap source amount estimations.
     uint256 public sourceBuffer = 10000;
@@ -160,7 +160,7 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
 
     /// 50% fee rebate
     /// potocolToken reward to user, it is worth % of trading/borrowing fee.
-    uint256 public feeRebatePercent = 50 * 10**18;
+    uint256 public feeRebatePercent = 50 * 10 ** 18;
 
     address public admin;
 
@@ -194,7 +194,7 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
 
     /// @dev 20% fee share of trading token fee.
     ///   Fee share of trading token fee for affiliate program.
-    uint256 public affiliateTradingTokenFeePercent = 20 * 10**18;
+    uint256 public affiliateTradingTokenFeePercent = 20 * 10 ** 18;
 
     /// @dev Addresses of tokens in which commissions were paid to referrers.
     mapping(address => EnumerableAddressSet.AddressSet) internal affiliatesReferrerTokensList;
@@ -214,6 +214,8 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
     /// Will be used in internal swap.
     mapping(address => mapping(address => IERC20[])) internal defaultPathConversion;
 
+    address internal pauser;
+
     /**
      * @notice Add signature and target to storage.
      * @dev Protocol is a proxy and requires a way to add every
@@ -227,5 +229,15 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
         } else {
             logicTargetsSet.removeBytes32(bytes32(sig));
         }
+    }
+
+    modifier onlyAdminOrOwner() {
+        require(isOwner() || admin == (msg.sender), "unauthorized");
+        _;
+    }
+
+    modifier onlyPauserOrOwner() {
+        require(isOwner() || pauser == (msg.sender), "unauthorized");
+        _;
     }
 }

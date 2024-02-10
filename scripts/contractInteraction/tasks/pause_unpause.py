@@ -34,3 +34,44 @@ def main():
     isBiDiFastBTCPaused()
     #pauseBiDiFastBTC() 
     #unpauseBiDiFastBTC
+
+    # ----- Loan token functions pauser ----- #   
+    loanTokensList = (
+        "iDOC", 
+        "iRBTC",
+        "iXUSD",
+        "iUSDT",
+        "iBPro",
+        "iDLLR"
+    )
+
+    #CHECK PAUSED
+    checkLoanTokenFunctionsPause(loanTokensList)
+
+    '''
+    for tokenName in loanTokensList:
+        setPauser(conf.contracts[tokenName], conf.contracts["multisig"])
+    '''
+
+    # PAUSE/UNPAUSE
+    '''
+    functions = {
+            "marginTrade":"marginTrade(bytes32,uint256,uint256,uint256,address,address,uint256,bytes)", 
+            "borrow": "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
+        }
+    # comment/remove loanTokenToProcess elements to exclude tokens from processing
+    loanTokensToProcess = {
+        "iDOC", 
+        #"iRBTC",
+        #"iXUSD",
+        #"iUSDT",
+        #"iBPro",
+        #"iDLLR"
+    }
+    value = True # False to unpause
+    for tokenName in loanTokensToProcess:
+        triggerFunctionEmergencyStop(conf.contracts[tokenName], functions["marginTrade"], value)
+        #triggerFunctionEmergencyStop(conf.contracts[tokenName], functions["borrow"], value)
+    '''
+
+    

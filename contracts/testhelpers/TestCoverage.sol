@@ -35,13 +35,12 @@ contract TestCoverage is
         bool isPaused
     ) public {
         /// keccak256("Pausable_FunctionPause")
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    bytes4(keccak256(abi.encodePacked(funcId))),
-                    uint256(0xa7143c84d793a15503da6f19bf9119a2dac94448ca45d77c8bf08f57b2e91047)
-                )
-            );
+        bytes32 slot = keccak256(
+            abi.encodePacked(
+                bytes4(keccak256(abi.encodePacked(funcId))),
+                uint256(0xa7143c84d793a15503da6f19bf9119a2dac94448ca45d77c8bf08f57b2e91047)
+            )
+        );
 
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -105,11 +104,7 @@ contract TestCoverage is
     }
 
     /// @dev Wrapper to test internal function never called along current codebase
-    function testVaultController_vaultApprove(
-        address token,
-        address to,
-        uint256 value
-    ) public {
+    function testVaultController_vaultApprove(address token, address to, uint256 value) public {
         vaultApprove(token, to, value);
     }
 

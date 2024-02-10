@@ -28,7 +28,7 @@ const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const LoanToken = artifacts.require("LoanToken");
 const LockedSOV = artifacts.require("LockedSOV");
 const StakingProxy = artifacts.require("StakingProxy");
-const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
@@ -42,7 +42,8 @@ const PriceFeedRSKOracleMockup = artifacts.require("PriceFeedRSKOracleMockup");
 const PriceFeedV1PoolOracle = artifacts.require("PriceFeedV1PoolOracle");
 const LiquidityPoolV1ConverterMockup = artifacts.require("LiquidityPoolV1ConverterMockup");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const Affiliates = artifacts.require("Affiliates");
 const IV1PoolOracle = artifacts.require("IV1PoolOracle");
 const mutexUtils = require("../reentrancy/utils");
@@ -149,11 +150,8 @@ contract("Affiliates", (accounts) => {
 
         // Creating the instance of newLockedSOV Contract.
         await sovryn.setLockedSOVAddress(
-            (
-                await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [
-                    owner,
-                ])
-            ).address
+            (await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner]))
+                .address
         );
         lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 
@@ -308,7 +306,6 @@ contract("Affiliates", (accounts) => {
         );
 
         /// @dev Optimization: Init same swap pool for all tests
-
         swapsSovryn = await SwapsImplSovrynSwap.new();
         const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
         await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
@@ -454,6 +451,9 @@ contract("Affiliates", (accounts) => {
 
     before(async () => {
         [owner, trader, referrer, account1, account2, ...accounts] = accounts;
+
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

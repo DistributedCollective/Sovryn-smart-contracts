@@ -20,6 +20,33 @@ def main():
     
     # - LIQUID DISTRIBUTION - 
 
+    #
+    # - Distribute RBTC -
+    # 
+
+    #RBTCAmount = 1 * 10**16 # 1.00
+    # 0.
+    #print("RBTC balance of exchequer multisig: \n", getContractBTCBalance(conf.contracts['multisig'])/10**18) # check multisig is funded with XUSD
+    # 1.
+    '''
+    print("GenericTokenSender Owner is: ")
+    readOwner(conf.contracts['GenericTokenSender']) # check the token sender owner address
+    print("Script executor address is: ",conf.acct) # check the token sender owner address
+    '''
+    #sendFromMultisig(conf.contracts["GenericTokenSender"], RBTCAmount) # direct liquid RBTC distribution 
+    
+    # 2.
+    # print("RBTC balance of Generic Token: \n", getContractBTCBalance(conf.contracts['GenericTokenSender'])/10**18) # check multisig is funded
+    
+    '''
+    rbtcDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-RBTC-YY-MM.csv'
+    dryRun = False # false to execute, true to verify the file structure
+    multiplier = 1 # NO DECIMALS! AMOUNTS SHOULD BE IN WEI (satoshi)!
+    '''
+    # sendDirect('RBTC', rbtcDistributionPath, dryRun, multiplier)
+
+
+
     # TODO:
     # 1. verify amounts format - should be 2 decimals strictly: 1000.01,"1000.00", "1,000.01" 
     # 2. trim address field to remove leading and trailing spaces
@@ -53,7 +80,7 @@ def main():
     #
     # - Distribute XUSD -
     # 
-    # XUSDAmount = 2435000 * 10**16 # 24,350.00
+    # XUSDAmount = 1475600 * 10**16 # 14,756.00
     # 0.
     # print("XUSD balance of exchequer multisig: \n", getBalance(conf.contracts['XUSD'], conf.contracts['multisig'])/10**18) # check multisig is funded with XUSD
     # 1.
@@ -61,13 +88,14 @@ def main():
     print("GenericTokenSender Owner is: ")
     readOwner(conf.contracts['GenericTokenSender']) # check the token sender owner address
     print("Script executor address is: ",conf.acct) # check the token sender owner address
-    transferToTokenSender('XUSD', XUSDAmount) # direct liquid XUSD distribution 
     '''
+    # transferToTokenSender('XUSD', XUSDAmount) # direct liquid XUSD distribution 
+    
     # 2.
     # print("XUSD balance of Generic Token: \n", getBalance(conf.contracts['XUSD'], conf.contracts['GenericTokenSender'])/10**18) # check multisig is funded with XUSD
     
     '''
-    xusdDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-XUSD-23-04.csv'
+    xusdDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/direct-XUSD-23-09.csv'
     dryRun = False # false to execute, true to verify the file structure
     multiplier = 10**16 # usually 10**16 <- amounts must with 2 decimals
     sendDirect('XUSD', xusdDistributionPath, dryRun, multiplier)
@@ -75,12 +103,11 @@ def main():
 
     #
     # - Distribute DLLR -
-    currency = 'DLLR'
+    # currency = 'DLLR'
     # amount = 42500 * 10**16 # 425.00
     # 0.
     #print(currency, "balance of exchequer multisig: \n", getBalance(conf.contracts[currency], conf.contracts['multisig'])/10**18) # check multisig is funded with currency
-    # redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['ZUSD'], amount)
-    # mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], amount)
+    # redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], amount)
     # 1.
     '''
     print("GenericTokenSender Owner is: ")
@@ -101,13 +128,13 @@ def main():
     #
     # - VESTED DISTRIBUTION -
     # -----------------------
-    # print("SOV balance of exchequer multisig: \n", getBalance(conf.contracts['SOV'], conf.contracts['multisig'])/10**18) # check multisig is funded with SOV
-    # print("SOV balance of executing account: \n", getBalance(conf.contracts['SOV'], conf.acct)/10**18) # check that the script running address is funded
+    #print("SOV balance of exchequer multisig: \n", getBalance(conf.contracts['SOV'], conf.contracts['multisig'])/10**18) # check multisig is funded with SOV
+    #print("SOV balance of executing account: \n", getBalance(conf.contracts['SOV'], conf.acct)/10**18) # check that the script running address is funded
     
-    '''
-    vestedSOVAmount = 4823202 * 10**16 #48,232.02
-    transferSOVtoAccount(conf.acct, vestedSOVAmount) # vesting SOV distribution
-    '''
+    #'''
+    #vestedSOVAmount = 3941667 * 10**16 #39,416.67
+    #transferSOVtoAccount(conf.acct, vestedSOVAmount) # vesting SOV distribution
+    #'''
     
     # ------------------------
     # check, add and remove in the end the script execution address to admins
@@ -130,12 +157,12 @@ def main():
     brownie run scripts/contractInteraction/tasks/airdrop_distribution/airdrop_distribution.py --network rsk-mainnet
     '''
 
-    #'''
-    vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-23-04.csv'
-    dryRun = False # False to execute, True to verify the file structure
-    multiplier = 10**16 # multiplier == 10**16 <- amounts must with 2 decimals
+    '''
+    vestingDistributionPath = './scripts/contractInteraction/tasks/airdrop_distribution/data/vestings-**-**.csv'
+    dryRun = True # False to execute, True to verify the file structure
+    multiplier = 10**16 # multiplier == 10**(18 - decimals) e.g. 16 <- amounts must with 2 decimals
     createVestings(vestingDistributionPath, dryRun, multiplier)
-    #'''
+    '''
    
     #
     # vestingRegistryProxyRemoveAdmin(receiver) # remove the script exexution from admins

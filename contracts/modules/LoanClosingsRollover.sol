@@ -95,8 +95,9 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
         _payInterest(loanLocal.lender, loanParamsLocal.loanToken);
 
         LoanInterest storage loanInterestLocal = loanInterest[loanLocal.id];
-        LenderInterest storage lenderInterestLocal =
-            lenderInterest[loanLocal.lender][loanParamsLocal.loanToken];
+        LenderInterest storage lenderInterestLocal = lenderInterest[loanLocal.lender][
+            loanParamsLocal.loanToken
+        ];
 
         _settleFeeRewardForInterestExpense(
             loanInterestLocal,
@@ -120,10 +121,10 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
         //however, we've got stack too deep issues if we do so.
         if (loanParamsLocal.maxLoanTerm != 0) {
             // fixed-term loan, so need to query iToken for latest variable rate
-            uint256 owedPerDay =
-                loanLocal.principal.mul(ILoanPool(loanLocal.lender).borrowInterestRate()).div(
-                    365 * 10**20
-                );
+            uint256 owedPerDay = loanLocal
+                .principal
+                .mul(ILoanPool(loanLocal.lender).borrowInterestRate())
+                .div(365 * 10 ** 20);
 
             lenderInterestLocal.owedPerDay = lenderInterestLocal.owedPerDay.add(owedPerDay);
             lenderInterestLocal.owedPerDay = lenderInterestLocal.owedPerDay.sub(
@@ -163,15 +164,14 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
         interestAmountRequired = interestAmountRequired.add(backInterestOwed);
 
         // collect interest (needs to be converted from the collateral)
-        (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, ) =
-            _doCollateralSwap(
-                loanLocal,
-                loanParamsLocal,
-                0, //min swap 0 -> swap connector estimates the amount of source tokens to use
-                interestAmountRequired, //required destination tokens
-                true, // returnTokenIsCollateral
-                loanDataBytes
-            );
+        (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed, ) = _doCollateralSwap(
+            loanLocal,
+            loanParamsLocal,
+            0, //min swap 0 -> swap connector estimates the amount of source tokens to use
+            interestAmountRequired, //required destination tokens
+            true, // returnTokenIsCollateral
+            loanDataBytes
+        );
 
         //received more tokens than needed to pay the interest
         if (destTokenAmountReceived > interestAmountRequired) {
@@ -209,12 +209,11 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
             _payInterestTransfer(loanLocal.lender, loanParamsLocal.loanToken, backInterestOwed);
         }
 
-        uint256 rolloverReward =
-            _getRolloverReward(
-                loanParamsLocal.collateralToken,
-                loanParamsLocal.loanToken,
-                loanLocal.principal
-            );
+        uint256 rolloverReward = _getRolloverReward(
+            loanParamsLocal.collateralToken,
+            loanParamsLocal.loanToken,
+            loanLocal.principal
+        );
 
         if (rolloverReward != 0) {
             // if the reward > collateral:
@@ -248,13 +247,12 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                     "" /// loanDataBytes
                 );
             } else {
-                (uint256 currentMargin, ) =
-                    IPriceFeeds(priceFeeds).getCurrentMargin(
-                        loanParamsLocal.loanToken,
-                        loanParamsLocal.collateralToken,
-                        loanLocal.principal,
-                        loanLocal.collateral
-                    );
+                (uint256 currentMargin, ) = IPriceFeeds(priceFeeds).getCurrentMargin(
+                    loanParamsLocal.loanToken,
+                    loanParamsLocal.collateralToken,
+                    loanLocal.principal,
+                    loanLocal.collateral
+                );
 
                 require(
                     currentMargin > 3 ether, // ensure there's more than 3% margin remaining

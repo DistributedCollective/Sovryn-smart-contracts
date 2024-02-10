@@ -29,7 +29,7 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
 
     /**
      * @notice This function is MANDATORY, which will be called by LoanTokenLogicBeacon and be registered.
-     * Every new public function, the sginature needs to be included in this function.
+     * Every new public function, the signature needs to be included in this function.
      *
      * @dev This function will return the list of function signature in this contract that are available for public call
      * Then this function will be called by LoanTokenLogicBeacon, and the function signatures will be registred in LoanTokenLogicBeacon.
@@ -44,7 +44,7 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](13);
+        bytes4[] memory res = new bytes4[](15);
         res[0] = this.setAdmin.selector;
         res[1] = this.setPauser.selector;
         res[2] = this.setupLoanParams.selector;
@@ -58,6 +58,8 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
         res[10] = this.withdrawRBTCTo.selector;
         res[11] = this.getLiquidityMiningAddress.selector;
         res[12] = this.checkPause.selector;
+        res[13] = this.setStakingContractAddress.selector;
+        res[14] = this.getStakingContractAddress.selector;
         return (res, stringToBytes32("LoanTokenSettingsLowerAdmin"));
     }
 
@@ -125,16 +127,17 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
      * @param collateralTokens The array of collateral tokens.
      * @param isTorqueLoans Whether the loan is a torque loan.
      * */
-    function disableLoanParams(address[] calldata collateralTokens, bool[] calldata isTorqueLoans)
-        external
-        onlyAdmin
-    {
+    function disableLoanParams(
+        address[] calldata collateralTokens,
+        bool[] calldata isTorqueLoans
+    ) external onlyAdmin {
         require(collateralTokens.length == isTorqueLoans.length, "count mismatch");
 
         bytes32[] memory loanParamsIdList = new bytes32[](collateralTokens.length);
         for (uint256 i = 0; i < collateralTokens.length; i++) {
-            uint256 id =
-                uint256(keccak256(abi.encodePacked(collateralTokens[i], isTorqueLoans[i])));
+            uint256 id = uint256(
+                keccak256(abi.encodePacked(collateralTokens[i], isTorqueLoans[i]))
+            );
             loanParamsIdList[i] = loanParamsIds[id];
             delete loanParamsIds[id];
         }
@@ -209,17 +212,15 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
     function toggleFunctionPause(
         string memory funcId, /// example: "mint(uint256,uint256)"
         bool isPaused
-    ) public {
+    ) public onlyPauserOrOwner {
         bool paused;
-        require(msg.sender == pauser, "onlyPauser");
         /// keccak256("iToken_FunctionPause")
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    bytes4(keccak256(abi.encodePacked(funcId))),
-                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-                )
-            );
+        bytes32 slot = keccak256(
+            abi.encodePacked(
+                bytes4(keccak256(abi.encodePacked(funcId))),
+                uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+            )
+        );
         assembly {
             paused := sload(slot)
         }
@@ -235,10 +236,10 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
      * @param addresses The token addresses.
      * @param limits The limit denominated in the currency of the token address.
      * */
-    function setTransactionLimits(address[] memory addresses, uint256[] memory limits)
-        public
-        onlyAdmin
-    {
+    function setTransactionLimits(
+        address[] memory addresses,
+        uint256[] memory limits
+    ) public onlyAdmin {
         require(addresses.length == limits.length, "mismatched array lengths");
         for (uint256 i = 0; i < addresses.length; i++) {
             transactionLimit[addresses[i]] = limits[i];
@@ -251,10 +252,10 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
      *	@param _name The new name of the loan token.
      *	@param _symbol The new symbol of the loan token.
      * */
-    function changeLoanTokenNameAndSymbol(string memory _name, string memory _symbol)
-        public
-        onlyAdmin
-    {
+    function changeLoanTokenNameAndSymbol(
+        string memory _name,
+        string memory _symbol
+    ) public onlyAdmin {
         name = _name;
         symbol = _symbol;
     }
@@ -291,6 +292,24 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
     }
 
     /**
+     * @notice sets the staking contract address
+     * @param _stakingContractAddress the address of the staking contract
+     */
+    function setStakingContractAddress(address _stakingContractAddress) external onlyOwner {
+        stakingContractAddress = _stakingContractAddress;
+    }
+
+    /**
+	 * @notice We need separate getter for newly added storage variable
+	 * @notice Getter for stakingContractAddress
+
+	 * @return stakingContractAddress
+	 */
+    function getStakingContractAddress() public view returns (address) {
+        return stakingContractAddress;
+    }
+
+    /**
      * @notice Check whether a function is paused.
      *
      * @dev Used to read externally from the smart contract to see if a
@@ -302,13 +321,12 @@ contract LoanTokenSettingsLowerAdmin is LoanTokenLogicStorage {
      * */
     function checkPause(string memory funcId) public view returns (bool isPaused) {
         bytes4 sig = bytes4(keccak256(abi.encodePacked(funcId)));
-        bytes32 slot =
-            keccak256(
-                abi.encodePacked(
-                    sig,
-                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-                )
-            );
+        bytes32 slot = keccak256(
+            abi.encodePacked(
+                sig,
+                uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+            )
+        );
         assembly {
             isPaused := sload(slot)
         }

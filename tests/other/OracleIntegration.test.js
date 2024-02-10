@@ -21,7 +21,8 @@ const PriceFeedsMoC = artifacts.require("PriceFeedsMoC");
 const PriceFeeds = artifacts.require("PriceFeeds");
 const PriceFeedsMoCMockup = artifacts.require("PriceFeedsMoCMockup");
 const PriceFeedRSKOracleMockup = artifacts.require("PriceFeedRSKOracleMockup");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const {
     getSUSD,
@@ -47,6 +48,11 @@ contract("OracleIntegration", (accounts) => {
         swapsImpl = await SwapsImplSovrynSwap.new();
         await sovryn.setSwapsImplContract(swapsImpl.address);
     }
+
+    before(async () => {
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+    });
 
     beforeEach(async () => {
         await loadFixture(deploymentAndInitFixture);
@@ -84,12 +90,8 @@ contract("OracleIntegration", (accounts) => {
     describe("OracleIntegration Tests", () => {
         it("Test moc oracle integration", async () => {
             const [price_feeds, price_feeds_moc] = await set_oracle(
-                (
-                    await price_feed_rsk_mockup()
-                ).address,
-                (
-                    await price_feed_moc_mockup()
-                ).address
+                (await price_feed_rsk_mockup()).address,
+                (await price_feed_moc_mockup()).address
             );
 
             let res = await price_feeds.queryPrecision(BZRX.address, WRBTC.address);
@@ -124,9 +126,7 @@ contract("OracleIntegration", (accounts) => {
             const price_feed_mockup = await price_feed_moc_mockup();
             await price_feed_mockup.setHas(false);
             const [, price_feeds_moc] = await set_oracle(
-                (
-                    await price_feed_rsk_mockup()
-                ).address,
+                (await price_feed_rsk_mockup()).address,
                 price_feed_mockup.address
             );
             const res = await price_feeds_moc.latestAnswer();

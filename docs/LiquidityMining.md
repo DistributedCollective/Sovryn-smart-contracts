@@ -4,7 +4,7 @@ View Source: [contracts/farm/LiquidityMining.sol](../contracts/farm/LiquidityMin
 
 **↗ Extends: [ILiquidityMining](ILiquidityMining.md), [LiquidityMiningStorage](LiquidityMiningStorage.md)**
 
-**LiquidityMining**
+## **LiquidityMining** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -33,6 +33,7 @@ event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256
 - [initialize(IERC20 _SOV, uint256 _rewardTokensPerBlock, uint256 _startDelayBlocks, uint256 _numberOfBonusBlocks, address _wrapper, ILockedSOV _lockedSOV, uint256 _unlockedImmediatelyPercent)](#initialize)
 - [setLockedSOV(ILockedSOV _lockedSOV)](#setlockedsov)
 - [setUnlockedImmediatelyPercent(uint256 _unlockedImmediatelyPercent)](#setunlockedimmediatelypercent)
+- [setPoolTokenUnlockedImmediatelyPercent(address _poolToken, uint256 _poolTokenUnlockedImmediatelyPercent)](#setpooltokenunlockedimmediatelypercent)
 - [setWrapper(address _wrapper)](#setwrapper)
 - [stopMining()](#stopmining)
 - [transferSOV(address _receiver, uint256 _amount)](#transfersov)
@@ -72,6 +73,9 @@ event EmergencyWithdraw(address indexed user, address indexed poolToken, uint256
 - [getUserInfoList(address _user)](#getuserinfolist)
 - [getUserAccumulatedRewardList(address _user)](#getuseraccumulatedrewardlist)
 - [getUserPoolTokenBalance(address _poolToken, address _user)](#getuserpooltokenbalance)
+- [getUserAccumulatedRewardToBePaidLiquid(address _user)](#getuseraccumulatedrewardtobepaidliquid)
+- [getUserAccumulatedRewardToBeVested(address _user)](#getuseraccumulatedrewardtobevested)
+- [calcUnlockedImmediatelyPercent(address _poolToken)](#calcunlockedimmediatelypercent)
 
 ---    
 
@@ -181,10 +185,44 @@ function setUnlockedImmediatelyPercent(uint256 _unlockedImmediatelyPercent)
         onlyAuthorized
     {
         require(
-            _unlockedImmediatelyPercent < 10000,
-            "Unlocked immediately percent has to be less than 10000."
+            _unlockedImmediatelyPercent <= 10000,
+            "Unlocked immediately percent has to be less than equal to 10000."
         );
         unlockedImmediatelyPercent = _unlockedImmediatelyPercent;
+    }
+```
+</details>
+
+---    
+
+> ### setPoolTokenUnlockedImmediatelyPercent
+
+Sets unlocked immediately percent overwrite for specific pool token.
+
+```solidity
+function setPoolTokenUnlockedImmediatelyPercent(address _poolToken, uint256 _poolTokenUnlockedImmediatelyPercent) external nonpayable onlyAuthorized 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _poolToken | address | the address of pool token | 
+| _poolTokenUnlockedImmediatelyPercent | uint256 | The % which determines how much will be unlocked immediately. | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function setPoolTokenUnlockedImmediatelyPercent(
+        address _poolToken,
+        uint256 _poolTokenUnlockedImmediatelyPercent
+    ) external onlyAuthorized {
+        require(
+            _poolTokenUnlockedImmediatelyPercent <= 10000,
+            "Unlocked immediately percent has to be less than equal to 10000."
+        );
+        poolTokensUnlockedImmediatelyPercent[_poolToken] = _poolTokenUnlockedImmediatelyPercent;
     }
 ```
 </details>
@@ -548,7 +586,11 @@ function _getUserAccumulatedReward(uint256 _poolId, address _user)
             (, uint256 accumulatedRewardPerShare_) = _getPoolAccumulatedReward(pool);
             accumulatedRewardPerShare = accumulatedRewardPerShare.add(accumulatedRewardPerShare_);
         }
-        return user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt);
+
+        return
+            user.accumulatedReward.add(
+                user.amount.mul(accumulatedRewardPerShare).div(PRECISION).sub(user.rewardDebt)
+            );
     }
 ```
 </details>
@@ -998,7 +1040,13 @@ function claimRewardFromAllPools(address _user) external {
             uint256 poolId = i;
             _claimReward(poolId, userAddress, false);
         }
-        lockedSOV.withdrawAndStakeTokensFrom(userAddress);
+
+        if (
+            lockedSOV.getLockedBalance(userAddress) > 0 ||
+            lockedSOV.getUnlockedBalance(userAddress) > 0
+        ) {
+            lockedSOV.withdrawAndStakeTokensFrom(userAddress);
+        }
     }
 ```
 </details>
@@ -1186,6 +1234,8 @@ function _transferReward(
         bool _isCheckingBalance
     ) internal {
         uint256 userAccumulatedReward = _user.accumulatedReward;
+        /// @dev get unlock immediate percent of the pool token.
+        uint256 calculatedUnlockedImmediatelyPercent = calcUnlockedImmediatelyPercent(_poolToken);
 
         /// @dev Transfer if enough SOV balance on this LM contract.
         uint256 balance = SOV.balanceOf(address(this));
@@ -1193,15 +1243,23 @@ function _transferReward(
             totalUsersBalance = totalUsersBalance.sub(userAccumulatedReward);
             _user.accumulatedReward = 0;
 
-            /// @dev Instead of transferring the reward to the LP (user),
-            ///   deposit it into lockedSOV vault contract, but first
+            /// @dev If calculatedUnlockedImmediatelyPercent is 100%, transfer the reward to the LP (user).
+            ///   else, deposit it into lockedSOV vault contract, but first
             ///   SOV deposit must be approved to move the SOV tokens
             ///   from this LM contract into the lockedSOV vault.
-            require(SOV.approve(address(lockedSOV), userAccumulatedReward), "Approve failed");
-            lockedSOV.deposit(_userAddress, userAccumulatedReward, unlockedImmediatelyPercent);
+            if (calculatedUnlockedImmediatelyPercent == 10000) {
+                SOV.transfer(_userAddress, userAccumulatedReward);
+            } else {
+                require(SOV.approve(address(lockedSOV), userAccumulatedReward), "Approve failed");
+                lockedSOV.deposit(
+                    _userAddress,
+                    userAccumulatedReward,
+                    calculatedUnlockedImmediatelyPercent
+                );
 
-            if (_isStakingTokens) {
-                lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
+                if (_isStakingTokens) {
+                    lockedSOV.withdrawAndStakeTokensFrom(_userAddress);
+                }
             }
 
             /// @dev Event log.
@@ -1248,8 +1306,6 @@ function emergencyWithdraw(address _poolToken) external {
         user.rewardDebt = 0;
         user.accumulatedReward = 0;
         pool.poolToken.safeTransfer(address(msg.sender), userAmount);
-
-        _updateRewardDebt(pool, user);
 
         emit EmergencyWithdraw(msg.sender, _poolToken, userAmount, userAccumulatedReward);
     }
@@ -1541,6 +1597,123 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 ```
 </details>
 
+---    
+
+> ### getUserAccumulatedRewardToBePaidLiquid
+
+returns the accumulated liquid reward for the given user for each pool token
+
+```solidity
+function getUserAccumulatedRewardToBePaidLiquid(address _user) external view
+returns(uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _user | address | the address of the user | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getUserAccumulatedRewardToBePaidLiquid(address _user)
+        external
+        view
+        returns (uint256)
+    {
+        uint256 length = poolInfoList.length;
+        uint256 result;
+        for (uint256 i = 0; i < length; i++) {
+            address _poolToken = address(poolInfoList[i].poolToken);
+            uint256 calculatedUnlockedImmediatelyPercent =
+                calcUnlockedImmediatelyPercent(_poolToken);
+            result = result.add(
+                calculatedUnlockedImmediatelyPercent.mul(_getUserAccumulatedReward(i, _user)).div(
+                    10000
+                )
+            );
+        }
+
+        return result;
+    }
+```
+</details>
+
+---    
+
+> ### getUserAccumulatedRewardToBeVested
+
+returns the accumulated vested reward for the given user for each pool token
+
+```solidity
+function getUserAccumulatedRewardToBeVested(address _user) external view
+returns(uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _user | address | the address of the user | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function getUserAccumulatedRewardToBeVested(address _user) external view returns (uint256) {
+        uint256 length = poolInfoList.length;
+        uint256 result;
+        for (uint256 i = 0; i < length; i++) {
+            address _poolToken = address(poolInfoList[i].poolToken);
+            uint256 calculatedUnlockedImmediatelyPercent =
+                calcUnlockedImmediatelyPercent(_poolToken);
+            result = result.add(
+                (10000 - calculatedUnlockedImmediatelyPercent)
+                    .mul(_getUserAccumulatedReward(i, _user))
+                    .div(10000)
+            );
+        }
+
+        return result;
+    }
+```
+</details>
+
+---    
+
+> ### calcUnlockedImmediatelyPercent
+
+calculate the unlocked immediate percentage of specific pool token
+use the poolTokensUnlockedImmediatelyPercent by default, if it is not set, then use the unlockedImmediatelyPercent
+
+```solidity
+function calcUnlockedImmediatelyPercent(address _poolToken) public view
+returns(uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _poolToken | address |  | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function calcUnlockedImmediatelyPercent(address _poolToken) public view returns (uint256) {
+        uint256 poolTokenUnlockedImmediatelyPercent =
+            poolTokensUnlockedImmediatelyPercent[_poolToken];
+        return
+            poolTokenUnlockedImmediatelyPercent > 0
+                ? poolTokenUnlockedImmediatelyPercent
+                : unlockedImmediatelyPercent;
+    }
+```
+</details>
+
 ## Contracts
 
 * [Address](Address.md)
@@ -1552,12 +1725,11 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -1568,9 +1740,9 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -1583,11 +1755,16 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -1599,6 +1776,7 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -1629,6 +1807,7 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -1648,11 +1827,15 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -1675,6 +1858,7 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -1682,18 +1866,24 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -1706,6 +1896,7 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -1718,5 +1909,5 @@ function getUserPoolTokenBalance(address _poolToken, address _user)
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

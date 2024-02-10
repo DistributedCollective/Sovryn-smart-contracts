@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/Vesting.sol](../contracts/governance/
 
 **↗ Extends: [TeamVesting](TeamVesting.md)**
 
-**Vesting**
+## **Vesting** contract
 
 Team tokens and investor tokens are vested. Therefore, a smart
 contract needs to be developed to enforce the vesting schedule.
@@ -12,7 +12,7 @@ contract needs to be developed to enforce the vesting schedule.
 
 ## Functions
 
-- [constructor(address _logic, address _SOV, address _stakingAddress, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharingProxy)](#constructor)
+- [constructor(address _logic, address _SOV, address _stakingAddress, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharingCollectorProxy)](#constructor)
 - [governanceWithdrawTokens(address receiver)](#governancewithdrawtokens)
 
 ---    
@@ -22,7 +22,7 @@ contract needs to be developed to enforce the vesting schedule.
 Setup the vesting schedule.
 
 ```solidity
-function (address _logic, address _SOV, address _stakingAddress, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharingProxy) public nonpayable TeamVesting 
+function (address _logic, address _SOV, address _stakingAddress, address _tokenOwner, uint256 _cliff, uint256 _duration, address _feeSharingCollectorProxy) public nonpayable TeamVesting 
 ```
 
 **Arguments**
@@ -35,7 +35,7 @@ function (address _logic, address _SOV, address _stakingAddress, address _tokenO
 | _tokenOwner | address | The owner of the tokens. | 
 | _cliff | uint256 | The time interval to the first withdraw in seconds. | 
 | _duration | uint256 | The total duration in seconds. | 
-| _feeSharingProxy | address |  | 
+| _feeSharingCollectorProxy | address |  | 
 
 <details>
 	<summary><strong>Source Code</strong></summary>
@@ -48,7 +48,7 @@ constructor(
         address _tokenOwner,
         uint256 _cliff,
         uint256 _duration,
-        address _feeSharingProxy
+        address _feeSharingCollectorProxy
     )
         public
         TeamVesting(
@@ -58,7 +58,7 @@ constructor(
             _tokenOwner,
             _cliff,
             _duration,
-            _feeSharingProxy
+            _feeSharingCollectorProxy
         )
     {}
 ```
@@ -101,12 +101,11 @@ function governanceWithdrawTokens(address receiver) public {
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -117,9 +116,9 @@ function governanceWithdrawTokens(address receiver) public {
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -132,11 +131,16 @@ function governanceWithdrawTokens(address receiver) public {
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -148,6 +152,7 @@ function governanceWithdrawTokens(address receiver) public {
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -178,6 +183,7 @@ function governanceWithdrawTokens(address receiver) public {
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -197,11 +203,15 @@ function governanceWithdrawTokens(address receiver) public {
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -224,6 +234,7 @@ function governanceWithdrawTokens(address receiver) public {
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -231,18 +242,24 @@ function governanceWithdrawTokens(address receiver) public {
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -255,6 +272,7 @@ function governanceWithdrawTokens(address receiver) public {
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -267,5 +285,5 @@ function governanceWithdrawTokens(address receiver) public {
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

@@ -7,7 +7,6 @@ pragma solidity 0.5.17;
 
 import "../../../core/State.sol";
 import "../../../openzeppelin/SafeERC20.sol";
-import "../../ISwapsImpl.sol";
 import "../../../feeds/IPriceFeeds.sol";
 import "../../../testhelpers/TestToken.sol";
 
@@ -19,7 +18,7 @@ import "../../../testhelpers/TestToken.sol";
  *
  * This contract contains the implementation of swap process and rate calculations.
  * */
-contract SwapsImplLocal is State, ISwapsImpl {
+contract SwapsImplLocal is State {
     using SafeERC20 for IERC20;
 
     /**
@@ -34,7 +33,7 @@ contract SwapsImplLocal is State, ISwapsImpl {
     function internalSwap(
         address sourceTokenAddress,
         address destTokenAddress,
-        address, /*receiverAddress*/
+        address /*receiverAddress*/,
         address returnToSenderAddress,
         uint256 minSourceTokenAmount,
         uint256 maxSourceTokenAmount,
@@ -42,8 +41,10 @@ contract SwapsImplLocal is State, ISwapsImpl {
     ) public payable returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
         require(sourceTokenAddress != destTokenAddress, "source == dest");
 
-        (uint256 tradeRate, uint256 precision) =
-            IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
+        (uint256 tradeRate, uint256 precision) = IPriceFeeds(priceFeeds).queryRate(
+            sourceTokenAddress,
+            destTokenAddress
+        );
 
         if (requiredDestTokenAmount == 0) {
             sourceTokenAmountUsed = minSourceTokenAmount;
@@ -85,8 +86,8 @@ contract SwapsImplLocal is State, ISwapsImpl {
         uint256 sourceTokenAmount,
         address unused
     ) public view returns (uint256) {
-        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-            IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
+        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds)
+            .queryRate(sourceTokenAddress, destTokenAddress);
 
         return sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
     }
@@ -110,8 +111,8 @@ contract SwapsImplLocal is State, ISwapsImpl {
         address unused,
         IERC20[] memory defaultPath
     ) public view returns (uint256) {
-        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) =
-            IPriceFeeds(priceFeeds).queryRate(sourceTokenAddress, destTokenAddress);
+        (uint256 sourceToDestRate, uint256 sourceToDestPrecision) = IPriceFeeds(priceFeeds)
+            .queryRate(sourceTokenAddress, destTokenAddress);
 
         return sourceTokenAmount.mul(sourceToDestRate).div(sourceToDestPrecision);
     }

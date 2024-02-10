@@ -58,6 +58,7 @@ const {
 } = require("../Utils/initializer.js");
 const { etherGasCost } = require("../Utils/Ethereum.js");
 const mutexUtils = require("../reentrancy/utils");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const { ZERO_ADDRESS } = constants;
 const wei = web3.utils.toWei;
@@ -145,6 +146,7 @@ contract("SwapsExternal", (accounts) => {
             WRBTC.address
         );
         await loanTokenWrbtc.initialize(WRBTC.address, "iWRBTC", "iWRBTC");
+        await feeSharingCollectorProxy.initialize(WRBTC.address, loanTokenWrbtc.address);
 
         loanTokenWrbtc = await LoanTokenLogicWrbtc.at(loanTokenWrbtc.address);
         const loanTokenAddressWrbtc = await loanTokenWrbtc.loanTokenAddress();
@@ -195,6 +197,9 @@ contract("SwapsExternal", (accounts) => {
 
     before(async () => {
         [lender, staker] = accounts;
+
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await SwapsExternal.link(swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {
@@ -279,7 +284,7 @@ contract("SwapsExternal", (accounts) => {
                         value: wei("1", "ether"),
                     }
                 ),
-                "swap failed"
+                "source == dest"
             );
         });
 
@@ -300,7 +305,7 @@ contract("SwapsExternal", (accounts) => {
                     0,
                     "0x"
                 ),
-                "swap failed"
+                "invalid tokens"
             );
         });
 

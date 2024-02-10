@@ -8,7 +8,7 @@ const LockedSOV = artifacts.require("LockedSOV"); // Ideally should be using act
 
 const StakingProxy = artifacts.require("StakingProxy");
 const SOV = artifacts.require("TestToken");
-const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");

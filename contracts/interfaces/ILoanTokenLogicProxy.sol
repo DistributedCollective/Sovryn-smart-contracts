@@ -4,4 +4,6 @@ interface ILoanTokenLogicProxy {
     function beaconAddress() external view returns (address);
 
     function setBeaconAddress(address _newBeaconAddress) external;
+
+    function getTarget() external view returns (address);
 }

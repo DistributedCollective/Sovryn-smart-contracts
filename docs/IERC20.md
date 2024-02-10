@@ -4,7 +4,7 @@ View Source: [contracts/interfaces/IERC20.sol](../contracts/interfaces/IERC20.so
 
 **↘ Derived Contracts: [IChai](IChai.md), [IPot](IPot.md), [IWrbtcERC20](IWrbtcERC20.md)**
 
-**IERC20**
+## **IERC20** contract
 
 ## Contract Members
 **Constants & Variables**
@@ -36,8 +36,10 @@ event Approval(address indexed owner, address indexed spender, uint256  value);
 
 > ### totalSupply
 
+⤾ overrides [IERC777.totalSupply](IERC777.md#totalsupply)
+
 ```solidity
-function totalSupply() public view
+function totalSupply() external view
 returns(uint256)
 ```
 
@@ -45,7 +47,7 @@ returns(uint256)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function totalSupply() public view returns (uint256);
+function totalSupply() external view returns (uint256);
 ```
 </details>
 
@@ -53,8 +55,10 @@ function totalSupply() public view returns (uint256);
 
 > ### balanceOf
 
+⤾ overrides [IERC777.balanceOf](IERC777.md#balanceof)
+
 ```solidity
-function balanceOf(address _who) public view
+function balanceOf(address _who) external view
 returns(uint256)
 ```
 
@@ -68,7 +72,7 @@ returns(uint256)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function balanceOf(address _who) public view returns (uint256);
+function balanceOf(address _who) external view returns (uint256);
 ```
 </details>
 
@@ -77,7 +81,7 @@ function balanceOf(address _who) public view returns (uint256);
 > ### allowance
 
 ```solidity
-function allowance(address _owner, address _spender) public view
+function allowance(address _owner, address _spender) external view
 returns(uint256)
 ```
 
@@ -92,7 +96,7 @@ returns(uint256)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function allowance(address _owner, address _spender) public view returns (uint256);
+function allowance(address _owner, address _spender) external view returns (uint256);
 ```
 </details>
 
@@ -101,7 +105,7 @@ function allowance(address _owner, address _spender) public view returns (uint25
 > ### approve
 
 ```solidity
-function approve(address _spender, uint256 _value) public nonpayable
+function approve(address _spender, uint256 _value) external nonpayable
 returns(bool)
 ```
 
@@ -116,7 +120,7 @@ returns(bool)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function approve(address _spender, uint256 _value) public returns (bool);
+function approve(address _spender, uint256 _value) external returns (bool);
 ```
 </details>
 
@@ -125,7 +129,7 @@ function approve(address _spender, uint256 _value) public returns (bool);
 > ### transfer
 
 ```solidity
-function transfer(address _to, uint256 _value) public nonpayable
+function transfer(address _to, uint256 _value) external nonpayable
 returns(bool)
 ```
 
@@ -140,7 +144,7 @@ returns(bool)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function transfer(address _to, uint256 _value) public returns (bool);
+function transfer(address _to, uint256 _value) external returns (bool);
 ```
 </details>
 
@@ -149,7 +153,7 @@ function transfer(address _to, uint256 _value) public returns (bool);
 > ### transferFrom
 
 ```solidity
-function transferFrom(address _from, address _to, uint256 _value) public nonpayable
+function transferFrom(address _from, address _to, uint256 _value) external nonpayable
 returns(bool)
 ```
 
@@ -169,7 +173,7 @@ function transferFrom(
         address _from,
         address _to,
         uint256 _value
-    ) public returns (bool);
+    ) external returns (bool);
 ```
 </details>
 
@@ -184,12 +188,11 @@ function transferFrom(
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -200,9 +203,9 @@ function transferFrom(
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -215,11 +218,16 @@ function transferFrom(
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -231,6 +239,7 @@ function transferFrom(
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -261,6 +270,7 @@ function transferFrom(
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -280,11 +290,15 @@ function transferFrom(
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -307,6 +321,7 @@ function transferFrom(
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -314,18 +329,24 @@ function transferFrom(
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -338,6 +359,7 @@ function transferFrom(
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -350,5 +372,5 @@ function transferFrom(
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

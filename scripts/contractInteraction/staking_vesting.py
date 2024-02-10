@@ -62,6 +62,17 @@ def readTeamVestingContractForAddress(userAddress):
     address = vestingRegistry.getTeamVesting(userAddress)
     print(address)
 
+def cancelTeamVestingsOfAccount(userAddress, startFrom):
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    vestings = vestingRegistry.getVestingsOf(userAddress)
+    for vesting in vestings:
+        vestingContract = Contract.from_abi("VestingLogic", address=vesting[2], abi=VestingLogic.abi, owner=conf.acct)
+        if(vestingContract.owner() == conf.contracts['multisig']):
+            print('Cancelling team vesting: ', vesting[2])
+            data = staking.cancelTeamVesting.encode_input(vesting[2],conf.contracts['multisig'], startFrom)
+            sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
+
 def readLMVestingContractForAddress(userAddress):
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistry3'], abi=VestingRegistry.abi, owner=conf.acct)
     address = vestingRegistry.getVesting(userAddress)
@@ -80,6 +91,12 @@ def addVestingAdmin(admin):
     vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
     data = vestingRegistry.addAdmin.encode_input(admin)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
+def setMaxVestingWithdrawIterations(num):
+    staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
+    multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    data = staking.setMaxVestingWithdrawIterations.encode_input(num)
+    sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
 def removeVestingAdmin(admin):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
@@ -452,13 +469,13 @@ def freezeOrUnfreezeStakingWithdawal(flag):
     data = staking.freezeUnfreeze.encode_input(flag)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
-def addPauser(address):
+def addStakingPauser(address):
     # Get the proxy contract instance
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.addPauser.encode_input(address)
     sendWithMultisig(conf.contracts['multisig'], staking.address, data, conf.acct)
 
-def removePauser(address):
+def removeStakingPauser(address):
     # Get the proxy contract instance
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     data = staking.removePauser.encode_input(address)
@@ -530,15 +547,21 @@ def transferStakingRewardsOwnershipToGovernance():
     data = stakingRewards.transferOwnership.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], stakingRewards.address, data, conf.acct)
 
-def transferVestingRegistryOwnershipToGovernance():
+def addVestingRegistryGovernanceAdmin():
     # add governor admin as admin
     print("Add Vesting Registry admin for address: ", conf.contracts['TimelockAdmin'])
     vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     data = vestingRegistry.addAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
+def transferVestingRegistryOwnershipToGovernance():
+    # transfer ownerhip to TimelockOwner
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    data = vestingRegistry.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
+
     '''
-    # add Exchequer admin as admin
+    # add Exchequer admin as admin - it is already an admin
     print("Add Vesting Registry admin for multisig: ", conf.contracts['multisig'])
     data = vestingRegistry.addAdmin.encode_input(conf.contracts['multisig'])
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
@@ -629,3 +652,26 @@ def getVoluntaryWeightedStake():
     totalWeightedStake = staking.getPriorTotalVotingPower(5138745, 1679073208);
     voluntary = (totalWeightedStake - vestingWeightedStake)/1e18
     print(voluntary)
+
+def updateRolesOnDevelopmentFund():
+    developmentFund = Contract.from_abi("DevelopmentFund", address=conf.contracts['DevelopmentFund'], abi=DevelopmentFund.abi, owner=acct)
+    data = developmentFund.updateUnlockedTokenOwner.encode_input(conf.contracts['multisig'])
+    sendWithMultisig(conf.contracts['multisig'], developmentFund.address, data, conf.acct)
+    data = developmentFund.updateLockedTokenOwner(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], developmentFund.address, data, conf.acct)
+    data = developmentFund.approveLockedTokenOwner()
+    sendWithMultisig(conf.contracts['multisig'], developmentFund.address, data, conf.acct)
+
+def withdrawDevFundTokensByUnlockedTokenOwner():
+    developmentFund = Contract.from_abi("DevelopmentFund", address=conf.contracts['DevelopmentFund'], abi=DevelopmentFund.abi, owner=acct)
+    #trying to withdraw 100M SOV -> more than available -> should withdraw the max
+    data = developmentFund.withdrawTokensByUnlockedTokenOwner.encode_input(100000000e18)
+    sendWithMultisig(conf.contracts['multisig'], developmentFund.address, data, conf.acct)
+
+def withdrawAdoptionFundTokensByUnlockedTokenOwner():
+    adoptionFund = Contract.from_abi("DevelopmentFund", address=conf.contracts['AdoptionFund'], abi=DevelopmentFund.abi, owner=acct)
+    #trying to withdraw 100M SOV -> more than available -> should withdraw the max
+    data = adoptionFund.withdrawTokensByUnlockedTokenOwner.encode_input(100000000e18)
+    sendWithMultisig(conf.contracts['multisig'], adoptionFund.address, data, conf.acct)
+
+

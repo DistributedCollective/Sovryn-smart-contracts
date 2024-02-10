@@ -5,3 +5,7 @@ contracts/openzeppelin
 contracts/mixins/EnumerableAddressSet.sol
 contracts/interfaces
 contracts/events
+foundry
+tests-foundry
+tmp
+temp

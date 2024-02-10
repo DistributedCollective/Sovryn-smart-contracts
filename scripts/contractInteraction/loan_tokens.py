@@ -237,7 +237,7 @@ def testBorrow(protocolAddress, loanTokenAddress, underlyingTokenAddress, collat
         conf.acct,                    # address borrower
         conf.acct,                    # address receiver
         b'' ,                            # bytes memory loanDataBytes
-        {'value': 0, 'allow_revert': True}#collateralTokenSent
+        {'value': 0, 'allow_revert': False}#collateralTokenSent
     )
     
     #assert the trade was processed as expected
@@ -278,7 +278,7 @@ def borrowRBTCWithMultisigUsingSOV(withdrawAmount, receiver):
 sets a collateral token address as collateral for borrowing
 '''
 def setupTorqueLoanParams(loanTokenAddress, underlyingTokenAddress, collateralTokenAddress, minInitialMargin):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     params = []
     setup = [
         b"0x0", ## id
@@ -566,15 +566,19 @@ def replaceLoanTokenLogic(loanTokenAddress, logicAddress):
     
 
 def triggerEmergencyStop(loanTokenAddress, turnOn):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
-    functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,bytes)"
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    functionSignature = "marginTrade(bytes32,uint256,uint256,uint256,address,address,uint256,bytes)"
     #functionSignature = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
+    triggerFunctionEmergencyStop(loanToken.address, functionSignature, turnOn)
+
+def triggerFunctionEmergencyStop(loanTokenAddress, functionSignature, turnOn):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     data = loanToken.toggleFunctionPause.encode_input(functionSignature, turnOn)
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
 def readPauser(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=interface.ILoanTokenModules.abi, owner=conf.acct)
-    print(loanToken.pauser())
+    print(loanToken.pauser.encode_input())
 
 def setPauser(loanTokenAddress, pauser):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=interface.ILoanTokenModules.abi, owner=conf.acct)
@@ -582,9 +586,20 @@ def setPauser(loanTokenAddress, pauser):
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
 def checkPause(loanTokenAddress):
-    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=interface.ILoanTokenModules.abi, owner=conf.acct)
     funcId = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
     print(loanToken.checkPause(funcId))
+
+def checkLoanTokenFunctionsPause(loanTokenNames):
+    for loanTokenName in loanTokenNames:
+        loanToken = Contract.from_abi("loanToken", address=conf.contracts[loanTokenName], abi=interface.ILoanTokenModules.abi, owner=conf.acct)
+        print('loan token', loanTokenName, "@", conf.contracts[loanTokenName],":")
+        
+        funcId = "borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)"
+        print('                 borrow paused:     ', loanToken.checkPause(funcId))
+        
+        funcId = "marginTrade(bytes32,uint256,uint256,uint256,address,address,uint256,bytes)"
+        print('                 marginTrade paused:', loanToken.checkPause(funcId))
 
 def disableLoanParams(loanTokenAddress, collateralToken):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
@@ -599,6 +614,10 @@ def setAdminOnLoanToken(loanTokenAddress, admin):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     data = loanToken.setAdmin.encode_input(admin)
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+def setAdminOnLoanTokenWithWallet(loanTokenAddress, admin):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    loanToken.setAdmin(admin)
 
 def readLiquidity():
     loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
@@ -908,31 +927,37 @@ def transferBeaconOwnershipToGovernance():
 def transferLoanTokenAdminRoleToGovernance():
     # iDOC
     print("Transferring iDOC admin to: ", conf.contracts['TimelockAdmin'])
-    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDOC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDOC'], abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
     # iRBTC
     print("Transferring iRBTC admin to: ", conf.contracts['TimelockAdmin'])
-    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iRBTC'], abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
     # iXUSD
     print("Transferring iXUSD admin to: ", conf.contracts['TimelockAdmin'])
-    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iXUSD'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iXUSD'], abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
     # iUSDT
     print("Transferring iUSDT admin to: ", conf.contracts['TimelockAdmin'])
-    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iUSDT'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iUSDT'], abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
     # iBPro
     print("Transferring iBPro admin to: ", conf.contracts['TimelockAdmin'])
-    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iBPro'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iBPro'], abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
+    # iDLLR
+    print("Transferring iDLLR admin to: ", conf.contracts['TimelockAdmin'])
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDLLR'], abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
     data = loanToken.setAdmin.encode_input(conf.contracts['TimelockAdmin'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
@@ -967,6 +992,12 @@ def transferLoanTokenOwnershipToGovernance():
     data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
     sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
 
+    # iDLLR
+    loanToken = Contract.from_abi("loanToken", address=conf.contracts['iDLLR'], abi=LoanTokenLogicStandard.abi, owner=conf.acct)
+    print("Transferring iDLLR ownserhip to: ", conf.contracts['TimelockOwner'])
+    data = loanToken.transferOwnership.encode_input(conf.contracts['TimelockOwner'])
+    sendWithMultisig(conf.contracts['multisig'], loanToken.address, data, conf.acct)
+
 def readLoanTokenStorage(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStorage.abi, owner=conf.acct)
     print(loanToken.sovrynContractAddress())
@@ -981,3 +1012,95 @@ def getTotalAssetSupply(loanTokenAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=conf.acct)
     print(loanToken.totalAssetSupply())
     return loanToken.totalAssetSupply()
+
+def readDemandCurve(loanTokenAddress):
+    loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    print('base rate', loanToken.baseRate())
+    print('rate multiplier', loanToken.rateMultiplier())
+    print('lowUtilBaseRate', loanToken.lowUtilBaseRate())
+    print('lowUtilRateMultiplier', loanToken.lowUtilRateMultiplier())
+
+    print('targetLevel',loanToken.targetLevel())
+    print('kinkLevel', loanToken.kinkLevel())
+    print('maxScaleRate', loanToken.maxScaleRate())
+
+'''
+Deploys a single loan token contract and sets it up
+'''
+def deployLoanToken(loanTokenAddress, loanTokenSymbol, loanTokenName, baseRate,rateMultiplier, kinkLevel, maxScaleRate, collateralAddresses):
+
+    print("deplyoing the logic proxy for the loan token")
+    loanTokenLogicProxy = conf.acct.deploy(LoanTokenLogicProxy)
+    print("Loan Token Logic Proxy deployed at: ", loanTokenLogicProxy.address)
+
+    print("Deploying loan token using the loan logic as target for delegate calls")
+    loanToken = conf.acct.deploy(LoanToken, conf.acct.address, loanTokenLogicProxy.address, conf.contracts['sovrynProtocol'], conf.contracts['WRBTC'])
+    print("new loan token:", loanToken.address)
+
+    print("Initialize loanToken ")
+    loanToken.initialize(loanTokenAddress, loanTokenName, loanTokenSymbol)#symbol and name might be mixed up
+    
+    print("setting the beacon at the proxy")
+    loanTokenWithProxyABI = Contract.from_abi("loanTokenWithProxyABI", address=loanToken.address, abi=LoanTokenLogicProxy.abi, owner=conf.acct)
+    loanTokenWithProxyABI.setBeaconAddress(conf.contracts['LoanTokenLogicBeaconLM'])
+
+    print("setting the interest curve")
+    loanToken = Contract.from_abi("loanToken", address=loanToken.address, abi=LoanTokenSettingsLowerAdmin.abi, owner=conf.acct)
+    targetLevel = 0
+    loanToken.setDemandCurve(baseRate,rateMultiplier,baseRate,rateMultiplier, targetLevel, kinkLevel, maxScaleRate)
+
+    print("Setting up margin pool params on loan token.")
+
+    params = []
+    
+    for collateralAddress in collateralAddresses:
+        data = [
+            b"0x0", ## id
+            False, ## active
+            conf.contracts['multisig'], ## owner
+            '0x0000000000000000000000000000000000000000', ## loanToken -> will be overwritten
+            collateralAddress, ## collateralToken.
+            Wei("20 ether"), ## minInitialMargin -> 20% (allows up to 5x leverage)
+            Wei("15 ether"), ## maintenanceMargin -> 15%, below liquidation
+            0 ## fixedLoanTerm -> will be overwritten with 28 days
+        ]
+
+        params.append(data)
+
+    #configure the token settings, and set the setting contract address at the loan token logic contract
+    loanToken.setupLoanParams(params, False)
+
+    print("Setting up torque pool params")
+
+    params = []
+
+    for collateralAddress in collateralAddresses:
+        minInitialMargin = Wei("50 ether")
+        if collateralAddress == conf.contracts['SOV'] :
+            minInitialMargin = Wei("200 ether") 
+        data = [
+            b"0x0", ## id
+            False, ## active
+            conf.contracts['multisig'], ## owner
+            '0x0000000000000000000000000000000000000000', ## loanToken -> will be overwritten
+            collateralAddress, ## collateralToken.
+            minInitialMargin, ## minInitialMargin -> 20% (allows up to 5x leverage)
+            Wei("15 ether"), ## maintenanceMargin -> 15%, below liquidation
+            0 ## fixedLoanTerm -> will be overwritten with 28 days
+        ]
+
+        params.append(data)
+
+    #configure the token settings, and set the setting contract address at the loan token logic contract
+    loanToken.setupLoanParams(params, True)
+
+    sovryn = Contract.from_abi(
+        "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
+
+    
+    data = sovryn.setLoanPool.encode_input(
+        [loanToken.address],
+        [loanTokenAddress]
+    )
+    sendWithMultisig(conf.contracts['multisig'], sovryn.address,data, conf.acct)
+ 

@@ -26,7 +26,7 @@
 const { BN, constants, send, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const { deployAndGetIStaking } = require("../Utils/initializer");
+const { deployAndGetIStaking, getMockLoanTokenLogic } = require("../Utils/initializer");
 
 // const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard"); // replaced by MockLoanTokenLogic
 const LoanToken = artifacts.require("LoanToken");
@@ -35,7 +35,7 @@ const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 const LockedSOV = artifacts.require("LockedSOV");
 const StakingProxy = artifacts.require("StakingProxy");
-const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxyMockup");
+const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
@@ -44,7 +44,8 @@ const TestToken = artifacts.require("TestToken");
 
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
+const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const Affiliates = artifacts.require("Affiliates");
 const mutexUtils = require("../reentrancy/utils");
 
@@ -95,7 +96,7 @@ contract("Affiliates", (accounts) => {
         await sovryn.setSovrynProtocolAddress(sovryn.address);
 
         // Mock Loan Token Logic
-        const initLoanTokenLogic = await getLoanTokenLogic(true); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+        const initLoanTokenLogic = await getMockLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
         loanTokenLogic = initLoanTokenLogic[0];
         loanTokenLogicBeacon = initLoanTokenLogic[1];
 
@@ -144,17 +145,15 @@ contract("Affiliates", (accounts) => {
 
         // Creating the instance of newLockedSOV Contract.
         await sovryn.setLockedSOVAddress(
-            (
-                await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [
-                    owner,
-                ])
-            ).address
+            (await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner]))
+                .address
         );
         lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 
         // initialize
         feeds = await PriceFeedsLocal.new(WRBTC.address, sovryn.address);
         await feeds.setRates(doc.address, WRBTC.address, wei("0.01", "ether"));
+
         swapsSovryn = await SwapsImplSovrynSwap.new();
         const sovrynSwapSimulator = await TestSovrynSwap.new(feeds.address);
         await sovryn.setSovrynSwapContractRegistryAddress(sovrynSwapSimulator.address);
@@ -227,6 +226,9 @@ contract("Affiliates", (accounts) => {
 
     before(async () => {
         [owner, trader, referrer, account1, account2, ...accounts] = accounts;
+
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {
@@ -476,9 +478,7 @@ contract("Affiliates", (accounts) => {
     it("PayTradingFeeToAffiliateFail event should be fired in case lock sov reverted", async () => {
         // deploy lockedSOVFailedMockup and set to protocol
         await sovryn.setLockedSOVAddress(
-            (
-                await LockedSOVFailedMockup.new(SUSD.address, [owner])
-            ).address
+            (await LockedSOVFailedMockup.new(SUSD.address, [owner])).address
         );
 
         await sovryn.setMinReferralsToPayoutAffiliates(1);

@@ -299,6 +299,31 @@ contract("Pause Modules", (accounts) => {
             await sovryn.togglePaused(true);
             expect(await sovryn.isProtocolPaused()).to.be.true;
         });
+
+        it("isProtocolPaused() returns correct result when toggling pause/unpause using pauser address", async () => {
+            await loadFixture(fixtureInitialize);
+
+            const pauser = accounts[5];
+            await sovryn.setPauser(pauser, { from: owner });
+            expect((await sovryn.getPauser()) == pauser).to.be.true;
+
+            await sovryn.togglePaused(true, { from: pauser });
+            expect(await sovryn.isProtocolPaused()).to.be.true;
+
+            // Check deterministic result when trying to set current value
+            expectRevert.unspecified(sovryn.togglePaused(true, { from: pauser }));
+            expect(await sovryn.isProtocolPaused()).to.be.true;
+
+            // Pause true -> false
+            await sovryn.togglePaused(false, { from: pauser });
+            expect(await sovryn.isProtocolPaused()).to.be.false;
+            expectRevert.unspecified(sovryn.togglePaused(false));
+            expect(await sovryn.isProtocolPaused()).to.be.false;
+
+            // Pause false -> true
+            await sovryn.togglePaused(true, { from: pauser });
+            expect(await sovryn.isProtocolPaused()).to.be.true;
+        });
     });
 
     describe("Testing Pausable contract", () => {

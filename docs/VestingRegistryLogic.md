@@ -4,7 +4,7 @@ View Source: [contracts/governance/Vesting/VestingRegistryLogic.sol](../contract
 
 **↗ Extends: [VestingRegistryStorage](VestingRegistryStorage.md)**
 
-**VestingRegistryLogic**
+## **VestingRegistryLogic** contract
 
 **Events**
 
@@ -13,11 +13,12 @@ event SOVTransferred(address indexed receiver, uint256  amount);
 event VestingCreated(address indexed tokenOwner, address  vesting, uint256  cliff, uint256  duration, uint256  amount, uint256  vestingCreationType);
 event TeamVestingCreated(address indexed tokenOwner, address  vesting, uint256  cliff, uint256  duration, uint256  amount, uint256  vestingCreationType);
 event TokensStaked(address indexed vesting, uint256  amount);
+event VestingCreationAndTypesSet(address indexed vesting, struct VestingRegistryStorage.VestingCreationAndTypeDetails  vestingCreationAndType);
 ```
 
 ## Functions
 
-- [initialize(address _vestingFactory, address _SOV, address _staking, address _feeSharingProxy, address _vestingOwner, address _lockedSOV, address[] _vestingRegistries)](#initialize)
+- [initialize(address _vestingFactory, address _SOV, address _staking, address _feeSharingCollector, address _vestingOwner, address _lockedSOV, address[] _vestingRegistries)](#initialize)
 - [setVestingFactory(address _vestingFactory)](#setvestingfactory)
 - [_setVestingFactory(address _vestingFactory)](#_setvestingfactory)
 - [transferSOV(address _receiver, uint256 _amount)](#transfersov)
@@ -30,11 +31,13 @@ event TokensStaked(address indexed vesting, uint256  amount);
 - [getVesting(address _tokenOwner)](#getvesting)
 - [getVestingAddr(address _tokenOwner, uint256 _cliff, uint256 _duration, uint256 _vestingCreationType)](#getvestingaddr)
 - [getTeamVesting(address _tokenOwner, uint256 _cliff, uint256 _duration, uint256 _vestingCreationType)](#getteamvesting)
+- [isTeamVesting(address _vestingAddress)](#isteamvesting)
+- [registerVestingToVestingCreationAndTypes(address[] _vestingAddresses, struct VestingRegistryStorage.VestingCreationAndTypeDetails[] _vestingCreationAndTypes)](#registervestingtovestingcreationandtypes)
 - [_getOrCreateVesting(address _tokenOwner, uint256 _cliff, uint256 _duration, uint256 _type, uint256 _vestingCreationType)](#_getorcreatevesting)
 - [_addDeployedVestings(address _tokenOwner, uint256 _vestingCreationType)](#_adddeployedvestings)
 - [getVestingsOf(address _tokenOwner)](#getvestingsof)
 - [getVestingDetails(address _vestingAddress)](#getvestingdetails)
-- [isVestingAdress(address _vestingAddress)](#isvestingadress)
+- [isVestingAddress(address _vestingAddress)](#isvestingaddress)
 
 ---    
 
@@ -44,7 +47,7 @@ Replace constructor with initialize function for Upgradable Contracts
 This function will be called only once by the owner
 
 ```solidity
-function initialize(address _vestingFactory, address _SOV, address _staking, address _feeSharingProxy, address _vestingOwner, address _lockedSOV, address[] _vestingRegistries) external nonpayable onlyOwner initializer 
+function initialize(address _vestingFactory, address _SOV, address _staking, address _feeSharingCollector, address _vestingOwner, address _lockedSOV, address[] _vestingRegistries) external nonpayable onlyOwner initializer 
 ```
 
 **Arguments**
@@ -54,7 +57,7 @@ function initialize(address _vestingFactory, address _SOV, address _staking, add
 | _vestingFactory | address |  | 
 | _SOV | address |  | 
 | _staking | address |  | 
-| _feeSharingProxy | address |  | 
+| _feeSharingCollector | address |  | 
 | _vestingOwner | address |  | 
 | _lockedSOV | address |  | 
 | _vestingRegistries | address[] |  | 
@@ -67,21 +70,21 @@ function initialize(
         address _vestingFactory,
         address _SOV,
         address _staking,
-        address _feeSharingProxy,
+        address _feeSharingCollector,
         address _vestingOwner,
         address _lockedSOV,
         address[] calldata _vestingRegistries
     ) external onlyOwner initializer {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
-        require(_feeSharingProxy != address(0), "feeSharingProxy address invalid");
+        require(_feeSharingCollector != address(0), "feeSharingCollector address invalid");
         require(_vestingOwner != address(0), "vestingOwner address invalid");
         require(_lockedSOV != address(0), "LockedSOV address invalid");
 
         _setVestingFactory(_vestingFactory);
         SOV = _SOV;
         staking = _staking;
-        feeSharingProxy = _feeSharingProxy;
+        feeSharingCollector = _feeSharingCollector;
         vestingOwner = _vestingOwner;
         lockedSOV = LockedSOV(_lockedSOV);
         for (uint256 i = 0; i < _vestingRegistries.length; i++) {
@@ -339,6 +342,7 @@ function createVestingAddr(
                 uint256(VestingType.Vesting),
                 _vestingCreationType
             );
+
         emit VestingCreated(
             _tokenOwner,
             vesting,
@@ -390,6 +394,7 @@ function createTeamVesting(
                 uint256(VestingType.TeamVesting),
                 _vestingCreationType
             );
+
         emit TeamVestingCreated(
             _tokenOwner,
             vesting,
@@ -547,6 +552,81 @@ function getTeamVesting(
 
 ---    
 
+> ### isTeamVesting
+
+check if the specific vesting address is team vesting or not
+
+```solidity
+function isTeamVesting(address _vestingAddress) external view
+returns(bool)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _vestingAddress | address | address of vesting contract      * | 
+
+**Returns**
+
+true for teamVesting, false for normal vesting
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function isTeamVesting(address _vestingAddress) external view returns (bool) {
+        return (vestingCreationAndTypes[_vestingAddress].isSet &&
+            vestingCreationAndTypes[_vestingAddress].vestingType ==
+            uint32(VestingType.TeamVesting));
+    }
+```
+</details>
+
+---    
+
+> ### registerVestingToVestingCreationAndTypes
+
+setter function to register existing vesting contract to vestingCreationAndTypes storage
+
+```solidity
+function registerVestingToVestingCreationAndTypes(address[] _vestingAddresses, struct VestingRegistryStorage.VestingCreationAndTypeDetails[] _vestingCreationAndTypes) public nonpayable onlyAuthorized 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| _vestingAddresses | address[] | array of vesting address | 
+| _vestingCreationAndTypes | struct VestingRegistryStorage.VestingCreationAndTypeDetails[] | array for VestingCreationAndTypeDetails struct | 
+
+<details>
+	<summary><strong>Source Code</strong></summary>
+
+```javascript
+function registerVestingToVestingCreationAndTypes(
+        address[] memory _vestingAddresses,
+        VestingCreationAndTypeDetails[] memory _vestingCreationAndTypes
+    ) public onlyAuthorized {
+        require(_vestingAddresses.length == _vestingCreationAndTypes.length, "Unmatched length");
+        for (uint256 i = 0; i < _vestingCreationAndTypes.length; i++) {
+            VestingCreationAndTypeDetails memory _vestingCreationAndType =
+                _vestingCreationAndTypes[i];
+            address _vestingAddress = _vestingAddresses[i];
+
+            vestingCreationAndTypes[_vestingAddress] = _vestingCreationAndType;
+
+            emit VestingCreationAndTypesSet(
+                _vestingAddress,
+                vestingCreationAndTypes[_vestingAddress]
+            );
+        }
+    }
+```
+</details>
+
+---    
+
 > ### _getOrCreateVesting
 
 Internal function to deploy Vesting/Team Vesting contract
@@ -592,7 +672,7 @@ function _getOrCreateVesting(
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollector,
                     _tokenOwner
                 );
             } else {
@@ -602,13 +682,21 @@ function _getOrCreateVesting(
                     _tokenOwner,
                     _cliff,
                     _duration,
-                    feeSharingProxy,
+                    feeSharingCollector,
                     vestingOwner
                 );
             }
             vestings[uid] = Vesting(_type, _vestingCreationType, vesting);
             vestingsOf[_tokenOwner].push(uid);
             isVesting[vesting] = true;
+
+            vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetails({
+                isSet: true,
+                vestingType: uint32(_type),
+                vestingCreationType: uint128(_vestingCreationType)
+            });
+
+            emit VestingCreationAndTypesSet(vesting, vestingCreationAndTypes[vesting]);
         }
         return vestings[uid].vestingAddress;
     }
@@ -756,12 +844,12 @@ function getVestingDetails(address _vestingAddress)
 
 ---    
 
-> ### isVestingAdress
+> ### isVestingAddress
 
 returns if the address is a vesting address
 
 ```solidity
-function isVestingAdress(address _vestingAddress) external view
+function isVestingAddress(address _vestingAddress) external view
 returns(isVestingAddr bool)
 ```
 
@@ -775,7 +863,7 @@ returns(isVestingAddr bool)
 	<summary><strong>Source Code</strong></summary>
 
 ```javascript
-function isVestingAdress(address _vestingAddress) external view returns (bool isVestingAddr) {
+function isVestingAddress(address _vestingAddress) external view returns (bool isVestingAddr) {
         return isVesting[_vestingAddress];
     }
 ```
@@ -792,12 +880,11 @@ function isVestingAdress(address _vestingAddress) external view returns (bool is
 * [AffiliatesEvents](AffiliatesEvents.md)
 * [ApprovalReceiver](ApprovalReceiver.md)
 * [BProPriceFeed](BProPriceFeed.md)
-* [Checkpoints](Checkpoints.md)
+* [CheckpointsShared](CheckpointsShared.md)
 * [Constants](Constants.md)
 * [Context](Context.md)
 * [DevelopmentFund](DevelopmentFund.md)
 * [DummyContract](DummyContract.md)
-* [ECDSA](ECDSA.md)
 * [EnumerableAddressSet](EnumerableAddressSet.md)
 * [EnumerableBytes32Set](EnumerableBytes32Set.md)
 * [EnumerableBytes4Set](EnumerableBytes4Set.md)
@@ -808,9 +895,9 @@ function isVestingAdress(address _vestingAddress) external view returns (bool is
 * [EscrowReward](EscrowReward.md)
 * [FeedsLike](FeedsLike.md)
 * [FeesEvents](FeesEvents.md)
-* [FeeSharingLogic](FeeSharingLogic.md)
-* [FeeSharingProxy](FeeSharingProxy.md)
-* [FeeSharingProxyStorage](FeeSharingProxyStorage.md)
+* [FeeSharingCollector](FeeSharingCollector.md)
+* [FeeSharingCollectorProxy](FeeSharingCollectorProxy.md)
+* [FeeSharingCollectorStorage](FeeSharingCollectorStorage.md)
 * [FeesHelper](FeesHelper.md)
 * [FourYearVesting](FourYearVesting.md)
 * [FourYearVestingFactory](FourYearVestingFactory.md)
@@ -823,11 +910,16 @@ function isVestingAdress(address _vestingAddress) external view returns (bool is
 * [IChai](IChai.md)
 * [IContractRegistry](IContractRegistry.md)
 * [IConverterAMM](IConverterAMM.md)
+* [IERC1820Registry](IERC1820Registry.md)
 * [IERC20_](IERC20_.md)
 * [IERC20](IERC20.md)
-* [IFeeSharingProxy](IFeeSharingProxy.md)
+* [IERC777](IERC777.md)
+* [IERC777Recipient](IERC777Recipient.md)
+* [IERC777Sender](IERC777Sender.md)
+* [IFeeSharingCollector](IFeeSharingCollector.md)
 * [IFourYearVesting](IFourYearVesting.md)
 * [IFourYearVestingFactory](IFourYearVestingFactory.md)
+* [IFunctionsList](IFunctionsList.md)
 * [ILiquidityMining](ILiquidityMining.md)
 * [ILiquidityPoolV1Converter](ILiquidityPoolV1Converter.md)
 * [ILoanPool](ILoanPool.md)
@@ -839,6 +931,7 @@ function isVestingAdress(address _vestingAddress) external view returns (bool is
 * [ILoanTokenWRBTC](ILoanTokenWRBTC.md)
 * [ILockedSOV](ILockedSOV.md)
 * [IMoCState](IMoCState.md)
+* [IModulesProxyRegistry](IModulesProxyRegistry.md)
 * [Initializable](Initializable.md)
 * [InterestUser](InterestUser.md)
 * [IPot](IPot.md)
@@ -869,6 +962,7 @@ function isVestingAdress(address _vestingAddress) external view returns (bool is
 * [LoanClosingsRollover](LoanClosingsRollover.md)
 * [LoanClosingsShared](LoanClosingsShared.md)
 * [LoanClosingsWith](LoanClosingsWith.md)
+* [LoanClosingsWithoutInvariantCheck](LoanClosingsWithoutInvariantCheck.md)
 * [LoanInterestStruct](LoanInterestStruct.md)
 * [LoanMaintenance](LoanMaintenance.md)
 * [LoanMaintenanceEvents](LoanMaintenanceEvents.md)
@@ -888,11 +982,15 @@ function isVestingAdress(address _vestingAddress) external view returns (bool is
 * [LoanTokenLogicWrbtc](LoanTokenLogicWrbtc.md)
 * [LoanTokenSettingsLowerAdmin](LoanTokenSettingsLowerAdmin.md)
 * [LockedSOV](LockedSOV.md)
+* [MarginTradeStructHelpers](MarginTradeStructHelpers.md)
 * [Medianizer](Medianizer.md)
 * [ModuleCommonFunctionalities](ModuleCommonFunctionalities.md)
 * [ModulesCommonEvents](ModulesCommonEvents.md)
+* [ModulesProxy](ModulesProxy.md)
+* [ModulesProxyRegistry](ModulesProxyRegistry.md)
 * [MultiSigKeyHolders](MultiSigKeyHolders.md)
 * [MultiSigWallet](MultiSigWallet.md)
+* [Mutex](Mutex.md)
 * [Objects](Objects.md)
 * [OrderStruct](OrderStruct.md)
 * [OrigingVestingCreator](OrigingVestingCreator.md)
@@ -915,6 +1013,7 @@ function isVestingAdress(address _vestingAddress) external view returns (bool is
 * [ProtocolSwapExternalInterface](ProtocolSwapExternalInterface.md)
 * [ProtocolTokenUser](ProtocolTokenUser.md)
 * [Proxy](Proxy.md)
+* [ProxyOwnable](ProxyOwnable.md)
 * [ReentrancyGuard](ReentrancyGuard.md)
 * [RewardHelper](RewardHelper.md)
 * [RSKAddrValidator](RSKAddrValidator.md)
@@ -922,18 +1021,24 @@ function isVestingAdress(address _vestingAddress) external view returns (bool is
 * [SafeMath](SafeMath.md)
 * [SafeMath96](SafeMath96.md)
 * [setGet](setGet.md)
+* [SharedReentrancyGuard](SharedReentrancyGuard.md)
 * [SignedSafeMath](SignedSafeMath.md)
 * [SOV](SOV.md)
 * [sovrynProtocol](sovrynProtocol.md)
-* [Staking](Staking.md)
+* [StakingAdminModule](StakingAdminModule.md)
+* [StakingGovernanceModule](StakingGovernanceModule.md)
 * [StakingInterface](StakingInterface.md)
 * [StakingProxy](StakingProxy.md)
 * [StakingRewards](StakingRewards.md)
 * [StakingRewardsProxy](StakingRewardsProxy.md)
 * [StakingRewardsStorage](StakingRewardsStorage.md)
-* [StakingStorage](StakingStorage.md)
+* [StakingShared](StakingShared.md)
+* [StakingStakeModule](StakingStakeModule.md)
+* [StakingStorageModule](StakingStorageModule.md)
+* [StakingStorageShared](StakingStorageShared.md)
+* [StakingVestingModule](StakingVestingModule.md)
+* [StakingWithdrawModule](StakingWithdrawModule.md)
 * [State](State.md)
-* [SVR](SVR.md)
 * [SwapsEvents](SwapsEvents.md)
 * [SwapsExternal](SwapsExternal.md)
 * [SwapsImplLocal](SwapsImplLocal.md)
@@ -946,6 +1051,7 @@ function isVestingAdress(address _vestingAddress) external view returns (bool is
 * [TokenSender](TokenSender.md)
 * [UpgradableProxy](UpgradableProxy.md)
 * [USDTPriceFeed](USDTPriceFeed.md)
+* [Utils](Utils.md)
 * [VaultController](VaultController.md)
 * [Vesting](Vesting.md)
 * [VestingCreator](VestingCreator.md)
@@ -958,5 +1064,5 @@ function isVestingAdress(address _vestingAddress) external view returns (bool is
 * [VestingRegistryProxy](VestingRegistryProxy.md)
 * [VestingRegistryStorage](VestingRegistryStorage.md)
 * [VestingStorage](VestingStorage.md)
-* [WeightedStaking](WeightedStaking.md)
+* [WeightedStakingModule](WeightedStakingModule.md)
 * [WRBTC](WRBTC.md)

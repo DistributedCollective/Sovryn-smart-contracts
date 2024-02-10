@@ -19,12 +19,13 @@ def main():
     balanceBefore = acct.balance()
 
     # Shows the current voting power
-    # currentVotingPower(acct)
+    currentVotingPower(acct)
 
     # Call the function you want here
 
-    createProposalSIP0049()
-    #createProposalSIP0050()
+    newGuardian = contracts['ContractsGuardian']
+    createProposalSIP0047(newGuardian)
+
 
     balanceAfter = acct.balance()
 
@@ -54,7 +55,8 @@ def loadConfig():
         print("acct:", acct)
         configFile = open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
-        acct = accounts.load("rskdeployer")
+        acct = accounts.load("proposer")
+        #acct = accounts.load("rskdeployer")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif thisNetwork == "rsk-mainnet-ws":
         acct = accounts.load("rskdeployer")
@@ -499,28 +501,6 @@ def createProposalSIP0050():
     print(description)
     #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
 
-# SIP to set the max vesting withdraw iterations in staking contract
-def createProposalSIP005x():
-    maxWithdrawIterations = 50 # need to be changed by referring to the SIP-050
-    staking = Contract.from_abi("StakingProxy", address=contracts['Staking'], abi=StakingProxy.abi, owner=acct)
-
-    # Action
-    targets = [contracts['Staking']]
-    values = [0]
-    signatures = ["setMaxVestingWithdrawIterations(uint256)"]
-    data = staking.setMaxVestingWithdrawIterations.encode_input(maxWithdrawIterations)
-    datas = ["0x" + data[10:]]
-    # TODO finalize the details with github link & checksum
-    description = "SIP-005x: Set max vesting withdraw iterations"
-
-     # Create Proposal
-    print(signatures)
-    print(datas)
-    print(description)
-
-    # @note WE DON'T NEED SIP - can be set via admin (multisig)
-    #createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)
-
 def createProposalSIP0056():
     # Action
     target = [contracts['SOV']]
@@ -531,3 +511,35 @@ def createProposalSIP0056():
 
     # Create Proposal
     createProposal(contracts['GovernorOwner'], target, value, signature, data, description)
+
+def createProposalSIP0060():
+    # Action
+    target = [contracts['SOV']]
+    value = [0]
+    signature = ["symbol()"]
+    data = ["0x"]
+    description = "SIP-0060: Add DLLR as collateral for borrowing : https://github.com/DistributedCollective/SIPS/blob/2443b3c/SIP-0060.md, sha256: 532151b945263f0a4725980d2358c12143e8a8cfb59017df2592baf994f6059d"
+
+    # Create Proposal
+    createProposal(contracts['GovernorAdmin'], target, value, signature, data, description)
+
+def createProposalSIP0065():
+    adoptionFund = Contract.from_abi("AdoptionFund", address=contracts['AdoptionFund'], abi=DevelopmentFund.abi, owner=acct)
+    devFund = Contract.from_abi("DevelopmentFund", address=contracts['DevelopmentFund'], abi=DevelopmentFund.abi, owner=acct)
+    SOVtoken = Contract.from_abi("SOV", address=contracts['SOV'], abi=SOV.abi, owner=acct)
+
+    # Action
+    targets = [contracts['AdoptionFund'], contracts['DevelopmentFund'], contracts['SOV']]
+    values = [0, 0, 0]
+    signatures = ["withdrawTokensByUnlockedTokenOwner(uint256)", "withdrawTokensByUnlockedTokenOwner(uint256)", "transfer(address,uint256)"]   
+    data1 = adoptionFund.withdrawTokensByUnlockedTokenOwner.encode_input(1000000 * 10**18)
+    data2 = devFund.withdrawTokensByUnlockedTokenOwner.encode_input(2000000 * 10**18)
+    data3 = SOVtoken.transfer.encode_input(contracts['multisig'], 3000000 * 10**18)
+    datas = ["0x" + data1[10:], "0x" + data2[10:], "0x" + data3[10:]]
+    description = "SIP-0065: Transfer of SOV from Adoption and Development Funds to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/cd3d249cddb6a5d0af59209c337c6864ad922007/SIP-0065.md, sha256: d6a703af4d3866ff6a7f927b680da23f450338d5346dca5d3d1e6b5751c45550"
+
+    # Create Proposal
+    print(signatures)
+    print(datas)
+    print(description)
+    createProposal(contracts['GovernorOwner'], targets, values, signatures, datas, description)

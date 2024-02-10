@@ -116,6 +116,24 @@ contract("LoanTokenUpgrade", (accounts) => {
             assert.equal(sovrynContractAddress, previousSovrynContractAddress);
             assert.equal(wrbtcTokenAddress, previousWrbtcTokenAddress);
         });
+
+        it("set staking contact address", async () => {
+            let newLoanTokenSettings = await LoanTokenSettings.new();
+
+            let loanTokenProxy = await PreviousLoanToken.at(loanToken.address);
+            await loanTokenProxy.setTarget(newLoanTokenSettings.address);
+
+            loanToken = await LoanTokenSettings.at(loanToken.address);
+
+            const previousStakingContractAddress = await loanToken.getStakingContractAddress();
+            expect(previousStakingContractAddress).to.be.equal(constants.ZERO_ADDRESS);
+
+            // set staking contract address
+            await loanToken.setStakingContractAddress(staking.address);
+
+            const latestStakingContractAddress = await loanToken.getStakingContractAddress();
+            expect(latestStakingContractAddress).to.be.equal(staking.address);
+        });
     });
 
     describe("Test coverage for LoanToken.sol", () => {

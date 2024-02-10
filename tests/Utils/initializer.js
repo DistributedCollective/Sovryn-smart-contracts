@@ -21,19 +21,22 @@ const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
 const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 
 const SwapsExternal = artifacts.require("SwapsExternal");
+const SwapsImplSovrynSwapModule = artifacts.require("SwapsImplSovrynSwapModule");
+const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const LoanToken = artifacts.require("LoanToken");
-const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const LoanTokenLogic = artifacts.require("LoanTokenLogic");
 const MockLoanTokenLogic = artifacts.require("MockLoanTokenLogic");
 const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenSettingsLowerAdmin = artifacts.require("LoanTokenSettingsLowerAdmin");
+const LoanTokenLogicLM = artifacts.require("LoanTokenLogicLM");
+const LoanTokenLogicWrbtcLM = artifacts.require("LoanTokenLogicWrbtcLM");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
-const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwap");
 
 const Affiliates = artifacts.require("Affiliates");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
@@ -217,9 +220,7 @@ const getSOV = async (sovryn, priceFeeds, SUSD, accounts) => {
     await sovryn.setProtocolTokenAddress(sov.address);
     await sovryn.setSOVTokenAddress(sov.address);
     await sovryn.setLockedSOVAddress(
-        (
-            await LockedSOVMockup.new(sov.address, [accounts[0]])
-        ).address
+        (await LockedSOVMockup.new(sov.address, [accounts[0]])).address
     );
 
     await priceFeeds.setRates(SUSD.address, sov.address, oneEth);
@@ -252,9 +253,21 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
     const sovrynproxy = await sovrynProtocol.new();
     const sovryn = await ISovryn.at(sovrynproxy.address);
 
+    /** Deploy SwapsImplSovrynSwapLib */
+    try {
+        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+        await LoanMaintenance.link(swapsImplSovrynSwapLib);
+        await SwapsExternal.link(swapsImplSovrynSwapLib);
+        await LoanClosingsWith.link(swapsImplSovrynSwapLib);
+        await LoanClosingsRollover.link(swapsImplSovrynSwapLib);
+        await SwapsImplSovrynSwapModule.link(swapsImplSovrynSwapLib);
+        await LoanOpenings.link(swapsImplSovrynSwapLib);
+    } catch (err) {}
+
     await sovryn.replaceContract((await ProtocolSettings.new()).address);
     await sovryn.replaceContract((await LoanSettings.new()).address);
     await sovryn.replaceContract((await LoanMaintenance.new()).address);
+    await sovryn.replaceContract((await SwapsImplSovrynSwapModule.new()).address);
     await sovryn.replaceContract((await SwapsExternal.new()).address);
 
     const sovrynSwapSimulator = await TestSovrynSwap.new(priceFeeds.address);
@@ -267,7 +280,7 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
     await sovryn.setWrbtcToken(WRBTC.address);
 
     // loanOpening
-    const swaps = await SwapsImplSovrynSwap.new();
+    const swaps = await SwapsImplSovrynSwapModule.new();
     await sovryn.replaceContract((await LoanOpenings.new()).address);
     await sovryn.setPriceFeedContract(priceFeeds.address);
     await sovryn.setSwapsImplContract(swaps.address);
@@ -285,44 +298,68 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 
 // Loan Token
 
-const getLoanTokenLogic = async (isMockLoanToken = false) => {
+const getLoanTokenLogic = async () => {
+    return await _getLoanTokenLogic(false);
+};
+
+const getMockLoanTokenLogic = async () => {
+    return await _getLoanTokenLogic(true);
+};
+
+const _getLoanTokenLogic = async (isMockLoanToken) => {
     /** Deploy LoanTokenLogicBeacon */
     const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
 
     /** Deploy  LoanTokenSettingsLowerAdmin*/
     const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
+    /** Deploy  LoanTokenLogicLM*/
+    const loanTokenLogicLM = await LoanTokenLogicLM.new();
+
     /** Register Loan Token Modules to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
+    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
 
-    /** Deploy LoanTokenLogicLM */
-    let loanTokenLogicLM;
+    /** Deploy LoanTokenLogic */
+    let loanTokenLogic;
     if (isMockLoanToken) {
-        loanTokenLogicLM = await MockLoanTokenLogic.new();
+        loanTokenLogic = await MockLoanTokenLogic.new();
     } else {
-        loanTokenLogicLM = await LoanTokenLogicLM.new();
+        loanTokenLogic = await LoanTokenLogic.new();
     }
 
-    /** Register Loan Token Logic LM to the Beacon */
-    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicLM.address);
+    /** Register Loan Token Logic to the Beacon */
+    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogic.address);
 
     /** Deploy LoanTokenLogicProxy */
     loanTokenLogicProxy = await LoanTokenLogicProxy.new(loanTokenLogicBeacon.address);
 
     return [loanTokenLogicProxy, loanTokenLogicBeacon];
 };
-const getLoanTokenLogicWrbtc = async (isMockLoanToken = false) => {
+
+const getLoanTokenLogicWrbtc = async () => {
+    return await _getLoanTokenLogicWrbtc(false);
+};
+
+const getMockLoanTokenLogicWrbtc = async () => {
+    return await _getLoanTokenLogicWrbtc(true);
+};
+
+const _getLoanTokenLogicWrbtc = async (isMockLoanToken) => {
     /** Deploy LoanTokenLogicBeacon */
     const loanTokenLogicBeacon = await LoanTokenLogicBeacon.new();
 
     /** Deploy  LoanTokenSettingsLowerAdmin*/
     const loanTokenSettingsLowerAdmin = await LoanTokenSettingsLowerAdmin.new();
 
+    /** Deploy  LoanTokenLogicWrbtcLM*/
+    const loanTokenLogicWrbtcLM = await LoanTokenLogicWrbtcLM.new();
+
     /** Register Loan Token Modules to the Beacon */
     await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenSettingsLowerAdmin.address);
+    await loanTokenLogicBeacon.registerLoanTokenModule(loanTokenLogicWrbtcLM.address);
 
-    /** Deploy LoanTokenLogicWRBTC */
-    let loanTokenLogicLM;
+    let loanTokenLogicWrbtc;
     if (isMockLoanToken) {
         loanTokenLogicWrbtc = await MockLoanTokenLogic.new();
     } else {
@@ -343,8 +380,22 @@ const getLoanTokenSettings = async () => {
     return loanSettings;
 };
 
-const getLoanToken = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
-    const initLoanTokenLogic = await getLoanTokenLogic(mockLogic); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+const getLoanToken = async (owner, sovryn, WRBTC, SUSD) => {
+    return await _getLoanToken(owner, sovryn, WRBTC, SUSD, false);
+};
+
+const getMockLoanToken = async (owner, sovryn, WRBTC, SUSD) => {
+    return await _getLoanToken(owner, sovryn, WRBTC, SUSD, true);
+};
+
+const _getLoanToken = async (owner, sovryn, WRBTC, SUSD, mockLogic) => {
+    let initLoanTokenLogic;
+    if (mockLogic) {
+        initLoanTokenLogic = await getMockLoanTokenLogic(); // function will return [MockLoanTokenLogicProxy, LoanTokenLogicBeacon]
+    } else {
+        initLoanTokenLogic = await getLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+    }
+
     loanTokenLogic = initLoanTokenLogic[0];
     loanTokenLogicBeacon = initLoanTokenLogic[1];
 
@@ -370,8 +421,22 @@ const getLoanToken = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
     return loanToken;
 };
 
-const getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
-    const initLoanTokenLogic = await getLoanTokenLogicWrbtc(mockLogic); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+const getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD) => {
+    return await _getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD, false);
+};
+
+const getMockLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD) => {
+    return await _getLoanTokenWRBTC(owner, sovryn, WRBTC, SUSD, true);
+};
+
+const _getLoanTokenWRBTC = async (owner, sovryn, WRBTC, SUSD, mockLogic = false) => {
+    let initLoanTokenLogic;
+    if (mockLogic) {
+        initLoanTokenLogic = await getMockLoanTokenLogicWrbtc(); // function will return [MockLoanTokenLogicProxy, LoanTokenLogicBeacon]
+    } else {
+        initLoanTokenLogic = await getLoanTokenLogicWrbtc(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+    }
+
     loanTokenLogicWrbtc = initLoanTokenLogic[0];
     loanTokenLogicBeacon = initLoanTokenLogic[1];
 
@@ -661,9 +726,13 @@ module.exports = {
     getBZRX,
     getSOV,
     getLoanTokenLogic,
+    getMockLoanTokenLogic,
     getLoanTokenLogicWrbtc,
+    getMockLoanTokenLogicWrbtc,
     getLoanToken,
+    getMockLoanToken,
     getLoanTokenWRBTC,
+    getMockLoanTokenWRBTC,
 
     // staking
     deployAndGetStakingModulesProxyAtStakingProxy,
