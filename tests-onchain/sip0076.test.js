@@ -1,7 +1,7 @@
 // first run a local forked mainnet node in a separate terminal window:
 //     npx hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy
 // now run the test:
-//     npx hardhat test tests-onchain/sov3613.test.js --network rskForkedMainnet
+//     npx hardhat test tests-onchain/sip0076.test.js --network rskForkedMainnet
 
 const {
     impersonateAccount,
