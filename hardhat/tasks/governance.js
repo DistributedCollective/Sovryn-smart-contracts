@@ -128,7 +128,7 @@ async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
             vestingCreationType = 3;
         } else if (teamVesting[3] === 26) {
             vestingCreationType = 1;
-        } else if (teamVesting[3] === 39 || teamVesting[3] === 22) {
+        } else if ([39, 22, 17, 34, 19].includes(teamVesting[3])) {
             vestingCreationType = 5;
             console.log("Make sure 3 year team 2 vesting split is really expected!");
         } else {
@@ -210,7 +210,8 @@ async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
             if (vestingAddress === ethers.constants.AddressZero) {
                 throw new Error("Vesting address is zero!");
             }
-            if ((await SOVtoken.allowance(signerAcc, vestingAddress)) < amount) {
+            console.log("signerAcc", signerAcc);
+            if ((await SOVtoken.allowance(signerAddress, vestingAddress)) < amount) {
                 console.log(
                     "Approving amount",
                     amount.div(ethers.utils.parseEther("1")).toNumber(),
@@ -303,7 +304,7 @@ task("governance:createVestings", "Create vestings")
     .addFlag("dryRun", "Dry run")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .setAction(async ({ path, signer, dryRun, decimals }, hre) => {
-        const multiplier = (10 ** decimals).toString();
+        const multiplier = (10 ** (18 - decimals)).toString();
         await createVestings(hre, dryRun, path, multiplier, signer);
     });
 
