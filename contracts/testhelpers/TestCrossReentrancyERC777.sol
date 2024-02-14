@@ -74,12 +74,13 @@ contract TestCrossReentrancyERC777 {
 
         // step 1, borrow
         // prerequisite: WRBTC has been transferred to this contract
-        balanceState memory initial = balanceState({
-            rbtcBalance: address(this).balance,
-            wrbtcBalance: IERC20(WRBTC).balanceOf(address(this)),
-            susdBalance: IERC20(SUSD).balanceOf(address(this)),
-            iUSDTBalance: ILoanTokenModules(loanToken).balanceOf(_borrower)
-        });
+        balanceState memory initial =
+            balanceState({
+                rbtcBalance: address(this).balance,
+                wrbtcBalance: IERC20(WRBTC).balanceOf(address(this)),
+                susdBalance: IERC20(SUSD).balanceOf(address(this)),
+                iUSDTBalance: ILoanTokenModules(loanToken).balanceOf(_borrower)
+            });
 
         IERC20(WRBTC).approve(loanToken, initial.susdBalance);
 
@@ -95,12 +96,12 @@ contract TestCrossReentrancyERC777 {
         );
 
         uint256 _borrowerNonce = sovrynProtocol.borrowerNonce(_borrower);
-        bytes32 loanParamsLocalId = ILoanTokenModules(loanToken).loanParamsIds(
-            uint256(keccak256(abi.encodePacked(WRBTC, true)))
-        );
-        bytes32 loan_id = keccak256(
-            abi.encodePacked(loanParamsLocalId, loanToken, _borrower, _borrowerNonce)
-        );
+        bytes32 loanParamsLocalId =
+            ILoanTokenModules(loanToken).loanParamsIds(
+                uint256(keccak256(abi.encodePacked(WRBTC, true)))
+            );
+        bytes32 loan_id =
+            keccak256(abi.encodePacked(loanParamsLocalId, loanToken, _borrower, _borrowerNonce));
 
         // STEP 3 close the borrowed position with a deposit
         uint256 _SUSDBalance = IERC20(SUSD).balanceOf(address(this));

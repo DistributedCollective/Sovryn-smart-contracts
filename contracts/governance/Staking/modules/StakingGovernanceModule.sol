@@ -23,10 +23,11 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
      * @param time The timestamp for which to calculate the total voting power.
      * @return The total voting power at the given time.
      * */
-    function getPriorTotalVotingPower(
-        uint32 blockNumber,
-        uint256 time
-    ) public view returns (uint96 totalVotingPower) {
+    function getPriorTotalVotingPower(uint32 blockNumber, uint256 time)
+        public
+        view
+        returns (uint96 totalVotingPower)
+    {
         /// @dev Start the computation with the exact or previous unlocking date (voting weight remians the same until the next break point).
         uint256 start = _timestampToLockDate(time);
         uint256 end = start + MAX_DURATION;
@@ -198,10 +199,11 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
      * @param blockNumber The block number to get the vote balance at.
      * @return The total number of votes as of the given block.
      * */
-    function getPriorTotalStakesForDate(
-        uint256 date,
-        uint256 blockNumber
-    ) public view returns (uint96) {
+    function getPriorTotalStakesForDate(uint256 date, uint256 blockNumber)
+        public
+        view
+        returns (uint96)
+    {
         date = _adjustDateForOrigin(date);
         return _getPriorTotalStakesForDate(date, blockNumber);
     }
@@ -214,10 +216,11 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
      * @param blockNumber The block number to get the vote balance at.
      * @return The total number of votes as of the given block.
      * */
-    function _getPriorTotalStakesForDate(
-        uint256 date,
-        uint256 blockNumber
-    ) internal view returns (uint96) {
+    function _getPriorTotalStakesForDate(uint256 date, uint256 blockNumber)
+        internal
+        view
+        returns (uint96)
+    {
         require(blockNumber < _getCurrentBlockNumber(), "not determined"); // WS08
 
         uint32 nCheckpoints = numTotalStakingCheckpoints[date];
@@ -259,7 +262,11 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
      * @param lockedTS The lock date.
      * @dev Reverts if delegator balance or delegatee is not valid, unless the sender is a vesting contract.
      * */
-    function _delegate(address delegator, address delegatee, uint256 lockedTS) internal {
+    function _delegate(
+        address delegator,
+        address delegatee,
+        uint256 lockedTS
+    ) internal {
         address currentDelegate = delegates[delegator][lockedTS];
         uint96 delegatorBalance = _currentBalance(delegator, lockedTS);
 
@@ -283,7 +290,11 @@ contract StakingGovernanceModule is IFunctionsList, StakingShared, CheckpointsSh
 
     // @dev delegates tokens for lock date 2 weeks later than given lock date
     //		if message sender is a contract
-    function _delegateNext(address delegator, address delegatee, uint256 lockedTS) internal {
+    function _delegateNext(
+        address delegator,
+        address delegatee,
+        uint256 lockedTS
+    ) internal {
         if (_isVestingContract(msg.sender)) {
             uint256 nextLock = lockedTS.add(TWO_WEEKS);
             address currentDelegate = delegates[delegator][nextLock];

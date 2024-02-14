@@ -191,15 +191,16 @@ contract VestingRegistry3 is Ownable {
         uint256 type_ = uint256(VestingType.Vesting);
         if (vestingContracts[_tokenOwner][type_] == address(0)) {
             //TODO Owner of OwnerVesting contracts - the same address as tokenOwner
-            address vesting = vestingFactory.deployVesting(
-                SOV,
-                staking,
-                _tokenOwner,
-                _cliff,
-                _duration,
-                feeSharingCollector,
-                _tokenOwner
-            );
+            address vesting =
+                vestingFactory.deployVesting(
+                    SOV,
+                    staking,
+                    _tokenOwner,
+                    _cliff,
+                    _duration,
+                    feeSharingCollector,
+                    _tokenOwner
+                );
             vestingContracts[_tokenOwner][type_] = vesting;
         }
         return vestingContracts[_tokenOwner][type_];
@@ -212,15 +213,16 @@ contract VestingRegistry3 is Ownable {
     ) internal returns (address) {
         uint256 type_ = uint256(VestingType.TeamVesting);
         if (vestingContracts[_tokenOwner][type_] == address(0)) {
-            address vesting = vestingFactory.deployTeamVesting(
-                SOV,
-                staking,
-                _tokenOwner,
-                _cliff,
-                _duration,
-                feeSharingCollector,
-                vestingOwner
-            );
+            address vesting =
+                vestingFactory.deployTeamVesting(
+                    SOV,
+                    staking,
+                    _tokenOwner,
+                    _cliff,
+                    _duration,
+                    feeSharingCollector,
+                    vestingOwner
+                );
             vestingContracts[_tokenOwner][type_] = vesting;
         }
         return vestingContracts[_tokenOwner][type_];

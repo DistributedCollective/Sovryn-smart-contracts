@@ -22,7 +22,11 @@ contract IWeightedStakingModuleMockup {
     /**
      * @dev We need this function to simulate zero delegate checkpoint value.
      */
-    function setDelegateStake(address delegatee, uint256 lockedTS, uint96 value) external;
+    function setDelegateStake(
+        address delegatee,
+        uint256 lockedTS,
+        uint96 value
+    ) external;
 
     /**
      * @notice Compute the voting power for a specific date.
@@ -47,10 +51,10 @@ contract IWeightedStakingModuleMockup {
      * @param startDate We compute the weight for the tokens staked until 'date' on 'startDate'.
      * @return The weighted stake the account had as of the given block.
      * */
-    function computeWeightByDate(
-        uint256 date,
-        uint256 startDate
-    ) external pure returns (uint96 weight);
+    function computeWeightByDate(uint256 date, uint256 startDate)
+        external
+        pure
+        returns (uint96 weight);
 
     /**
      * @notice Receives approval from SOV token.

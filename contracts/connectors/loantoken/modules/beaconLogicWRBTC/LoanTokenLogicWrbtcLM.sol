@@ -36,10 +36,13 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         return (res, stringToBytes32("LoanTokenLogicWrbtcLM"));
     }
 
-    function mintWithBTC(
-        address receiver,
-        bool useLM
-    ) external payable nonReentrant globallyNonReentrant returns (uint256 mintAmount) {
+    function mintWithBTC(address receiver, bool useLM)
+        external
+        payable
+        nonReentrant
+        globallyNonReentrant
+        returns (uint256 mintAmount)
+    {
         if (useLM) return _mintWithLM(receiver, msg.value);
         else return _mintToken(receiver, msg.value);
     }

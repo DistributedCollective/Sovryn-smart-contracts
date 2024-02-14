@@ -67,12 +67,13 @@ contract TestCrossReentrancyRBTC {
 
         // step 1, borrow
         // prerequisite: SUSD has been transferred to this contract
-        balanceState memory initial = balanceState({
-            rbtcBalance: address(this).balance,
-            wrbtcBalance: IERC20(WRBTC).balanceOf(address(this)),
-            susdBalance: IERC20(SUSD).balanceOf(address(this)),
-            iWRBTCBalance: ILoanTokenModules(loanTokenWRBTC).balanceOf(_borrower)
-        });
+        balanceState memory initial =
+            balanceState({
+                rbtcBalance: address(this).balance,
+                wrbtcBalance: IERC20(WRBTC).balanceOf(address(this)),
+                susdBalance: IERC20(SUSD).balanceOf(address(this)),
+                iWRBTCBalance: ILoanTokenModules(loanTokenWRBTC).balanceOf(_borrower)
+            });
 
         IERC20(SUSD).approve(loanTokenWRBTC, initial.susdBalance);
 
@@ -88,12 +89,14 @@ contract TestCrossReentrancyRBTC {
         );
 
         uint256 _borrowerNonce = sovrynProtocol.borrowerNonce(_borrower);
-        bytes32 loanParamsLocalId = ILoanTokenModules(loanTokenWRBTC).loanParamsIds(
-            uint256(keccak256(abi.encodePacked(SUSD, true)))
-        );
-        bytes32 loan_id = keccak256(
-            abi.encodePacked(loanParamsLocalId, loanTokenWRBTC, _borrower, _borrowerNonce)
-        );
+        bytes32 loanParamsLocalId =
+            ILoanTokenModules(loanTokenWRBTC).loanParamsIds(
+                uint256(keccak256(abi.encodePacked(SUSD, true)))
+            );
+        bytes32 loan_id =
+            keccak256(
+                abi.encodePacked(loanParamsLocalId, loanTokenWRBTC, _borrower, _borrowerNonce)
+            );
 
         // STEP 3 close the borrowed position with a swap (probably works just as well with deposit)
         sovrynProtocol.closeWithSwap(

@@ -26,14 +26,11 @@ contract LoanTokenLogicBeacon is PausableRole {
         uint256 updateTimestamp; // time of update
     }
 
-    mapping(bytes32 => LoanTokenLogicModuleUpdate[])
-        public moduleUpgradeLog; /** the module name as the key */
+    mapping(bytes32 => LoanTokenLogicModuleUpdate[]) public moduleUpgradeLog; /** the module name as the key */
 
-    mapping(bytes32 => uint256)
-        public activeModuleIndex; /** To store the current active index log for module */
+    mapping(bytes32 => uint256) public activeModuleIndex; /** To store the current active index log for module */
 
-    mapping(bytes32 => EnumerableBytes4Set.Bytes4Set)
-        private activeFuncSignatureList; /** Store the current active function signature  */
+    mapping(bytes32 => EnumerableBytes4Set.Bytes4Set) private activeFuncSignatureList; /** Store the current active function signature  */
 
     /**
      * @dev Modifier to make a function callable only when the contract is not paused.
@@ -77,9 +74,8 @@ contract LoanTokenLogicBeacon is PausableRole {
         );
 
         // Get the list of function signature on this loanTokenModulesAddress
-        (bytes4[] memory functionSignatureList, bytes32 moduleName) = ILoanTokenLogicModules(
-            loanTokenModuleAddress
-        ).getListFunctionSignatures();
+        (bytes4[] memory functionSignatureList, bytes32 moduleName) =
+            ILoanTokenLogicModules(loanTokenModuleAddress).getListFunctionSignatures();
 
         /// register / update the module function signature address implementation
         for (uint256 i; i < functionSignatureList.length; i++) {
@@ -90,10 +86,11 @@ contract LoanTokenLogicBeacon is PausableRole {
         }
 
         /// delete the "removed" module function signature in the current implementation
-        bytes4[] memory activeSignatureListEnum = activeFuncSignatureList[moduleName].enumerate(
-            0,
-            activeFuncSignatureList[moduleName].length()
-        );
+        bytes4[] memory activeSignatureListEnum =
+            activeFuncSignatureList[moduleName].enumerate(
+                0,
+                activeFuncSignatureList[moduleName].length()
+            );
         for (uint256 i; i < activeSignatureListEnum.length; i++) {
             bytes4 activeSigBytes = activeSignatureListEnum[i];
             if (logicTargets[activeSigBytes] != loanTokenModuleAddress) {
@@ -112,9 +109,11 @@ contract LoanTokenLogicBeacon is PausableRole {
      *
      * @return the array of function signature.
      */
-    function getActiveFuncSignatureList(
-        bytes32 moduleName
-    ) public view returns (bytes4[] memory signatureList) {
+    function getActiveFuncSignatureList(bytes32 moduleName)
+        public
+        view
+        returns (bytes4[] memory signatureList)
+    {
         signatureList = activeFuncSignatureList[moduleName].enumerate(
             0,
             activeFuncSignatureList[moduleName].length()

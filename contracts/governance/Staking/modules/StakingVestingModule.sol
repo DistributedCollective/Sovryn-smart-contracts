@@ -29,10 +29,11 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * @param values The array of values to add to the staked balance.
      * TODO: remove - it was designed as a disposable function to initialize vesting checkpoints
      */
-    function setVestingStakes(
-        uint256[] calldata lockedDates,
-        uint96[] calldata values
-    ) external onlyAuthorized whenNotFrozen {
+    function setVestingStakes(uint256[] calldata lockedDates, uint96[] calldata values)
+        external
+        onlyAuthorized
+        whenNotFrozen
+    {
         require(lockedDates.length == values.length, "arrays mismatch"); // WS05
 
         uint256 length = lockedDates.length;
@@ -127,10 +128,11 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * @param date The staking date to compute the power for.
      * @return The weighted stake the account had as of the given block.
      * */
-    function getPriorVestingWeightedStake(
-        uint256 blockNumber,
-        uint256 date
-    ) external view returns (uint96 votes) {
+    function getPriorVestingWeightedStake(uint256 blockNumber, uint256 date)
+        external
+        view
+        returns (uint96 votes)
+    {
         /// @dev If date is not an exact break point, start weight computation from the previous break point (alternative would be the next).
         uint256 start = _timestampToLockDate(date);
         uint256 end = start + MAX_DURATION;
@@ -193,10 +195,11 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
-    function getPriorVestingStakeByDate(
-        uint256 date,
-        uint256 blockNumber
-    ) external view returns (uint96) {
+    function getPriorVestingStakeByDate(uint256 date, uint256 blockNumber)
+        external
+        view
+        returns (uint96)
+    {
         date = _adjustDateForOrigin(date);
         return _getPriorVestingStakeByDate(date, blockNumber);
     }
@@ -211,10 +214,11 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * @param blockNumber The block number to get the vote balance at.
      * @return The number of votes the account had as of the given block.
      * */
-    function _getPriorVestingStakeByDate(
-        uint256 date,
-        uint256 blockNumber
-    ) internal view returns (uint96) {
+    function _getPriorVestingStakeByDate(uint256 date, uint256 blockNumber)
+        internal
+        view
+        returns (uint96)
+    {
         require(blockNumber < _getCurrentBlockNumber(), "not determined"); // WS17
 
         uint32 nCheckpoints = numVestingCheckpoints[date];

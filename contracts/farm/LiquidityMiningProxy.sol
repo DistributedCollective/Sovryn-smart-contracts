@@ -6,4 +6,6 @@ import "../proxy/UpgradableProxy.sol";
 /**
  * @dev LiquidityMining contract should be upgradable, use UpgradableProxy
  */
-contract LiquidityMiningProxy is LiquidityMiningStorage, UpgradableProxy {}
+contract LiquidityMiningProxy is LiquidityMiningStorage, UpgradableProxy {
+
+}

@@ -308,8 +308,9 @@ contract("Staking", (accounts) => {
             expect(afterBalance.sub(beforeBalance).toNumber()).to.be.equal(amount / 2);
 
             // _increaseDailyStake
-            let numTotalStakingCheckpoints =
-                await staking.numTotalStakingCheckpoints.call(lockedTS);
+            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
+                lockedTS
+            );
             expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(2);
             let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
             expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);

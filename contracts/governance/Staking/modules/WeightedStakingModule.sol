@@ -104,10 +104,11 @@ contract WeightedStakingModule is IFunctionsList, StakingShared, CheckpointsShar
      * @param startDate We compute the weight for the tokens staked until 'date' on 'startDate'.
      * @return The weighted stake the account had as of the given block.
      * */
-    function computeWeightByDate(
-        uint256 date,
-        uint256 startDate
-    ) external pure returns (uint96 weight) {
+    function computeWeightByDate(uint256 date, uint256 startDate)
+        external
+        pure
+        returns (uint96 weight)
+    {
         return _computeWeightByDate(date, startDate);
     }
 

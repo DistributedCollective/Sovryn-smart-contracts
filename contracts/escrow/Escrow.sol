@@ -36,13 +36,7 @@ contract Escrow {
     /// @notice Holding - Deposit is closed and now the holding period starts.
     /// @notice Withdraw - Time to withdraw in the contract by the users.
     /// @notice Expired - The contract is now closed completely.
-    enum Status {
-        Deployed,
-        Deposit,
-        Holding,
-        Withdraw,
-        Expired
-    }
+    enum Status { Deployed, Deposit, Holding, Withdraw, Expired }
     Status public status;
 
     /* Events */
@@ -235,9 +229,11 @@ contract Escrow {
      * @param _receiverAddress The address where the tokens has to be transferred. Zero address if the withdraw is to be done in Multisig.
      * @dev Can only be called after the token state is changed to Holding.
      */
-    function withdrawTokensByMultisig(
-        address _receiverAddress
-    ) external onlyMultisig checkStatus(Status.Holding) {
+    function withdrawTokensByMultisig(address _receiverAddress)
+        external
+        onlyMultisig
+        checkStatus(Status.Holding)
+    {
         address receiverAddress = msg.sender;
         if (_receiverAddress != address(0)) {
             receiverAddress = _receiverAddress;
@@ -257,9 +253,11 @@ contract Escrow {
      * @dev The contract has to be approved by the multisig inorder for this function to work.
      * Once the token deposit is higher than the total deposits done, the contract state is changed to Withdraw.
      */
-    function depositTokensByMultisig(
-        uint256 _amount
-    ) external onlyMultisig checkStatus(Status.Holding) {
+    function depositTokensByMultisig(uint256 _amount)
+        external
+        onlyMultisig
+        checkStatus(Status.Holding)
+    {
         require(_amount > 0, "Amount needs to be bigger than zero.");
 
         bool txStatus = SOV.transferFrom(msg.sender, address(this), _amount);

@@ -23,7 +23,11 @@ contract GovernorVault is Ownable {
      * @param _token The address of token contract.
      * @param _amount The amount to be transferred.
      * */
-    function transferTokens(address _receiver, address _token, uint256 _amount) public onlyOwner {
+    function transferTokens(
+        address _receiver,
+        address _token,
+        uint256 _amount
+    ) public onlyOwner {
         require(_receiver != address(0), "Invalid receiver address");
         require(_token != address(0), "Invalid token address");
 

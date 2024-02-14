@@ -97,7 +97,11 @@ contract LockedSOVMockup {
      * @param _sovAmount The amount of SOV to be added to the locked and/or unlocked balance.
      * @param _basisPoint The % (in Basis Point)which determines how much will be unlocked immediately.
      */
-    function deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint) external {
+    function deposit(
+        address _userAddress,
+        uint256 _sovAmount,
+        uint256 _basisPoint
+    ) external {
         _deposit(_userAddress, _sovAmount, _basisPoint);
     }
 
@@ -111,7 +115,11 @@ contract LockedSOVMockup {
         _deposit(_userAddress, _sovAmount, 0);
     }
 
-    function _deposit(address _userAddress, uint256 _sovAmount, uint256 _basisPoint) private {
+    function _deposit(
+        address _userAddress,
+        uint256 _sovAmount,
+        uint256 _basisPoint
+    ) private {
         // 10000 is not included because if 100% is unlocked, then LockedSOV is not required to be used.
         require(_basisPoint < 10000, "Basis Point has to be less than 10000.");
         bool txStatus = SOV.transferFrom(msg.sender, address(this), _sovAmount);

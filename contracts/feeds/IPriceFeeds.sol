@@ -6,15 +6,15 @@
 pragma solidity 0.5.17;
 
 interface IPriceFeeds {
-    function queryRate(
-        address sourceToken,
-        address destToken
-    ) external view returns (uint256 rate, uint256 precision);
+    function queryRate(address sourceToken, address destToken)
+        external
+        view
+        returns (uint256 rate, uint256 precision);
 
-    function queryPrecision(
-        address sourceToken,
-        address destToken
-    ) external view returns (uint256 precision);
+    function queryPrecision(address sourceToken, address destToken)
+        external
+        view
+        returns (uint256 precision);
 
     function queryReturn(
         address sourceToken,

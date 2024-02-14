@@ -25,4 +25,6 @@ contract Objects is
     OrderStruct,
     LenderInterestStruct,
     LoanInterestStruct
-{}
+{
+
+}

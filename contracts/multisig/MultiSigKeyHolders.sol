@@ -158,9 +158,11 @@ contract MultiSigKeyHolders is Ownable {
      * @notice Set flag ethereumRequired to true/false.
      * @param _required The new value of the ethereumRequired flag.
      * */
-    function changeEthereumRequirement(
-        uint256 _required
-    ) public onlyOwner validRequirement(ethereumAddresses.length, _required) {
+    function changeEthereumRequirement(uint256 _required)
+        public
+        onlyOwner
+        validRequirement(ethereumAddresses.length, _required)
+    {
         ethereumRequired = _required;
         emit EthereumRequirementChanged(_required);
     }
@@ -258,9 +260,11 @@ contract MultiSigKeyHolders is Ownable {
      * @notice Set flag bitcoinRequired to true/false.
      * @param _required The new value of the bitcoinRequired flag.
      * */
-    function changeBitcoinRequirement(
-        uint256 _required
-    ) public onlyOwner validRequirement(bitcoinAddresses.length, _required) {
+    function changeBitcoinRequirement(uint256 _required)
+        public
+        onlyOwner
+        validRequirement(bitcoinAddresses.length, _required)
+    {
         bitcoinRequired = _required;
         emit BitcoinRequirementChanged(_required);
     }

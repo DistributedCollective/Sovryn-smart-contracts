@@ -179,20 +179,25 @@ contract GovernorAlpha is SafeMath96 {
 
     /// @notice The number of votes required in order for a voter to become a proposer.
     function proposalThreshold() public view returns (uint96) {
-        uint96 totalVotingPower = staking.getPriorTotalVotingPower(
-            safe32(block.number - 1, "GovernorAlpha::proposalThreshold: block number overflow"),
-            block.timestamp
-        );
+        uint96 totalVotingPower =
+            staking.getPriorTotalVotingPower(
+                safe32(
+                    block.number - 1,
+                    "GovernorAlpha::proposalThreshold: block number overflow"
+                ),
+                block.timestamp
+            );
         // 1% of current total voting power.
         return totalVotingPower / 100;
     }
 
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed.
     function quorumVotes() public view returns (uint96) {
-        uint96 totalVotingPower = staking.getPriorTotalVotingPower(
-            safe32(block.number - 1, "GovernorAlpha::quorumVotes: block number overflow"),
-            block.timestamp
-        );
+        uint96 totalVotingPower =
+            staking.getPriorTotalVotingPower(
+                safe32(block.number - 1, "GovernorAlpha::quorumVotes: block number overflow"),
+                block.timestamp
+            );
         // 4% of current total voting power.
         return
             mul96(
@@ -258,32 +263,36 @@ contract GovernorAlpha is SafeMath96 {
 
         /// @dev quorum: proposalThreshold is 1% of total votes, we can save gas using this pre calculated value.
         /// @dev startTime: Required by the staking contract. not used by the governance contract itself.
-        Proposal memory newProposal = Proposal({
-            id: proposalCount,
-            startBlock: safe32(startBlock, "GovernorAlpha::propose: start block number overflow"),
-            endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
-            forVotes: 0,
-            againstVotes: 0,
-            quorum: mul96(
-                quorumPercentageVotes,
-                threshold,
-                "GovernorAlpha::propose: overflow on quorum computation"
-            ),
-            majorityPercentage: mul96(
-                majorityPercentageVotes,
-                threshold,
-                "GovernorAlpha::propose: overflow on majorityPercentage computation"
-            ),
-            eta: 0,
-            startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"),
-            canceled: false,
-            executed: false,
-            proposer: msg.sender,
-            targets: targets,
-            values: values,
-            signatures: signatures,
-            calldatas: calldatas
-        });
+        Proposal memory newProposal =
+            Proposal({
+                id: proposalCount,
+                startBlock: safe32(
+                    startBlock,
+                    "GovernorAlpha::propose: start block number overflow"
+                ),
+                endBlock: safe32(endBlock, "GovernorAlpha::propose: end block number overflow"),
+                forVotes: 0,
+                againstVotes: 0,
+                quorum: mul96(
+                    quorumPercentageVotes,
+                    threshold,
+                    "GovernorAlpha::propose: overflow on quorum computation"
+                ),
+                majorityPercentage: mul96(
+                    majorityPercentageVotes,
+                    threshold,
+                    "GovernorAlpha::propose: overflow on majorityPercentage computation"
+                ),
+                eta: 0,
+                startTime: safe64(block.timestamp, "GovernorAlpha::propose: startTime overflow"),
+                canceled: false,
+                executed: false,
+                proposer: msg.sender,
+                targets: targets,
+                values: values,
+                signatures: signatures,
+                calldatas: calldatas
+            });
 
         proposals[newProposal.id] = newProposal;
         latestProposalIds[newProposal.proposer] = newProposal.id;
@@ -411,9 +420,7 @@ contract GovernorAlpha is SafeMath96 {
      * @param proposalId Proposal index to access the list proposals[] from storage.
      * @return Arrays of the 4 call parameters: targets, values, signatures, calldatas.
      * */
-    function getActions(
-        uint256 proposalId
-    )
+    function getActions(uint256 proposalId)
         public
         view
         returns (
@@ -487,9 +494,10 @@ contract GovernorAlpha is SafeMath96 {
          * the chainId in case it changes, and the address that the
          * contract is deployed at.
          * */
-        bytes32 domainSeparator = keccak256(
-            abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(NAME)), getChainId(), address(this))
-        );
+        bytes32 domainSeparator =
+            keccak256(
+                abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(NAME)), getChainId(), address(this))
+            );
 
         /// @dev GovernorAlpha uses BALLOT_TYPEHASH, while Staking uses DELEGATION_TYPEHASH
         bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
@@ -511,7 +519,11 @@ contract GovernorAlpha is SafeMath96 {
      * @param proposalId Proposal index to access the list proposals[] from storage.
      * @param support Vote value, yes or no.
      * */
-    function _castVote(address voter, uint256 proposalId, bool support) internal {
+    function _castVote(
+        address voter,
+        uint256 proposalId,
+        bool support
+    ) internal {
         require(
             state(proposalId) == ProposalState.Active,
             "GovernorAlpha::_castVote: voting is closed"
@@ -612,16 +624,14 @@ contract GovernorAlpha is SafeMath96 {
             return ProposalState.Active;
         }
 
-        uint96 totalVotes = add96(
-            proposal.forVotes,
-            proposal.againstVotes,
-            "GovernorAlpha:: state: forVotes + againstVotes > uint96"
-        );
-        uint96 totalVotesMajorityPercentage = div96(
-            totalVotes,
-            100,
-            "GovernorAlpha:: state: division error"
-        );
+        uint96 totalVotes =
+            add96(
+                proposal.forVotes,
+                proposal.againstVotes,
+                "GovernorAlpha:: state: forVotes + againstVotes > uint96"
+            );
+        uint96 totalVotesMajorityPercentage =
+            div96(totalVotes, 100, "GovernorAlpha:: state: division error");
         totalVotesMajorityPercentage = mul96(
             totalVotesMajorityPercentage,
             majorityPercentageVotes,
@@ -725,8 +735,8 @@ interface StakingInterface {
         uint256 date
     ) external view returns (uint96);
 
-    function getPriorTotalVotingPower(
-        uint32 blockNumber,
-        uint256 time
-    ) external view returns (uint96);
+    function getPriorTotalVotingPower(uint32 blockNumber, uint256 time)
+        external
+        view
+        returns (uint96);
 }

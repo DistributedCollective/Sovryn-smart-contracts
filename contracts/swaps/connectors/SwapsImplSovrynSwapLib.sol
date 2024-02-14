@@ -46,9 +46,11 @@ library SwapsImplSovrynSwapLib {
      * Look up the Sovryn swap network contract registered at the given address.
      * @param sovrynSwapRegistryAddress The address of the registry.
      * */
-    function getSovrynSwapNetworkContract(
-        address sovrynSwapRegistryAddress
-    ) public view returns (ISovrynSwapNetwork) {
+    function getSovrynSwapNetworkContract(address sovrynSwapRegistryAddress)
+        public
+        view
+        returns (ISovrynSwapNetwork)
+    {
         /// State variable sovrynSwapContractRegistryAddress is part of
         /// State.sol and set in ProtocolSettings.sol and this function
         /// needs to work without delegate call as well -> therefore pass it.
@@ -77,9 +79,10 @@ library SwapsImplSovrynSwapLib {
      * maxSourceTokenAmount The maximum amount of source tokens to swapped.
      * requiredDestTokenAmount The required amount of destination tokens.
      * */
-    function swap(
-        SwapParams memory params
-    ) public returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+    function swap(SwapParams memory params)
+        public
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
+    {
         require(params.sourceTokenAddress != params.destTokenAddress, "source == dest");
 
         ISovryn iSovryn = ISovryn(address(this));
@@ -89,15 +92,15 @@ library SwapsImplSovrynSwapLib {
             "invalid tokens"
         );
 
-        ISovrynSwapNetwork sovrynSwapNetwork = getSovrynSwapNetworkContract(
-            iSovryn.sovrynSwapContractRegistryAddress()
-        );
+        ISovrynSwapNetwork sovrynSwapNetwork =
+            getSovrynSwapNetworkContract(iSovryn.sovrynSwapContractRegistryAddress());
 
-        IERC20[] memory path = _getConversionPath(
-            params.sourceTokenAddress,
-            params.destTokenAddress,
-            sovrynSwapNetwork
-        );
+        IERC20[] memory path =
+            _getConversionPath(
+                params.sourceTokenAddress,
+                params.destTokenAddress,
+                sovrynSwapNetwork
+            );
 
         uint256 minReturn = 1;
         sourceTokenAmountUsed = params.minSourceTokenAmount;
@@ -194,18 +197,13 @@ library SwapsImplSovrynSwapLib {
         uint256 maxSourceTokenAmount
     ) internal view returns (uint256 estimatedSourceAmount) {
         ISovryn iSovryn = ISovryn(address(this));
-        uint256 sourceToDestPrecision = IPriceFeeds(iSovryn.priceFeeds()).queryPrecision(
-            sourceTokenAddress,
-            destTokenAddress
-        );
+        uint256 sourceToDestPrecision =
+            IPriceFeeds(iSovryn.priceFeeds()).queryPrecision(sourceTokenAddress, destTokenAddress);
         if (sourceToDestPrecision == 0) return maxSourceTokenAmount;
 
         /// Compute the expected rate for the maxSourceTokenAmount -> if spending less, we can't get a worse rate.
-        uint256 expectedRate = getExpectedRate(
-            sourceTokenAddress,
-            destTokenAddress,
-            maxSourceTokenAmount
-        );
+        uint256 expectedRate =
+            getExpectedRate(sourceTokenAddress, destTokenAddress, maxSourceTokenAmount);
 
         /// Compute the source tokens needed to get the required amount with the worst case rate.
         estimatedSourceAmount = requiredDestTokenAmount.mul(sourceToDestPrecision).div(
@@ -236,21 +234,19 @@ library SwapsImplSovrynSwapLib {
         address destTokenAddress,
         uint256 sourceTokenAmount
     ) public view returns (uint256) {
-        ISovrynSwapNetwork sovrynSwapNetwork = getSovrynSwapNetworkContract(
-            ISovryn(address(this)).sovrynSwapContractRegistryAddress()
-        );
+        ISovrynSwapNetwork sovrynSwapNetwork =
+            getSovrynSwapNetworkContract(
+                ISovryn(address(this)).sovrynSwapContractRegistryAddress()
+            );
 
-        IERC20[] memory path = _getConversionPath(
-            sourceTokenAddress,
-            destTokenAddress,
-            sovrynSwapNetwork
-        );
+        IERC20[] memory path =
+            _getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
 
         /// Is returning the total amount of destination tokens.
         uint256 expectedReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);
 
         /// Return the rate for 1 token with 18 decimals.
-        return expectedReturn.mul(10 ** 18).div(sourceTokenAmount);
+        return expectedReturn.mul(10**18).div(sourceTokenAmount);
     }
 
     /**
@@ -270,15 +266,13 @@ library SwapsImplSovrynSwapLib {
         address destTokenAddress,
         uint256 sourceTokenAmount
     ) public view returns (uint256 expectedReturn) {
-        ISovrynSwapNetwork sovrynSwapNetwork = getSovrynSwapNetworkContract(
-            ISovryn(address(this)).sovrynSwapContractRegistryAddress()
-        );
+        ISovrynSwapNetwork sovrynSwapNetwork =
+            getSovrynSwapNetworkContract(
+                ISovryn(address(this)).sovrynSwapContractRegistryAddress()
+            );
 
-        IERC20[] memory path = _getConversionPath(
-            sourceTokenAddress,
-            destTokenAddress,
-            sovrynSwapNetwork
-        );
+        IERC20[] memory path =
+            _getConversionPath(sourceTokenAddress, destTokenAddress, sovrynSwapNetwork);
 
         /// Is returning the total amount of destination tokens.
         expectedReturn = sovrynSwapNetwork.rateByPath(path, sourceTokenAmount);
@@ -289,10 +283,8 @@ library SwapsImplSovrynSwapLib {
         address destTokenAddress,
         ISovrynSwapNetwork sovrynSwapNetwork
     ) private view returns (IERC20[] memory path) {
-        IERC20[] memory _defaultPathConversion = ISovryn(address(this)).getDefaultPathConversion(
-            sourceTokenAddress,
-            destTokenAddress
-        );
+        IERC20[] memory _defaultPathConversion =
+            ISovryn(address(this)).getDefaultPathConversion(sourceTokenAddress, destTokenAddress);
 
         /// will use the defaultPath if it's set, otherwise query from the SovrynSwapNetwork.
         path = _defaultPathConversion.length >= 3

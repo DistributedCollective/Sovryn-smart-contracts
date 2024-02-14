@@ -9,5 +9,9 @@ interface IFeeSharingCollector {
 
     function transferTokens(address _token, uint96 _amount) external;
 
-    function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) external;
+    function withdraw(
+        address _loanPoolToken,
+        uint32 _maxCheckpoints,
+        address _receiver
+    ) external;
 }

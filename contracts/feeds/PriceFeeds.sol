@@ -80,10 +80,11 @@ contract PriceFeeds is Constants, Ownable {
      * @return rate The price ratio source/dest.
      * @return precision The ratio precision.
      * */
-    function queryRate(
-        address sourceToken,
-        address destToken
-    ) public view returns (uint256 rate, uint256 precision) {
+    function queryRate(address sourceToken, address destToken)
+        public
+        view
+        returns (uint256 rate, uint256 precision)
+    {
         return _queryRate(sourceToken, destToken);
     }
 
@@ -98,7 +99,7 @@ contract PriceFeeds is Constants, Ownable {
      * @return The precision ratio source/dest.
      * */
     function queryPrecision(address sourceToken, address destToken) public view returns (uint256) {
-        return sourceToken != destToken ? _getDecimalPrecision(sourceToken, destToken) : 10 ** 18;
+        return sourceToken != destToken ? _getDecimalPrecision(sourceToken, destToken) : 10**18;
     }
 
     /**
@@ -161,7 +162,7 @@ contract PriceFeeds is Constants, Ownable {
 
         if (rate > sourceToDestSwapRate) {
             uint256 spreadValue = rate - sourceToDestSwapRate;
-            spreadValue = spreadValue.mul(10 ** 20).div(sourceToDestSwapRate);
+            spreadValue = spreadValue.mul(10**20).div(sourceToDestSwapRate);
             require(spreadValue <= maxSlippage, "price disagreement");
         }
     }
@@ -176,18 +177,17 @@ contract PriceFeeds is Constants, Ownable {
      *
      * @return ethAmount The amount of rBTC equivalent.
      * */
-    function amountInEth(
-        address tokenAddress,
-        uint256 amount
-    ) public view returns (uint256 ethAmount) {
+    function amountInEth(address tokenAddress, uint256 amount)
+        public
+        view
+        returns (uint256 ethAmount)
+    {
         /// Token is wrBTC, amount in rBTC is the same.
         if (tokenAddress == address(wrbtcToken)) {
             ethAmount = amount;
         } else {
-            (uint256 toEthRate, uint256 toEthPrecision) = queryRate(
-                tokenAddress,
-                address(wrbtcToken)
-            );
+            (uint256 toEthRate, uint256 toEthPrecision) =
+                queryRate(tokenAddress, address(wrbtcToken));
             ethAmount = amount.mul(toEthRate).div(toEthPrecision);
         }
     }
@@ -225,9 +225,8 @@ contract PriceFeeds is Constants, Ownable {
             loanToCollateralAmount = loanAmount.mul(rate).div(precision);
         }
 
-        uint256 combined = loanToCollateralAmount.add(
-            loanToCollateralAmount.mul(margin).div(10 ** 20)
-        );
+        uint256 combined =
+            loanToCollateralAmount.add(loanToCollateralAmount.mul(margin).div(10**20));
 
         maxDrawdown = collateralAmount > combined ? collateralAmount - combined : 0;
     }
@@ -283,7 +282,7 @@ contract PriceFeeds is Constants, Ownable {
         uint256 collateralToLoanAmount;
         if (collateralToken == loanToken) {
             collateralToLoanAmount = collateralAmount;
-            collateralToLoanRate = 10 ** 18;
+            collateralToLoanRate = 10**18;
         } else {
             uint256 collateralToLoanPrecision;
             (collateralToLoanRate, collateralToLoanPrecision) = queryRate(
@@ -291,16 +290,14 @@ contract PriceFeeds is Constants, Ownable {
                 loanToken
             );
 
-            collateralToLoanRate = collateralToLoanRate.mul(10 ** 18).div(
-                collateralToLoanPrecision
-            );
+            collateralToLoanRate = collateralToLoanRate.mul(10**18).div(collateralToLoanPrecision);
 
-            collateralToLoanAmount = collateralAmount.mul(collateralToLoanRate).div(10 ** 18);
+            collateralToLoanAmount = collateralAmount.mul(collateralToLoanRate).div(10**18);
         }
 
         if (loanAmount != 0 && collateralToLoanAmount >= loanAmount) {
             return (
-                collateralToLoanAmount.sub(loanAmount).mul(10 ** 20).div(loanAmount),
+                collateralToLoanAmount.sub(loanAmount).mul(10**20).div(loanAmount),
                 collateralToLoanRate
             );
         } else {
@@ -326,12 +323,8 @@ contract PriceFeeds is Constants, Ownable {
         uint256 collateralAmount,
         uint256 maintenanceMargin
     ) public view returns (bool) {
-        (uint256 currentMargin, ) = getCurrentMargin(
-            loanToken,
-            collateralToken,
-            loanAmount,
-            collateralAmount
-        );
+        (uint256 currentMargin, ) =
+            getCurrentMargin(loanToken, collateralToken, loanAmount, collateralAmount);
 
         return currentMargin <= maintenanceMargin;
     }
@@ -356,10 +349,10 @@ contract PriceFeeds is Constants, Ownable {
      * @param tokens The array of tokens to loop and get addresses.
      * @param feeds The array of contract instances for every token.
      * */
-    function setPriceFeed(
-        address[] calldata tokens,
-        IPriceFeedsExt[] calldata feeds
-    ) external onlyOwner {
+    function setPriceFeed(address[] calldata tokens, IPriceFeedsExt[] calldata feeds)
+        external
+        onlyOwner
+    {
         require(tokens.length == feeds.length, "count mismatch");
 
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -404,10 +397,11 @@ contract PriceFeeds is Constants, Ownable {
      * @return rate The price ratio source/dest.
      * @return precision The ratio precision.
      * */
-    function _queryRate(
-        address sourceToken,
-        address destToken
-    ) internal view returns (uint256 rate, uint256 precision) {
+    function _queryRate(address sourceToken, address destToken)
+        internal
+        view
+        returns (uint256 rate, uint256 precision)
+    {
         require(!globalPricingPaused, "pricing is paused");
 
         /// Different tokens, query prices and perform division.
@@ -421,9 +415,7 @@ contract PriceFeeds is Constants, Ownable {
                 sourceRate = _sourceFeed.latestAnswer();
                 require(sourceRate != 0 && (sourceRate >> 128) == 0, "price error");
             } else {
-                sourceRate = sourceToken == protocolTokenAddress
-                    ? protocolTokenEthPrice
-                    : 10 ** 18;
+                sourceRate = sourceToken == protocolTokenAddress ? protocolTokenEthPrice : 10**18;
             }
 
             uint256 destRate;
@@ -435,17 +427,17 @@ contract PriceFeeds is Constants, Ownable {
                 destRate = _destFeed.latestAnswer();
                 require(destRate != 0 && (destRate >> 128) == 0, "price error");
             } else {
-                destRate = destToken == protocolTokenAddress ? protocolTokenEthPrice : 10 ** 18;
+                destRate = destToken == protocolTokenAddress ? protocolTokenEthPrice : 10**18;
             }
 
-            rate = sourceRate.mul(10 ** 18).div(destRate);
+            rate = sourceRate.mul(10**18).div(destRate);
 
             precision = _getDecimalPrecision(sourceToken, destToken);
 
             /// Same tokens, return 1 with decimals.
         } else {
-            rate = 10 ** 18;
-            precision = 10 ** 18;
+            rate = 10**18;
+            precision = 10**18;
         }
     }
 
@@ -457,13 +449,14 @@ contract PriceFeeds is Constants, Ownable {
      *
      * @return The precision ratio source/dest.
      * */
-    function _getDecimalPrecision(
-        address sourceToken,
-        address destToken
-    ) internal view returns (uint256) {
+    function _getDecimalPrecision(address sourceToken, address destToken)
+        internal
+        view
+        returns (uint256)
+    {
         /// Same tokens, return 1 with decimals.
         if (sourceToken == destToken) {
-            return 10 ** 18;
+            return 10**18;
 
             /// Different tokens, query ERC20 precisions and return 18 +- diff.
         } else {
@@ -474,8 +467,8 @@ contract PriceFeeds is Constants, Ownable {
             if (destTokenDecimals == 0) destTokenDecimals = IERC20(destToken).decimals();
 
             if (destTokenDecimals >= sourceTokenDecimals)
-                return 10 ** (SafeMath.sub(18, destTokenDecimals - sourceTokenDecimals));
-            else return 10 ** (SafeMath.add(18, sourceTokenDecimals - destTokenDecimals));
+                return 10**(SafeMath.sub(18, destTokenDecimals - sourceTokenDecimals));
+            else return 10**(SafeMath.add(18, sourceTokenDecimals - destTokenDecimals));
         }
     }
 }

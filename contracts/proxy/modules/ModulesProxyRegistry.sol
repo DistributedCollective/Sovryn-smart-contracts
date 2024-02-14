@@ -38,10 +38,10 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     /// @notice Replace module - remove the previous, add the new one
     /// @param _oldModuleImpl Module implementation address to remove
     /// @param _newModuleImpl Module implementation address to add
-    function replaceModule(
-        address _oldModuleImpl,
-        address _newModuleImpl
-    ) external onlyProxyOwner {
+    function replaceModule(address _oldModuleImpl, address _newModuleImpl)
+        external
+        onlyProxyOwner
+    {
         _replaceModule(_oldModuleImpl, _newModuleImpl);
     }
 
@@ -90,9 +90,11 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     /// @notice Multiple modules verification if there are functions from the modules already registered
     /// @param _implementations modules implementation addresses to verify
     /// @return addresses of registered modules
-    function canNotAddModules(
-        address[] memory _implementations
-    ) public view returns (address[] memory) {
+    function canNotAddModules(address[] memory _implementations)
+        public
+        view
+        returns (address[] memory)
+    {
         for (uint256 i = 0; i < _implementations.length; i++) {
             if (_canAddModule(_implementations[i])) {
                 delete _implementations[i];
@@ -104,9 +106,7 @@ contract ModulesProxyRegistry is IModulesProxyRegistry, ProxyOwnable {
     /// @notice Used externally to verify module being added for clashing
     /// @param _newModule module implementation which functions to verify
     /// @return Clashing functions signatures and corresponding modules (contracts) addresses
-    function checkClashingFuncSelectors(
-        address _newModule
-    )
+    function checkClashingFuncSelectors(address _newModule)
         external
         view
         returns (

@@ -32,10 +32,7 @@ interface ProtocolLike {
 
     function withdrawAccruedInterest(address loanToken) external;
 
-    function getLenderInterestData(
-        address lender,
-        address loanToken
-    )
+    function getLenderInterestData(address lender, address loanToken)
         external
         view
         returns (
@@ -92,7 +89,13 @@ interface ProtocolLike {
         uint256 swapAmount, // denominated in collateralToken
         bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
         bytes calldata // for future use /*loanDataBytes*/
-    ) external returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken);
+    )
+        external
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        );
 
     function closeWithDeposit(
         bytes32 loanId,
@@ -101,5 +104,9 @@ interface ProtocolLike {
     )
         external
         payable
-        returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken);
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        );
 }

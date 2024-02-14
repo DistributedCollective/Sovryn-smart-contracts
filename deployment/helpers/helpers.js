@@ -247,7 +247,9 @@ const multisigCheckTx = async (txId, multisigAddress = ethers.constants.AddressZ
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
         multisigAddress == ethers.constants.AddressZero
-            ? (await get("MultiSigWallet")).address
+            ? (
+                  await get("MultiSigWallet")
+              ).address
             : multisigAddress
     );
     const transaction = await multisig.transactions(txId);
@@ -283,7 +285,9 @@ const multisigRevokeConfirmation = async (
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
         multisigAddress == ethers.constants.AddressZero
-            ? (await get("MultiSigWallet")).address
+            ? (
+                  await get("MultiSigWallet")
+              ).address
             : multisigAddress,
         signer
     );
@@ -304,7 +308,9 @@ const multisigExecuteTx = async (txId, sender, multisigAddress = ethers.constant
     const multisig = await ethers.getContractAt(
         "MultiSigWallet",
         multisigAddress == ethers.constants.AddressZero
-            ? (await get("MultiSigWallet")).address
+            ? (
+                  await get("MultiSigWallet")
+              ).address
             : multisigAddress,
         signer
     );

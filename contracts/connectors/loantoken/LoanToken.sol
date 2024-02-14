@@ -73,12 +73,12 @@ contract LoanToken is AdvancedTokenStorage {
             let ptr := mload(0x40)
             returndatacopy(ptr, 0, size)
             switch result
-            case 0 {
-                revert(ptr, size)
-            }
-            default {
-                return(ptr, size)
-            }
+                case 0 {
+                    revert(ptr, size)
+                }
+                default {
+                    return(ptr, size)
+                }
         }
     }
 
@@ -140,6 +140,6 @@ contract LoanToken is AdvancedTokenStorage {
         symbol = _symbol;
         decimals = IERC20(loanTokenAddress).decimals();
 
-        initialPrice = 10 ** 18; /// starting price of 1
+        initialPrice = 10**18; /// starting price of 1
     }
 }

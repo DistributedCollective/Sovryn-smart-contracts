@@ -41,7 +41,7 @@ contract PreviousLoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
         symbol = _symbol;
         decimals = IERC20(loanTokenAddress).decimals();
 
-        initialPrice = 10 ** 18; // starting price of 1
+        initialPrice = 10**18; // starting price of 1
     }
 
     function() external {
@@ -77,17 +77,16 @@ contract PreviousLoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
         }
     }
 
-    function disableLoanParams(
-        address[] calldata collateralTokens,
-        bool[] calldata isTorqueLoans
-    ) external onlyAdmin {
+    function disableLoanParams(address[] calldata collateralTokens, bool[] calldata isTorqueLoans)
+        external
+        onlyAdmin
+    {
         require(collateralTokens.length == isTorqueLoans.length, "count mismatch");
 
         bytes32[] memory loanParamsIdList = new bytes32[](collateralTokens.length);
         for (uint256 i = 0; i < collateralTokens.length; i++) {
-            uint256 id = uint256(
-                keccak256(abi.encodePacked(collateralTokens[i], isTorqueLoans[i]))
-            );
+            uint256 id =
+                uint256(keccak256(abi.encodePacked(collateralTokens[i], isTorqueLoans[i])));
             loanParamsIdList[i] = loanParamsIds[id];
             delete loanParamsIds[id];
         }
@@ -132,12 +131,13 @@ contract PreviousLoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
         bool isPaused
     ) public onlyAdmin {
         // keccak256("iToken_FunctionPause")
-        bytes32 slot = keccak256(
-            abi.encodePacked(
-                bytes4(keccak256(abi.encodePacked(funcId))),
-                uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
-            )
-        );
+        bytes32 slot =
+            keccak256(
+                abi.encodePacked(
+                    bytes4(keccak256(abi.encodePacked(funcId))),
+                    uint256(0xd46a704bc285dbd6ff5ad3863506260b1df02812f4f857c8cc852317a6ac64f2)
+                )
+            );
         assembly {
             sstore(slot, isPaused)
         }
@@ -148,10 +148,10 @@ contract PreviousLoanTokenSettingsLowerAdmin is AdvancedTokenStorage {
      * @param addresses the token addresses
      * @param limits the limit denominated in the currency of the token address
      * */
-    function setTransactionLimits(
-        address[] memory addresses,
-        uint256[] memory limits
-    ) public onlyOwner {
+    function setTransactionLimits(address[] memory addresses, uint256[] memory limits)
+        public
+        onlyOwner
+    {
         require(addresses.length == limits.length, "mismatched array lengths");
         for (uint256 i = 0; i < addresses.length; i++) {
             transactionLimit[addresses[i]] = limits[i];

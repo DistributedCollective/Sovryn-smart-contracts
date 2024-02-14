@@ -213,10 +213,10 @@ contract SwapsUser is State, SwapsEvents, FeesHelper {
      * @return destTokenAmountReceived The amount of destination tokens received.
      * @return sourceTokenAmountUsed The amount of source tokens used.
      * */
-    function _swapsCall_internal(
-        address[5] memory addrs,
-        uint256[3] memory vals
-    ) internal returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed) {
+    function _swapsCall_internal(address[5] memory addrs, uint256[3] memory vals)
+        internal
+        returns (uint256 destTokenAmountReceived, uint256 sourceTokenAmountUsed)
+    {
         SwapsImplSovrynSwapLib.SwapParams memory swapParams;
 
         swapParams.sourceTokenAddress = addrs[0];

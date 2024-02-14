@@ -68,10 +68,11 @@ contract MockLoanTokenLogic is LoanTokenLogic {
         ProtocolAffiliatesInterface(sovrynContractAddress).setUserNotFirstTradeFlag(user);
     }
 
-    function getMarginBorrowAmountAndRate(
-        uint256 leverageAmount,
-        uint256 depositAmount
-    ) public view returns (uint256, uint256) {
+    function getMarginBorrowAmountAndRate(uint256 leverageAmount, uint256 depositAmount)
+        public
+        view
+        returns (uint256, uint256)
+    {
         return _getMarginBorrowAmountAndRate(leverageAmount, depositAmount);
     }
 

@@ -112,10 +112,9 @@ interface IProtocol {
      *
      * @return The withdrawn total amount in wRBTC
      * */
-    function withdrawFees(
-        address[] calldata tokens,
-        address receiver
-    ) external returns (uint256 totalWRBTCWithdrawn);
+    function withdrawFees(address[] calldata tokens, address receiver)
+        external
+        returns (uint256 totalWRBTCWithdrawn);
 
     function underlyingToLoanPool(address token) external view returns (address);
 

@@ -59,7 +59,11 @@ contract LoanClosingsWith is LoanClosingsShared {
         globallyNonReentrant
         iTokenSupplyUnchanged(loanId)
         whenNotPaused
-        returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken)
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        )
     {
         _checkAuthorized(loanId);
         return _closeWithDeposit(loanId, receiver, depositAmount);
@@ -97,7 +101,11 @@ contract LoanClosingsWith is LoanClosingsShared {
         globallyNonReentrant
         iTokenSupplyUnchanged(loanId)
         whenNotPaused
-        returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken)
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        )
     {
         _checkAuthorized(loanId);
         return
@@ -128,7 +136,14 @@ contract LoanClosingsWith is LoanClosingsShared {
         bytes32 loanId,
         address receiver,
         uint256 depositAmount /// Denominated in loanToken.
-    ) internal returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) {
+    )
+        internal
+        returns (
+            uint256 loanCloseAmount,
+            uint256 withdrawAmount,
+            address withdrawToken
+        )
+    {
         require(depositAmount != 0, "depositAmount == 0");
 
         //TODO should we skip this check if invoked from rollover ?
@@ -148,12 +163,8 @@ contract LoanClosingsWith is LoanClosingsShared {
             );
         }
 
-        uint256 loanCloseAmountLessInterest = _settleInterestToPrincipal(
-            loanLocal,
-            loanParamsLocal,
-            loanCloseAmount,
-            receiver
-        );
+        uint256 loanCloseAmountLessInterest =
+            _settleInterestToPrincipal(loanLocal, loanParamsLocal, loanCloseAmount, receiver);
 
         if (loanCloseAmountLessInterest != 0) {
             _returnPrincipalWithDeposit(
@@ -195,18 +206,17 @@ contract LoanClosingsWith is LoanClosingsShared {
      * @return isTinyPosition true is indicating tiny position, false otherwise.
      * @return tinyPositionAmount will return 0 for non tiny position, and will return the amount of tiny position if true
      */
-    function checkCloseWithDepositIsTinyPosition(
-        bytes32 loanId,
-        uint256 depositAmount
-    ) external view returns (bool isTinyPosition, uint256 tinyPositionAmount) {
+    function checkCloseWithDepositIsTinyPosition(bytes32 loanId, uint256 depositAmount)
+        external
+        view
+        returns (bool isTinyPosition, uint256 tinyPositionAmount)
+    {
         (Loan memory loanLocal, LoanParams memory loanParamsLocal) = _checkLoan(loanId);
 
         if (depositAmount < loanLocal.principal) {
             uint256 remainingAmount = loanLocal.principal - depositAmount;
-            uint256 remainingRBTCAmount = _getAmountInRbtc(
-                loanParamsLocal.loanToken,
-                remainingAmount
-            );
+            uint256 remainingRBTCAmount =
+                _getAmountInRbtc(loanParamsLocal.loanToken, remainingAmount);
             if (remainingRBTCAmount < TINY_AMOUNT) {
                 isTinyPosition = true;
                 tinyPositionAmount = remainingRBTCAmount;

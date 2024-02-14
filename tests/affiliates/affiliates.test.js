@@ -145,8 +145,11 @@ contract("Affiliates", (accounts) => {
 
         // Creating the instance of newLockedSOV Contract.
         await sovryn.setLockedSOVAddress(
-            (await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner]))
-                .address
+            (
+                await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [
+                    owner,
+                ])
+            ).address
         );
         lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 
@@ -478,7 +481,9 @@ contract("Affiliates", (accounts) => {
     it("PayTradingFeeToAffiliateFail event should be fired in case lock sov reverted", async () => {
         // deploy lockedSOVFailedMockup and set to protocol
         await sovryn.setLockedSOVAddress(
-            (await LockedSOVFailedMockup.new(SUSD.address, [owner])).address
+            (
+                await LockedSOVFailedMockup.new(SUSD.address, [owner])
+            ).address
         );
 
         await sovryn.setMinReferralsToPayoutAffiliates(1);

@@ -40,12 +40,12 @@ contract sovrynProtocol is State {
             let ptr := mload(0x40)
             returndatacopy(ptr, 0, size)
             switch result
-            case 0 {
-                revert(ptr, size)
-            }
-            default {
-                return(ptr, size)
-            }
+                case 0 {
+                    revert(ptr, size)
+                }
+                default {
+                    return(ptr, size)
+                }
         }
     }
 
@@ -54,9 +54,8 @@ contract sovrynProtocol is State {
      * @param target The target addresses.
      * */
     function replaceContract(address target) external onlyOwner {
-        (bool success, ) = target.delegatecall(
-            abi.encodeWithSignature("initialize(address)", target)
-        );
+        (bool success, ) =
+            target.delegatecall(abi.encodeWithSignature("initialize(address)", target));
         require(success, "setup failed");
     }
 
@@ -65,10 +64,10 @@ contract sovrynProtocol is State {
      * @param sigsArr The array of signatures.
      * @param targetsArr The array of addresses.
      * */
-    function setTargets(
-        string[] calldata sigsArr,
-        address[] calldata targetsArr
-    ) external onlyOwner {
+    function setTargets(string[] calldata sigsArr, address[] calldata targetsArr)
+        external
+        onlyOwner
+    {
         require(sigsArr.length == targetsArr.length, "count mismatch");
 
         for (uint256 i = 0; i < sigsArr.length; i++) {

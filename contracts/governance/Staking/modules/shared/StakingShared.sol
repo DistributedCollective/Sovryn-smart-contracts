@@ -72,8 +72,8 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
 
     function _notSameBlockAsStakingCheckpoint(uint256 lockDate, address stakeFor) internal view {
         uint32 nCheckpoints = numUserStakingCheckpoints[stakeFor][lockDate];
-        bool notSameBlock = userStakingCheckpoints[stakeFor][lockDate][nCheckpoints - 1]
-            .fromBlock != block.number;
+        bool notSameBlock =
+            userStakingCheckpoints[stakeFor][lockDate][nCheckpoints - 1].fromBlock != block.number;
         require(notSameBlock, "cannot be mined in the same block as last stake"); // S20
     }
 
@@ -178,10 +178,11 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
      * @param startDate We compute the weight for the tokens staked until 'date' on 'startDate'.
      * @return The weighted stake the account had as of the given block.
      * */
-    function _computeWeightByDate(
-        uint256 date,
-        uint256 startDate
-    ) internal pure returns (uint96 weight) {
+    function _computeWeightByDate(uint256 date, uint256 startDate)
+        internal
+        pure
+        returns (uint96 weight)
+    {
         require(date >= startDate, "date < startDate"); // WS18
         uint256 remainingTime = (date - startDate);
         require(MAX_DURATION >= remainingTime, "remaining time > max duration"); // WS19

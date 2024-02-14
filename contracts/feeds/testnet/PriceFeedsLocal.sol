@@ -26,10 +26,10 @@ contract PriceFeedsLocal is PriceFeeds {
      * @param _wrbtcTokenAddress The address of the wrBTC instance.
      * @param _protocolTokenAddress The address of the protocol token instance.
      * */
-    constructor(
-        address _wrbtcTokenAddress,
-        address _protocolTokenAddress
-    ) public PriceFeeds(_wrbtcTokenAddress, _protocolTokenAddress, _wrbtcTokenAddress) {}
+    constructor(address _wrbtcTokenAddress, address _protocolTokenAddress)
+        public
+        PriceFeeds(_wrbtcTokenAddress, _protocolTokenAddress, _wrbtcTokenAddress)
+    {}
 
     /**
      * @notice Calculate the price ratio between two tokens.
@@ -40,34 +40,37 @@ contract PriceFeedsLocal is PriceFeeds {
      * @return rate The price ratio source/dest.
      * @return precision The ratio precision.
      * */
-    function _queryRate(
-        address sourceToken,
-        address destToken
-    ) internal view returns (uint256 rate, uint256 precision) {
+    function _queryRate(address sourceToken, address destToken)
+        internal
+        view
+        returns (uint256 rate, uint256 precision)
+    {
         require(!globalPricingPaused, "pricing is paused");
 
         if (sourceToken == destToken) {
-            rate = 10 ** 18;
-            precision = 10 ** 18;
+            rate = 10**18;
+            precision = 10**18;
         } else {
             if (sourceToken == protocolTokenAddress) {
                 /// Hack for testnet; only returns price in rBTC.
                 rate = protocolTokenEthPrice;
             } else if (destToken == protocolTokenAddress) {
                 /// Hack for testnet; only returns price in rBTC.
-                rate = SafeMath.div(10 ** 36, protocolTokenEthPrice);
+                rate = SafeMath.div(10**36, protocolTokenEthPrice);
             } else {
                 if (rates[sourceToken][destToken] != 0) {
                     rate = rates[sourceToken][destToken];
                 } else {
-                    uint256 sourceToEther = rates[sourceToken][address(wrbtcToken)] != 0
-                        ? rates[sourceToken][address(wrbtcToken)]
-                        : 10 ** 18;
-                    uint256 etherToDest = rates[address(wrbtcToken)][destToken] != 0
-                        ? rates[address(wrbtcToken)][destToken]
-                        : 10 ** 18;
+                    uint256 sourceToEther =
+                        rates[sourceToken][address(wrbtcToken)] != 0
+                            ? rates[sourceToken][address(wrbtcToken)]
+                            : 10**18;
+                    uint256 etherToDest =
+                        rates[address(wrbtcToken)][destToken] != 0
+                            ? rates[address(wrbtcToken)][destToken]
+                            : 10**18;
 
-                    rate = sourceToEther.mul(etherToDest).div(10 ** 18);
+                    rate = sourceToEther.mul(etherToDest).div(10**18);
                 }
             }
             precision = _getDecimalPrecision(sourceToken, destToken);
@@ -81,10 +84,14 @@ contract PriceFeedsLocal is PriceFeeds {
      * @param destToken The address of the destiny tokens.
      * @param rate The price ratio source/dest.
      * */
-    function setRates(address sourceToken, address destToken, uint256 rate) public onlyOwner {
+    function setRates(
+        address sourceToken,
+        address destToken,
+        uint256 rate
+    ) public onlyOwner {
         if (sourceToken != destToken) {
             rates[sourceToken][destToken] = rate;
-            rates[destToken][sourceToken] = SafeMath.div(10 ** 36, rate);
+            rates[destToken][sourceToken] = SafeMath.div(10**36, rate);
         }
     }
 

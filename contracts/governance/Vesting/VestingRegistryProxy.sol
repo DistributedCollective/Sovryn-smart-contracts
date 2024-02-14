@@ -10,4 +10,6 @@ import "../../proxy/UpgradableProxy.sol";
  * by using this contract instead, that inherits from UpgradableProxy
  * the possibility of being enhanced and re-deployed.
  * */
-contract VestingRegistryProxy is VestingRegistryStorage, UpgradableProxy {}
+contract VestingRegistryProxy is VestingRegistryStorage, UpgradableProxy {
+
+}

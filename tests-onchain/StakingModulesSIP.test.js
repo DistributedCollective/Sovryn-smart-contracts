@@ -156,7 +156,9 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                 deployerSigner
             );
             const multisigSigner = await getImpersonatedSignerFromJsonRpcProvider(
-                (await get("MultiSigWallet")).address
+                (
+                    await get("MultiSigWallet")
+                ).address
             );
             if (await staking.paused()) await staking.connect(multisigSigner).pauseUnpause(false);
             const kickoffTS = await stakingProxy.kickoffTS();
@@ -239,7 +241,9 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                 deployerSigner
             );
             const multisigSigner = await getImpersonatedSignerFromJsonRpcProvider(
-                (await get("MultiSigWallet")).address
+                (
+                    await get("MultiSigWallet")
+                ).address
             );
             if (await staking.paused()) await staking.connect(multisigSigner).pauseUnpause(false);
             const kickoffTS = await stakingProxy.kickoffTS();

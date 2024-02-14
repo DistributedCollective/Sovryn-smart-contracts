@@ -6,7 +6,10 @@ import "forge-std/Test.sol";
 import { IStaking } from "./interfaces/IStaking.sol";
 import { IStakingProxy } from "./interfaces/IStaking.sol";
 import { IStakingModulesProxy } from "./interfaces/IStaking.sol";
-import { IFeeSharingCollector, IFeeSharingCollectorProxy } from "./interfaces/IFeeSharingCollector.sol";
+import {
+    IFeeSharingCollector,
+    IFeeSharingCollectorProxy
+} from "./interfaces/IFeeSharingCollector.sol";
 import { IERC20 } from "./interfaces/ITokens.sol";
 import { DummyMockContract } from "./mocks/DummyMockContract.sol";
 
@@ -24,9 +27,9 @@ contract StakingFuzzTest is Test {
     IFeeSharingCollector private feeSharingCollector;
     DummyMockContract private dummyProtocol; // general mock contract, used for foundry mockCall
 
-    uint96 constant MAX_96 = 2 ** 96 - 1;
-    uint256 constant MAX_256 = 2 ** 256 - 1;
-    uint32 constant MAX_32 = 2 ** 32 - 1;
+    uint96 constant MAX_96 = 2**96 - 1;
+    uint256 constant MAX_256 = 2**256 - 1;
+    uint32 constant MAX_32 = 2**32 - 1;
 
     event TokensStaked(
         address indexed staker,
@@ -70,19 +73,19 @@ contract StakingFuzzTest is Test {
 
         // console.log("SOV total supply:", sov.totalSupply());
 
-        address[7] memory stakingModules = [
-            deployCode("StakingAdminModule.sol"),
-            deployCode("StakingGovernanceModule.sol"),
-            deployCode("StakingStakeModule.sol"),
-            deployCode("StakingStorageModule.sol"),
-            deployCode("StakingVestingModule.sol"),
-            deployCode("StakingWithdrawModule.sol"),
-            deployCode("WeightedStakingModule.sol")
-        ];
+        address[7] memory stakingModules =
+            [
+                deployCode("StakingAdminModule.sol"),
+                deployCode("StakingGovernanceModule.sol"),
+                deployCode("StakingStakeModule.sol"),
+                deployCode("StakingStorageModule.sol"),
+                deployCode("StakingVestingModule.sol"),
+                deployCode("StakingWithdrawModule.sol"),
+                deployCode("WeightedStakingModule.sol")
+            ];
 
-        IStakingProxy stakingProxy = IStakingProxy(
-            deployCode("StakingProxy.sol", abi.encode(address(sov)))
-        );
+        IStakingProxy stakingProxy =
+            IStakingProxy(deployCode("StakingProxy.sol", abi.encode(address(sov))));
         address stakingProxyAddress = address(stakingProxy);
         stakingProxy.setImplementation(deployCode("ModulesProxy.sol"));
         IStakingModulesProxy stakingModulesProxy = IStakingModulesProxy(stakingProxyAddress);
@@ -99,12 +102,13 @@ contract StakingFuzzTest is Test {
         // console.log("kickoffTS + 2 weeks: %s", kickoffTS + 2 weeks);
 
         // Deploy FeeSharingCollector
-        IFeeSharingCollectorProxy feeSharingCollectorProxy = IFeeSharingCollectorProxy(
-            deployCode(
-                "FeeSharingCollectorProxy.sol",
-                abi.encode(address(dummyProtocol), address(staking))
-            )
-        );
+        IFeeSharingCollectorProxy feeSharingCollectorProxy =
+            IFeeSharingCollectorProxy(
+                deployCode(
+                    "FeeSharingCollectorProxy.sol",
+                    abi.encode(address(dummyProtocol), address(staking))
+                )
+            );
         feeSharingCollector = IFeeSharingCollector(deployCode("FeeSharingCollector.sol"));
         feeSharingCollectorProxy.setImplementation(address(feeSharingCollector));
         feeSharingCollector = IFeeSharingCollector(address(feeSharingCollectorProxy));
@@ -161,13 +165,14 @@ contract StakingFuzzTest is Test {
             vm.expectRevert();
             timestampToLockDate = staking.timestampToLockDate(_randomLockTimestamp);
         } else {
-            uint256 calculatedExpectedTimestamp = kickoffTS +
-                ((
-                    _randomLockTimestamp > block.timestamp + maxDuration
-                        ? block.timestamp - kickoffTS + maxDuration
-                        : _randomLockTimestamp - kickoffTS
-                ) / 2 weeks) *
-                2 weeks;
+            uint256 calculatedExpectedTimestamp =
+                kickoffTS +
+                    ((
+                        _randomLockTimestamp > block.timestamp + maxDuration
+                            ? block.timestamp - kickoffTS + maxDuration
+                            : _randomLockTimestamp - kickoffTS
+                    ) / 2 weeks) *
+                    2 weeks;
 
             timestampToLockDate = staking.timestampToLockDate(_randomLockTimestamp);
             if (timestampToLockDate > calculatedExpectedTimestamp) {
@@ -204,16 +209,10 @@ contract StakingFuzzTest is Test {
                 mineBlocks((timestampToLockDate - block.timestamp) / 30 + 10);
                 // Check getPriorUserStakeByDate
 
-                uint256 priorUserStakeBefore = staking.getPriorUserStakeByDate(
-                    user,
-                    timestampToLockDate,
-                    blockBefore
-                );
-                uint256 priorUserStakeAfter = staking.getPriorUserStakeByDate(
-                    user,
-                    timestampToLockDate,
-                    blockAfter
-                );
+                uint256 priorUserStakeBefore =
+                    staking.getPriorUserStakeByDate(user, timestampToLockDate, blockBefore);
+                uint256 priorUserStakeAfter =
+                    staking.getPriorUserStakeByDate(user, timestampToLockDate, blockAfter);
 
                 (uint256[] memory dates, uint96[] memory stakes) = staking.getStakes(user);
                 for (uint256 i = 0; i < stakes.length; i++) {
@@ -271,16 +270,10 @@ contract StakingFuzzTest is Test {
         mineBlocks((timestampToLockDate - block.timestamp) / 30 + 10);
         // Check getPriorUserStakeByDate
 
-        uint256 priorUserStakeBefore = staking.getPriorUserStakeByDate(
-            user,
-            timestampToLockDate,
-            blockBefore
-        );
-        uint256 priorUserStakeAfter = staking.getPriorUserStakeByDate(
-            user,
-            timestampToLockDate,
-            blockAfter
-        );
+        uint256 priorUserStakeBefore =
+            staking.getPriorUserStakeByDate(user, timestampToLockDate, blockBefore);
+        uint256 priorUserStakeAfter =
+            staking.getPriorUserStakeByDate(user, timestampToLockDate, blockAfter);
 
         (uint256[] memory dates, uint96[] memory stakes) = staking.getStakes(user);
         for (uint256 i = 0; i < stakes.length; i++) {
@@ -377,23 +370,17 @@ contract StakingFuzzTest is Test {
         assertEq(staking.delegates(user, lockedDate2), user);
 
         //check getPriorTotalStakesForDate
-        uint256 priorTotalStakeBefore = staking.getPriorTotalStakesForDate(
-            lockedDate,
-            blockBefore
-        );
+        uint256 priorTotalStakeBefore =
+            staking.getPriorTotalStakesForDate(lockedDate, blockBefore);
         uint256 priorTotalStakeAfter = staking.getPriorTotalStakesForDate(lockedDate, blockAfter);
         assertEq(priorTotalStakeBefore - priorTotalStakeAfter, amount);
 
-        uint256 priorTotalStakeBefore2 = staking.getPriorTotalStakesForDate(
-            lockedDate2,
-            blockBefore
-        );
+        uint256 priorTotalStakeBefore2 =
+            staking.getPriorTotalStakesForDate(lockedDate2, blockBefore);
         assertEq(priorTotalStakeBefore2, amount2);
 
-        uint256 priorTotalStakeAfter2 = staking.getPriorTotalStakesForDate(
-            lockedDate2,
-            blockAfter
-        );
+        uint256 priorTotalStakeAfter2 =
+            staking.getPriorTotalStakesForDate(lockedDate2, blockAfter);
         assertEq(priorTotalStakeAfter2, amount + amount2);
 
         vm.stopPrank();
@@ -471,14 +458,10 @@ contract StakingFuzzTest is Test {
         assertEq(staking.delegates(user, expectedExtendUntil), user);
 
         //check getPriorTotalStakesForDate
-        uint256 priorTotalStakeBefore = staking.getPriorTotalStakesForDate(
-            lockedDate,
-            blockBefore
-        );
-        uint256 priorTotalStakeAfter = staking.getPriorTotalStakesForDate(
-            expectedExtendUntil,
-            blockAfter
-        );
+        uint256 priorTotalStakeBefore =
+            staking.getPriorTotalStakesForDate(lockedDate, blockBefore);
+        uint256 priorTotalStakeAfter =
+            staking.getPriorTotalStakesForDate(expectedExtendUntil, blockAfter);
         assertEq(priorTotalStakeBefore, priorTotalStakeAfter);
 
         vm.stopPrank();
@@ -604,10 +587,8 @@ contract StakingFuzzTest is Test {
         );
 
         // delegateStakingCheckpoints - user
-        uint32 numDelegateStakingCheckpoints = staking.numDelegateStakingCheckpoints(
-            user,
-            lockedTS
-        );
+        uint32 numDelegateStakingCheckpoints =
+            staking.numDelegateStakingCheckpoints(user, lockedTS);
         assertTrue(
             numDelegateStakingCheckpoints == 2,
             "Unexpected number of delegate staking checkpoints for user"
@@ -762,46 +743,30 @@ contract StakingFuzzTest is Test {
             assertTrue(userDelegatee == delegatee, "Unexpected delegatee");
 
             // Check getPriorTotalStakesForDate
-            uint256 priorTotalStakeBefore = staking.getPriorTotalStakesForDate(
-                lockedDate,
-                blockBefore
-            );
-            uint256 priorTotalStakeAfter = staking.getPriorTotalStakesForDate(
-                lockedDate,
-                blockAfter
-            );
+            uint256 priorTotalStakeBefore =
+                staking.getPriorTotalStakesForDate(lockedDate, blockBefore);
+            uint256 priorTotalStakeAfter =
+                staking.getPriorTotalStakesForDate(lockedDate, blockAfter);
             assertTrue(
                 priorTotalStakeAfter - priorTotalStakeBefore == intervalAmount,
                 "Unexpected prior total stake difference"
             );
 
             // Check getPriorUserStakeByDate
-            uint256 priorUserStakeBefore = staking.getPriorUserStakeByDate(
-                user,
-                lockedDate,
-                blockBefore
-            );
-            uint256 priorUserStakeAfter = staking.getPriorUserStakeByDate(
-                user,
-                lockedDate,
-                blockAfter
-            );
+            uint256 priorUserStakeBefore =
+                staking.getPriorUserStakeByDate(user, lockedDate, blockBefore);
+            uint256 priorUserStakeAfter =
+                staking.getPriorUserStakeByDate(user, lockedDate, blockAfter);
             assertTrue(
                 priorUserStakeAfter - priorUserStakeBefore == intervalAmount,
                 "Unexpected prior user stake difference"
             );
 
             // Check getPriorStakeByDateForDelegatee
-            uint256 priorDelegateStakeBefore = staking.getPriorStakeByDateForDelegatee(
-                delegatee,
-                lockedDate,
-                blockBefore
-            );
-            uint256 priorDelegateStakeAfter = staking.getPriorStakeByDateForDelegatee(
-                delegatee,
-                lockedDate,
-                blockAfter
-            );
+            uint256 priorDelegateStakeBefore =
+                staking.getPriorStakeByDateForDelegatee(delegatee, lockedDate, blockBefore);
+            uint256 priorDelegateStakeAfter =
+                staking.getPriorStakeByDateForDelegatee(delegatee, lockedDate, blockAfter);
             assertTrue(
                 priorDelegateStakeAfter - priorDelegateStakeBefore == intervalAmount,
                 "Unexpected prior delegate stake difference"
@@ -983,11 +948,8 @@ contract StakingFuzzTest is Test {
         // Check getPriorUserStakeByDate
 
         // uint256 withdrawTsToLockDate = staking.timestampToLockDate(_withdrawTS);
-        uint256 priorUserStakeBefore = staking.getPriorUserStakeByDate(
-            user,
-            lockDate,
-            blockAfter - 2
-        );
+        uint256 priorUserStakeBefore =
+            staking.getPriorUserStakeByDate(user, lockDate, blockAfter - 2);
         uint256 priorUserStakeAfter = staking.getPriorUserStakeByDate(user, lockDate, blockAfter);
 
         assertEq(priorUserStakeBefore - priorUserStakeAfter, withdrawAmount2);
@@ -1051,10 +1013,8 @@ contract StakingFuzzTest is Test {
         );
 
         // _decreaseDelegateStake
-        uint32 numDelegateStakingCheckpoints = staking.numDelegateStakingCheckpoints(
-            user,
-            lockDate2
-        );
+        uint32 numDelegateStakingCheckpoints =
+            staking.numDelegateStakingCheckpoints(user, lockDate2);
         checkpoint = staking.delegateStakingCheckpoints(
             user,
             lockDate2,
@@ -1096,14 +1056,8 @@ contract StakingFuzzTest is Test {
         uint8 _blocksBetweenStakesIndex,
         bool _userStakesFirst
     ) external {
-        uint24[6] memory blocksRangeBetweenStakes = [
-            0,
-            1 days / 30,
-            7 days / 30,
-            14 days / 30,
-            28 days / 30,
-            30 days / 30
-        ]; // 1 block - 30 seconds
+        uint24[6] memory blocksRangeBetweenStakes =
+            [0, 1 days / 30, 7 days / 30, 14 days / 30, 28 days / 30, 30 days / 30]; // 1 block - 30 seconds
 
         _blocksBetweenStakesIndex = uint8(bound(uint256(_blocksBetweenStakesIndex), 0, 5));
 
@@ -1370,10 +1324,8 @@ contract StakingFuzzTest is Test {
         // delegate back to the user - success
         emit log_string("Delegate back to user");
 
-        uint256 rightAroundDelegateBack = staking.getPriorTotalVotingPower(
-            uint32(block.number - 1),
-            lockedTS
-        );
+        uint256 rightAroundDelegateBack =
+            staking.getPriorTotalVotingPower(uint32(block.number - 1), lockedTS);
         emit log_named_uint("  rightAroundDelegateBack before 3", rightAroundDelegateBack);
 
         beforeDelegation.userVotingPower = staking.getCurrentVotes(user);
@@ -1404,11 +1356,12 @@ contract StakingFuzzTest is Test {
             lockedTS
         );
         emit log_named_uint("  rightAroundDelegateBack before 2", rightAroundDelegateBack);
-        uint256 delegateeStakeAtDelegateBackToUserBlock = staking.getPriorUserStakeByDate(
-            delegatee,
-            lockedTS,
-            block.number - 1 //beforeDelegation.delegateeStakeBlock
-        );
+        uint256 delegateeStakeAtDelegateBackToUserBlock =
+            staking.getPriorUserStakeByDate(
+                delegatee,
+                lockedTS,
+                block.number - 1 //beforeDelegation.delegateeStakeBlock
+            );
         mineBlocksBack(1);
         emit log_named_uint(
             "  delegateeStakeAtDelegateBackToUserBlock",
@@ -1486,16 +1439,18 @@ contract StakingFuzzTest is Test {
         afterDelegation.delegateeBalance = sov.balanceOf(delegatee);
         afterDelegation.stakingBalance = sov.balanceOf(address(staking));
 
-        uint256[3] memory balancesBeforeDelegation = [
-            beforeDelegation.userBalance,
-            beforeDelegation.delegateeBalance,
-            beforeDelegation.stakingBalance
-        ];
-        uint256[3] memory balancesAfterDelegation = [
-            afterDelegation.userBalance,
-            afterDelegation.delegateeBalance,
-            afterDelegation.stakingBalance
-        ];
+        uint256[3] memory balancesBeforeDelegation =
+            [
+                beforeDelegation.userBalance,
+                beforeDelegation.delegateeBalance,
+                beforeDelegation.stakingBalance
+            ];
+        uint256[3] memory balancesAfterDelegation =
+            [
+                afterDelegation.userBalance,
+                afterDelegation.delegateeBalance,
+                afterDelegation.stakingBalance
+            ];
 
         for (uint8 i = 0; i < 3; i++) {
             emit log_named_uint("checking i", i);
@@ -1510,9 +1465,10 @@ contract StakingFuzzTest is Test {
         //@todo check events - should cut total VP and VP or all actors
         //@todo add test to withdraw after delegation to delegatee to check that delegated VP removed correctly
 
-        (uint96 expectedWithdrawAmount, uint96 expectedSlashAmount) = lockedTS > block.timestamp
-            ? staking.getWithdrawAmounts(uint96(amount), lockedTS)
-            : (uint96(amount), 0);
+        (uint96 expectedWithdrawAmount, uint96 expectedSlashAmount) =
+            lockedTS > block.timestamp
+                ? staking.getWithdrawAmounts(uint96(amount), lockedTS)
+                : (uint96(amount), 0);
         vm.expectEmit();
         emit DelegateStakeChanged({
             delegate: user,

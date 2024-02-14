@@ -459,7 +459,9 @@ async function createFourYearVestings(hre, path, signerAcc) {
 
     for (const [vestingAddress, amount] of Object.entries(amounts)) {
         const fourYearVesting = await ethers.getContractAt(
-            (await get("FourYearVestingLogic")).abi,
+            (
+                await get("FourYearVestingLogic")
+            ).abi,
             vestingAddress,
             signer
         );

@@ -49,7 +49,11 @@ contract SOV is ERC20, ERC20Detailed, Ownable {
      * @param _amount The amount of tokens to be sent.
      * @param _data Parameters for the contract call, such as endpoint signature.
      * */
-    function approveAndCall(address _spender, uint256 _amount, bytes memory _data) public {
+    function approveAndCall(
+        address _spender,
+        uint256 _amount,
+        bytes memory _data
+    ) public {
         approve(_spender, _amount);
         IApproveAndCall(_spender).receiveApproval(msg.sender, _amount, address(this), _data);
     }

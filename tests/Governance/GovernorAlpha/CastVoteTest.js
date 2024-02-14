@@ -101,11 +101,15 @@ contract("governorAlpha#castVote/2", (accounts) => {
     describe("Otherwise", () => {
         it("we add the sender to the proposal's voters set", async () => {
             await expect(
-                (await gov.getReceipt.call(proposalId, accounts[2])).hasVoted
+                (
+                    await gov.getReceipt.call(proposalId, accounts[2])
+                ).hasVoted
             ).to.be.equal(false);
             await gov.castVote(proposalId, true, { from: accounts[2] });
             await expect(
-                (await gov.getReceipt.call(proposalId, accounts[2])).hasVoted
+                (
+                    await gov.getReceipt.call(proposalId, accounts[2])
+                ).hasVoted
             ).to.be.equal(true);
         });
 

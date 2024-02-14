@@ -84,8 +84,8 @@ task("sips:sip-details", "Get proposal state")
             quorum:       ${proposal.quorum}
             total votes:  ${totalVotes} (${totalVotes < proposal.quorum ? "<" : ">="} quorum)
             majority:     ${totalVotesMajorityPercentage}, satisfied: ${
-                proposal.forVotes.sub(totalVotesMajorityPercentage) > 0
-            }
+            proposal.forVotes.sub(totalVotesMajorityPercentage) > 0
+        }
             majority %:   ${majorityPercentageVotes}
             startTime:    ${new Date(proposal.startTime.mul(1000).toNumber()).toUTCString()}
             eta:          ${new Date(proposal.eta.mul(1000).toNumber()).toUTCString()}

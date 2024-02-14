@@ -17,11 +17,7 @@ contract DevelopmentFund {
     IERC20 public SOV;
 
     /// @notice The current contract status.
-    enum Status {
-        Deployed,
-        Active,
-        Expired
-    }
+    enum Status { Deployed, Active, Expired }
     Status public status;
 
     /// @notice The owner of the locked tokens (usually Governance).
@@ -208,9 +204,11 @@ contract DevelopmentFund {
      * @notice Update Locked Token Owner.
      * @param _newLockedTokenOwner The owner of the locked tokens & contract.
      */
-    function updateLockedTokenOwner(
-        address _newLockedTokenOwner
-    ) public onlyLockedTokenOwner checkStatus(Status.Active) {
+    function updateLockedTokenOwner(address _newLockedTokenOwner)
+        public
+        onlyLockedTokenOwner
+        checkStatus(Status.Active)
+    {
         require(_newLockedTokenOwner != address(0), "New locked token owner address invalid.");
 
         newLockedTokenOwner = _newLockedTokenOwner;
@@ -236,9 +234,11 @@ contract DevelopmentFund {
      * @notice Update Unlocked Token Owner.
      * @param _newUnlockedTokenOwner The new unlocked token owner.
      */
-    function updateUnlockedTokenOwner(
-        address _newUnlockedTokenOwner
-    ) public onlyLockedTokenOwner checkStatus(Status.Active) {
+    function updateUnlockedTokenOwner(address _newUnlockedTokenOwner)
+        public
+        onlyLockedTokenOwner
+        checkStatus(Status.Active)
+    {
         require(_newUnlockedTokenOwner != address(0), "New unlocked token owner address invalid.");
 
         unlockedTokenOwner = _newUnlockedTokenOwner;
@@ -298,18 +298,17 @@ contract DevelopmentFund {
 
         /// If the token balance is not sufficient, then we transfer the change to contract.
         if (remainingTokens < _releaseTotalTokenAmount) {
-            bool txStatus = SOV.transferFrom(
-                msg.sender,
-                address(this),
-                _releaseTotalTokenAmount.sub(remainingTokens)
-            );
+            bool txStatus =
+                SOV.transferFrom(
+                    msg.sender,
+                    address(this),
+                    _releaseTotalTokenAmount.sub(remainingTokens)
+                );
             require(txStatus, "Not enough token sent to change release schedule.");
         } else if (remainingTokens > _releaseTotalTokenAmount) {
             /// If there are more tokens than required, send the extra tokens back.
-            bool txStatus = SOV.transfer(
-                msg.sender,
-                remainingTokens.sub(_releaseTotalTokenAmount)
-            );
+            bool txStatus =
+                SOV.transfer(msg.sender, remainingTokens.sub(_releaseTotalTokenAmount));
             require(txStatus, "Token not received by the Locked Owner.");
         }
 
@@ -342,9 +341,11 @@ contract DevelopmentFund {
      * @notice Withdraws all unlocked/released token.
      * @param _amount The amount to be withdrawn.
      */
-    function withdrawTokensByUnlockedTokenOwner(
-        uint256 _amount
-    ) public onlyUnlockedTokenOwner checkStatus(Status.Active) {
+    function withdrawTokensByUnlockedTokenOwner(uint256 _amount)
+        public
+        onlyUnlockedTokenOwner
+        checkStatus(Status.Active)
+    {
         require(_amount > 0, "Zero can't be withdrawn.");
 
         uint256 count; /// To know how many elements to be removed from the release schedule.
@@ -396,9 +397,11 @@ contract DevelopmentFund {
      * @dev This could be called when the current development fund has to be upgraded.
      * @param _receiver The address which receives this token transfer.
      */
-    function transferTokensByLockedTokenOwner(
-        address _receiver
-    ) public onlyLockedTokenOwner checkStatus(Status.Active) {
+    function transferTokensByLockedTokenOwner(address _receiver)
+        public
+        onlyLockedTokenOwner
+        checkStatus(Status.Active)
+    {
         uint256 remainingTokens = SOV.balanceOf(address(this));
         bool txStatus = SOV.transfer(_receiver, remainingTokens);
         require(txStatus, "Token transfer was not successful. Check receiver address.");

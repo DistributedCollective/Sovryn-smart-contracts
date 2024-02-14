@@ -28,7 +28,11 @@ contract FlashLoanerTest is Ownable {
             );
     }
 
-    function repayFlashLoan(address loanToken, address iToken, uint256 loanAmount) internal {
+    function repayFlashLoan(
+        address loanToken,
+        address iToken,
+        uint256 loanAmount
+    ) internal {
         IERC20(loanToken).transfer(iToken, loanAmount);
     }
 
@@ -61,10 +65,11 @@ contract FlashLoanerTest is Ownable {
         }
     }
 
-    function hashCompareWithLengthCheck(
-        bytes memory a,
-        bytes memory b
-    ) internal pure returns (bool) {
+    function hashCompareWithLengthCheck(bytes memory a, bytes memory b)
+        internal
+        pure
+        returns (bool)
+    {
         if (a.length != b.length) {
             return false;
         } else {

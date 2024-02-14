@@ -352,7 +352,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage {
         uint256 totalTokenSupply = totalSupply_;
 
         return
-            totalTokenSupply != 0 ? assetSupply.mul(10 ** 18).div(totalTokenSupply) : initialPrice;
+            totalTokenSupply != 0 ? assetSupply.mul(10**18).div(totalTokenSupply) : initialPrice;
     }
 
     /**
@@ -369,11 +369,10 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage {
         uint256 interestFeePercent;
         (, , interestOwedPerDay, interestUnPaid, interestFeePercent, ) = ProtocolLike(
             sovrynContractAddress
-        ).getLenderInterestData(address(this), loanTokenAddress);
+        )
+            .getLenderInterestData(address(this), loanTokenAddress);
 
-        interestUnPaid = interestUnPaid.mul(SafeMath.sub(10 ** 20, interestFeePercent)).div(
-            10 ** 20
-        );
+        interestUnPaid = interestUnPaid.mul(SafeMath.sub(10**20, interestFeePercent)).div(10**20);
     }
 
     /**
@@ -381,9 +380,11 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage {
      * @param interestUnPaid The interest not yet paid.
      * @return assetSupply The total amount of loan tokens on supply.
      * */
-    function _totalAssetSupply(
-        uint256 interestUnPaid
-    ) internal view returns (uint256 assetSupply) {
+    function _totalAssetSupply(uint256 interestUnPaid)
+        internal
+        view
+        returns (uint256 assetSupply)
+    {
         if (totalSupply_ != 0) {
             uint256 assetsBalance = _flTotalAssetSupply; /// Temporary locked totalAssetSupply during a flash loan transaction.
             if (assetsBalance == 0) {

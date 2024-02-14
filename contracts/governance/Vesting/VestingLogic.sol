@@ -158,7 +158,11 @@ contract VestingLogic is IVesting, VestingStorage, ApprovalReceiver {
      * @param endAt end time for regular withdrawal
      * or just unlocked tokens (false).
      * */
-    function _withdrawTokens(address receiver, uint256 startFrom, uint256 endAt) internal {
+    function _withdrawTokens(
+        address receiver,
+        uint256 startFrom,
+        uint256 endAt
+    ) internal {
         require(receiver != address(0), "receiver address invalid");
 
         uint96 stake;

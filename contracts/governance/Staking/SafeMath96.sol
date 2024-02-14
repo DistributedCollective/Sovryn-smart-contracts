@@ -18,17 +18,17 @@ pragma experimental ABIEncoderV2;
  * */
 contract SafeMath96 {
     function safe32(uint256 n, string memory errorMessage) internal pure returns (uint32) {
-        require(n < 2 ** 32, errorMessage);
+        require(n < 2**32, errorMessage);
         return uint32(n);
     }
 
     function safe64(uint256 n, string memory errorMessage) internal pure returns (uint64) {
-        require(n < 2 ** 64, errorMessage);
+        require(n < 2**64, errorMessage);
         return uint64(n);
     }
 
     function safe96(uint256 n, string memory errorMessage) internal pure returns (uint96) {
-        require(n < 2 ** 96, errorMessage);
+        require(n < 2**96, errorMessage);
         return uint96(n);
     }
 
@@ -40,7 +40,11 @@ contract SafeMath96 {
      * @param errorMessage The revert message on overflow.
      * @return The safe addition a+b.
      * */
-    function add96(uint96 a, uint96 b, string memory errorMessage) internal pure returns (uint96) {
+    function add96(
+        uint96 a,
+        uint96 b,
+        string memory errorMessage
+    ) internal pure returns (uint96) {
         uint96 c = a + b;
         require(c >= a, errorMessage);
         return c;
@@ -54,7 +58,11 @@ contract SafeMath96 {
      * @param errorMessage The revert message on underflow.
      * @return The safe substraction a-b.
      * */
-    function sub96(uint96 a, uint96 b, string memory errorMessage) internal pure returns (uint96) {
+    function sub96(
+        uint96 a,
+        uint96 b,
+        string memory errorMessage
+    ) internal pure returns (uint96) {
         require(b <= a, errorMessage);
         return a - b;
     }
@@ -67,7 +75,11 @@ contract SafeMath96 {
      * @param errorMessage The revert message on overflow.
      * @return The safe product a*b.
      * */
-    function mul96(uint96 a, uint96 b, string memory errorMessage) internal pure returns (uint96) {
+    function mul96(
+        uint96 a,
+        uint96 b,
+        string memory errorMessage
+    ) internal pure returns (uint96) {
         if (a == 0) {
             return 0;
         }
@@ -86,7 +98,11 @@ contract SafeMath96 {
      * @param errorMessage The revert message on overflow.
      * @return The safe division a/b.
      * */
-    function div96(uint96 a, uint96 b, string memory errorMessage) internal pure returns (uint96) {
+    function div96(
+        uint96 a,
+        uint96 b,
+        string memory errorMessage
+    ) internal pure returns (uint96) {
         // Solidity only automatically asserts when dividing by 0
         require(b > 0, errorMessage);
         uint96 c = a / b;

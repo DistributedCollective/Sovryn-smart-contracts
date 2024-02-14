@@ -37,10 +37,10 @@ import "../../reentrancy/SharedReentrancyGuard.sol";
  * use the BZRX tokens, which are only used to pay fees on the network currently.
  * */
 contract LoanTokenBase is ReentrancyGuard, SharedReentrancyGuard, Ownable, Pausable {
-    uint256 internal constant WEI_PRECISION = 10 ** 18;
-    uint256 internal constant WEI_PERCENT_PRECISION = 10 ** 20;
+    uint256 internal constant WEI_PRECISION = 10**18;
+    uint256 internal constant WEI_PERCENT_PRECISION = 10**20;
 
-    int256 internal constant sWEI_PRECISION = 10 ** 18;
+    int256 internal constant sWEI_PRECISION = 10**18;
 
     /// @notice Standard ERC-20 properties
     string public name;

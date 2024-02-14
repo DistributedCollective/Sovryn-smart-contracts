@@ -36,15 +36,15 @@ contract ErrorDecoder {
      * @param str2 Second string, usually the error message from the reverted call.
      * @return The concatenated error string
      */
-    function _addErrorMessage(
-        string memory str1,
-        string memory str2
-    ) internal pure returns (string memory) {
+    function _addErrorMessage(string memory str1, string memory str2)
+        internal
+        pure
+        returns (string memory)
+    {
         bytes memory bytesStr1 = bytes(str1);
         bytes memory bytesStr2 = bytes(str2);
-        string memory str12 = new string(
-            bytesStr1.length + bytesStr2.length - ERROR_MESSAGE_SHIFT
-        );
+        string memory str12 =
+            new string(bytesStr1.length + bytesStr2.length - ERROR_MESSAGE_SHIFT);
         bytes memory bytesStr12 = bytes(str12);
         uint256 j = 0;
         for (uint256 i = 0; i < bytesStr1.length; i++) {

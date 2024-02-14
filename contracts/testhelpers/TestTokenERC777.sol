@@ -106,7 +106,11 @@ contract TestTokenERC777 is Context, IERC777, IERC20 {
      *
      * Also emits a {IERC20-Transfer} event for ERC20 compatibility.
      */
-    function send(address recipient, uint256 amount, bytes memory data) public {
+    function send(
+        address recipient,
+        uint256 amount,
+        bytes memory data
+    ) public {
         _send(_msgSender(), _msgSender(), recipient, amount, data, "", true);
     }
 
@@ -396,7 +400,11 @@ contract TestTokenERC777 is Context, IERC777, IERC20 {
         emit Transfer(from, to, amount);
     }
 
-    function _approve(address holder, address spender, uint256 value) internal {
+    function _approve(
+        address holder,
+        address spender,
+        uint256 value
+    ) internal {
         // TODO: restore this require statement if this function becomes internal, or is called at a new callsite. It is
         // currently unnecessary.
         //require(holder != address(0), "ERC777: approve from the zero address");
@@ -423,10 +431,8 @@ contract TestTokenERC777 is Context, IERC777, IERC20 {
         bytes memory userData,
         bytes memory operatorData
     ) internal {
-        address implementer = ERC1820_REGISTRY.getInterfaceImplementer(
-            from,
-            TOKENS_SENDER_INTERFACE_HASH
-        );
+        address implementer =
+            ERC1820_REGISTRY.getInterfaceImplementer(from, TOKENS_SENDER_INTERFACE_HASH);
         if (implementer != address(0)) {
             IERC777Sender(implementer).tokensToSend(
                 operator,
@@ -459,10 +465,8 @@ contract TestTokenERC777 is Context, IERC777, IERC20 {
         bytes memory operatorData,
         bool requireReceptionAck
     ) internal {
-        address implementer = ERC1820_REGISTRY.getInterfaceImplementer(
-            to,
-            TOKENS_RECIPIENT_INTERFACE_HASH
-        );
+        address implementer =
+            ERC1820_REGISTRY.getInterfaceImplementer(to, TOKENS_RECIPIENT_INTERFACE_HASH);
         if (implementer != address(0)) {
             IERC777Recipient(implementer).tokensReceived(
                 operator,
