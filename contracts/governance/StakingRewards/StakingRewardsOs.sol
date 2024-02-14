@@ -29,8 +29,8 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
         IStaking _staking,
         uint256 _averageBlockTime
     ) external onlyOwner initializer {
-        require(_osSOV != address(0), "Invalid _osSOV Address.");
-        require(Address.isContract(_osSOV), "_osSOV not a contract");
+        require(_osSOV != address(0), "Invalid OsSOV Address");
+        require(Address.isContract(_osSOV), "OsSOV is not a contract");
         osSOV = IERC20Mintable(_osSOV);
         staking = _staking;
         rewardsProgramStartTime = staking.timestampToLockDate(block.timestamp);
@@ -62,7 +62,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
      * */
     function claimReward(uint256 _startTime) external {
         require(
-            stopBlock == 0 || userLastWithdrawTimestamp[msg.sender] < stopRewardsTimestamp,
+            stopBlock == 0 || stakerLastWithdrawTimestamp[msg.sender] < stopRewardsTimestamp,
             "Entire reward already paid"
         );
         (uint256 withdrawalTime, uint256 amount) = _getStakerCurrentReward(
@@ -71,7 +71,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
             _startTime
         );
         require(withdrawalTime > 0 && amount > 0, "No valid reward");
-        userLastWithdrawTimestamp[msg.sender] = withdrawalTime;
+        stakerLastWithdrawTimestamp[msg.sender] = withdrawalTime;
         _payReward(msg.sender, amount);
     }
 
@@ -186,9 +186,9 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
     function getStakerCurrentReward(
         bool _considerMaxDuration,
         uint256 _startTime
-    ) public view returns (uint256 lastStakerWithdrawalTimestamp, uint256 amount) {
+    ) external view returns (uint256 lastWithdrawTimestamp, uint256 amount) {
         address staker = msg.sender;
-        uint256 lastWithdrawTimestamp = userLastWithdrawTimestamp[staker];
+        uint256 lastWithdrawTimestamp = stakerLastWithdrawTimestamp[staker];
         if (stopBlock != 0 && lastWithdrawTimestamp >= stopBlock) {
             return (0, lastWithdrawTimestamp);
         }
@@ -199,8 +199,8 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
         address _staker,
         bool _considerMaxDuration,
         uint256 _startTime
-    ) internal view returns (uint256 lastStakerWithdrawalTimestamp, uint256 amount) {
-        uint256 lastWithdrawTimestamp = userLastWithdrawTimestamp[_staker];
+    ) internal view returns (uint256 lastWithdrawTimestamp, uint256 amount) {
+        lastWithdrawTimestamp = stakerLastWithdrawTimestamp[_staker];
         if (stopBlock != 0 && lastWithdrawTimestamp >= stopRewardsTimestamp) {
             return (0, lastWithdrawTimestamp);
         }
@@ -209,31 +209,29 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
         uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
         uint256 withdrawalEndTimestamp;
 
-        uint256 lastStakingLockDate = staking.timestampToLockDate(block.timestamp);
-        lastStakerWithdrawalTimestamp = lastWithdrawTimestamp > 0
-            ? lastWithdrawTimestamp
-            : rewardsProgramStartTime;
-        if (lastStakingLockDate <= lastStakerWithdrawalTimestamp) return (0, 0);
-        /* Normally the restart time is 0. If this function returns a valid lastStakerWithdrawalTimestamp
+        uint256 currentBlockTsToLockDate = staking.timestampToLockDate(block.timestamp);
+
+        if (lastWithdrawTimestamp == 0) {
+            lastWithdrawTimestamp = rewardsProgramStartTime;
+        }
+
+        if (currentBlockTsToLockDate <= lastWithdrawTimestamp) return (0, 0);
+        /* Normally the restart time is 0. If this function returns a valid lastWithdrawTimestamp
 		and zero amount - that means there were no valid rewards for that period. So the new period must start
 		from the end of the last interval or till the time no rewards are accumulated i.e. _startTime */
-        if (_startTime >= lastStakerWithdrawalTimestamp) {
-            lastStakerWithdrawalTimestamp = staking.timestampToLockDate(_startTime);
+        if (_startTime >= lastWithdrawTimestamp) {
+            lastWithdrawTimestamp = staking.timestampToLockDate(_startTime);
         }
 
         if (_considerMaxDuration) {
-            uint256 withdrawalMaxEndTimestamp = lastStakerWithdrawalTimestamp.add(maxDuration);
-            withdrawalEndTimestamp = withdrawalMaxEndTimestamp < block.timestamp
-                ? staking.timestampToLockDate(withdrawalMaxEndTimestamp)
-                : lastStakingLockDate;
+            uint256 maxWithdrawTimestamp = lastWithdrawTimestamp.add(maxDuration);
+            withdrawalEndTimestamp = maxWithdrawTimestamp < block.timestamp
+                ? staking.timestampToLockDate(maxWithdrawTimestamp)
+                : currentBlockTsToLockDate;
         } else {
-            withdrawalEndTimestamp = lastStakingLockDate;
+            withdrawalEndTimestamp = currentBlockTsToLockDate;
         }
-        for (
-            uint256 i = lastStakerWithdrawalTimestamp;
-            i < withdrawalEndTimestamp;
-            i += TWO_WEEKS
-        ) {
+        for (uint256 i = lastWithdrawTimestamp; i < withdrawalEndTimestamp; i += TWO_WEEKS) {
             uint256 referenceBlock = checkpointBlockDetails[i];
             if (referenceBlock == 0) {
                 referenceBlock = lastFinalisedBlock.sub(
@@ -245,7 +243,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
                 _computWeightedStakeForDate(_staker, referenceBlock, i)
             );
         }
-        lastStakerWithdrawalTimestamp = withdrawalEndTimestamp;
+        lastWithdrawTimestamp = withdrawalEndTimestamp;
         amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
     }
 }

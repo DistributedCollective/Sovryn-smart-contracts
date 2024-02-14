@@ -44,7 +44,7 @@ contract StakingRewardsOsStorage is Ownable {
     uint256 internal stopRewardsTimestamp;
 
     /// @notice User Address -> Last Withdrawn Timestamp
-    mapping(address => uint256) internal userLastWithdrawTimestamp;
+    mapping(address => uint256) internal stakerLastWithdrawTimestamp;
 
     /// @notice User Address -> Claimed Balance
     mapping(address => uint256) internal claimedBalances;

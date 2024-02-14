@@ -60,9 +60,9 @@ contract OsSOV is ERC20Capped, AccessControl, Ownable, Initializable {
     }
 
     /**
-     * @param _authorizedMinter Address of the minter - Staking Rewards contract
-     * @param _defaultAdmin Address for AcccessControl DEFAULT_ADMIN_ROLE to manage roles: assign and revoke
      * @param _owner Address for AccessControl OWNER_ROLE to use in onlyOwner() modifier
+     * @param _defaultAdmin Address for AcccessControl DEFAULT_ADMIN_ROLE to manage roles: assign and revoke
+     * @param _authorizedMinter Address of the minter - Staking Rewards contract
      */
     function initialize(
         address _owner,
@@ -89,6 +89,13 @@ contract OsSOV is ERC20Capped, AccessControl, Ownable, Initializable {
      */
     function setDefaultAdminRole(address _adminRole) external onlyOwner {
         _grantRole(DEFAULT_ADMIN_ROLE, _adminRole);
+    }
+
+    /**
+     * @param _authorizedMinter Address of the minter - should be Staking Rewards contract
+     */
+    function setAuthorisedMinterRole(address _authorizedMinter) external onlyOwner {
+        _grantRole(AUTHORISED_MINTER_ROLE, _authorizedMinter);
     }
 
     /**
