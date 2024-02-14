@@ -167,6 +167,7 @@ module.exports = {
             allowUnlimitedContractSize: true,
             accounts: { mnemonic: "test test test test test test test test test test test junk" },
             initialBaseFeePerGas: 0,
+            saveDeployments: false,
             //blockGasLimit: 6800000,
             //gasPrice: 66000010,
             //timeout: 1000000,
