@@ -981,6 +981,51 @@ const getArgsSip0074 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0076 = async (hre) => {
+    // Electron release
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const adoptionFundDeployment = await get("AdoptionFund");
+    const devFundDeployment = await get("DevelopmentFund");
+    const sovTokenDeployment = await get("SOV");
+    const multisigDeployment = await get("MultiSigWallet");
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [
+            adoptionFundDeployment.address,
+            devFundDeployment.address,
+            sovTokenDeployment.address,
+        ],
+        values: [0, 0, 0],
+        signatures: [
+            "withdrawTokensByUnlockedTokenOwner(uint256)",
+            "withdrawTokensByUnlockedTokenOwner(uint256)",
+            "transfer(address,uint256)",
+        ],
+        data: [
+            abiCoder.encode(["uint256"], [ethers.utils.parseEther("7475000")]),
+            abiCoder.encode(["uint256"], [ethers.utils.parseEther("1650500")]),
+            abiCoder.encode(
+                ["address", "uint256"],
+                [multisigDeployment.address, ethers.utils.parseEther("9125500")]
+            ),
+        ],
+        description:
+            "SIP-0076: Transfer of SOV from Adoption and Development Funds to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/201f0591ee2a75bacc48b5e0e71662a1a5c06192/SIP-0076.md, sha256: aab2ec1108f4719207c2c69e47bf6d4a67ac66ff28afe6ae97d9831616edb18d",
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -997,4 +1042,5 @@ module.exports = {
     getArgsSip0073,
     getArgsSip_SOV_3161,
     getArgsSip0074,
+    getArgsSip0076,
 };
