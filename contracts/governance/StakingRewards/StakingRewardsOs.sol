@@ -65,13 +65,13 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
             stopBlock == 0 || stakerLastWithdrawTimestamp[msg.sender] < stopRewardsTimestamp,
             "Entire reward already paid"
         );
-        (uint256 withdrawalTime, uint256 amount) = _getStakerCurrentReward(
+        (uint256 withdrawTimestamp, uint256 amount) = _getStakerCurrentReward(
             msg.sender,
             true,
             _startTime
         );
-        require(withdrawalTime > 0 && amount > 0, "No valid reward");
-        stakerLastWithdrawTimestamp[msg.sender] = withdrawalTime;
+        require(withdrawTimestamp > 0 && amount > 0, "No valid reward");
+        stakerLastWithdrawTimestamp[msg.sender] = withdrawTimestamp;
         _payReward(msg.sender, amount);
     }
 
@@ -187,12 +187,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
         bool _considerMaxDuration,
         uint256 _startTime
     ) external view returns (uint256 lastWithdrawTimestamp, uint256 amount) {
-        address staker = msg.sender;
-        uint256 lastWithdrawTimestamp = stakerLastWithdrawTimestamp[staker];
-        if (stopBlock != 0 && lastWithdrawTimestamp >= stopBlock) {
-            return (0, lastWithdrawTimestamp);
-        }
-        return _getStakerCurrentReward(staker, _considerMaxDuration, _startTime);
+        return _getStakerCurrentReward(msg.sender, _considerMaxDuration, _startTime);
     }
 
     function _getStakerCurrentReward(
@@ -202,7 +197,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
     ) internal view returns (uint256 lastWithdrawTimestamp, uint256 amount) {
         lastWithdrawTimestamp = stakerLastWithdrawTimestamp[_staker];
         if (stopBlock != 0 && lastWithdrawTimestamp >= stopRewardsTimestamp) {
-            return (0, lastWithdrawTimestamp);
+            return (lastWithdrawTimestamp, 0);
         }
 
         uint256 weightedStake;
@@ -230,6 +225,9 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
                 : currentBlockTsToLockDate;
         } else {
             withdrawalEndTimestamp = currentBlockTsToLockDate;
+        }
+        if (stopBlock != 0 && withdrawalEndTimestamp >= stopRewardsTimestamp) {
+            withdrawalEndTimestamp = stopRewardsTimestamp;
         }
         for (uint256 i = lastWithdrawTimestamp; i < withdrawalEndTimestamp; i += TWO_WEEKS) {
             uint256 referenceBlock = checkpointBlockDetails[i];

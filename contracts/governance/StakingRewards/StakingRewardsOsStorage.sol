@@ -82,6 +82,10 @@ contract StakingRewardsOsStorage is Ownable {
         return stopRewardsTimestamp;
     }
 
+    function getStakerLastWithdrawTimestamp(address _staker) external view returns (uint256) {
+        return stakerLastWithdrawTimestamp[_staker];
+    }
+
     function getDeploymentBlock() external view returns (uint256) {
         return deploymentBlock;
     }
