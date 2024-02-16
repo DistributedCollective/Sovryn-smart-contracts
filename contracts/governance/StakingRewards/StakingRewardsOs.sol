@@ -16,7 +16,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
     /// @notice Emitted when osSOV is withdrawn
     /// @param receiver The address which recieves the osSOV
     /// @param amount The amount withdrawn from the Smart Contract
-    event RewardWithdrawn(address indexed receiver, uint256 amount);
+    event RewardPaid(address indexed receiver, uint256 amount);
 
     /**
      * @notice Replacement of constructor by initialize function for Upgradable Contracts
@@ -62,7 +62,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
      * */
     function claimReward(uint256 _startTime) external {
         require(
-            stopBlock == 0 || stakerLastWithdrawTimestamp[msg.sender] < stopRewardsTimestamp,
+            stopBlock == 0 || stakerNextWithdrawTimestamp[msg.sender] < stopRewardsTimestamp,
             "Entire reward already paid"
         );
         (uint256 withdrawTimestamp, uint256 amount) = _getStakerCurrentReward(
@@ -71,7 +71,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
             _startTime
         );
         require(withdrawTimestamp > 0 && amount > 0, "No valid reward");
-        stakerLastWithdrawTimestamp[msg.sender] = withdrawTimestamp;
+        stakerNextWithdrawTimestamp[msg.sender] = withdrawTimestamp;
         _payReward(msg.sender, amount);
     }
 
@@ -150,7 +150,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
         require(_amount != 0, "amount invalid");
         claimedBalances[_staker] = claimedBalances[_staker].add(_amount);
         osSOV.mint(_staker, _amount);
-        emit RewardWithdrawn(_staker, _amount);
+        emit RewardPaid(_staker, _amount);
     }
 
     /**
@@ -186,50 +186,59 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
     function getStakerCurrentReward(
         bool _considerMaxDuration,
         uint256 _startTime
-    ) external view returns (uint256 lastWithdrawTimestamp, uint256 amount) {
+    ) external view returns (uint256 nextWithdrawTimestamp, uint256 amount) {
         return _getStakerCurrentReward(msg.sender, _considerMaxDuration, _startTime);
     }
 
+    /**
+     * @notice Internal function to calculate staker's current reward
+     * @dev Normally the start time is 0. If this function returns a valid withdraw timestamp
+     * and zero amount - that means there were no valid rewards for that period. So the new period must start
+     * from the end of the last interval or till the time no rewards are accumulated i.e. _startTime
+     */
     function _getStakerCurrentReward(
         address _staker,
         bool _considerMaxDuration,
         uint256 _startTime
-    ) internal view returns (uint256 lastWithdrawTimestamp, uint256 amount) {
-        lastWithdrawTimestamp = stakerLastWithdrawTimestamp[_staker];
-        if (stopBlock != 0 && lastWithdrawTimestamp >= stopRewardsTimestamp) {
-            return (lastWithdrawTimestamp, 0);
-        }
-
+    ) internal view returns (uint256 nextWithdrawTimestamp, uint256 amount) {
         uint256 weightedStake;
-        uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
-        uint256 withdrawalEndTimestamp;
+        uint256 lastFinalisedBlock;
+        uint256 startWithdrawTimestamp;
+        uint256 endWithdrawTimestamp;
+
+        startWithdrawTimestamp = stakerNextWithdrawTimestamp[_staker];
+        if (stopBlock != 0 && startWithdrawTimestamp >= stopRewardsTimestamp) {
+            return (startWithdrawTimestamp, 0);
+        }
 
         uint256 currentBlockTsToLockDate = staking.timestampToLockDate(block.timestamp);
 
-        if (lastWithdrawTimestamp == 0) {
-            lastWithdrawTimestamp = rewardsProgramStartTime;
+        if (startWithdrawTimestamp == 0) {
+            startWithdrawTimestamp = rewardsProgramStartTime;
         }
-
-        if (currentBlockTsToLockDate <= lastWithdrawTimestamp) return (0, 0);
-        /* Normally the restart time is 0. If this function returns a valid lastWithdrawTimestamp
-		and zero amount - that means there were no valid rewards for that period. So the new period must start
-		from the end of the last interval or till the time no rewards are accumulated i.e. _startTime */
-        if (_startTime >= lastWithdrawTimestamp) {
-            lastWithdrawTimestamp = staking.timestampToLockDate(_startTime);
+        if (currentBlockTsToLockDate <= startWithdrawTimestamp) {
+            return (startWithdrawTimestamp, 0);
+        }
+        if (startWithdrawTimestamp <= _startTime) {
+            startWithdrawTimestamp = staking.timestampToLockDate(_startTime);
         }
 
         if (_considerMaxDuration) {
-            uint256 maxWithdrawTimestamp = lastWithdrawTimestamp.add(maxDuration);
-            withdrawalEndTimestamp = maxWithdrawTimestamp < block.timestamp
-                ? staking.timestampToLockDate(maxWithdrawTimestamp)
+            endWithdrawTimestamp = startWithdrawTimestamp.add(maxDuration);
+            endWithdrawTimestamp = endWithdrawTimestamp < block.timestamp
+                ? staking.timestampToLockDate(endWithdrawTimestamp)
                 : currentBlockTsToLockDate;
         } else {
-            withdrawalEndTimestamp = currentBlockTsToLockDate;
+            endWithdrawTimestamp = currentBlockTsToLockDate;
         }
-        if (stopBlock != 0 && withdrawalEndTimestamp >= stopRewardsTimestamp) {
-            withdrawalEndTimestamp = stopRewardsTimestamp;
+
+        if (stopBlock != 0 && endWithdrawTimestamp > stopRewardsTimestamp) {
+            // add 2 weeks because the right boundary is not included in processing cycle below
+            endWithdrawTimestamp = stopRewardsTimestamp.add(TWO_WEEKS);
         }
-        for (uint256 i = lastWithdrawTimestamp; i < withdrawalEndTimestamp; i += TWO_WEEKS) {
+
+        lastFinalisedBlock = _getCurrentBlockNumber() - 1;
+        for (uint256 i = startWithdrawTimestamp; i < endWithdrawTimestamp; i += TWO_WEEKS) {
             uint256 referenceBlock = checkpointBlockNumber[i];
             if (referenceBlock == 0) {
                 referenceBlock = lastFinalisedBlock.sub(
@@ -241,7 +250,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
                 _computWeightedStakeForDate(_staker, referenceBlock, i)
             );
         }
-        lastWithdrawTimestamp = withdrawalEndTimestamp;
+        nextWithdrawTimestamp = endWithdrawTimestamp;
         amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
     }
 }

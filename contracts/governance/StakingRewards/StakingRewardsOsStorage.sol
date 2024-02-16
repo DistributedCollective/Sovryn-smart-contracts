@@ -44,8 +44,8 @@ contract StakingRewardsOsStorage is Ownable {
     /// @notice Timestamp of the stopBlock adjusted to the staking lock timestamp
     uint256 internal stopRewardsTimestamp;
 
-    /// @notice User Address -> Last Withdrawn Timestamp
-    mapping(address => uint256) internal stakerLastWithdrawTimestamp;
+    /// @notice User Address -> Next Withdrawn Timestamp
+    mapping(address => uint256) internal stakerNextWithdrawTimestamp;
 
     /// @notice User Address -> Claimed Balance
     mapping(address => uint256) internal claimedBalances;
@@ -90,8 +90,8 @@ contract StakingRewardsOsStorage is Ownable {
         return stopRewardsTimestamp;
     }
 
-    function getStakerLastWithdrawTimestamp(address _staker) external view returns (uint256) {
-        return stakerLastWithdrawTimestamp[_staker];
+    function getStakerNextWithdrawTimestamp(address _staker) external view returns (uint256) {
+        return stakerNextWithdrawTimestamp[_staker];
     }
 
     function getDeploymentBlock() external view returns (uint256) {
