@@ -14,4 +14,5 @@ const func = async ({ deployments: { deploy, get }, getNamedAccounts, ethers }) 
 };
 
 func.tags = ["TransparentUpgradableProxyAdmin"];
+func.dependencies = ["MultiSigWallet"];
 module.exports = func;
