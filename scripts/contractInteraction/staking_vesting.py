@@ -160,15 +160,22 @@ def transferSOVtoVestingRegistry(vestingRegistryAddress, amount):
 
     sendWithMultisig(conf.contracts['multisig'], SOVtoken.address, data, conf.acct)
 
-# Check Block Number
-
-def getBlockOfStakingInterval(timestamp):
+# Check StakingRewards block number
+def getBlockOfStakingRewardsTimestamp(timestamp):
     # Get the contract instance
     stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
     return stakingRewards.checkpointBlockDetails(timestamp)
 
-# Read last staking timestamp
+# Check StakingRewardsOs block number
+def getBlockOfStakingRewardsOsTimestamp(timestamp):
+    # Get the contract instance
+    stakingRewardsOs = Contract.from_abi("StakingRewardsOs", address=conf.contracts['StakingRewardsOsProxy'], abi=StakingRewardsOs.abi, owner=conf.acct)
+    return stakingRewardsOs.checkpointBlockNumber(timestamp)
 
+def isStakingRewardsOsAddressSet():
+    return conf.contracts['StakingRewardsOsProxy']
+
+# Read last staking timestamp
 def readLockDate(timestamp):
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
     return staking.timestampToLockDate(timestamp)
@@ -206,6 +213,11 @@ def setBlockForStakingRewards():
     # Get the staking rewards proxy contract instance
     stakingRewardsProxy = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
     stakingRewardsProxy.setBlock()
+
+def setBlockForStakingRewardsOs():
+    if conf.contracts['StakingRewardsOsProxy']:
+        stakingRewardsProxy = Contract.from_abi("StakingRewardsOs", address=conf.contracts['StakingRewardsOsProxy'], abi=StakingRewardsOs.abi, owner=conf.acct)
+        stakingRewardsProxy.setBlock()
 
 # Set Historical Block
 

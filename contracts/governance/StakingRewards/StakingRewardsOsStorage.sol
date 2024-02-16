@@ -26,6 +26,7 @@ contract StakingRewardsOsStorage is Ownable {
     uint256 public constant DIVISOR = 2600000;
 
     /// @notice The SOV token contract.
+    // solhint-disable private-vars-leading-underscore
     IERC20Mintable internal osSOV;
 
     /// @notice the staking proxy contract address
@@ -53,10 +54,17 @@ contract StakingRewardsOsStorage is Ownable {
     uint256 internal deploymentBlock;
 
     /// @notice BlockTime -> BlockNumber for a Staking Checkpoint
-    mapping(uint256 => uint256) internal checkpointBlockDetails;
+    mapping(uint256 => uint256) internal checkpointBlockNumber;
 
     /// @notice Average Block Time - making it flexible
     uint256 internal averageBlockTime;
+
+    /// @param _checkpointTimestamp Checkpoint timestamp
+    function getCheckpointBlockNumber(
+        uint256 _checkpointTimestamp
+    ) external view returns (uint256) {
+        return checkpointBlockNumber[_checkpointTimestamp];
+    }
 
     function getOsSOV() external view returns (IERC20Mintable) {
         return osSOV;

@@ -85,7 +85,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
 
     /**
      * @notice This function computes the last staking checkpoint and calculates the corresponding
-     * block number using the average block time which is then added to the mapping `checkpointBlockDetails`.
+     * block number using the average block time which is then added to the mapping `checkpointBlockNumber`.
      */
     function setBlock() external {
         uint256 lastCheckpointTime = staking.timestampToLockDate(block.timestamp);
@@ -94,7 +94,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
 
     /**
      * @notice This function computes the block number using the average block time for a given historical
-     * checkpoint which is added to the mapping `checkpointBlockDetails`.
+     * checkpoint which is added to the mapping `checkpointBlockNumber`.
      * @param _time Exact staking checkpoint time
      */
     function setHistoricalBlock(uint256 _time) external {
@@ -167,11 +167,11 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
      * */
     function _setBlock(uint256 _checkpointTime) internal {
         uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
-        require(checkpointBlockDetails[_checkpointTime] == 0, "block number already set");
+        require(checkpointBlockNumber[_checkpointTime] == 0, "block number already set");
         uint256 checkpointBlock = lastFinalisedBlock.sub(
             ((block.timestamp.sub(_checkpointTime)).div(averageBlockTime))
         );
-        checkpointBlockDetails[_checkpointTime] = checkpointBlock;
+        checkpointBlockNumber[_checkpointTime] = checkpointBlock;
     }
 
     /**
@@ -230,7 +230,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
             withdrawalEndTimestamp = stopRewardsTimestamp;
         }
         for (uint256 i = lastWithdrawTimestamp; i < withdrawalEndTimestamp; i += TWO_WEEKS) {
-            uint256 referenceBlock = checkpointBlockDetails[i];
+            uint256 referenceBlock = checkpointBlockNumber[i];
             if (referenceBlock == 0) {
                 referenceBlock = lastFinalisedBlock.sub(
                     ((block.timestamp.sub(i)).div(averageBlockTime))
