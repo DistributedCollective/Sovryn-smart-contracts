@@ -16,8 +16,8 @@ const func = async function (hre) {
         deployer,
         "VestingRegistryLogic",
         "VestingRegistryProxy",
-        "",
-        "VestingRegistry_Proxy",
+        "VestingRegistry",
+        undefined,
         true
     );
 };
