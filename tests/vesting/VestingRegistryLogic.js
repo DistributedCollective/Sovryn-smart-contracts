@@ -322,7 +322,7 @@ contract("VestingRegistryLogic", (accounts) => {
             expect(await vesting.getAdminManager()).to.equal(ZERO_ADDRESS);
             await expectRevert(
                 vesting.setAdminManager(ZERO_ADDRESS, { from: owner }),
-                "invalid admin manager"
+                "Use removeAdminManager function to set adminManager to 0"
             );
             expect(await vesting.getAdminManager()).to.equal(ZERO_ADDRESS);
         });

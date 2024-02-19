@@ -5,8 +5,8 @@ const { sendWithMultisig } = require("../../deployment/helpers/helpers");
 
 task("setAdminManager", "SetAdminManager to the contract that implement adminManagerRole")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .addParam("adminManagerTarget", "Admin manager target: 'MultiSigWallet'")
-    .addParam("contractTarget", "Contract name target: e.g: 'VestingRegistry'")
+    .addParam("adminManager", "New admin manager: 'MultiSigWallet'")
+    .addParam("contractTarget", "Contract name or address to set admin manager: e.g: 'VestingRegistry'")
     .setAction(async ({ signer, adminManagerTarget, contractTarget }, hre) => {
         const {
             deployments: { get },
@@ -16,7 +16,17 @@ task("setAdminManager", "SetAdminManager to the contract that implement adminMan
         const signerAcc = (await hre.getNamedAccounts())[signer];
 
         const multisigDeployment = await get("MultiSigWallet");
-        const contractTargetDeployment = await get(contractTarget);
+
+        let contractTargetAddress = ethers.constants.AddressZero;
+        if (ethers.utils.isAddress(contractTarget) && await ethers.provider.getCode(contractTarget) !== "0x") {
+            contractTargetAddress = contractTarget;
+        }
+
+        const contractTargetDeployment =
+            contractTargetAddress === ethers.constants.AddressZero
+                ? await get(contractTarget)
+                : await ethers.getContractAt(contractTarget, contractTargetAddress);
+
         const adminManagerTargetDeployment = await get(adminManagerTarget);
 
         const targetInterface = new ethers.utils.Interface(contractTargetDeployment.abi);
