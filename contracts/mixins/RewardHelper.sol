@@ -29,18 +29,20 @@ contract RewardHelper is State {
         address loanToken,
         uint256 positionSize
     ) internal view returns (uint256 reward) {
-        uint256 positionSizeInCollateralToken =
-            IPriceFeeds(priceFeeds).queryReturn(loanToken, collateralToken, positionSize);
-        uint256 rolloverBaseRewardInCollateralToken =
-            IPriceFeeds(priceFeeds).queryReturn(
-                address(wrbtcToken),
-                collateralToken,
-                rolloverBaseReward
-            );
+        uint256 positionSizeInCollateralToken = IPriceFeeds(priceFeeds).queryReturn(
+            loanToken,
+            collateralToken,
+            positionSize
+        );
+        uint256 rolloverBaseRewardInCollateralToken = IPriceFeeds(priceFeeds).queryReturn(
+            address(wrbtcToken),
+            collateralToken,
+            rolloverBaseReward
+        );
 
         return
-            rolloverBaseRewardInCollateralToken
-                .mul(2) /// baseFee
-                .add(positionSizeInCollateralToken.mul(rolloverFlexFeePercent).div(10**20)); /// flexFee = 0.1% of position size
+            rolloverBaseRewardInCollateralToken.mul(2).add(
+                positionSizeInCollateralToken.mul(rolloverFlexFeePercent).div(10 ** 20)
+            ); /// baseFee /// flexFee = 0.1% of position size
     }
 }

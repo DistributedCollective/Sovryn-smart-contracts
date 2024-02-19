@@ -14,7 +14,7 @@ const func = async function (hre) {
     // e.g. you have three contracts modified but want to deploy only one
     // then add the modules not ready for deployment to `dontDeployModules`
     const deployModules = {
-        Affiliates: {
+        /*Affiliates: {
             moduleName: "Affiliates",
             sampleFunction: "setAffiliatesReferrer(address,address)",
             requireSwapsImplSovrynSwapLib: false,
@@ -33,13 +33,13 @@ const func = async function (hre) {
             moduleName: "LoanClosingsWith",
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
             requireSwapsImplSovrynSwapLib: true,
-        },
+        },*/
         LoanOpenings: {
             moduleName: "LoanOpenings",
             sampleFunction: "setDelegatedManager(bytes32,address,bool)",
             requireSwapsImplSovrynSwapLib: true,
         },
-        LoanMaintenance: {
+        /*LoanMaintenance: {
             moduleName: "LoanMaintenance",
             sampleFunction: "getActiveLoans(uint256,uint256,bool)",
             requireSwapsImplSovrynSwapLib: true,
@@ -63,7 +63,7 @@ const func = async function (hre) {
             moduleName: "SwapsImplSovrynSwapModule",
             sampleFunction: "getSovrynSwapNetworkContract(address)",
             requireSwapsImplSovrynSwapLib: true,
-        },
+        },*/
     };
     log(col.bgYellow("Deploying ProtocolModules..."));
     const modulesList = getProtocolModules();

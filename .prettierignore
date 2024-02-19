@@ -24,7 +24,8 @@ types/
 venv/
 deployment/deployments
 tmp/
+temp/
 out/
-foundry/forge-std
+foundry/
 cache_forge/
 safe/

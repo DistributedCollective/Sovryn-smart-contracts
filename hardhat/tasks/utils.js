@@ -126,7 +126,6 @@ task(
             }
         }
     });
-
 task("utils:replace-tx", "Replace tx in mempool")
     .addParam("hash", "Replaced transaction hash", undefined, types.string)
     .addOptionalParam("newFrom", "New 'from' address")

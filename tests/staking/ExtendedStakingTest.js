@@ -288,9 +288,8 @@ contract("Staking", (accounts) => {
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
             // _increaseDailyStake
-            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
-                lockedTS
-            );
+            let numTotalStakingCheckpoints =
+                await staking.numTotalStakingCheckpoints.call(lockedTS);
             expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(1);
             checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
             expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
@@ -377,9 +376,8 @@ contract("Staking", (accounts) => {
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
             // _increaseDailyStake
-            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
-                lockedTS
-            );
+            let numTotalStakingCheckpoints =
+                await staking.numTotalStakingCheckpoints.call(lockedTS);
             expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(1);
             checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
             expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
@@ -529,9 +527,8 @@ contract("Staking", (accounts) => {
             expect(checkpoint.stake.toString()).to.be.equal(amount);
 
             // _increaseDailyStake
-            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
-                lockedTS
-            );
+            let numTotalStakingCheckpoints =
+                await staking.numTotalStakingCheckpoints.call(lockedTS);
             expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(1);
             checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
             expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx.receipt.blockNumber);
@@ -845,9 +842,8 @@ contract("Staking", (accounts) => {
             expect(beforeBalance.sub(afterBalance).toNumber()).to.be.equal(0);
 
             // _decreaseDailyStake
-            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
-                lockedTS
-            );
+            let numTotalStakingCheckpoints =
+                await staking.numTotalStakingCheckpoints.call(lockedTS);
             expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(2);
             let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
             expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
@@ -857,9 +853,8 @@ contract("Staking", (accounts) => {
             expect(checkpoint.stake.toString()).to.be.equal("0");
 
             // _increaseDailyStake
-            numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
-                newLockedTS
-            );
+            numTotalStakingCheckpoints =
+                await staking.numTotalStakingCheckpoints.call(newLockedTS);
             expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(1);
             checkpoint = await staking.totalStakingCheckpoints.call(newLockedTS, 0);
             expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx2.receipt.blockNumber);
@@ -1041,9 +1036,8 @@ contract("Staking", (accounts) => {
             expect(beforeBalance.sub(afterBalance).toNumber()).to.be.equal(amount * 2);
 
             // _increaseDailyStake
-            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
-                lockedTS
-            );
+            let numTotalStakingCheckpoints =
+                await staking.numTotalStakingCheckpoints.call(lockedTS);
             expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(2);
             let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
             expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
@@ -1201,9 +1195,8 @@ contract("Staking", (accounts) => {
             expect(afterBalance.sub(beforeBalance).toNumber()).to.be.equal(amount / 2);
 
             // _increaseDailyStake
-            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
-                lockedTS
-            );
+            let numTotalStakingCheckpoints =
+                await staking.numTotalStakingCheckpoints.call(lockedTS);
             expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(2);
             let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
             expect(parseInt(checkpoint.fromBlock)).to.be.equal(tx1.receipt.blockNumber);
@@ -1480,9 +1473,8 @@ contract("Staking", (accounts) => {
             expect(afterBalance.sub(beforeBalance).toString()).to.be.equal(amount);
 
             //_decreaseDailyStake
-            let numTotalStakingCheckpoints = await staking.numTotalStakingCheckpoints.call(
-                lockedTS
-            );
+            let numTotalStakingCheckpoints =
+                await staking.numTotalStakingCheckpoints.call(lockedTS);
             expect(parseInt(numTotalStakingCheckpoints)).to.be.equal(2);
             let checkpoint = await staking.totalStakingCheckpoints.call(lockedTS, 0);
             expect(parseInt(checkpoint.fromBlock)).to.be.equal(blockNumber);

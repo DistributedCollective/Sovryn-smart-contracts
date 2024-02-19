@@ -61,11 +61,7 @@ contract VaultController is State {
      * @param from The address of the account paying the deposit.
      * @param value The amount of tokens to transfer.
      */
-    function vaultDeposit(
-        address token,
-        address from,
-        uint256 value
-    ) internal {
+    function vaultDeposit(address token, address from, uint256 value) internal {
         if (value != 0) {
             IERC20(token).safeTransferFrom(from, address(this), value);
 
@@ -80,11 +76,7 @@ contract VaultController is State {
      * @param to The address of the recipient.
      * @param value The amount of tokens to transfer.
      */
-    function vaultWithdraw(
-        address token,
-        address to,
-        uint256 value
-    ) internal {
+    function vaultWithdraw(address token, address to, uint256 value) internal {
         if (value != 0) {
             IERC20(token).safeTransfer(to, value);
 
@@ -100,12 +92,7 @@ contract VaultController is State {
      * @param to The address of the recipient.
      * @param value The amount of tokens to transfer.
      */
-    function vaultTransfer(
-        address token,
-        address from,
-        address to,
-        uint256 value
-    ) internal {
+    function vaultTransfer(address token, address from, address to, uint256 value) internal {
         if (value != 0) {
             if (from == address(this)) {
                 IERC20(token).safeTransfer(to, value);
@@ -122,11 +109,7 @@ contract VaultController is State {
      * @param to The address of the spender.
      * @param value The amount of tokens to allow.
      */
-    function vaultApprove(
-        address token,
-        address to,
-        uint256 value
-    ) internal {
+    function vaultApprove(address token, address to, uint256 value) internal {
         if (value != 0 && IERC20(token).allowance(address(this), to) != 0) {
             IERC20(token).safeApprove(to, 0);
         }

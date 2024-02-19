@@ -72,7 +72,7 @@ async function getVotingPower(hre, stakerAddress, governorDeploymentName, blockN
     return { blockNumber, stakerAddress, balance, votingPower, proposalThreshold };
 }
 
-async function createVestings(hre, path, multiplier, signerAcc) {
+async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
     /*
      * vested token sender script - takes addresses from the file by path
      * dryRun - true to check that the data will be processed correctly, false - execute distribution
@@ -128,7 +128,7 @@ async function createVestings(hre, path, multiplier, signerAcc) {
             vestingCreationType = 3;
         } else if (teamVesting[3] === 26) {
             vestingCreationType = 1;
-        } else if (teamVesting[3] === 39 || teamVesting[3] === 22) {
+        } else if ([39, 22, 17, 34, 19].includes(teamVesting[3])) {
             vestingCreationType = 5;
             console.log("Make sure 3 year team 2 vesting split is really expected!");
         } else {
@@ -210,7 +210,8 @@ async function createVestings(hre, path, multiplier, signerAcc) {
             if (vestingAddress === ethers.constants.AddressZero) {
                 throw new Error("Vesting address is zero!");
             }
-            if ((await SOVtoken.allowance(deployerAcc, vestingAddress)) < amount) {
+            console.log("signerAcc", signerAcc);
+            if ((await SOVtoken.allowance(signerAddress, vestingAddress)) < amount) {
                 console.log(
                     "Approving amount",
                     amount.div(ethers.utils.parseEther("1")).toNumber(),
@@ -223,12 +224,13 @@ async function createVestings(hre, path, multiplier, signerAcc) {
 
             console.log("Staking ...");
             const vesting = await ethers.getContractAt("VestingLogic", vestingAddress, signer);
-            await (
+            const receipt = await (
                 await vesting.stakeTokens(amount, {
                     gasLimit: 6800000,
                     gasPrice: 65e6,
                 })
             ).wait();
+            console.log("Transaction hash:", receipt.transactionHash);
         }
 
         const stakes = await staking.getStakes(vestingAddress);
@@ -265,7 +267,7 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
                 console.log("reading row:", row[3]);
                 const tokenOwner = row[3].replace(" ", "");
                 const decimals = row[0].split(".");
-                if (decimals.length !== 2 || decimals[1].length !== 2) {
+                if (decimals.length !== 2 || 18 - decimals[1].length !== Math.log10(multiplier)) {
                     errorMsg += "\n" + tokenOwner + " amount: " + row[0];
                 }
                 let amount = row[0].replace(",", "").replace(".", "");
@@ -299,10 +301,12 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
 
 task("governance:createVestings", "Create vestings")
     .addParam("path", "The file path")
+    .addParam("decimals", "Number of decimals for amount", 16, types.int)
+    .addFlag("dryRun", "Dry run")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ path, dryRun }, hre) => {
-        const multiplier = (1e16).toString();
-        await createVestings(hre, path, multiplier, signer);
+    .setAction(async ({ path, signer, dryRun, decimals }, hre) => {
+        const multiplier = (10 ** (18 - decimals)).toString();
+        await createVestings(hre, dryRun, path, multiplier, signer);
     });
 
 const VestingType = {
@@ -457,9 +461,7 @@ async function createFourYearVestings(hre, path, signerAcc) {
 
     for (const [vestingAddress, amount] of Object.entries(amounts)) {
         const fourYearVesting = await ethers.getContractAt(
-            (
-                await get("FourYearVestingLogic")
-            ).abi,
+            (await get("FourYearVestingLogic")).abi,
             vestingAddress,
             signer
         );

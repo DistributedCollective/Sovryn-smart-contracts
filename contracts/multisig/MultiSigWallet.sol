@@ -111,10 +111,10 @@ contract MultiSigWallet {
      * @param _owners List of initial owners.
      * @param _required Number of required confirmations.
      * */
-    constructor(address[] memory _owners, uint256 _required)
-        public
-        validRequirement(_owners.length, _required)
-    {
+    constructor(
+        address[] memory _owners,
+        uint256 _required
+    ) public validRequirement(_owners.length, _required) {
         for (uint256 i = 0; i < _owners.length; i++) {
             require(!isOwner[_owners[i]] && _owners[i] != address(0));
             isOwner[_owners[i]] = true;
@@ -127,7 +127,9 @@ contract MultiSigWallet {
      * @notice Allows to add a new owner. Transaction has to be sent by wallet.
      * @param owner Address of new owner.
      * */
-    function addOwner(address owner)
+    function addOwner(
+        address owner
+    )
         public
         onlyWallet
         ownerDoesNotExist(owner)
@@ -162,12 +164,10 @@ contract MultiSigWallet {
      * @param owner Address of owner to be replaced.
      * @param newOwner Address of new owner.
      * */
-    function replaceOwner(address owner, address newOwner)
-        public
-        onlyWallet
-        ownerExists(owner)
-        ownerDoesNotExist(newOwner)
-    {
+    function replaceOwner(
+        address owner,
+        address newOwner
+    ) public onlyWallet ownerExists(owner) ownerDoesNotExist(newOwner) {
         for (uint256 i = 0; i < owners.length; i++)
             if (owners[i] == owner) {
                 owners[i] = newOwner;
@@ -185,11 +185,9 @@ contract MultiSigWallet {
      *
      * @param _required Number of required confirmations.
      * */
-    function changeRequirement(uint256 _required)
-        public
-        onlyWallet
-        validRequirement(owners.length, _required)
-    {
+    function changeRequirement(
+        uint256 _required
+    ) public onlyWallet validRequirement(owners.length, _required) {
         required = _required;
         emit RequirementChange(_required);
     }
@@ -216,7 +214,9 @@ contract MultiSigWallet {
      * @notice Allows an owner to confirm a transaction.
      * @param transactionId Transaction ID.
      * */
-    function confirmTransaction(uint256 transactionId)
+    function confirmTransaction(
+        uint256 transactionId
+    )
         public
         ownerExists(msg.sender)
         transactionExists(transactionId)
@@ -231,7 +231,9 @@ contract MultiSigWallet {
      * @notice Allows an owner to revoke a confirmation for a transaction.
      * @param transactionId Transaction ID.
      * */
-    function revokeConfirmation(uint256 transactionId)
+    function revokeConfirmation(
+        uint256 transactionId
+    )
         public
         ownerExists(msg.sender)
         confirmed(transactionId, msg.sender)
@@ -245,7 +247,9 @@ contract MultiSigWallet {
      * @notice Allows anyone to execute a confirmed transaction.
      * @param transactionId Transaction ID.
      * */
-    function executeTransaction(uint256 transactionId)
+    function executeTransaction(
+        uint256 transactionId
+    )
         public
         ownerExists(msg.sender)
         confirmed(transactionId, msg.sender)
@@ -386,11 +390,9 @@ contract MultiSigWallet {
      * @param transactionId Transaction ID.
      * @return Returns array of owner addresses.
      * */
-    function getConfirmations(uint256 transactionId)
-        public
-        view
-        returns (address[] memory _confirmations)
-    {
+    function getConfirmations(
+        uint256 transactionId
+    ) public view returns (address[] memory _confirmations) {
         address[] memory confirmationsTemp = new address[](owners.length);
         uint256 count = 0;
         uint256 i;

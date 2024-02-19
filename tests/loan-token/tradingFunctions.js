@@ -925,8 +925,8 @@ const internal_test_close_margin_trade = async (
     let loan_close_amount = swap_amount.eq(collateral_)
         ? principal_
         : return_token_is_collateral
-        ? principal_.mul(swap_amount).div(collateral_)
-        : new BN(0);
+          ? principal_.mul(swap_amount).div(collateral_)
+          : new BN(0);
 
     const interest_refund_to_borrower = new BN(initial_loan["interestDepositRemaining"])
         .mul(loan_close_amount)
@@ -968,8 +968,8 @@ const internal_test_close_margin_trade = async (
         swap_amount.eq(collateral_) || return_token_is_collateral
             ? loan_close_amount_less_interest
             : dest_token_amount_received.gte(principal_)
-            ? principal_
-            : dest_token_amount_received;
+              ? principal_
+              : dest_token_amount_received;
 
     loan_close_amount = loan_close_amount.eq(new BN(0)) ? covered_principal : loan_close_amount;
 

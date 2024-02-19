@@ -27,7 +27,10 @@ contract AdminManagerRole is Ownable {
      * @param _newAdminManager The addresses of the account to grant permissions.
      * */
     function setAdminManager(address _newAdminManager) public onlyOwner {
-        require(_newAdminManager != address(0), "Use removeAdminManager function to set adminManager to 0");
+        require(
+            _newAdminManager != address(0),
+            "Use removeAdminManager function to set adminManager to 0"
+        );
         emit AdminManagerChanged(msg.sender, getAdminManager(), _newAdminManager);
 
         bytes32 key = KEY_ADMIN_MANAGER_ROLE;

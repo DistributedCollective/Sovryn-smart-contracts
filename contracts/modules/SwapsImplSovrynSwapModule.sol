@@ -23,8 +23,9 @@ contract SwapsImplSovrynSwapModule is State, ModulesCommonEvents {
      * @param target The address of the target contract.
      * */
     function initialize(address target) external onlyOwner {
-        address prevModuleContractAddress =
-            logicTargets[this.getSovrynSwapNetworkContract.selector];
+        address prevModuleContractAddress = logicTargets[
+            this.getSovrynSwapNetworkContract.selector
+        ];
         _setTarget(this.getSovrynSwapNetworkContract.selector, target);
         _setTarget(this.getContractHexName.selector, target);
         _setTarget(this.swapsImplExpectedRate.selector, target);
@@ -48,11 +49,9 @@ contract SwapsImplSovrynSwapModule is State, ModulesCommonEvents {
      * Look up the Sovryn swap network contract registered at the given address.
      * @param sovrynSwapRegistryAddress The address of the registry.
      * */
-    function getSovrynSwapNetworkContract(address sovrynSwapRegistryAddress)
-        public
-        view
-        returns (ISovrynSwapNetwork)
-    {
+    function getSovrynSwapNetworkContract(
+        address sovrynSwapRegistryAddress
+    ) public view returns (ISovrynSwapNetwork) {
         return SwapsImplSovrynSwapLib.getSovrynSwapNetworkContract(sovrynSwapRegistryAddress);
     }
 

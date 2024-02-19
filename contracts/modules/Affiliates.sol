@@ -99,11 +99,10 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
      * @param user The address of the user that is trading on loan pools.
      * @param referrer The address of the referrer the user is coming from.
      */
-    function setAffiliatesReferrer(address user, address referrer)
-        external
-        onlyCallableByLoanPools
-        whenNotPaused
-    {
+    function setAffiliatesReferrer(
+        address user,
+        address referrer
+    ) external onlyCallableByLoanPools whenNotPaused {
         SetAffiliatesReferrerResult memory result;
 
         result.userNotFirstTradeFlag = getUserNotFirstTradeFlag(user);
@@ -146,11 +145,9 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
      * @notice Setter to toggle on the not-first-trade flag of a user.
      * @param user The address of a given user.
      */
-    function setUserNotFirstTradeFlag(address user)
-        external
-        onlyCallableByLoanPools
-        whenNotPaused
-    {
+    function setUserNotFirstTradeFlag(
+        address user
+    ) external onlyCallableByLoanPools whenNotPaused {
         if (!userNotFirstTradeFlag[user]) {
             userNotFirstTradeFlag[user] = true;
             emit SetUserNotFirstTradeFlag(user);
@@ -176,12 +173,10 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
      * @param feeTokenAmount The trading token fee amount.
      * @return The affiliates share of the trading token fee amount.
      */
-    function _getReferrerTradingFeeForToken(uint256 feeTokenAmount)
-        internal
-        view
-        returns (uint256)
-    {
-        return feeTokenAmount.mul(getAffiliateTradingTokenFeePercent()).div(10**20);
+    function _getReferrerTradingFeeForToken(
+        uint256 feeTokenAmount
+    ) internal view returns (uint256) {
+        return feeTokenAmount.mul(getAffiliateTradingTokenFeePercent()).div(10 ** 20);
     }
 
     /**
@@ -209,24 +204,22 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
      * @param feeAmount The height of the fee.
      * @return The reward amount.
      * */
-    function _getSovBonusAmount(address feeToken, uint256 feeAmount)
-        internal
-        view
-        returns (uint256)
-    {
+    function _getSovBonusAmount(
+        address feeToken,
+        uint256 feeAmount
+    ) internal view returns (uint256) {
         uint256 rewardAmount;
         address _priceFeeds = priceFeeds;
 
         /// @dev Calculate the reward amount, querying the price feed.
-        (bool success, bytes memory data) =
-            _priceFeeds.staticcall(
-                abi.encodeWithSelector(
-                    IPriceFeeds(_priceFeeds).queryReturn.selector,
-                    feeToken,
-                    sovTokenAddress, /// dest token = SOV
-                    feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(1e20)
-                )
-            );
+        (bool success, bytes memory data) = _priceFeeds.staticcall(
+            abi.encodeWithSelector(
+                IPriceFeeds(_priceFeeds).queryReturn.selector,
+                feeToken,
+                sovTokenAddress, /// dest token = SOV
+                feeAmount.mul(_getAffiliatesTradingFeePercentForSOV()).div(1e20)
+            )
+        );
         // solhint-disable-next-line no-inline-assembly
         assembly {
             if eq(success, 1) {
@@ -301,14 +294,13 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
             paidReferrerBonusSovAmount = referrerBonusSovAmount.add(rewardsHeldByProtocol);
             IERC20(sovTokenAddress).approve(lockedSOVAddress, paidReferrerBonusSovAmount);
 
-            (bool success, ) =
-                lockedSOVAddress.call(
-                    abi.encodeWithSignature(
-                        "depositSOV(address,uint256)",
-                        referrer,
-                        paidReferrerBonusSovAmount
-                    )
-                );
+            (bool success, ) = lockedSOVAddress.call(
+                abi.encodeWithSignature(
+                    "depositSOV(address,uint256)",
+                    referrer,
+                    paidReferrerBonusSovAmount
+                )
+            );
 
             if (!success) {
                 bonusPaymentIsSuccess = false;
@@ -395,8 +387,10 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
             "Your referrals has not reached the minimum request"
         );
 
-        (address[] memory tokenAddresses, uint256[] memory tokenBalances) =
-            getAffiliatesReferrerBalances(referrer);
+        (
+            address[] memory tokenAddresses,
+            uint256[] memory tokenBalances
+        ) = getAffiliatesReferrerBalances(referrer);
         for (uint256 i; i < tokenAddresses.length; i++) {
             withdrawAffiliatesReferrerTokenFees(tokenAddresses[i], receiver, tokenBalances[i]);
         }
@@ -418,7 +412,9 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
      * @return referrerTokensList The array of available tokens (keys).
      * @return referrerTokensBalances The array of token balances (values).
      */
-    function getAffiliatesReferrerBalances(address referrer)
+    function getAffiliatesReferrerBalances(
+        address referrer
+    )
         public
         view
         returns (address[] memory referrerTokensList, uint256[] memory referrerTokensBalances)
@@ -441,26 +437,23 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
      *
      * @return The value estimation in rbtc.
      */
-    function getAffiliatesTokenRewardsValueInRbtc(address referrer)
-        external
-        view
-        returns (uint256 rbtcTotalAmount)
-    {
+    function getAffiliatesTokenRewardsValueInRbtc(
+        address referrer
+    ) external view returns (uint256 rbtcTotalAmount) {
         address[] memory tokensList = getAffiliatesReferrerTokensList(referrer);
         address _priceFeeds = priceFeeds;
 
         for (uint256 i; i < tokensList.length; i++) {
             // Get the value of each token in rbtc
 
-            (bool success, bytes memory data) =
-                _priceFeeds.staticcall(
-                    abi.encodeWithSelector(
-                        IPriceFeeds(_priceFeeds).queryReturn.selector,
-                        tokensList[i], // source token
-                        address(wrbtcToken), // dest token = SOV
-                        affiliatesReferrerBalances[referrer][tokensList[i]] // total token rewards
-                    )
-                );
+            (bool success, bytes memory data) = _priceFeeds.staticcall(
+                abi.encodeWithSelector(
+                    IPriceFeeds(_priceFeeds).queryReturn.selector,
+                    tokensList[i], // source token
+                    address(wrbtcToken), // dest token = SOV
+                    affiliatesReferrerBalances[referrer][tokensList[i]] // total token rewards
+                )
+            );
 
             assembly {
                 if eq(success, 1) {
@@ -475,11 +468,9 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
      * @param referrer The address of a given referrer.
      * @return tokensList The list of available tokens.
      */
-    function getAffiliatesReferrerTokensList(address referrer)
-        public
-        view
-        returns (address[] memory tokensList)
-    {
+    function getAffiliatesReferrerTokensList(
+        address referrer
+    ) public view returns (address[] memory tokensList) {
         tokensList = affiliatesReferrerTokensList[referrer].enumerate();
         return tokensList;
     }
@@ -490,11 +481,10 @@ contract Affiliates is State, AffiliatesEvents, ModuleCommonFunctionalities {
      * @param token The address of the token to get balance for.
      * @return The affiliatesReferrerBalances mapping value by referrer and token keys.
      */
-    function getAffiliatesReferrerTokenBalance(address referrer, address token)
-        public
-        view
-        returns (uint256)
-    {
+    function getAffiliatesReferrerTokenBalance(
+        address referrer,
+        address token
+    ) public view returns (uint256) {
         return affiliatesReferrerBalances[referrer][token];
     }
 

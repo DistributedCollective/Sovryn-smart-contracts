@@ -763,6 +763,34 @@ const getArgsSip0047 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSipSov625 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const staking = await get("Staking");
+    const stakingAddress = staking.address;
+    const vestingLogicDeployment = await get("VestingLogic");
+    const vestingRegistryDeployment = await get("VestingRegistry");
+    const vestingFactoryDeployment = await get("VestingFactory");
+
+    const args = {
+        targets: [vestingRegistryDeployment.address, stakingAddress],
+        values: [0, 0],
+        signatures: ["setVestingFactory(address)", "addContractCodeHash(address)"],
+        data: [
+            abiCoder.encode(["address"], [vestingFactoryDeployment.address]),
+            abiCoder.encode(["address"], [vestingLogicDeployment.address]),
+        ],
+        /** @todo change SIP description */
+        description:
+            "SIP-Sov625: Set vestingFactory in vestingRegistry & Add vestingLogic contract code hash to staking contract",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
 const getArgsSip0073 = async (hre) => {
     const {
         ethers,
@@ -828,6 +856,175 @@ const getArgsSip0073 = async (hre) => {
     };
     return { args, governor: "GovernorOwner" };
 };
+const getArgsSip_SOV_3161 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const protocol = await ethers.getContract("ISovryn");
+    const loanOpeningsModule = await get("LoanOpenings");
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget("setDelegatedManager(bytes32,address,bool)")) ==
+        loanOpeningsModule.address
+    ) {
+        logger.error("LoanOpenings module deployment already registered in the protocol");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [protocol.address],
+        values: [0],
+        signatures: ["replaceContract(address)"],
+        data: [abiCoder.encode(["address"], [loanOpeningsModule.address])],
+        description:
+            "SIP-XXXX: _______________, Details: https://github.com/DistributedCollective/SIPS/blob/_______/________.md, sha256: ____________",
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSip0074 = async (hre) => {
+    // Electron release
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    /** SOV3161 */
+    const protocol = await ethers.getContract("ISovryn");
+    const loanOpeningsModule = await get("LoanOpenings");
+
+    /** SOV625 */
+    const staking = await get("Staking");
+    const stakingAddress = staking.address;
+    const vestingLogicDeployment = await get("VestingLogic");
+    const vestingRegistryDeployment = await get("VestingRegistry");
+    const vestingFactoryDeployment = await get("VestingFactory");
+
+    /** SOV3564 Zero */
+    const newStabilityPoolImplementation = await get("StabilityPool_Implementation");
+    const newBorrowerOperationsImplementation = await get("BorrowerOperations_Implementation");
+    const newTroveManagerImplementation = await get("TroveManager_Implementation");
+    const newTroveManagerRedeemOps = await get("TroveManagerRedeemOps");
+
+    const stabilityPoolProxy = await get("StabilityPool_Proxy");
+    const borrowerOperationsProxy = await get("BorrowerOperations_Proxy");
+    const troveManagerProxy = await get("TroveManager_Proxy");
+
+    /** SOV3564 Mynt */
+    const myntAdminProxy = await get("MyntAdminProxy");
+
+    const mocIntegrationProxy = await get("MocIntegration"); // MocIntegration
+    const newMocIntegrationImpl = await get("MocIntegration_Implementation");
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget("setDelegatedManager(bytes32,address,bool)")) ==
+        loanOpeningsModule.address
+    ) {
+        logger.error("LoanOpenings module deployment already registered in the protocol");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [
+            protocol.address,
+            vestingRegistryDeployment.address,
+            stakingAddress,
+            stabilityPoolProxy.address,
+            borrowerOperationsProxy.address,
+            troveManagerProxy.address,
+            troveManagerProxy.address,
+            myntAdminProxy.address,
+        ],
+        values: [0, 0, 0, 0, 0, 0, 0, 0],
+        signatures: [
+            "replaceContract(address)",
+            "setVestingFactory(address)",
+            "addContractCodeHash(address)",
+            "setImplementation(address)",
+            "setImplementation(address)",
+            "setImplementation(address)",
+            "setTroveManagerRedeemOps(address)",
+            "upgrade(address,address)",
+        ],
+        data: [
+            abiCoder.encode(["address"], [loanOpeningsModule.address]),
+            abiCoder.encode(["address"], [vestingFactoryDeployment.address]),
+            abiCoder.encode(["address"], [vestingLogicDeployment.address]),
+            abiCoder.encode(["address"], [newStabilityPoolImplementation.address]),
+            abiCoder.encode(["address"], [newBorrowerOperationsImplementation.address]),
+            abiCoder.encode(["address"], [newTroveManagerImplementation.address]),
+            abiCoder.encode(["address"], [newTroveManagerRedeemOps.address]),
+            abiCoder.encode(
+                ["address", "address"],
+                [mocIntegrationProxy.address, newMocIntegrationImpl.address]
+            ),
+        ],
+        // @todo updatee sip description
+        description:
+            "SIP-0074: Smart Contracts Upgrade Electron, Details: https://github.com/DistributedCollective/SIPS/blob/a86ac0e/SIP-0074.md, sha256: c595e86f84b392ca38c027b911631eba0cbe212871b66425005647a22381313a",
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSip0076 = async (hre) => {
+    // Electron release
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const adoptionFundDeployment = await get("AdoptionFund");
+    const devFundDeployment = await get("DevelopmentFund");
+    const sovTokenDeployment = await get("SOV");
+    const multisigDeployment = await get("MultiSigWallet");
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [
+            adoptionFundDeployment.address,
+            devFundDeployment.address,
+            sovTokenDeployment.address,
+        ],
+        values: [0, 0, 0],
+        signatures: [
+            "withdrawTokensByUnlockedTokenOwner(uint256)",
+            "withdrawTokensByUnlockedTokenOwner(uint256)",
+            "transfer(address,uint256)",
+        ],
+        data: [
+            abiCoder.encode(["uint256"], [ethers.utils.parseEther("7475000")]),
+            abiCoder.encode(["uint256"], [ethers.utils.parseEther("1650500")]),
+            abiCoder.encode(
+                ["address", "uint256"],
+                [multisigDeployment.address, ethers.utils.parseEther("9125500")]
+            ),
+        ],
+        description:
+            "SIP-0076: Transfer of SOV from Adoption and Development Funds to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/201f0591ee2a75bacc48b5e0e71662a1a5c06192/SIP-0076.md, sha256: aab2ec1108f4719207c2c69e47bf6d4a67ac66ff28afe6ae97d9831616edb18d",
+    };
+    return { args, governor: "GovernorOwner" };
+};
 
 const getArgsSov3686 = async (hre) => {
     const {
@@ -876,6 +1073,10 @@ module.exports = {
     getArgsSip0046Part2,
     getArgsSip0046Part3,
     getArgsSip0046Part4,
+    getArgsSipSov625,
     getArgsSip0073,
     getArgsSov3686,
+    getArgsSip_SOV_3161,
+    getArgsSip0074,
+    getArgsSip0076,
 };

@@ -98,9 +98,7 @@ contract("CallOptionalReturn", (accounts) => {
         await sovryn.setProtocolTokenAddress(sov.address);
         await sovryn.setSOVTokenAddress(sov.address);
         await sovryn.setLockedSOVAddress(
-            (
-                await LockedSOVMockup.new(sov.address, [accounts[0]])
-            ).address
+            (await LockedSOVMockup.new(sov.address, [accounts[0]])).address
         );
 
         /** Deploy LoanTokenLogicBeacon */

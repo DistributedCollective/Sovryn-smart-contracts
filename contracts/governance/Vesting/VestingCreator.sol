@@ -89,15 +89,14 @@ contract VestingCreator is AdminRole {
                 _durations[i].mod(TWO_WEEKS) == 0,
                 "durations should have intervals of two weeks"
             );
-            VestingData memory vestingData =
-                VestingData({
-                    amount: _amounts[i],
-                    cliff: _cliffs[i],
-                    duration: _durations[i],
-                    governanceControl: _governanceControls[i],
-                    tokenOwner: _tokenOwners[i],
-                    vestingCreationType: _vestingCreationTypes[i]
-                });
+            VestingData memory vestingData = VestingData({
+                amount: _amounts[i],
+                cliff: _cliffs[i],
+                duration: _durations[i],
+                governanceControl: _governanceControls[i],
+                tokenOwner: _tokenOwners[i],
+                vestingCreationType: _vestingCreationTypes[i]
+            });
             vestingDataList.push(vestingData);
         }
     }
@@ -132,14 +131,13 @@ contract VestingCreator is AdminRole {
         require(vestingCreated, "cannot stake without vesting creation");
         if (vestingDataList.length > 0) {
             VestingData storage vestingData = vestingDataList[vestingDataList.length - 1];
-            address vestingAddress =
-                _getVesting(
-                    vestingData.tokenOwner,
-                    vestingData.cliff,
-                    vestingData.duration,
-                    vestingData.governanceControl,
-                    vestingData.vestingCreationType
-                );
+            address vestingAddress = _getVesting(
+                vestingData.tokenOwner,
+                vestingData.cliff,
+                vestingData.duration,
+                vestingData.governanceControl,
+                vestingData.vestingCreationType
+            );
             if (vestingAddress != address(0)) {
                 VestingLogic vesting = VestingLogic(vestingAddress);
                 require(SOV.approve(address(vesting), vestingData.amount), "Approve failed");
@@ -243,10 +241,9 @@ contract VestingCreator is AdminRole {
      * @notice creates TeamVesting or Vesting contract
      * @dev new contract won't be created if account already has contract of the same type
      */
-    function _createAndGetVesting(VestingData memory vestingData)
-        internal
-        returns (address vesting)
-    {
+    function _createAndGetVesting(
+        VestingData memory vestingData
+    ) internal returns (address vesting) {
         if (vestingData.governanceControl) {
             vestingRegistryLogic.createTeamVesting(
                 vestingData.tokenOwner,

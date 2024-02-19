@@ -26,7 +26,7 @@
 const { BN, constants, send, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const { deployAndGetIStaking } = require("../Utils/initializer");
+const { deployAndGetIStaking, getMockLoanTokenLogic } = require("../Utils/initializer");
 
 // const LoanTokenLogicStandard = artifacts.require("LoanTokenLogicStandard"); // replaced by MockLoanTokenLogic
 const LoanToken = artifacts.require("LoanToken");
@@ -96,7 +96,7 @@ contract("Affiliates", (accounts) => {
         await sovryn.setSovrynProtocolAddress(sovryn.address);
 
         // Mock Loan Token Logic
-        const initLoanTokenLogic = await getLoanTokenLogic(true); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
+        const initLoanTokenLogic = await getMockLoanTokenLogic(); // function will return [LoanTokenLogicProxy, LoanTokenLogicBeacon]
         loanTokenLogic = initLoanTokenLogic[0];
         loanTokenLogicBeacon = initLoanTokenLogic[1];
 
@@ -145,11 +145,8 @@ contract("Affiliates", (accounts) => {
 
         // Creating the instance of newLockedSOV Contract.
         await sovryn.setLockedSOVAddress(
-            (
-                await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [
-                    owner,
-                ])
-            ).address
+            (await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner]))
+                .address
         );
         lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
 
@@ -481,9 +478,7 @@ contract("Affiliates", (accounts) => {
     it("PayTradingFeeToAffiliateFail event should be fired in case lock sov reverted", async () => {
         // deploy lockedSOVFailedMockup and set to protocol
         await sovryn.setLockedSOVAddress(
-            (
-                await LockedSOVFailedMockup.new(SUSD.address, [owner])
-            ).address
+            (await LockedSOVFailedMockup.new(SUSD.address, [owner])).address
         );
 
         await sovryn.setMinReferralsToPayoutAffiliates(1);

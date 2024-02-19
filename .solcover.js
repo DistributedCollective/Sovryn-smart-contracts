@@ -7,5 +7,7 @@ module.exports = {
         "node_modules",
         "interfaces",
         "events",
+        "tmp",
+        "temp",
     ],
 };

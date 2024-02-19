@@ -56,11 +56,7 @@ interface IERC777 {
      * - if `recipient` is a contract, it must implement the {IERC777Recipient}
      * interface.
      */
-    function send(
-        address recipient,
-        uint256 amount,
-        bytes calldata data
-    ) external;
+    function send(address recipient, uint256 amount, bytes calldata data) external;
 
     /**
      * @dev Destroys `amount` tokens from the caller's account, reducing the

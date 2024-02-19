@@ -72,10 +72,10 @@ interface IERC1820Registry {
      *
      * `account` being the zero address is an alias for the caller's address.
      */
-    function getInterfaceImplementer(address account, bytes32 interfaceHash)
-        external
-        view
-        returns (address);
+    function getInterfaceImplementer(
+        address account,
+        bytes32 interfaceHash
+    ) external view returns (address);
 
     /**
      * @dev Returns the interface hash for an `interfaceName`, as defined in the
@@ -100,10 +100,10 @@ interface IERC1820Registry {
      *  @param interfaceId ERC165 interface to check.
      *  @return True if `account` implements `interfaceId`, false otherwise.
      */
-    function implementsERC165Interface(address account, bytes4 interfaceId)
-        external
-        view
-        returns (bool);
+    function implementsERC165Interface(
+        address account,
+        bytes4 interfaceId
+    ) external view returns (bool);
 
     /**
      *  @notice Checks whether a contract implements an ERC165 interface or not without using nor updating the cache.
@@ -111,10 +111,10 @@ interface IERC1820Registry {
      *  @param interfaceId ERC165 interface to check.
      *  @return True if `account` implements `interfaceId`, false otherwise.
      */
-    function implementsERC165InterfaceNoCache(address account, bytes4 interfaceId)
-        external
-        view
-        returns (bool);
+    function implementsERC165InterfaceNoCache(
+        address account,
+        bytes4 interfaceId
+    ) external view returns (bool);
 
     event InterfaceImplementerSet(
         address indexed account,

@@ -1064,12 +1064,10 @@ contract("LiquidityMining", (accounts) => {
 
             const previousUserSOVBalance = await SOVToken.balanceOf(account1);
 
-            const totalLiquidReward = await liquidityMining.getUserAccumulatedRewardToBePaidLiquid(
-                account1
-            );
-            const totalVestedReward = await liquidityMining.getUserAccumulatedRewardToBeVested(
-                account1
-            );
+            const totalLiquidReward =
+                await liquidityMining.getUserAccumulatedRewardToBePaidLiquid(account1);
+            const totalVestedReward =
+                await liquidityMining.getUserAccumulatedRewardToBeVested(account1);
             const totalUserAccumulatedReward = await liquidityMining.getUserAccumulatedReward(
                 token1.address,
                 account1
@@ -1175,12 +1173,10 @@ contract("LiquidityMining", (accounts) => {
 
             const previousUserSOVBalance = await SOVToken.balanceOf(account1);
 
-            const totalLiquidReward = await liquidityMining.getUserAccumulatedRewardToBePaidLiquid(
-                account1
-            );
-            const totalVestedReward = await liquidityMining.getUserAccumulatedRewardToBeVested(
-                account1
-            );
+            const totalLiquidReward =
+                await liquidityMining.getUserAccumulatedRewardToBePaidLiquid(account1);
+            const totalVestedReward =
+                await liquidityMining.getUserAccumulatedRewardToBeVested(account1);
             const totalUserAccumulatedReward = await liquidityMining.getUserAccumulatedReward(
                 token1.address,
                 account1
@@ -2041,9 +2037,8 @@ contract("LiquidityMining", (accounts) => {
                 from: account1,
             });
 
-            const latestAccumulatedRewardList = await liquidityMining.getUserAccumulatedRewardList(
-                account1
-            );
+            const latestAccumulatedRewardList =
+                await liquidityMining.getUserAccumulatedRewardList(account1);
             expect(latestAccumulatedRewardList[0]).to.equal("0");
             expect(latestAccumulatedRewardList[1]).to.equal("0");
             expect(latestAccumulatedRewardList[2]).to.equal("0");
@@ -2141,9 +2136,8 @@ contract("LiquidityMining", (accounts) => {
                 from: account1,
             });
 
-            const latestAccumulatedRewardList = await liquidityMining.getUserAccumulatedRewardList(
-                account1
-            );
+            const latestAccumulatedRewardList =
+                await liquidityMining.getUserAccumulatedRewardList(account1);
             expect(latestAccumulatedRewardList[0]).to.equal("0");
             expect(latestAccumulatedRewardList[1]).to.equal("0");
             expect(latestAccumulatedRewardList[2]).to.equal("0");
