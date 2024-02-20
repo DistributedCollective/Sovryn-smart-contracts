@@ -39,6 +39,7 @@
 		"@openzeppelin/contracts": "^4.9.5",
 		"@openzeppelin/test-helpers": "^0.5.16",
 		"@secrez/cryptoenv": "^0.2.4",
+		"@uniswap/v3-sdk": "^3.10.2",
 		"bignumber.js": "^9.0.0",
 		"cli-color": "^2.0.3",
 		"coveralls": "^3.1.0",
