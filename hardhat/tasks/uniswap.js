@@ -18,7 +18,7 @@ task("migrateLiquidityFromV2ToV3", "Migrate Liquidity from V2 to V3 pool")
             fee: 10000,
             refundAsETH: false,
             deadlineInSeconds: 1200, // 20 mins
-            slippageTolerance: new Percent(50, 10_000),
+            slippageTolerancePercentage: 5, // 5%
         };
 
         const signerAcc = (await hre.getNamedAccounts())[signer];
@@ -33,6 +33,7 @@ task("migrateLiquidityFromV2ToV3", "Migrate Liquidity from V2 to V3 pool")
         const uniswapV3SovPoolDeployment = await get("UniswapV3SovPool");
 
         const multisigV2PoolBalance = await uniswapV2SovPool.balanceOf(multisigDeployment.address);
+        const v2PoolTotalSupply = await uniswapV2SovPool.totalSupply();
         const token0Address = await uniswapV2SovPool.token0();
         const token1Address = await uniswapV2SovPool.token1();
         const v3PoolTickSpacing = await uniswapV3SovPool.tickSpacing();
@@ -41,11 +42,27 @@ task("migrateLiquidityFromV2ToV3", "Migrate Liquidity from V2 to V3 pool")
         const token0Contract = await ethers.getContractAt("ERC20", token0Address);
         const token1Contract = await ethers.getContractAt("ERC20", token1Address);
 
+        const poolBalanceRatio = multisigV2PoolBalance
+            .mul(ethers.BigNumber.from(100))
+            .div(v2PoolTotalSupply);
+
         const amount0Min = (await token0Contract.balanceOf(uniswapV2SovPoolDeployment.address))
-            .mul(ethers.BigNumber.from(config.percentageToMigrate))
+            .mul(poolBalanceRatio)
+            .div(ethers.BigNumber.from(100))
+            .mul(
+                ethers.BigNumber.from(
+                    config.percentageToMigrate - config.slippageTolerancePercentage
+                )
+            )
             .div(ethers.BigNumber.from(100));
         const amount1Min = (await token1Contract.balanceOf(uniswapV2SovPoolDeployment.address))
-            .mul(ethers.BigNumber.from(config.percentageToMigrate))
+            .mul(poolBalanceRatio)
+            .div(ethers.BigNumber.from(100))
+            .mul(
+                ethers.BigNumber.from(
+                    config.percentageToMigrate - config.slippageTolerancePercentage
+                )
+            )
             .div(ethers.BigNumber.from(100));
 
         const migrationParams = {
@@ -69,9 +86,30 @@ task("migrateLiquidityFromV2ToV3", "Migrate Liquidity from V2 to V3 pool")
             uniswapV3MigratorDeployment.abi
         );
 
+        const uniswapV2SovPoolInterface = new ethers.utils.Interface(
+            uniswapV2SovPoolDeployment.abi
+        );
+
+        let dataApprove = uniswapV2SovPoolInterface.encodeFunctionData("approve", [
+            uniswapV3MigratorDeployment.address,
+            multisigV2PoolBalance
+                .mul(ethers.BigNumber.from(config.percentageToMigrate))
+                .div(ethers.BigNumber.from(100)),
+        ]);
+
+        let data = uniswapV3MigratorInterface.encodeFunctionData("migrate", [migrationParams]);
+
+        logger.info("Approve V2Pool Token to migrator...");
+        await sendWithMultisig(
+            multisigDeployment.address,
+            uniswapV2SovPoolDeployment.address,
+            dataApprove,
+            signerAcc
+        );
+
         logger.info("Migrating liquidity...");
         logger.info(migrationParams);
-        let data = uniswapV3MigratorInterface.encodeFunctionData("migrate", [migrationParams]);
+
         await sendWithMultisig(
             multisigDeployment.address,
             uniswapV3MigratorDeployment.address,
