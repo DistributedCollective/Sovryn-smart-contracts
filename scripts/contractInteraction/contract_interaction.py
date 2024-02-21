@@ -251,6 +251,10 @@ def main():
 
     #transferOwnershipFromMultisig(conf.contracts["FourYearVestingFactory"], '0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b')
     # withdrawSovFromMyntReserved(2000000000000000000000)
+    # checkTx(1070)
+    # checkTx(1344)
+    setupTorqueLoanParams(conf.contracts['iXUSD'], "0x0000000000000000000000000000000000000000", conf.contracts['SOV'], Wei("20 ether"), )
+    checkTx(1344)
 
 def guardiansTransfer():
     ####################################################################

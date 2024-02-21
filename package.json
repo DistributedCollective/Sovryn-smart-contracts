@@ -106,5 +106,9 @@
 			"pre-commit": "yarn prettier",
 			"pre-push": "yarn lint && yarn prettier-check"
 		}
+	},
+	"dependencies": {
+		"@uniswap/sdk-core": "^4.1.2",
+		"@uniswap/v3-sdk": "^3.10.2"
 	}
 }

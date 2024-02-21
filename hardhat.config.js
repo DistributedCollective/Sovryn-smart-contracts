@@ -257,6 +257,11 @@ module.exports = {
             timeout: 100000,
             //timeout: 20000, // increase if needed; 20000 is the default value
         },
+        ethMainnet: {
+            chainId: 1,
+            url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+            accounts: mainnetAccounts,
+        },
     },
     paths: {
         sources: "./contracts",
@@ -297,6 +302,7 @@ module.exports = {
                 "deployment/deployments/rskSovrynMainnet",
                 "external/deployments/rskForkedMainnet",
             ],
+            ethMainnet: ["external/deployments/ethMainnet", "deployment/deployments/ethMainnet"],
         },
     },
     typechain: {
