@@ -9,12 +9,9 @@ const SOV_ABI = artifacts.require("SOV");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistry = artifacts.require("VestingRegistry");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const LockedSOV = artifacts.require("LockedSOV");
-const VestingRegistry = artifacts.require("VestingRegistry");
-const VestingRegistry2 = artifacts.require("VestingRegistry2");
-const VestingRegistry3 = artifacts.require("VestingRegistry3");
 const TestToken = artifacts.require("TestToken");
 const FourYearVesting = artifacts.require("FourYearVesting");
 const FourYearVestingLogic = artifacts.require("FourYearVestingLogic");
@@ -31,8 +28,7 @@ contract("VestingRegistryMigrations", (accounts) => {
     let root, account1, account2, account3, account4;
     let SOV, lockedSOV;
     let staking, feeSharingCollectorProxy;
-    let vesting, vestingFactory, vestingLogic, vestingRegistryLogic;
-    let vestingRegistry, vestingRegistry2, vestingRegistry3;
+    let vesting, vestingFactory, vestingLogic, vestingRegistry;
     let vestingAddress, vestingAddress2, vestingAddress3;
     let vestingTeamAddress, vestingTeamAddress2, vestingTeamAddress3;
     let newVestingAddress, newVestingAddress2, newVestingAddress3;
@@ -64,10 +60,10 @@ contract("VestingRegistryMigrations", (accounts) => {
         vestingLogic = await VestingLogic.new();
         vestingFactory = await VestingFactory.new(vestingLogic.address);
 
-        vestingRegistryLogic = await VestingRegistryLogic.new();
+        vestingRegistry = await VestingRegistry.new();
         vesting = await VestingRegistryProxy.new();
-        await vesting.setImplementation(vestingRegistryLogic.address);
-        vesting = await VestingRegistryLogic.at(vesting.address);
+        await vesting.setImplementation(vestingRegistry.address);
+        vesting = await VestingRegistry.at(vesting.address);
         await staking.setVestingRegistry(vesting.address);
 
         lockedSOV = await LockedSOV.new(SOV.address, vesting.address, cliff, duration, [root]);
@@ -122,83 +118,6 @@ contract("VestingRegistryMigrations", (accounts) => {
             );
         });
 
-        it("adds deployed vestings from VestingRegistry2 ", async () => {
-            vestingRegistry2 = await VestingRegistry2.new(
-                vestingFactory.address,
-                SOV.address,
-                [cSOV1.address, cSOV2.address],
-                pricsSats,
-                staking.address,
-                feeSharingCollectorProxy.address,
-                account1
-            );
-
-            let amt = new BN(2000000);
-            let amount = new BN(200000);
-            await SOV.transfer(vestingRegistry2.address, amt);
-
-            let cliff = FOUR_WEEKS;
-            let duration = FOUR_WEEKS.mul(new BN(20));
-            let teamCliff = TEAM_VESTING_CLIFF;
-            let teamDuration = TEAM_VESTING_DURATION;
-
-            await vestingFactory.transferOwnership(vestingRegistry2.address);
-            await vestingRegistry2.createVesting(account2, amount, cliff, duration);
-            vestingAddress2 = await vestingRegistry2.getVesting(account2);
-            let tx = await vestingRegistry2.stakeTokens(vestingAddress2, amount);
-            expectEvent(tx, "TokensStaked", {
-                vesting: vestingAddress2,
-                amount: amount,
-            });
-            await staking.balanceOf(vestingAddress2);
-            await vestingRegistry2.createTeamVesting(account2, amount, teamCliff, teamDuration);
-            vestingTeamAddress2 = await vestingRegistry2.getTeamVesting(account2);
-            let tx2 = await vestingRegistry2.stakeTokens(vestingTeamAddress2, amount);
-            expectEvent(tx2, "TokensStaked", {
-                vesting: vestingTeamAddress2,
-                amount: amount,
-            });
-            assert.notEqual(vestingAddress2, ZERO_ADDRESS, "Vesting Address should not be zero.");
-            assert.notEqual(
-                vestingTeamAddress2,
-                ZERO_ADDRESS,
-                "Vesting Team Address should not be zero."
-            );
-        });
-
-        it("adds deployed vestings from VestingRegistry3 ", async () => {
-            vestingRegistry3 = await VestingRegistry3.new(
-                vestingFactory.address,
-                SOV.address,
-                staking.address,
-                feeSharingCollectorProxy.address,
-                account1
-            );
-
-            let amt = new BN(2000000);
-            let amount = new BN(200000);
-            await SOV.transfer(vestingRegistry3.address, amt);
-
-            let cliff = FOUR_WEEKS;
-            let duration = FOUR_WEEKS.mul(new BN(20));
-            let teamCliff = TEAM_VESTING_CLIFF;
-            let teamDuration = TEAM_VESTING_DURATION;
-
-            await vestingFactory.transferOwnership(vestingRegistry3.address);
-            await vestingRegistry3.createVesting(account3, amount, cliff, duration);
-            vestingAddress3 = await vestingRegistry3.getVesting(account3);
-            await vestingRegistry3.stakeTokens(vestingAddress3, amount);
-            await vestingRegistry3.createTeamVesting(account3, amount, teamCliff, teamDuration);
-            vestingTeamAddress3 = await vestingRegistry3.getTeamVesting(account3);
-            await vestingRegistry3.stakeTokens(vestingTeamAddress3, amount);
-            assert.notEqual(vestingAddress3, ZERO_ADDRESS, "Vesting Address should not be zero.");
-            assert.notEqual(
-                vestingTeamAddress3,
-                ZERO_ADDRESS,
-                "Vesting Team Address should not be zero."
-            );
-        });
-
         it("adds deployed vestings to new Vesting Registry ", async () => {
             await vesting.initialize(
                 vestingFactory.address,
@@ -207,7 +126,7 @@ contract("VestingRegistryMigrations", (accounts) => {
                 feeSharingCollectorProxy.address,
                 account1,
                 lockedSOV.address,
-                [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
+                [vestingRegistry.address, vestingRegistry.address, vestingRegistry.address]
             );
 
             let cliff = FOUR_WEEKS;

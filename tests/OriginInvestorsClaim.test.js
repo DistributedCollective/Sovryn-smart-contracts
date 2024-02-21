@@ -30,7 +30,7 @@ const TestWrbtc = artifacts.require("TestWrbtc");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
-const VestingRegistry = artifacts.require("VestingRegistry2"); // removed some methods from VestingRegistry to prevent double spendings
+const VestingRegistry = artifacts.require("VestingRegistry"); // removed some methods from VestingRegistry to prevent double spendings
 const OriginInvestorsClaim = artifacts.require("OriginInvestorsClaim");
 
 const {

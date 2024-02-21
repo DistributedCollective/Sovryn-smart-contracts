@@ -41,7 +41,7 @@ const Vesting = artifacts.require("Vesting");
 const VestingLogic = artifacts.require("VestingLogic");
 const StakingTester = artifacts.require("StakingTester");
 //Upgradable Vesting Registry
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistry = artifacts.require("VestingRegistry");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const StakingAdminModule = artifacts.require("StakingAdminModule");
 const StakingVestingModule = artifacts.require("StakingVestingModule");
@@ -101,10 +101,10 @@ contract("Staking", (accounts) => {
         stakingWrapperMockup = await StakingWrapperMockup.new(stakingProxy.address, token.address);
 
         //Upgradable Vesting Registry
-        const vestingRegistryLogic = await VestingRegistryLogic.new();
+        const vestingRegistry = await VestingRegistry.new();
         vesting = await VestingRegistryProxy.new();
-        await vesting.setImplementation(vestingRegistryLogic.address);
-        vesting = await VestingRegistryLogic.at(vesting.address);
+        await vesting.setImplementation(vestingRegistry.address);
+        vesting = await VestingRegistry.at(vesting.address);
 
         //FeeSharingCollectorProxy
         let feeSharingCollector = await FeeSharingCollector.new();
@@ -1093,7 +1093,7 @@ contract("Staking", (accounts) => {
             //expect(await staking.frozen()).to.be.false; // sanity check
             const newAddress = address(1337);
             await staking.setVestingRegistry(newAddress);
-            expect(await staking.vestingRegistryLogic()).to.be.equal(newAddress);
+            expect(await staking.vestingRegistry()).to.be.equal(newAddress);
         });
 
         it("the owner may not set the vesting registry if the contract is frozen", async () => {
@@ -1105,7 +1105,7 @@ contract("Staking", (accounts) => {
             await staking.pauseUnpause(true);
             const newAddress = address(1337);
             await staking.setVestingRegistry(newAddress);
-            expect(await staking.vestingRegistryLogic()).to.be.equal(newAddress);
+            expect(await staking.vestingRegistry()).to.be.equal(newAddress);
         });
 
         it("any other address may not set the vesting registry", async () => {
@@ -1124,10 +1124,10 @@ contract("Staking", (accounts) => {
 
         it("it is allowed to set the vesting registry to the 0 address", async () => {
             await staking.setVestingRegistry(address(0));
-            expect(await staking.vestingRegistryLogic()).to.be.equal(address(0));
+            expect(await staking.vestingRegistry()).to.be.equal(address(0));
         });
 
-        // "calling vestingRegistryLogic returns _vestingRegistryProxy" is tested implicitly in the above scenarios
+        // "calling vestingRegistry returns _vestingRegistryProxy" is tested implicitly in the above scenarios
     });
 
     describe("setVestingStakes", () => {

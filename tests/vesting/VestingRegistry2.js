@@ -29,7 +29,6 @@ const TestToken = artifacts.require("TestToken");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
-const VestingRegistry = artifacts.require("VestingRegistry2");
 const UpgradableProxy = artifacts.require("UpgradableProxy");
 
 const FOUR_WEEKS = new BN(4 * 7 * 24 * 60 * 60);

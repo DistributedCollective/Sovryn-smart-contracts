@@ -11,7 +11,7 @@ import "./IVestingRegistry.sol";
  * @title Vesting Registry Storage Contract.
  *
  * @notice This contract is just the storage required for vesting registry.
- * It is parent of VestingRegistryProxy and VestingRegistryLogic.
+ * It is parent of VestingRegistryProxy and VestingRegistry.
  *
  * @dev Use Ownable as a parent to align storage structure for Logic and Proxy contracts.
  * */

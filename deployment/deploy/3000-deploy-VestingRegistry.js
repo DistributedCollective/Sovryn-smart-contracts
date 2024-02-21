@@ -14,7 +14,7 @@ const func = async function (hre) {
     log(col.bgYellow("Deploying VestingRegistry..."));
     await deployWithCustomProxy(
         deployer,
-        "VestingRegistryLogic",
+        "VestingRegistry",
         "VestingRegistryProxy",
         "VestingRegistry",
         undefined,

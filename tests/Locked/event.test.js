@@ -17,7 +17,7 @@ const StakingProxy = artifacts.require("StakingProxy");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
-const VestingRegistry = artifacts.require("VestingRegistry3");
+const VestingRegistry = artifacts.require("VestingRegistry");
 
 const {
     BN, // Big Number support.

@@ -1,426 +1,239 @@
 pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
 
-import "../../openzeppelin/Ownable.sol";
 import "../../interfaces/IERC20.sol";
-import "../Staking/interfaces/IStaking.sol";
 import "../IFeeSharingCollector.sol";
-import "./IVestingFactory.sol";
 import "./IVesting.sol";
 import "./ITeamVesting.sol";
-import "../../openzeppelin/SafeMath.sol";
+import "./VestingRegistryStorage.sol";
 
-/**
- * @title Vesting Registry contract.
- *
- * @notice On January 25, 2020, Sovryn launched the Genesis Reservation system.
- * Sovryn community members who controlled a special NFT were granted access to
- * stake BTC or rBTC for cSOV tokens at a rate of 2500 satoshis per cSOV. Per
- * SIP-0003, up to 2,000,000 cSOV were made available in the Genesis event,
- * which will be redeemable on a 1:1 basis for cSOV, subject to approval by
- * existing SOV holders.
- *
- * On 15 Feb 2021 Sovryn is taking another step in its journey to decentralized
- * financial sovereignty with the vote on SIP 0005. This proposal will enable
- * participants of the Genesis Reservation system to redeem their reserved cSOV
- * tokens for SOV. They will also have the choice to redeem cSOV for rBTC if
- * they decide to exit the system.
- *
- * This contract deals with the vesting and redemption of cSOV tokens.
- * */
-contract VestingRegistry is Ownable {
-    using SafeMath for uint256;
-
-    /* Storage */
-
-    /// @notice Constant used for computing the vesting dates.
-    uint256 public constant FOUR_WEEKS = 4 weeks;
-
-    uint256 public constant CSOV_VESTING_CLIFF = FOUR_WEEKS;
-    uint256 public constant CSOV_VESTING_DURATION = 10 * FOUR_WEEKS;
-
-    IVestingFactory public vestingFactory;
-
-    /// @notice The SOV token contract.
-    address public SOV;
-
-    /// @notice The cSOV token contracts.
-    address[] public CSOVtokens;
-
-    uint256 public priceSats;
-
-    /// @notice The staking contract address.
-    address public staking;
-
-    /// @notice Fee sharing proxy.
-    address public feeSharingCollector;
-
-    /// @notice The vesting owner (e.g. governance timelock address).
-    address public vestingOwner;
-
-    /// @dev TODO: Add to the documentation: address can have only one vesting of each type.
-    /// @dev user => vesting type => vesting contract.
-    mapping(address => mapping(uint256 => address)) public vestingContracts;
-
-    /**
-     * @dev Struct can be created to save storage slots, but it doesn't make
-     * sense. We don't have a lot of blacklisted accounts or account with
-     * locked amount.
-     * */
-
-    /// @dev user => flag whether user has already exchange cSOV or got a reimbursement.
-    mapping(address => bool) public processedList;
-
-    /// @dev user => flag whether user shouldn't be able to exchange or reimburse.
-    mapping(address => bool) public blacklist;
-
-    /// @dev user => amount of tokens should not be processed.
-    mapping(address => uint256) public lockedAmount;
-
-    /// @dev user => flag whether user has admin role.
-    mapping(address => bool) public admins;
-
-    enum VestingType {
-        TeamVesting, // MultisigVesting
-        Vesting // TokenHolderVesting
-    }
-
-    /* Events */
-
-    event CSOVReImburse(address from, uint256 CSOVamount, uint256 reImburseAmount);
-    event CSOVTokensExchanged(address indexed caller, uint256 amount);
+contract VestingRegistry is VestingRegistryStorage {
     event SOVTransferred(address indexed receiver, uint256 amount);
     event VestingCreated(
         address indexed tokenOwner,
         address vesting,
         uint256 cliff,
         uint256 duration,
-        uint256 amount
+        uint256 amount,
+        uint256 vestingCreationType
     );
     event TeamVestingCreated(
         address indexed tokenOwner,
         address vesting,
         uint256 cliff,
         uint256 duration,
-        uint256 amount
+        uint256 amount,
+        uint256 vestingCreationType
     );
     event TokensStaked(address indexed vesting, uint256 amount);
-    event AdminAdded(address admin);
-    event AdminRemoved(address admin);
-
-    /* Functions */
+    event VestingCreationAndTypesSet(
+        address indexed vesting,
+        VestingCreationAndTypeDetails vestingCreationAndType
+    );
 
     /**
-     * @notice Contract deployment settings.
-     * @param _vestingFactory The address of vesting factory contract.
-     * @param _SOV The SOV token address.
-     * @param _CSOVtokens The array of cSOV tokens.
-     * @param _priceSats The price of cSOV tokens in satoshis.
-     * @param _staking The address of staking contract.
-     * @param _feeSharingCollector The address of fee sharing collector proxy contract.
-     * @param _vestingOwner The address of an owner of vesting contract.
-     * @dev On Sovryn the vesting owner is Exchequer Multisig.
-     * According to SIP-0007 The Exchequer Multisig is designated to hold
-     * certain funds in the form of rBTC and SOV, in order to allow for
-     * flexible deployment of such funds on:
-     *  + facilitating rBTC redemptions for Genesis pre-sale participants.
-     *  + deploying of SOV for the purposes of exchange listings, market
-     *    making, and partnerships with third parties.
+     * @notice Replace constructor with initialize function for Upgradable Contracts
+     * This function will be called only once by the owner
      * */
-    constructor(
+    function initialize(
         address _vestingFactory,
         address _SOV,
-        address[] memory _CSOVtokens,
-        uint256 _priceSats,
         address _staking,
         address _feeSharingCollector,
-        address _vestingOwner
-    ) public {
+        address _vestingOwner,
+        address _lockedSOV,
+        address[] calldata _vestingRegistries
+    ) external onlyOwner initializer {
         require(_SOV != address(0), "SOV address invalid");
         require(_staking != address(0), "staking address invalid");
         require(_feeSharingCollector != address(0), "feeSharingCollector address invalid");
         require(_vestingOwner != address(0), "vestingOwner address invalid");
+        require(_lockedSOV != address(0), "LockedSOV address invalid");
 
         _setVestingFactory(_vestingFactory);
-        _setCSOVtokens(_CSOVtokens);
-
         SOV = _SOV;
-        priceSats = _priceSats;
         staking = _staking;
         feeSharingCollector = _feeSharingCollector;
         vestingOwner = _vestingOwner;
-    }
-
-    //---ACL------------------------------------------------------------------
-
-    /**
-     * @dev Throws if called by any account other than the owner or admin.
-     * TODO: This ACL logic should be available on OpenZeppeling Ownable.sol
-     * or on our own overriding sovrynOwnable. This same logic is repeated
-     * on OriginInvestorsClaim.sol, TokenSender.sol and VestingRegistry2.sol
-     */
-    modifier onlyAuthorized() {
-        require(isOwner() || admins[msg.sender], "unauthorized");
-        _;
-    }
-
-    /**
-     * @notice Add account to ACL.
-     * @param _admin The addresses of the account to grant permissions.
-     * */
-    function addAdmin(address _admin) public onlyOwner {
-        admins[_admin] = true;
-        emit AdminAdded(_admin);
-    }
-
-    /**
-     * @notice Remove account from ACL.
-     * @param _admin The addresses of the account to revoke permissions.
-     * */
-    function removeAdmin(address _admin) public onlyOwner {
-        admins[_admin] = false;
-        emit AdminRemoved(_admin);
-    }
-
-    //---PostCSOV--------------------------------------------------------------
-
-    modifier isNotProcessed() {
-        require(!processedList[msg.sender], "Address cannot be processed twice");
-        _;
-    }
-
-    modifier isNotBlacklisted() {
-        require(!blacklist[msg.sender], "Address blacklisted");
-        _;
-    }
-
-    /**
-     * @notice cSOV payout to sender with rBTC currency.
-     * 1.- Check holder cSOV balance by adding up every cSOV token balance.
-     * 2.- ReImburse rBTC if funds available.
-     * 3.- And store holder address in processedList.
-     */
-    function reImburse() public isNotProcessed isNotBlacklisted {
-        uint256 CSOVAmountWei = 0;
-        for (uint256 i = 0; i < CSOVtokens.length; i++) {
-            address CSOV = CSOVtokens[i];
-            uint256 balance = IERC20(CSOV).balanceOf(msg.sender);
-            CSOVAmountWei = CSOVAmountWei.add(balance);
+        lockedSOV = LockedSOV(_lockedSOV);
+        for (uint256 i = 0; i < _vestingRegistries.length; i++) {
+            require(_vestingRegistries[i] != address(0), "Vesting registry address invalid");
+            vestingRegistries.push(IVestingRegistry(_vestingRegistries[i]));
         }
-
-        require(CSOVAmountWei > lockedAmount[msg.sender], "holder has no CSOV");
-        CSOVAmountWei -= lockedAmount[msg.sender];
-        processedList[msg.sender] = true;
-
-        /**
-         * @dev Found and fixed the SIP-0007 bug on VestingRegistry::reImburse formula.
-         * More details at Documenting Code issues at point 11 in
-         * https://docs.google.com/document/d/10idTD1K6JvoBmtPKGuJ2Ub_mMh6qTLLlTP693GQKMyU/
-         * Previous buggy code: uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10**10);
-         * */
-        uint256 reImburseAmount = (CSOVAmountWei.mul(priceSats)).div(10 ** 8);
-        require(address(this).balance >= reImburseAmount, "Not enough funds to reimburse");
-        msg.sender.transfer(reImburseAmount);
-
-        emit CSOVReImburse(msg.sender, CSOVAmountWei, reImburseAmount);
     }
 
     /**
-     * @notice Get contract balance.
-     * @return The token balance of the contract.
-     * */
-    function budget() external view returns (uint256) {
-        uint256 SCBudget = address(this).balance;
-        return SCBudget;
-    }
-
-    /**
-     * @notice Deposit function to receiving value (rBTC).
-     * */
-    function deposit() public payable {}
-
-    /**
-     * @notice Send all contract balance to an account.
-     * @param to The account address to send the balance to.
-     * */
-    function withdrawAll(address payable to) public onlyOwner {
-        to.transfer(address(this).balance);
-    }
-
-    //--------------------------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * @notice Sets vesting factory address. High level endpoint.
-     * @param _vestingFactory The address of vesting factory contract.
-     *
-     * @dev Splitting code on two functions: high level and low level
-     * is a pattern that makes easy to extend functionality in a readable way,
-     * without accidentally breaking the actual action being performed.
-     * For example, checks should be done on high level endpoint, while core
-     * functionality should be coded on the low level function.
-     * */
-    function setVestingFactory(address _vestingFactory) public onlyOwner {
+     * @notice sets vesting factory address
+     * @param _vestingFactory the address of vesting factory contract
+     */
+    function setVestingFactory(address _vestingFactory) external onlyOwner {
         _setVestingFactory(_vestingFactory);
     }
 
     /**
-     * @notice Sets vesting factory address. Low level core function.
-     * @param _vestingFactory The address of vesting factory contract.
-     * */
+     * @notice Internal function that sets vesting factory address
+     * @param _vestingFactory the address of vesting factory contract
+     */
     function _setVestingFactory(address _vestingFactory) internal {
         require(_vestingFactory != address(0), "vestingFactory address invalid");
         vestingFactory = IVestingFactory(_vestingFactory);
     }
 
     /**
-     * @notice Sets cSOV tokens array. High level endpoint.
-     * @param _CSOVtokens The array of cSOV tokens.
-     * */
-    function setCSOVtokens(address[] memory _CSOVtokens) public onlyOwner {
-        _setCSOVtokens(_CSOVtokens);
-    }
-
-    /**
-     * @notice Sets cSOV tokens array by looping through input. Low level function.
-     * @param _CSOVtokens The array of cSOV tokens.
-     * */
-    function _setCSOVtokens(address[] memory _CSOVtokens) internal {
-        for (uint256 i = 0; i < _CSOVtokens.length; i++) {
-            require(_CSOVtokens[i] != address(0), "CSOV address invalid");
-        }
-        CSOVtokens = _CSOVtokens;
-    }
-
-    /**
-     * @notice Set blacklist flag (true/false).
-     * @param _account The address to be blacklisted.
-     * @param _blacklisted The flag to add/remove to/from a blacklist.
-     * */
-    function setBlacklistFlag(address _account, bool _blacklisted) public onlyOwner {
-        require(_account != address(0), "account address invalid");
-
-        blacklist[_account] = _blacklisted;
-    }
-
-    /**
-     * @notice Set amount to be subtracted from user token balance.
-     * @param _account The address with locked amount.
-     * @param _amount The amount to be locked.
-     * */
-    function setLockedAmount(address _account, uint256 _amount) public onlyOwner {
-        require(_account != address(0), "account address invalid");
-        require(_amount != 0, "amount invalid");
-
-        lockedAmount[_account] = _amount;
-    }
-
-    /**
-     * @notice Transfer SOV tokens to given address.
-     *
-     * @dev This is a wrapper for ERC-20 transfer function w/
-     * additional checks and triggering an event.
-     *
-     * @param _receiver The address of the SOV receiver.
-     * @param _amount The amount to be transferred.
-     * */
-    function transferSOV(address _receiver, uint256 _amount) public onlyOwner {
+     * @notice transfers SOV tokens to given address
+     * @param _receiver the address of the SOV receiver
+     * @param _amount the amount to be transferred
+     */
+    function transferSOV(address _receiver, uint256 _amount) external onlyOwner {
         require(_receiver != address(0), "receiver address invalid");
         require(_amount != 0, "amount invalid");
-
-        IERC20(SOV).transfer(_receiver, _amount);
+        require(IERC20(SOV).transfer(_receiver, _amount), "transfer failed");
         emit SOVTransferred(_receiver, _amount);
     }
 
     /**
-     * @notice Exchange cSOV to SOV with 1:1 rate
+     * @notice adds vestings that were deployed in previous vesting registries
+     * @dev migration of data from previous vesting registy contracts
      */
-    function exchangeAllCSOV() public isNotProcessed isNotBlacklisted {
-        processedList[msg.sender] = true;
-
-        uint256 amount = 0;
-        for (uint256 i = 0; i < CSOVtokens.length; i++) {
-            address CSOV = CSOVtokens[i];
-            uint256 balance = IERC20(CSOV).balanceOf(msg.sender);
-            amount += balance;
+    function addDeployedVestings(
+        address[] calldata _tokenOwners,
+        uint256[] calldata _vestingCreationTypes
+    ) external onlyAuthorized {
+        for (uint256 i = 0; i < _tokenOwners.length; i++) {
+            require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
+            require(_vestingCreationTypes[i] > 0, "vesting creation type must be greater than 0");
+            _addDeployedVestings(_tokenOwners[i], _vestingCreationTypes[i]);
         }
-
-        require(amount > lockedAmount[msg.sender], "amount invalid");
-        amount -= lockedAmount[msg.sender];
-
-        _createVestingForCSOV(amount);
     }
 
     /**
-     * @notice cSOV tokens are moved and staked on Vesting contract.
-     * @param _amount The amount of tokens to be vested.
-     * */
-    function _createVestingForCSOV(uint256 _amount) internal {
-        address vesting = _getOrCreateVesting(
-            msg.sender,
-            CSOV_VESTING_CLIFF,
-            CSOV_VESTING_DURATION
-        );
-
-        IERC20(SOV).approve(vesting, _amount);
-        IVesting(vesting).stakeTokens(_amount);
-
-        emit CSOVTokensExchanged(msg.sender, _amount);
-    }
-
-    /**
-     * @notice Check a token address is among the cSOV token addresses.
-     * @param _CSOV The cSOV token address.
-     * */
-    function _validateCSOV(address _CSOV) internal view {
-        bool isValid = false;
-        for (uint256 i = 0; i < CSOVtokens.length; i++) {
-            if (_CSOV == CSOVtokens[i]) {
-                isValid = true;
-                break;
-            }
+     * @notice adds four year vestings to vesting registry logic
+     * @param _tokenOwners array of token owners
+     * @param _vestingAddresses array of vesting addresses
+     */
+    function addFourYearVestings(
+        address[] calldata _tokenOwners,
+        address[] calldata _vestingAddresses
+    ) external onlyAuthorized {
+        require(_tokenOwners.length == _vestingAddresses.length, "arrays mismatch");
+        uint256 vestingCreationType = 4;
+        uint256 cliff = 4 weeks;
+        uint256 duration = 156 weeks;
+        for (uint256 i = 0; i < _tokenOwners.length; i++) {
+            require(!isVesting[_vestingAddresses[i]], "vesting exists");
+            require(_tokenOwners[i] != address(0), "token owner cannot be 0 address");
+            require(_vestingAddresses[i] != address(0), "vesting cannot be 0 address");
+            uint256 uid = uint256(
+                keccak256(
+                    abi.encodePacked(
+                        _tokenOwners[i],
+                        uint256(VestingType.Vesting),
+                        cliff,
+                        duration,
+                        vestingCreationType
+                    )
+                )
+            );
+            vestings[uid] = Vesting(
+                uint256(VestingType.Vesting),
+                vestingCreationType,
+                _vestingAddresses[i]
+            );
+            vestingsOf[_tokenOwners[i]].push(uid);
+            isVesting[_vestingAddresses[i]] = true;
         }
-        require(isValid, "wrong CSOV address");
     }
 
     /**
-     * @notice Create Vesting contract.
-     * @param _tokenOwner The owner of the tokens.
-     * @param _amount The amount to be staked.
-     * @param _cliff The time interval to the first withdraw in seconds.
-     * @param _duration The total duration in seconds.
-     * */
+     * @notice creates Vesting contract
+     * @param _tokenOwner the owner of the tokens
+     * @param _amount the amount to be staked
+     * @param _cliff the cliff in seconds
+     * @param _duration the total duration in seconds
+     * @dev Calls a public createVestingAddr function with vestingCreationType. This is to accomodate the existing logic for LockedSOV
+     * @dev vestingCreationType 0 = LockedSOV
+     */
     function createVesting(
         address _tokenOwner,
         uint256 _amount,
         uint256 _cliff,
         uint256 _duration
-    ) public onlyAuthorized {
-        address vesting = _getOrCreateVesting(_tokenOwner, _cliff, _duration);
-        emit VestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
+    ) external onlyAuthorized {
+        createVestingAddr(_tokenOwner, _amount, _cliff, _duration, 3);
     }
 
     /**
-     * @notice Create Team Vesting contract.
-     * @param _tokenOwner The owner of the tokens.
-     * @param _amount The amount to be staked.
-     * @param _cliff The time interval to the first withdraw in seconds.
-     * @param _duration The total duration in seconds.
-     * */
+     * @notice creates Vesting contract
+     * @param _tokenOwner the owner of the tokens
+     * @param _amount the amount to be staked
+     * @param _cliff the cliff in seconds
+     * @param _duration the total duration in seconds
+     * @param _vestingCreationType the type of vesting created(e.g. Origin, Bug Bounty etc.)
+     */
+    function createVestingAddr(
+        address _tokenOwner,
+        uint256 _amount,
+        uint256 _cliff,
+        uint256 _duration,
+        uint256 _vestingCreationType
+    ) public onlyAuthorized {
+        address vesting = _getOrCreateVesting(
+            _tokenOwner,
+            _cliff,
+            _duration,
+            uint256(VestingType.Vesting),
+            _vestingCreationType
+        );
+
+        emit VestingCreated(
+            _tokenOwner,
+            vesting,
+            _cliff,
+            _duration,
+            _amount,
+            _vestingCreationType
+        );
+    }
+
+    /**
+     * @notice creates Team Vesting contract
+     * @param _tokenOwner the owner of the tokens
+     * @param _amount the amount to be staked
+     * @param _cliff the cliff in seconds
+     * @param _duration the total duration in seconds
+     * @param _vestingCreationType the type of vesting created(e.g. Origin, Bug Bounty etc.)
+     */
     function createTeamVesting(
         address _tokenOwner,
         uint256 _amount,
         uint256 _cliff,
-        uint256 _duration
-    ) public onlyAuthorized {
-        address vesting = _getOrCreateTeamVesting(_tokenOwner, _cliff, _duration);
-        emit TeamVestingCreated(_tokenOwner, vesting, _cliff, _duration, _amount);
+        uint256 _duration,
+        uint256 _vestingCreationType
+    ) external onlyAuthorized {
+        address vesting = _getOrCreateVesting(
+            _tokenOwner,
+            _cliff,
+            _duration,
+            uint256(VestingType.TeamVesting),
+            _vestingCreationType
+        );
+
+        emit TeamVestingCreated(
+            _tokenOwner,
+            vesting,
+            _cliff,
+            _duration,
+            _amount,
+            _vestingCreationType
+        );
     }
 
     /**
-     * @notice Stake tokens according to the vesting schedule.
-     * @param _vesting The address of Vesting contract.
-     * @param _amount The amount of tokens to stake.
-     * */
-    function stakeTokens(address _vesting, uint256 _amount) public onlyAuthorized {
+     * @notice stakes tokens according to the vesting schedule
+     * @param _vesting the address of Vesting contract
+     * @param _amount the amount of tokens to stake
+     */
+    function stakeTokens(address _vesting, uint256 _amount) external onlyAuthorized {
         require(_vesting != address(0), "vesting address invalid");
         require(_amount > 0, "amount invalid");
 
@@ -430,79 +243,232 @@ contract VestingRegistry is Ownable {
     }
 
     /**
-     * @notice Query the vesting contract for an account.
-     * @param _tokenOwner The owner of the tokens.
-     * @return The vesting contract address for the given token owner.
-     * */
+     * @notice returns vesting contract address for the given token owner
+     * @param _tokenOwner the owner of the tokens
+     * @dev Calls a public getVestingAddr function with cliff and duration. This is to accomodate the existing logic for LockedSOV
+     * @dev We need to use LockedSOV.changeRegistryCliffAndDuration function very judiciously
+     * @dev vestingCreationType 0 - LockedSOV
+     */
     function getVesting(address _tokenOwner) public view returns (address) {
-        return vestingContracts[_tokenOwner][uint256(VestingType.Vesting)];
+        return getVestingAddr(_tokenOwner, lockedSOV.cliff(), lockedSOV.duration(), 3);
     }
 
     /**
-     * @notice Query the team vesting contract for an account.
-     * @param _tokenOwner The owner of the tokens.
-     * @return The team vesting contract address for the given token owner.
-     * */
-    function getTeamVesting(address _tokenOwner) public view returns (address) {
-        return vestingContracts[_tokenOwner][uint256(VestingType.TeamVesting)];
+     * @notice public function that returns vesting contract address for the given token owner, cliff, duration
+     * @dev Important: Please use this instead of getVesting function
+     */
+    function getVestingAddr(
+        address _tokenOwner,
+        uint256 _cliff,
+        uint256 _duration,
+        uint256 _vestingCreationType
+    ) public view returns (address) {
+        uint256 type_ = uint256(VestingType.Vesting);
+        uint256 uid = uint256(
+            keccak256(
+                abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
+            )
+        );
+        return vestings[uid].vestingAddress;
     }
 
     /**
-     * @notice If not exists, deploy a vesting contract through factory.
-     * @param _tokenOwner The owner of the tokens.
-     * @param _cliff The time interval to the first withdraw in seconds.
-     * @param _duration The total duration in seconds.
-     * @return The vesting contract address for the given token owner
-     * whether it existed previously or not.
-     * */
+     * @notice returns team vesting contract address for the given token owner, cliff, duration
+     */
+    function getTeamVesting(
+        address _tokenOwner,
+        uint256 _cliff,
+        uint256 _duration,
+        uint256 _vestingCreationType
+    ) public view returns (address) {
+        uint256 type_ = uint256(VestingType.TeamVesting);
+        uint256 uid = uint256(
+            keccak256(
+                abi.encodePacked(_tokenOwner, type_, _cliff, _duration, _vestingCreationType)
+            )
+        );
+        return vestings[uid].vestingAddress;
+    }
+
+    /**
+     * @dev check if the specific vesting address is team vesting or not
+     * @dev read the vestingType from vestingCreationAndTypes storage
+     *
+     * @param _vestingAddress address of vesting contract
+     *
+     * @return true for teamVesting, false for normal vesting
+     */
+    function isTeamVesting(address _vestingAddress) external view returns (bool) {
+        return (vestingCreationAndTypes[_vestingAddress].isSet &&
+            vestingCreationAndTypes[_vestingAddress].vestingType ==
+            uint32(VestingType.TeamVesting));
+    }
+
+    /**
+     * @dev setter function to register existing vesting contract to vestingCreationAndTypes storage
+     * @dev need to set the function visilibty to public to support VestingCreationAndTypeDetails struct as parameter
+     *
+     * @param _vestingAddresses array of vesting address
+     * @param _vestingCreationAndTypes array for VestingCreationAndTypeDetails struct
+     */
+    function registerVestingToVestingCreationAndTypes(
+        address[] memory _vestingAddresses,
+        VestingCreationAndTypeDetails[] memory _vestingCreationAndTypes
+    ) public onlyAuthorized {
+        require(_vestingAddresses.length == _vestingCreationAndTypes.length, "Unmatched length");
+        for (uint256 i = 0; i < _vestingCreationAndTypes.length; i++) {
+            VestingCreationAndTypeDetails
+                memory _vestingCreationAndType = _vestingCreationAndTypes[i];
+            address _vestingAddress = _vestingAddresses[i];
+
+            vestingCreationAndTypes[_vestingAddress] = _vestingCreationAndType;
+
+            emit VestingCreationAndTypesSet(
+                _vestingAddress,
+                vestingCreationAndTypes[_vestingAddress]
+            );
+        }
+    }
+
+    /**
+     * @notice Internal function to deploy Vesting/Team Vesting contract
+     * @param _tokenOwner the owner of the tokens
+     * @param _cliff the cliff in seconds
+     * @param _duration the total duration in seconds
+     * @param _type the type of vesting
+     * @param _vestingCreationType the type of vesting created(e.g. Origin, Bug Bounty etc.)
+     */
     function _getOrCreateVesting(
         address _tokenOwner,
         uint256 _cliff,
-        uint256 _duration
+        uint256 _duration,
+        uint256 _type,
+        uint256 _vestingCreationType
     ) internal returns (address) {
-        uint256 type_ = uint256(VestingType.Vesting);
-        if (vestingContracts[_tokenOwner][type_] == address(0)) {
-            /// @dev TODO: Owner of OwnerVesting contracts - the same address as tokenOwner.
-            address vesting = vestingFactory.deployVesting(
-                SOV,
-                staking,
-                _tokenOwner,
-                _cliff,
-                _duration,
-                feeSharingCollector,
-                _tokenOwner
-            );
-            vestingContracts[_tokenOwner][type_] = vesting;
+        address vesting;
+        uint256 uid = uint256(
+            keccak256(
+                abi.encodePacked(_tokenOwner, _type, _cliff, _duration, _vestingCreationType)
+            )
+        );
+        if (vestings[uid].vestingAddress == address(0)) {
+            if (_type == 1) {
+                vesting = vestingFactory.deployVesting(
+                    SOV,
+                    staking,
+                    _tokenOwner,
+                    _cliff,
+                    _duration,
+                    feeSharingCollector,
+                    _tokenOwner
+                );
+            } else {
+                vesting = vestingFactory.deployTeamVesting(
+                    SOV,
+                    staking,
+                    _tokenOwner,
+                    _cliff,
+                    _duration,
+                    feeSharingCollector,
+                    vestingOwner
+                );
+            }
+            vestings[uid] = Vesting(_type, _vestingCreationType, vesting);
+            vestingsOf[_tokenOwner].push(uid);
+            isVesting[vesting] = true;
+
+            vestingCreationAndTypes[vesting] = VestingCreationAndTypeDetails({
+                isSet: true,
+                vestingType: uint32(_type),
+                vestingCreationType: uint128(_vestingCreationType)
+            });
+
+            emit VestingCreationAndTypesSet(vesting, vestingCreationAndTypes[vesting]);
         }
-        return vestingContracts[_tokenOwner][type_];
+        return vestings[uid].vestingAddress;
     }
 
     /**
-     * @notice If not exists, deploy a team vesting contract through factory.
-     * @param _tokenOwner The owner of the tokens.
-     * @param _cliff The time interval to the first withdraw in seconds.
-     * @param _duration The total duration in seconds.
-     * @return The team vesting contract address for the given token owner
-     * whether it existed previously or not.
-     * */
-    function _getOrCreateTeamVesting(
-        address _tokenOwner,
-        uint256 _cliff,
-        uint256 _duration
-    ) internal returns (address) {
-        uint256 type_ = uint256(VestingType.TeamVesting);
-        if (vestingContracts[_tokenOwner][type_] == address(0)) {
-            address vesting = vestingFactory.deployTeamVesting(
-                SOV,
-                staking,
-                _tokenOwner,
-                _cliff,
-                _duration,
-                feeSharingCollector,
-                vestingOwner
+     * @notice stores the addresses of Vesting contracts from all three previous versions of Vesting Registry
+     */
+    function _addDeployedVestings(address _tokenOwner, uint256 _vestingCreationType) internal {
+        uint256 uid;
+        uint256 i = _vestingCreationType - 1;
+
+        address vestingAddress = vestingRegistries[i].getVesting(_tokenOwner);
+        if (vestingAddress != address(0)) {
+            VestingLogic vesting = VestingLogic(vestingAddress);
+            uid = uint256(
+                keccak256(
+                    abi.encodePacked(
+                        _tokenOwner,
+                        uint256(VestingType.Vesting),
+                        vesting.cliff(),
+                        vesting.duration(),
+                        _vestingCreationType
+                    )
+                )
             );
-            vestingContracts[_tokenOwner][type_] = vesting;
+            vestings[uid] = Vesting(
+                uint256(VestingType.Vesting),
+                _vestingCreationType,
+                vestingAddress
+            );
+            vestingsOf[_tokenOwner].push(uid);
+            isVesting[vestingAddress] = true;
         }
-        return vestingContracts[_tokenOwner][type_];
+
+        address teamVestingAddress = vestingRegistries[i].getTeamVesting(_tokenOwner);
+        if (teamVestingAddress != address(0)) {
+            VestingLogic vesting = VestingLogic(teamVestingAddress);
+            uid = uint256(
+                keccak256(
+                    abi.encodePacked(
+                        _tokenOwner,
+                        uint256(VestingType.TeamVesting),
+                        vesting.cliff(),
+                        vesting.duration(),
+                        _vestingCreationType
+                    )
+                )
+            );
+            vestings[uid] = Vesting(
+                uint256(VestingType.TeamVesting),
+                _vestingCreationType,
+                teamVestingAddress
+            );
+            vestingsOf[_tokenOwner].push(uid);
+            isVesting[teamVestingAddress] = true;
+        }
+    }
+
+    /**
+     * @notice returns all vesting details for the given token owner
+     */
+    function getVestingsOf(address _tokenOwner) external view returns (Vesting[] memory) {
+        uint256[] memory vestingIds = vestingsOf[_tokenOwner];
+        uint256 length = vestingIds.length;
+        Vesting[] memory _vestings = new Vesting[](vestingIds.length);
+        for (uint256 i = 0; i < length; i++) {
+            _vestings[i] = vestings[vestingIds[i]];
+        }
+        return _vestings;
+    }
+
+    /**
+     * @notice returns cliff and duration for Vesting & TeamVesting contracts
+     */
+    function getVestingDetails(
+        address _vestingAddress
+    ) external view returns (uint256 cliff, uint256 duration) {
+        VestingLogic vesting = VestingLogic(_vestingAddress);
+        return (vesting.cliff(), vesting.duration());
+    }
+
+    /**
+     * @notice returns if the address is a vesting address
+     */
+    function isVestingAddress(address _vestingAddress) external view returns (bool isVestingAddr) {
+        return isVesting[_vestingAddress];
     }
 }

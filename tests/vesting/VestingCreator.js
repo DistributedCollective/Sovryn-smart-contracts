@@ -21,13 +21,10 @@ const SOV_ABI = artifacts.require("SOV");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistry = artifacts.require("VestingRegistry");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const VestingCreator = artifacts.require("VestingCreator");
 const LockedSOV = artifacts.require("LockedSOV");
-const VestingRegistry = artifacts.require("VestingRegistry");
-const VestingRegistry2 = artifacts.require("VestingRegistry2");
-const VestingRegistry3 = artifacts.require("VestingRegistry3");
 const TestToken = artifacts.require("TestToken");
 
 const TeamVesting = artifacts.require("TeamVesting");
@@ -42,9 +39,8 @@ const pricsSats = "2500";
 contract("VestingCreator", (accounts) => {
     let root, account1, account2, account3, account4;
     let SOV, lockedSOV;
-    let vesting, vestingLogic, vestingRegistryLogic;
+    let vesting, vestingLogic, vestingRegistry;
     let vestingCreator;
-    let vestingRegistry, vestingRegistry2, vestingRegistry3;
 
     let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
     let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
@@ -67,10 +63,10 @@ contract("VestingCreator", (accounts) => {
         vestingLogic = await VestingLogic.new();
         vestingFactory = await VestingFactory.new(vestingLogic.address);
 
-        vestingRegistryLogic = await VestingRegistryLogic.new();
+        vestingRegistry = await VestingRegistry.new();
         vesting = await VestingRegistryProxy.new();
-        await vesting.setImplementation(vestingRegistryLogic.address);
-        vesting = await VestingRegistryLogic.at(vesting.address);
+        await vesting.setImplementation(vestingRegistry.address);
+        vesting = await VestingRegistry.at(vesting.address);
         vestingFactory.transferOwnership(vesting.address);
 
         vestingCreator = await VestingCreator.new(SOV.address, vesting.address);
@@ -87,24 +83,6 @@ contract("VestingCreator", (accounts) => {
             account1
         );
 
-        vestingRegistry2 = await VestingRegistry2.new(
-            vestingFactory.address,
-            SOV.address,
-            [cSOV1.address, cSOV2.address],
-            pricsSats,
-            staking.address,
-            feeSharingCollectorProxy.address,
-            account1
-        );
-
-        vestingRegistry3 = await VestingRegistry3.new(
-            vestingFactory.address,
-            SOV.address,
-            staking.address,
-            feeSharingCollectorProxy.address,
-            account1
-        );
-
         await vesting.initialize(
             vestingFactory.address,
             SOV.address,
@@ -112,7 +90,7 @@ contract("VestingCreator", (accounts) => {
             feeSharingCollectorProxy.address,
             account4,
             lockedSOV.address,
-            [vestingRegistry.address, vestingRegistry2.address, vestingRegistry3.address]
+            [vestingRegistry.address, vestingRegistry.address, vestingRegistry.address]
         );
 
         await vesting.addAdmin(vestingCreator.address);
@@ -140,10 +118,10 @@ contract("VestingCreator", (accounts) => {
     describe("constructor", () => {
         it("sets the expected values", async () => {
             let _sov = await vestingCreator.SOV();
-            let _vestingRegistryLogic = await vestingCreator.vestingRegistryLogic();
+            let _vestingRegistry = await vestingCreator.vestingRegistry();
 
             expect(_sov).equal(SOV.address);
-            expect(_vestingRegistryLogic).equal(vesting.address);
+            expect(_vestingRegistry).equal(vesting.address);
         });
 
         it("fails if the 0 address is passed as SOV Address", async () => {
@@ -893,19 +871,19 @@ contract("VestingCreator", (accounts) => {
         });
     });
 
-    describe("vestingRegistry3", () => {
+    describe("vestingRegistry", () => {
         it("check transferSOV", async () => {
             let amount = new BN(1000);
 
-            // Send funds to vestingRegistry3
-            await SOV.transfer(vestingRegistry3.address, amount);
+            // Send funds to vestingRegistry
+            await SOV.transfer(vestingRegistry.address, amount);
 
             // Get recipient's balance before transfer
             let balance2before = await SOV.balanceOf(account1);
             // console.log("balance2before: ", balance2before.toString());
 
             // Call transferSOV
-            await vestingRegistry3.transferSOV(account1, amount);
+            await vestingRegistry.transferSOV(account1, amount);
 
             // Get recipient's balance after transfer
             let balance2after = await SOV.balanceOf(account1);
@@ -916,49 +894,49 @@ contract("VestingCreator", (accounts) => {
 
             // Fail to transfer to address(0)
             await expectRevert(
-                vestingRegistry3.transferSOV(ZERO_ADDRESS, amount),
+                vestingRegistry.transferSOV(ZERO_ADDRESS, amount),
                 "receiver address invalid"
             );
 
             // Fail to transfer 0 amount
-            await expectRevert(vestingRegistry3.transferSOV(account1, 0), "amount invalid");
+            await expectRevert(vestingRegistry.transferSOV(account1, 0), "amount invalid");
         });
 
-        /// @dev vestingRegistry3 has its own methods for adding and removing admins
+        /// @dev vestingRegistry has its own methods for adding and removing admins
         it("add and remove admin", async () => {
             // Add account1 as admin
-            let tx = await vestingRegistry3.addAdmin(account1);
+            let tx = await vestingRegistry.addAdmin(account1);
             expectEvent(tx, "AdminAdded", {
                 admin: account1,
             });
 
             // Check account1 is admin
-            let isAdmin = await vestingRegistry3.admins(account1);
+            let isAdmin = await vestingRegistry.admins(account1);
             expect(isAdmin).equal(true);
 
             // Remove account1 as admin
-            tx = await vestingRegistry3.removeAdmin(account1);
+            tx = await vestingRegistry.removeAdmin(account1);
             expectEvent(tx, "AdminRemoved", {
                 admin: account1,
             });
 
             // Check account1 is not admin anymore
-            isAdmin = await vestingRegistry3.admins(account1);
+            isAdmin = await vestingRegistry.admins(account1);
             expect(isAdmin).equal(false);
         });
 
-        /// @dev vestingRegistry3 has its own method for setting vesting factory
+        /// @dev vestingRegistry has its own method for setting vesting factory
         it("set vesting factory", async () => {
-            await vestingRegistry3.setVestingFactory(account2);
+            await vestingRegistry.setVestingFactory(account2);
 
-            let vestingFactory = await vestingRegistry3.vestingFactory();
+            let vestingFactory = await vestingRegistry.vestingFactory();
             expect(vestingFactory).equal(account2);
         });
 
         /// @dev Checks all require statements for test coverage
         it("constructor", async () => {
             await expectRevert(
-                VestingRegistry3.new(
+                VestingRegistry.new(
                     vestingFactory.address,
                     ZERO_ADDRESS,
                     staking.address,
@@ -969,7 +947,7 @@ contract("VestingCreator", (accounts) => {
             );
 
             await expectRevert(
-                VestingRegistry3.new(
+                VestingRegistry.new(
                     vestingFactory.address,
                     SOV.address,
                     ZERO_ADDRESS,
@@ -980,7 +958,7 @@ contract("VestingCreator", (accounts) => {
             );
 
             await expectRevert(
-                VestingRegistry3.new(
+                VestingRegistry.new(
                     vestingFactory.address,
                     SOV.address,
                     staking.address,
@@ -991,7 +969,7 @@ contract("VestingCreator", (accounts) => {
             );
 
             await expectRevert(
-                VestingRegistry3.new(
+                VestingRegistry.new(
                     vestingFactory.address,
                     SOV.address,
                     staking.address,
@@ -1005,10 +983,10 @@ contract("VestingCreator", (accounts) => {
         /// @dev Check require statements for stakeTokens method
         it("should fail stakeTokens when parameters are address(0), 0", async () => {
             let amount = new BN(1000);
-            await SOV.transfer(vestingRegistry3.address, amount);
+            await SOV.transfer(vestingRegistry.address, amount);
 
             await expectRevert(
-                vestingRegistry3.stakeTokens(ZERO_ADDRESS, amount),
+                vestingRegistry.stakeTokens(ZERO_ADDRESS, amount),
                 "vesting address invalid"
             );
         });
