@@ -16,13 +16,14 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
     /// @notice Emitted when osSOV is withdrawn
     /// @param receiver The address which recieves the osSOV
     /// @param amount The amount withdrawn from the Smart Contract
-    event RewardPaid(address indexed receiver, uint256 amount);
+    event RewardWithdrawn(address indexed receiver, uint256 amount);
 
     /**
      * @notice Replacement of constructor by initialize function for Upgradable Contracts
      * This function will be called only once by the owner.
      * @param _osSOV osSOV token address
      * @param _staking StakingProxy address should be passed
+     * @param _averageBlockTime average block time used for calculating rewards
      * */
     function initialize(
         address _osSOV,
@@ -60,7 +61,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
      * first time after the max duration is over, the reward will always return 0. Thus, we need to restart
      * from the duration that elapsed without generating rewards.
      * */
-    function claimReward(uint256 _startTime) external {
+    function collectReward(uint256 _startTime) external {
         require(
             stopBlock == 0 || stakerNextWithdrawTimestamp[msg.sender] < stopRewardsTimestamp,
             "Entire reward already paid"
@@ -78,6 +79,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
     /**
      * @notice Changes average block time - based on blockchain
      * @dev If average block time significantly changes, we can update it here and use for block number calculation
+     * @param _averageBlockTime - average block time used for calculating checkpoint blocks
      */
     function setAverageBlockTime(uint256 _averageBlockTime) external onlyOwner {
         averageBlockTime = _averageBlockTime;
@@ -121,22 +123,12 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
      * @param _date The date to compute prior weighted stakes
      * @return The weighted stake
      * */
-    function _computWeightedStakeForDate(
+    function _computeWeightedStakeForDate(
         address _staker,
         uint256 _block,
         uint256 _date
     ) internal view returns (uint256 weightedStake) {
-        weightedStake = staking.getPriorWeightedStake(_staker, _block, _date);
-        if (stopBlock > 0 && stopBlock < _block) {
-            uint256 previousWeightedStake = staking.getPriorWeightedStake(
-                _staker,
-                stopBlock,
-                _date
-            );
-            if (previousWeightedStake < weightedStake) {
-                weightedStake = previousWeightedStake;
-            }
-        }
+        return staking.getPriorWeightedStake(_staker, _block, _date);
     }
 
     /**
@@ -150,7 +142,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
         require(_amount != 0, "amount invalid");
         claimedBalances[_staker] = claimedBalances[_staker].add(_amount);
         osSOV.mint(_staker, _amount);
-        emit RewardPaid(_staker, _amount);
+        emit RewardWithdrawn(_staker, _amount);
     }
 
     /**
@@ -176,7 +168,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
 
     /**
      * @notice Get staker's current accumulated reward
-     * @dev The getStakerCurrentReward() function internally calls this function to calculate reward amount
+     * @dev getStakerCurrentReward function internally calls this function to calculate reward amount of msg.sender
      * @param _considerMaxDuration True: Runs for the maximum duration - used in tx not to run out of gas
      * False - to query total rewards
      * @param _startTime The time from which the staking rewards calculation shall restart.
@@ -188,6 +180,29 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
         uint256 _startTime
     ) external view returns (uint256 nextWithdrawTimestamp, uint256 amount) {
         return _getStakerCurrentReward(msg.sender, _considerMaxDuration, _startTime);
+    }
+
+    /**
+     * @notice Get any staker's current accumulated reward
+     * @dev getArbitraryStakerCurrentReward function internally calls this function to calculate reward amount
+     * @param _considerMaxDuration True: Runs for the maximum duration - used in tx not to run out of gas
+     * False - to query total rewards
+     * @param _startTime The time from which the staking rewards calculation shall restart.
+     * @param _staker The staker address to calculate rewards for
+     * @return The timestamp of last withdrawal
+     * @return The accumulated reward
+     */
+    function getArbitraryStakerCurrentReward(
+        bool _considerMaxDuration,
+        uint256 _startTime,
+        address _staker
+    ) external view returns (uint256 nextWithdrawTimestamp, uint256 amount) {
+        return _getStakerCurrentReward(_staker, _considerMaxDuration, _startTime);
+    }
+
+    struct RewardsInterval {
+        uint256 fromTimestamp;
+        uint256 toTimestamp;
     }
 
     /**
@@ -203,54 +218,67 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
     ) internal view returns (uint256 nextWithdrawTimestamp, uint256 amount) {
         uint256 weightedStake;
         uint256 lastFinalisedBlock;
-        uint256 startWithdrawTimestamp;
-        uint256 endWithdrawTimestamp;
+        RewardsInterval memory rewardsInterval;
+        uint256 currentBlockTsToLockDate;
+        uint256 startWithdrawTimestamp = stakerNextWithdrawTimestamp[_staker];
 
-        startWithdrawTimestamp = stakerNextWithdrawTimestamp[_staker];
-        if (stopBlock != 0 && startWithdrawTimestamp >= stopRewardsTimestamp) {
+        if (stopBlock != 0 && startWithdrawTimestamp > stopRewardsTimestamp) {
             return (startWithdrawTimestamp, 0);
         }
 
-        uint256 currentBlockTsToLockDate = staking.timestampToLockDate(block.timestamp);
-
-        if (startWithdrawTimestamp == 0) {
-            startWithdrawTimestamp = rewardsProgramStartTime;
-        }
-        if (currentBlockTsToLockDate <= startWithdrawTimestamp) {
-            return (startWithdrawTimestamp, 0);
-        }
-        if (startWithdrawTimestamp <= _startTime) {
-            startWithdrawTimestamp = staking.timestampToLockDate(_startTime);
-        }
-
-        if (_considerMaxDuration) {
-            endWithdrawTimestamp = startWithdrawTimestamp.add(maxDuration);
-            endWithdrawTimestamp = endWithdrawTimestamp < block.timestamp
-                ? staking.timestampToLockDate(endWithdrawTimestamp)
-                : currentBlockTsToLockDate;
+        // interval left boundary
+        if (_startTime < rewardsProgramStartTime) {
+            rewardsInterval.fromTimestamp = startWithdrawTimestamp > 0
+                ? startWithdrawTimestamp
+                : rewardsProgramStartTime;
+        } else if (_startTime > startWithdrawTimestamp) {
+            rewardsInterval.fromTimestamp = staking.timestampToLockDate(_startTime);
         } else {
-            endWithdrawTimestamp = currentBlockTsToLockDate;
+            rewardsInterval.fromTimestamp = startWithdrawTimestamp;
         }
 
-        if (stopBlock != 0 && endWithdrawTimestamp > stopRewardsTimestamp) {
-            // add 2 weeks because the right boundary is not included in processing cycle below
-            endWithdrawTimestamp = stopRewardsTimestamp.add(TWO_WEEKS);
+        // interval right boundary
+        currentBlockTsToLockDate = staking.timestampToLockDate(block.timestamp);
+        if (_considerMaxDuration) {
+            uint256 endWithdrawTimestamp = staking.timestampToLockDate(
+                rewardsInterval.fromTimestamp.add(maxDuration)
+            );
+            rewardsInterval.toTimestamp = endWithdrawTimestamp > currentBlockTsToLockDate
+                ? currentBlockTsToLockDate
+                : endWithdrawTimestamp;
+        } else {
+            rewardsInterval.toTimestamp = currentBlockTsToLockDate;
+        }
+
+        if (stopRewardsTimestamp > 0 && rewardsInterval.toTimestamp >= stopRewardsTimestamp) {
+            rewardsInterval.toTimestamp = stopRewardsTimestamp.add(TWO_WEEKS);
+        }
+
+        if (rewardsInterval.fromTimestamp > rewardsInterval.toTimestamp) {
+            return (rewardsInterval.fromTimestamp, 0);
         }
 
         lastFinalisedBlock = _getCurrentBlockNumber() - 1;
-        for (uint256 i = startWithdrawTimestamp; i < endWithdrawTimestamp; i += TWO_WEEKS) {
+
+        for (
+            uint256 i = rewardsInterval.fromTimestamp;
+            i < rewardsInterval.toTimestamp;
+            i += TWO_WEEKS
+        ) {
             uint256 referenceBlock = checkpointBlockNumber[i];
             if (referenceBlock == 0) {
                 referenceBlock = lastFinalisedBlock.sub(
                     ((block.timestamp.sub(i)).div(averageBlockTime))
                 );
             }
-            if (referenceBlock < deploymentBlock) referenceBlock = deploymentBlock;
+            if (referenceBlock < deploymentBlock) {
+                referenceBlock = deploymentBlock;
+            }
             weightedStake = weightedStake.add(
-                _computWeightedStakeForDate(_staker, referenceBlock, i)
+                _computeWeightedStakeForDate(_staker, referenceBlock, i)
             );
         }
-        nextWithdrawTimestamp = endWithdrawTimestamp;
+        nextWithdrawTimestamp = rewardsInterval.toTimestamp.add(TWO_WEEKS);
         amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
     }
 }

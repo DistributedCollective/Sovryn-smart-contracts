@@ -163,18 +163,18 @@ contract("StakingRewardsOs", (accounts) => {
 
     describe("Flow - StakingRewards", () => {
         it("should revert if rewards are claimed before completion of two weeks from start date", async () => {
-            await expectRevert(stakingRewards.claimReward(0, { from: a2 }), "No valid reward");
+            await expectRevert(stakingRewards.collectReward(0, { from: a2 }), "No valid reward");
         });
 
         it("should compute rewards to the stakers a1, a2 and a3 correctly after 2 weeks", async () => {
-            await increaseTimeAndBlocks(1295994);
+            await increaseTimeAndBlocks(1295994); //~2 weeks + 1 day
 
             let fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a1 });
             let numOfIntervals = 1;
             let fullTermAvg = avgWeight(26, 27, 9, 78);
             let expectedAmount = numOfIntervals * ((1000 * fullTermAvg) / 26);
-            expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
-                new BN(fields.amount).div(new BN(10).pow(new BN(8)))
+            expect(new BN(fields.amount).div(new BN(10).pow(new BN(8)))).to.be.bignumber.equal(
+                new BN(Math.floor(expectedAmount * 10 ** 10))
             );
 
             fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 });
@@ -226,7 +226,7 @@ contract("StakingRewardsOs", (accounts) => {
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 });
             beforeBalance = await osSOV.balanceOf(a2);
             expect(beforeBalance).to.be.bignumber.equal("0");
-            await stakingRewards.claimReward(0, { from: a2 });
+            await stakingRewards.collectReward(0, { from: a2 });
             afterBalance = await osSOV.balanceOf(a2);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);
@@ -236,7 +236,7 @@ contract("StakingRewardsOs", (accounts) => {
 
         it("should revert if the user tries to claim rewards early", async () => {
             await increaseTimeAndBlocks(86400); // One day
-            await expectRevert(stakingRewards.claimReward(0, { from: a2 }), "No valid reward");
+            await expectRevert(stakingRewards.collectReward(0, { from: a2 }), "No valid reward");
         });
 
         it("should compute and send rewards to the staker after recalculating withdrawn stake", async () => {
@@ -249,7 +249,7 @@ contract("StakingRewardsOs", (accounts) => {
             await increaseTimeAndBlocks(3600);
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 }); // For entire duration
             beforeBalance = await osSOV.balanceOf(a2);
-            await stakingRewards.claimReward(0, { from: a2 }); // For maxDuration only
+            await stakingRewards.collectReward(0, { from: a2 }); // For maxDuration only
             afterBalance = await osSOV.balanceOf(a2);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);
@@ -271,7 +271,7 @@ contract("StakingRewardsOs", (accounts) => {
             await increaseTimeAndBlocks(3600); // Increase a few blocks
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 });
             beforeBalance = await osSOV.balanceOf(a2);
-            await stakingRewards.claimReward(0, { from: a2 });
+            await stakingRewards.collectReward(0, { from: a2 });
             afterBalance = await osSOV.balanceOf(a2);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);
@@ -282,7 +282,7 @@ contract("StakingRewardsOs", (accounts) => {
         it("should compute and send rewards to the staker a3 as applicable", async () => {
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a3 }); // For entire duration
             beforeBalance = await osSOV.balanceOf(a3);
-            let tx = await stakingRewards.claimReward(0, { from: a3 });
+            let tx = await stakingRewards.collectReward(0, { from: a3 });
             console.log("gasUsed: " + tx.receipt.gasUsed);
             afterBalance = await osSOV.balanceOf(a3);
             rewards = afterBalance.sub(beforeBalance); // For maxDuration only
@@ -295,7 +295,7 @@ contract("StakingRewardsOs", (accounts) => {
             await increaseTimeAndBlocks(1209600); // 2 Weeks
             await staking.stake(wei("1000", "ether"), inTwoYears, a2, a2, { from: a2 });
             await expectRevert(
-                stakingRewards.claimReward(0, { from: a2 }),
+                stakingRewards.collectReward(0, { from: a2 }),
                 "Entire reward already paid"
             );
         });
@@ -307,7 +307,7 @@ contract("StakingRewardsOs", (accounts) => {
             await increaseTimeAndBlocks(3600); // Increase a few blocks
             beforeBalance = await osSOV.balanceOf(a2);
             await expectRevert(
-                stakingRewards.claimReward(0, { from: a2 }),
+                stakingRewards.collectReward(0, { from: a2 }),
                 "Entire reward already paid"
             );
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a2 });
@@ -319,7 +319,7 @@ contract("StakingRewardsOs", (accounts) => {
             await expectRevert(stakingRewards.stop(), "Already stopped");
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a1 }); // For entire duration
             beforeBalance = await osSOV.balanceOf(a1);
-            await stakingRewards.claimReward(0, { from: a1 }); // For maxDuration only
+            await stakingRewards.collectReward(0, { from: a1 }); // For maxDuration only
             afterBalance = await osSOV.balanceOf(a1);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);
@@ -330,7 +330,7 @@ contract("StakingRewardsOs", (accounts) => {
         it("should be able to process again immediately when processing after the max duration", async () => {
             const fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a1 });
             beforeBalance = await osSOV.balanceOf(a1);
-            await stakingRewards.claimReward(0, { from: a1 });
+            await stakingRewards.collectReward(0, { from: a1 });
             afterBalance = await osSOV.balanceOf(a1);
             rewards = afterBalance.sub(beforeBalance);
             expect(rewards).to.be.bignumber.equal(fields.amount);

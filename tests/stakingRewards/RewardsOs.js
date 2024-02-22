@@ -212,7 +212,7 @@ contract("StakingRewardsOs - First Period", (accounts) => {
             );
 
             await Promise.all(
-                [a2, a3].map((account) => stakingRewards.claimReward(0, { from: account }))
+                [a2, a3].map((account) => stakingRewards.collectReward(0, { from: account }))
             );
 
             const [a2Balance, a3Balance] = await Promise.all(
@@ -238,7 +238,7 @@ contract("StakingRewardsOs - First Period", (accounts) => {
                 new BN(fields.amount).div(new BN(10).pow(new BN(8)))
             );
 
-            await stakingRewards.claimReward(0, { from: a1 });
+            await stakingRewards.collectReward(0, { from: a1 });
             const balance = await osSOV.balanceOf(a1);
             expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
                 balance.div(new BN(10).pow(new BN(8)))
@@ -277,12 +277,12 @@ contract("StakingRewardsOs - First Period", (accounts) => {
 
             await increaseTimeAndBlocks(3628800); // 6 Weeks
 
-            let tx = await stakingRewards.claimReward(0, { from: a4 });
+            let tx = await stakingRewards.collectReward(0, { from: a4 });
             console.log("when restartTime = ", 0, ", gasUsed: " + tx.receipt.gasUsed); // 2.6M
 
             // Using restartTime saves gas
             let restartTime = new BN(startTime).add(new BN(13 * 1209600));
-            tx = await stakingRewards.claimReward(restartTime, { from: a5 });
+            tx = await stakingRewards.collectReward(restartTime, { from: a5 });
             console.log(
                 "when restartTime = ",
                 restartTime.toString(),
