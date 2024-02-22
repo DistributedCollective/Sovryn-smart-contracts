@@ -7,7 +7,8 @@ const { nearestUsableTick, Position } = require("@uniswap/v3-sdk");
 
 task("migrateLiquidityFromV2ToV3", "Migrate Liquidity from V2 to V3 pool")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ signer }, hre) => {
+    .addOptionalParam("approval", "Create approval tx v2 to the Migrator?", false, types.boolean)
+    .setAction(async ({ signer, approval }, hre) => {
         const {
             deployments: { get },
             ethers,
@@ -17,8 +18,8 @@ task("migrateLiquidityFromV2ToV3", "Migrate Liquidity from V2 to V3 pool")
             percentageToMigrate: 100,
             fee: 10000,
             refundAsETH: false,
-            deadlineInSeconds: 1200, // 20 mins
-            slippageTolerancePercentage: 5, // 5%
+            deadlineInSeconds: 864000, // 10 days
+            slippageTolerancePercentage: 25, // 25%
         };
 
         const signerAcc = (await hre.getNamedAccounts())[signer];
@@ -72,8 +73,8 @@ task("migrateLiquidityFromV2ToV3", "Migrate Liquidity from V2 to V3 pool")
             token0: token0Address,
             token1: token1Address,
             fee: config.fee,
-            tickLower: nearestUsableTick(v3PoolTick, v3PoolTickSpacing) - v3PoolTickSpacing * 2,
-            tickUpper: nearestUsableTick(v3PoolTick, v3PoolTickSpacing) + v3PoolTickSpacing * 2,
+            tickLower: nearestUsableTick(v3PoolTick, v3PoolTickSpacing) - v3PoolTickSpacing * 10,
+            tickUpper: nearestUsableTick(v3PoolTick, v3PoolTickSpacing) + v3PoolTickSpacing * 10,
             amount0Min: amount0Min.toString(),
             amount1Min: amount1Min.toString(),
             recipient: multisigDeployment.address,
@@ -99,16 +100,20 @@ task("migrateLiquidityFromV2ToV3", "Migrate Liquidity from V2 to V3 pool")
 
         let data = uniswapV3MigratorInterface.encodeFunctionData("migrate", [migrationParams]);
 
-        logger.info("Approve V2Pool Token to migrator...");
-        await sendWithMultisig(
-            multisigDeployment.address,
-            uniswapV2SovPoolDeployment.address,
-            dataApprove,
-            signerAcc
-        );
+        if (approval) {
+            await sendWithMultisig(
+                multisigDeployment.address,
+                uniswapV2SovPoolDeployment.address,
+                dataApprove,
+                signerAcc
+            );
+        }
 
         logger.info("Migrating liquidity...");
         logger.info(migrationParams);
+        // logger.info(`v3PoolTickSpacing ${v3PoolTickSpacing.toString()}`);
+        // logger.info(`v3PoolTick ${v3PoolTick.toString()}`);
+        // logger.info(data);
 
         await sendWithMultisig(
             multisigDeployment.address,
