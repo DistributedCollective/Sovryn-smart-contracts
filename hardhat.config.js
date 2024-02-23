@@ -149,7 +149,7 @@ module.exports = {
             rskSovrynMainnet: 0,
         },
         signer2: {
-            rskSovrynMainnet: 2,
+            default: 2,
         },
         voter: {
             default: 1,
