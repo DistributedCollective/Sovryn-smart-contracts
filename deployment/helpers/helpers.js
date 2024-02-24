@@ -588,7 +588,7 @@ const deployWithCustomProxy = async (
             // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
         } else {
             const proxy = await ethers.getContractAt(proxyArtifactName, proxyDeployment.address);
-            await proxy.setImplementation(logicDeploymentTx.address);
+            await (await proxy.setImplementation(logicDeploymentTx.address)).wait();
             log(
                 `>>> New implementation ${await proxy.getImplementation()} is set to the proxy <<<`
             );

@@ -1,3 +1,4 @@
+const col = require("cli-color");
 const func = async ({ deployments: { deploy, get }, getNamedAccounts, ethers }) => {
     const { deployer } = await getNamedAccounts();
     const multisig = await get("MultiSigWallet");
@@ -8,8 +9,9 @@ const func = async ({ deployments: { deploy, get }, getNamedAccounts, ethers }) 
         log: true,
     });
     if (tx.newlyDeployed) {
+        log(col.yellow("Transferring ownership to Multisig..."));
         const proxy = await ethers.getContract("TransparentUpgradableProxyAdmin");
-        await proxy.transferOwnership(multisig.address);
+        await (await proxy.transferOwnership(multisig.address)).wait();
     }
 };
 

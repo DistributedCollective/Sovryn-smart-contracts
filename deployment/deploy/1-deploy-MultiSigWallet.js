@@ -5,15 +5,20 @@ const col = require("cli-color");
 //const deploymentName = getContractNameFromScriptFileName(path.basename(__filename));
 const func = async function (hre) {
     const {
-        deployments: { deploy, log },
+        deployments: { deploy, log, getOrNull },
         getNamedAccounts,
         network,
     } = hre;
     let deployer, owners, requiredSigners;
     log(col.bgYellow("Deploying MultiSigWallet..."));
+    const msDeployment = await getOrNull("MultiSigWallet");
+    if (msDeployment) {
+        log(col.yellow("MultiSigWallet already deployed"));
+        return;
+    }
     if (network.tags.mainnet || network.tags.testnet) {
         deployer = (await getNamedAccounts()).deployer;
-        owners = []; // @todo add owners or use hh ingnition module for mainnet
+        owners = []; // @todo add owners or use hh ingnition module for the mainnet
         requiredSigners = hre.networks.tags["mainnet"] ? 3 : 2;
     } else {
         [deployer, owner2, owner3] = (await ethers.getSigners()).map((signer) => signer.address);
