@@ -1037,10 +1037,10 @@ const getArgsSov3686 = async (hre) => {
     const newVestingRegistryImplDeployment = await get("VestingRegistry_Implementation");
     const multisigDeployment = await get("MultiSigWallet");
 
-    const vestingRegistry = await ethers.getContract("VestingRegistry");
+    const vestingRegistryProxy = await ethers.getContract("VestingRegistryProxy");
 
     if (
-        (await vestingRegistry.getImplementation()) ==
+        (await vestingRegistryProxy.getImplementation()) ==
         newVestingRegistryImplDeployment.implementation
     ) {
         throw new Error(`New VestingRegistry impl is the same with the current one`);
