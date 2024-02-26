@@ -377,7 +377,7 @@ contract("VestingRegistryLogic", (accounts) => {
         });
     });
 
-    describe("addAdmin", () => {
+    describe("addAdminByManager", () => {
         it("adds admin by owner", async () => {
             let tx = await vesting.addAdmin(account1);
 
@@ -402,7 +402,7 @@ contract("VestingRegistryLogic", (accounts) => {
             });
 
             expect(await vesting.getAdminManager()).to.equal(newAdminManager);
-            tx = await vesting.addAdmin(account1, { from: newAdminManager });
+            tx = await vesting.addAdminByManager(account1, { from: newAdminManager });
 
             expectEvent(tx, "AdminAdded", {
                 admin: account1,
@@ -413,14 +413,17 @@ contract("VestingRegistryLogic", (accounts) => {
         });
 
         it("fails sender is non-authorized address (owner or adminManager)", async () => {
-            await expectRevert(vesting.addAdmin(account1, { from: account1 }), "unauthorized");
+            await expectRevert(
+                vesting.addAdminByManager(account1, { from: account1 }),
+                "unauthorized"
+            );
         });
     });
 
-    describe("removeAdmin", () => {
+    describe("removeAdminByManager", () => {
         it("removes admin by owner", async () => {
             await vesting.addAdmin(account1);
-            let tx = await vesting.removeAdmin(account1);
+            let tx = await vesting.removeAdminByManager(account1);
 
             expectEvent(tx, "AdminRemoved", {
                 admin: account1,
@@ -444,8 +447,8 @@ contract("VestingRegistryLogic", (accounts) => {
 
             expect(await vesting.getAdminManager()).to.equal(newAdminManager);
 
-            await vesting.addAdmin(account1, { from: owner });
-            tx = await vesting.removeAdmin(account1, { from: owner });
+            await vesting.addAdminByManager(account1, { from: owner });
+            tx = await vesting.removeAdminByManager(account1, { from: owner });
 
             expectEvent(tx, "AdminRemoved", {
                 admin: account1,
@@ -456,7 +459,77 @@ contract("VestingRegistryLogic", (accounts) => {
         });
 
         it("fails sender is non-authorized address (owner or adminManager)", async () => {
-            await expectRevert(vesting.removeAdmin(account1, { from: account1 }), "unauthorized");
+            await expectRevert(
+                vesting.removeAdminByManager(account1, { from: account1 }),
+                "unauthorized"
+            );
+        });
+    });
+
+    describe("addAdmin (onlyOwner)", () => {
+        it("adds admin by owner", async () => {
+            let tx = await vesting.addAdmin(account1);
+
+            expectEvent(tx, "AdminAdded", {
+                admin: account1,
+            });
+
+            let isAdmin = await vesting.admins(account1);
+            expect(isAdmin).equal(true);
+        });
+
+        it("adds admin by adminManager should revert", async () => {
+            const owner = root;
+            const newAdminManager = accounts[5];
+            expect(await vesting.getAdminManager()).to.equal(ZERO_ADDRESS);
+            let tx = await vesting.setAdminManager(newAdminManager, { from: owner });
+
+            expectEvent(tx, "AdminManagerChanged", {
+                sender: owner,
+                oldAdminManager: ZERO_ADDRESS,
+                newAdminManager: newAdminManager,
+            });
+
+            expect(await vesting.getAdminManager()).to.equal(newAdminManager);
+            await expectRevert(
+                vesting.addAdmin(account1, { from: newAdminManager }),
+                "unauthorized"
+            );
+        });
+    });
+
+    describe("removeAdmin (onlyOwner)", () => {
+        it("removes admin by owner", async () => {
+            await vesting.addAdmin(account1);
+            let tx = await vesting.removeAdmin(account1);
+
+            expectEvent(tx, "AdminRemoved", {
+                admin: account1,
+            });
+
+            let isAdmin = await vesting.admins(account1);
+            expect(isAdmin).equal(false);
+        });
+
+        it("removes admin by adminManager should revert", async () => {
+            const owner = root;
+            const newAdminManager = accounts[5];
+            expect(await vesting.getAdminManager()).to.equal(ZERO_ADDRESS);
+            let tx = await vesting.setAdminManager(newAdminManager, { from: owner });
+
+            expectEvent(tx, "AdminManagerChanged", {
+                sender: owner,
+                oldAdminManager: ZERO_ADDRESS,
+                newAdminManager: newAdminManager,
+            });
+
+            expect(await vesting.getAdminManager()).to.equal(newAdminManager);
+
+            await vesting.addAdmin(account1, { from: owner });
+            await expectRevert(
+                vesting.removeAdmin(account1, { from: newAdminManager }),
+                "unauthorized"
+            );
         });
     });
 
@@ -707,7 +780,7 @@ contract("VestingRegistryLogic", (accounts) => {
             const newAdminManager = accounts[5];
             expect(await vesting.getAdminManager()).to.equal(ZERO_ADDRESS);
             await vesting.setAdminManager(newAdminManager, { from: owner });
-            await vesting.addAdmin(account1, { from: newAdminManager });
+            await vesting.addAdminByManager(account1, { from: newAdminManager });
             await vesting.createVestingAddr(account2, amount, cliff, duration, vestingType, {
                 from: account1,
             });

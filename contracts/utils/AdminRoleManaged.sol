@@ -20,10 +20,44 @@ contract AdminRoleManaged is Ownable, AdminManagerRole {
     }
 
     /**
+     * @notice Add account to ACL (by owner only).
+     * @dev this function is kept here to support backward compatibility with the existing vestingRegistryProxy deployment in rsk network.
+     * @param _admin The addresses of the account to grant permissions.
+     * */
+    function addAdmin(address _admin) public onlyOwner {
+        _addAdmin(_admin);
+    }
+
+    /**
+     * @notice Remove account from ACL (by owner only).
+     * @dev this function is kept here to support backward compatibility with the existing vestingRegistryProxy deployment in rsk network.
+     * @param _admin The addresses of the account to revoke permissions.
+     * */
+    function removeAdmin(address _admin) public onlyOwner {
+        _removeAdmin(_admin);
+    }
+
+    /**
+     * @notice Add account to ACL (by owner & manager).
+     * @param _admin The addresses of the account to grant permissions.
+     * */
+    function addAdminByManager(address _admin) public onlyOwnerOrAdminManager {
+        _addAdmin(_admin);
+    }
+
+    /**
+     * @notice Remove account from ACL (by owner & manager).
+     * @param _admin The addresses of the account to revoke permissions.
+     * */
+    function removeAdminByManager(address _admin) public onlyOwnerOrAdminManager {
+        _removeAdmin(_admin);
+    }
+
+    /**
      * @notice Add account to ACL.
      * @param _admin The addresses of the account to grant permissions.
      * */
-    function addAdmin(address _admin) public onlyOwnerOrAdminManager {
+    function _addAdmin(address _admin) internal {
         admins[_admin] = true;
         emit AdminAdded(_admin);
     }
@@ -32,7 +66,7 @@ contract AdminRoleManaged is Ownable, AdminManagerRole {
      * @notice Remove account from ACL.
      * @param _admin The addresses of the account to revoke permissions.
      * */
-    function removeAdmin(address _admin) public onlyOwnerOrAdminManager {
+    function _removeAdmin(address _admin) internal {
         admins[_admin] = false;
         emit AdminRemoved(_admin);
     }
