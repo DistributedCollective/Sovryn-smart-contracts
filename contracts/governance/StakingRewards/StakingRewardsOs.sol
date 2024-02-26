@@ -13,6 +13,13 @@ import { Initializable } from "../../openzeppelin/Initializable.sol";
 contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
     using SafeMath for uint256;
 
+    /// @notice fromTimestamp - left boundary of the rewards interval
+    /// @notice toTimestamp - right boundary of the rewards interval
+    struct RewardsInterval {
+        uint256 fromTimestamp;
+        uint256 toTimestamp;
+    }
+
     /// @notice Emitted when osSOV is withdrawn
     /// @param receiver The address which recieves the osSOV
     /// @param amount The amount withdrawn from the Smart Contract
@@ -198,11 +205,6 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
         address _staker
     ) external view returns (uint256 nextWithdrawTimestamp, uint256 amount) {
         return _getStakerCurrentReward(_staker, _considerMaxDuration, _startTime);
-    }
-
-    struct RewardsInterval {
-        uint256 fromTimestamp;
-        uint256 toTimestamp;
     }
 
     /**
