@@ -1,5 +1,5 @@
 const col = require("cli-color");
-const func = async ({ deployments: { deploy, get }, getNamedAccounts, ethers }) => {
+const func = async ({ deployments: { deploy, log, get }, getNamedAccounts, ethers }) => {
     const { deployer } = await getNamedAccounts();
     const multisig = await get("MultiSigWallet");
     const tx = await deploy("TransparentUpgradableProxyAdmin", {
