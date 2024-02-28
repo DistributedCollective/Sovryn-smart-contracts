@@ -196,13 +196,12 @@ def main():
     #setFeesController(conf.contracts['FeeSharingCollectorProxy1DayStaking'])
 
     #revokeConfirmationMS(txId)
-    #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
+    #bal = getFastBTCOfframpAvailableBalance(conf.contracts['FastBTCBiDi'])
     #print('FastBTC offramp balance:', bal/10**18)
     #print('Multisig balance:', getContractBTCBalance(conf.contracts['multisig'])/1e18)
 
-    #transferRBTCFromFastBTCOffRampToOnRamp(20e18)
+    #transferRBTCFromFastBTCOffRampToOnRamp(bal)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
-
     #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], 16658.600400155126 * 10**18)
     #mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 249999e18)
     #minReturn = getReturnForFirstLiquidityProvisionOnV1([10e18, 250000e18])
