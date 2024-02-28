@@ -14,21 +14,21 @@ task("allowToken", "Allow token")
             ethers,
         } = hre;
 
-        const allowTokensDeployment = await get("AllowTokens");
+        const allowTokensDeploymentAbi = (await deployments.getArtifact("AllowTokens")).abi;
 
         const bridgeContract = await ethers.getContract("BridgeRSK");
 
         const allowTokensAddress = await bridgeContract.allowTokens();
 
         const allowTokensContract = await ethers.getContractAt(
-            allowTokensDeployment.abi,
+            allowTokensDeploymentAbi,
             allowTokensAddress
         );
 
         const multisigAddress = await allowTokensContract.owner();
         const multisigContract = await ethers.getContractAt("MultiSigWallet", multisigAddress);
 
-        const allowTokensInterface = new ethers.utils.Interface(allowTokensDeployment.abi);
+        const allowTokensInterface = new ethers.utils.Interface(allowTokensDeploymentAbi);
         let data = allowTokensInterface.encodeFunctionData("addAllowedToken", [token]);
 
         const tx = await multisigContract.populateTransaction.submitTransaction(
