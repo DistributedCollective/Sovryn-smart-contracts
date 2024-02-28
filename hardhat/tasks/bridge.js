@@ -2,8 +2,8 @@ const { task } = require("hardhat/config");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 const { sendWithMultisig } = require("../../deployment/helpers/helpers");
-const { Percent } = require("@uniswap/sdk-core");
-const { nearestUsableTick, Position } = require("@uniswap/v3-sdk");
+
+//authored by @cwsnt
 
 task("bridge:allowToken", "Whitelist token on a bridge")
     .addPositionalParam("token", "Address or deployment name (e.g. DLLR) of a token to whitelist")
