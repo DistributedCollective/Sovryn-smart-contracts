@@ -15,6 +15,7 @@ const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry");
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const {
     BN, // Big Number support.
@@ -180,13 +181,11 @@ contract("Locked SOV (State)", (accounts) => {
         // Creating the Vesting Instance.
         vestingLogic = await VestingLogic.new();
         vestingFactory = await VestingFactory.new(vestingLogic.address);
-        vestingRegistry = await VestingRegistry.new(
-            vestingFactory.address,
-            sov.address,
-            staking.address,
-            feeSharingCollectorProxy.address,
-            creator // This should be Governance Timelock Contract.
-        );
+
+        vestingRegistry = await VestingRegistry.new();
+        vesting = await VestingRegistryProxy.new();
+        await vesting.setImplementation(vestingRegistry.address);
+        vestingRegistry = await VestingRegistry.at(vesting.address);
         await vestingFactory.transferOwnership(vestingRegistry.address);
 
         // Creating the instance of newLockedSOV Contract.
@@ -198,6 +197,16 @@ contract("Locked SOV (State)", (accounts) => {
         lockedSOV = await LockedSOV.new(sov.address, vestingRegistry.address, cliff, duration, [
             admin,
         ]);
+
+        await vestingRegistry.initialize(
+            vestingFactory.address,
+            sov.address,
+            staking.address,
+            feeSharingCollectorProxy.address,
+            creator, // This should be Governance Timelock Contract.
+            lockedSOV.address,
+            [vestingRegistry.address]
+        );
 
         // Adding lockedSOV as an admin in the Vesting Registry.
         await vestingRegistry.addAdmin(lockedSOV.address);

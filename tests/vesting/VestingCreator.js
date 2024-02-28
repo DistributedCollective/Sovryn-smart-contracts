@@ -73,16 +73,6 @@ contract("VestingCreator", (accounts) => {
 
         lockedSOV = await LockedSOV.new(SOV.address, vesting.address, cliff, duration, [root]);
 
-        vestingRegistry = await VestingRegistry.new(
-            vestingFactory.address,
-            SOV.address,
-            [cSOV1.address, cSOV2.address],
-            pricsSats,
-            staking.address,
-            feeSharingCollectorProxy.address,
-            account1
-        );
-
         await vesting.initialize(
             vestingFactory.address,
             SOV.address,
@@ -90,7 +80,7 @@ contract("VestingCreator", (accounts) => {
             feeSharingCollectorProxy.address,
             account4,
             lockedSOV.address,
-            [vestingRegistry.address, vestingRegistry.address, vestingRegistry.address]
+            [vestingRegistry.address]
         );
 
         await vesting.addAdmin(vestingCreator.address);
@@ -868,127 +858,6 @@ contract("VestingCreator", (accounts) => {
             expectEvent(tx, "DataCleared", {
                 caller: root,
             });
-        });
-    });
-
-    describe("vestingRegistry", () => {
-        it("check transferSOV", async () => {
-            let amount = new BN(1000);
-
-            // Send funds to vestingRegistry
-            await SOV.transfer(vestingRegistry.address, amount);
-
-            // Get recipient's balance before transfer
-            let balance2before = await SOV.balanceOf(account1);
-            // console.log("balance2before: ", balance2before.toString());
-
-            // Call transferSOV
-            await vestingRegistry.transferSOV(account1, amount);
-
-            // Get recipient's balance after transfer
-            let balance2after = await SOV.balanceOf(account1);
-            // console.log("balance2after: ", balance2after.toString());
-
-            // Check account1 received the transfer
-            expect(balance2after.sub(balance2before)).to.be.bignumber.equal(amount);
-
-            // Fail to transfer to address(0)
-            await expectRevert(
-                vestingRegistry.transferSOV(ZERO_ADDRESS, amount),
-                "receiver address invalid"
-            );
-
-            // Fail to transfer 0 amount
-            await expectRevert(vestingRegistry.transferSOV(account1, 0), "amount invalid");
-        });
-
-        /// @dev vestingRegistry has its own methods for adding and removing admins
-        it("add and remove admin", async () => {
-            // Add account1 as admin
-            let tx = await vestingRegistry.addAdmin(account1);
-            expectEvent(tx, "AdminAdded", {
-                admin: account1,
-            });
-
-            // Check account1 is admin
-            let isAdmin = await vestingRegistry.admins(account1);
-            expect(isAdmin).equal(true);
-
-            // Remove account1 as admin
-            tx = await vestingRegistry.removeAdmin(account1);
-            expectEvent(tx, "AdminRemoved", {
-                admin: account1,
-            });
-
-            // Check account1 is not admin anymore
-            isAdmin = await vestingRegistry.admins(account1);
-            expect(isAdmin).equal(false);
-        });
-
-        /// @dev vestingRegistry has its own method for setting vesting factory
-        it("set vesting factory", async () => {
-            await vestingRegistry.setVestingFactory(account2);
-
-            let vestingFactory = await vestingRegistry.vestingFactory();
-            expect(vestingFactory).equal(account2);
-        });
-
-        /// @dev Checks all require statements for test coverage
-        it("constructor", async () => {
-            await expectRevert(
-                VestingRegistry.new(
-                    vestingFactory.address,
-                    ZERO_ADDRESS,
-                    staking.address,
-                    feeSharingCollectorProxy.address,
-                    account1
-                ),
-                "SOV address invalid"
-            );
-
-            await expectRevert(
-                VestingRegistry.new(
-                    vestingFactory.address,
-                    SOV.address,
-                    ZERO_ADDRESS,
-                    feeSharingCollectorProxy.address,
-                    account1
-                ),
-                "staking address invalid"
-            );
-
-            await expectRevert(
-                VestingRegistry.new(
-                    vestingFactory.address,
-                    SOV.address,
-                    staking.address,
-                    ZERO_ADDRESS,
-                    account1
-                ),
-                "feeSharingCollector address invalid"
-            );
-
-            await expectRevert(
-                VestingRegistry.new(
-                    vestingFactory.address,
-                    SOV.address,
-                    staking.address,
-                    feeSharingCollectorProxy.address,
-                    ZERO_ADDRESS
-                ),
-                "vestingOwner address invalid"
-            );
-        });
-
-        /// @dev Check require statements for stakeTokens method
-        it("should fail stakeTokens when parameters are address(0), 0", async () => {
-            let amount = new BN(1000);
-            await SOV.transfer(vestingRegistry.address, amount);
-
-            await expectRevert(
-                vestingRegistry.stakeTokens(ZERO_ADDRESS, amount),
-                "vesting address invalid"
-            );
         });
     });
 

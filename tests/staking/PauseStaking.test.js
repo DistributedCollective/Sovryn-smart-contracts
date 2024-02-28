@@ -361,9 +361,9 @@ contract("Staking", (accounts) => {
             let toStake = ONE_MILLON;
 
             // Upgradable Vesting Registry
-            vestingRegistry = await VestingRegistry.new();
+            vestingRegistryLogic = await VestingRegistry.new();
             vestingRegistry = await VestingRegistryProxy.new();
-            await vestingRegistry.setImplementation(vestingRegistry.address);
+            await vestingRegistry.setImplementation(vestingRegistryLogic.address);
             vestingRegistry = await VestingRegistry.at(vestingRegistry.address);
 
             await staking.setVestingRegistry(vestingRegistry.address);
@@ -492,9 +492,9 @@ contract("Staking", (accounts) => {
             let toStake = ONE_MILLON;
 
             // Upgradable Vesting Registry
-            vestingRegistry = await VestingRegistry.new();
+            vestingRegistryLogic = await VestingRegistry.new();
             vestingRegistry = await VestingRegistryProxy.new();
-            await vestingRegistry.setImplementation(vestingRegistry.address);
+            await vestingRegistry.setImplementation(vestingRegistryLogic.address);
             vestingRegistry = await VestingRegistry.at(vestingRegistry.address);
 
             await staking.setVestingRegistry(vestingRegistry.address);
@@ -581,9 +581,9 @@ contract("Staking", (accounts) => {
             let toStake = ONE_MILLON;
 
             // Upgradable Vesting Registry
-            vestingRegistry = await VestingRegistry.new();
+            vestingRegistryLogic = await VestingRegistry.new();
             vestingRegistry = await VestingRegistryProxy.new();
-            await vestingRegistry.setImplementation(vestingRegistry.address);
+            await vestingRegistry.setImplementation(vestingRegistryLogic.address);
             vestingRegistry = await VestingRegistry.at(vestingRegistry.address);
 
             await staking.setVestingRegistry(vestingRegistry.address);
@@ -662,9 +662,9 @@ contract("Staking", (accounts) => {
 
             /** Try to withdraw by using cancelTeamVesting function */
             // Upgradable Vesting Registry
-            vestingRegistry = await VestingRegistry.new();
+            vestingRegistryLogic = await VestingRegistry.new();
             vestingRegistry = await VestingRegistryProxy.new();
-            await vestingRegistry.setImplementation(vestingRegistry.address);
+            await vestingRegistry.setImplementation(vestingRegistryLogic.address);
             vestingRegistry = await VestingRegistry.at(vestingRegistry.address);
 
             await staking.setVestingRegistry(vestingRegistry.address);
@@ -721,9 +721,9 @@ contract("Staking", (accounts) => {
             let toStake = ONE_MILLON;
 
             // Upgradable Vesting Registry
-            vestingRegistry = await VestingRegistry.new();
+            vestingRegistryLogic = await VestingRegistry.new();
             vestingRegistry = await VestingRegistryProxy.new();
-            await vestingRegistry.setImplementation(vestingRegistry.address);
+            await vestingRegistry.setImplementation(vestingRegistryLogic.address);
             vestingRegistry = await VestingRegistry.at(vestingRegistry.address);
 
             await staking.setVestingRegistry(vestingRegistry.address);
