@@ -7,3 +7,4 @@ require("./misc");
 require("./governance");
 require("./feeSharingCollector");
 require("./uniswap");
+require("./bridge");
