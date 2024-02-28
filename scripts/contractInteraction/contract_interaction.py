@@ -99,6 +99,7 @@ def main():
     #sendFromMultisig('0xc0AAcbDB9Ce627A348B91CfDB67eC6b2FBC3dCbd', 0.1e18)
     #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
     #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
+    #sendFromMultisig('0x986c65fc1783a445ceccade74234dc8627d429d8', 0.1e18) #FastBTC on-ramp master node
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
