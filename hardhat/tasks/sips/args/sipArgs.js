@@ -1026,6 +1026,41 @@ const getArgsSip0076 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSov3686 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const vestingRegistryDeployment = await get("VestingRegistry");
+
+    const newVestingRegistryImplDeployment = await get("VestingRegistry_Implementation");
+    const multisigDeployment = await get("MultiSigWallet");
+
+    const vestingRegistryProxy = await ethers.getContract("VestingRegistryProxy");
+
+    if (
+        (await vestingRegistryProxy.getImplementation()) ==
+        newVestingRegistryImplDeployment.implementation
+    ) {
+        throw new Error(`New VestingRegistry impl is the same with the current one`);
+    }
+
+    const args = {
+        targets: [vestingRegistryDeployment.address, vestingRegistryDeployment.address],
+        values: [0, 0],
+        signatures: ["setImplementation(address)", "setAdminManager(address)"],
+        data: [
+            abiCoder.encode(["address"], [newVestingRegistryImplDeployment.address]),
+            abiCoder.encode(["address"], [multisigDeployment.address]),
+        ],
+        /** @todo change SIP description */
+        description: "SIP-Sov3686: xxx",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1040,6 +1075,7 @@ module.exports = {
     getArgsSip0046Part4,
     getArgsSipSov625,
     getArgsSip0073,
+    getArgsSov3686,
     getArgsSip_SOV_3161,
     getArgsSip0074,
     getArgsSip0076,
