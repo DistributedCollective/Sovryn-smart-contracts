@@ -537,6 +537,7 @@ const deployWithCustomProxy = async (
 
     const logicName = logicInstanceName ?? logicArtifactName;
     const logicImplName = logicName + "_Implementation"; // naming convention like in hh deployment
+    log(`Deploying ${logicImplName}, ${logicArtifactName}, ${deployer}, ${args}`);
     const logicDeploymentTx = await deploy(logicImplName, {
         contract: logicArtifactName,
         from: deployer,
@@ -549,7 +550,9 @@ const deployWithCustomProxy = async (
     log(`Current ${proxyName} implementation: ${prevImpl}`);
 
     if (logicDeploymentTx.newlyDeployed || logicDeploymentTx.address != prevImpl) {
-        log(`New ${proxyName} implementation: ${logicImplName} @ ${logicDeploymentTx.address}`);
+        logger.warn(
+            `New ${proxyName} implementation: ${logicImplName} @ ${logicDeploymentTx.address}`
+        );
         await save(logicName, {
             address: proxy.address,
             implementation: logicDeploymentTx.address,
