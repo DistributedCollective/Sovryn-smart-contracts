@@ -503,7 +503,7 @@ const createProposal = async (
 
 // the proxy ABI must have setImplementation() and getImplementation() functions
 const deployWithCustomProxy = async (
-    deployer,
+    deployer, // an address, not a signer object
     logicArtifactName, //logic contract artifact name
     proxyArtifactName, // proxy deployment name
     logicInstanceName = undefined, // save logic implementation as
@@ -596,10 +596,14 @@ const deployWithCustomProxy = async (
                 `>>> New implementation ${await proxy.getImplementation()} is set to the proxy <<<`
             );
         }
-        if (ethers.utils.isAddress(proxyOwner) && (await proxy.getOwner()) !== proxyOwner) {
-            await proxy.transferOwnership(proxyOwner);
+        if (
+            ethers.utils.isAddress(proxyOwner) &&
+            (await proxy.getProxyOwner()).toLowerCase() !== proxyOwner.toLowerCase()
+        ) {
+            await proxy.transferOwnership(proxyOwner); // in case this is redundant, just comment it
+            await proxy.setProxyOwner(proxyOwner);
             logger.success(
-                `Proxy ${proxyName} ownership transferred to ${await proxy.getOwner()}`
+                `Proxy ${proxyName} ownership transferred to ${await proxy.getProxyOwner()}`
             );
         }
         log();
