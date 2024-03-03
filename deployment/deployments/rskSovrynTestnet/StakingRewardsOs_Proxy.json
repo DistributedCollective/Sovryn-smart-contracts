@@ -1,0 +1,600 @@
+{
+  "address": "0x720bA758526E086EAe849063f3160F12a624A6f6",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_oldImplementation",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_newImplementation",
+          "type": "address"
+        }
+      ],
+      "name": "ImplementationChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_oldOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "BASE_RATE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "DIVISOR",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "TWO_WEEKS",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getAverageBlockTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_checkpointTimestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "getCheckpointBlockNumber",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getDeploymentBlock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getImplementation",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "_implementation",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getMaxDuration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getOsSOV",
+      "outputs": [
+        {
+          "internalType": "contract IERC20Mintable",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getProxyOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getRewardsProgramStartTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_staker",
+          "type": "address"
+        }
+      ],
+      "name": "getStakerNextWithdrawTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getStaking",
+      "outputs": [
+        {
+          "internalType": "contract IStaking",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getStopBlock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getStopRewardsTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_implementation",
+          "type": "address"
+        }
+      ],
+      "name": "setImplementation",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "setProxyOwner",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xe83e2ee85cbcd65304d80f711277c0764cdb3dfea32e5229bef905900214dd44",
+  "receipt": {
+    "to": null,
+    "from": "0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b",
+    "contractAddress": "0x720bA758526E086EAe849063f3160F12a624A6f6",
+    "transactionIndex": 0,
+    "gasUsed": "746114",
+    "logsBloom": "0x00000000000000000000000000000000000000001000000000800000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000001000000000000000000004000000000000000020000000000000000004800000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000400020000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x2453ffe63bdf8ffc258a447af3a4f2feff04378323f0371d82aa4ba3f7f0b6cd",
+    "transactionHash": "0xe83e2ee85cbcd65304d80f711277c0764cdb3dfea32e5229bef905900214dd44",
+    "logs": [
+      {
+        "transactionIndex": 0,
+        "blockNumber": 4842875,
+        "transactionHash": "0xe83e2ee85cbcd65304d80f711277c0764cdb3dfea32e5229bef905900214dd44",
+        "address": "0x720bA758526E086EAe849063f3160F12a624A6f6",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000008c9143221f2b72fcef391893c3a02cf0fe84f50b"
+        ],
+        "data": "0x",
+        "logIndex": 0,
+        "blockHash": "0x2453ffe63bdf8ffc258a447af3a4f2feff04378323f0371d82aa4ba3f7f0b6cd"
+      },
+      {
+        "transactionIndex": 0,
+        "blockNumber": 4842875,
+        "transactionHash": "0xe83e2ee85cbcd65304d80f711277c0764cdb3dfea32e5229bef905900214dd44",
+        "address": "0x720bA758526E086EAe849063f3160F12a624A6f6",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000008c9143221f2b72fcef391893c3a02cf0fe84f50b"
+        ],
+        "data": "0x",
+        "logIndex": 1,
+        "blockHash": "0x2453ffe63bdf8ffc258a447af3a4f2feff04378323f0371d82aa4ba3f7f0b6cd"
+      }
+    ],
+    "blockNumber": 4842875,
+    "cumulativeGasUsed": "746114",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "fff63f863151350c652df943b3c6ea48",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldImplementation\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newImplementation\",\"type\":\"address\"}],\"name\":\"ImplementationChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"constant\":true,\"inputs\":[],\"name\":\"BASE_RATE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"DIVISOR\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"TWO_WEEKS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getAverageBlockTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_checkpointTimestamp\",\"type\":\"uint256\"}],\"name\":\"getCheckpointBlockNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getDeploymentBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_implementation\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getMaxDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getOsSOV\",\"outputs\":[{\"internalType\":\"contract IERC20Mintable\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getProxyOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getRewardsProgramStartTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_staker\",\"type\":\"address\"}],\"name\":\"getStakerNextWithdrawTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getStaking\",\"outputs\":[{\"internalType\":\"contract IStaking\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getStopBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getStopRewardsTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_implementation\",\"type\":\"address\"}],\"name\":\"setImplementation\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"setProxyOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"StakingRewardsOs contract should be upgradable. Used UpgradableProxy. StakingRewardsOsStorage is deployed with the upgradable functionality by using this contract instead, that inherits from UpgradableProxy with the possibility of being enhanced and re-deployed.\",\"methods\":{\"getCheckpointBlockNumber(uint256)\":{\"params\":{\"_checkpointTimestamp\":\"Checkpoint timestamp\"}},\"getImplementation()\":{\"return\":\"Address of the implementation.\"},\"getProxyOwner()\":{\"return\":\"Address of the owner.\"},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"setImplementation(address)\":{\"details\":\"Wrapper for _setImplementation that exposes the function as public for owner to be able to set a new version of the contract as current pointing implementation.\",\"params\":{\"_implementation\":\"Address of the implementation.\"}},\"setProxyOwner(address)\":{\"params\":{\"_owner\":\"Address of the owner.\"}},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"StakingRewardsOs Proxy contract.\"},\"userdoc\":{\"methods\":{\"getImplementation()\":{\"notice\":\"Return address of the implementation.\"},\"getProxyOwner()\":{\"notice\":\"Return address of the owner.\"},\"setImplementation(address)\":{\"notice\":\"Set address of the implementation.\"},\"setProxyOwner(address)\":{\"notice\":\"Set address of the owner.\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/StakingRewards/StakingRewardsOsProxy.sol\":\"StakingRewardsOsProxy\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":forge-std/=foundry/lib/forge-std/src/\"]},\"sources\":{\"contracts/governance/Staking/interfaces/IStaking.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\npragma experimental ABIEncoderV2;\\n\\n/**\\n * @title Interface for Staking modules governance/Staking/modules\\n */\\n\\ninterface IStaking {\\n    /*************************** StakingAdminModule ***************************/\\n\\n    /**\\n     * @notice Add account to Admins ACL.\\n     * @param _admin The addresses of the account to grant permissions.\\n     * */\\n    function addAdmin(address _admin) external;\\n\\n    /**\\n     * @notice Remove account from Admins ACL.\\n     * @param _admin The addresses of the account to revoke permissions.\\n     * */\\n    function removeAdmin(address _admin) external;\\n\\n    /**\\n     * @notice Add account to pausers ACL.\\n     * @param _pauser The address to grant pauser permissions.\\n     * */\\n    function addPauser(address _pauser) external;\\n\\n    /**\\n     * @notice Remove account from pausers ACL.\\n     * @param _pauser The address to grant pauser permissions.\\n     * */\\n    function removePauser(address _pauser) external;\\n\\n    /**\\n     * @notice Pause/unpause contract\\n     * @param _pause true when pausing, false when unpausing\\n     * */\\n    function pauseUnpause(bool _pause) external;\\n\\n    /**\\n     * @notice Freeze contract - disable all functions\\n     * @param _freeze true when freezing, false when unfreezing\\n     * @dev When freezing, pause is always applied too. When unfreezing, the contract is left in paused stated.\\n     * */\\n    function freezeUnfreeze(bool _freeze) external;\\n\\n    /**\\n     * @notice Allows the owner to set a fee sharing proxy contract.\\n     * We need it for unstaking with slashing.\\n     * @param _feeSharing The address of FeeSharingCollectorProxy contract.\\n     * */\\n    function setFeeSharing(address _feeSharing) external;\\n\\n    /**\\n     * @notice Allow the owner to set weight scaling.\\n     * We need it for unstaking with slashing.\\n     * @param _weightScaling The weight scaling.\\n     * */\\n    function setWeightScaling(uint96 _weightScaling) external;\\n\\n    /**\\n     * @notice Allow the owner to set a new staking contract.\\n     * As a consequence it allows the stakers to migrate their positions\\n     * to the new contract.\\n     * @dev Doesn't have any influence as long as migrateToNewStakingContract\\n     * is not implemented.\\n     * @param _newStakingContract The address of the new staking contract.\\n     * */\\n    function setNewStakingContract(address _newStakingContract) external;\\n\\n    /**\\n     * @notice Allow a staker to migrate his positions to the new staking contract.\\n     * @dev Staking contract needs to be set before by the owner.\\n     * Currently not implemented, just needed for the interface.\\n     *      In case it's needed at some point in the future,\\n     *      the implementation needs to be changed first.\\n     * */\\n    function migrateToNewStakingContract() external; // dummy - not implemented as of now\\n\\n    /*************************** StakingGovernanceModule ***************************/\\n\\n    /**\\n     * @notice Compute the total voting power at a given time.\\n     * @param blockNumber The block number, needed for checkpointing.\\n     * @param time The timestamp for which to calculate the total voting power.\\n     * @return The total voting power at the given time.\\n     * */\\n    function getPriorTotalVotingPower(\\n        uint32 blockNumber,\\n        uint256 time\\n    ) external view returns (uint96);\\n\\n    /**\\n     * @notice Get the current votes balance for a user account.\\n     * @param account The address to get votes balance.\\n     * @dev This is a wrapper to simplify arguments. The actual computation is\\n     * performed on WeightedStaking parent contract.\\n     * @return The number of current votes for a user account.\\n     * */\\n    function getCurrentVotes(address account) external view returns (uint96);\\n\\n    /**\\n     * @notice Determine the prior number of votes for a delegatee as of a block number.\\n     * Iterate through checkpoints adding up voting power.\\n     * @dev Block number must be a finalized block or else this function will revert\\n     * to prevent misinformation.\\n     *      Used for Voting, not for fee sharing.\\n     * @param account The address of the account to check.\\n     * @param blockNumber The block number to get the vote balance at.\\n     * @param date The staking date to compute the power for.\\n     * @return The number of votes the delegatee had as of the given block.\\n     * */\\n    function getPriorVotes(\\n        address account,\\n        uint256 blockNumber,\\n        uint256 date\\n    ) external view returns (uint96);\\n\\n    /**\\n     * @notice Determine the prior number of stake for an account as of a block number.\\n     * @dev Block number must be a finalized block or else this function will\\n     * revert to prevent misinformation.\\n     * @param account The address of the account to check.\\n     * @param date The staking date to compute the power for.\\n     * @param blockNumber The block number to get the vote balance at.\\n     * @return The number of votes the account had as of the given block.\\n     * */\\n    function getPriorStakeByDateForDelegatee(\\n        address account,\\n        uint256 date,\\n        uint256 blockNumber\\n    ) external view returns (uint96);\\n\\n    /**\\n     * @notice Determine the prior number of stake for an unlocking date as of a block number.\\n     * @dev Block number must be a finalized block or else this function will\\n     * revert to prevent misinformation.\\n     * TODO: WeightedStaking::getPriorTotalStakesForDate should probably better\\n     * be internal instead of a public function.\\n     * @param date The date to check the stakes for.\\n     * @param blockNumber The block number to get the vote balance at.\\n     * @return The number of votes the account had as of the given block.\\n     * */\\n    function getPriorTotalStakesForDate(\\n        uint256 date,\\n        uint256 blockNumber\\n    ) external view returns (uint96);\\n\\n    /**\\n     * @notice Delegate votes from `msg.sender` which are locked until lockDate to `delegatee`.\\n     * @param delegatee The address to delegate votes to.\\n     * @param lockDate the date if the position to delegate.\\n     * */\\n    function delegate(address delegatee, uint256 lockDate) external;\\n\\n    /*************************** StakingStakeModule ***************************/\\n\\n    event TokensStaked(\\n        address indexed staker,\\n        uint256 amount,\\n        uint256 lockedUntil,\\n        uint256 totalStaked\\n    );\\n\\n    /**\\n     * @notice Stake the given amount for the given duration of time.\\n     * @param amount The number of tokens to stake.\\n     * @param until Timestamp indicating the date until which to stake.\\n     * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.\\n     * @param delegatee The address of the delegatee or 0x0 if there is none.\\n     * */\\n    function stake(uint96 amount, uint256 until, address stakeFor, address delegatee) external;\\n\\n    /**\\n     * @notice Stake the given amount for the given duration of time.\\n     * @dev This function will be invoked from receiveApproval\\n     * @dev SOV.approveAndCall -> this.receiveApproval -> this.stakeWithApproval\\n     * @param sender The sender of SOV.approveAndCall\\n     * @param amount The number of tokens to stake.\\n     * @param until Timestamp indicating the date until which to stake.\\n     * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.\\n     * @param delegatee The address of the delegatee or 0x0 if there is none.\\n     * */\\n    function stakeWithApproval(\\n        address sender,\\n        uint96 amount,\\n        uint256 until,\\n        address stakeFor,\\n        address delegatee\\n    ) external;\\n\\n    /**\\n     * @notice Receives approval from SOV token.\\n     * @param _data The data will be used for low level call.\\n     */\\n    function receiveApproval(\\n        address _sender,\\n        uint256 _amount,\\n        address _token,\\n        bytes calldata _data\\n    ) external;\\n\\n    /**\\n     * @notice Extend the staking duration until the specified date.\\n     * @param previousLock The old unlocking timestamp.\\n     * @param until The new unlocking timestamp in seconds.\\n     * */\\n    function extendStakingDuration(uint256 previousLock, uint256 until) external;\\n\\n    /**\\n     * @dev DO NOT USE this misspelled function. Use stakeBySchedule function instead.\\n     * This function cannot be deprecated while we have non-upgradeable vesting contracts.\\n     * */\\n    function stakesBySchedule(\\n        uint256 amount,\\n        uint256 cliff,\\n        uint256 duration,\\n        uint256 intervalLength,\\n        address stakeFor,\\n        address delegatee\\n    ) external;\\n\\n    /**\\n     * @notice Stake tokens according to the vesting schedule.\\n     * @param amount The amount of tokens to stake.\\n     * @param cliff The time interval to the first withdraw.\\n     * @param duration The staking duration.\\n     * @param intervalLength The length of each staking interval when cliff passed.\\n     * @param stakeFor The address to stake the tokens for or 0x0 if staking for oneself.\\n     * @param delegatee The address of the delegatee or 0x0 if there is none.\\n     * */\\n    function stakeBySchedule(\\n        uint256 amount,\\n        uint256 cliff,\\n        uint256 duration,\\n        uint256 intervalLength,\\n        address stakeFor,\\n        address delegatee\\n    ) external;\\n\\n    /**\\n     * @notice Get the number of staked tokens held by the user account.\\n     * @dev Iterate checkpoints adding up stakes.\\n     * @param account The address of the account to get the balance of.\\n     * @return The number of tokens held.\\n     * */\\n    function balanceOf(address account) external view returns (uint96 balance);\\n\\n    /**\\n     * @notice Get the current number of tokens staked for a day.\\n     * @param lockedTS The timestamp to get the staked tokens for.\\n     * */\\n    function getCurrentStakedUntil(uint256 lockedTS) external view returns (uint96);\\n\\n    /**\\n     * @notice Get list of stakes for a user account.\\n     * @param account The address to get stakes.\\n     * @return The arrays of dates and stakes.\\n     * */\\n    function getStakes(\\n        address account\\n    ) external view returns (uint256[] memory dates, uint96[] memory stakes);\\n\\n    /**\\n     * @notice Unstaking is possible every 2 weeks only. This means, to\\n     * calculate the key value for the staking checkpoints, we need to\\n     * map the intended timestamp to the closest available date.\\n     * @param timestamp The unlocking timestamp.\\n     * @return The actual unlocking date (might be up to 2 weeks shorter than intended).\\n     * */\\n    function timestampToLockDate(uint256 timestamp) external view returns (uint256);\\n\\n    /*************************** StakingStorageModule ***************************/\\n\\n    /// @notice The maximum duration to stake tokens\\n    /// @return MAX_DURATION to stake tokens\\n    function getStorageMaxDurationToStakeTokens() external pure returns (uint256);\\n\\n    /// @notice The maximum possible voting weight before adding +1 (actually 10, but need 9 for computation).\\n    /// @return uint256(MAX_VOTING_WEIGHT);\\n    function getStorageMaxVotingWeight() external pure returns (uint256);\\n\\n    /// @notice weight is multiplied with this factor (for allowing decimals, like 1.2x).\\n    /// @dev MAX_VOTING_WEIGHT * WEIGHT_FACTOR needs to be < 792, because there are 100,000,000 SOV with 18 decimals\\n    /// @return uint256(WEIGHT_FACTOR);\\n    function getStorageWeightFactor() external pure returns (uint256);\\n\\n    /// @return uint256(DEFAULT_WEIGHT_SCALING);\\n    function getStorageDefaultWeightScaling() external pure returns (uint256);\\n\\n    /// @notice return (uint256(MIN_WEIGHT_SCALING), uint256(MAX_WEIGHT_SCALING))\\n    function getStorageRangeForWeightScaling()\\n        external\\n        pure\\n        returns (uint256 minWeightScaling, uint256 maxWeightScaling);\\n\\n    /// @notice The EIP-712 typehash for the contract's domain.\\n    /// @return uint256(DOMAIN_TYPEHASH);\\n    function getStorageDomainTypehash() external pure returns (uint256);\\n\\n    /// @notice The EIP-712 typehash for the delegation struct used by the contract.\\n    /// @return uint256(DELEGATION_TYPEHASH);\\n    function getStorageDelegationTypehash() external pure returns (uint256);\\n\\n    /// @return name;\\n    function getStorageName() external view returns (string memory);\\n\\n    /// AUTOGENERATED FUNCTIONS FROM THE STAKING STORAGE PUBLIC VARIABLES ///\\n\\n    /// @notice The timestamp of contract creation. Base for the staking period calculation.\\n    function kickoffTS() external view returns (uint256);\\n\\n    /// @notice The token to be staked\\n    function SOVToken() external view returns (address);\\n\\n    /// @notice Stakers delegated voting power\\n    /// @param staker - the delegating address\\n    /// @param until - delegated voting\\n    /// @return _delegate - voting power delegated to address\\n    function delegates(address staker, uint256 until) external view returns (address _delegate);\\n\\n    /// @notice If this flag is set to true, all tokens are unlocked immediately\\n    /// see function unlockAllTokens() for details\\n    function allUnlocked() external view returns (bool);\\n\\n    /// @notice Used for stake migrations to a new staking contract with a different storage structure\\n    function newStakingContract() external view returns (address);\\n\\n    /// CHECKPOINTS\\n    struct Checkpoint {\\n        uint32 fromBlock;\\n        uint96 stake;\\n    }\\n\\n    /// @notice A record of tokens to be unstaked at a given time in total.\\n    /// For total voting power computation. Voting weights get adjusted bi-weekly.\\n    /// @dev totalStakingCheckpoints[date][index] is a checkpoint\\n    function totalStakingCheckpoints(\\n        uint256 date,\\n        uint32 index\\n    ) external view returns (Checkpoint memory);\\n\\n    /// @notice The number of total staking checkpoints for each date.\\n    /// @dev numTotalStakingCheckpoints[date] is a number.\\n    function numTotalStakingCheckpoints(\\n        uint256 date\\n    ) external view returns (uint32 checkpointsQty);\\n\\n    /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address.\\n    /// For delegatee voting power computation. Voting weights get adjusted bi-weekly.\\n    /// @dev delegateStakingCheckpoints[delegatee][date][index] is a checkpoint.\\n    function delegateStakingCheckpoints(\\n        address delagatee,\\n        uint256 date,\\n        uint32 index\\n    ) external view returns (Checkpoint memory);\\n\\n    /// @notice The number of total staking checkpoints for each date per delegate.\\n    /// @dev numDelegateStakingCheckpoints[delegatee][date] is a number.\\n    function numDelegateStakingCheckpoints(\\n        address delegatee,\\n        uint256 date\\n    ) external view returns (uint32 checkpointsQty);\\n\\n    /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)\\n    /// @dev userStakingCheckpoints[user][date][index] is a checkpoint.\\n    function userStakingCheckpoints(\\n        address user,\\n        uint256 date,\\n        uint32 index\\n    ) external view returns (Checkpoint memory);\\n\\n    /// @notice The number of total staking checkpoints for each date per user.\\n    /// @dev numUserStakingCheckpoints[user][date] is a number\\n    function numUserStakingCheckpoints(\\n        address user,\\n        uint256 date\\n    ) external view returns (uint32 checkpointsQty);\\n\\n    /// @notice A record of states for signing / validating signatures\\n    /// @dev nonces[user] is a number.\\n    function nonces(address user) external view returns (uint256 nonce);\\n\\n    /// SLASHING ///\\n\\n    /// @notice the address of FeeSharingCollectorProxy contract, we need it for unstaking with slashing.\\n    function feeSharing() external view returns (address);\\n\\n    /// @notice used for weight scaling when unstaking with slashing.\\n    /// @return uint96 DEFAULT_WEIGHT_SCALING\\n    function weightScaling() external view returns (uint96);\\n\\n    /// @notice List of vesting contracts, tokens for these contracts won't be slashed if unstaked by governance.\\n    /// @dev vestingWhitelist[contract] is true/false.\\n    function vestingWhitelist(address isWhitelisted) external view returns (bool);\\n\\n    /// @dev user => flag whether user has admin role.\\n    /// @dev multisig should be an admin, admin can invoke only governanceWithdrawVesting function,\\n    /// \\tthis function works only with Team Vesting contracts\\n    function admins(address isAdmin) external view returns (bool);\\n\\n    /// @dev vesting contract code hash => flag whether it's registered code hash\\n    function vestingCodeHashes(bytes32 vestingLogicCodeHash) external view returns (bool);\\n\\n    /// @notice A record of tokens to be unstaked from vesting contract at a given time (lockDate -> vest checkpoint)\\n    /// @dev vestingCheckpoints[date][index] is a checkpoint.\\n    function vestingCheckpoints(\\n        uint256 date,\\n        uint32 index\\n    ) external view returns (Checkpoint memory);\\n\\n    /// @notice The number of total vesting checkpoints for each date.\\n    /// @dev numVestingCheckpoints[date] is a number.\\n    function numVestingCheckpoints(uint256 date) external view returns (uint32 checkpointsQty);\\n\\n    ///@notice vesting registry contract PROXY address\\n    function vestingRegistryLogic() external view returns (address);\\n\\n    /// @dev user => flag whether user has pauser role.\\n    function pausers(address isPauser) external view returns (bool);\\n\\n    /// @dev Staking contract is paused\\n    function paused() external view returns (bool);\\n\\n    /// @dev Staking contract is frozen\\n    function frozen() external view returns (bool);\\n\\n    /*************************** StakingVestingModule ***************************/\\n\\n    event VestingStakeSet(uint256 lockedTS, uint96 value);\\n\\n    /**\\n     * @notice Return flag whether the given address is a registered vesting contract.\\n     * @param stakerAddress the address to check\\n     */\\n    function isVestingContract(address stakerAddress) external view returns (bool);\\n\\n    /**\\n     * @notice Remove vesting contract's code hash to a map of code hashes.\\n     * @param vesting The address of Vesting contract.\\n     * @dev We need it to use isVestingContract() function instead of isContract()\\n     */\\n    function removeContractCodeHash(address vesting) external;\\n\\n    /**\\n     * @notice Add vesting contract's code hash to a map of code hashes.\\n     * @param vesting The address of Vesting contract.\\n     * @dev We need it to use isVestingContract() function instead of isContract()\\n     */\\n    function addContractCodeHash(address vesting) external;\\n\\n    /**\\n     * @notice Determine the prior number of vested stake for an account until a\\n     * certain lock date as of a block number.\\n     * @dev Block number must be a finalized block or else this function\\n     * will revert to prevent misinformation.\\n     * @param date The lock date.\\n     * @param blockNumber The block number to get the vote balance at.\\n     * @return The number of votes the account had as of the given block.\\n     * */\\n    function getPriorVestingStakeByDate(\\n        uint256 date,\\n        uint256 blockNumber\\n    ) external view returns (uint96);\\n\\n    /**\\n     * @notice Compute the voting power for a specific date.\\n     * Power = stake * weight\\n     * @param date The staking date to compute the power for. Adjusted to the next valid lock date, if necessary.\\n     * @param startDate The date for which we need to know the power of the stake.\\n     * @param blockNumber The block number, needed for checkpointing.\\n     * @return The stacking power.\\n     * */\\n    function weightedVestingStakeByDate(\\n        uint256 date,\\n        uint256 startDate,\\n        uint256 blockNumber\\n    ) external view returns (uint96 power);\\n\\n    /**\\n     * @notice Determine the prior weighted vested amount for an account as of a block number.\\n     * Iterate through checkpoints adding up voting power.\\n     * @dev Block number must be a finalized block or else this function will\\n     * revert to prevent misinformation.\\n     *      Used for fee sharing, not voting.\\n     * TODO: WeightedStaking::getPriorVestingWeightedStake is using the variable name \\\"votes\\\"\\n     * to add up token stake, and that could be misleading.\\n     *\\n     * @param blockNumber The block number to get the vote balance at.\\n     * @param date The staking date to compute the power for.\\n     * @return The weighted stake the account had as of the given block.\\n     * */\\n    function getPriorVestingWeightedStake(\\n        uint256 blockNumber,\\n        uint256 date\\n    ) external view returns (uint96 votes);\\n\\n    /**\\n     * @notice Determine the prior number of stake for an account until a\\n     * certain lock date as of a block number.\\n     * @dev Block number must be a finalized block or else this function\\n     * will revert to prevent misinformation.\\n     * @param account The address of the account to check.\\n     * @param date The lock date.\\n     * @param blockNumber The block number to get the vote balance at.\\n     * @return The number of votes the account had as of the given block.\\n     * */\\n    function getPriorUserStakeByDate(\\n        address account,\\n        uint256 date,\\n        uint256 blockNumber\\n    ) external view returns (uint96);\\n\\n    /**\\n     * @notice Sets the users' vesting stakes for a giving lock dates and writes checkpoints.\\n     * @param lockedDates The arrays of lock dates.\\n     * @param values The array of values to add to the staked balance.\\n     */\\n    function setVestingStakes(uint256[] calldata lockedDates, uint96[] calldata values) external;\\n\\n    /**\\n     * @notice sets vesting registry\\n     * @param _vestingRegistryProxy the address of vesting registry proxy contract\\n     * @dev _vestingRegistryProxy can be set to 0 as this function can be reused by\\n     * various other functionalities without the necessity of linking it with Vesting Registry\\n     */\\n    function setVestingRegistry(address _vestingRegistryProxy) external;\\n\\n    /*************************** StakingWithdrawModule ***************************/\\n\\n    /**\\n     * @notice Withdraw the given amount of tokens if they are unlocked.\\n     * @param amount The number of tokens to withdraw.\\n     * @param until The date until which the tokens were staked.\\n     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender\\n     * */\\n    function withdraw(uint96 amount, uint256 until, address receiver) external;\\n\\n    /**\\n     * @notice Withdraw the given amount of tokens.\\n     * @param amount The number of tokens to withdraw.\\n     * @param until The date until which the tokens were staked.\\n     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender\\n     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting\\n     * @dev **WARNING** This function should not be no longer used by Sovryn Protocol.\\n     * Sovryn protocol will use the cancelTeamVesting function for the withdrawal moving forward.\\n     * */\\n    function governanceWithdraw(uint96 amount, uint256 until, address receiver) external;\\n\\n    /**\\n     * @notice Withdraw tokens for vesting contract.\\n     * @param vesting The address of Vesting contract.\\n     * @param receiver The receiver of the tokens. If not specified, send to the msg.sender\\n     * @dev Can be invoked only by whitelisted contract passed to governanceWithdrawVesting.\\n     * */\\n    function governanceWithdrawVesting(address vesting, address receiver) external;\\n\\n    /**\\n     * @notice Get available and punished amount for withdrawing.\\n     * @param amount The number of tokens to withdraw.\\n     * @param until The date until which the tokens were staked.\\n     * */\\n    function getWithdrawAmounts(\\n        uint96 amount,\\n        uint256 until\\n    ) external view returns (uint96, uint96);\\n\\n    /**\\n     * @notice Allow the owner to unlock all tokens in case the staking contract\\n     * is going to be replaced\\n     * Note: Not reversible on purpose. once unlocked, everything is unlocked.\\n     * The owner should not be able to just quickly unlock to withdraw his own\\n     * tokens and lock again.\\n     * @dev Last resort.\\n     * */\\n    function unlockAllTokens() external;\\n\\n    /*************************** WeightedStakingModule ***************************/\\n\\n    /**\\n     * @notice Determine the prior weighted stake for an account as of a block number.\\n     * Iterate through checkpoints adding up voting power.\\n     * @dev Block number must be a finalized block or else this function will\\n     * revert to prevent misinformation.\\n     *      Used for fee sharing, not voting.\\n     *\\n     * @param account The address of the account to check.\\n     * @param blockNumber The block number to get the vote balance at.\\n     * @param date The date/timestamp of the unstaking time.\\n     * @return The weighted stake the account had as of the given block.\\n     * */\\n    function getPriorWeightedStake(\\n        address account,\\n        uint256 blockNumber,\\n        uint256 date\\n    ) external view returns (uint96 priorWeightedStake);\\n\\n    /**\\n     * @notice Compute the voting power for a specific date.\\n     * Power = stake * weight\\n     * TODO: WeightedStaking::weightedStakeByDate should probably better\\n     * be internal instead of a public function.\\n     * @param account The user address.\\n     * @param date The staking date to compute the power for.\\n     * @param startDate The date for which we need to know the power of the stake.\\n     * @param blockNumber The block number, needed for checkpointing.\\n     * @return The stacking power.\\n     * */\\n    function weightedStakeByDate(\\n        address account,\\n        uint256 date,\\n        uint256 startDate,\\n        uint256 blockNumber\\n    ) external view returns (uint96 power);\\n\\n    /**\\n     * @notice Compute the weight for a specific date.\\n     * @param date The unlocking date.\\n     * @param startDate We compute the weight for the tokens staked until 'date' on 'startDate'.\\n     * @return The weighted stake the account had as of the given block.\\n     * */\\n    function computeWeightByDate(\\n        uint256 date,\\n        uint256 startDate\\n    ) external pure returns (uint96 weight);\\n\\n    /**\\n     * @notice Returns public constant MAX_DURATION\\n     * preserved for backwards compatibility\\n     * Use getStorageMaxDurationToStakeTokens()\\n     * @return uint96 MAX_DURATION for staking\\n     **/\\n    function MAX_DURATION() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() external view returns (address);\\n\\n    /**\\n     * @dev Returns true if the caller is the current owner.\\n     */\\n    function isOwner() external view returns (bool);\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) external;\\n\\n    /**\\n     * @notice Governance withdraw vesting directly through staking contract.\\n     * This direct withdraw vesting solves the out of gas issue when there are too many iterations when withdrawing.\\n     * This function only allows cancelling vesting contract of the TeamVesting type.\\n     *\\n     * @param vesting The vesting address.\\n     * @param receiver The receiving address.\\n     * @param startFrom The start value for the iterations.\\n     */\\n    function cancelTeamVesting(address vesting, address receiver, uint256 startFrom) external;\\n\\n    /**\\n     * @notice Max iteration for direct withdrawal from staking to prevent out of gas issue.\\n     *\\n     * @return max iteration value.\\n     */\\n    function getMaxVestingWithdrawIterations() external view returns (uint256);\\n\\n    /**\\n     * @dev set max withdraw iterations.\\n     *\\n     * @param maxIterations new max iterations value.\\n     */\\n    function setMaxVestingWithdrawIterations(uint256 maxIterations) external;\\n}\\n\",\"keccak256\":\"0xf9d0f9e354e4af13f94c27881b564e1c7c8a4117ab2e36ca6264b9d413fa7e8f\"},\"contracts/governance/StakingRewards/StakingRewardsOsProxy.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\nimport \\\"./StakingRewardsOsStorage.sol\\\";\\nimport \\\"../../proxy/UpgradableProxy.sol\\\";\\n\\n/**\\n * @title StakingRewardsOs Proxy contract.\\n * @dev StakingRewardsOs contract should be upgradable. Used UpgradableProxy.\\n * StakingRewardsOsStorage is deployed with the upgradable functionality\\n * by using this contract instead, that inherits from UpgradableProxy with\\n * the possibility of being enhanced and re-deployed.\\n * */\\ncontract StakingRewardsOsProxy is StakingRewardsOsStorage, UpgradableProxy {}\\n\",\"keccak256\":\"0x7935f1285beb854e255944df58140f63713320280abc219457d16a45d32d9741\"},\"contracts/governance/StakingRewards/StakingRewardsOsStorage.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\nimport { IERC20Mintable } from \\\"../../interfaces/IERC20Mintable.sol\\\";\\nimport { IStaking } from \\\"../Staking/interfaces/IStaking.sol\\\";\\nimport { Ownable } from \\\"../../openzeppelin/Ownable.sol\\\";\\n\\n/**\\n * @title Staking Rewards Storage Contract.\\n * @notice Just the storage part of staking rewards contract, no functions,\\n * only constant, variables and required structures (mappings).\\n * Used by StackingRewardsProxy.\\n *\\n * What is SOV staking rewards ?\\n * The purpose of the SOV staking rewards program is to reward,\\n * \\\"marginal stakers\\\" (ie, stakers by choice, not currently vesting) with liquid SOV\\n * at the beginning of each new staking interval.\\n * */\\ncontract StakingRewardsOsStorage is Ownable {\\n    /// @notice 2 weeks in seconds.\\n    uint256 public constant TWO_WEEKS = 1209600;\\n\\n    /// @notice Annual Base Rate - it is the maximum interest rate(APY)\\n    uint256 public constant BASE_RATE = 900;\\n\\n    /// @notice DIVISOR is set as 2600000 = 26 (num periods per year) * 10 (max voting weight) * 10000 (900 -> 0.09)\\n    uint256 public constant DIVISOR = 2600000;\\n\\n    /// @notice The SOV token contract.\\n    // solhint-disable private-vars-leading-underscore\\n    IERC20Mintable internal osSOV;\\n\\n    /// @notice the staking proxy contract address\\n    IStaking internal staking;\\n\\n    /// @notice Maximum duration to collect rewards at one go\\n    uint256 internal maxDuration;\\n\\n    /// @notice Represents the time when the contract is deployed\\n    uint256 internal rewardsProgramStartTime;\\n\\n    /// @notice Represents the block when the Staking Rewards pogram is stopped\\n    uint256 internal stopBlock;\\n\\n    /// @notice Timestamp of the stopBlock adjusted to the staking lock timestamp\\n    uint256 internal stopRewardsTimestamp;\\n\\n    /// @notice User Address -> Next Withdrawn Timestamp\\n    mapping(address => uint256) internal stakerNextWithdrawTimestamp;\\n\\n    /// @notice User Address -> Claimed Balance\\n    mapping(address => uint256) internal claimedBalances;\\n\\n    /// @notice Represents the block when the StakingRwards Program is started\\n    uint256 internal deploymentBlock;\\n\\n    /// @notice BlockTime -> BlockNumber for a Staking Checkpoint\\n    mapping(uint256 => uint256) internal checkpointBlockNumber;\\n\\n    /// @notice Average Block Time - making it flexible\\n    uint256 internal averageBlockTime;\\n\\n    /// @param _checkpointTimestamp Checkpoint timestamp\\n    function getCheckpointBlockNumber(\\n        uint256 _checkpointTimestamp\\n    ) external view returns (uint256) {\\n        return checkpointBlockNumber[_checkpointTimestamp];\\n    }\\n\\n    function getOsSOV() external view returns (IERC20Mintable) {\\n        return osSOV;\\n    }\\n\\n    function getStaking() external view returns (IStaking) {\\n        return staking;\\n    }\\n\\n    function getMaxDuration() external view returns (uint256) {\\n        return maxDuration;\\n    }\\n\\n    function getRewardsProgramStartTime() external view returns (uint256) {\\n        return rewardsProgramStartTime;\\n    }\\n\\n    function getStopBlock() external view returns (uint256) {\\n        return stopBlock;\\n    }\\n\\n    function getStopRewardsTimestamp() external view returns (uint256) {\\n        return stopRewardsTimestamp;\\n    }\\n\\n    function getStakerNextWithdrawTimestamp(address _staker) external view returns (uint256) {\\n        return stakerNextWithdrawTimestamp[_staker];\\n    }\\n\\n    function getDeploymentBlock() external view returns (uint256) {\\n        return deploymentBlock;\\n    }\\n\\n    function getAverageBlockTime() external view returns (uint256) {\\n        return averageBlockTime;\\n    }\\n}\\n\",\"keccak256\":\"0xdc68e41c7a2c721d33eed6f4b83a87a54b7632cc37577b4dd4908f6fdd8bad06\"},\"contracts/interfaces/IERC20Mintable.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ncontract IERC20Mintable {\\n    string public name;\\n    uint8 public decimals;\\n    string public symbol;\\n\\n    function totalSupply() external view returns (uint256);\\n\\n    function balanceOf(address _who) external view returns (uint256);\\n\\n    function allowance(address _owner, address _spender) external view returns (uint256);\\n\\n    function approve(address _spender, uint256 _value) external returns (bool);\\n\\n    function transfer(address _to, uint256 _value) external returns (bool);\\n\\n    function transferFrom(address _from, address _to, uint256 _value) external returns (bool);\\n\\n    function mint(address _to, uint256 _value) external;\\n\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0xeebb5e65f388bc65d22f16fd0ef21d96cb0dc890daaa3d13cd2c935f4c2e1c11\"},\"contracts/openzeppelin/Context.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\ncontract Context {\\n    // Empty internal constructor, to prevent people from mistakenly deploying\\n    // an instance of this contract, which should be used via inheritance.\\n    constructor() internal {}\\n\\n    // solhint-disable-previous-line no-empty-blocks\\n\\n    function _msgSender() internal view returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\"},\"contracts/openzeppelin/Ownable.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\ncontract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() internal {\\n        address msgSender = _msgSender();\\n        _owner = msgSender;\\n        emit OwnershipTransferred(address(0), msgSender);\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(isOwner(), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns true if the caller is the current owner.\\n     */\\n    function isOwner() public view returns (bool) {\\n        return _msgSender() == _owner;\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public onlyOwner {\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     */\\n    function _transferOwnership(address newOwner) internal {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        emit OwnershipTransferred(_owner, newOwner);\\n        _owner = newOwner;\\n    }\\n}\\n\",\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\"},\"contracts/proxy/Proxy.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/**\\n * @title Base Proxy contract.\\n * @notice The proxy performs delegated calls to the contract implementation\\n * it is pointing to. This way upgradable contracts are possible on blockchain.\\n *\\n * Delegating proxy contracts are widely used for both upgradeability and gas\\n * savings. These proxies rely on a logic contract (also known as implementation\\n * contract or master copy) that is called using delegatecall. This allows\\n * proxies to keep a persistent state (storage and balance) while the code is\\n * delegated to the logic contract.\\n *\\n * Proxy contract is meant to be inherited and its internal functions\\n * _setImplementation and _setProxyOwner to be called when upgrades become\\n * neccessary.\\n *\\n * The loan token (iToken) contract as well as the protocol contract act as\\n * proxies, delegating all calls to underlying contracts. Therefore, if you\\n * want to interact with them using web3, you need to use the ABIs from the\\n * contracts containing the actual logic or the interface contract.\\n *   ABI for LoanToken contracts: LoanTokenLogicStandard\\n *   ABI for Protocol contract: ISovryn\\n *\\n * @dev UpgradableProxy is the contract that inherits Proxy and wraps these\\n * functions.\\n * */\\ncontract Proxy {\\n    bytes32 private constant KEY_IMPLEMENTATION = keccak256(\\\"key.implementation\\\");\\n    bytes32 private constant KEY_OWNER = keccak256(\\\"key.proxy.owner\\\");\\n\\n    event OwnershipTransferred(address indexed _oldOwner, address indexed _newOwner);\\n    event ImplementationChanged(\\n        address indexed _oldImplementation,\\n        address indexed _newImplementation\\n    );\\n\\n    /**\\n     * @notice Set sender as an owner.\\n     * */\\n    constructor() public {\\n        _setProxyOwner(msg.sender);\\n    }\\n\\n    /**\\n     * @notice Throw error if called not by an owner.\\n     * */\\n    modifier onlyProxyOwner() {\\n        require(msg.sender == getProxyOwner(), \\\"Proxy:: access denied\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @notice Set address of the implementation.\\n     * @param _implementation Address of the implementation.\\n     * */\\n    function _setImplementation(address _implementation) internal {\\n        require(_implementation != address(0), \\\"Proxy::setImplementation: invalid address\\\");\\n        emit ImplementationChanged(getImplementation(), _implementation);\\n\\n        bytes32 key = KEY_IMPLEMENTATION;\\n        assembly {\\n            sstore(key, _implementation)\\n        }\\n    }\\n\\n    /**\\n     * @notice Return address of the implementation.\\n     * @return Address of the implementation.\\n     * */\\n    function getImplementation() public view returns (address _implementation) {\\n        bytes32 key = KEY_IMPLEMENTATION;\\n        assembly {\\n            _implementation := sload(key)\\n        }\\n    }\\n\\n    /**\\n     * @notice Set address of the owner.\\n     * @param _owner Address of the owner.\\n     * */\\n    function _setProxyOwner(address _owner) internal {\\n        require(_owner != address(0), \\\"Proxy::setProxyOwner: invalid address\\\");\\n        emit OwnershipTransferred(getProxyOwner(), _owner);\\n\\n        bytes32 key = KEY_OWNER;\\n        assembly {\\n            sstore(key, _owner)\\n        }\\n    }\\n\\n    /**\\n     * @notice Return address of the owner.\\n     * @return Address of the owner.\\n     * */\\n    function getProxyOwner() public view returns (address _owner) {\\n        bytes32 key = KEY_OWNER;\\n        assembly {\\n            _owner := sload(key)\\n        }\\n    }\\n\\n    /**\\n     * @notice Fallback function performs a delegate call\\n     * to the actual implementation address is pointing this proxy.\\n     * Returns whatever the implementation call returns.\\n     * */\\n    function() external payable {\\n        address implementation = getImplementation();\\n        require(implementation != address(0), \\\"Proxy::(): implementation not found\\\");\\n\\n        assembly {\\n            let pointer := mload(0x40)\\n            calldatacopy(pointer, 0, calldatasize)\\n            let result := delegatecall(gas, implementation, pointer, calldatasize, 0, 0)\\n            let size := returndatasize\\n            returndatacopy(pointer, 0, size)\\n\\n            switch result\\n            case 0 {\\n                revert(pointer, size)\\n            }\\n            default {\\n                return(pointer, size)\\n            }\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x1d22368954fd92c2f6abf7b68368615b511e3405b6417408b943a6866b247326\"},\"contracts/proxy/UpgradableProxy.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\nimport \\\"./Proxy.sol\\\";\\n\\n/**\\n * @title Upgradable Proxy contract.\\n * @notice A disadvantage of the immutable ledger is that nobody can change the\\n * source code of a smart contract after it\\u2019s been deployed. In order to fix\\n * bugs or introduce new features, smart contracts need to be upgradable somehow.\\n *\\n * Although it is not possible to upgrade the code of an already deployed smart\\n * contract, it is possible to set-up a proxy contract architecture that will\\n * allow to use new deployed contracts as if the main logic had been upgraded.\\n *\\n * A proxy architecture pattern is such that all message calls go through a\\n * Proxy contract that will redirect them to the latest deployed contract logic.\\n * To upgrade, a new version of the contract is deployed, and the Proxy is\\n * updated to reference the new contract address.\\n * */\\ncontract UpgradableProxy is Proxy {\\n    /**\\n     * @notice Set address of the implementation.\\n     * @dev Wrapper for _setImplementation that exposes the function\\n     * as public for owner to be able to set a new version of the\\n     * contract as current pointing implementation.\\n     * @param _implementation Address of the implementation.\\n     * */\\n    function setImplementation(address _implementation) public onlyProxyOwner {\\n        _setImplementation(_implementation);\\n    }\\n\\n    /**\\n     * @notice Set address of the owner.\\n     * @param _owner Address of the owner.\\n     * */\\n    function setProxyOwner(address _owner) public onlyProxyOwner {\\n        _setProxyOwner(_owner);\\n    }\\n}\\n\",\"keccak256\":\"0xc876883361bd3b675041b1c01c2be94a994f8ba6af516f01b171235a360b96ed\"}},\"version\":1}",
+  "bytecode": "0x608060405260006100176001600160e01b0361006616565b600080546001600160a01b0319166001600160a01b038316908117825560405192935091600080516020610a67833981519152908290a350610061336001600160e01b0361006a16565b61013c565b3390565b6001600160a01b0381166100af5760405162461bcd60e51b8152600401808060200182810382526025815260200180610a876025913960400191505060405180910390fd5b6001600160a01b0381166100ca6001600160e01b0361011416565b6001600160a01b0316600080516020610a6783398151915260405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b61091c8061014b6000396000f3fe60806040526004361061011f5760003560e01c8063aaf10f42116100a0578063f2fde38b11610064578063f2fde38b14610365578063f5f52e2e14610398578063f92ac1f1146103ad578063f9e28d0d146103e0578063fed73f66146103f55761011f565b8063aaf10f42146102be578063b49a2db9146102d3578063caaee91c146102e8578063ce6da7f21461031d578063d784d426146103325761011f565b806380d1cb35116100e757806380d1cb35146102415780638da5cb5b146102565780638f32d59b1461026b5780638fd35c6514610294578063934d1fa4146102a95761011f565b80631ab7710d146101955780633410fe6e146101c657806341910f90146101ed578063722a23db146102025780637b1391a61461022c575b600061012961040a565b90506001600160a01b0381166101705760405162461bcd60e51b81526004018080602001828103825260238152602001806108a06023913960400191505060405180910390fd5b60405136600082376000803683855af43d806000843e818015610191578184f35b8184fd5b3480156101a157600080fd5b506101aa610435565b604080516001600160a01b039092168252519081900360200190f35b3480156101d257600080fd5b506101db61045d565b60408051918252519081900360200190f35b3480156101f957600080fd5b506101db610464565b34801561020e57600080fd5b506101db6004803603602081101561022557600080fd5b503561046a565b34801561023857600080fd5b506101aa61047c565b34801561024d57600080fd5b506101db61048b565b34801561026257600080fd5b506101aa610491565b34801561027757600080fd5b506102806104a0565b604080519115158252519081900360200190f35b3480156102a057600080fd5b506101aa6104c4565b3480156102b557600080fd5b506101db6104d3565b3480156102ca57600080fd5b506101aa61040a565b3480156102df57600080fd5b506101db6104da565b3480156102f457600080fd5b5061031b6004803603602081101561030b57600080fd5b50356001600160a01b03166104e0565b005b34801561032957600080fd5b506101db610551565b34801561033e57600080fd5b5061031b6004803603602081101561035557600080fd5b50356001600160a01b0316610557565b34801561037157600080fd5b5061031b6004803603602081101561038857600080fd5b50356001600160a01b03166105c5565b3480156103a457600080fd5b506101db610616565b3480156103b957600080fd5b506101db600480360360208110156103d057600080fd5b50356001600160a01b031661061c565b3480156103ec57600080fd5b506101db610637565b34801561040157600080fd5b506101db61063d565b604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205490565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6227ac4081565b61038481565b6000908152600a602052604090205490565b6002546001600160a01b031690565b60095490565b6000546001600160a01b031690565b600080546001600160a01b03166104b5610643565b6001600160a01b031614905090565b6001546001600160a01b031690565b6212750081565b60035490565b6104e8610435565b6001600160a01b0316336001600160a01b031614610545576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61054e81610647565b50565b60065490565b61055f610435565b6001600160a01b0316336001600160a01b0316146105bc576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61054e816106fa565b6105cd6104a0565b61060d576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61054e816107b0565b60055490565b6001600160a01b031660009081526007602052604090205490565b600b5490565b60045490565b3390565b6001600160a01b03811661068c5760405162461bcd60e51b81526004018080602001828103825260258152602001806108c36025913960400191505060405180910390fd5b806001600160a01b031661069e610435565b6001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b6001600160a01b03811661073f5760405162461bcd60e51b81526004018080602001828103825260298152602001806108776029913960400191505060405180910390fd5b806001600160a01b031661075161040a565b6001600160a01b03167fcfbf4028add9318bbf716f08c348595afb063b0e9feed1f86d33681a4b3ed4d360405160405180910390a3604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b8152905190819003601201902055565b6001600160a01b0381166107f55760405162461bcd60e51b81526004018080602001828103825260268152602001806108516026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f206164647265737350726f78793a3a736574496d706c656d656e746174696f6e3a20696e76616c6964206164647265737350726f78793a3a28293a20696d706c656d656e746174696f6e206e6f7420666f756e6450726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373a265627a7a72315820dac83a0120c5baeb19bbd17fd9ffbbcf0f4dfd1629b9d8d5b7d4af0d541f655964736f6c634300051100328be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e050726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373",
+  "deployedBytecode": "0x60806040526004361061011f5760003560e01c8063aaf10f42116100a0578063f2fde38b11610064578063f2fde38b14610365578063f5f52e2e14610398578063f92ac1f1146103ad578063f9e28d0d146103e0578063fed73f66146103f55761011f565b8063aaf10f42146102be578063b49a2db9146102d3578063caaee91c146102e8578063ce6da7f21461031d578063d784d426146103325761011f565b806380d1cb35116100e757806380d1cb35146102415780638da5cb5b146102565780638f32d59b1461026b5780638fd35c6514610294578063934d1fa4146102a95761011f565b80631ab7710d146101955780633410fe6e146101c657806341910f90146101ed578063722a23db146102025780637b1391a61461022c575b600061012961040a565b90506001600160a01b0381166101705760405162461bcd60e51b81526004018080602001828103825260238152602001806108a06023913960400191505060405180910390fd5b60405136600082376000803683855af43d806000843e818015610191578184f35b8184fd5b3480156101a157600080fd5b506101aa610435565b604080516001600160a01b039092168252519081900360200190f35b3480156101d257600080fd5b506101db61045d565b60408051918252519081900360200190f35b3480156101f957600080fd5b506101db610464565b34801561020e57600080fd5b506101db6004803603602081101561022557600080fd5b503561046a565b34801561023857600080fd5b506101aa61047c565b34801561024d57600080fd5b506101db61048b565b34801561026257600080fd5b506101aa610491565b34801561027757600080fd5b506102806104a0565b604080519115158252519081900360200190f35b3480156102a057600080fd5b506101aa6104c4565b3480156102b557600080fd5b506101db6104d3565b3480156102ca57600080fd5b506101aa61040a565b3480156102df57600080fd5b506101db6104da565b3480156102f457600080fd5b5061031b6004803603602081101561030b57600080fd5b50356001600160a01b03166104e0565b005b34801561032957600080fd5b506101db610551565b34801561033e57600080fd5b5061031b6004803603602081101561035557600080fd5b50356001600160a01b0316610557565b34801561037157600080fd5b5061031b6004803603602081101561038857600080fd5b50356001600160a01b03166105c5565b3480156103a457600080fd5b506101db610616565b3480156103b957600080fd5b506101db600480360360208110156103d057600080fd5b50356001600160a01b031661061c565b3480156103ec57600080fd5b506101db610637565b34801561040157600080fd5b506101db61063d565b604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205490565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b6227ac4081565b61038481565b6000908152600a602052604090205490565b6002546001600160a01b031690565b60095490565b6000546001600160a01b031690565b600080546001600160a01b03166104b5610643565b6001600160a01b031614905090565b6001546001600160a01b031690565b6212750081565b60035490565b6104e8610435565b6001600160a01b0316336001600160a01b031614610545576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61054e81610647565b50565b60065490565b61055f610435565b6001600160a01b0316336001600160a01b0316146105bc576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b61054e816106fa565b6105cd6104a0565b61060d576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61054e816107b0565b60055490565b6001600160a01b031660009081526007602052604090205490565b600b5490565b60045490565b3390565b6001600160a01b03811661068c5760405162461bcd60e51b81526004018080602001828103825260258152602001806108c36025913960400191505060405180910390fd5b806001600160a01b031661069e610435565b6001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b6001600160a01b03811661073f5760405162461bcd60e51b81526004018080602001828103825260298152602001806108776029913960400191505060405180910390fd5b806001600160a01b031661075161040a565b6001600160a01b03167fcfbf4028add9318bbf716f08c348595afb063b0e9feed1f86d33681a4b3ed4d360405160405180910390a3604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b8152905190819003601201902055565b6001600160a01b0381166107f55760405162461bcd60e51b81526004018080602001828103825260268152602001806108516026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f206164647265737350726f78793a3a736574496d706c656d656e746174696f6e3a20696e76616c6964206164647265737350726f78793a3a28293a20696d706c656d656e746174696f6e206e6f7420666f756e6450726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373a265627a7a72315820dac83a0120c5baeb19bbd17fd9ffbbcf0f4dfd1629b9d8d5b7d4af0d541f655964736f6c63430005110032",
+  "devdoc": {
+    "details": "StakingRewardsOs contract should be upgradable. Used UpgradableProxy. StakingRewardsOsStorage is deployed with the upgradable functionality by using this contract instead, that inherits from UpgradableProxy with the possibility of being enhanced and re-deployed.",
+    "methods": {
+      "getCheckpointBlockNumber(uint256)": {
+        "params": {
+          "_checkpointTimestamp": "Checkpoint timestamp"
+        }
+      },
+      "getImplementation()": {
+        "return": "Address of the implementation."
+      },
+      "getProxyOwner()": {
+        "return": "Address of the owner."
+      },
+      "isOwner()": {
+        "details": "Returns true if the caller is the current owner."
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "setImplementation(address)": {
+        "details": "Wrapper for _setImplementation that exposes the function as public for owner to be able to set a new version of the contract as current pointing implementation.",
+        "params": {
+          "_implementation": "Address of the implementation."
+        }
+      },
+      "setProxyOwner(address)": {
+        "params": {
+          "_owner": "Address of the owner."
+        }
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      }
+    },
+    "title": "StakingRewardsOs Proxy contract."
+  },
+  "userdoc": {
+    "methods": {
+      "getImplementation()": {
+        "notice": "Return address of the implementation."
+      },
+      "getProxyOwner()": {
+        "notice": "Return address of the owner."
+      },
+      "setImplementation(address)": {
+        "notice": "Set address of the implementation."
+      },
+      "setProxyOwner(address)": {
+        "notice": "Set address of the owner."
+      }
+    }
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 55491,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 25055,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "osSOV",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_contract(IERC20Mintable)34134"
+      },
+      {
+        "astId": 25057,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "staking",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_contract(IStaking)17840"
+      },
+      {
+        "astId": 25059,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "maxDuration",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 25061,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "rewardsProgramStartTime",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 25063,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "stopBlock",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 25065,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "stopRewardsTimestamp",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 25069,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "stakerNextWithdrawTimestamp",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 25073,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "claimedBalances",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 25075,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "deploymentBlock",
+        "offset": 0,
+        "slot": "9",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 25079,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "checkpointBlockNumber",
+        "offset": 0,
+        "slot": "10",
+        "type": "t_mapping(t_uint256,t_uint256)"
+      },
+      {
+        "astId": 25081,
+        "contract": "contracts/governance/StakingRewards/StakingRewardsOsProxy.sol:StakingRewardsOsProxy",
+        "label": "averageBlockTime",
+        "offset": 0,
+        "slot": "11",
+        "type": "t_uint256"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IERC20Mintable)34134": {
+        "encoding": "inplace",
+        "label": "contract IERC20Mintable",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IStaking)17840": {
+        "encoding": "inplace",
+        "label": "contract IStaking",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_uint256,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

@@ -556,6 +556,7 @@ task("governance:getVotingPower", "Get a staker's voting power current or at a b
     .addParam("governor", "GovernorOwner or GovernorAdmin", "GovernorOwner", types.string)
     .addOptionalParam("atBlock", "Get VP at this block", undefined, types.int)
     .setAction(async ({ address, governor: governorDeploymentName, atBlock }, hre) => {
+        address = address.toLowerCase();
         const data = await getVotingPower(hre, address, governorDeploymentName, atBlock);
         logger.warn(
             `

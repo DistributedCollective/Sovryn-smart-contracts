@@ -15,7 +15,8 @@ import "../../openzeppelin/Address.sol";
  * of the revenue that the platform generates from various transaction fees
  * plus revenues from stakers who have a portion of their SOV slashed for
  * early unstaking.
- * */
+ *
+ */
 contract StakingRewards is StakingRewardsStorage {
     using SafeMath for uint256;
 
@@ -29,7 +30,8 @@ contract StakingRewards is StakingRewardsStorage {
      * This function will be called only once by the owner.
      * @param _SOV SOV token address
      * @param _staking StakingProxy address should be passed
-     * */
+     *
+     */
     function initialize(address _SOV, IStaking _staking) external onlyOwner {
         require(_SOV != address(0), "Invalid SOV Address.");
         require(Address.isContract(_SOV), "_SOV not a contract");
@@ -45,7 +47,8 @@ contract StakingRewards is StakingRewardsStorage {
      * @dev All stakes existing on the contract at the point in time of
      * cancellation continue accruing rewards until the end of the staking
      * period being rewarded
-     * */
+     *
+     */
     function stop() external onlyOwner {
         require(stopBlock == 0, "Already stopped");
         stopBlock = _getCurrentBlockNumber();
@@ -61,7 +64,8 @@ contract StakingRewards is StakingRewardsStorage {
      * The issue is that we can only run for a max duration and if someone stakes for the
      * first time after the max duration is over, the reward will always return 0. Thus, we need to restart
      * from the duration that elapsed without generating rewards.
-     * */
+     *
+     */
     function collectReward(uint256 restartTime) external {
         (uint256 withdrawalTime, uint256 amount) = getStakerCurrentReward(true, restartTime);
         require(withdrawalTime > 0 && amount > 0, "no valid reward");
@@ -111,7 +115,8 @@ contract StakingRewards is StakingRewardsStorage {
      * through the entire duration since the start of rewards program.
      * It should ideally be set to a value, for which the rewards can be easily processed.
      * @param _duration Max duration for which rewards can be collected at a go (in seconds)
-     * */
+     *
+     */
     function setMaxDuration(uint256 _duration) public onlyOwner {
         maxDuration = _duration;
     }
@@ -124,7 +129,8 @@ contract StakingRewards is StakingRewardsStorage {
      * @param _block Last finalised block
      * @param _date The date to compute prior weighted stakes
      * @return The weighted stake
-     * */
+     *
+     */
     function _computeRewardForDate(
         address _staker,
         uint256 _block,
@@ -149,7 +155,8 @@ contract StakingRewards is StakingRewardsStorage {
      * which is 1/26 of one staking year (1092 days)
      * @param _staker User address
      * @param amount the reward amount
-     * */
+     *
+     */
     function _payReward(address _staker, uint256 amount) internal {
         require(SOV.balanceOf(address(this)) >= amount, "not enough funds to reward user");
         claimedBalances[_staker] = claimedBalances[_staker].add(amount);
@@ -171,14 +178,16 @@ contract StakingRewards is StakingRewardsStorage {
      * @notice Determine the current Block Number
      * @dev This is segregated from the _getPriorUserStakeByDate function to better test
      * advancing blocks functionality using Mock Contracts
-     * */
+     *
+     */
     function _getCurrentBlockNumber() internal view returns (uint256) {
         return block.number;
     }
 
     /**
      * @notice Internal function to calculate and set block
-     * */
+     *
+     */
     function _setBlock(uint256 _checkpointTime) internal {
         uint256 currentTS = block.timestamp;
         uint256 lastFinalisedBlock = _getCurrentBlockNumber() - 1;
@@ -213,8 +222,8 @@ contract StakingRewards is StakingRewardsStorage {
         lastWithdrawalInterval = lastWithdrawal > 0 ? lastWithdrawal : startTime;
         if (lastStakingInterval <= lastWithdrawalInterval) return (0, 0);
         /* Normally the restart time is 0. If this function returns a valid lastWithdrawalInterval
-		and zero amount - that means there were no valid rewards for that period. So the new period must start
-		from the end of the last interval or till the time no rewards are accumulated i.e. restartTime */
+    and zero amount - that means there were no valid rewards for that period. So the new period must start
+    from the end of the last interval or till the time no rewards are accumulated i.e. restartTime */
         if (restartTime >= lastWithdrawalInterval) {
             uint256 latestRestartTime = staking.timestampToLockDate(restartTime);
             lastWithdrawalInterval = latestRestartTime;
