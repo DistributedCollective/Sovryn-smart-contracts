@@ -512,7 +512,8 @@ const deployWithCustomProxy = async (
     args = [],
     proxyArgs = [],
     multisigName = "MultiSigWallet",
-    proxyOwner = "" // new proxy owner address, used for new proxy deployments and only if there are no post-deployment func calls from the creator address
+    newOwnerAddress = "", // new proxy owner address, used for new proxy deployments and only if there are no post-deployment func calls from the creator address
+    newProxyOwnerAddress = "" // if proxy has proxyOwner storage variable nd only if there are no post-deployment func calls from the creator address
 ) => {
     const {
         deployments: { deploy, get, getOrNull, log, save },
@@ -597,13 +598,20 @@ const deployWithCustomProxy = async (
             );
         }
         if (
-            ethers.utils.isAddress(proxyOwner) &&
-            (await proxy.getProxyOwner()).toLowerCase() !== proxyOwner.toLowerCase()
+            ethers.utils.isAddress(newOwnerAddress) &&
+            (await proxy.owner()).toLowerCase() !== newOwnerAddress.toLowerCase()
         ) {
-            await proxy.transferOwnership(proxyOwner); // in case this is redundant, just comment it
-            await proxy.setProxyOwner(proxyOwner);
+            await proxy.transferOwnership(newOwner);
+            logger.success(`Proxy ${proxyName} ownership transferred to ${await proxy.owner()}`);
+        }
+
+        if (
+            ethers.utils.isAddress(newProxyOwnerAddress) &&
+            (await proxy.getProxyOwner()).toLowerCase() !== newProxyOwnerAddress.toLowerCase()
+        ) {
+            await proxy.setProxyOwner(newProxyOwnerAddress);
             logger.success(
-                `Proxy ${proxyName} ownership transferred to ${await proxy.getProxyOwner()}`
+                `Proxy ${proxyName} proxyOwner transferred to ${await proxy.getProxyOwner()}`
             );
         }
         log();
