@@ -50,7 +50,7 @@ const {
     decodeLogs,
     getSOV,
 } = require("../Utils/initializer.js");
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 

@@ -30,7 +30,7 @@ const {
 
 const { liquidate, liquidate_healthy_position_should_fail } = require("./liquidationFunctions");
 
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 /*
 Should test the liquidation handling
