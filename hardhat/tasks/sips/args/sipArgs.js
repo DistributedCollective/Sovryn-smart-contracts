@@ -859,5 +859,5 @@ module.exports = {
     getArgsSip0046Part3,
     getArgsSip0046Part4,
     getArgsSip0073,
-    getArgsDIP0077,
+    getArgsSIP0077,
 };
