@@ -47,7 +47,7 @@ const zeroAddress = constants.ZERO_ADDRESS;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
 
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 // This decodes longs for a single event type, and returns a decoded object in
 // the same form truffle-contract uses on its receipts
