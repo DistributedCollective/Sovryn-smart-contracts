@@ -27,6 +27,7 @@ def main():
     #sendAggregatedTokensFromWallet(contracts['ETHes'], contracts['Aggregator-ETH-RSK'], '0xf5972e2bcc10404367cbdca2a3319470fbea3ff7', 2e17)
 
     #send eSOV send eSOV over the bridge to our gate.io address
+    allowToken('0xc1411567d2670e24d9C4DaAa7CdA95686e1250AA') #DLLR
     #sendTokensToETHFromMultisig(contracts['SOV'], '0x5092019A3E0334586273A21a701F1BD859ECAbD6', 260000e18)
     
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
@@ -53,6 +54,32 @@ def loadConfig():
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
 
+def allowToken(token):
+    abiFileBridge =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
+    abiFileAllowTokens =  open('./scripts/contractInteraction/bridge-multisig/AllowTokens.json')
+    abiBridge = json.load(abiFileBridge)
+    abiAllowTokens = json.load(abiFileAllowTokens)
+    #tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=acct)
+    
+    bridgeRSK = Contract.from_abi("BridgeRSK", address=contracts['BridgeRSK'], abi=abiBridge, owner=acct)
+    
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+
+    allowTokensAddress = bridgeRSK.allowTokens()
+    allowTokens = Contract.from_abi("AllowTokens", address=allowTokensAddress, abi=abiAllowTokens, owner=acct)
+    print(f"Configuring AllowTokens contract {allowTokens.address}")
+
+    multiSigAddress = allowTokens.owner()
+    print('multisig address: ' + multiSigAddress)
+    multiSig = Contract.from_abi("MultiSig", multiSigAddress, MultiSigWallet.abi, owner=acct)
+
+    addAllowTokenData = allowTokens.addAllowedToken.encode_input(token)
+    print(addAllowTokenData)
+
+    print(f'Allowing token {token}')
+    tx = multiSig.submitTransaction(allowTokens.address, 0, addAllowTokenData)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
 def sendTokensToETHFromMultisig(token, receiver, amount):
     abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
     abi = json.load(abiFile)

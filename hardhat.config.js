@@ -149,7 +149,7 @@ module.exports = {
             rskSovrynMainnet: 0,
         },
         signer2: {
-            rskSovrynMainnet: 2,
+            default: 2,
         },
         voter: {
             default: 1,
@@ -257,6 +257,28 @@ module.exports = {
             timeout: 100000,
             //timeout: 20000, // increase if needed; 20000 is the default value
         },
+        ethMainnet: {
+            chainId: 1,
+            url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+            accounts: mainnetAccounts,
+        },
+        bobTestnet: {
+            url: "https://testnet.rpc.gobob.xyz/",
+            chainId: 111,
+            accounts: testnetAccounts,
+            gasPrice: 50000000,
+            tags: ["testnet"],
+        },
+
+        bobForkedTestnet: {
+            chainId: 31337,
+            accounts: testnetAccounts,
+            url: "http://127.0.0.1:8545",
+            gasPrice: 50000000,
+            live: true,
+            tags: ["testnet", "forked"],
+            timeout: 100000,
+        },
     },
     paths: {
         sources: "./contracts",
@@ -297,6 +319,12 @@ module.exports = {
                 "deployment/deployments/rskSovrynMainnet",
                 "external/deployments/rskForkedMainnet",
             ],
+            bobTestnet: ["external/deployments/bobTestnet"],
+            bobForkedTestnet: [
+                "external/deployments/bobTestnet",
+                "deployment/deployments/bobTestnet",
+            ],
+            ethMainnet: ["external/deployments/ethMainnet", "deployment/deployments/ethMainnet"],
         },
     },
     typechain: {
