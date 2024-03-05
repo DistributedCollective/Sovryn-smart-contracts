@@ -1,5 +1,5 @@
 const { ethers } = require("hardhat");
-const mutexUtils = require("./utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 describe("Mutex", function () {
     describe("special deploy utilities", function () {

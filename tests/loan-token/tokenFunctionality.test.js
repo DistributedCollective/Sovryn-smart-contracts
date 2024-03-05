@@ -21,7 +21,7 @@ const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 const Vesting = artifacts.require("TeamVesting");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const TestToken = artifacts.require("TestToken");
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const {
     getSUSD,
