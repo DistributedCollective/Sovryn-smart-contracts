@@ -28,10 +28,10 @@ def main():
 
     #send eSOV send eSOV over the bridge to our gate.io address
     #sendTokensToETHFromMultisig(contracts['SOV'], '0x5092019A3E0334586273A21a701F1BD859ECAbD6', 260000e18)
-    
     #DLLR
+    setFeeAndMinPerToken(contracts['DLLR'], 60e18, 70e18)
     #allowToken('0xc1411567d2670e24d9C4DaAa7CdA95686e1250AA') #DLLR - one time whitelisting
-    #sendTokensToETHFromMultisig(contracts['DLLR'], '0xdD0E3546EEBf3f1Cc4454a16b4DC5b677923bDC1', 10e18)
+    sendTokensToETHFromMultisig(contracts['DLLR'], '0xdD0E3546EEBf3f1Cc4454a16b4DC5b677923bDC1', 100e18) #to be on the safe side sending 100 DLLR to our multisig on ethereum
     
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
 
@@ -56,6 +56,30 @@ def loadConfig():
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
+
+# function setFeeAndMinPerToken(address token, uint256 _feeConst, uint256 _minAmount)
+def setFeeAndMinPerToken(token, feeConst, minAmount):
+    abiFileBridge =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
+    abiFileAllowTokens =  open('./scripts/contractInteraction/bridge-multisig/AllowTokens.json')
+    abiBridge = json.load(abiFileBridge)
+    abiAllowTokens = json.load(abiFileAllowTokens)
+    bridgeRSK = Contract.from_abi("BridgeRSK", address=contracts['BridgeRSK'], abi=abiBridge, owner=acct)
+
+    allowTokensAddress = bridgeRSK.allowTokens()
+    allowTokens = Contract.from_abi("AllowTokens", address=allowTokensAddress, abi=abiAllowTokens, owner=acct)
+    print(f"Configuring AllowTokens contract {allowTokens.address}: setting const fee and min amount")
+
+    multiSigAddress = allowTokens.owner()
+    print('Allow tokens owner address (multisig): ' + multiSigAddress)
+    multiSig = Contract.from_abi("MultiSig", multiSigAddress, MultiSigWallet.abi, owner=acct)
+
+    setFeeAndMinPerTokenData = allowTokens.setFeeAndMinPerToken.encode_input(token, feeConst, minAmount)
+    print(setFeeAndMinPerTokenData)
+
+    print(f'Setting fee and min amount for token {token}')
+    tx = multiSig.submitTransaction(allowTokens.address, 0, setFeeAndMinPerTokenData)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
 
 def allowToken(token):
     abiFileBridge =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
