@@ -29,9 +29,9 @@ def main():
     #send eSOV send eSOV over the bridge to our gate.io address
     #sendTokensToETHFromMultisig(contracts['SOV'], '0x5092019A3E0334586273A21a701F1BD859ECAbD6', 260000e18)
     #DLLR
-    setFeeAndMinPerToken(contracts['DLLR'], 60e18, 70e18)
+    #setFeeAndMinPerToken(contracts['DLLR'], 60e18, 70e18)
     #allowToken('0xc1411567d2670e24d9C4DaAa7CdA95686e1250AA') #DLLR - one time whitelisting
-    sendTokensToETHFromMultisig(contracts['DLLR'], '0xdD0E3546EEBf3f1Cc4454a16b4DC5b677923bDC1', 100e18) #to be on the safe side sending 100 DLLR to our multisig on ethereum
+    #sendTokensToETHFromMultisig(contracts['DLLR'], '0xdD0E3546EEBf3f1Cc4454a16b4DC5b677923bDC1', 100e18) #to be on the safe side sending 100 DLLR to our multisig on ethereum
     
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
 
