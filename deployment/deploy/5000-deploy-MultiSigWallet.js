@@ -5,10 +5,10 @@ const func = async function (hre) {
     const {
         deployments: { deploy, log },
         getNamedAccounts,
-        network
+        network,
     } = hre;
     const { deployer } = await getNamedAccounts(); //await ethers.getSigners();
-    const configDeploymentParams = CONFIG_DEPLOYMENT_PARAMS[network.name]
+    const configDeploymentParams = CONFIG_DEPLOYMENT_PARAMS[network.name];
     log(col.bgYellow("Deploying MultiSigWallet..."));
     await deploy("MultiSigWallet", {
         from: deployer,
