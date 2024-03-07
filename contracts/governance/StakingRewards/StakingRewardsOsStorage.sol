@@ -59,6 +59,7 @@ contract StakingRewardsOsStorage is Ownable {
     /// @notice Average Block Time - making it flexible
     uint256 internal averageBlockTime;
 
+    /// GETTERS
     /// @param _checkpointTimestamp Checkpoint timestamp
     function getCheckpointBlockNumber(
         uint256 _checkpointTimestamp
@@ -100,5 +101,9 @@ contract StakingRewardsOsStorage is Ownable {
 
     function getAverageBlockTime() external view returns (uint256) {
         return averageBlockTime;
+    }
+
+    function getClaimedBalances(address _staker) external view returns (uint256) {
+        return claimedBalances[_staker];
     }
 }
