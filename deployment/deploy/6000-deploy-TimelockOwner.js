@@ -15,19 +15,19 @@ const func = async function (hre) {
     let adminDelay = 0;
     let guardian;
     const ownerQuorumVotes = 20;
-    const ownerMajorityPercentageVotes = 70
+    const ownerMajorityPercentageVotes = 70;
 
-    const adminQuorumVotes = 5
-    const adminMajorityPercentageVotes = 50
+    const adminQuorumVotes = 5;
+    const adminMajorityPercentageVotes = 50;
 
     if (hre.network.tags["testnet"]) {
-      ownerDelay = 3*60*60;
-      adminDelay = 3*60*60
-      guardian = multisigDeployment.address
+        ownerDelay = 3 * 60 * 60;
+        adminDelay = 3 * 60 * 60;
+        guardian = multisigDeployment.address;
     } else if (hre.network.tags["mainnet"]) {
-      ownerDelay = 2*24*60*60;
-      adminDelay = 3*60*60
-      guardian = multisigDeployment.address
+        ownerDelay = 2 * 24 * 60 * 60;
+        adminDelay = 3 * 60 * 60;
+        guardian = multisigDeployment.address;
     }
 
     log(col.bgYellow("Deploying TimelockOwner..."));
@@ -47,7 +47,13 @@ const func = async function (hre) {
         contract: "GovernorAlpha",
         from: deployer,
         // @todo change the name & symbol
-        args: [timelockOwnerDeployment.address, stakingDeployment.address, guardian, ownerQuorumVotes, ownerMajorityPercentageVotes],
+        args: [
+            timelockOwnerDeployment.address,
+            stakingDeployment.address,
+            guardian,
+            ownerQuorumVotes,
+            ownerMajorityPercentageVotes,
+        ],
         log: true,
         skipIfAlreadyDeployed: true,
     });
@@ -68,7 +74,13 @@ const func = async function (hre) {
         contract: "GovernorAlpha",
         from: deployer,
         // @todo change the name & symbol
-        args: [timelockAdminDeployment.address, stakingDeployment.address, guardian, adminQuorumVotes, adminMajorityPercentageVotes],
+        args: [
+            timelockAdminDeployment.address,
+            stakingDeployment.address,
+            guardian,
+            adminQuorumVotes,
+            adminMajorityPercentageVotes,
+        ],
         log: true,
         skipIfAlreadyDeployed: true,
     });

@@ -263,7 +263,7 @@ module.exports = {
             accounts: mainnetAccounts,
         },
         bobTestnet: {
-            url: 'https://testnet.rpc.gobob.xyz/',
+            url: "https://testnet.rpc.gobob.xyz/",
             chainId: 111,
             accounts: testnetAccounts,
             gasPrice: 50000000,
