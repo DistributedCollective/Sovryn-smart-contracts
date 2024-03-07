@@ -262,6 +262,13 @@ module.exports = {
             url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
             accounts: mainnetAccounts,
         },
+        bobTestnet: {
+            url: 'https://testnet.rpc.gobob.xyz/',
+            chainId: 111,
+            accounts: testnetAccounts,
+            gasPrice: 50000000,
+            tags: ["testnet"],
+        },
     },
     paths: {
         sources: "./contracts",

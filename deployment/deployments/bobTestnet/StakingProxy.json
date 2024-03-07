@@ -1,0 +1,1198 @@
+{
+  "address": "0x378e86475772613daf249F4342f57617032acDBE",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "SOV",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_oldImplementation",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_newImplementation",
+          "type": "address"
+        }
+      ],
+      "name": "ImplementationChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_oldOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "DELEGATION_TYPEHASH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "DOMAIN_TYPEHASH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MAX_DURATION",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "MAX_VOTING_WEIGHT",
+      "outputs": [
+        {
+          "internalType": "uint96",
+          "name": "",
+          "type": "uint96"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "SOVToken",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "WEIGHT_FACTOR",
+      "outputs": [
+        {
+          "internalType": "uint96",
+          "name": "",
+          "type": "uint96"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "admins",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "allUnlocked",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "name": "delegateStakingCheckpoints",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "fromBlock",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint96",
+          "name": "stake",
+          "type": "uint96"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "delegates",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "feeSharing",
+      "outputs": [
+        {
+          "internalType": "contract IFeeSharingCollector",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "frozen",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getImplementation",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "_implementation",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getProxyOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "kickoffTS",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "newStakingContract",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "nonces",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "numDelegateStakingCheckpoints",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "numTotalStakingCheckpoints",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "numUserStakingCheckpoints",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "numVestingCheckpoints",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "pausers",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_implementation",
+          "type": "address"
+        }
+      ],
+      "name": "setImplementation",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "setProxyOwner",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "name": "totalStakingCheckpoints",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "fromBlock",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint96",
+          "name": "stake",
+          "type": "uint96"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "name": "userStakingCheckpoints",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "fromBlock",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint96",
+          "name": "stake",
+          "type": "uint96"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "name": "vestingCheckpoints",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "fromBlock",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint96",
+          "name": "stake",
+          "type": "uint96"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "vestingCodeHashes",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "vestingRegistryLogic",
+      "outputs": [
+        {
+          "internalType": "contract IVestingRegistry",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "vestingWhitelist",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "weightScaling",
+      "outputs": [
+        {
+          "internalType": "uint96",
+          "name": "",
+          "type": "uint96"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x99e2ea514f17e9178c5f33249ecd4780a536d62e9f025c7079ccb614b9275801",
+  "receipt": {
+    "to": null,
+    "from": "0xCF311E7375083b9513566a47B9f3e93F1FcdCfBF",
+    "contractAddress": "0x378e86475772613daf249F4342f57617032acDBE",
+    "transactionIndex": 1,
+    "gasUsed": "1081278",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000400000000000000000000000000020000000000000000000800000000000000000000000000000000400000000000200000000040000000000000000000000000000000000200002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000100000000000000000000",
+    "blockHash": "0x33cefa29d3aaa660dbc4bd9f68ca675db33326522d301f30ba2aca2ec410160d",
+    "transactionHash": "0x99e2ea514f17e9178c5f33249ecd4780a536d62e9f025c7079ccb614b9275801",
+    "logs": [
+      {
+        "transactionIndex": 1,
+        "blockNumber": 6443967,
+        "transactionHash": "0x99e2ea514f17e9178c5f33249ecd4780a536d62e9f025c7079ccb614b9275801",
+        "address": "0x378e86475772613daf249F4342f57617032acDBE",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000cf311e7375083b9513566a47b9f3e93f1fcdcfbf"
+        ],
+        "data": "0x",
+        "logIndex": 0,
+        "blockHash": "0x33cefa29d3aaa660dbc4bd9f68ca675db33326522d301f30ba2aca2ec410160d"
+      },
+      {
+        "transactionIndex": 1,
+        "blockNumber": 6443967,
+        "transactionHash": "0x99e2ea514f17e9178c5f33249ecd4780a536d62e9f025c7079ccb614b9275801",
+        "address": "0x378e86475772613daf249F4342f57617032acDBE",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000cf311e7375083b9513566a47b9f3e93f1fcdcfbf"
+        ],
+        "data": "0x",
+        "logIndex": 1,
+        "blockHash": "0x33cefa29d3aaa660dbc4bd9f68ca675db33326522d301f30ba2aca2ec410160d"
+      }
+    ],
+    "blockNumber": 6443967,
+    "cumulativeGasUsed": "1125129",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x5a42EF62CE3f49888284a604833466A94fd9fc36"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "2c93ebf59c8148f10476453f6cdb8bb8",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"SOV\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldImplementation\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newImplementation\",\"type\":\"address\"}],\"name\":\"ImplementationChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_oldOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"constant\":true,\"inputs\":[],\"name\":\"DELEGATION_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"DOMAIN_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"MAX_DURATION\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"MAX_VOTING_WEIGHT\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SOVToken\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"WEIGHT_FACTOR\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"admins\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"allUnlocked\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"delegateStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"delegates\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"feeSharing\",\"outputs\":[{\"internalType\":\"contract IFeeSharingCollector\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"frozen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getImplementation\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_implementation\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getProxyOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"kickoffTS\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"newStakingContract\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"nonces\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numDelegateStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numTotalStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numUserStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"numVestingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"pausers\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_implementation\",\"type\":\"address\"}],\"name\":\"setImplementation\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"setProxyOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"totalStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"userStakingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"name\":\"vestingCheckpoints\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"fromBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint96\",\"name\":\"stake\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"vestingCodeHashes\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"vestingRegistryLogic\",\"outputs\":[{\"internalType\":\"contract IVestingRegistry\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"vestingWhitelist\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"weightScaling\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Staking contract should be upgradable, use UpgradableProxy. StakingStorage is deployed with the upgradable functionality by using this contract instead, that inherits from UpgradableProxy the possibility of being enhanced and re-deployed.\",\"methods\":{\"constructor\":{\"params\":{\"SOV\":\"The address of the SOV token address.\"}},\"getImplementation()\":{\"return\":\"Address of the implementation.\"},\"getProxyOwner()\":{\"return\":\"Address of the owner.\"},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"setImplementation(address)\":{\"details\":\"Wrapper for _setImplementation that exposes the function as public for owner to be able to set a new version of the contract as current pointing implementation.\",\"params\":{\"_implementation\":\"Address of the implementation.\"}},\"setProxyOwner(address)\":{\"params\":{\"_owner\":\"Address of the owner.\"}},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"Staking Proxy contract.\"},\"userdoc\":{\"methods\":{\"constructor\":\"Construct a new staking contract.\",\"getImplementation()\":{\"notice\":\"Return address of the implementation.\"},\"getProxyOwner()\":{\"notice\":\"Return address of the owner.\"},\"setImplementation(address)\":{\"notice\":\"Set address of the implementation.\"},\"setProxyOwner(address)\":{\"notice\":\"Set address of the owner.\"}}}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Staking/StakingProxy.sol\":\"StakingProxy\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/governance/IFeeSharingCollector.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/**\\n * @title Interface for contract governance/FeeSharingCollector/FeeSharingCollector.sol\\n * @dev Interfaces are used to cast a contract address into a callable instance.\\n * */\\ninterface IFeeSharingCollector {\\n    function withdrawFees(address[] calldata _token) external;\\n\\n    function transferTokens(address _token, uint96 _amount) external;\\n\\n    function withdraw(address _loanPoolToken, uint32 _maxCheckpoints, address _receiver) external;\\n}\\n\",\"keccak256\":\"0x5ba403de9fd9062070463e8c48eeee480eb16919cac3a15f3e27167c0474697f\"},\"contracts/governance/Staking/StakingProxy.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\nimport \\\"./modules/shared/StakingStorageShared.sol\\\";\\nimport \\\"../../proxy/UpgradableProxy.sol\\\";\\n\\n/**\\n * @title Staking Proxy contract.\\n * @dev Staking contract should be upgradable, use UpgradableProxy.\\n * StakingStorage is deployed with the upgradable functionality\\n * by using this contract instead, that inherits from UpgradableProxy\\n * the possibility of being enhanced and re-deployed.\\n * */\\ncontract StakingProxy is StakingStorageShared, UpgradableProxy {\\n    /**\\n     * @notice Construct a new staking contract.\\n     * @param SOV The address of the SOV token address.\\n     */\\n    constructor(address SOV) public {\\n        SOVToken = IERC20(SOV);\\n        kickoffTS = block.timestamp;\\n    }\\n}\\n\",\"keccak256\":\"0x812d9ca78a907ad9924e5987f6a2af582008ae0a560be2e80d29a91b534934e4\"},\"contracts/governance/Staking/modules/shared/StakingStorageShared.sol\":{\"content\":\"pragma solidity ^0.5.17;\\npragma experimental ABIEncoderV2;\\n\\nimport \\\"../../../../openzeppelin/Ownable.sol\\\";\\nimport \\\"../../../../interfaces/IERC20.sol\\\";\\nimport \\\"../../../IFeeSharingCollector.sol\\\";\\nimport \\\"../../../Vesting/IVestingRegistry.sol\\\";\\n\\n/**\\n * @title StakingStorageShared contract is inherited by Staking modules.\\n * @notice Just the storage part of stacking contract, no functions,\\n * only constant, variables and required structures (mappings).\\n * Used by StackingProxy and Checkpoints contracts.\\n *\\n * What is SOV staking?\\n * The purpose of the SOV token is to provide a pseudonymous,\\n * censorship-resistant mechanism for governing the parameters of the Sovryn\\n * protocol, while aligning the incentives of protocol governors with the\\n * long-term success of the protocol. Any SOV token holder can choose to\\n * stake (lock up) their tokens for a fixed period of time in return for\\n * voting rights in the Bitocracy. Stakers are further incentivised through\\n * fee and slashing rewards.\\n * */\\ncontract StakingStorageShared is Ownable {\\n    /// @notice 2 weeks in seconds.\\n    uint256 constant TWO_WEEKS = 1209600;\\n\\n    /// @notice The maximum possible voting weight before adding +1 (actually 10, but need 9 for computation).\\n    uint96 public constant MAX_VOTING_WEIGHT = 9;\\n\\n    /// @notice weight is multiplied with this factor (for allowing decimals, like 1.2x).\\n    /// @dev MAX_VOTING_WEIGHT * WEIGHT_FACTOR needs to be < 792, because there are 100,000,000 SOV with 18 decimals\\n    uint96 public constant WEIGHT_FACTOR = 10;\\n\\n    /// @notice The maximum duration to stake tokens for.\\n    uint256 public constant MAX_DURATION = 1092 days;\\n\\n    /// @notice The maximum duration ^2\\n    uint96 constant MAX_DURATION_POW_2 = 1092 * 1092;\\n\\n    /// @notice Default weight scaling.\\n    uint96 constant DEFAULT_WEIGHT_SCALING = 3;\\n\\n    /// @notice Range for weight scaling.\\n    uint96 constant MIN_WEIGHT_SCALING = 1;\\n    uint96 constant MAX_WEIGHT_SCALING = 9;\\n\\n    /// @notice The timestamp of contract creation. Base for the staking period calculation.\\n    uint256 public kickoffTS;\\n\\n    string name = \\\"SOVStaking\\\";\\n\\n    /// @notice The token to be staked.\\n    IERC20 public SOVToken;\\n\\n    /// @notice A record of each accounts delegate.\\n    mapping(address => mapping(uint256 => address)) public delegates;\\n\\n    /// @notice If this flag is set to true, all tokens are unlocked immediately.\\n    bool public allUnlocked = false;\\n\\n    /// @notice The EIP-712 typehash for the contract's domain.\\n    bytes32 public constant DOMAIN_TYPEHASH =\\n        keccak256(\\\"EIP712Domain(string name,uint256 chainId,address verifyingContract)\\\");\\n\\n    /// @notice The EIP-712 typehash for the delegation struct used by the contract.\\n    bytes32 public constant DELEGATION_TYPEHASH =\\n        keccak256(\\\"Delegation(address delegatee,uint256 lockDate,uint256 nonce,uint256 expiry)\\\");\\n\\n    /// @notice Used for stake migrations to a new staking contract with a different storage structure.\\n    address public newStakingContract;\\n\\n    /*************************** Checkpoints *******************************/\\n\\n    /// @notice A checkpoint for marking the stakes from a given block\\n    struct Checkpoint {\\n        uint32 fromBlock;\\n        uint96 stake;\\n    }\\n\\n    /// @notice A record of tokens to be unstaked at a given time in total.\\n    /// For total voting power computation. Voting weights get adjusted bi-weekly.\\n    /// @dev totalStakingCheckpoints[date][index] is a checkpoint.\\n    mapping(uint256 => mapping(uint32 => Checkpoint)) public totalStakingCheckpoints;\\n\\n    /// @notice The number of total staking checkpoints for each date.\\n    /// @dev numTotalStakingCheckpoints[date] is a number.\\n    mapping(uint256 => uint32) public numTotalStakingCheckpoints;\\n\\n    /// @notice A record of tokens to be unstaked at a given time which were delegated to a certain address.\\n    /// For delegatee voting power computation. Voting weights get adjusted bi-weekly.\\n    /// @dev delegateStakingCheckpoints[delegatee][date][index] is a checkpoint.\\n    mapping(address => mapping(uint256 => mapping(uint32 => Checkpoint)))\\n        public delegateStakingCheckpoints;\\n\\n    /// @notice The number of total staking checkpoints for each date per delegate.\\n    /// @dev numDelegateStakingCheckpoints[delegatee][date] is a number.\\n    mapping(address => mapping(uint256 => uint32)) public numDelegateStakingCheckpoints;\\n\\n    /// @notice A record of tokens to be unstaked at a given time which per user address (address -> lockDate -> stake checkpoint)\\n    /// @dev userStakingCheckpoints[user][date][index] is a checkpoint.\\n    mapping(address => mapping(uint256 => mapping(uint32 => Checkpoint)))\\n        public userStakingCheckpoints;\\n\\n    /// @notice The number of total staking checkpoints for each date per user.\\n    /// @dev numUserStakingCheckpoints[user][date] is a number.\\n    mapping(address => mapping(uint256 => uint32)) public numUserStakingCheckpoints;\\n\\n    /// @notice A record of states for signing / validating signatures\\n    /// @dev nonces[user] is a number.\\n    mapping(address => uint256) public nonces;\\n\\n    /*************************** Slashing *******************************/\\n\\n    /// @notice the address of FeeSharingCollectorProxy contract, we need it for unstaking with slashing.\\n    IFeeSharingCollector public feeSharing;\\n\\n    /// @notice used for weight scaling when unstaking with slashing.\\n    uint96 public weightScaling = DEFAULT_WEIGHT_SCALING;\\n\\n    /// @notice List of vesting contracts, tokens for these contracts won't be slashed if unstaked by governance.\\n    /// @dev vestingWhitelist[contract] is true/false.\\n    mapping(address => bool) public vestingWhitelist;\\n\\n    /// @dev user => flag whether user has admin role.\\n    /// @dev multisig should be an admin, admin can invoke only governanceWithdrawVesting function,\\n    /// \\tthis function works only with Team Vesting contracts\\n    mapping(address => bool) public admins;\\n\\n    /// @dev vesting contract code hash => flag whether it's registered code hash\\n    mapping(bytes32 => bool) public vestingCodeHashes;\\n\\n    /// @notice A record of tokens to be unstaked from vesting contract at a given time (lockDate -> vest checkpoint)\\n    /// @dev vestingCheckpoints[date][index] is a checkpoint.\\n    mapping(uint256 => mapping(uint32 => Checkpoint)) public vestingCheckpoints;\\n\\n    /// @notice The number of total vesting checkpoints for each date.\\n    /// @dev numVestingCheckpoints[date] is a number.\\n    mapping(uint256 => uint32) public numVestingCheckpoints;\\n\\n    ///@notice vesting registry contract\\n    IVestingRegistry public vestingRegistryLogic;\\n\\n    /// @dev user => flag whether user has pauser role.\\n    mapping(address => bool) public pausers;\\n\\n    /// @dev Staking contract is paused\\n    bool public paused;\\n\\n    /// @dev Staking contract is frozen\\n    bool public frozen;\\n\\n    /// @dev max iterations that can be supported in 1 tx for the withdrawal\\n    uint256 internal maxVestingWithdrawIterations;\\n\\n    constructor() internal {\\n        //abstract\\n    }\\n}\\n\",\"keccak256\":\"0xf83eb462825c77f9c0629d15a52c8248cd1e9ce1e947c6ea93102d952790dca4\"},\"contracts/governance/Vesting/IVestingRegistry.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/**\\n * @title Interface for upgradable Vesting Registry contract.\\n * @dev Interfaces are used to cast a contract address into a callable instance.\\n */\\ninterface IVestingRegistry {\\n    function getVesting(address _tokenOwner) external view returns (address);\\n\\n    function getTeamVesting(address _tokenOwner) external view returns (address);\\n\\n    function setVestingRegistry(address _vestingRegistryProxy) external;\\n\\n    function isVestingAddress(address _vestingAddress) external view returns (bool);\\n\\n    function isTeamVesting(address _vestingAddress) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x08bf5badf1813b59f8b06d3bb9280f4b35d3d07947c728dad79e43fcc1d4130e\"},\"contracts/interfaces/IERC20.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ncontract IERC20 {\\n    string public name;\\n    uint8 public decimals;\\n    string public symbol;\\n\\n    function totalSupply() external view returns (uint256);\\n\\n    function balanceOf(address _who) external view returns (uint256);\\n\\n    function allowance(address _owner, address _spender) external view returns (uint256);\\n\\n    function approve(address _spender, uint256 _value) external returns (bool);\\n\\n    function transfer(address _to, uint256 _value) external returns (bool);\\n\\n    function transferFrom(address _from, address _to, uint256 _value) external returns (bool);\\n\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0xac035e47e8a8f7e694cc6a90790bbfcaa8ae90d072d30832fc851ab6f1b19145\"},\"contracts/openzeppelin/Context.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\ncontract Context {\\n    // Empty internal constructor, to prevent people from mistakenly deploying\\n    // an instance of this contract, which should be used via inheritance.\\n    constructor() internal {}\\n\\n    // solhint-disable-previous-line no-empty-blocks\\n\\n    function _msgSender() internal view returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\"},\"contracts/openzeppelin/Ownable.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\ncontract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() internal {\\n        address msgSender = _msgSender();\\n        _owner = msgSender;\\n        emit OwnershipTransferred(address(0), msgSender);\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(isOwner(), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns true if the caller is the current owner.\\n     */\\n    function isOwner() public view returns (bool) {\\n        return _msgSender() == _owner;\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public onlyOwner {\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     */\\n    function _transferOwnership(address newOwner) internal {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        emit OwnershipTransferred(_owner, newOwner);\\n        _owner = newOwner;\\n    }\\n}\\n\",\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\"},\"contracts/proxy/Proxy.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\n/**\\n * @title Base Proxy contract.\\n * @notice The proxy performs delegated calls to the contract implementation\\n * it is pointing to. This way upgradable contracts are possible on blockchain.\\n *\\n * Delegating proxy contracts are widely used for both upgradeability and gas\\n * savings. These proxies rely on a logic contract (also known as implementation\\n * contract or master copy) that is called using delegatecall. This allows\\n * proxies to keep a persistent state (storage and balance) while the code is\\n * delegated to the logic contract.\\n *\\n * Proxy contract is meant to be inherited and its internal functions\\n * _setImplementation and _setProxyOwner to be called when upgrades become\\n * neccessary.\\n *\\n * The loan token (iToken) contract as well as the protocol contract act as\\n * proxies, delegating all calls to underlying contracts. Therefore, if you\\n * want to interact with them using web3, you need to use the ABIs from the\\n * contracts containing the actual logic or the interface contract.\\n *   ABI for LoanToken contracts: LoanTokenLogicStandard\\n *   ABI for Protocol contract: ISovryn\\n *\\n * @dev UpgradableProxy is the contract that inherits Proxy and wraps these\\n * functions.\\n * */\\ncontract Proxy {\\n    bytes32 private constant KEY_IMPLEMENTATION = keccak256(\\\"key.implementation\\\");\\n    bytes32 private constant KEY_OWNER = keccak256(\\\"key.proxy.owner\\\");\\n\\n    event OwnershipTransferred(address indexed _oldOwner, address indexed _newOwner);\\n    event ImplementationChanged(\\n        address indexed _oldImplementation,\\n        address indexed _newImplementation\\n    );\\n\\n    /**\\n     * @notice Set sender as an owner.\\n     * */\\n    constructor() public {\\n        _setProxyOwner(msg.sender);\\n    }\\n\\n    /**\\n     * @notice Throw error if called not by an owner.\\n     * */\\n    modifier onlyProxyOwner() {\\n        require(msg.sender == getProxyOwner(), \\\"Proxy:: access denied\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @notice Set address of the implementation.\\n     * @param _implementation Address of the implementation.\\n     * */\\n    function _setImplementation(address _implementation) internal {\\n        require(_implementation != address(0), \\\"Proxy::setImplementation: invalid address\\\");\\n        emit ImplementationChanged(getImplementation(), _implementation);\\n\\n        bytes32 key = KEY_IMPLEMENTATION;\\n        assembly {\\n            sstore(key, _implementation)\\n        }\\n    }\\n\\n    /**\\n     * @notice Return address of the implementation.\\n     * @return Address of the implementation.\\n     * */\\n    function getImplementation() public view returns (address _implementation) {\\n        bytes32 key = KEY_IMPLEMENTATION;\\n        assembly {\\n            _implementation := sload(key)\\n        }\\n    }\\n\\n    /**\\n     * @notice Set address of the owner.\\n     * @param _owner Address of the owner.\\n     * */\\n    function _setProxyOwner(address _owner) internal {\\n        require(_owner != address(0), \\\"Proxy::setProxyOwner: invalid address\\\");\\n        emit OwnershipTransferred(getProxyOwner(), _owner);\\n\\n        bytes32 key = KEY_OWNER;\\n        assembly {\\n            sstore(key, _owner)\\n        }\\n    }\\n\\n    /**\\n     * @notice Return address of the owner.\\n     * @return Address of the owner.\\n     * */\\n    function getProxyOwner() public view returns (address _owner) {\\n        bytes32 key = KEY_OWNER;\\n        assembly {\\n            _owner := sload(key)\\n        }\\n    }\\n\\n    /**\\n     * @notice Fallback function performs a delegate call\\n     * to the actual implementation address is pointing this proxy.\\n     * Returns whatever the implementation call returns.\\n     * */\\n    function() external payable {\\n        address implementation = getImplementation();\\n        require(implementation != address(0), \\\"Proxy::(): implementation not found\\\");\\n\\n        assembly {\\n            let pointer := mload(0x40)\\n            calldatacopy(pointer, 0, calldatasize)\\n            let result := delegatecall(gas, implementation, pointer, calldatasize, 0, 0)\\n            let size := returndatasize\\n            returndatacopy(pointer, 0, size)\\n\\n            switch result\\n            case 0 {\\n                revert(pointer, size)\\n            }\\n            default {\\n                return(pointer, size)\\n            }\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x1d22368954fd92c2f6abf7b68368615b511e3405b6417408b943a6866b247326\"},\"contracts/proxy/UpgradableProxy.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\nimport \\\"./Proxy.sol\\\";\\n\\n/**\\n * @title Upgradable Proxy contract.\\n * @notice A disadvantage of the immutable ledger is that nobody can change the\\n * source code of a smart contract after it\\u2019s been deployed. In order to fix\\n * bugs or introduce new features, smart contracts need to be upgradable somehow.\\n *\\n * Although it is not possible to upgrade the code of an already deployed smart\\n * contract, it is possible to set-up a proxy contract architecture that will\\n * allow to use new deployed contracts as if the main logic had been upgraded.\\n *\\n * A proxy architecture pattern is such that all message calls go through a\\n * Proxy contract that will redirect them to the latest deployed contract logic.\\n * To upgrade, a new version of the contract is deployed, and the Proxy is\\n * updated to reference the new contract address.\\n * */\\ncontract UpgradableProxy is Proxy {\\n    /**\\n     * @notice Set address of the implementation.\\n     * @dev Wrapper for _setImplementation that exposes the function\\n     * as public for owner to be able to set a new version of the\\n     * contract as current pointing implementation.\\n     * @param _implementation Address of the implementation.\\n     * */\\n    function setImplementation(address _implementation) public onlyProxyOwner {\\n        _setImplementation(_implementation);\\n    }\\n\\n    /**\\n     * @notice Set address of the owner.\\n     * @param _owner Address of the owner.\\n     * */\\n    function setProxyOwner(address _owner) public onlyProxyOwner {\\n        _setProxyOwner(_owner);\\n    }\\n}\\n\",\"keccak256\":\"0xc876883361bd3b675041b1c01c2be94a994f8ba6af516f01b171235a360b96ed\"}},\"version\":1}",
+  "bytecode": "0x60c0604052600a608081905269534f565374616b696e6760b01b60a09081526200002d9160029190620001ea565b506005805460ff19169055600d80546001600160a01b0316600360a01b1790553480156200005a57600080fd5b50604051620012c1380380620012c1833981810160405260208110156200008057600080fd5b50516000620000976001600160e01b036200010e16565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350916000805160206200127c833981519152908290a350620000e4336001600160e01b036200011316565b600380546001600160a01b0319166001600160a01b0392909216919091179055426001556200028c565b335b90565b6001600160a01b0381166200015a5760405162461bcd60e51b81526004018080602001828103825260258152602001806200129c6025913960400191505060405180910390fd5b6001600160a01b038116620001776001600160e01b03620001c216565b6001600160a01b03166000805160206200127c83398151915260405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f106200022d57805160ff19168380011785556200025d565b828001600101855582156200025d579182015b828111156200025d57825182559160200191906001019062000240565b506200026b9291506200026f565b5090565b6200011091905b808211156200026b576000815560010162000276565b610fe0806200029c6000396000f3fe6080604052600436106102035760003560e01c80639436e7d411610118578063bf626ec1116100a0578063db27ec181161006f578063db27ec181461072b578063dfb267c214610764578063e7a324dc1461079a578063f2fde38b146107af578063f3f19731146107e257610203565b8063bf626ec114610699578063caaee91c146106ae578063d27569e7146106e3578063d784d426146106f857610203565b8063aaf10f42116100e7578063aaf10f42146105fd578063adae900214610612578063ae81dfe414610645578063b1724b461461065a578063bb533cf21461066f57610203565b80639436e7d41461055757806394c2ce581461059a5780639929e886146105d3578063a58848c5146105e857610203565b806327dd1b001161019b5780636b6fde0e1161016a5780636b6fde0e146104825780637ecebe00146104c757806380f51c12146104fa5780638da5cb5b1461052d5780638f32d59b1461054257610203565b806327dd1b0014610394578063429b62e5146103cd5780635c975abb1461040057806368cefccc1461041557610203565b8063104932cf116101d7578063104932cf1461032457806317748adc146103395780631ab7710d1461036a57806320606b701461037f57610203565b8062073f991461027957806303a18fa3146102a0578063054f7d9c146102d157806307392cc0146102fa575b600061020d610818565b90506001600160a01b0381166102545760405162461bcd60e51b8152600401808060200182810382526023815260200180610f646023913960400191505060405180910390fd5b60405136600082376000803683855af43d806000843e818015610275578184f35b8184fd5b34801561028557600080fd5b5061028e610843565b60408051918252519081900360200190f35b3480156102ac57600080fd5b506102b5610849565b604080516001600160a01b039092168252519081900360200190f35b3480156102dd57600080fd5b506102e6610858565b604080519115158252519081900360200190f35b34801561030657600080fd5b506102e66004803603602081101561031d57600080fd5b5035610866565b34801561033057600080fd5b506102b561087b565b34801561034557600080fd5b5061034e61088a565b604080516001600160601b039092168252519081900360200190f35b34801561037657600080fd5b506102b561088f565b34801561038b57600080fd5b5061028e6108b7565b3480156103a057600080fd5b506102b5600480360360408110156103b757600080fd5b506001600160a01b0381351690602001356108d2565b3480156103d957600080fd5b506102e6600480360360208110156103f057600080fd5b50356001600160a01b03166108f8565b34801561040c57600080fd5b506102e661090d565b34801561042157600080fd5b5061045a6004803603606081101561043857600080fd5b5080356001600160a01b0316906020810135906040013563ffffffff16610916565b6040805163ffffffff90931683526001600160601b0390911660208301528051918290030190f35b34801561048e57600080fd5b5061045a600480360360608110156104a557600080fd5b5080356001600160a01b0316906020810135906040013563ffffffff16610952565b3480156104d357600080fd5b5061028e600480360360208110156104ea57600080fd5b50356001600160a01b031661098e565b34801561050657600080fd5b506102e66004803603602081101561051d57600080fd5b50356001600160a01b03166109a0565b34801561053957600080fd5b506102b56109b5565b34801561054e57600080fd5b506102e66109c4565b34801561056357600080fd5b506105816004803603602081101561057a57600080fd5b50356109e8565b6040805163ffffffff9092168252519081900360200190f35b3480156105a657600080fd5b50610581600480360360408110156105bd57600080fd5b506001600160a01b038135169060200135610a00565b3480156105df57600080fd5b506102e6610a23565b3480156105f457600080fd5b506102b5610a2c565b34801561060957600080fd5b506102b5610818565b34801561061e57600080fd5b506102e66004803603602081101561063557600080fd5b50356001600160a01b0316610a3b565b34801561065157600080fd5b506102b5610a50565b34801561066657600080fd5b5061028e610a64565b34801561067b57600080fd5b506105816004803603602081101561069257600080fd5b5035610a6c565b3480156106a557600080fd5b5061034e610a84565b3480156106ba57600080fd5b506106e1600480360360208110156106d157600080fd5b50356001600160a01b0316610a9a565b005b3480156106ef57600080fd5b5061034e610b0b565b34801561070457600080fd5b506106e16004803603602081101561071b57600080fd5b50356001600160a01b0316610b10565b34801561073757600080fd5b506105816004803603604081101561074e57600080fd5b506001600160a01b038135169060200135610b7e565b34801561077057600080fd5b5061045a6004803603604081101561078757600080fd5b508035906020013563ffffffff16610ba1565b3480156107a657600080fd5b5061028e610bd7565b3480156107bb57600080fd5b506106e1600480360360208110156107d257600080fd5b50356001600160a01b0316610bf2565b3480156107ee57600080fd5b5061045a6004803603604081101561080557600080fd5b508035906020013563ffffffff16610c43565b604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205490565b60015481565b600d546001600160a01b031681565b601554610100900460ff1681565b60106020526000908152604090205460ff1681565b6013546001600160a01b031681565b600981565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b604051806043610ed682396043019050604051809103902081565b60046020908152600092835260408084209091529082529020546001600160a01b031681565b600f6020526000908152604090205460ff1681565b60155460ff1681565b600a60209081526000938452604080852082529284528284209052825290205463ffffffff81169064010000000090046001600160601b031682565b600860209081526000938452604080852082529284528284209052825290205463ffffffff81169064010000000090046001600160601b031682565b600c6020526000908152604090205481565b60146020526000908152604090205460ff1681565b6000546001600160a01b031690565b600080546001600160a01b03166109d9610c79565b6001600160a01b031614905090565b60076020526000908152604090205463ffffffff1681565b600960209081526000928352604080842090915290825290205463ffffffff1681565b60055460ff1681565b6003546001600160a01b031681565b600e6020526000908152604090205460ff1681565b60055461010090046001600160a01b031681565b63059fa60081565b60126020526000908152604090205463ffffffff1681565b600d54600160a01b90046001600160601b031681565b610aa261088f565b6001600160a01b0316336001600160a01b031614610aff576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b610b0881610c7d565b50565b600a81565b610b1861088f565b6001600160a01b0316336001600160a01b031614610b75576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b610b0881610d30565b600b60209081526000928352604080842090915290825290205463ffffffff1681565b600660209081526000928352604080842090915290825290205463ffffffff81169064010000000090046001600160601b031682565b60405180604b610f198239604b019050604051809103902081565b610bfa6109c4565b610c3a576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b610b0881610de6565b601160209081526000928352604080842090915290825290205463ffffffff81169064010000000090046001600160601b031682565b3390565b6001600160a01b038116610cc25760405162461bcd60e51b8152600401808060200182810382526025815260200180610f876025913960400191505060405180910390fd5b806001600160a01b0316610cd461088f565b6001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b6001600160a01b038116610d755760405162461bcd60e51b8152600401808060200182810382526029815260200180610ead6029913960400191505060405180910390fd5b806001600160a01b0316610d87610818565b6001600160a01b03167fcfbf4028add9318bbf716f08c348595afb063b0e9feed1f86d33681a4b3ed4d360405160405180910390a3604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b8152905190819003601201902055565b6001600160a01b038116610e2b5760405162461bcd60e51b8152600401808060200182810382526026815260200180610e876026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f206164647265737350726f78793a3a736574496d706c656d656e746174696f6e3a20696e76616c69642061646472657373454950373132446f6d61696e28737472696e67206e616d652c75696e7432353620636861696e49642c6164647265737320766572696679696e67436f6e74726163742944656c65676174696f6e28616464726573732064656c6567617465652c75696e74323536206c6f636b446174652c75696e74323536206e6f6e63652c75696e74323536206578706972792950726f78793a3a28293a20696d706c656d656e746174696f6e206e6f7420666f756e6450726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373a265627a7a72315820138fe0cf2b814a292f7ec8c1849f15698042e5ee0bc0080f615dd21e1961797064736f6c634300051100328be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e050726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373",
+  "deployedBytecode": "0x6080604052600436106102035760003560e01c80639436e7d411610118578063bf626ec1116100a0578063db27ec181161006f578063db27ec181461072b578063dfb267c214610764578063e7a324dc1461079a578063f2fde38b146107af578063f3f19731146107e257610203565b8063bf626ec114610699578063caaee91c146106ae578063d27569e7146106e3578063d784d426146106f857610203565b8063aaf10f42116100e7578063aaf10f42146105fd578063adae900214610612578063ae81dfe414610645578063b1724b461461065a578063bb533cf21461066f57610203565b80639436e7d41461055757806394c2ce581461059a5780639929e886146105d3578063a58848c5146105e857610203565b806327dd1b001161019b5780636b6fde0e1161016a5780636b6fde0e146104825780637ecebe00146104c757806380f51c12146104fa5780638da5cb5b1461052d5780638f32d59b1461054257610203565b806327dd1b0014610394578063429b62e5146103cd5780635c975abb1461040057806368cefccc1461041557610203565b8063104932cf116101d7578063104932cf1461032457806317748adc146103395780631ab7710d1461036a57806320606b701461037f57610203565b8062073f991461027957806303a18fa3146102a0578063054f7d9c146102d157806307392cc0146102fa575b600061020d610818565b90506001600160a01b0381166102545760405162461bcd60e51b8152600401808060200182810382526023815260200180610f646023913960400191505060405180910390fd5b60405136600082376000803683855af43d806000843e818015610275578184f35b8184fd5b34801561028557600080fd5b5061028e610843565b60408051918252519081900360200190f35b3480156102ac57600080fd5b506102b5610849565b604080516001600160a01b039092168252519081900360200190f35b3480156102dd57600080fd5b506102e6610858565b604080519115158252519081900360200190f35b34801561030657600080fd5b506102e66004803603602081101561031d57600080fd5b5035610866565b34801561033057600080fd5b506102b561087b565b34801561034557600080fd5b5061034e61088a565b604080516001600160601b039092168252519081900360200190f35b34801561037657600080fd5b506102b561088f565b34801561038b57600080fd5b5061028e6108b7565b3480156103a057600080fd5b506102b5600480360360408110156103b757600080fd5b506001600160a01b0381351690602001356108d2565b3480156103d957600080fd5b506102e6600480360360208110156103f057600080fd5b50356001600160a01b03166108f8565b34801561040c57600080fd5b506102e661090d565b34801561042157600080fd5b5061045a6004803603606081101561043857600080fd5b5080356001600160a01b0316906020810135906040013563ffffffff16610916565b6040805163ffffffff90931683526001600160601b0390911660208301528051918290030190f35b34801561048e57600080fd5b5061045a600480360360608110156104a557600080fd5b5080356001600160a01b0316906020810135906040013563ffffffff16610952565b3480156104d357600080fd5b5061028e600480360360208110156104ea57600080fd5b50356001600160a01b031661098e565b34801561050657600080fd5b506102e66004803603602081101561051d57600080fd5b50356001600160a01b03166109a0565b34801561053957600080fd5b506102b56109b5565b34801561054e57600080fd5b506102e66109c4565b34801561056357600080fd5b506105816004803603602081101561057a57600080fd5b50356109e8565b6040805163ffffffff9092168252519081900360200190f35b3480156105a657600080fd5b50610581600480360360408110156105bd57600080fd5b506001600160a01b038135169060200135610a00565b3480156105df57600080fd5b506102e6610a23565b3480156105f457600080fd5b506102b5610a2c565b34801561060957600080fd5b506102b5610818565b34801561061e57600080fd5b506102e66004803603602081101561063557600080fd5b50356001600160a01b0316610a3b565b34801561065157600080fd5b506102b5610a50565b34801561066657600080fd5b5061028e610a64565b34801561067b57600080fd5b506105816004803603602081101561069257600080fd5b5035610a6c565b3480156106a557600080fd5b5061034e610a84565b3480156106ba57600080fd5b506106e1600480360360208110156106d157600080fd5b50356001600160a01b0316610a9a565b005b3480156106ef57600080fd5b5061034e610b0b565b34801561070457600080fd5b506106e16004803603602081101561071b57600080fd5b50356001600160a01b0316610b10565b34801561073757600080fd5b506105816004803603604081101561074e57600080fd5b506001600160a01b038135169060200135610b7e565b34801561077057600080fd5b5061045a6004803603604081101561078757600080fd5b508035906020013563ffffffff16610ba1565b3480156107a657600080fd5b5061028e610bd7565b3480156107bb57600080fd5b506106e1600480360360208110156107d257600080fd5b50356001600160a01b0316610bf2565b3480156107ee57600080fd5b5061045a6004803603604081101561080557600080fd5b508035906020013563ffffffff16610c43565b604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b815290519081900360120190205490565b60015481565b600d546001600160a01b031681565b601554610100900460ff1681565b60106020526000908152604090205460ff1681565b6013546001600160a01b031681565b600981565b604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f0190205490565b604051806043610ed682396043019050604051809103902081565b60046020908152600092835260408084209091529082529020546001600160a01b031681565b600f6020526000908152604090205460ff1681565b60155460ff1681565b600a60209081526000938452604080852082529284528284209052825290205463ffffffff81169064010000000090046001600160601b031682565b600860209081526000938452604080852082529284528284209052825290205463ffffffff81169064010000000090046001600160601b031682565b600c6020526000908152604090205481565b60146020526000908152604090205460ff1681565b6000546001600160a01b031690565b600080546001600160a01b03166109d9610c79565b6001600160a01b031614905090565b60076020526000908152604090205463ffffffff1681565b600960209081526000928352604080842090915290825290205463ffffffff1681565b60055460ff1681565b6003546001600160a01b031681565b600e6020526000908152604090205460ff1681565b60055461010090046001600160a01b031681565b63059fa60081565b60126020526000908152604090205463ffffffff1681565b600d54600160a01b90046001600160601b031681565b610aa261088f565b6001600160a01b0316336001600160a01b031614610aff576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b610b0881610c7d565b50565b600a81565b610b1861088f565b6001600160a01b0316336001600160a01b031614610b75576040805162461bcd60e51b8152602060048201526015602482015274141c9bde1e4e8e881858d8d95cdcc819195b9a5959605a1b604482015290519081900360640190fd5b610b0881610d30565b600b60209081526000928352604080842090915290825290205463ffffffff1681565b600660209081526000928352604080842090915290825290205463ffffffff81169064010000000090046001600160601b031682565b60405180604b610f198239604b019050604051809103902081565b610bfa6109c4565b610c3a576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b610b0881610de6565b601160209081526000928352604080842090915290825290205463ffffffff81169064010000000090046001600160601b031682565b3390565b6001600160a01b038116610cc25760405162461bcd60e51b8152600401808060200182810382526025815260200180610f876025913960400191505060405180910390fd5b806001600160a01b0316610cd461088f565b6001600160a01b03167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e060405160405180910390a3604080516e35b2bc97383937bc3c9737bbb732b960891b8152905190819003600f01902055565b6001600160a01b038116610d755760405162461bcd60e51b8152600401808060200182810382526029815260200180610ead6029913960400191505060405180910390fd5b806001600160a01b0316610d87610818565b6001600160a01b03167fcfbf4028add9318bbf716f08c348595afb063b0e9feed1f86d33681a4b3ed4d360405160405180910390a3604080517135b2bc9734b6b83632b6b2b73a30ba34b7b760711b8152905190819003601201902055565b6001600160a01b038116610e2b5760405162461bcd60e51b8152600401808060200182810382526026815260200180610e876026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f206164647265737350726f78793a3a736574496d706c656d656e746174696f6e3a20696e76616c69642061646472657373454950373132446f6d61696e28737472696e67206e616d652c75696e7432353620636861696e49642c6164647265737320766572696679696e67436f6e74726163742944656c65676174696f6e28616464726573732064656c6567617465652c75696e74323536206c6f636b446174652c75696e74323536206e6f6e63652c75696e74323536206578706972792950726f78793a3a28293a20696d706c656d656e746174696f6e206e6f7420666f756e6450726f78793a3a73657450726f78794f776e65723a20696e76616c69642061646472657373a265627a7a72315820138fe0cf2b814a292f7ec8c1849f15698042e5ee0bc0080f615dd21e1961797064736f6c63430005110032",
+  "devdoc": {
+    "details": "Staking contract should be upgradable, use UpgradableProxy. StakingStorage is deployed with the upgradable functionality by using this contract instead, that inherits from UpgradableProxy the possibility of being enhanced and re-deployed.",
+    "methods": {
+      "constructor": {
+        "params": {
+          "SOV": "The address of the SOV token address."
+        }
+      },
+      "getImplementation()": {
+        "return": "Address of the implementation."
+      },
+      "getProxyOwner()": {
+        "return": "Address of the owner."
+      },
+      "isOwner()": {
+        "details": "Returns true if the caller is the current owner."
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "setImplementation(address)": {
+        "details": "Wrapper for _setImplementation that exposes the function as public for owner to be able to set a new version of the contract as current pointing implementation.",
+        "params": {
+          "_implementation": "Address of the implementation."
+        }
+      },
+      "setProxyOwner(address)": {
+        "params": {
+          "_owner": "Address of the owner."
+        }
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      }
+    },
+    "title": "Staking Proxy contract."
+  },
+  "userdoc": {
+    "methods": {
+      "constructor": "Construct a new staking contract.",
+      "getImplementation()": {
+        "notice": "Return address of the implementation."
+      },
+      "getProxyOwner()": {
+        "notice": "Return address of the owner."
+      },
+      "setImplementation(address)": {
+        "notice": "Set address of the implementation."
+      },
+      "setProxyOwner(address)": {
+        "notice": "Set address of the owner."
+      }
+    }
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 54807,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 23799,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "kickoffTS",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 23802,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "name",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_string_storage"
+      },
+      {
+        "astId": 23804,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "SOVToken",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_contract(IERC20)33453"
+      },
+      {
+        "astId": 23810,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "delegates",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_mapping(t_address,t_mapping(t_uint256,t_address))"
+      },
+      {
+        "astId": 23813,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "allUnlocked",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_bool"
+      },
+      {
+        "astId": 23825,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "newStakingContract",
+        "offset": 1,
+        "slot": "5",
+        "type": "t_address"
+      },
+      {
+        "astId": 23836,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "totalStakingCheckpoints",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)23830_storage))"
+      },
+      {
+        "astId": 23840,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "numTotalStakingCheckpoints",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_mapping(t_uint256,t_uint32)"
+      },
+      {
+        "astId": 23848,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "delegateStakingCheckpoints",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)23830_storage)))"
+      },
+      {
+        "astId": 23854,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "numDelegateStakingCheckpoints",
+        "offset": 0,
+        "slot": "9",
+        "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint32))"
+      },
+      {
+        "astId": 23862,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "userStakingCheckpoints",
+        "offset": 0,
+        "slot": "10",
+        "type": "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)23830_storage)))"
+      },
+      {
+        "astId": 23868,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "numUserStakingCheckpoints",
+        "offset": 0,
+        "slot": "11",
+        "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint32))"
+      },
+      {
+        "astId": 23872,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "nonces",
+        "offset": 0,
+        "slot": "12",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 23874,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "feeSharing",
+        "offset": 0,
+        "slot": "13",
+        "type": "t_contract(IFeeSharingCollector)17012"
+      },
+      {
+        "astId": 23877,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "weightScaling",
+        "offset": 20,
+        "slot": "13",
+        "type": "t_uint96"
+      },
+      {
+        "astId": 23881,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "vestingWhitelist",
+        "offset": 0,
+        "slot": "14",
+        "type": "t_mapping(t_address,t_bool)"
+      },
+      {
+        "astId": 23885,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "admins",
+        "offset": 0,
+        "slot": "15",
+        "type": "t_mapping(t_address,t_bool)"
+      },
+      {
+        "astId": 23889,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "vestingCodeHashes",
+        "offset": 0,
+        "slot": "16",
+        "type": "t_mapping(t_bytes32,t_bool)"
+      },
+      {
+        "astId": 23895,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "vestingCheckpoints",
+        "offset": 0,
+        "slot": "17",
+        "type": "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)23830_storage))"
+      },
+      {
+        "astId": 23899,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "numVestingCheckpoints",
+        "offset": 0,
+        "slot": "18",
+        "type": "t_mapping(t_uint256,t_uint32)"
+      },
+      {
+        "astId": 23901,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "vestingRegistryLogic",
+        "offset": 0,
+        "slot": "19",
+        "type": "t_contract(IVestingRegistry)26194"
+      },
+      {
+        "astId": 23905,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "pausers",
+        "offset": 0,
+        "slot": "20",
+        "type": "t_mapping(t_address,t_bool)"
+      },
+      {
+        "astId": 23907,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "paused",
+        "offset": 0,
+        "slot": "21",
+        "type": "t_bool"
+      },
+      {
+        "astId": 23909,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "frozen",
+        "offset": 1,
+        "slot": "21",
+        "type": "t_bool"
+      },
+      {
+        "astId": 23911,
+        "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+        "label": "maxVestingWithdrawIterations",
+        "offset": 0,
+        "slot": "22",
+        "type": "t_uint256"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_contract(IERC20)33453": {
+        "encoding": "inplace",
+        "label": "contract IERC20",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IFeeSharingCollector)17012": {
+        "encoding": "inplace",
+        "label": "contract IFeeSharingCollector",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IVestingRegistry)26194": {
+        "encoding": "inplace",
+        "label": "contract IVestingRegistry",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_address,t_mapping(t_uint256,t_address))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(uint256 => address))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_uint256,t_address)"
+      },
+      "t_mapping(t_address,t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)23830_storage)))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(uint256 => mapping(uint32 => struct StakingStorageShared.Checkpoint)))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)23830_storage))"
+      },
+      "t_mapping(t_address,t_mapping(t_uint256,t_uint32))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(uint256 => uint32))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_uint256,t_uint32)"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_bytes32,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_uint256,t_address)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => address)",
+        "numberOfBytes": "32",
+        "value": "t_address"
+      },
+      "t_mapping(t_uint256,t_mapping(t_uint32,t_struct(Checkpoint)23830_storage))": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => mapping(uint32 => struct StakingStorageShared.Checkpoint))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_uint32,t_struct(Checkpoint)23830_storage)"
+      },
+      "t_mapping(t_uint256,t_uint32)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => uint32)",
+        "numberOfBytes": "32",
+        "value": "t_uint32"
+      },
+      "t_mapping(t_uint32,t_struct(Checkpoint)23830_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint32",
+        "label": "mapping(uint32 => struct StakingStorageShared.Checkpoint)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Checkpoint)23830_storage"
+      },
+      "t_string_storage": {
+        "encoding": "bytes",
+        "label": "string",
+        "numberOfBytes": "32"
+      },
+      "t_struct(Checkpoint)23830_storage": {
+        "encoding": "inplace",
+        "label": "struct StakingStorageShared.Checkpoint",
+        "members": [
+          {
+            "astId": 23827,
+            "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+            "label": "fromBlock",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint32"
+          },
+          {
+            "astId": 23829,
+            "contract": "contracts/governance/Staking/StakingProxy.sol:StakingProxy",
+            "label": "stake",
+            "offset": 4,
+            "slot": "0",
+            "type": "t_uint96"
+          }
+        ],
+        "numberOfBytes": "32"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      },
+      "t_uint32": {
+        "encoding": "inplace",
+        "label": "uint32",
+        "numberOfBytes": "4"
+      },
+      "t_uint96": {
+        "encoding": "inplace",
+        "label": "uint96",
+        "numberOfBytes": "12"
+      }
+    }
+  }
+}
