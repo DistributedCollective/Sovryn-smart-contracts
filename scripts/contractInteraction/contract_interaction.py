@@ -29,7 +29,7 @@ def main():
     '''
 
     # call the function you want here
-
+    
     ##################################
 
     #cancelTeamVestingsOfAccount('0x673b37941AB527e0EEe13C1Ff09298ef1911d7D6', 1703845695)
@@ -79,8 +79,10 @@ def main():
 
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
     
-    #print("fastBTC.balance()", loadBiDiFastBTC().balance()/1e18)
+    #print("fastBTCBiDi.balance()", loadBiDiFastBTC().balance()/1e18)
+    #print("getFastBTCOfframpAvailableBalance()", getFastBTCOfframpAvailableBalance()/1e18)
     #withdrawRBTCFromFastBTCBiDi(30e18, '0xD9ECB390a6a32ae651D5C614974c5570c50A5D89')
+    #withdrawRBTCFromFastBTCBiDi(30e18, conf.contracts['multisig'])
     #readPauser(conf.contracts['iXUSD'])
     #getBalance(conf.contracts['DLLR'], '0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a') ## testnet
     #transferTokensFromWallet(conf.contracts['DLLR'], '0xae2a6e86d5f5d534fb372693b0ccda8d0ba9744d', 40e18)
