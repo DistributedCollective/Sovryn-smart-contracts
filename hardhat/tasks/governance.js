@@ -84,8 +84,13 @@ async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
     let signer;
     let signerAddress;
     if (ethers.utils.isAddress(signerAcc)) {
-        signer = await getImpersonatedSignerFromJsonRpcProvider(signerAcc);
-        signerAddress = signer._address;
+        if (hre.network.tags["forked"]) {
+            signer = await getImpersonatedSignerFromJsonRpcProvider(signerAcc);
+            signerAddress = signer._address;
+        } else {
+            signer = await ethers.getSigner(signerAcc);
+            signerAddress = signer.address;
+        }
     } else {
         signer = await ethers.getSigner((await hre.getNamedAccounts())[signerAcc]);
         signerAddress = signer.address;
@@ -252,6 +257,7 @@ async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
 
 async function parseVestingsFile(ethers, fileName, multiplier) {
     console.log(fileName);
+    console.log("multiplier:", multiplier);
     let totalAmount = ethers.BigNumber.from(0);
     const teamVestingList = [];
     let errorMsg = "";
@@ -267,6 +273,10 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
                 console.log("reading row:", row[3]);
                 const tokenOwner = row[3].replace(" ", "");
                 const decimals = row[0].split(".");
+                // console.log("decimals:", decimals);
+                // console.log("decimals.lengths:", decimals.length);
+                // console.log("18 - decimals[1].length:", 18 - decimals[1].length);
+                // console.log("Math.log10(multiplier):", Math.log10(multiplier));
                 if (decimals.length !== 2 || 18 - decimals[1].length !== Math.log10(multiplier)) {
                     errorMsg += "\n" + tokenOwner + " amount: " + row[0];
                 }
@@ -301,11 +311,12 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
 
 task("governance:createVestings", "Create vestings")
     .addParam("path", "The file path")
-    .addParam("decimals", "Number of decimals for amount", 16, types.int)
+    .addParam("decimals", "Number of decimals for amount", 2, types.int)
     .addFlag("dryRun", "Dry run")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .setAction(async ({ path, signer, dryRun, decimals }, hre) => {
         const multiplier = (10 ** (18 - decimals)).toString();
+        console.log("multiplier:", multiplier);
         await createVestings(hre, dryRun, path, multiplier, signer);
     });
 
