@@ -9,7 +9,8 @@ const {
     time,
     setBalance,
 } = require("@nomicfoundation/hardhat-network-helpers");
-const { delay } = require("../../deployment/helpers/helpers");
+const { sendWithMultisig, getSignerFromAccount } = require("../../deployment/helpers/helpers");
+const { default: BigNumber } = require("bignumber.js");
 
 const getImpersonatedSignerFromJsonRpcProvider = async (addressToImpersonate) => {
     //await impersonateAccount(addressToImpersonate);
@@ -81,20 +82,8 @@ async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
 
     const { ethers } = hre;
 
-    let signer;
-    let signerAddress;
-    if (ethers.utils.isAddress(signerAcc)) {
-        if (hre.network.tags["forked"]) {
-            signer = await getImpersonatedSignerFromJsonRpcProvider(signerAcc);
-            signerAddress = signer._address;
-        } else {
-            signer = await ethers.getSigner(signerAcc);
-            signerAddress = signer.address;
-        }
-    } else {
-        signer = await ethers.getSigner((await hre.getNamedAccounts())[signerAcc]);
-        signerAddress = signer.address;
-    }
+    let signer = await getSignerFromAccount(hre, signerAcc);
+    let signerAddress = signer.address;
 
     const vestingRegistry = await ethers.getContract("VestingRegistry", signer);
 
@@ -219,12 +208,12 @@ async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
             if ((await SOVtoken.allowance(signerAddress, vestingAddress)) < amount) {
                 console.log(
                     "Approving amount",
-                    amount.div(ethers.utils.parseEther("1")).toNumber(),
+                    ethers.utils.formatEther(amount).toString(),
                     "to Vesting contract",
                     vestingAddress
                 );
                 await SOVtoken.approve(vestingAddress, amount);
-                console.log("Approved:", amount.div(ethers.utils.parseEther("1")).toNumber());
+                console.log("Approved:", ethers.utils.formatEther(amount).toString());
             }
 
             console.log("Staking ...");
@@ -240,24 +229,75 @@ async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
 
         const stakes = await staking.getStakes(vestingAddress);
         console.log("Stakes:");
-        logger.warn(
-            stakes.stakes.map((stake) => stake.div(ethers.constants.WeiPerEther).toString())
-        );
+        logger.warn(stakes.stakes.map((stake) => ethers.utils.formatEther(stake).toString()));
         logger.warn(stakes.dates.map((date) => new Date(date.toNumber() * 1000)));
     }
 
     console.log("=======================================");
     console.log("SOV amount:");
-    console.log(totalAmount / ethers.constants.WeiPerEther);
+    console.log(ethers.utils.formatEther(totalAmount).toString());
 
     const balanceAfter = await ethers.provider.getBalance(signerAddress);
     console.log("deployment cost:");
-    console.log(balanceBefore.sub(balanceAfter) / ethers.constants.WeiPerEther);
+    console.log(ethers.utils.formatEther(balanceBefore.sub(balanceAfter)).toString());
+}
+
+task("governance:cancelTeamVestingsOfAccount", "Cancel all team vesting contracts of account")
+    .addPositionalParam("address", "Cancel this user's all team vestings")
+    .addOptionalParam("startFrom", "Cancel starting from timestamp", 0, types.int)
+    .addOptionalParam(
+        "signer",
+        "Cancelling multisig transaction creator",
+        "deployer",
+        types.string
+    )
+    .setAction(async ({ address: userAddress, signer: signerAcc, startFrom }, hre) => {
+        const { ethers } = hre;
+        const vestingRegistry = await ethers.getContract("VestingRegistry");
+        const vestings = await vestingRegistry.getVestingsOf(userAddress);
+        for (const vesting of vestings) {
+            await cancelTeamVesting(hre, vesting.vestingAddress, startFrom, signerAcc);
+        }
+    });
+
+task("governance:cancelTeamVesting", "Cancel team vesting contract")
+    .addPositionalParam("address", "Team vesting contract to cancel")
+    .addOptionalParam("startFrom", "Cancel starting from timestamp", 0, types.int)
+    .addOptionalParam(
+        "signer",
+        "Cancelling multisig transaction creator",
+        "deployer",
+        types.string
+    )
+    .setAction(async ({ address: vestingAddress, signer: signerAcc, startFrom }, hre) => {
+        await cancelTeamVesting(hre, vestingAddress, startFrom, signerAcc);
+    });
+
+async function cancelTeamVesting(hre, vestingAddress, startFrom, signerAcc) {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const staking = await ethers.getContract("Staking");
+    const multisigDeployment = await get("MultiSigWallet");
+    const vestingContract = await ethers.getContractAt("VestingLogic", vestingAddress);
+    if ((await vestingContract.owner()) === multisigDeployment.address) {
+        console.log(`Cancelling team vesting: ${vestingContract.address}`);
+        const data = staking.interface.encodeFunctionData("cancelTeamVesting", [
+            vestingContract.address,
+            multisigDeployment.address,
+            startFrom,
+        ]);
+        console.log(`Creating multisig tx cancel team vesting ${vestingContract.address}...`);
+        await sendWithMultisig(multisigDeployment.address, staking.address, data, signerAcc);
+        logger.info(
+            `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
+        );
+    }
 }
 
 async function parseVestingsFile(ethers, fileName, multiplier) {
-    console.log(fileName);
-    console.log("multiplier:", multiplier);
+    console.log(`Parsing file ${fileName}...`);
     let totalAmount = ethers.BigNumber.from(0);
     const teamVestingList = [];
     let errorMsg = "";
@@ -270,7 +310,7 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
             .pipe(csv({ headers: false }))
             .on("data", (row) => {
                 data.push(row);
-                console.log("reading row:", row[3]);
+                // console.log("reading row:", row[3]);
                 const tokenOwner = row[3].replace(" ", "");
                 const decimals = row[0].split(".");
                 // console.log("decimals:", decimals);
@@ -281,7 +321,7 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
                     errorMsg += "\n" + tokenOwner + " amount: " + row[0];
                 }
                 let amount = row[0].replace(",", "").replace(".", "");
-                console.log("amount read:", amount);
+                // console.log("amount read:", amount);
                 amount = ethers.BigNumber.from(amount).mul(ethers.BigNumber.from(multiplier));
                 const cliff = parseInt(row[5]);
                 const duration = parseInt(row[6]);
@@ -292,7 +332,7 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
 
                 console.log("=======================================");
                 console.log("'" + tokenOwner + "', ");
-                console.log(amount);
+                console.log(ethers.utils.formatEther(amount).toString());
             })
             .on("end", () => {
                 if (errorMsg !== "") {
@@ -316,7 +356,6 @@ task("governance:createVestings", "Create vestings")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .setAction(async ({ path, signer, dryRun, decimals }, hre) => {
         const multiplier = (10 ** (18 - decimals)).toString();
-        console.log("multiplier:", multiplier);
         await createVestings(hre, dryRun, path, multiplier, signer);
     });
 
@@ -553,6 +592,14 @@ task(
                 const date = new Date(item.date.mul(1000).toNumber());
                 logger.info(`${date.toUTCString()} (${item.date}): ${item.stake / 1e18}`);
             });
+            if (stakes.length > 0) {
+                let totalStaked = stakes.reduce(
+                    (accum, stake) => accum.add(stake),
+                    ethers.BigNumber.from(0)
+                );
+                logger.info("=======================");
+                logger.info(`Total vested: ${ethers.utils.formatEther(totalStaked.toString())}`);
+            }
         }
     });
 
