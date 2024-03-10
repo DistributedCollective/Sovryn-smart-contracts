@@ -142,9 +142,27 @@ const multisigRemoveOwner = async (removeAddress, sender) => {
     );
 };
 
+async function getSignerFromAccount(hre, signerAcc) {
+    const { ethers } = hre;
+    let signer;
+    let signerAddress;
+    if (ethers.utils.isAddress(signerAcc)) {
+        if (hre.network.tags["forked"]) {
+            signer = await getImpersonatedSignerFromJsonRpcProvider(signerAcc);
+            signerAddress = signer._address;
+        } else {
+            signer = await ethers.getSigner(signerAcc);
+            signerAddress = signer.address;
+        }
+    } else {
+        signer = await ethers.getSigner((await hre.getNamedAccounts())[signerAcc]);
+    }
+    return signer;
+}
+
 const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, value = 0) => {
     const { ethers } = hre;
-    const signer = await ethers.getSigner(sender);
+    const signer = await getSignerFromAccount(hre, sender); //ethers.getSigner(sender);
     const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress, signer);
     const gasEstimated = (
         await multisig.estimateGas.submitTransaction(contractAddress, value, data)
@@ -679,4 +697,5 @@ module.exports = {
     getTxRevertReason,
     delay,
     logTimer,
+    getSignerFromAccount,
 };
