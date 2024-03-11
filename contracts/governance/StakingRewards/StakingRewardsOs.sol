@@ -73,13 +73,13 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
             stopBlock == 0 || stakerNextWithdrawTimestamp[msg.sender] < stopRewardsTimestamp,
             "Entire reward already paid"
         );
-        (uint256 withdrawTimestamp, uint256 amount) = _getStakerCurrentReward(
+        (uint256 nextWithdrawTimestamp, uint256 amount) = _getStakerCurrentReward(
             msg.sender,
             true,
             _startTime
         );
-        require(withdrawTimestamp > 0 && amount > 0, "No valid reward");
-        stakerNextWithdrawTimestamp[msg.sender] = withdrawTimestamp;
+        require(nextWithdrawTimestamp > 0 && amount > 0, "No valid reward");
+        stakerNextWithdrawTimestamp[msg.sender] = nextWithdrawTimestamp;
         _payReward(msg.sender, amount);
     }
 
@@ -224,6 +224,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
         uint256 currentBlockTsToLockDate;
         uint256 startWithdrawTimestamp = stakerNextWithdrawTimestamp[_staker];
 
+        // it is important to have this check in the beginning
         if (stopBlock != 0 && startWithdrawTimestamp > stopRewardsTimestamp) {
             return (startWithdrawTimestamp, 0);
         }
@@ -252,7 +253,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
             rewardsInterval.toTimestamp = currentBlockTsToLockDate;
         }
 
-        if (stopRewardsTimestamp > 0 && rewardsInterval.toTimestamp >= stopRewardsTimestamp) {
+        if (stopRewardsTimestamp > 0 && rewardsInterval.toTimestamp > stopRewardsTimestamp) {
             rewardsInterval.toTimestamp = stopRewardsTimestamp.add(TWO_WEEKS);
         }
 
@@ -280,7 +281,7 @@ contract StakingRewardsOs is StakingRewardsOsStorage, Initializable {
                 _computeWeightedStakeForDate(_staker, referenceBlock, i)
             );
         }
-        nextWithdrawTimestamp = rewardsInterval.toTimestamp.add(TWO_WEEKS);
+        nextWithdrawTimestamp = rewardsInterval.toTimestamp;
         amount = weightedStake.mul(BASE_RATE).div(DIVISOR);
     }
 }
