@@ -601,7 +601,7 @@ const deployWithCustomProxy = async (
             ethers.utils.isAddress(newOwnerAddress) &&
             (await proxy.owner()).toLowerCase() !== newOwnerAddress.toLowerCase()
         ) {
-            await proxy.transferOwnership(newOwner);
+            await proxy.transferOwnership(newOwnerAddress);
             logger.success(`Proxy ${proxyName} ownership transferred to ${await proxy.owner()}`);
         }
 
