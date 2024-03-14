@@ -65,7 +65,7 @@ const getArgsSip0078 = async (hre) => {
         deployments: { get },
     } = hre;
     const chainId = (await ethers.provider.getNetwork()).chainId;
-    if (![31, 31337].includes(chainId)) {
+    if (![30, 31, 31337].includes(chainId)) {
         throw new Error(`sampleGovernorOwnerSIP cannot run on the network ID == ${chainId}`);
     }
     const args = {
