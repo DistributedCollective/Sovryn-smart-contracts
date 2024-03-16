@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { ISafeDepositsSender } from "./interfaces/ISafeDepositsSender.sol";
 
-interface IERC20 {
+interface IERC20Spec {
     function balanceOf(address _who) external view returns (uint256);
     function transfer(address _to, uint256 _value) external returns (bool);
 }
@@ -139,7 +139,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 );
             } else {
                 // transfer ERC20 tokens
-                IERC20 token = IERC20(tokens[i]);
+                IERC20Spec token = IERC20Spec(tokens[i]);
                 balance = token.balanceOf(address(SAFE));
                 require(balance >= amounts[i], "SafeDepositsSender: Not enough funds");
 
@@ -169,7 +169,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 );
 
                 // withdraw balance to this contract left after deposit to the LockDrop
-                balance = IERC20(tokens[i]).balanceOf(address(SAFE));
+                balance = IERC20Spec(tokens[i]).balanceOf(address(SAFE));
                 data = abi.encodeWithSignature(
                     "transfer(address,uint256)",
                     address(this),
@@ -222,7 +222,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 continue;
             }
 
-            IERC20 token = IERC20(tokens[i]);
+            IERC20Spec token = IERC20Spec(tokens[i]);
             uint256 balance = token.balanceOf(address(this));
             require(balance >= amounts[i], "SafeDepositsSender: Not enough funds");
 
@@ -242,7 +242,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 require(success, "Could not withdraw ether");
                 continue;
             }
-            IERC20 token = IERC20(tokens[i]);
+            IERC20Spec token = IERC20Spec(tokens[i]);
             uint256 balance = token.balanceOf(address(this));
             if (balance > 0) {
                 token.transfer(recipient, balance);
