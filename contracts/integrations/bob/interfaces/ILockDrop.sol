@@ -1,6 +1,9 @@
-pragma solidity 0.5.17;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.17;
 
+/**
+ * @dev Interface for BOB (Build on Bitcoin) LockDrop contract
+ * The contract is used for deposits and BOB reward points allocation
+ */
 interface ILockDrop {
     // Events
     event TokenAllowed(address token, TokenInfo info);
