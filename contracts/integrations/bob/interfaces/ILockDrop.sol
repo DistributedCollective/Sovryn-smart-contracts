@@ -19,8 +19,9 @@ interface ILockDrop {
     event WithdrawToL1(address indexed owner, address indexed token, uint256 amount);
     event WithdrawToL2(
         address indexed owner,
+        address indexed receiver,
         address indexed l1Token,
-        address indexed l2Token,
+        address l2Token,
         uint256 amount
     );
 
@@ -60,7 +61,11 @@ interface ILockDrop {
      * @param tokens Array of token addresses to withdraw.
      * @param minGasLimit Minimum gas limit for the withdrawal transactions.
      */
-    function withdrawDepositsToL2(address[] calldata tokens, uint32 minGasLimit) external;
+    function withdrawDepositsToL2(
+        address[] memory tokens,
+        uint32 minGasLimit,
+        address receiver
+    ) external;
 
     /**
      * @dev Function to withdraw all deposits to Layer 1 for multiple tokens.
