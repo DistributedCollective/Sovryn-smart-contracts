@@ -31,7 +31,7 @@ const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
 //Upgradable Vesting Registry
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogicMockup");
+const VestingRegistry = artifacts.require("VestingRegistryMockup");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -79,10 +79,10 @@ contract("Vesting", (accounts) => {
         staking = await deployAndGetIStaking(stakingProxy.address);
 
         //Upgradable Vesting Registry
-        vestingRegistryLogic = await VestingRegistryLogic.new();
+        vestingRegistry = await VestingRegistry.new();
         vestingReg = await VestingRegistryProxy.new();
-        await vestingReg.setImplementation(vestingRegistryLogic.address);
-        vestingReg = await VestingRegistryLogic.at(vestingReg.address);
+        await vestingReg.setImplementation(vestingRegistry.address);
+        vestingReg = await VestingRegistry.at(vestingReg.address);
         await staking.setVestingRegistry(vestingReg.address);
 
         await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);

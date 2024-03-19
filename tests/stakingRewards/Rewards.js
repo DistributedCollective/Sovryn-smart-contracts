@@ -26,7 +26,7 @@ const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const IStakingModuleBlockMockup = artifacts.require("IStakingModuleBlockMockup");
 
 // Upgradable Vesting Registry
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistry = artifacts.require("VestingRegistry");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const BlockMockUp = artifacts.require("BlockMockUp");
 
@@ -59,10 +59,10 @@ contract("StakingRewards - First Period", (accounts) => {
         staking = await IStakingModuleBlockMockup.at(iStaking.address); // applying extended mockup interface
 
         //Upgradable Vesting Registry
-        vestingRegistryLogic = await VestingRegistryLogic.new();
+        vestingRegistry = await VestingRegistry.new();
         vesting = await VestingRegistryProxy.new();
-        await vesting.setImplementation(vestingRegistryLogic.address);
-        vesting = await VestingRegistryLogic.at(vesting.address);
+        await vesting.setImplementation(vestingRegistry.address);
+        vesting = await VestingRegistry.at(vesting.address);
         await staking.setVestingRegistry(vesting.address);
 
         kickoffTS = await staking.kickoffTS.call();

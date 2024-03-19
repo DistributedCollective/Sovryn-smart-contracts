@@ -214,8 +214,8 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
         assembly {
             codeHash := extcodehash(stakerAddress)
         }
-        if (address(vestingRegistryLogic) != address(0)) {
-            isVesting = vestingRegistryLogic.isVestingAddress(stakerAddress);
+        if (address(vestingRegistry) != address(0)) {
+            isVesting = vestingRegistry.isVestingAddress(stakerAddress);
         }
 
         if (isVesting) return true;

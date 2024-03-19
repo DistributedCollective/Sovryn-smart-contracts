@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 
 import "../../interfaces/IERC20.sol";
 import "../../utils/AdminRole.sol";
-import "./VestingRegistryLogic.sol";
+import "./VestingRegistry.sol";
 import "./VestingLogic.sol";
 import "../../openzeppelin/SafeMath.sol";
 
@@ -19,7 +19,7 @@ contract VestingCreator is AdminRole {
     IERC20 public SOV;
 
     ///@notice the vesting registry contract
-    VestingRegistryLogic public vestingRegistryLogic;
+    VestingRegistry public vestingRegistry;
 
     ///@notice Holds Vesting Data
     struct VestingData {
@@ -44,7 +44,7 @@ contract VestingCreator is AdminRole {
         require(_vestingRegistryProxy != address(0), "Vesting registry address invalid");
 
         SOV = IERC20(_SOV);
-        vestingRegistryLogic = VestingRegistryLogic(_vestingRegistryProxy);
+        vestingRegistry = VestingRegistry(_vestingRegistryProxy);
     }
 
     /**
@@ -245,7 +245,7 @@ contract VestingCreator is AdminRole {
         VestingData memory vestingData
     ) internal returns (address vesting) {
         if (vestingData.governanceControl) {
-            vestingRegistryLogic.createTeamVesting(
+            vestingRegistry.createTeamVesting(
                 vestingData.tokenOwner,
                 vestingData.amount,
                 vestingData.cliff,
@@ -253,7 +253,7 @@ contract VestingCreator is AdminRole {
                 vestingData.vestingCreationType
             );
         } else {
-            vestingRegistryLogic.createVestingAddr(
+            vestingRegistry.createVestingAddr(
                 vestingData.tokenOwner,
                 vestingData.amount,
                 vestingData.cliff,
@@ -282,14 +282,14 @@ contract VestingCreator is AdminRole {
         uint256 _vestingCreationType
     ) internal view returns (address vestingAddress) {
         if (_governanceControl) {
-            vestingAddress = vestingRegistryLogic.getTeamVesting(
+            vestingAddress = vestingRegistry.getTeamVesting(
                 _tokenOwner,
                 _cliff,
                 _duration,
                 _vestingCreationType
             );
         } else {
-            vestingAddress = vestingRegistryLogic.getVestingAddr(
+            vestingAddress = vestingRegistry.getVestingAddr(
                 _tokenOwner,
                 _cliff,
                 _duration,
