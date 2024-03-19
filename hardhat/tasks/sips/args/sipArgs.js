@@ -843,7 +843,7 @@ const getArgsSIP0077 = async (hre) => {
         description:
             "SIP-0077: Enhancement of Staking Rewards and Governance Mechanisms in Anticipation of BitcoinOS, Details: https://github.com/DistributedCollective/SIPS/blob/8cb4f72/SIP-0077.md, sha256: f7d785c2b5c6bd6135eeef07ea00a1111bc08b356f20c501ca470f2896f03ee1",
     };
-    return { args, governor: "GovernorOwner" };
+    return { args, governor: "GovernorAdmin" };
 };
 
 module.exports = {
