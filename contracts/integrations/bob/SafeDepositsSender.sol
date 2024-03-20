@@ -26,22 +26,40 @@ interface GnosisSafe {
     ) external returns (bool success);
 }
 
+/**
+ * @title SafeDepositsSender
+ * @notice This contract is a gateway for depositing funds into the Bob locker contracts
+ */
 contract SafeDepositsSender is ISafeDepositsSender {
     address public constant ETH_TOKEN_ADDRESS = address(0x01);
 
     GnosisSafe private immutable SAFE;
     address private immutable LOCK_DROP_ADDRESS;
     address private immutable SOV_TOKEN_ADDRESS;
+    address private DEPOSITOR_ADDRESS;
     uint256 private stopBlock; // if set the contract is stopped forever - irreversible
     bool private paused;
 
-    constructor(address _safeAddress, address _lockDrop, address _sovToken) {
+    /**
+     * @param _safeAddress Address of the Gnosis Safe
+     * @param _lockDrop Address of the lock drop contract
+     * @param _sovToken Address of the SOV token contract
+     * @param _depositor Address of the depositor account
+     */
+    constructor(
+        address _safeAddress,
+        address _lockDrop,
+        address _sovToken,
+        address _depositor
+    ) public {
         require(_safeAddress != address(0), "SafeDepositsSender: Invalid safe address");
         require(_lockDrop != address(0), "SafeDepositsSender: Invalid lockdrop address");
         require(_sovToken != address(0), "SafeDepositsSender: Invalid sov token address");
+        require(_depositor != address(0), "SafeDepositsSender: Invalid depositor token address");
         SAFE = GnosisSafe(_safeAddress);
         LOCK_DROP_ADDRESS = _lockDrop;
         SOV_TOKEN_ADDRESS = _sovToken;
+        DEPOSITOR_ADDRESS = _depositor;
     }
 
     receive() external payable {}
@@ -54,13 +72,13 @@ contract SafeDepositsSender is ISafeDepositsSender {
     }
 
     modifier onlyDepositor() {
-        require(msg.sender == address(this), "SafeDepositsSender: Only Depositor");
+        require(msg.sender == DEPOSITOR_ADDRESS, "SafeDepositsSender: Only Depositor");
         _;
     }
 
     modifier onlyDepositorOrSafe() {
         require(
-            msg.sender == address(this) || msg.sender == address(SAFE),
+            msg.sender == DEPOSITOR_ADDRESS || msg.sender == address(SAFE),
             "SafeDepositsSender: Only Depositor or Safe"
         );
         _;
@@ -87,6 +105,16 @@ contract SafeDepositsSender is ISafeDepositsSender {
     }
 
     // CORE FUNCTIONS
+
+    /**
+     * @notice Sends tokens to the LockDrop contract
+     * @dev This function is for sending tokens to the LockDrop contract for users to receive rewards and to be bridged to the BOB mainnet for Sovryn DEX
+     * @dev The function is allowed to be called only by the DEPOSITOR_ADDRESS
+     * @dev Token amounts and SOV amount to send are calculated offchain
+     * @param tokens List of tokens to send
+     * @param amounts List of amounts of tokens to send
+     * @param sovAmount Amount of SOV tokens to send
+     */
     function sendToLockDropContract(
         address[] calldata tokens,
         uint256[] calldata amounts,
@@ -203,7 +231,16 @@ contract SafeDepositsSender is ISafeDepositsSender {
 
     // ADMINISTRATIVE FUNCTIONS //
 
-    // @note amount > 0 should be checked by the caller
+    /**
+     * @notice Withdraws tokens from this contract to a recipient address
+     * @notice Withdrawal to the Safe address will affect balances and rewards
+     * @notice Amount > 0 should be checked by the caller before calling this function
+     * @dev Only Safe can call this function
+     * @dev Recipient should not be a zero address
+     * @param tokens List of token addresses to withdraw
+     * @param amounts List of token amounts to withdraw
+     * @param recipient Recipient address
+     */
     function withdraw(
         address[] calldata tokens,
         uint256[] calldata amounts,
@@ -235,6 +272,16 @@ contract SafeDepositsSender is ISafeDepositsSender {
         }
     }
 
+    /**
+     * @notice Withdraws all tokens from this contract to a recipient
+     * @notice Amount > 0 should be checked by the caller before calling this function
+     * @dev Only Safe can call this function
+     * @dev Recipient should not be a zero address
+     * @notice Withdrawal to the Safe address will affect balances and rewards
+     * @param tokens List of token addresses to withdraw
+     * @param amounts List of token amounts to withdraw
+     * @param recipient Recipient address
+     */
     function withdrawAll(
         address[] calldata tokens,
         address recipient
@@ -255,16 +302,19 @@ contract SafeDepositsSender is ISafeDepositsSender {
         }
     }
 
+    /// @notice pause the contract - no funds can be sent to the LockDrop contract
     function pause() external onlySafe expectUnpaused {
         paused = true;
         emit Pause();
     }
 
+    /// @notice unpause the contract
     function unpause() external onlySafe expectPaused {
         paused = false;
         emit Unpause();
     }
 
+    /// @notice stops the contract - no funds can be sent to the LockDrop contract, this is irreversible
     function stop() external onlySafe {
         stopBlock = block.number;
         emit Stop();
@@ -281,6 +331,10 @@ contract SafeDepositsSender is ISafeDepositsSender {
 
     function getSovTokenAddress() external view returns (address) {
         return SOV_TOKEN_ADDRESS;
+    }
+
+    function getDepositorAddress() external view returns (address) {
+        return DEPOSITOR_ADDRESS;
     }
 
     function isStopped() external view returns (bool) {
