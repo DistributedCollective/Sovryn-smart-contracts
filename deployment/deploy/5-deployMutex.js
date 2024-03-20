@@ -9,18 +9,16 @@ const func = async function (hre) {
         network,
         ethers,
     } = hre;
-    let deployer, owners, requiredSigners;
+    const { deployerAddress, contractAddress } = SAVED_DEPLOY_DATA;
     logger.warn("Deploying Mutex...");
-    deployer = SAVED_DEPLOY_DATA.deployer;
-    if (ethers.provider.getBalance(deployer) === 0) {
+
+    if (ethers.provider.getBalance(deployerAddress) === 0) {
         throw Exception("Deployer balance is zero");
     }
 
     const mutex = await getOrDeployMutex();
-    if (mutex.address !== SAVED_DEPLOY_DATA.contractAddress) {
-        throw Exception(
-            `Mutex address is ${mutex.address}, expected ${SAVED_DEPLOY_DATA.contractAddress}`
-        );
+    if (mutex.address !== contractAddress) {
+        throw Exception(`Mutex address is ${mutex.address}, expected ${contractAddress}`);
     }
     logger.warn("Mutex deployed");
 };

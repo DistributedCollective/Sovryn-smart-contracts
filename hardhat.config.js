@@ -276,6 +276,15 @@ module.exports = {
             gasPrice: 50000000,
             tags: ["testnet"],
         },
+        bobForkedTestnet: {
+            chainId: 31337,
+            accounts: testnetAccounts,
+            url: "http://127.0.0.1:8545",
+            gasPrice: 50000000,
+            live: true,
+            tags: ["testnet", "forked"],
+            timeout: 100000,
+        },
     },
     paths: {
         sources: "./contracts",
@@ -315,6 +324,11 @@ module.exports = {
                 "external/deployments/rskMainnet",
                 "deployment/deployments/rskSovrynMainnet",
                 "external/deployments/rskForkedMainnet",
+            ],
+            bobTestnet: ["external/deployments/bobTestnet"],
+            bobForkedTestnet: [
+                "external/deployments/bobTestnet",
+                "deployment/deployments/bobTestnet",
             ],
             ethMainnet: ["external/deployments/ethMainnet", "deployment/deployments/ethMainnet"],
         },
