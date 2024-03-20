@@ -270,13 +270,12 @@ module.exports = {
             tags: ["testnet"],
         },
         bobSepolia: {
-            url: 'https://bob-sepolia.rpc.caldera.xyz/http',
+            url: "https://bob-sepolia.rpc.caldera.xyz/http",
             chainId: 9900367,
             accounts: testnetAccounts,
             gasPrice: 50000000,
             tags: ["testnet"],
         },
-
     },
     paths: {
         sources: "./contracts",
