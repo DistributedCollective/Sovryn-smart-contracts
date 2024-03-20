@@ -279,7 +279,6 @@ contract SafeDepositsSender is ISafeDepositsSender {
      * @dev Recipient should not be a zero address
      * @notice Withdrawal to the Safe address will affect balances and rewards
      * @param tokens List of token addresses to withdraw
-     * @param amounts List of token amounts to withdraw
      * @param recipient Recipient address
      */
     function withdrawAll(
