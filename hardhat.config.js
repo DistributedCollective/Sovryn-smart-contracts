@@ -263,6 +263,15 @@ module.exports = {
             accounts: mainnetAccounts,
             tags: ["mainnet"],
         },
+        ethForkedMainnet: {
+            chainId: 31337,
+            accounts: mainnetAccounts,
+            url: "http://127.0.0.1:8545",
+            gasPrice: 50000000,
+            live: true,
+            tags: ["mainnet", "forked"],
+            timeout: 100000,
+        },
         ethSepoliaTestnet: {
             chainId: 11155111,
             url: `https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
@@ -276,7 +285,6 @@ module.exports = {
             gasPrice: 50000000,
             tags: ["testnet"],
         },
-
         bobForkedTestnet: {
             chainId: 31337,
             accounts: testnetAccounts,
@@ -286,7 +294,6 @@ module.exports = {
             tags: ["testnet", "forked"],
             timeout: 100000,
         },
-
         ethBobTenderyForkedMainnet: {
             chainId: 9900367,
             accounts: mainnetAccounts,
@@ -339,7 +346,11 @@ module.exports = {
                 "external/deployments/bobTestnet",
                 "deployment/deployments/bobTestnet",
             ],
-            ethMainnet: ["external/deployments/ethMainnet", "deployment/deployments/ethMainnet"],
+            ethMainnet: ["external/deployments/ethMainnet"],
+            ethForkedMainnet: [
+                "external/deployments/ethMainnet",
+                "deployment/deployments/ethMainnet",
+            ],
             ethBobTenderyForkedMainnet: [
                 "external/deployments/ethMainnet",
                 "deployment/deployments/ethMainnet",
