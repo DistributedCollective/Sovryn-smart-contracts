@@ -9,10 +9,12 @@ interface ISafeDepositsSender {
     event Pause();
     event Unpause();
     event Stop();
+    event setDepositor(address oldDepositor, address newDepositor);
 
     function getSafeAddress() external view returns (address);
     function getLockDropAddress() external view returns (address);
     function getSovTokenAddress() external view returns (address);
+    function getDepositorAddress() external view returns (address);
     function isStopped() external view returns (bool);
     function isPaused() external view returns (bool);
 
@@ -30,6 +32,8 @@ interface ISafeDepositsSender {
     function unpause() external;
 
     function stop() external;
+
+    function setDepositorAddress(address _newDepositor) external;
 
     function sendToLockDropContract(
         address[] calldata tokens,

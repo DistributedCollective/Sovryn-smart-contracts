@@ -231,6 +231,19 @@ contract SafeDepositsSender is ISafeDepositsSender {
 
     // ADMINISTRATIVE FUNCTIONS //
 
+    /// @notice There is no check if _newDepositor is not zero on purpose - that could be required
+
+    /**
+     * @notice Sets new depositor address
+     * @dev Only Safe can call this function
+     * @dev New depositor can be zero address
+     * @param _newDepositor New depositor address
+     */
+    function setDepositorAddress(address _newDepositor) external onlySafe {
+        emit setDepositor(DEPOSITOR_ADDRESS, _newDepositor);
+        DEPOSITOR_ADDRESS = _newDepositor;
+    }
+
     /**
      * @notice Withdraws tokens from this contract to a recipient address
      * @notice Withdrawal to the Safe address will affect balances and rewards
