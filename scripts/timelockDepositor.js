@@ -125,6 +125,7 @@ async function main() {
     const safeMultisigDeployment = await get("SafeBobDeposits");
     const safeMultisigModuleDeployment = await get("SafeDepositsSender");
     const safeMultisigModuleContract = await ethers.getContract("SafeDepositsSender");
+    const safeMultisigContract = await ethers.getContract("SafeBobDeposits");
 
     /** Check Paused */
     if (await safeMultisigModuleContract.isPaused()) {
@@ -132,17 +133,11 @@ async function main() {
         return;
     }
 
-    // /** Validate token deployment */
-    // for (const whitelistedToken of WHITELISTED_TOKENS) {
-    //   const tokenDeployment = await get(whitelistedToken.tokenName);
-    //   if(!tokenDeployment) throw new Error(`Invalid token deployment for ${whitelistedToken.tokenName}`)
-    // }
-
     const tokensNameToSend = [];
     const tokensAddressToSend = [];
     const amountsToSend = [];
     const sovAmountList = {};
-    let totalSovAmount = 0;
+    let totalSovAmount = new BigNumber(0);
 
     logger.info("Processing whitelisted tokens...");
     for (const whitelistedToken of WHITELISTED_TOKENS) {
@@ -155,15 +150,6 @@ async function main() {
             whitelistedToken.tokenAddress
         );
 
-        /** Check the threshold */
-        const tokenDecimal =
-            whitelistedToken.tokenAddress.toLowerCase() == ETH_NATIVE_TOKEN_ADDRS
-                ? 18
-                : await tokenContract.decimals();
-        const tokenThreshold = ethers.BigNumber.from(whitelistedToken.tokenBalanceThreshold).mul(
-            ethers.BigNumber.from(10).pow(ethers.BigNumber.from(tokenDecimal))
-        );
-
         /** read balance of token */
         const tokenBalance = await getTokenBalance(
             whitelistedToken.tokenAddress,
@@ -173,29 +159,46 @@ async function main() {
 
         logger.info(`token ${whitelistedToken.tokenName} balance: ${tokenBalance}`);
 
-        if (tokenBalance <= ethers.BigNumber.from(whitelistedToken.tokenBalanceThreshold)) {
+        if (
+            ethers.BigNumber.from(tokenBalance).lt(
+                ethers.BigNumber.from(whitelistedToken.tokenBalanceThreshold)
+            )
+        ) {
             logger.warning(
-                `token ${whitelistedToken.tokenName} lack of balance to process the transfer to timelock: threshold: ${tokenThreshold.toString()}, balance: ${tokenBalance.toString()}`
+                `token ${whitelistedToken.tokenName} lack of balance to process the transfer to timelock: threshold: ${whitelistedToken.tokenBalanceThreshold}, balance: ${tokenBalance.toString()}`
             );
             continue;
         }
+
+        logger.warning(
+            `token ${whitelistedToken.tokenName} will be processed, threshold: ${whitelistedToken.tokenBalanceThreshold}, balance: ${tokenBalance.toString()}`
+        );
 
         /** Process 50% of token balance */
         const processedTokenAmount = ethers.BigNumber.from(tokenBalance).div(
             ethers.BigNumber.from(2)
         );
+
+        logger.info(
+            `Sufficient ${whitelistedToken.tokenName} balance, processing ${processedTokenAmount.toString()}`
+        );
+
         tokensNameToSend.push(whitelistedToken.tokenName);
         tokensAddressToSend.push(whitelistedToken.tokenAddress);
-        amountsToSend.push(processedTokenAmount);
+        amountsToSend.push(processedTokenAmount.toString());
 
         /** Get SOV Amount for the token */
         const sovPrice = await getSovPrice(whitelistedToken);
-        const sovAmount = new BigNumber(sovPrice).multipliedBy(processedTokenAmount);
+        const sovAmount = new BigNumber(sovPrice)
+            .multipliedBy(new BigNumber(processedTokenAmount.toString()))
+            .decimalPlaces(0);
+
+        logger.info(`SOV Amount from 50% ${whitelistedToken.tokenName}: ${sovPrice.toString()}`);
 
         /** For logging purposes */
-        sovAmountList[whitelistedToken.tokenName] = sovAmount;
+        sovAmountList[whitelistedToken.tokenName] = sovAmount.toString();
 
-        totalSovAmount += sovAmount;
+        totalSovAmount = totalSovAmount.plus(sovAmount);
     }
 
     /** Check SOV Amount */
@@ -206,13 +209,18 @@ async function main() {
         ethers.provider
     );
 
-    if (safeSOVBalance < totalSovAmount) {
-        logger.error(`insufficient SOV Amount, need: ${totalSovAmount} , got: ${safeSOVBalance}`);
+    if (new BigNumber(safeSOVBalance).lt(totalSovAmount)) {
+        logger.error(
+            `insufficient SOV Amount, need: ${totalSovAmount.toString()} , got: ${safeSOVBalance.toString()}`
+        );
         /** @TODO Trigger alert to discord maybe */
     }
 
     logger.info("Token list to send..");
     logger.info(JSON.stringify(tokensNameToSend));
+
+    logger.info("Token Address to send..");
+    logger.info(JSON.stringify(tokensAddressToSend));
 
     logger.info("Amounts list to send..");
     logger.info(JSON.stringify(amountsToSend));
@@ -220,15 +228,25 @@ async function main() {
     logger.info("SOV List Details");
     logger.info(JSON.stringify(sovAmountList));
 
-    logger.info(`Total SOV Amount to sent: ${totalSovAmount}`);
+    logger.info(`Total SOV Amount to sent: ${totalSovAmount.toString()}`);
 
     /** Process sending token */
-    /** @TODO connect with signer account */
-    // await safeMultisigModuleContract.sendToLockDropContract(
-    //     tokensAddressToSend,
-    //     amountsToSend,
-    //     totalSovAmount
-    // );
+    const data = await safeMultisigModuleContract.populateTransaction.sendToLockDropContract(
+        tokensAddressToSend,
+        amountsToSend,
+        totalSovAmount.toFixed()
+    );
+
+    logger.info("===== Execute the sendToLockDropContract function from multisig safe =====");
+    logger.info(`Safe Module address: ${safeMultisigModuleDeployment.address}`);
+    logger.info(`Data: ${data.data}`);
+    await safeMultisigContract.execTransactionFromModule(
+        safeMultisigModuleDeployment.address,
+        0,
+        data.data,
+        1
+    );
+    logger.info("===== Execute Done =====");
 }
 
 async function getPoolAddress(tokenInAddress, tokenOutAddress) {
@@ -341,14 +359,13 @@ async function getSovPrice(whitelistedTokenConfig) {
         }
 
         previousRoutePrice = price;
-
-        /** Price = price per unit */
-        /** So we need to calculate with the real amount */
     }
 
     console.log(
         `SOV Price of ${whitelistedTokenConfig.tokenName} - ${whitelistedTokenConfig.tokenAddress}: ${latestPrice.toString()}`
     );
+
+    /** Price = price per unit */
     return latestPrice;
 }
 
@@ -376,12 +393,12 @@ async function getTokenBalance(tokenAddress, holderAdress, provider) {
         return await tokenContract.balanceOf(holderAdress);
     }
 }
-// main()
+main();
 // getPoolAddress("0xdAC17F958D2ee523a2206206994597C13D831ec7", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2") // get USDT <> WETH
 // getPoolAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2") // get USDC <> WETH
 // getPoolAddress("0x6B175474E89094C44Da98b954EedeAC495271d0F", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2") // get DAI <> WETH
 
-getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[0]); // get wbtc price
+// getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[0]); // get wbtc price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[1]) // get eth price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[2]) // get weth price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[3]) // get usdt price

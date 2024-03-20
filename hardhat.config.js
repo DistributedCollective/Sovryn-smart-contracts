@@ -305,10 +305,6 @@ module.exports = {
             tags: ["mainnet", "forked"],
         },
     },
-    tenderly: {
-        username: process.env.TENDERLY_USERNAME,
-        project: process.env.TENDERLY_PROJECT,
-    },
     paths: {
         sources: "./contracts",
         tests: "./tests",
@@ -375,5 +371,9 @@ module.exports = {
     },
     mocha: {
         timeout: 800000,
+    },
+    tenderly: {
+        username: process.env.TENDERLY_USERNAME,
+        project: process.env.TENDERLY_PROJECT,
     },
 };
