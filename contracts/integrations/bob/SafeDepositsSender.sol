@@ -36,6 +36,9 @@ contract SafeDepositsSender is ISafeDepositsSender {
     bool private paused;
 
     constructor(address _safeAddress, address _lockDrop, address _sovToken) {
+        require(_safeAddress != address(0), "SafeDepositsSender: Invalid safe address");
+        require(_lockDrop != address(0), "SafeDepositsSender: Invalid lockdrop address");
+        require(_sovToken != address(0), "SafeDepositsSender: Invalid sov token address");
         SAFE = GnosisSafe(_safeAddress);
         LOCK_DROP_ADDRESS = _lockDrop;
         SOV_TOKEN_ADDRESS = _sovToken;
