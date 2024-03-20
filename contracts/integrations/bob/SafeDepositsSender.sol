@@ -350,7 +350,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
     }
 
     function isStopped() external view returns (bool) {
-        return stopBlock == 0;
+        return stopBlock != 0;
     }
 
     function getStopBlock() external view returns (uint256) {
