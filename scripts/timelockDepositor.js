@@ -22,7 +22,7 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "WBTC",
             tokenAddress: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-            tokenBalanceThreshold: 1000,
+            tokenBalanceThreshold: "1600000", // 8 Decimals - 0.016 BTC
             pricingRoutePath: [
                 "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD", // WBTC <> WETH
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
@@ -31,7 +31,7 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "ETH",
             tokenAddress: ETH_NATIVE_TOKEN_ADDRS,
-            tokenBalanceThreshold: 1000,
+            tokenBalanceThreshold: "300000000000000000", // 18 Decimals - 0.3 ETH
             pricingRoutePath: [
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
             ],
@@ -39,7 +39,7 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "WETH",
             tokenAddress: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-            tokenBalanceThreshold: 1000,
+            tokenBalanceThreshold: "300000000000000000", // 18 Decimals - 0.3 ETH
             pricingRoutePath: [
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
             ],
@@ -47,7 +47,7 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "USDT",
             tokenAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-            tokenBalanceThreshold: 1000,
+            tokenBalanceThreshold: "1000000000", // 6 Decimals - 1000 USDT
             pricingRoutePath: [
                 "0xC5aF84701f98Fa483eCe78aF83F11b6C38ACA71D", // USDT <> WETH
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
@@ -56,7 +56,7 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "USDC",
             tokenAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-            tokenBalanceThreshold: 1000,
+            tokenBalanceThreshold: "1000000000", // 6 Decimals - 1000 USDC
             pricingRoutePath: [
                 "0xC2e9F25Be6257c210d7Adf0D4Cd6E3E881ba25f8", // USDC <> WETH
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
@@ -65,7 +65,7 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "DAI",
             tokenAddress: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-            tokenBalanceThreshold: 1000,
+            tokenBalanceThreshold: "1000000000000000000000", // 18 Decimals - 1000 DAI
             pricingRoutePath: [
                 "0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8", // DAI <> WETH
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
@@ -109,7 +109,7 @@ const CONFIG_WHITELISTED_TOKENS = {
 
 async function main() {
     let WHITELISTED_TOKENS = [];
-    if (network.name == "ethMainnet") {
+    if (network.name == "ethMainnet" || network.name == "tenderlyForkedEthMainnet") {
         WHITELISTED_TOKENS = CONFIG_WHITELISTED_TOKENS.mainnet;
     } else if (network.name == "sepolia") {
         WHITELISTED_TOKENS = CONFIG_WHITELISTED_TOKENS.sepolia;
@@ -122,12 +122,12 @@ async function main() {
         : process.env.TESTNET_SIGNER_PRIVATE_KEY;
     const wallet = new ethers.Wallet(pk);
     const { get } = deployments;
-    const safeMultisigDeployment = await get("SafeMultisig");
-    const safeMultisigModuleDeployment = await get("SafeMultisigModule");
-    const safeMultisigModuleContract = await ethers.getContract("SafeMultisigModule");
+    const safeMultisigDeployment = await get("SafeBobDeposits");
+    const safeMultisigModuleDeployment = await get("SafeDepositsSender");
+    const safeMultisigModuleContract = await ethers.getContract("SafeDepositsSender");
 
     /** Check Paused */
-    if (safeMultisigModuleContract.paused()) {
+    if (await safeMultisigModuleContract.isPaused()) {
         logger.warning(`Safe multisig module is paused`);
         return;
     }
@@ -143,7 +143,12 @@ async function main() {
     const amountsToSend = [];
     const sovAmountList = {};
     let totalSovAmount = 0;
+
+    logger.info("Processing whitelisted tokens...");
     for (const whitelistedToken of WHITELISTED_TOKENS) {
+        logger.info(
+            `Processing whitelisted tokens ${whitelistedToken.tokenName} - ${whitelistedToken.tokenAddress}`
+        );
         // const tokenDeployment = await get(whitelistedToken);
         const tokenContract = await ethers.getContractAt(
             "TestToken",
@@ -151,7 +156,10 @@ async function main() {
         );
 
         /** Check the threshold */
-        const tokenDecimal = await tokenContract.decimals();
+        const tokenDecimal =
+            whitelistedToken.tokenAddress.toLowerCase() == ETH_NATIVE_TOKEN_ADDRS
+                ? 18
+                : await tokenContract.decimals();
         const tokenThreshold = ethers.BigNumber.from(whitelistedToken.tokenBalanceThreshold).mul(
             ethers.BigNumber.from(10).pow(ethers.BigNumber.from(tokenDecimal))
         );
@@ -163,7 +171,9 @@ async function main() {
             ethers.provider
         );
 
-        if (tokenBalance <= tokenThreshold) {
+        logger.info(`token ${whitelistedToken.tokenName} balance: ${tokenBalance}`);
+
+        if (tokenBalance <= ethers.BigNumber.from(whitelistedToken.tokenBalanceThreshold)) {
             logger.warning(
                 `token ${whitelistedToken.tokenName} lack of balance to process the transfer to timelock: threshold: ${tokenThreshold.toString()}, balance: ${tokenBalance.toString()}`
             );
@@ -171,7 +181,9 @@ async function main() {
         }
 
         /** Process 50% of token balance */
-        const processedTokenAmount = tokenBalance.div(ethers.BigNumber.from(2));
+        const processedTokenAmount = ethers.BigNumber.from(tokenBalance).div(
+            ethers.BigNumber.from(2)
+        );
         tokensNameToSend.push(whitelistedToken.tokenName);
         tokensAddressToSend.push(whitelistedToken.tokenAddress);
         amountsToSend.push(processedTokenAmount);
@@ -212,11 +224,11 @@ async function main() {
 
     /** Process sending token */
     /** @TODO connect with signer account */
-    await safeMultisigModuleContract.sendToBobTimelock(
-        tokensAddressToSend,
-        amountsToSend,
-        totalSovAmount
-    );
+    // await safeMultisigModuleContract.sendToLockDropContract(
+    //     tokensAddressToSend,
+    //     amountsToSend,
+    //     totalSovAmount
+    // );
 }
 
 async function getPoolAddress(tokenInAddress, tokenOutAddress) {
@@ -358,7 +370,7 @@ async function getSovAmountByQuoter(tokenInAddress, tokenOutAddress, amountIn) {
 
 async function getTokenBalance(tokenAddress, holderAdress, provider) {
     if (tokenAddress == ETH_NATIVE_TOKEN_ADDRS) {
-        await provider.getBalance(holderAdress);
+        return await provider.getBalance(holderAdress);
     } else {
         const tokenContract = await ethers.getContractAt("TestToken", tokenAddress);
         return await tokenContract.balanceOf(holderAdress);
@@ -369,7 +381,7 @@ async function getTokenBalance(tokenAddress, holderAdress, provider) {
 // getPoolAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2") // get USDC <> WETH
 // getPoolAddress("0x6B175474E89094C44Da98b954EedeAC495271d0F", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2") // get DAI <> WETH
 
-// getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[0]) // get wbtc price
+getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[0]); // get wbtc price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[1]) // get eth price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[2]) // get weth price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[3]) // get usdt price

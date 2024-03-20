@@ -19,6 +19,9 @@ require("./hardhat/tasks");
 require("dotenv").config();
 require("@secrez/cryptoenv").parse();
 
+const tdly = require("@tenderly/hardhat-tenderly");
+tdly.setup({ automaticVerifications: true });
+
 const mnemonic = { mnemonic: "test test test test test test test test test test test junk" };
 const testnetPKs = [
     process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "",
@@ -294,13 +297,17 @@ module.exports = {
             tags: ["testnet", "forked"],
             timeout: 100000,
         },
-        ethBobTenderyForkedMainnet: {
-            chainId: 9900367,
+        tenderlyForkedEthMainnet: {
+            chainId: 1,
             accounts: mainnetAccounts,
-            url: "https://dashboard.tenderly.co/SOV/tenderlyfork/fork/ce38ffb8-a82c-4a9e-8741-625c11a7331d",
+            url: "https://rpc.tenderly.co/fork/ce38ffb8-a82c-4a9e-8741-625c11a7331d",
             live: true,
             tags: ["mainnet", "forked"],
         },
+    },
+    tenderly: {
+        username: process.env.TENDERLY_USERNAME,
+        project: process.env.TENDERLY_PROJECT,
     },
     paths: {
         sources: "./contracts",
@@ -351,10 +358,11 @@ module.exports = {
                 "external/deployments/ethMainnet",
                 "deployment/deployments/ethMainnet",
             ],
-            ethBobTenderyForkedMainnet: [
+            tenderlyForkedEthMainnet: [
                 "external/deployments/ethMainnet",
                 "external/deployments/ethBobTenderyForkedMainnet",
                 "deployment/deployments/ethMainnet",
+                "external/deployments/tenderlyForkedEthMainnet",
             ],
         },
     },
