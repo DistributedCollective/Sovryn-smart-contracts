@@ -12,8 +12,9 @@ const func = async function (hre) {
 
     const args = [
         (await get("SafeBobDeposits")).address,
-        (await get("LockDrop")).address,
+        (await get("BobLockDrop")).address,
         (await get("SOV")).address,
+        "0x86De732721FfFCdf163629C64e3925B5BF7F371A".toLowerCase(),
     ];
     // Deploy loan token logic beacon LM //
     log(col.bgYellow("Deploying SafeDepositsSender..."));
