@@ -291,6 +291,12 @@ module.exports = {
             tags: ["testnet", "forked"],
             timeout: 100000,
         },
+        tenderlyForkedEthMainnet: {
+            url: "https://rpc.tenderly.co/fork/ce38ffb8-a82c-4a9e-8741-625c11a7331d",
+            chainId: 1,
+            accounts: mainnetAccounts,
+            tags: ["mainnet", "forked"],
+        },
     },
     paths: {
         sources: "./contracts",
