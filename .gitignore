@@ -50,6 +50,7 @@ typechain/
 !.github/
 */deployments/localhost
 */deployments/*forked*
+!*/deployments/ethBobTenderyForkedMainnet
 venv/
 !/external/artifacts/
 cache_hardhat/
