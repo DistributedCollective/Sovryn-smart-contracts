@@ -21,8 +21,7 @@ contract Token is ERC20, ERC20Permit, Ownable {
      */
     constructor(
         string memory _name,
-        string memory _symbol,
-        address _initialOwner
+        string memory _symbol
     ) ERC20(_name, _symbol) ERC20Permit(_name) {}
 
     /**

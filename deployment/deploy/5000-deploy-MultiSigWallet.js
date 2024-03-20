@@ -12,7 +12,7 @@ const func = async function (hre) {
     log(col.bgYellow("Deploying MultiSigWallet..."));
     await deploy("MultiSigWallet", {
         from: deployer,
-        args: [configDeploymentParams.multisigOwners],
+        args: [configDeploymentParams.multisigOwners, configDeploymentParams.required],
         log: true,
         skipIfAlreadyDeployed: true,
     });
