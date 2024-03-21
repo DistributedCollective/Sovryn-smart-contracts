@@ -9,11 +9,19 @@ const { default: BigNumber } = require("bignumber.js");
 require("dotenv").config();
 
 const ETH_NATIVE_TOKEN_ADDRS = "0x0000000000000000000000000000000000000001";
+const MAX_SLIPPAGE_TOLERANCE_IN_PERCENTAGE = 15; // 15%
 
 const CONFIG_CONTRACT_ADDRESSES = {
     mainnet: {
         uniswapV3PoolFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
         weth: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    },
+    rskMainnet: {
+        priceFeed: "0x437AC62769f386b2d238409B7f0a7596d36506e4",
+        wbtc: "0x542fda317318ebf1d3deaf76e0b632741a7e677d",
+        weth: "0x1D931Bf8656d795E50eF6D639562C5bD8Ac2B78f",
+        xusd: "0xb5999795BE0EbB5bAb23144AA5FD6A02D080299F",
+        sov: "0xEFc78fc7d48b64958315949279Ba181c2114ABBd",
     },
 };
 
@@ -170,7 +178,7 @@ async function main() {
             continue;
         }
 
-        logger.warning(
+        logger.info(
             `token ${whitelistedToken.tokenName} will be processed, threshold: ${whitelistedToken.tokenBalanceThreshold}, balance: ${tokenBalance.toString()}`
         );
 
@@ -188,11 +196,34 @@ async function main() {
         amountsToSend.push(processedTokenAmount.toString());
 
         /** Get SOV Amount for the token */
-        const sovPrice = await getSovPrice(whitelistedToken);
+        // the function will return the price in floating format, e.g: 1 XDAI = 0.6123xx
+        const sovPrice = await getSovPrice(whitelistedToken); // from uniswap v3
         const sovAmount = new BigNumber(sovPrice)
             .multipliedBy(new BigNumber(processedTokenAmount.toString()))
             .decimalPlaces(0);
 
+        // get sov price from RSK PriceFeed for slippage comparison
+        // the function will return price in floating format, e.g: 1 XDAI =
+        const sovPriceFromRskPriceFeed = await getPriceFromRskSovrynPriceFeed(
+            getMappedRskTokenFromEther(whitelistedToken.tokenName),
+            CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov
+        );
+
+        if (
+            !checkWithinSlippageTolerancePercentage(
+                sovPrice.toNumber(),
+                sovPriceFromRskPriceFeed.toNumber(),
+                MAX_SLIPPAGE_TOLERANCE_IN_PERCENTAGE
+            )
+        ) {
+            const errMessage = `token ${whitelistedToken.tokenName} has exceed the max slippage tolerance, uniswapPrice: ${sovPrice}, rskSovrynPrice: ${sovPriceFromRskPriceFeed}`;
+            logger.error(errMessage);
+            throw new Error(errMessage);
+        }
+
+        logger.info(
+            `Slippage check has passed, uniswapPrice: ${sovPrice}, rskSovrynPrice: ${sovPriceFromRskPriceFeed}`
+        );
         logger.info(`SOV Amount from 50% ${whitelistedToken.tokenName}: ${sovPrice.toString()}`);
 
         /** For logging purposes */
@@ -240,12 +271,12 @@ async function main() {
     logger.info("===== Execute the sendToLockDropContract function from multisig safe =====");
     logger.info(`Safe Module address: ${safeMultisigModuleDeployment.address}`);
     logger.info(`Data: ${data.data}`);
-    await safeMultisigContract.execTransactionFromModule(
-        safeMultisigModuleDeployment.address,
-        0,
-        data.data,
-        1
-    );
+    // await safeMultisigContract.execTransactionFromModule(
+    //     safeMultisigModuleDeployment.address,
+    //     0,
+    //     data.data,
+    //     1
+    // );
     logger.info("===== Execute Done =====");
 }
 
@@ -369,6 +400,27 @@ async function getSovPrice(whitelistedTokenConfig) {
     return latestPrice;
 }
 
+async function getPriceFromRskSovrynPriceFeed(sourceTokenAddress, destTokenAddress) {
+    const rskProvider = new ethers.providers.JsonRpcProvider("https://mainnet-dev.sovryn.app/rpc");
+    const priceFeedFactory = await ethers.getContractFactory("PriceFeeds");
+    const priceFeedAbi = priceFeedFactory.interface.format(ethers.utils.FormatTypes.json);
+    const priceFeedContract = new ethers.Contract(
+        CONFIG_CONTRACT_ADDRESSES.rskMainnet.priceFeed,
+        priceFeedAbi,
+        rskProvider
+    );
+
+    const price = await priceFeedContract.queryRate(sourceTokenAddress, destTokenAddress);
+
+    const finalPrice = new BigNumber(price[0].toString()).dividedBy(
+        new BigNumber(price[1].toString())
+    );
+
+    console.log(`${sourceTokenAddress}: ${finalPrice}`);
+
+    return finalPrice;
+}
+
 async function getSovAmountByQuoter(tokenInAddress, tokenOutAddress, amountIn) {
     /** The other solution to get price - but this one will consider the liquidity and swap amount in the pool */
     const quoterContract = await ethers.getContract("UniswapQuoter");
@@ -393,7 +445,42 @@ async function getTokenBalance(tokenAddress, holderAdress, provider) {
         return await tokenContract.balanceOf(holderAdress);
     }
 }
+
+function checkWithinSlippageTolerancePercentage(price1, price2, slippageMaxPercentage) {
+    // Calculate the percentage difference
+    const difference = Math.abs(price1 - price2);
+    const average = (price1 + price2) / 2;
+
+    const percentageDifference = (difference / average) * 100;
+
+    console.log("slippage percentage diff: ", percentageDifference);
+    // Check if the percentage difference is within 10%
+    return percentageDifference <= slippageMaxPercentage;
+}
+
+function getMappedRskTokenFromEther(etherTokenName) {
+    switch (etherTokenName) {
+        case "WBTC":
+            return CONFIG_CONTRACT_ADDRESSES.rskMainnet.wbtc;
+        case "ETH":
+        case "WETH":
+            return CONFIG_CONTRACT_ADDRESSES.rskMainnet.weth;
+        case "USDT":
+        case "USDC":
+        case "DAI":
+            return CONFIG_CONTRACT_ADDRESSES.rskMainnet.xusd;
+        default:
+            throw new Error("Failed to map the eth <> rsk token");
+    }
+}
 main();
+
+// Example usage:
+// console.log(checkWithinSlippageTolerancePercentage(50, 59, 10)); // Output: false
+// console.log(checkWithinSlippageTolerancePercentage(50, 54, 10)); // Output: true
+// console.log(checkWithinSlippageTolerancePercentage(0.555250425310134847, 0.495250425310134847, 10)); // Output: false
+// console.log(checkWithinSlippageTolerancePercentage(37897.01, 37283.26, 10)); // Output: false
+
 // getPoolAddress("0xdAC17F958D2ee523a2206206994597C13D831ec7", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2") // get USDT <> WETH
 // getPoolAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2") // get USDC <> WETH
 // getPoolAddress("0x6B175474E89094C44Da98b954EedeAC495271d0F", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2") // get DAI <> WETH
@@ -404,3 +491,7 @@ main();
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[3]) // get usdt price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[4]) // get usdc price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[5]) // get dai price
+
+// getPriceFromRskSovrynPriceFeed(CONFIG_CONTRACT_ADDRESSES.rskMainnet.wbtc, CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov)
+// getPriceFromRskSovrynPriceFeed(CONFIG_CONTRACT_ADDRESSES.rskMainnet.xusd, CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov)
+// getPriceFromRskSovrynPriceFeed(CONFIG_CONTRACT_ADDRESSES.rskMainnet.weth, CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov)

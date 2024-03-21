@@ -19,8 +19,8 @@ require("./hardhat/tasks");
 require("dotenv").config();
 require("@secrez/cryptoenv").parse();
 
-const tdly = require("@tenderly/hardhat-tenderly");
-tdly.setup({ automaticVerifications: true });
+// const tdly = require("@tenderly/hardhat-tenderly");
+// tdly.setup({ automaticVerifications: true });
 
 const mnemonic = { mnemonic: "test test test test test test test test test test test junk" };
 const testnetPKs = [
