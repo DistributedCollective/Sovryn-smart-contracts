@@ -263,11 +263,11 @@ module.exports = {
             accounts: mainnetAccounts,
         },
         bobTestnet: {
-            url: "https://testnet.rpc.gobob.xyz/",
-            chainId: 111,
+            url: "https://bob-sepolia.rpc.caldera.xyz/http",
+            chainId: 9900367,
             accounts: testnetAccounts,
             gasPrice: 50000000,
-            tags: ["testnet"],
+            // tags: ["testnet"],
         },
     },
     paths: {

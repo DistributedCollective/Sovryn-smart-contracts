@@ -16,6 +16,7 @@ const bobTestnetDeploymentConfigParams = {
         "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E",
         "0xeb771FF87FBd594c7647D593EfE9B9a10ed30361",
     ],
+    required: 2,
 };
 
 const CONFIG_DEPLOYMENT_PARAMS = {
