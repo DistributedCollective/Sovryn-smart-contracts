@@ -251,12 +251,13 @@ async function main() {
     /** Process sending token */
     logger.info("===== Execute the sendToLockDropContract function from multisig safe =====");
     logger.info(`Safe Module address: ${safeMultisigModuleDeployment.address}`);
-    await safeMultisigModuleContract.sendToLockDropContract(
+    const tx = await safeMultisigModuleContract.sendToLockDropContract(
         tokensAddressToSend,
         amountsToSend,
         totalSovAmountWithDecimal.toFixed()
     );
     logger.info("===== Execute Done =====");
+    logger.info(tx);
 }
 
 async function getPoolAddress(tokenInAddress, tokenOutAddress) {
