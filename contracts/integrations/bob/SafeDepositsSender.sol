@@ -46,12 +46,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
      * @param _sovToken Address of the SOV token contract
      * @param _depositor Address of the depositor account
      */
-    constructor(
-        address _safeAddress,
-        address _lockDrop,
-        address _sovToken,
-        address _depositor
-    ) public {
+    constructor(address _safeAddress, address _lockDrop, address _sovToken, address _depositor) {
         require(_safeAddress != address(0), "SafeDepositsSender: Invalid safe address");
         require(_lockDrop != address(0), "SafeDepositsSender: Invalid lockdrop address");
         require(_sovToken != address(0), "SafeDepositsSender: Invalid sov token address");
@@ -216,6 +211,11 @@ contract SafeDepositsSender is ISafeDepositsSender {
         }
 
         // transfer SOV
+        data = abi.encodeWithSignature("approve(address,uint256)", LOCK_DROP_ADDRESS, sovAmount);
+        require(
+            SAFE.execTransactionFromModule(SOV_TOKEN_ADDRESS, 0, data, GnosisSafe.Operation.Call),
+            "Could not execute token transfer"
+        );
         data = abi.encodeWithSignature(
             "depositERC20(address,uint256)",
             SOV_TOKEN_ADDRESS,
