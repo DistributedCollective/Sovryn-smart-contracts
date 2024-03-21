@@ -10,6 +10,7 @@ require("dotenv").config();
 
 const ETH_NATIVE_TOKEN_ADDRS = "0x0000000000000000000000000000000000000001";
 const MAX_SLIPPAGE_TOLERANCE_IN_PERCENTAGE = 15; // 15%
+const TOKEN_BALANCE_THRESHOLD_IN_USD = 1000; // 1000 USD
 
 const CONFIG_CONTRACT_ADDRESSES = {
     mainnet: {
@@ -30,7 +31,6 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "WBTC",
             tokenAddress: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-            tokenBalanceThreshold: "1600000", // 8 Decimals - 0.016 BTC
             pricingRoutePath: [
                 "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD", // WBTC <> WETH
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
@@ -39,7 +39,6 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "ETH",
             tokenAddress: ETH_NATIVE_TOKEN_ADDRS,
-            tokenBalanceThreshold: "300000000000000000", // 18 Decimals - 0.3 ETH
             pricingRoutePath: [
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
             ],
@@ -47,7 +46,6 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "WETH",
             tokenAddress: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-            tokenBalanceThreshold: "300000000000000000", // 18 Decimals - 0.3 ETH
             pricingRoutePath: [
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
             ],
@@ -55,7 +53,6 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "USDT",
             tokenAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-            tokenBalanceThreshold: "1000000000", // 6 Decimals - 1000 USDT
             pricingRoutePath: [
                 "0xC5aF84701f98Fa483eCe78aF83F11b6C38ACA71D", // USDT <> WETH
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
@@ -64,7 +61,6 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "USDC",
             tokenAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-            tokenBalanceThreshold: "1000000000", // 6 Decimals - 1000 USDC
             pricingRoutePath: [
                 "0xC2e9F25Be6257c210d7Adf0D4Cd6E3E881ba25f8", // USDC <> WETH
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
@@ -73,44 +69,10 @@ const CONFIG_WHITELISTED_TOKENS = {
         {
             tokenName: "DAI",
             tokenAddress: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-            tokenBalanceThreshold: "1000000000000000000000", // 18 Decimals - 1000 DAI
             pricingRoutePath: [
                 "0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8", // DAI <> WETH
                 "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
             ],
-        },
-    ],
-
-    sepolia: [
-        {
-            tokenName: "WBTC",
-            tokenAddress: "",
-            tokenBalanceThreshold: 1000,
-        },
-        {
-            tokenName: "ETH",
-            tokenAddress: ETH_NATIVE_TOKEN_ADDRS,
-            tokenBalanceThreshold: 1000,
-        },
-        {
-            tokenName: "WETH",
-            tokenAddress: "",
-            tokenBalanceThreshold: 1000,
-        },
-        {
-            tokenName: "USDT",
-            tokenAddress: "",
-            tokenBalanceThreshold: 1000,
-        },
-        {
-            tokenName: "USDC",
-            tokenAddress: "",
-            tokenBalanceThreshold: 1000,
-        },
-        {
-            tokenName: "DAI",
-            tokenAddress: "",
-            tokenBalanceThreshold: 1000,
         },
     ],
 };
@@ -150,13 +112,17 @@ async function main() {
     logger.info("Processing whitelisted tokens...");
     for (const whitelistedToken of WHITELISTED_TOKENS) {
         logger.info(
-            `Processing whitelisted tokens ${whitelistedToken.tokenName} - ${whitelistedToken.tokenAddress}`
+            `\n\n===== Processing whitelisted tokens ${whitelistedToken.tokenName} - ${whitelistedToken.tokenAddress} =====`
         );
-        // const tokenDeployment = await get(whitelistedToken);
+
         const tokenContract = await ethers.getContractAt(
             "TestToken",
             whitelistedToken.tokenAddress
         );
+        const tokenDecimal =
+            whitelistedToken.tokenAddress == ETH_NATIVE_TOKEN_ADDRS
+                ? 18
+                : await tokenContract.decimals();
 
         /** read balance of token */
         const tokenBalance = await getTokenBalance(
@@ -167,43 +133,27 @@ async function main() {
 
         logger.info(`token ${whitelistedToken.tokenName} balance: ${tokenBalance}`);
 
-        if (
-            ethers.BigNumber.from(tokenBalance).lt(
-                ethers.BigNumber.from(whitelistedToken.tokenBalanceThreshold)
-            )
-        ) {
-            logger.warning(
-                `token ${whitelistedToken.tokenName} lack of balance to process the transfer to timelock: threshold: ${whitelistedToken.tokenBalanceThreshold}, balance: ${tokenBalance.toString()}`
-            );
-            continue;
-        }
-
-        logger.info(
-            `token ${whitelistedToken.tokenName} will be processed, threshold: ${whitelistedToken.tokenBalanceThreshold}, balance: ${tokenBalance.toString()}`
-        );
-
         /** Process 50% of token balance */
         const processedTokenAmount = ethers.BigNumber.from(tokenBalance).div(
             ethers.BigNumber.from(2)
         );
 
         logger.info(
-            `Sufficient ${whitelistedToken.tokenName} balance, processing ${processedTokenAmount.toString()}`
+            `Proocessing 50% of ${whitelistedToken.tokenName} balance: ${processedTokenAmount.toString()}`
         );
 
-        tokensNameToSend.push(whitelistedToken.tokenName);
-        tokensAddressToSend.push(whitelistedToken.tokenAddress);
-        amountsToSend.push(processedTokenAmount.toString());
-
         /** Get SOV Amount for the token */
-        // the function will return the price in floating format, e.g: 1 XDAI = 0.6123xx
+        // the function will return the price in floating format, e.g: 1 XDAI = 0.6123xx SOV
         const sovPrice = await getSovPrice(whitelistedToken); // from uniswap v3
+
+        // SOV Amount will not consider decimal anymore (1 SOV = 1 SOV)
         const sovAmount = new BigNumber(sovPrice)
             .multipliedBy(new BigNumber(processedTokenAmount.toString()))
+            .dividedBy(new BigNumber(`1e${tokenDecimal}`))
             .decimalPlaces(0);
 
         // get sov price from RSK PriceFeed for slippage comparison
-        // the function will return price in floating format, e.g: 1 XDAI =
+        // the function will return price in floating format, e.g: 1 XDAI = 0.6123xx SOV
         const sovPriceFromRskPriceFeed = await getPriceFromRskSovrynPriceFeed(
             getMappedRskTokenFromEther(whitelistedToken.tokenName),
             CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov
@@ -224,13 +174,47 @@ async function main() {
         logger.info(
             `Slippage check has passed, uniswapPrice: ${sovPrice}, rskSovrynPrice: ${sovPriceFromRskPriceFeed}`
         );
-        logger.info(`SOV Amount from 50% ${whitelistedToken.tokenName}: ${sovPrice.toString()}`);
+
+        logger.info(`SOV Amount from 50% ${whitelistedToken.tokenName}: ${sovAmount.toString()}`);
+
+        /** Get USD Price of the processed SOV */
+        // GET SOV Price in USD
+        const sovPriceInUsd = await getPriceFromRskSovrynPriceFeed(
+            CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov,
+            CONFIG_CONTRACT_ADDRESSES.rskMainnet.xusd
+        );
+        logger.info(`SOV Price in USD: ${sovPriceInUsd}`);
+
+        /** USD Price for 100% processed token */
+        const fullProcessedUsdAmountInUsd = sovPriceInUsd
+            .multipliedBy(sovAmount)
+            .multipliedBy(new BigNumber(2));
+
+        /** Compare the full USD Value to the threshold config */
+        if (fullProcessedUsdAmountInUsd.lt(TOKEN_BALANCE_THRESHOLD_IN_USD)) {
+            logger.warning(
+                `token ${whitelistedToken.tokenName} still below the threshold of USD Threshold value to process the transfer to timelock: threshold: ${TOKEN_BALANCE_THRESHOLD_IN_USD}, balance: ${fullProcessedUsdAmountInUsd.toString()}`
+            );
+            continue;
+        }
+
+        logger.info(
+            `token ${whitelistedToken.tokenName} will be processed, threshold: ${TOKEN_BALANCE_THRESHOLD_IN_USD}, value in USD: ${fullProcessedUsdAmountInUsd.toString()}`
+        );
+
+        tokensNameToSend.push(whitelistedToken.tokenName);
+        tokensAddressToSend.push(whitelistedToken.tokenAddress);
+        amountsToSend.push(processedTokenAmount.toString());
+        totalSovAmount = totalSovAmount.plus(sovAmount);
 
         /** For logging purposes */
         sovAmountList[whitelistedToken.tokenName] = sovAmount.toString();
-
-        totalSovAmount = totalSovAmount.plus(sovAmount);
     }
+
+    /** Consider the decimal of SOV */
+    const totalSovAmountWithDecimal = totalSovAmount
+        .multipliedBy(new BigNumber("1e18"))
+        .decimalPlaces(0);
 
     /** Check SOV Amount */
     const SovDeployment = await get("SOV");
@@ -240,7 +224,7 @@ async function main() {
         ethers.provider
     );
 
-    if (new BigNumber(safeSOVBalance).lt(totalSovAmount)) {
+    if (new BigNumber(safeSOVBalance).lt(totalSovAmountWithDecimal)) {
         logger.error(
             `insufficient SOV Amount, need: ${totalSovAmount.toString()} , got: ${safeSOVBalance.toString()}`
         );
@@ -259,24 +243,19 @@ async function main() {
     logger.info("SOV List Details");
     logger.info(JSON.stringify(sovAmountList));
 
-    logger.info(`Total SOV Amount to sent: ${totalSovAmount.toString()}`);
-
-    /** Process sending token */
-    const data = await safeMultisigModuleContract.populateTransaction.sendToLockDropContract(
-        tokensAddressToSend,
-        amountsToSend,
-        totalSovAmount.toFixed()
+    logger.info(`Total SOV Amount: ${totalSovAmount.toString()}`);
+    logger.info(
+        `Total SOV Amount (With decimal) to sent: ${totalSovAmountWithDecimal.toString()}`
     );
 
+    /** Process sending token */
     logger.info("===== Execute the sendToLockDropContract function from multisig safe =====");
     logger.info(`Safe Module address: ${safeMultisigModuleDeployment.address}`);
-    logger.info(`Data: ${data.data}`);
-    // await safeMultisigContract.execTransactionFromModule(
-    //     safeMultisigModuleDeployment.address,
-    //     0,
-    //     data.data,
-    //     1
-    // );
+    await safeMultisigModuleContract.sendToLockDropContract(
+        tokensAddressToSend,
+        amountsToSend,
+        totalSovAmountWithDecimal.toFixed()
+    );
     logger.info("===== Execute Done =====");
 }
 
