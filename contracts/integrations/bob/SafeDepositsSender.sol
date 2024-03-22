@@ -114,7 +114,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
         address[] calldata tokens,
         uint256[] calldata amounts,
         uint256 sovAmount
-    ) external onlyDepositor whenNotPaused whenUnstopped {
+    ) external onlyDepositorOrSafe whenNotPaused whenUnstopped {
         require(
             tokens.length == amounts.length,
             "SafeDepositsSender: Tokens and amounts length mismatch"

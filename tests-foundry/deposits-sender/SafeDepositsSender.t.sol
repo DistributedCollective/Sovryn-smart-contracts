@@ -274,7 +274,7 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         amountsParam[0] = uint256(100);
 
         vm.startPrank(alice);
-        vm.expectRevert("SafeDepositsSender: Only Depositor");
+        vm.expectRevert("SafeDepositsSender: Only Depositor or Safe");
         this.sendToLockDropContract(tokensParam, amountsParam, 1);
         vm.stopPrank();
 
