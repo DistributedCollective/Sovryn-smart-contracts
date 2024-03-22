@@ -91,6 +91,8 @@ async function main() {
         ? process.env.SAFE_DEPOSITS_SENDER
         : process.env.SAFE_DEPOSITS_SENDER;
     const wallet = new ethers.Wallet(pk);
+    const signer = wallet.connect(ethers.provider);
+
     const { get } = deployments;
     const safeMultisigDeployment = await get("SafeBobDeposits");
     const safeMultisigModuleDeployment = await get("SafeDepositsSender");
@@ -248,14 +250,27 @@ async function main() {
         `Total SOV Amount (With decimal) to sent: ${totalSovAmountWithDecimal.toString()}`
     );
 
+    if (amountsToSend.length != tokensAddressToSend.length) {
+        throw new Error(
+            `Tokens amount length: (${amountsToSend.length}) mismatch with token addresses length: (${tokensAddressToSend.length})`
+        );
+    }
+
+    if (!amountsToSend.length) {
+        logger.info("Empty token list to be processed, exiting...");
+        return;
+    }
+
     /** Process sending token */
     logger.info("===== Execute the sendToLockDropContract function from multisig safe =====");
     logger.info(`Safe Module address: ${safeMultisigModuleDeployment.address}`);
-    const tx = await safeMultisigModuleContract.sendToLockDropContract(
-        tokensAddressToSend,
-        amountsToSend,
-        totalSovAmountWithDecimal.toFixed()
-    );
+    const tx = await safeMultisigModuleContract
+        .connect(signer)
+        .sendToLockDropContract(
+            tokensAddressToSend,
+            amountsToSend,
+            totalSovAmountWithDecimal.toFixed()
+        );
     logger.info("===== Execute Done =====");
     logger.info(tx);
 }
