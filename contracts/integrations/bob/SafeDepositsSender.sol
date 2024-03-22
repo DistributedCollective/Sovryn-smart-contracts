@@ -260,6 +260,8 @@ contract SafeDepositsSender is ISafeDepositsSender {
         );
 
         for (uint256 i = 0; i < tokens.length; i++) {
+            require(tokens[i] != address(0x00), "SafeDepositsSender: Zero address not allowed");
+            require(amounts[i] != 0, "SafeDepositsSender: Zero amount not allowed");
             if (tokens[i] == address(0x01)) {
                 require(
                     address(this).balance >= amounts[i],

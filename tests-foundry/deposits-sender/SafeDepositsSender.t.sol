@@ -148,14 +148,7 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
     uint96 constant MAX_96 = 2 ** 96 - 1;
     uint256 constant MAX_256 = 2 ** 256 - 1;
     uint32 constant MAX_32 = 2 ** 32 - 1;
-    //address[] singleToken = new address[](1);
 
-    //address[] initialAllowToken = [address(token1)];
-
-    // WITHDRAWAL_START_TIME = Tue Mar 12 2024 18:30:00 GMT+0000
-    //uint256 public constant WITHDRAWAL_START_TIME = 1710268200;
-
-    //constructor() LockDrop(WITHDRAWAL_START_TIME, initialAllowToken, sudoOwner) {}
     constructor()
         SafeDepositsSender(address(safe), address(lockDrop), address(sov), depositsSender)
     {}
@@ -199,7 +192,6 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         uint256 numberOfTokens,
         bool useNativeToken
     ) public {
-        //vm.assume(numberOfTokens <= 3);
         numberOfTokens = bound(numberOfTokens, 1, 3);
         amount = bound(amount, 1, MAX_256 / 1000) * 2;
         uint256 tokensQty = numberOfTokens + (useNativeToken ? 1 : 0);
@@ -224,7 +216,6 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
             amounts[amounts.length - 1] = amount / 2;
             tokensParam[tokensParam.length - 1] = NATIVE_TOKEN_ADDRESS;
         }
-        //vm.deal(address(sov), address(safe), amount * 100 ether);
 
         sov.sudoMint(address(safe), sovAmount);
         vm.stopPrank();
@@ -272,8 +263,6 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
     }
 
     function test_SendingMultipleTokensToLockDropExceptions() public {
-        //vm.assume(numberOfTokens <= 3);
-        //uint256[] memory amounts; //= new uint256[](tokensQty);
         // add pseudo address for ETH 0x01 in the end- not 0x00 to avoid default address errors
         address[] memory tokensParam = new address[](tokens.length);
 
@@ -324,7 +313,7 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         this.unpause();
         vm.stopPrank();
 
-        //@todo add more tests
+        //@todo add more tests for exceptions
 
         vm.startPrank(address(safe));
         vm.expectEmit();
@@ -335,5 +324,96 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         vm.startPrank(depositsSender);
         vm.expectRevert("SafeDepositsSender: Stopped");
         this.sendToLockDropContract(tokensParam, amountsParam, 1);
+    }
+
+    function testFuzz_WithdrawFundsFromModuleBySafe(
+        uint256 amount,
+        uint256 numberOfTokens,
+        bool useNativeToken
+    ) public {
+        numberOfTokens = bound(numberOfTokens, 1, 3);
+        amount = bound(amount, 1, MAX_256 / 1000) * 2;
+        uint256 tokensQty = numberOfTokens + 1 + (useNativeToken ? 1 : 0); // +1 for SOV
+        uint256[] memory amounts = new uint256[](tokensQty);
+        // add pseudo address for ETH 0x01 in the end- not 0x00 to avoid default address errors
+        address[] memory tokensParam = new address[](tokensQty);
+
+        uint256 sovAmount = amount * 100;
+        console.log("sovAmount:", sovAmount);
+        console.log("amount:", amount);
+        console.log("tokensQty:", tokensQty);
+
+        tokensParam[0] = address(sov);
+        console.log("tokensParam[0]", tokensParam[0]);
+        console.log("sovAmount", sovAmount);
+        amounts[0] = sovAmount;
+        deal(tokensParam[0], address(this), sovAmount);
+        deal(address(sov), address(this), sovAmount);
+        for (uint256 i = 0; i < numberOfTokens; i++) {
+            tokensParam[i + 1] = address(tokens[i]);
+            amounts[i + 1] = amount;
+            console.log("amounts [%s]: %s", i + 1, amount);
+            deal(tokensParam[i + 1], address(this), amount);
+        }
+        if (useNativeToken) {
+            amounts[amounts.length - 1] = amount;
+            tokensParam[tokensParam.length - 1] = NATIVE_TOKEN_ADDRESS;
+            vm.deal(address(this), amount);
+        }
+
+        console.log("NATIVE_TOKEN_ADDRESS:", NATIVE_TOKEN_ADDRESS);
+        console.log("tokensParam.length:", tokensParam.length);
+
+        uint256 snapshot = vm.snapshot();
+        vm.startPrank(address(safe));
+
+        this.withdraw(tokensParam, amounts, bob);
+        _expectBalancesZero(address(this), tokensParam);
+        _expectBalances(bob, tokensParam, amounts);
+
+        vm.revertTo(snapshot);
+
+        snapshot = vm.snapshot();
+
+        this.withdrawAll(tokensParam, bob);
+        _expectBalancesZero(address(this), tokensParam);
+        _expectBalances(bob, tokensParam, amounts);
+
+        vm.revertTo(snapshot);
+
+        snapshot = vm.snapshot();
+        for (uint256 i = 0; i < amounts.length; i++) {
+            amounts[i] = amounts[i] / 2;
+        }
+        this.withdraw(tokensParam, amounts, bob);
+        _expectBalances(address(this), tokensParam, amounts);
+        _expectBalances(bob, tokensParam, amounts);
+        vm.revertTo(snapshot);
+
+        vm.stopPrank();
+    }
+
+    function _expectBalancesZero(address _address, address[] memory _tokens) internal {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            if (_tokens[i] == address(0x01)) {
+                assertEq(_address.balance, 0);
+                continue;
+            }
+            assertEq(ArbitraryErc20(_tokens[i]).balanceOf(_address), 0);
+        }
+    }
+
+    function _expectBalances(
+        address _address,
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) internal {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            if (_tokens[i] == address(0x01)) {
+                assertEq(_address.balance, _amounts[i]);
+                continue;
+            }
+            assertEq(ArbitraryErc20(_tokens[i]).balanceOf(_address), _amounts[i]);
+        }
     }
 }
