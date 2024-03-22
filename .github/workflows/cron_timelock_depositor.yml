@@ -66,4 +66,4 @@ jobs:
         run: npm install
 
       - name: Run Timelock Depositor
-        run: echo test
+        run: hardhat run scripts/timelockDepositor.js --network tenderlyForkedEthMainnet

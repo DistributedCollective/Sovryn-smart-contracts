@@ -88,7 +88,7 @@ async function main() {
     }
 
     const pk = network.tags["mainnet"]
-        ? process.env.MAINNET_SIGNER_PRIVATE_KEY
+        ? process.env.SAFE_DEPOSITS_SENDER
         : process.env.TESTNET_SIGNER_PRIVATE_KEY;
     const wallet = new ethers.Wallet(pk);
     const { get } = deployments;
