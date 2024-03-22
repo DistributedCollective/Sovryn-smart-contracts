@@ -354,6 +354,7 @@ module.exports = {
                 "external/deployments/ethMainnet",
                 "deployment/deployments/ethMainnet",
             ],
+            ethSepoliaTestnet: ["external/deployments/ethSepoliaTestnet"],
             tenderlyForkedEthMainnet: [
                 "external/deployments/ethMainnet",
                 "deployment/deployments/ethMainnet",

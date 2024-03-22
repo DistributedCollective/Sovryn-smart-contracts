@@ -313,6 +313,29 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         this.unpause();
         vm.stopPrank();
 
+        vm.startPrank(alice);
+        vm.expectRevert("SafeDepositsSender: Only Safe");
+        this.setDepositorAddress(address(0x01));
+        vm.stopPrank();
+
+        vm.startPrank(address(safe));
+        vm.expectEmit();
+        emit setDepositor(depositsSender, address(0x01));
+        this.setDepositorAddress(address(0x01));
+        assertEq(this.getDepositorAddress(), address(0x01));
+
+        vm.expectEmit();
+        emit setDepositor(address(0x01), address(0x00));
+        this.setDepositorAddress(address(0x00));
+        assertEq(this.getDepositorAddress(), address(0x00));
+
+        vm.expectEmit();
+        emit setDepositor(address(0x00), depositsSender);
+        this.setDepositorAddress(depositsSender);
+        assertEq(this.getDepositorAddress(), depositsSender);
+
+        vm.stopPrank();
+
         //@todo add more tests for exceptions
 
         vm.startPrank(address(safe));
