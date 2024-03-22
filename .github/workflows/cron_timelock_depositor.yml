@@ -63,7 +63,7 @@ jobs:
       #       ${{ runner.os }}-pip-
 
       - name: Install npm dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run Timelock Depositor
         run: npx hardhat run scripts/timelockDepositor.js --network tenderlyForkedEthMainnet
