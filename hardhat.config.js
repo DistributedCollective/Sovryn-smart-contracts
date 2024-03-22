@@ -356,7 +356,6 @@ module.exports = {
             ],
             tenderlyForkedEthMainnet: [
                 "external/deployments/ethMainnet",
-                "external/deployments/ethBobTenderyForkedMainnet",
                 "deployment/deployments/ethMainnet",
                 "external/deployments/tenderlyForkedEthMainnet",
             ],

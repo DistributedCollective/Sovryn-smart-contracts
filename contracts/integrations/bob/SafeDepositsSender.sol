@@ -79,18 +79,18 @@ contract SafeDepositsSender is ISafeDepositsSender {
         _;
     }
 
-    modifier expectUnpaused() {
+    modifier whenNotPaused() {
         require(!paused, "SafeDepositsSender: Paused");
         _;
     }
 
-    modifier expectPaused() {
-        require(paused, "SafeDepositsSender: unpaused");
+    modifier whenPaused() {
+        require(paused, "SafeDepositsSender: Not paused");
         _;
     }
 
-    modifier expectUnstopped() {
-        require(stopBlock == 0, "SafeDepositsSender: stopped");
+    modifier whenUnstopped() {
+        require(stopBlock == 0, "SafeDepositsSender: Stopped");
         _;
     }
 
@@ -114,7 +114,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
         address[] calldata tokens,
         uint256[] calldata amounts,
         uint256 sovAmount
-    ) external onlyDepositor expectUnpaused expectUnstopped {
+    ) external onlyDepositor whenNotPaused whenUnstopped {
         require(
             tokens.length == amounts.length,
             "SafeDepositsSender: Tokens and amounts length mismatch"
@@ -148,11 +148,6 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 );
 
                 // withdraw balance to this contract left after deposit to the LockDrop
-                data = abi.encodeWithSignature(
-                    "transfer(address,uint256)",
-                    address(this),
-                    amounts[i]
-                );
                 balance = address(SAFE).balance;
                 require(
                     SAFE.execTransactionFromModule(
@@ -195,7 +190,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 );
 
                 // withdraw balance to this contract left after deposit to the LockDrop
-                balance = IERC20Spec(tokens[i]).balanceOf(address(SAFE));
+                balance = token.balanceOf(address(SAFE));
                 data = abi.encodeWithSignature(
                     "transfer(address,uint256)",
                     address(this),
@@ -315,13 +310,13 @@ contract SafeDepositsSender is ISafeDepositsSender {
     }
 
     /// @notice pause the contract - no funds can be sent to the LockDrop contract
-    function pause() external onlySafe expectUnpaused {
+    function pause() external onlySafe whenNotPaused {
         paused = true;
         emit Pause();
     }
 
     /// @notice unpause the contract
-    function unpause() external onlySafe expectPaused {
+    function unpause() external onlySafe whenPaused {
         paused = false;
         emit Unpause();
     }
