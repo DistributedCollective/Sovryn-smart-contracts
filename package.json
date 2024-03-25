@@ -64,6 +64,7 @@
 		"keccak": "^3.0.3",
 		"keccak256": "^1.0.6",
 		"mocha": "^8.2.1",
+		"moment": "^2.30.1",
 		"node-logs": "^1.1.0",
 		"patch-package": "^7.0.0",
 		"phantomjs-prebuilt": "^2.1.16",

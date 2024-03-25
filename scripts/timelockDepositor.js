@@ -5,13 +5,17 @@ const logger = new Logs().showInConsole(true);
 const { computePoolAddress, FeeAmount } = require("@uniswap/v3-sdk");
 const { Token } = require("@uniswap/sdk-core");
 const { default: BigNumber } = require("bignumber.js");
+const axios = require("axios");
+const moment = require("moment");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 
 require("dotenv").config();
 
+/** START CONFIG */
 const ETH_NATIVE_TOKEN_ADDRS = "0x0000000000000000000000000000000000000001";
-const MAX_SLIPPAGE_TOLERANCE_IN_PERCENTAGE = 15; // 15%
-const TOKEN_BALANCE_THRESHOLD_IN_USD = 1000; // 1000 USD
-
+const MAX_SLIPPAGE_TOLERANCE_IN_PERCENTAGE = 10; // 10%
+const TOKEN_BALANCE_THRESHOLD_IN_USD = 100; // 100 USD
+const ACTIVATE_BOB_SNAPSHOT_PRICING = true;
 const CONFIG_CONTRACT_ADDRESSES = {
     mainnet: {
         uniswapV3PoolFactory: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
@@ -25,59 +29,10 @@ const CONFIG_CONTRACT_ADDRESSES = {
         sov: "0xEFc78fc7d48b64958315949279Ba181c2114ABBd",
     },
 };
+const CONFIG_WHITELISTED_TOKENS = require("./data/bobWhitelistedTokenListDepositor.json");
+/** END CONFIG */
 
-const CONFIG_WHITELISTED_TOKENS = {
-    mainnet: [
-        {
-            tokenName: "WBTC",
-            tokenAddress: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-            pricingRoutePath: [
-                "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD", // WBTC <> WETH
-                "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
-            ],
-        },
-        {
-            tokenName: "ETH",
-            tokenAddress: ETH_NATIVE_TOKEN_ADDRS,
-            pricingRoutePath: [
-                "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
-            ],
-        },
-        {
-            tokenName: "WETH",
-            tokenAddress: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-            pricingRoutePath: [
-                "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
-            ],
-        },
-        {
-            tokenName: "USDT",
-            tokenAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-            pricingRoutePath: [
-                "0xC5aF84701f98Fa483eCe78aF83F11b6C38ACA71D", // USDT <> WETH
-                "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
-            ],
-        },
-        {
-            tokenName: "USDC",
-            tokenAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-            pricingRoutePath: [
-                "0xC2e9F25Be6257c210d7Adf0D4Cd6E3E881ba25f8", // USDC <> WETH
-                "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
-            ],
-        },
-        {
-            tokenName: "DAI",
-            tokenAddress: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-            pricingRoutePath: [
-                "0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8", // DAI <> WETH
-                "0x3C4323f83D91b500b0f52cB19f7086813595F4C9", // SOV <> WETH
-            ],
-        },
-    ],
-};
-
-async function main() {
+async function executeTimeLockDepositor() {
     let WHITELISTED_TOKENS = [];
     if (network.name == "ethMainnet" || network.name == "tenderlyForkedEthMainnet") {
         WHITELISTED_TOKENS = CONFIG_WHITELISTED_TOKENS.mainnet;
@@ -98,6 +53,17 @@ async function main() {
     const safeMultisigModuleDeployment = await get("SafeDepositsSender");
     const safeMultisigModuleContract = await ethers.getContract("SafeDepositsSender");
     const safeMultisigContract = await ethers.getContract("SafeBobDeposits");
+    const SovDeployment = await get("SOV");
+
+    const yesterdayDate = moment().subtract("1", "day").format("YYYY-MM-DD");
+    if (ACTIVATE_BOB_SNAPSHOT_PRICING)
+        logger.info(`Yesterday date for bob snapshot pricing: ${yesterdayDate}`);
+
+    const allBobPriceSnapshot = await getAllPricesFromBobSnapshotApi();
+    if (!allBobPriceSnapshot.length) {
+        logger.error("Bob snapshot price is empty");
+        return;
+    }
 
     /** Check Paused */
     if (await safeMultisigModuleContract.isPaused()) {
@@ -145,8 +111,25 @@ async function main() {
         );
 
         /** Get SOV Amount for the token */
-        // the function will return the price in floating format, e.g: 1 XDAI = 0.6123xx SOV
-        const sovPrice = await getSovPrice(whitelistedToken); // from uniswap v3
+        let sovPrice;
+        if (ACTIVATE_BOB_SNAPSHOT_PRICING) {
+            /** Use bob snapshot if config flag is true */
+            sovPrice = await getPriceByDateFromBobSnapshot(
+                whitelistedToken.tokenAddress,
+                SovDeployment.address,
+                yesterdayDate,
+                allBobPriceSnapshot
+            );
+            if (!sovPrice || sovPrice.toString() == "0" || isNaN(sovPrice)) {
+                throw new Error(
+                    `getPriceByDateFromBobSnapshot: empty price data from bob snapshot for token ${whitelistedToken.tokenName} - ${whitelistedToken.tokenAddress}`
+                );
+            }
+        } else {
+            /** Use uniswap if bob snapshot config is false */
+            // the function will return the price in floating format, e.g: 1 XDAI = 0.6123xx SOV
+            sovPrice = await getSovPrice(whitelistedToken); // from uniswap v3
+        }
 
         // SOV Amount will not consider decimal anymore (1 SOV = 1 SOV)
         const sovAmount = new BigNumber(sovPrice)
@@ -154,28 +137,32 @@ async function main() {
             .dividedBy(new BigNumber(`1e${tokenDecimal}`))
             .decimalPlaces(0);
 
+        /** @todo uncomment this line 201 - 220 to check slippage tolerance */
         // get sov price from RSK PriceFeed for slippage comparison
         // the function will return price in floating format, e.g: 1 XDAI = 0.6123xx SOV
-        const sovPriceFromRskPriceFeed = await getPriceFromRskSovrynPriceFeed(
-            getMappedRskTokenFromEther(whitelistedToken.tokenName),
-            CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov
-        );
+        // NOTE: Slippage check cannot be implemented when using bob snapshot pricing, because we will use the yesterday's price, and there might be a huge slippage between those time
+        if (!ACTIVATE_BOB_SNAPSHOT_PRICING) {
+            const sovPriceFromRskPriceFeed = await getPriceFromRskSovrynPriceFeed(
+                getMappedRskTokenFromEther(whitelistedToken.tokenName),
+                CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov
+            );
 
-        if (
-            !checkWithinSlippageTolerancePercentage(
-                sovPrice.toNumber(),
-                sovPriceFromRskPriceFeed.toNumber(),
-                MAX_SLIPPAGE_TOLERANCE_IN_PERCENTAGE
-            )
-        ) {
-            const errMessage = `token ${whitelistedToken.tokenName} has exceed the max slippage tolerance, uniswapPrice: ${sovPrice}, rskSovrynPrice: ${sovPriceFromRskPriceFeed}`;
-            logger.error(errMessage);
-            throw new Error(errMessage);
+            if (
+                !checkWithinSlippageTolerancePercentage(
+                    sovPrice.toNumber(),
+                    sovPriceFromRskPriceFeed.toNumber(),
+                    MAX_SLIPPAGE_TOLERANCE_IN_PERCENTAGE
+                )
+            ) {
+                const errMessage = `token ${whitelistedToken.tokenName} has exceed the max slippage tolerance, uniswapPrice: ${sovPrice}, rskSovrynPrice: ${sovPriceFromRskPriceFeed}`;
+                logger.error(errMessage);
+                throw new Error(errMessage);
+            }
+
+            logger.info(
+                `Slippage check has passed, uniswapPrice: ${sovPrice}, rskSovrynPrice: ${sovPriceFromRskPriceFeed}`
+            );
         }
-
-        logger.info(
-            `Slippage check has passed, uniswapPrice: ${sovPrice}, rskSovrynPrice: ${sovPriceFromRskPriceFeed}`
-        );
 
         logger.info(`SOV Amount from 50% ${whitelistedToken.tokenName}: ${sovAmount.toString()}`);
 
@@ -219,7 +206,6 @@ async function main() {
         .decimalPlaces(0);
 
     /** Check SOV Amount */
-    const SovDeployment = await get("SOV");
     const safeSOVBalance = await getTokenBalance(
         SovDeployment.address,
         safeMultisigDeployment.address,
@@ -275,7 +261,7 @@ async function main() {
     logger.info(tx);
 }
 
-async function getPoolAddress(tokenInAddress, tokenOutAddress) {
+async function getPoolAddress(tokenInAddress, tokenOutAddress, fee = FeeAmount.HIGH) {
     const tokenInContract = await ethers.getContractAt("TestToken", tokenInAddress);
     const tokenOutContract = await ethers.getContractAt("TestToken", tokenOutAddress);
     const tokenInDecimal = await tokenInContract.decimals();
@@ -300,13 +286,13 @@ async function getPoolAddress(tokenInAddress, tokenOutAddress) {
         factoryAddress: CONFIG_CONTRACT_ADDRESSES.mainnet.uniswapV3PoolFactory,
         tokenA: TOKEN_IN,
         tokenB: TOKEN_OUT,
-        fee: FeeAmount.HIGH,
+        fee: fee,
     });
 
     console.log(`pool address of ${tokenInAddress} <> ${tokenOutAddress}: ${currentPoolAddress}`);
 }
 
-async function getSovPrice(whitelistedTokenConfig) {
+async function getSovPrice(whitelistedTokenConfig, log = true) {
     const { get } = deployments;
     const SovDeployment = await get("SOV");
 
@@ -387,9 +373,11 @@ async function getSovPrice(whitelistedTokenConfig) {
         previousRoutePrice = price;
     }
 
-    console.log(
-        `SOV Price of ${whitelistedTokenConfig.tokenName} - ${whitelistedTokenConfig.tokenAddress}: ${latestPrice.toString()}`
-    );
+    if (log) {
+        console.log(
+            `(Uniswap v3) SOV Price of ${whitelistedTokenConfig.tokenName} - ${whitelistedTokenConfig.tokenAddress}: ${latestPrice.toString()}`
+        );
+    }
 
     /** Price = price per unit */
     return latestPrice;
@@ -414,6 +402,72 @@ async function getPriceFromRskSovrynPriceFeed(sourceTokenAddress, destTokenAddre
     console.log(`${sourceTokenAddress}: ${finalPrice}`);
 
     return finalPrice;
+}
+
+async function getAllPricesFromBobSnapshotApi() {
+    const response = await axios.get("https://fusion-api.gobob.xyz/tokenprices");
+
+    return response.data;
+}
+
+/**
+ * Calculate Dest Token Price from the give source token address
+ * @param sourceTokenAddress address of source token
+ * @param destinationTokenAddress address of dest token
+ * @param date date of snapshot price, format YYYY-MM-DD e.g: 2023-03-23
+ * @param allBobPriceSnapshot array of object of all bob price snapshot
+ *
+ * @return sov price, e.g: 1 USD  (source token) = 0.6 SOV (dest token), this function will return "0.6" -> Type BigNumber
+ * @NOTE returning zero price meaning there is an issue with the api data.
+ */
+async function getPriceByDateFromBobSnapshot(
+    sourceTokenAddress,
+    destinationTokenAddress,
+    date,
+    allBobPriceSnapshot
+) {
+    if (sourceTokenAddress == ETH_NATIVE_TOKEN_ADDRS) sourceTokenAddress = ZERO_ADDRESS;
+    if (destinationTokenAddress == ETH_NATIVE_TOKEN_ADDRS) destinationTokenAddress = ZERO_ADDRESS;
+
+    const price = allBobPriceSnapshot.filter((priceSnapshotObj) => {
+        return (
+            priceSnapshotObj.token_address.toLowerCase() == sourceTokenAddress.toLowerCase() &&
+            priceSnapshotObj.ts == date
+        );
+    });
+
+    if (price.length > 1) {
+        throw new Error(
+            `bobPriceSnapshot: There are two identical price for ${sourceTokenAddress} with date ${date}`
+        );
+    }
+
+    if (!price.length) {
+        return 0;
+    }
+
+    const sourceTokenInUsdPrice = price[0].price;
+
+    const destTokenPrice = allBobPriceSnapshot.filter((priceSnapshotObj) => {
+        return (
+            priceSnapshotObj.token_address.toLowerCase() ==
+                destinationTokenAddress.toLowerCase() && priceSnapshotObj.ts == date
+        );
+    });
+
+    if (destTokenPrice.length > 1) {
+        throw new Error(
+            `bobPriceSnapshot: There are two identical price for ${destinationTokenAddress} Token with date ${date}`
+        );
+    }
+
+    if (!destTokenPrice.length) {
+        return 0; // just return 0 price to indicates there is an issue
+    }
+
+    const destTokenInUsdPrice = destTokenPrice[0].price;
+
+    return new BigNumber(sourceTokenInUsdPrice).dividedBy(new BigNumber(destTokenInUsdPrice));
 }
 
 async function getSovAmountByQuoter(tokenInAddress, tokenOutAddress, amountIn) {
@@ -441,14 +495,19 @@ async function getTokenBalance(tokenAddress, holderAdress, provider) {
     }
 }
 
-function checkWithinSlippageTolerancePercentage(price1, price2, slippageMaxPercentage) {
+function checkWithinSlippageTolerancePercentage(
+    price1,
+    price2,
+    slippageMaxPercentage,
+    log = true
+) {
     // Calculate the percentage difference
     const difference = Math.abs(price1 - price2);
     const average = (price1 + price2) / 2;
 
     const percentageDifference = (difference / average) * 100;
 
-    console.log("slippage percentage diff: ", percentageDifference);
+    if (log) console.log("slippage percentage diff: ", percentageDifference);
     // Check if the percentage difference is within 10%
     return percentageDifference <= slippageMaxPercentage;
 }
@@ -468,7 +527,7 @@ function getMappedRskTokenFromEther(etherTokenName) {
             throw new Error("Failed to map the eth <> rsk token");
     }
 }
-main();
+// executeTimeLockDepositor();
 
 // Example usage:
 // console.log(checkWithinSlippageTolerancePercentage(50, 59, 10)); // Output: false
@@ -480,13 +539,39 @@ main();
 // getPoolAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2") // get USDC <> WETH
 // getPoolAddress("0x6B175474E89094C44Da98b954EedeAC495271d0F", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2") // get DAI <> WETH
 
+// getPoolAddress("0x18084fba666a33d37592fa2633fd49a74dd93a88", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", FeeAmount.MEDIUM) // get TBTC <> WETH
+// getPoolAddress("0xae78736cd615f374d3085123a210448e74fc6393", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", FeeAmount.MEDIUM) // get rETH <> WETH
+// getPoolAddress("0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", FeeAmount.MEDIUM) // get wstETH <> WETH
+
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[0]); // get wbtc price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[1]) // get eth price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[2]) // get weth price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[3]) // get usdt price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[4]) // get usdc price
 // getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[5]) // get dai price
+// getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[6]) // get tbtc price
+// getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[7]) // get reth price
+// getSovPrice(CONFIG_WHITELISTED_TOKENS.mainnet[8]) // get wsteth price
 
 // getPriceFromRskSovrynPriceFeed(CONFIG_CONTRACT_ADDRESSES.rskMainnet.wbtc, CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov)
 // getPriceFromRskSovrynPriceFeed(CONFIG_CONTRACT_ADDRESSES.rskMainnet.xusd, CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov)
 // getPriceFromRskSovrynPriceFeed(CONFIG_CONTRACT_ADDRESSES.rskMainnet.weth, CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov)
+
+// (async () => {
+//     const allPrices = await getAllPricesFromBobSnapshotApi()
+//     const date = moment().format('YYYY-MM-DD');
+//     console.log(date)
+//     const tokenPrice = await getTokenPriceByDateFromBobSnapshot("0x0000000000000000000000000000000000000000", date, allPrices);
+//     console.log(tokenPrice)
+// })()
+
+module.exports = {
+    executeTimeLockDepositor,
+    getSovPrice,
+    ETH_NATIVE_TOKEN_ADDRS,
+    getTokenBalance,
+    getAllPricesFromBobSnapshotApi,
+    getPriceByDateFromBobSnapshot,
+    MAX_SLIPPAGE_TOLERANCE_IN_PERCENTAGE,
+    checkWithinSlippageTolerancePercentage,
+};
