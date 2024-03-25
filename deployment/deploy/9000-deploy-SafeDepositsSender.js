@@ -7,7 +7,7 @@ const func = async function (hre) {
         getNamedAccounts,
         ethers,
     } = hre;
-    const { deployer } = await getNamedAccounts(); //await ethers.getSigners(); //
+    const { signer2: deployer } = await getNamedAccounts(); //await ethers.getSigners(); //
     let totalGas = ethers.BigNumber.from(0);
 
     const args = [
