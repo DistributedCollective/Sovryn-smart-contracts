@@ -5,7 +5,7 @@ name: Report Timelock Depositor Cron
 
 on:
   schedule:
-    - cron: "0 0 * * THU"
+    - cron: "0 17 * * *"
   workflow_dispatch:
   push:
     branches:
