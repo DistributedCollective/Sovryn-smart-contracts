@@ -429,6 +429,12 @@ async function getPriceByDateFromBobSnapshot(
     if (sourceTokenAddress == ETH_NATIVE_TOKEN_ADDRS) sourceTokenAddress = ZERO_ADDRESS;
     if (destinationTokenAddress == ETH_NATIVE_TOKEN_ADDRS) destinationTokenAddress = ZERO_ADDRESS;
 
+    /** For WETH, we use ETH instead */
+    if (sourceTokenAddress == CONFIG_CONTRACT_ADDRESSES.mainnet.weth)
+        sourceTokenAddress = ZERO_ADDRESS;
+    if (destinationTokenAddress == CONFIG_CONTRACT_ADDRESSES.mainnet.weth)
+        destinationTokenAddress = ZERO_ADDRESS;
+
     const price = allBobPriceSnapshot.filter((priceSnapshotObj) => {
         return (
             priceSnapshotObj.token_address.toLowerCase() == sourceTokenAddress.toLowerCase() &&

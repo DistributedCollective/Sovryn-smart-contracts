@@ -208,6 +208,7 @@ async function main() {
         logger.info(`SOV - SOV Required: ${sovMinusSovRequiredSafe}`);
 
     /** SECTION 2 (SLIPPAGE REPORT) */
+    if (!emptyBobSnapshotPrice.length && !exceedSlippageTolerance.length) return;
     console.log("\n\n");
     logger.info("===== Report Section 2 =====");
     for (const emptyPrice of emptyBobSnapshotPrice) {
