@@ -34,8 +34,8 @@ contract SafeDepositsSender is ISafeDepositsSender {
     address public constant ETH_TOKEN_ADDRESS = address(0x01);
 
     GnosisSafe private immutable SAFE;
-    address private immutable LOCK_DROP_ADDRESS;
     address private immutable SOV_TOKEN_ADDRESS;
+    address private LOCK_DROP_ADDRESS;
     address private DEPOSITOR_ADDRESS;
     uint256 private stopBlock; // if set the contract is stopped forever - irreversible
     bool private paused;
@@ -171,7 +171,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 );
                 require(
                     SAFE.execTransactionFromModule(tokens[i], 0, data, GnosisSafe.Operation.Call),
-                    "Could not execute token transfer"
+                    "SafeDepositsSender: Could not approve token transfer"
                 );
 
                 data = abi.encodeWithSignature(
@@ -186,7 +186,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                         data,
                         GnosisSafe.Operation.Call
                     ),
-                    "Could not execute token transfer"
+                    "SafeDepositsSender: Could not execute token transfer"
                 );
 
                 // withdraw balance to this contract left after deposit to the LockDrop
@@ -198,7 +198,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 );
                 require(
                     SAFE.execTransactionFromModule(tokens[i], 0, data, GnosisSafe.Operation.Call),
-                    "Could not execute ether transfer"
+                    "SafeDepositsSender: Could not execute ether transfer"
                 );
             }
             emit DepositToLockdrop(tokens[i], amounts[i]);
@@ -209,7 +209,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
         data = abi.encodeWithSignature("approve(address,uint256)", LOCK_DROP_ADDRESS, sovAmount);
         require(
             SAFE.execTransactionFromModule(SOV_TOKEN_ADDRESS, 0, data, GnosisSafe.Operation.Call),
-            "Could not execute token transfer"
+            "SafeDepositsSender: Could not execute SOV token transfer"
         );
         data = abi.encodeWithSignature(
             "depositERC20(address,uint256)",
@@ -224,6 +224,13 @@ contract SafeDepositsSender is ISafeDepositsSender {
         emit DepositSOVToLockdrop(sovAmount);
     }
 
+    /// @notice Maps depositor on ethereum to receiver on BOB
+    /// @notice Receiver from the last emitted event called by msg.sender will be used
+    /// @param receiver Receiver address on BOB. The depositor address will be replaced with the receiver address for distribution of LP tokens and rewards on BOB
+    function mapDepositorToReceiver(address receiver) external onlyDepositorOrSafe {
+        emit MapDepositorToReceiver(msg.sender, receiver);
+    }
+
     // ADMINISTRATIVE FUNCTIONS //
 
     /// @notice There is no check if _newDepositor is not zero on purpose - that could be required
@@ -235,8 +242,20 @@ contract SafeDepositsSender is ISafeDepositsSender {
      * @param _newDepositor New depositor address
      */
     function setDepositorAddress(address _newDepositor) external onlySafe {
-        emit setDepositor(DEPOSITOR_ADDRESS, _newDepositor);
+        emit SetDepositorAddress(DEPOSITOR_ADDRESS, _newDepositor);
         DEPOSITOR_ADDRESS = _newDepositor;
+    }
+
+    /**
+     * @notice Sets new LockDrop address
+     * @dev Only Safe can call this function
+     * @dev New LockDrop can't be zero address
+     * @param _newLockdrop New depositor address
+     */
+    function setLockDropAddress(address _newLockdrop) external onlySafe {
+        require(_newLockdrop != address(0), "SafeDepositsSender: Zero address not allowed");
+        emit SetLockDropAddress(LOCK_DROP_ADDRESS, _newLockdrop);
+        LOCK_DROP_ADDRESS = _newLockdrop;
     }
 
     /**

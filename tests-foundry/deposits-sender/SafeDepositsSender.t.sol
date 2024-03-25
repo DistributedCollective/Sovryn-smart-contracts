@@ -134,6 +134,7 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
 
     SafeMock safe = new SafeMock();
     MockLockDrop lockDrop = new MockLockDrop();
+    address internal lockDropAddress = address(lockDrop);
 
     ArbitraryErc20 sov = new ArbitraryErc20("SOV", "SOV", sudoOwner);
 
@@ -262,7 +263,7 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         assertEq(sov.balanceOf(address(this)), 0);
     }
 
-    function test_SendingMultipleTokensToLockDropExceptions() public {
+    function test_SendingMultipleTokensToLockDropSettersAndExceptions() public {
         // add pseudo address for ETH 0x01 in the end- not 0x00 to avoid default address errors
         address[] memory tokensParam = new address[](tokens.length);
 
@@ -309,6 +310,13 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         amountsParam[2] = uint256(300);
         this.sendToLockDropContract(tokensParam, amountsParam, 1);
 
+        vm.expectEmit();
+        emit MapDepositorToReceiver(depositsSender, alice);
+        this.mapDepositorToReceiver(alice);
+        (lockDropAddress);
+        assertEq(this.getLockDropAddress(), lockDropAddress);
+        vm.stopPrank();
+
         vm.startPrank(address(safe));
         this.unpause();
         vm.stopPrank();
@@ -320,19 +328,33 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
 
         vm.startPrank(address(safe));
         vm.expectEmit();
-        emit setDepositor(depositsSender, address(0x01));
+        emit SetDepositorAddress(depositsSender, address(0x01));
         this.setDepositorAddress(address(0x01));
         assertEq(this.getDepositorAddress(), address(0x01));
 
         vm.expectEmit();
-        emit setDepositor(address(0x01), address(0x00));
+        emit SetDepositorAddress(address(0x01), address(0x00));
         this.setDepositorAddress(address(0x00));
         assertEq(this.getDepositorAddress(), address(0x00));
 
         vm.expectEmit();
-        emit setDepositor(address(0x00), depositsSender);
+        emit SetDepositorAddress(address(0x00), depositsSender);
         this.setDepositorAddress(depositsSender);
         assertEq(this.getDepositorAddress(), depositsSender);
+
+        vm.expectEmit();
+        emit SetLockDropAddress(lockDropAddress, address(0x01));
+        this.setLockDropAddress(address(0x01));
+        assertEq(this.getLockDropAddress(), address(0x01));
+
+        vm.expectRevert("SafeDepositsSender: Zero address not allowed");
+        emit SetLockDropAddress(address(0x01), address(0x00));
+        this.setLockDropAddress(address(0x00));
+
+        vm.expectEmit();
+        emit SetLockDropAddress(address(0x01), lockDropAddress);
+        this.setLockDropAddress(lockDropAddress);
+        assertEq(this.getLockDropAddress(), lockDropAddress);
 
         vm.stopPrank();
 
@@ -388,31 +410,31 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         console.log("tokensParam.length:", tokensParam.length);
 
         uint256 snapshot = vm.snapshot();
-        vm.startPrank(address(safe));
 
+        vm.startPrank(address(safe));
         this.withdraw(tokensParam, amounts, bob);
         _expectBalancesZero(address(this), tokensParam);
         _expectBalances(bob, tokensParam, amounts);
+        vm.stopPrank();
 
         vm.revertTo(snapshot);
-
         snapshot = vm.snapshot();
 
+        vm.startPrank(address(safe));
         this.withdrawAll(tokensParam, bob);
         _expectBalancesZero(address(this), tokensParam);
         _expectBalances(bob, tokensParam, amounts);
+        vm.stopPrank();
 
         vm.revertTo(snapshot);
 
-        snapshot = vm.snapshot();
+        vm.startPrank(address(safe));
         for (uint256 i = 0; i < amounts.length; i++) {
             amounts[i] = amounts[i] / 2;
         }
         this.withdraw(tokensParam, amounts, bob);
         _expectBalances(address(this), tokensParam, amounts);
         _expectBalances(bob, tokensParam, amounts);
-        vm.revertTo(snapshot);
-
         vm.stopPrank();
     }
 

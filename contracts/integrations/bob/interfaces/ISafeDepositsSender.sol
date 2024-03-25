@@ -9,7 +9,9 @@ interface ISafeDepositsSender {
     event Pause();
     event Unpause();
     event Stop();
-    event setDepositor(address indexed oldDepositor, address indexed newDepositor);
+    event SetDepositorAddress(address indexed oldDepositor, address indexed newDepositor);
+    event SetLockDropAddress(address indexed oldLockDrop, address indexed newLockDrop);
+    event MapDepositorToReceiver(address indexed depositor, address indexed receiver);
 
     function getSafeAddress() external view returns (address);
     function getLockDropAddress() external view returns (address);
