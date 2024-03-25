@@ -54,7 +54,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Installing Packages
-        run: npm ci
+        run: npm ci --parallel=1
 
       - name: Run Timelock Depositor
         run: npx hardhat run scripts/bobTimelockExecutor.js --network tenderlyForkedEthMainnet
