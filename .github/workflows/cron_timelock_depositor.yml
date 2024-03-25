@@ -10,7 +10,7 @@ on:
   push:
     branches:
       - "**"
-  trigger: none 
+  trigger: none
 
 jobs:
   build:
