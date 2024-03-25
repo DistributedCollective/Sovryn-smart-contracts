@@ -1047,6 +1047,40 @@ const getArgsSip0076 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0079 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const adoptionFundDeployment = await get("AdoptionFund");
+    const sovTokenDeployment = await get("SOV");
+    const multisigDeployment = await get("MultiSigWallet");
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [adoptionFundDeployment.address, sovTokenDeployment.address],
+        values: [0, 0],
+        signatures: ["withdrawTokensByUnlockedTokenOwner(uint256)", "transfer(address,uint256)"],
+        data: [
+            abiCoder.encode(["uint256"], [ethers.utils.parseEther("13800000")]),
+            abiCoder.encode(
+                ["address", "uint256"],
+                [multisigDeployment.address, ethers.utils.parseEther("13800000")]
+            ),
+        ],
+        description:
+            "SIP-0079: Transfer of SOV from Adoption Fund to Build on Bitcoin Mainnet, Details: https://github.com/DistributedCollective/SIPS/blob/dbb02e3/SIP-0079.md, sha256: a6b8125b25258ca75564df3ce3d470951e8aa8929edee0991bc2f43b3cba9764",
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1065,4 +1099,5 @@ module.exports = {
     getArgsSip0074,
     getArgsSip0076,
     getArgsSip0078,
+    getArgsSip0079,
 };
