@@ -393,12 +393,14 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         console.log("sovAmount", sovAmount);
         amounts[0] = sovAmount;
         deal(tokensParam[0], address(this), sovAmount);
+        console.log("amounts[0]: %s", amounts[0]);
         deal(address(sov), address(this), sovAmount);
         for (uint256 i = 0; i < numberOfTokens; i++) {
             tokensParam[i + 1] = address(tokens[i]);
             amounts[i + 1] = amount;
             console.log("amounts [%s]: %s", i + 1, amount);
             deal(tokensParam[i + 1], address(this), amount);
+            console.log("tokens[%s] balance %s", i + 1, tokens[i].balanceOf(address(this)));
         }
         if (useNativeToken) {
             amounts[amounts.length - 1] = amount;
@@ -412,6 +414,7 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         uint256 snapshot = vm.snapshot();
 
         vm.startPrank(address(safe));
+        vm.deal(bob, 0 ether);
         this.withdraw(tokensParam, amounts, bob);
         _expectBalancesZero(address(this), tokensParam);
         _expectBalances(bob, tokensParam, amounts);
@@ -421,6 +424,7 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         snapshot = vm.snapshot();
 
         vm.startPrank(address(safe));
+        vm.deal(bob, 0 ether);
         this.withdrawAll(tokensParam, bob);
         _expectBalancesZero(address(this), tokensParam);
         _expectBalances(bob, tokensParam, amounts);
@@ -429,8 +433,11 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         vm.revertTo(snapshot);
 
         vm.startPrank(address(safe));
+        vm.deal(bob, 0 ether);
         for (uint256 i = 0; i < amounts.length; i++) {
+            console.log("before amounts [%s]: %s", i + 1, amounts[i]);
             amounts[i] = amounts[i] / 2;
+            console.log("after amounts [%s]: %s", i + 1, amounts[i]);
         }
         this.withdraw(tokensParam, amounts, bob);
         _expectBalances(address(this), tokensParam, amounts);
