@@ -35,6 +35,7 @@ def main():
     
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
 
+    setEthBridgeMaxTokensAllowed(10_000_000 * 10**18)
     setEthBridgeDailyLimit(6_500_000 * 10**18)
     #printEthBridgeLimits()
 
@@ -77,7 +78,7 @@ def printEthBridgeLimits():
     print("min allowed DLLR    ", allowTokens.minAllowedToken(contracts["DLLR"])/1e18)
     print("min allowed SOV     ", allowTokens.minAllowedToken(contracts["SOV"])/1e18)
 
-def setEthBridgeDailyLimit(newLimit):
+def setEthBridgeMaxTokensAllowed(newLimit):
     abiFileBridge =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
     abiFileAllowTokens =  open('./scripts/contractInteraction/bridge-multisig/AllowTokens.json')
     abiBridge = json.load(abiFileBridge)
@@ -96,6 +97,28 @@ def setEthBridgeDailyLimit(newLimit):
     print(setMaxTokensAllowed)
 
     tx = multiSig.submitTransaction(allowTokens.address, 0, setMaxTokensAllowed)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def setEthBridgeDailyLimit(newLimit):
+    abiFileBridge =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
+    abiFileAllowTokens =  open('./scripts/contractInteraction/bridge-multisig/AllowTokens.json')
+    abiBridge = json.load(abiFileBridge)
+    abiAllowTokens = json.load(abiFileAllowTokens)
+    bridgeRSK = Contract.from_abi("BridgeRSK", address=contracts['BridgeRSK'], abi=abiBridge, owner=acct)
+
+    allowTokensAddress = bridgeRSK.allowTokens()
+    allowTokens = Contract.from_abi("AllowTokens", address=allowTokensAddress, abi=abiAllowTokens, owner=acct)
+    print(f"Setting daily limits on AllowTokens {allowTokens.address} to {newLimit/1e18}")
+
+    multiSigAddress = allowTokens.owner()
+    print('Allow tokens owner address (multisig): ' + multiSigAddress)
+    multiSig = Contract.from_abi("MultiSig", multiSigAddress, MultiSigWallet.abi, owner=acct)
+
+    changeDailyLimit = allowTokens.changeDailyLimit.encode_input(newLimit)
+    print(changeDailyLimit)
+
+    tx = multiSig.submitTransaction(allowTokens.address, 0, changeDailyLimit)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
