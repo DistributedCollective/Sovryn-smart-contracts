@@ -2,11 +2,8 @@
 pragma solidity 0.8.17;
 
 import { ISafeDepositsSender } from "./interfaces/ISafeDepositsSender.sol";
+import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-interface IERC20Spec {
-    function balanceOf(address _who) external view returns (uint256);
-    function transfer(address _to, uint256 _value) external returns (bool);
-}
 interface GnosisSafe {
     enum Operation {
         Call,
@@ -31,18 +28,18 @@ interface GnosisSafe {
  * @notice This contract is a gateway for depositing funds into the Bob locker contracts
  */
 contract SafeDepositsSender is ISafeDepositsSender {
+    using SafeERC20 for IERC20;
     address public constant ETH_TOKEN_ADDRESS = address(0x01);
-
     GnosisSafe private immutable SAFE;
     address private immutable SOV_TOKEN_ADDRESS;
-    address private DEPOSITOR_ADDRESS;
+    address private lockdropDepositorAddress; // address used by automation script to deposit to the LockDrop contract
     address private lockDropAddress;
     uint256 private stopBlock; // if set the contract is stopped forever - irreversible
     bool private paused;
 
     /**
      * @param _safeAddress Address of the Gnosis Safe
-     * @param _lockDrop Address of the lock drop contract
+     * @param _lockDrop Address of the BOB FusionLock contract
      * @param _sovToken Address of the SOV token contract
      * @param _depositor Address of the depositor account
      */
@@ -53,7 +50,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
         require(_depositor != address(0), "SafeDepositsSender: Invalid depositor token address");
         SAFE = GnosisSafe(_safeAddress);
         SOV_TOKEN_ADDRESS = _sovToken;
-        DEPOSITOR_ADDRESS = _depositor;
+        lockdropDepositorAddress = _depositor;
         lockDropAddress = _lockDrop;
     }
 
@@ -67,13 +64,13 @@ contract SafeDepositsSender is ISafeDepositsSender {
     }
 
     modifier onlyDepositor() {
-        require(msg.sender == DEPOSITOR_ADDRESS, "SafeDepositsSender: Only Depositor");
+        require(msg.sender == lockdropDepositorAddress, "SafeDepositsSender: Only Depositor");
         _;
     }
 
     modifier onlyDepositorOrSafe() {
         require(
-            msg.sender == DEPOSITOR_ADDRESS || msg.sender == address(SAFE),
+            msg.sender == lockdropDepositorAddress || msg.sender == address(SAFE),
             "SafeDepositsSender: Only Depositor or Safe"
         );
         _;
@@ -104,7 +101,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
     /**
      * @notice Sends tokens to the LockDrop contract
      * @dev This function is for sending tokens to the LockDrop contract for users to receive rewards and to be bridged to the BOB mainnet for Sovryn DEX
-     * @dev The function is allowed to be called only by the DEPOSITOR_ADDRESS
+     * @dev The function is allowed to be called only by the lockdropDepositorAddress
      * @dev Token amounts and SOV amount to send are calculated offchain
      * @param tokens List of tokens to send
      * @param amounts List of amounts of tokens to send
@@ -131,7 +128,8 @@ contract SafeDepositsSender is ISafeDepositsSender {
 
             // transfer native token
             uint256 balance;
-            if (tokens[i] == address(0x01)) {
+            uint256 transferAmount;
+            if (tokens[i] == ETH_TOKEN_ADDRESS) {
                 require(
                     address(SAFE).balance >= amounts[i],
                     "SafeDepositsSender: Not enough funds"
@@ -149,10 +147,11 @@ contract SafeDepositsSender is ISafeDepositsSender {
 
                 // withdraw balance to this contract left after deposit to the LockDrop
                 balance = address(SAFE).balance;
+                transferAmount = balance < amounts[i] ? balance : amounts[i];
                 require(
                     SAFE.execTransactionFromModule(
                         address(this),
-                        balance,
+                        transferAmount,
                         "",
                         GnosisSafe.Operation.Call
                     ),
@@ -160,7 +159,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 );
             } else {
                 // transfer ERC20 tokens
-                IERC20Spec token = IERC20Spec(tokens[i]);
+                IERC20 token = IERC20(tokens[i]);
                 balance = token.balanceOf(address(SAFE));
                 require(balance >= amounts[i], "SafeDepositsSender: Not enough funds");
 
@@ -191,10 +190,11 @@ contract SafeDepositsSender is ISafeDepositsSender {
 
                 // withdraw balance to this contract left after deposit to the LockDrop
                 balance = token.balanceOf(address(SAFE));
+                transferAmount = balance < amounts[i] ? balance : amounts[i];
                 data = abi.encodeWithSignature(
                     "transfer(address,uint256)",
                     address(this),
-                    balance
+                    transferAmount
                 );
                 require(
                     SAFE.execTransactionFromModule(tokens[i], 0, data, GnosisSafe.Operation.Call),
@@ -202,7 +202,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 );
             }
             emit DepositToLockdrop(lockDropAddress, tokens[i], amounts[i]);
-            emit WithdrawBalanceFromSafe(tokens[i], balance);
+            emit WithdrawBalanceFromSafe(tokens[i], transferAmount);
         }
 
         // transfer SOV
@@ -227,11 +227,63 @@ contract SafeDepositsSender is ISafeDepositsSender {
     /// @notice Maps depositor on ethereum to receiver on BOB
     /// @notice Receiver from the last emitted event called by msg.sender will be used
     /// @param receiver Receiver address on BOB. The depositor address will be replaced with the receiver address for distribution of LP tokens and rewards on BOB
-    function mapDepositorToReceiver(address receiver) external onlyDepositorOrSafe {
+    function mapDepositorToReceiver(address receiver) external {
         emit MapDepositorToReceiver(msg.sender, receiver);
     }
 
     // ADMINISTRATIVE FUNCTIONS //
+
+    /**
+     * @notice Execute `operation` (0: Call, 1: DelegateCall) to `to` with `value` (Native Token) from Safe
+     * @param to Destination address of module transaction.
+     * @param value Ether value of module transaction.
+     * @param data Data payload of module transaction.
+     * @param operation Operation type of module transaction.
+     * @return success Boolean flag indicating if the call succeeded.
+     */
+    function execTransactionFromSafe(
+        address to,
+        uint256 value,
+        bytes memory data,
+        GnosisSafe.Operation operation
+    ) external onlySafe returns (bool success) {
+        success = execute(to, value, data, operation, type(uint256).max);
+    }
+
+    /**
+     * @notice Executes either a delegatecall or a call with provided parameters.
+     * @dev This method doesn't perform any sanity check of the transaction, such as:
+     *      - if the contract at `to` address has code or not
+     *      It is the responsibility of the caller to perform such checks.
+     * @param to Destination address.
+     * @param value Ether value.
+     * @param data Data payload.
+     * @param operation Operation type.
+     * @return success boolean flag indicating if the call succeeded.
+     */
+    function execute(
+        address to,
+        uint256 value,
+        bytes memory data,
+        GnosisSafe.Operation operation,
+        uint256 txGas
+    ) internal returns (bool success) {
+        if (operation == GnosisSafe.Operation.DelegateCall) {
+            /* solhint-disable no-inline-assembly */
+            /// @solidity memory-safe-assembly
+            assembly {
+                success := delegatecall(txGas, to, add(data, 0x20), mload(data), 0, 0)
+            }
+            /* solhint-enable no-inline-assembly */
+        } else {
+            /* solhint-disable no-inline-assembly */
+            /// @solidity memory-safe-assembly
+            assembly {
+                success := call(txGas, to, value, add(data, 0x20), mload(data), 0, 0)
+            }
+            /* solhint-enable no-inline-assembly */
+        }
+    }
 
     /// @notice There is no check if _newDepositor is not zero on purpose - that could be required
 
@@ -242,8 +294,8 @@ contract SafeDepositsSender is ISafeDepositsSender {
      * @param _newDepositor New depositor address
      */
     function setDepositorAddress(address _newDepositor) external onlySafe {
-        emit SetDepositorAddress(DEPOSITOR_ADDRESS, _newDepositor);
-        DEPOSITOR_ADDRESS = _newDepositor;
+        emit SetDepositorAddress(lockdropDepositorAddress, _newDepositor);
+        lockdropDepositorAddress = _newDepositor;
     }
 
     /**
@@ -281,7 +333,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
         for (uint256 i = 0; i < tokens.length; i++) {
             require(tokens[i] != address(0x00), "SafeDepositsSender: Zero address not allowed");
             require(amounts[i] != 0, "SafeDepositsSender: Zero amount not allowed");
-            if (tokens[i] == address(0x01)) {
+            if (tokens[i] == ETH_TOKEN_ADDRESS) {
                 require(
                     address(this).balance >= amounts[i],
                     "SafeDepositsSender: Not enough funds"
@@ -291,11 +343,11 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 continue;
             }
 
-            IERC20Spec token = IERC20Spec(tokens[i]);
+            IERC20 token = IERC20(tokens[i]);
             uint256 balance = token.balanceOf(address(this));
             require(balance >= amounts[i], "SafeDepositsSender: Not enough funds");
 
-            token.transfer(recipient, amounts[i]);
+            token.safeTransfer(recipient, amounts[i]);
 
             emit Withdraw(recipient, tokens[i], amounts[i]);
         }
@@ -315,15 +367,15 @@ contract SafeDepositsSender is ISafeDepositsSender {
         address recipient
     ) external onlySafe notZeroAddress(recipient) {
         for (uint256 i = 0; i < tokens.length; i++) {
-            if (tokens[i] == address(0x01)) {
+            if (tokens[i] == ETH_TOKEN_ADDRESS) {
                 (bool success, ) = payable(recipient).call{ value: address(this).balance }("");
                 require(success, "Could not withdraw ether");
                 continue;
             }
-            IERC20Spec token = IERC20Spec(tokens[i]);
+            IERC20 token = IERC20(tokens[i]);
             uint256 balance = token.balanceOf(address(this));
             if (balance > 0) {
-                token.transfer(recipient, balance);
+                token.safeTransfer(recipient, balance);
             }
 
             emit Withdraw(recipient, tokens[i], balance);
@@ -362,7 +414,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
     }
 
     function getDepositorAddress() external view returns (address) {
-        return DEPOSITOR_ADDRESS;
+        return lockdropDepositorAddress;
     }
 
     function isStopped() external view returns (bool) {
