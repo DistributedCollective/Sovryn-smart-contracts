@@ -35,7 +35,7 @@ def main():
     
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
     
-    setEthBridgeDailyLimit(65000001e18)
+    setEthBridgeDailyLimit(6500000e18)
     #printEthBridgeLimits()
 
 def loadConfig():
