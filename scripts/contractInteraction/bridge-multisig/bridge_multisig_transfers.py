@@ -87,7 +87,7 @@ def setEthBridgeMaxTokensAllowed(newLimit):
 
     allowTokensAddress = bridgeRSK.allowTokens()
     allowTokens = Contract.from_abi("AllowTokens", address=allowTokensAddress, abi=abiAllowTokens, owner=acct)
-    print(f"Setting daily limits on AllowTokens {allowTokens.address} to {newLimit/1e18}")
+    print(f"Setting max tokens allowed on AllowTokens {allowTokens.address} to {newLimit/1e18}")
 
     multiSigAddress = allowTokens.owner()
     print('Allow tokens owner address (multisig): ' + multiSigAddress)
