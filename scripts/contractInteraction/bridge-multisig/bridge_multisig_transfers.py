@@ -34,8 +34,8 @@ def main():
     #sendTokensToETHFromMultisig(contracts['DLLR'], '0xdD0E3546EEBf3f1Cc4454a16b4DC5b677923bDC1', 100e18) #to be on the safe side sending 100 DLLR to our multisig on ethereum
     
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
-    
-    setEthBridgeDailyLimit(6500000e18)
+
+    setEthBridgeDailyLimit(6_500_000 * 10**18)
     #printEthBridgeLimits()
 
 def loadConfig():
