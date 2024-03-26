@@ -7,9 +7,6 @@ on:
   schedule:
     - cron: "0 0 * * THU"
   workflow_dispatch:
-  push:
-    branches:
-      - "**"
 
 jobs:
   build:
