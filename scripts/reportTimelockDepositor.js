@@ -230,14 +230,21 @@ async function generateReportTimelockDepositor(hardhat) {
     }
 
     for (const exceedSlippage of exceedSlippageTolerance) {
+        // Calculate the percentage difference
+        const price1 = new BigNumber(exceedSlippage.uniswapPrice.toString()).toNumber();
+        const price2 = new BigNumber(exceedSlippage.bobSnapshotPrice.toString()).toNumber();
+        const difference = Math.abs(price1 - price2);
+        const average = (price1 + price2) / 2;
+
+        const percentageDifference = (difference / average) * 100;
         logger.info(
             col.bgYellow(
-                `Exceed slippage (${MAX_SLIPPAGE_TOLERANCE_IN_PERCENTAGE}%): ${exceedSlippage.tokenName} - ${exceedSlippage.tokenAddress}`
+                `Exceed slippage (${MAX_SLIPPAGE_TOLERANCE_IN_PERCENTAGE}% - got ${percentageDifference.toFixed(2)}%): ${exceedSlippage.tokenName} - ${exceedSlippage.tokenAddress}`
             )
         );
         logger.info(
             col.bgYellow(
-                `Uniswap price: ${exceedSlippage.uniswapPrice.toString()}, bob snapshot price: ${exceedSlippage.bobSnapshotPrice.toString()}`
+                `Uniswap price: ${new BigNumber(1).dividedBy(new BigNumber(exceedSlippage.uniswapPrice.toString())).decimalPlaces(2)}, bob snapshot price: ${new BigNumber(1).dividedBy(new BigNumber(exceedSlippage.bobSnapshotPrice.toString())).decimalPlaces(2)}`
             )
         );
         console.log("\n");
