@@ -21,13 +21,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          submodules: recursive
           ref: SOV-3971-lp-to-bob
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
       - uses: actions/checkout@v2
+        with:
+          ref: SOV-3971-lp-to-bob
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
