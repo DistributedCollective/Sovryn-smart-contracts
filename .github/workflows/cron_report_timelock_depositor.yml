@@ -56,4 +56,6 @@ jobs:
         run: npm ci --parallel=1
 
       - name: Run Report Timelock Depositor
-        run: npx hardhat run scripts/reportTimelockDepositor.js --network tenderlyForkedEthMainnet
+        run: npx hardhat run scripts/reportBobTimelockExecutor.js --network tenderlyForkedEthMainnet
+        env:
+          SAFE_DEPOSITS_SENDER: ${{secrets.SAFE_DEPOSITS_SENDER}}
