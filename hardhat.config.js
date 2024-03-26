@@ -27,6 +27,7 @@ const testnetPKs = [
     process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "",
     process.env.TESTNET_SIGNER_PRIVATE_KEY ?? "",
     process.env.TESTNET_SIGNER_PRIVATE_KEY_2 ?? "",
+    process.env.SAFE_DEPOSITS_SENDER ?? "", // safe deposit sender
 ].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
 const testnetAccounts = testnetPKs.length > 0 ? testnetPKs : mnemonic;
 
@@ -34,6 +35,7 @@ const mainnetPKs = [
     process.env.MAINNET_DEPLOYER_PRIVATE_KEY ?? "",
     process.env.PROPOSAL_CREATOR_PRIVATE_KEY ?? "",
     process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "", //mainnet signer2
+    process.env.SAFE_DEPOSITS_SENDER ?? "", // safe deposit sender
 ].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
 const mainnetAccounts = mainnetPKs.length > 0 ? mainnetPKs : mnemonic;
 
@@ -161,6 +163,9 @@ module.exports = {
         },
         proposer2: {
             default: 1,
+        },
+        safeDepositSender: {
+            default: 3,
         },
     },
     networks: {

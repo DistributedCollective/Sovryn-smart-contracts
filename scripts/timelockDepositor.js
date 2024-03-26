@@ -1,4 +1,3 @@
-const { ethers, network, deployments } = require("hardhat");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 // import { computePoolAddress, FeeAmount } from '@uniswap/v3-sdk'
@@ -32,7 +31,8 @@ const CONFIG_CONTRACT_ADDRESSES = {
 const CONFIG_WHITELISTED_TOKENS = require("./data/bobWhitelistedTokenListDepositor.json");
 /** END CONFIG */
 
-async function executeTimeLockDepositor() {
+async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) {
+    const { ethers, network, deployments } = hardhat;
     let WHITELISTED_TOKENS = [];
     if (network.name == "ethMainnet" || network.name == "tenderlyForkedEthMainnet") {
         WHITELISTED_TOKENS = CONFIG_WHITELISTED_TOKENS.mainnet;
@@ -42,11 +42,13 @@ async function executeTimeLockDepositor() {
         throw new Error("Network not supported");
     }
 
-    const pk = network.tags["mainnet"]
-        ? process.env.SAFE_DEPOSITS_SENDER
-        : process.env.SAFE_DEPOSITS_SENDER;
-    const wallet = new ethers.Wallet(pk);
-    const signer = wallet.connect(ethers.provider);
+    if (!signer) {
+        const pk = network.tags["mainnet"]
+            ? process.env.SAFE_DEPOSITS_SENDER
+            : process.env.SAFE_DEPOSITS_SENDER;
+        const wallet = new ethers.Wallet(pk);
+        signer = wallet.connect(ethers.provider);
+    }
 
     const { get } = deployments;
     const safeMultisigDeployment = await get("SafeBobDeposits");
@@ -94,6 +96,7 @@ async function executeTimeLockDepositor() {
 
         /** read balance of token */
         const tokenBalance = await getTokenBalance(
+            hardhat,
             whitelistedToken.tokenAddress,
             safeMultisigDeployment.address,
             ethers.provider
@@ -128,7 +131,7 @@ async function executeTimeLockDepositor() {
         } else {
             /** Use uniswap if bob snapshot config is false */
             // the function will return the price in floating format, e.g: 1 XDAI = 0.6123xx SOV
-            sovPrice = await getSovPrice(whitelistedToken); // from uniswap v3
+            sovPrice = await getSovPrice(hardhat, whitelistedToken); // from uniswap v3
         }
 
         // SOV Amount will not consider decimal anymore (1 SOV = 1 SOV)
@@ -143,6 +146,7 @@ async function executeTimeLockDepositor() {
         // NOTE: Slippage check cannot be implemented when using bob snapshot pricing, because we will use the yesterday's price, and there might be a huge slippage between those time
         if (!ACTIVATE_BOB_SNAPSHOT_PRICING) {
             const sovPriceFromRskPriceFeed = await getPriceFromRskSovrynPriceFeed(
+                hardhat,
                 getMappedRskTokenFromEther(whitelistedToken.tokenName),
                 CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov
             );
@@ -169,6 +173,7 @@ async function executeTimeLockDepositor() {
         /** Get USD Price of the processed SOV */
         // GET SOV Price in USD
         const sovPriceInUsd = await getPriceFromRskSovrynPriceFeed(
+            hardhat,
             CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov,
             CONFIG_CONTRACT_ADDRESSES.rskMainnet.xusd
         );
@@ -207,6 +212,7 @@ async function executeTimeLockDepositor() {
 
     /** Check SOV Amount */
     const safeSOVBalance = await getTokenBalance(
+        hardhat,
         SovDeployment.address,
         safeMultisigDeployment.address,
         ethers.provider
@@ -228,7 +234,7 @@ async function executeTimeLockDepositor() {
     logger.info("Amounts list to send..");
     logger.info(JSON.stringify(amountsToSend));
 
-    logger.info("SOV List Details");
+    logger.info("Token <> SOV List Details");
     logger.info(JSON.stringify(sovAmountList));
 
     logger.info(`Total SOV Amount: ${totalSovAmount.toString()}`);
@@ -248,20 +254,23 @@ async function executeTimeLockDepositor() {
     }
 
     /** Process sending token */
-    logger.info("===== Execute the sendToLockDropContract function from multisig safe =====");
-    logger.info(`Safe Module address: ${safeMultisigModuleDeployment.address}`);
-    const tx = await safeMultisigModuleContract
-        .connect(signer)
-        .sendToLockDropContract(
-            tokensAddressToSend,
-            amountsToSend,
-            totalSovAmountWithDecimal.toFixed()
-        );
-    logger.info("===== Execute Done =====");
-    logger.info(tx);
+    if (!dryRun) {
+        logger.info("===== Execute the sendToLockDropContract function from multisig safe =====");
+        logger.info(`Safe Module address: ${safeMultisigModuleDeployment.address}`);
+        const tx = await safeMultisigModuleContract
+            .connect(signer)
+            .sendToLockDropContract(
+                tokensAddressToSend,
+                amountsToSend,
+                totalSovAmountWithDecimal.toFixed()
+            );
+        logger.info("===== Execute Done =====");
+        logger.info(tx);
+    }
 }
 
-async function getPoolAddress(tokenInAddress, tokenOutAddress, fee = FeeAmount.HIGH) {
+async function getPoolAddress(hardhat, tokenInAddress, tokenOutAddress, fee = FeeAmount.HIGH) {
+    const { ethers } = hardhat;
     const tokenInContract = await ethers.getContractAt("TestToken", tokenInAddress);
     const tokenOutContract = await ethers.getContractAt("TestToken", tokenOutAddress);
     const tokenInDecimal = await tokenInContract.decimals();
@@ -292,7 +301,8 @@ async function getPoolAddress(tokenInAddress, tokenOutAddress, fee = FeeAmount.H
     console.log(`pool address of ${tokenInAddress} <> ${tokenOutAddress}: ${currentPoolAddress}`);
 }
 
-async function getSovPrice(whitelistedTokenConfig, log = true) {
+async function getSovPrice(hardhat, whitelistedTokenConfig, log = true) {
+    const { ethers, deployments } = hardhat;
     const { get } = deployments;
     const SovDeployment = await get("SOV");
 
@@ -383,7 +393,8 @@ async function getSovPrice(whitelistedTokenConfig, log = true) {
     return latestPrice;
 }
 
-async function getPriceFromRskSovrynPriceFeed(sourceTokenAddress, destTokenAddress) {
+async function getPriceFromRskSovrynPriceFeed(hardhat, sourceTokenAddress, destTokenAddress) {
+    const { ethers } = hardhat;
     const rskProvider = new ethers.providers.JsonRpcProvider("https://mainnet-dev.sovryn.app/rpc");
     const priceFeedFactory = await ethers.getContractFactory("PriceFeeds");
     const priceFeedAbi = priceFeedFactory.interface.format(ethers.utils.FormatTypes.json);
@@ -476,8 +487,9 @@ async function getPriceByDateFromBobSnapshot(
     return new BigNumber(sourceTokenInUsdPrice).dividedBy(new BigNumber(destTokenInUsdPrice));
 }
 
-async function getSovAmountByQuoter(tokenInAddress, tokenOutAddress, amountIn) {
+async function getSovAmountByQuoter(hardhat, tokenInAddress, tokenOutAddress, amountIn) {
     /** The other solution to get price - but this one will consider the liquidity and swap amount in the pool */
+    const { ethers } = hardhat;
     const quoterContract = await ethers.getContract("UniswapQuoter");
     const quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
         tokenInAddress,
@@ -492,7 +504,8 @@ async function getSovAmountByQuoter(tokenInAddress, tokenOutAddress, amountIn) {
     return quotedAmountOut;
 }
 
-async function getTokenBalance(tokenAddress, holderAdress, provider) {
+async function getTokenBalance(hardhat, tokenAddress, holderAdress, provider) {
+    const { ethers } = hardhat;
     if (tokenAddress == ETH_NATIVE_TOKEN_ADDRS) {
         return await provider.getBalance(holderAdress);
     } else {

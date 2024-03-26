@@ -1,4 +1,3 @@
-const { ethers, network, deployments } = require("hardhat");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 const CONFIG_WHITELISTED_TOKENS = require("./data/bobWhitelistedTokenListDepositor.json");
@@ -15,7 +14,8 @@ const {
 const moment = require("moment");
 const col = require("cli-color");
 
-async function main() {
+async function generateReportTimelockDepositor(hardhat) {
+    const { ethers, network, deployments } = hardhat;
     const { get } = deployments;
     const lockDropDeployment = await get("BobLockDrop");
     const safeDeployment = await get("SafeBobDeposits");
@@ -40,6 +40,14 @@ async function main() {
     const yesterdayDate = moment().subtract("1", "day").format("YYYY-MM-DD");
     const timeLeft = `${daysLeft} days, ${hoursLeft} hours ${minutesLeft} minutes ${secondsLeft} seconds`;
     logger.info(`LockDrop time to left to withdrawalStartTime: ${timeLeft}`);
+
+    const pk = process.env.SAFE_DEPOSITS_SENDER;
+    const wallet = new ethers.Wallet(pk);
+    const executorAddress = await wallet.getAddress();
+    const executorBalance = await ethers.provider.getBalance(executorAddress);
+    logger.info(
+        `Executor wallet address: ${executorAddress}, balance: ${new BigNumber(executorBalance.toString()).dividedBy(new BigNumber("1e18")).decimalPlaces(2)} ETH`
+    );
 
     let emptyBobSnapshotPrice = [];
     let exceedSlippageTolerance = [];
@@ -66,6 +74,7 @@ async function main() {
 
         /** Get token balance for LockDrop */
         let lockDropBalance = await getTokenBalance(
+            hardhat,
             whitelistedToken.tokenAddress,
             lockDropDeployment.address,
             ethers.provider
@@ -81,6 +90,7 @@ async function main() {
 
         /** Get token balance for Safe contract */
         let safeBalance = await getTokenBalance(
+            hardhat,
             whitelistedToken.tokenAddress,
             safeDeployment.address,
             ethers.provider
@@ -93,7 +103,7 @@ async function main() {
         });
 
         /** Get SOV equivalent for this token - using uniswap v3 */
-        const sovPrice = await getSovPrice(whitelistedToken, false);
+        const sovPrice = await getSovPrice(hardhat, whitelistedToken, false);
         // SOV Amount will not consider decimal anymore (1 SOV = 1 SOV)
 
         /** No need to normalize the price using decimal, because the lockDrop balance already been normalized */
@@ -149,11 +159,13 @@ async function main() {
     const sovContract = await ethers.getContract("SOV");
     const sovDecimal = await sovContract.decimals();
     let lockDropSovBalance = await getTokenBalance(
+        hardhat,
         sovDeployment.address,
         lockDropDeployment.address,
         ethers.provider
     );
     let safeSovBalance = await getTokenBalance(
+        hardhat,
         sovDeployment.address,
         safeDeployment.address,
         ethers.provider
@@ -239,4 +251,6 @@ function normalizeTokenNumber(tokenAmount, decimal) {
     return normalizedTokeNumber;
 }
 
-main();
+module.exports = {
+    generateReportTimelockDepositor,
+};
