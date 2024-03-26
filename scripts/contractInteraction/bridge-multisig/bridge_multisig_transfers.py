@@ -34,6 +34,9 @@ def main():
     #sendTokensToETHFromMultisig(contracts['DLLR'], '0xdD0E3546EEBf3f1Cc4454a16b4DC5b677923bDC1', 100e18) #to be on the safe side sending 100 DLLR to our multisig on ethereum
     
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
+    
+    setEthBridgeDailyLimit(65000001e18)
+    #printEthBridgeLimits()
 
 def loadConfig():
     global contracts, acct
@@ -58,6 +61,44 @@ def loadConfig():
     contracts = json.load(configFile)
 
 # function setFeeAndMinPerToken(address token, uint256 _feeConst, uint256 _minAmount)
+def printEthBridgeLimits():
+    abiFileBridge =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
+    abiFileAllowTokens =  open('./scripts/contractInteraction/bridge-multisig/AllowTokens.json')
+    abiBridge = json.load(abiFileBridge)
+    abiAllowTokens = json.load(abiFileAllowTokens)
+    bridgeRSK = Contract.from_abi("BridgeRSK", address=contracts['BridgeRSK'], abi=abiBridge, owner=acct)
+
+    allowTokensAddress = bridgeRSK.allowTokens()
+    allowTokens = Contract.from_abi("AllowTokens", address=allowTokensAddress, abi=abiAllowTokens, owner=acct)
+
+    #print('decimals', decimals)
+    print("daily limit         ", allowTokens.dailyLimit()/1e18)
+    print("max allowed         ", allowTokens.getMaxTokensAllowed()/1e18)
+    print("min allowed DLLR    ", allowTokens.minAllowedToken(contracts["DLLR"])/1e18)
+    print("min allowed SOV     ", allowTokens.minAllowedToken(contracts["SOV"])/1e18)
+
+def setEthBridgeDailyLimit(newLimit):
+    abiFileBridge =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
+    abiFileAllowTokens =  open('./scripts/contractInteraction/bridge-multisig/AllowTokens.json')
+    abiBridge = json.load(abiFileBridge)
+    abiAllowTokens = json.load(abiFileAllowTokens)
+    bridgeRSK = Contract.from_abi("BridgeRSK", address=contracts['BridgeRSK'], abi=abiBridge, owner=acct)
+
+    allowTokensAddress = bridgeRSK.allowTokens()
+    allowTokens = Contract.from_abi("AllowTokens", address=allowTokensAddress, abi=abiAllowTokens, owner=acct)
+    print(f"Setting daily limits on AllowTokens {allowTokens.address} to {newLimit/1e18}")
+
+    multiSigAddress = allowTokens.owner()
+    print('Allow tokens owner address (multisig): ' + multiSigAddress)
+    multiSig = Contract.from_abi("MultiSig", multiSigAddress, MultiSigWallet.abi, owner=acct)
+
+    setMaxTokensAllowed = allowTokens.setMaxTokensAllowed.encode_input(newLimit)
+    print(setMaxTokensAllowed)
+
+    tx = multiSig.submitTransaction(allowTokens.address, 0, setMaxTokensAllowed)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
 def setFeeAndMinPerToken(token, feeConst, minAmount):
     abiFileBridge =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
     abiFileAllowTokens =  open('./scripts/contractInteraction/bridge-multisig/AllowTokens.json')
@@ -107,6 +148,7 @@ def allowToken(token):
     tx = multiSig.submitTransaction(allowTokens.address, 0, addAllowTokenData)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
+
 def sendTokensToETHFromMultisig(token, receiver, amount):
     abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
     abi = json.load(abiFile)
