@@ -443,6 +443,16 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         _expectBalances(address(this), tokensParam, amounts);
         _expectBalances(bob, tokensParam, amounts);
         vm.stopPrank();
+
+        vm.revertTo(snapshot);
+
+        vm.startPrank(bob);
+        vm.deal(bob, 0 ether);
+        vm.expectRevert("SafeDepositsSender: Only Safe");
+        this.withdraw(tokensParam, amounts, bob);
+        vm.expectRevert("SafeDepositsSender: Only Safe");
+        this.withdrawAll(tokensParam, bob);
+        vm.stopPrank();
     }
 
     function _expectBalancesZero(address _address, address[] memory _tokens) internal {
