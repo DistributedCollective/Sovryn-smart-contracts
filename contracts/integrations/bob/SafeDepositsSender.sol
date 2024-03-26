@@ -35,8 +35,8 @@ contract SafeDepositsSender is ISafeDepositsSender {
 
     GnosisSafe private immutable SAFE;
     address private immutable SOV_TOKEN_ADDRESS;
-    address private LOCK_DROP_ADDRESS;
     address private DEPOSITOR_ADDRESS;
+    address private lockDropAddress;
     uint256 private stopBlock; // if set the contract is stopped forever - irreversible
     bool private paused;
 
@@ -52,9 +52,9 @@ contract SafeDepositsSender is ISafeDepositsSender {
         require(_sovToken != address(0), "SafeDepositsSender: Invalid sov token address");
         require(_depositor != address(0), "SafeDepositsSender: Invalid depositor token address");
         SAFE = GnosisSafe(_safeAddress);
-        LOCK_DROP_ADDRESS = _lockDrop;
         SOV_TOKEN_ADDRESS = _sovToken;
         DEPOSITOR_ADDRESS = _depositor;
+        lockDropAddress = _lockDrop;
     }
 
     receive() external payable {}
@@ -139,7 +139,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 data = abi.encodeWithSignature("depositEth()");
                 require(
                     SAFE.execTransactionFromModule(
-                        LOCK_DROP_ADDRESS,
+                        lockDropAddress,
                         amounts[i],
                         data,
                         GnosisSafe.Operation.Call
@@ -166,7 +166,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
 
                 data = abi.encodeWithSignature(
                     "approve(address,uint256)",
-                    LOCK_DROP_ADDRESS,
+                    lockDropAddress,
                     amounts[i]
                 );
                 require(
@@ -181,7 +181,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 );
                 require(
                     SAFE.execTransactionFromModule(
-                        LOCK_DROP_ADDRESS,
+                        lockDropAddress,
                         0,
                         data,
                         GnosisSafe.Operation.Call
@@ -201,12 +201,12 @@ contract SafeDepositsSender is ISafeDepositsSender {
                     "SafeDepositsSender: Could not execute ether transfer"
                 );
             }
-            emit DepositToLockdrop(tokens[i], amounts[i]);
+            emit DepositToLockdrop(lockDropAddress, tokens[i], amounts[i]);
             emit WithdrawBalanceFromSafe(tokens[i], balance);
         }
 
         // transfer SOV
-        data = abi.encodeWithSignature("approve(address,uint256)", LOCK_DROP_ADDRESS, sovAmount);
+        data = abi.encodeWithSignature("approve(address,uint256)", lockDropAddress, sovAmount);
         require(
             SAFE.execTransactionFromModule(SOV_TOKEN_ADDRESS, 0, data, GnosisSafe.Operation.Call),
             "SafeDepositsSender: Could not execute SOV token transfer"
@@ -217,11 +217,11 @@ contract SafeDepositsSender is ISafeDepositsSender {
             sovAmount
         );
         require(
-            SAFE.execTransactionFromModule(LOCK_DROP_ADDRESS, 0, data, GnosisSafe.Operation.Call),
+            SAFE.execTransactionFromModule(lockDropAddress, 0, data, GnosisSafe.Operation.Call),
             "Could not execute SOV transfer"
         );
 
-        emit DepositSOVToLockdrop(sovAmount);
+        emit DepositSOVToLockdrop(lockDropAddress, sovAmount);
     }
 
     /// @notice Maps depositor on ethereum to receiver on BOB
@@ -254,8 +254,8 @@ contract SafeDepositsSender is ISafeDepositsSender {
      */
     function setLockDropAddress(address _newLockdrop) external onlySafe {
         require(_newLockdrop != address(0), "SafeDepositsSender: Zero address not allowed");
-        emit SetLockDropAddress(LOCK_DROP_ADDRESS, _newLockdrop);
-        LOCK_DROP_ADDRESS = _newLockdrop;
+        emit SetLockDropAddress(lockDropAddress, _newLockdrop);
+        lockDropAddress = _newLockdrop;
     }
 
     /**
@@ -354,7 +354,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
     }
 
     function getLockDropAddress() external view returns (address) {
-        return LOCK_DROP_ADDRESS;
+        return lockDropAddress;
     }
 
     function getSovTokenAddress() external view returns (address) {

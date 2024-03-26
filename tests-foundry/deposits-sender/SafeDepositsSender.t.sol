@@ -228,10 +228,10 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         // in effect Safe should have 0 balance on all tokens except SOV and native token
         for (uint256 i = 0; i < numberOfTokens; i++) {
             vm.expectEmit();
-            emit DepositToLockdrop(address(tokens[i]), amounts[i]);
+            emit DepositToLockdrop(address(lockDrop), address(tokens[i]), amounts[i]);
             emit WithdrawBalanceFromSafe(address(tokens[i]), amounts[i]);
         }
-        emit DepositSOVToLockdrop(sovAmount / 2);
+        emit DepositSOVToLockdrop(address(lockDrop), sovAmount / 2);
         this.sendToLockDropContract(tokensParam, amounts, sovAmount / 2);
         vm.stopPrank();
 

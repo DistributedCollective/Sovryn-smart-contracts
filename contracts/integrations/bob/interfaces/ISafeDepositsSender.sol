@@ -3,9 +3,9 @@ pragma solidity 0.8.17;
 
 interface ISafeDepositsSender {
     event Withdraw(address indexed from, address indexed token, uint256 amount);
-    event DepositToLockdrop(address indexed token, uint256 amount);
+    event DepositToLockdrop(address indexed lockDrop, address indexed token, uint256 amount);
+    event DepositSOVToLockdrop(address indexed lockDrop, uint256 amount);
     event WithdrawBalanceFromSafe(address indexed token, uint256 balance);
-    event DepositSOVToLockdrop(uint256 amount);
     event Pause();
     event Unpause();
     event Stop();
