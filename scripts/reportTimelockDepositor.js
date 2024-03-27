@@ -42,13 +42,16 @@ async function generateReportTimelockDepositor(hardhat) {
     logger.info(`LockDrop time to left to withdrawalStartTime: ${timeLeft}`);
 
     const pk = process.env.SAFE_DEPOSITS_SENDER;
-    const wallet = new ethers.Wallet(pk);
-    const executorAddress = await wallet.getAddress();
-    const executorBalance = await ethers.provider.getBalance(executorAddress);
-    logger.info(
-        `Executor wallet address: ${executorAddress}, balance: ${new BigNumber(executorBalance.toString()).dividedBy(new BigNumber("1e18")).decimalPlaces(2)} ETH`
-    );
-
+    try {
+        const wallet = new ethers.Wallet(pk);
+        const executorAddress = await wallet.getAddress();
+        const executorBalance = await ethers.provider.getBalance(executorAddress);
+        logger.info(
+            `Executor wallet address: ${executorAddress}, balance: ${new BigNumber(executorBalance.toString()).dividedBy(new BigNumber("1e18")).decimalPlaces(2)} ETH`
+        );
+    } catch (error) {
+        logger.error("Invalid or empty SAFE_DEPOSITS_SENDER address");
+    }
     let emptyBobSnapshotPrice = [];
     let exceedSlippageTolerance = [];
 
