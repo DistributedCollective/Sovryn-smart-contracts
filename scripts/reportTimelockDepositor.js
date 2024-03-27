@@ -68,7 +68,7 @@ async function generateReportTimelockDepositor(hardhat) {
 
         /** Get token decimals */
         const tokenDecimal =
-            whitelistedToken.tokenAddress == ETH_NATIVE_TOKEN_ADDRS
+            whitelistedToken.tokenAddress === ETH_NATIVE_TOKEN_ADDRS
                 ? 18
                 : await tokenContract.decimals();
 
@@ -133,7 +133,7 @@ async function generateReportTimelockDepositor(hardhat) {
         );
         if (
             !sovPriceFromBobSnapshot ||
-            sovPriceFromBobSnapshot.toString() == "0" ||
+            sovPriceFromBobSnapshot.toString() === "0" ||
             isNaN(sovPriceFromBobSnapshot)
         ) {
             emptyBobSnapshotPrice.push(whitelistedToken);

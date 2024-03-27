@@ -34,9 +34,9 @@ const CONFIG_WHITELISTED_TOKENS = require("./data/bobWhitelistedTokenListDeposit
 async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) {
     const { ethers, network, deployments } = hardhat;
     let WHITELISTED_TOKENS = [];
-    if (network.name == "ethMainnet" || network.name == "tenderlyForkedEthMainnet") {
+    if (network.name === "ethMainnet" || network.name === "tenderlyForkedEthMainnet") {
         WHITELISTED_TOKENS = CONFIG_WHITELISTED_TOKENS.mainnet;
-    } else if (network.name == "sepolia") {
+    } else if (network.name === "sepolia") {
         WHITELISTED_TOKENS = CONFIG_WHITELISTED_TOKENS.sepolia;
     } else {
         throw new Error("Network not supported");
@@ -90,7 +90,7 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
             whitelistedToken.tokenAddress
         );
         const tokenDecimal =
-            whitelistedToken.tokenAddress == ETH_NATIVE_TOKEN_ADDRS
+            whitelistedToken.tokenAddress === ETH_NATIVE_TOKEN_ADDRS
                 ? 18
                 : await tokenContract.decimals();
 
@@ -123,7 +123,7 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
                 yesterdayDate,
                 allBobPriceSnapshot
             );
-            if (!sovPrice || sovPrice.toString() == "0" || isNaN(sovPrice)) {
+            if (!sovPrice || sovPrice.toString() === "0" || isNaN(sovPrice)) {
                 throw new Error(
                     `getPriceByDateFromBobSnapshot: empty price data from bob snapshot for token ${whitelistedToken.tokenName} - ${whitelistedToken.tokenAddress}`
                 );
@@ -222,7 +222,9 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
         logger.error(
             `insufficient SOV Amount, need: ${totalSovAmount.toString()} , got: ${safeSOVBalance.toString()}`
         );
+
         /** @TODO Trigger alert to discord maybe */
+        return;
     }
 
     logger.info("Token list to send..");
@@ -320,7 +322,7 @@ async function getSovPrice(hardhat, whitelistedTokenConfig, log = true) {
 
         // if last index is not TOKEN <> SOV pool, it will revert
         if (
-            index == whitelistedTokenConfig.pricingRoutePath.length - 1 &&
+            index === whitelistedTokenConfig.pricingRoutePath.length - 1 &&
             poolToken0.toLowerCase() != SovDeployment.address.toLowerCase() &&
             poolToken1.toLowerCase() != SovDeployment.address.toLowerCase()
         ) {
@@ -345,26 +347,26 @@ async function getSovPrice(hardhat, whitelistedTokenConfig, log = true) {
         let decimalDiff = token0Decimal - token1Decimal;
 
         let price;
-        if (index == whitelistedTokenConfig.pricingRoutePath.length - 1) {
+        if (index === whitelistedTokenConfig.pricingRoutePath.length - 1) {
             /** For last route, which is sov, we get the price in SOV unit instead */
             price =
-                poolToken0.toLowerCase() == wethAddress.toLowerCase()
+                poolToken0.toLowerCase() === wethAddress.toLowerCase()
                     ? new BigNumber(rawPrice)
                     : new BigNumber(1).div(new BigNumber(rawPrice)); // always in SOV Unit
             decimalDiff =
-                poolToken0.toLowerCase() == wethAddress.toLowerCase()
+                poolToken0.toLowerCase() === wethAddress.toLowerCase()
                     ? decimalDiff
                     : decimalDiff * -1;
         } else {
             /** For non last route, we get the price in WETH unit */
             price =
-                poolToken0.toLowerCase() == wethAddress.toLowerCase()
+                poolToken0.toLowerCase() === wethAddress.toLowerCase()
                     ? new BigNumber(1).div(new BigNumber(rawPrice))
                     : new BigNumber(rawPrice); // always in WETH Unit
 
             /**  */
             decimalDiff =
-                poolToken0.toLowerCase() == wethAddress.toLowerCase()
+                poolToken0.toLowerCase() === wethAddress.toLowerCase()
                     ? decimalDiff * -1
                     : decimalDiff;
         }
@@ -373,7 +375,7 @@ async function getSovPrice(hardhat, whitelistedTokenConfig, log = true) {
             price = price.multipliedBy(new BigNumber(`1e${decimalDiff}`));
         }
 
-        if (previousRoutePrice == 0) {
+        if (previousRoutePrice === 0) {
             latestPrice = price;
         } else {
             // previousRoutePrice always be in ETH unit, so to normalize we need to do the ^1e18
@@ -437,19 +439,19 @@ async function getPriceByDateFromBobSnapshot(
     date,
     allBobPriceSnapshot
 ) {
-    if (sourceTokenAddress == ETH_NATIVE_TOKEN_ADDRS) sourceTokenAddress = ZERO_ADDRESS;
-    if (destinationTokenAddress == ETH_NATIVE_TOKEN_ADDRS) destinationTokenAddress = ZERO_ADDRESS;
+    if (sourceTokenAddress === ETH_NATIVE_TOKEN_ADDRS) sourceTokenAddress = ZERO_ADDRESS;
+    if (destinationTokenAddress === ETH_NATIVE_TOKEN_ADDRS) destinationTokenAddress = ZERO_ADDRESS;
 
     /** For WETH, we use ETH instead */
-    if (sourceTokenAddress == CONFIG_CONTRACT_ADDRESSES.mainnet.weth)
+    if (sourceTokenAddress === CONFIG_CONTRACT_ADDRESSES.mainnet.weth)
         sourceTokenAddress = ZERO_ADDRESS;
-    if (destinationTokenAddress == CONFIG_CONTRACT_ADDRESSES.mainnet.weth)
+    if (destinationTokenAddress === CONFIG_CONTRACT_ADDRESSES.mainnet.weth)
         destinationTokenAddress = ZERO_ADDRESS;
 
     const price = allBobPriceSnapshot.filter((priceSnapshotObj) => {
         return (
-            priceSnapshotObj.token_address.toLowerCase() == sourceTokenAddress.toLowerCase() &&
-            priceSnapshotObj.ts == date
+            priceSnapshotObj.token_address.toLowerCase() === sourceTokenAddress.toLowerCase() &&
+            priceSnapshotObj.ts === date
         );
     });
 
@@ -467,8 +469,8 @@ async function getPriceByDateFromBobSnapshot(
 
     const destTokenPrice = allBobPriceSnapshot.filter((priceSnapshotObj) => {
         return (
-            priceSnapshotObj.token_address.toLowerCase() ==
-                destinationTokenAddress.toLowerCase() && priceSnapshotObj.ts == date
+            priceSnapshotObj.token_address.toLowerCase() ===
+                destinationTokenAddress.toLowerCase() && priceSnapshotObj.ts === date
         );
     });
 
@@ -506,7 +508,7 @@ async function getSovAmountByQuoter(hardhat, tokenInAddress, tokenOutAddress, am
 
 async function getTokenBalance(hardhat, tokenAddress, holderAdress, provider) {
     const { ethers } = hardhat;
-    if (tokenAddress == ETH_NATIVE_TOKEN_ADDRS) {
+    if (tokenAddress === ETH_NATIVE_TOKEN_ADDRS) {
         return await provider.getBalance(holderAdress);
     } else {
         const tokenContract = await ethers.getContractAt("TestToken", tokenAddress);
