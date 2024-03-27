@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // import "forge-std/console.sol";
 import { stdStorage, StdStorage, Test, console } from "forge-std/Test.sol";
 import { ILockDrop } from "@contracts/integrations/bob/interfaces/ILockDrop.sol";
-import { SafeDepositsSender } from "@contracts/integrations/bob/SafeDepositsSender.sol";
+import { SafeDepositsSender, GnosisSafe } from "@contracts/integrations/bob/SafeDepositsSender.sol";
 import { ISafeDepositsSender } from "@contracts/integrations/bob/interfaces/ISafeDepositsSender.sol";
 import { Utilities } from "./Utilities.sol";
 
@@ -62,13 +62,6 @@ contract MockLockDrop {
     }
 }
 
-library Enum {
-    enum Operation {
-        Call,
-        DelegateCall
-    }
-}
-
 contract SafeMock {
     /**
      * @notice Executes either a delegatecall or a call with provided parameters.
@@ -85,10 +78,10 @@ contract SafeMock {
         address to,
         uint256 value,
         bytes memory data,
-        Enum.Operation operation,
+        GnosisSafe.Operation operation,
         uint256 txGas
     ) internal returns (bool success) {
-        if (operation == Enum.Operation.DelegateCall) {
+        if (operation == GnosisSafe.Operation.DelegateCall) {
             /* solhint-disable no-inline-assembly */
             /// @solidity memory-safe-assembly
             assembly {
@@ -118,7 +111,7 @@ contract SafeMock {
         address to,
         uint256 value,
         bytes memory data,
-        Enum.Operation operation
+        GnosisSafe.Operation operation
     ) public returns (bool success) {
         // (address guard, bytes32 guardHash) = preModuleExecution(to, value, data, operation);
         success = execute(to, value, data, operation, type(uint256).max);
@@ -453,6 +446,14 @@ contract SafeDepositsSenderTest is SafeDepositsSender, Test {
         vm.expectRevert("SafeDepositsSender: Only Safe");
         this.withdrawAll(tokensParam, bob);
         vm.stopPrank();
+    }
+
+    function test_execTransactionFromSafe() public {
+        bytes memory data = abi.encodeWithSignature("approve(address,uint256)", alice, 111 ether);
+        vm.startPrank(address(safe));
+        this.execTransactionFromSafe(address(sov), 0, data, GnosisSafe.Operation.Call);
+        vm.stopPrank();
+        assertEq(sov.allowance(address(this), alice), 111 ether);
     }
 
     function _expectBalancesZero(address _address, address[] memory _tokens) internal {
