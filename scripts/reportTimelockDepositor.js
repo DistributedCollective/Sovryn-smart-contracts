@@ -73,11 +73,9 @@ async function generateReportTimelockDepositor(hardhat) {
                 : await tokenContract.decimals();
 
         /** Get token balance for LockDrop */
-        let lockDropBalance = await getTokenBalance(
-            hardhat,
-            whitelistedToken.tokenAddress,
-            lockDropDeployment.address,
-            ethers.provider
+        let lockDropBalance = await lockDropContract.deposits(
+            safeDeployment.address,
+            whitelistedToken.tokenAddress
         );
         lockDropBalance = normalizeTokenNumber(lockDropBalance, tokenDecimal);
         tokenBalancesDetail.lockDrop.push({
@@ -158,11 +156,9 @@ async function generateReportTimelockDepositor(hardhat) {
 
     const sovContract = await ethers.getContract("SOV");
     const sovDecimal = await sovContract.decimals();
-    let lockDropSovBalance = await getTokenBalance(
-        hardhat,
-        sovDeployment.address,
-        lockDropDeployment.address,
-        ethers.provider
+    let lockDropSovBalance = await lockDropContract.deposits(
+        safeDeployment.address,
+        sovDeployment.address
     );
     let safeSovBalance = await getTokenBalance(
         hardhat,
