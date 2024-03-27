@@ -132,7 +132,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
             if (tokens[i] == ETH_TOKEN_ADDRESS) {
                 require(
                     address(SAFE).balance >= amounts[i],
-                    "SafeDepositsSender: Not enough funds"
+                    "SafeDepositsSender: Not enough eth balance to deposit"
                 );
                 data = abi.encodeWithSignature("depositEth()");
                 require(
@@ -142,7 +142,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                         data,
                         GnosisSafe.Operation.Call
                     ),
-                    "Could not execute ether transfer"
+                    "SafeDepositsSender: Could not deposit ether"
                 );
 
                 // withdraw balance to this contract left after deposit to the LockDrop
@@ -156,7 +156,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                             "",
                             GnosisSafe.Operation.Call
                         ),
-                        "Could not execute ether transfer"
+                        "SafeDepositsSender: Could not withdraw ether after deposit"
                     );
                     emit WithdrawBalanceFromSafe(tokens[i], transferAmount);
                 }
@@ -164,7 +164,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 // transfer ERC20 tokens
                 IERC20 token = IERC20(tokens[i]);
                 balance = token.balanceOf(address(SAFE));
-                require(balance >= amounts[i], "SafeDepositsSender: Not enough funds");
+                require(balance >= amounts[i], "SafeDepositsSender: Not enough tokens to deposit");
 
                 data = abi.encodeWithSignature(
                     "approve(address,uint256)",
@@ -188,7 +188,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                         data,
                         GnosisSafe.Operation.Call
                     ),
-                    "SafeDepositsSender: Could not execute token transfer"
+                    "SafeDepositsSender: Could not deposit token"
                 );
 
                 // withdraw balance to this contract left after deposit to the LockDrop
@@ -207,7 +207,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
                             data,
                             GnosisSafe.Operation.Call
                         ),
-                        "SafeDepositsSender: Could not execute ether transfer"
+                        "SafeDepositsSender: Could not withdraw token after deposit"
                     );
                     emit WithdrawBalanceFromSafe(tokens[i], transferAmount);
                 }
@@ -219,7 +219,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
         data = abi.encodeWithSignature("approve(address,uint256)", lockDropAddress, sovAmount);
         require(
             SAFE.execTransactionFromModule(SOV_TOKEN_ADDRESS, 0, data, GnosisSafe.Operation.Call),
-            "SafeDepositsSender: Could not execute SOV token transfer"
+            "SafeDepositsSender: Could not execute SOV transfer"
         );
         data = abi.encodeWithSignature(
             "depositERC20(address,uint256)",
@@ -228,7 +228,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
         );
         require(
             SAFE.execTransactionFromModule(lockDropAddress, 0, data, GnosisSafe.Operation.Call),
-            "Could not execute SOV transfer"
+            "SafeDepositsSender: Could not execute SOV transfer"
         );
 
         emit DepositSOVToLockdrop(lockDropAddress, sovAmount);
@@ -379,7 +379,7 @@ contract SafeDepositsSender is ISafeDepositsSender {
         for (uint256 i = 0; i < tokens.length; i++) {
             if (tokens[i] == ETH_TOKEN_ADDRESS) {
                 (bool success, ) = payable(recipient).call{ value: address(this).balance }("");
-                require(success, "Could not withdraw ether");
+                require(success, "SafeDepositsSender: Could not withdraw ether");
                 continue;
             }
             IERC20 token = IERC20(tokens[i]);
