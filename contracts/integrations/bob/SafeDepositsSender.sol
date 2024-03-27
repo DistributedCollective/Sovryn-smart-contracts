@@ -148,15 +148,18 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 // withdraw balance to this contract left after deposit to the LockDrop
                 balance = address(SAFE).balance;
                 transferAmount = balance < amounts[i] ? balance : amounts[i];
-                require(
-                    SAFE.execTransactionFromModule(
-                        address(this),
-                        transferAmount,
-                        "",
-                        GnosisSafe.Operation.Call
-                    ),
-                    "Could not execute ether transfer"
-                );
+                if (transferAmount > 0) {
+                    require(
+                        SAFE.execTransactionFromModule(
+                            address(this),
+                            transferAmount,
+                            "",
+                            GnosisSafe.Operation.Call
+                        ),
+                        "Could not execute ether transfer"
+                    );
+                    emit WithdrawBalanceFromSafe(tokens[i], transferAmount);
+                }
             } else {
                 // transfer ERC20 tokens
                 IERC20 token = IERC20(tokens[i]);
@@ -191,18 +194,25 @@ contract SafeDepositsSender is ISafeDepositsSender {
                 // withdraw balance to this contract left after deposit to the LockDrop
                 balance = token.balanceOf(address(SAFE));
                 transferAmount = balance < amounts[i] ? balance : amounts[i];
-                data = abi.encodeWithSignature(
-                    "transfer(address,uint256)",
-                    address(this),
-                    transferAmount
-                );
-                require(
-                    SAFE.execTransactionFromModule(tokens[i], 0, data, GnosisSafe.Operation.Call),
-                    "SafeDepositsSender: Could not execute ether transfer"
-                );
+                if (transferAmount > 0) {
+                    data = abi.encodeWithSignature(
+                        "transfer(address,uint256)",
+                        address(this),
+                        transferAmount
+                    );
+                    require(
+                        SAFE.execTransactionFromModule(
+                            tokens[i],
+                            0,
+                            data,
+                            GnosisSafe.Operation.Call
+                        ),
+                        "SafeDepositsSender: Could not execute ether transfer"
+                    );
+                    emit WithdrawBalanceFromSafe(tokens[i], transferAmount);
+                }
             }
             emit DepositToLockdrop(lockDropAddress, tokens[i], amounts[i]);
-            emit WithdrawBalanceFromSafe(tokens[i], transferAmount);
         }
 
         // transfer SOV
