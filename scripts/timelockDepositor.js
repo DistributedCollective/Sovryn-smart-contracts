@@ -451,7 +451,7 @@ async function getPriceByDateFromBobSnapshot(
     const price = allBobPriceSnapshot.filter((priceSnapshotObj) => {
         return (
             priceSnapshotObj.token_address.toLowerCase() === sourceTokenAddress.toLowerCase() &&
-            priceSnapshotObj.ts === date
+            priceSnapshotObj.closing_day === date
         );
     });
 
@@ -470,7 +470,7 @@ async function getPriceByDateFromBobSnapshot(
     const destTokenPrice = allBobPriceSnapshot.filter((priceSnapshotObj) => {
         return (
             priceSnapshotObj.token_address.toLowerCase() ===
-                destinationTokenAddress.toLowerCase() && priceSnapshotObj.ts === date
+                destinationTokenAddress.toLowerCase() && priceSnapshotObj.closing_day === date
         );
     });
 
