@@ -305,7 +305,7 @@ module.exports = {
         tenderlyForkedEthMainnet: {
             chainId: 1,
             accounts: mainnetAccounts,
-            url: "https://rpc.tenderly.co/fork/ce38ffb8-a82c-4a9e-8741-625c11a7331d",
+            url: "https://rpc.tenderly.co/fork/7ddd4a8d-fa32-4664-ae92-546828264c6f",
             live: true,
             tags: ["mainnet", "forked"],
         },
