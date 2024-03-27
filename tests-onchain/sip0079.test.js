@@ -91,7 +91,7 @@ describe("SIP-0079 test onchain", () => {
                     {
                         forking: {
                             jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
-                            blockNumber: 6196500,
+                            blockNumber: 6201800,
                         },
                     },
                 ],
