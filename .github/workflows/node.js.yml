@@ -49,7 +49,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Installing Packages
-        run: npm ci
+        run: npm ci --parallel=1
       - name: Checking Formatting
         run: npm run lint &&  npm run prettier && npm run prettier-check
       - name: Running Test

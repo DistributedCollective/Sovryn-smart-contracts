@@ -50,7 +50,10 @@ typechain/
 !.github/
 */deployments/localhost
 */deployments/*forked*
+!*/deployments/ethBobTenderyForkedMainnet
+!*/deployments/tenderlyForkedEthMainnet
 venv/
 !/external/artifacts/
 cache_hardhat/
 foundry/
+!remappings.txt

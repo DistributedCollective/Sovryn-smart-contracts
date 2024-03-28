@@ -19,11 +19,15 @@ require("./hardhat/tasks");
 require("dotenv").config();
 require("@secrez/cryptoenv").parse();
 
+// const tdly = require("@tenderly/hardhat-tenderly");
+// tdly.setup({ automaticVerifications: true });
+
 const mnemonic = { mnemonic: "test test test test test test test test test test test junk" };
 const testnetPKs = [
     process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "",
     process.env.TESTNET_SIGNER_PRIVATE_KEY ?? "",
     process.env.TESTNET_SIGNER_PRIVATE_KEY_2 ?? "",
+    process.env.SAFE_DEPOSITS_SENDER ?? "", // safe deposit sender
 ].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
 const testnetAccounts = testnetPKs.length > 0 ? testnetPKs : mnemonic;
 
@@ -31,6 +35,7 @@ const mainnetPKs = [
     process.env.MAINNET_DEPLOYER_PRIVATE_KEY ?? "",
     process.env.PROPOSAL_CREATOR_PRIVATE_KEY ?? "",
     process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "", //mainnet signer2
+    process.env.SAFE_DEPOSITS_SENDER ?? "", // safe deposit sender
 ].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
 const mainnetAccounts = mainnetPKs.length > 0 ? mainnetPKs : mnemonic;
 
@@ -132,7 +137,7 @@ module.exports = {
     abiExporter: {
         clear: true,
         runOnCompile: true,
-        flat: true,
+        flat: false,
         spacing: 4,
     },
     contractSizer: {
@@ -158,6 +163,9 @@ module.exports = {
         },
         proposer2: {
             default: 1,
+        },
+        safeDepositSender: {
+            default: 3,
         },
     },
     networks: {
@@ -261,15 +269,30 @@ module.exports = {
             chainId: 1,
             url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
             accounts: mainnetAccounts,
+            tags: ["mainnet"],
+        },
+        ethForkedMainnet: {
+            chainId: 31337,
+            accounts: mainnetAccounts,
+            url: "http://127.0.0.1:8545",
+            gasPrice: 50000000,
+            live: true,
+            tags: ["mainnet", "forked"],
+            timeout: 100000,
+        },
+        ethSepoliaTestnet: {
+            chainId: 11155111,
+            url: `https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
+            accounts: testnetAccounts,
+            tags: ["testnet"],
         },
         bobTestnet: {
-            url: "https://testnet.rpc.gobob.xyz/",
-            chainId: 111,
+            url: "https://bob-sepolia.rpc.caldera.xyz/http",
+            chainId: 9900367,
             accounts: testnetAccounts,
             gasPrice: 50000000,
             tags: ["testnet"],
         },
-
         bobForkedTestnet: {
             chainId: 31337,
             accounts: testnetAccounts,
@@ -278,6 +301,13 @@ module.exports = {
             live: true,
             tags: ["testnet", "forked"],
             timeout: 100000,
+        },
+        tenderlyForkedEthMainnet: {
+            chainId: 1,
+            accounts: mainnetAccounts,
+            url: "https://rpc.tenderly.co/fork/7ddd4a8d-fa32-4664-ae92-546828264c6f",
+            live: true,
+            tags: ["mainnet", "forked"],
         },
     },
     paths: {
@@ -324,7 +354,17 @@ module.exports = {
                 "external/deployments/bobTestnet",
                 "deployment/deployments/bobTestnet",
             ],
-            ethMainnet: ["external/deployments/ethMainnet", "deployment/deployments/ethMainnet"],
+            ethMainnet: ["external/deployments/ethMainnet"],
+            ethForkedMainnet: [
+                "external/deployments/ethMainnet",
+                "deployment/deployments/ethMainnet",
+            ],
+            ethSepoliaTestnet: ["external/deployments/ethSepoliaTestnet"],
+            tenderlyForkedEthMainnet: [
+                "external/deployments/ethMainnet",
+                "deployment/deployments/ethMainnet",
+                "external/deployments/tenderlyForkedEthMainnet",
+            ],
         },
     },
     typechain: {
@@ -336,5 +376,9 @@ module.exports = {
     },
     mocha: {
         timeout: 800000,
+    },
+    tenderly: {
+        username: process.env.TENDERLY_USERNAME,
+        project: process.env.TENDERLY_PROJECT,
     },
 };
