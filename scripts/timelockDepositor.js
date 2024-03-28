@@ -34,7 +34,12 @@ const CONFIG_WHITELISTED_TOKENS = require("./data/bobWhitelistedTokenListDeposit
 async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) {
     const { ethers, network, deployments } = hardhat;
     let WHITELISTED_TOKENS = [];
-    if (network.name === "ethMainnet" || network.name === "tenderlyForkedEthMainnet") {
+    if (
+        network.name === "ethMainnet" ||
+        network.name === "tenderlyForkedEthMainnet" ||
+        network.tags.mainnet ||
+        network.tags.testnet
+    ) {
         WHITELISTED_TOKENS = CONFIG_WHITELISTED_TOKENS.mainnet;
     } else if (network.name === "sepolia") {
         WHITELISTED_TOKENS = CONFIG_WHITELISTED_TOKENS.sepolia;
@@ -48,6 +53,8 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
             : process.env.SAFE_DEPOSITS_SENDER;
         const wallet = new ethers.Wallet(pk);
         signer = wallet.connect(ethers.provider);
+    } else {
+        signer = await ethers.getSigner(signer);
     }
 
     const { get } = deployments;
@@ -102,7 +109,9 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
             ethers.provider
         );
 
-        logger.info(`token ${whitelistedToken.tokenName} balance: ${tokenBalance}`);
+        logger.info(
+            `${whitelistedToken.tokenName} balance: ${ethers.utils.formatEther(tokenBalance.toString())}`
+        );
 
         /** Process 50% of token balance */
         const processedTokenAmount = ethers.BigNumber.from(tokenBalance).div(
@@ -110,7 +119,7 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
         );
 
         logger.info(
-            `Proocessing 50% of ${whitelistedToken.tokenName} balance: ${processedTokenAmount.toString()}`
+            `Proocessing 50% of ${whitelistedToken.tokenName} balance: ${ethers.utils.formatEther(processedTokenAmount.toString())}`
         );
 
         /** Get SOV Amount for the token */
@@ -187,13 +196,13 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
         /** Compare the full USD Value to the threshold config */
         if (fullProcessedUsdAmountInUsd.lt(TOKEN_BALANCE_THRESHOLD_IN_USD)) {
             logger.warning(
-                `token ${whitelistedToken.tokenName} still below the threshold of USD Threshold value to process the transfer to timelock: threshold: ${TOKEN_BALANCE_THRESHOLD_IN_USD}, balance: ${fullProcessedUsdAmountInUsd.toString()}`
+                `${whitelistedToken.tokenName} balance ${fullProcessedUsdAmountInUsd.toString()} < threshold value to send to LockDrop: ${TOKEN_BALANCE_THRESHOLD_IN_USD}$`
             );
             continue;
         }
 
         logger.info(
-            `token ${whitelistedToken.tokenName} will be processed, threshold: ${TOKEN_BALANCE_THRESHOLD_IN_USD}, value in USD: ${fullProcessedUsdAmountInUsd.toString()}`
+            `token ${whitelistedToken.tokenName} will be processed (USD value: ${fullProcessedUsdAmountInUsd.toString()})`
         );
 
         tokensNameToSend.push(whitelistedToken.tokenName);
@@ -412,7 +421,7 @@ async function getPriceFromRskSovrynPriceFeed(hardhat, sourceTokenAddress, destT
         new BigNumber(price[1].toString())
     );
 
-    console.log(`${sourceTokenAddress}: ${finalPrice}`);
+    // console.log(`${sourceTokenAddress}: ${finalPrice}`);
 
     return finalPrice;
 }

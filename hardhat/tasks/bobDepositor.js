@@ -11,7 +11,7 @@ task("bob:generate-report-depositor", "Generate report depositor").setAction(asy
 });
 
 task("bob:execute-timelock-depositor", "Generate report depositor")
-    .addOptionalParam("dryRun", "dry run flag, if true, it will not execute the transfer", "1") // dry run is true by default
+    .addFlag("dryRun", "Dry run flag")
     .addOptionalParam(
         "signer",
         "Signer name: 'signer' or 'deployer' or 'safeDepositSender'",
@@ -21,11 +21,12 @@ task("bob:execute-timelock-depositor", "Generate report depositor")
         const {
             deployments: { get },
         } = hre;
-        const signerAcc = (await hre.getNamedAccounts())[signer];
-        dryRun = Boolean(parseInt(dryRun));
+        const signerAcc = ethers.utils.isAddress(signer)
+            ? signer
+            : (await hre.getNamedAccounts())[signer];
 
-        logger.info(
-            `dryRun is ${dryRun}, it will not execute the transfer, pass dryRun as false to execute the transfer transaction`
-        );
-        await executeTimeLockDepositor(hre, signer, dryRun);
+        if (dryRun) {
+            logger.warn(`Dry run - it will not execute the transfer`);
+        }
+        await executeTimeLockDepositor(hre, signerAcc, dryRun);
     });
