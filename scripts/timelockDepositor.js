@@ -64,14 +64,27 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
     const safeMultisigContract = await ethers.getContract("SafeBobDeposits");
     const SovDeployment = await get("SOV");
 
-    const yesterdayDate = moment().subtract("1", "day").format("YYYY-MM-DD");
-    if (ACTIVATE_BOB_SNAPSHOT_PRICING)
+    let yesterdayDate;
+    let allBobPriceSnapshot;
+
+    if (ACTIVATE_BOB_SNAPSHOT_PRICING) {
+        yesterdayDate = moment().utc().subtract("1", "day").format("YYYY-MM-DD");
         logger.info(`Yesterday date for bob snapshot pricing: ${yesterdayDate}`);
 
-    const allBobPriceSnapshot = await getAllPricesFromBobSnapshotApi();
-    if (!allBobPriceSnapshot.length) {
-        logger.error("Bob snapshot price is empty");
-        return;
+        allBobPriceSnapshot = await getAllPricesFromBobSnapshotApi();
+        if (!allBobPriceSnapshot.length) {
+            logger.error("Bob snapshot price is empty");
+            return;
+        }
+        const sovPriceSnapshot = allBobPriceSnapshot.filter((priceSnapshotObj) => {
+            return (
+                priceSnapshotObj.token_address.toLowerCase() ===
+                    SovDeployment.address.toLowerCase() &&
+                priceSnapshotObj.closing_day === yesterdayDate
+            );
+        });
+
+        logger.info(`Yesterday SOV price: ${sovPriceSnapshot[0].price}`);
     }
 
     /** Check Paused */
@@ -110,7 +123,7 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
         );
 
         logger.info(
-            `${whitelistedToken.tokenName} balance: ${ethers.utils.formatEther(tokenBalance.toString())}`
+            `${whitelistedToken.tokenName} balance: ${ethers.utils.formatUnits(tokenBalance.toString(), tokenDecimal)}`
         );
 
         /** Process 50% of token balance */
@@ -119,7 +132,7 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
         );
 
         logger.info(
-            `Proocessing 50% of ${whitelistedToken.tokenName} balance: ${ethers.utils.formatEther(processedTokenAmount.toString())}`
+            `Proocessing 50% of ${whitelistedToken.tokenName} balance: ${ethers.utils.formatUnits(processedTokenAmount.toString(), tokenDecimal)}`
         );
 
         /** Get SOV Amount for the token */
@@ -186,7 +199,7 @@ async function executeTimeLockDepositor(hardhat, signer = null, dryRun = false) 
             CONFIG_CONTRACT_ADDRESSES.rskMainnet.sov,
             CONFIG_CONTRACT_ADDRESSES.rskMainnet.xusd
         );
-        logger.info(`SOV Price in USD: ${sovPriceInUsd}`);
+        logger.info(`Current SOV Price in USD: ${sovPriceInUsd}`);
 
         /** USD Price for 100% processed token */
         const fullProcessedUsdAmountInUsd = sovPriceInUsd
