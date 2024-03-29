@@ -60,6 +60,8 @@ async function generateReportTimelockDepositor(hardhat) {
         safe: [],
     };
 
+    let wholeLockDropTokenBalances = {};
+
     let totalSovRequiredLockDrop = 0;
     let totalSovRequiredSafe = 0;
     for (const whitelistedToken of CONFIG_WHITELISTED_TOKENS.mainnet) {
@@ -75,7 +77,7 @@ async function generateReportTimelockDepositor(hardhat) {
                 ? 18
                 : await tokenContract.decimals();
 
-        /** Get token balance for LockDrop */
+        /** Get token balance for our Safe only for LockDrop */
         let lockDropBalance = await lockDropContract.deposits(
             safeDeployment.address,
             whitelistedToken.tokenAddress
@@ -88,6 +90,22 @@ async function generateReportTimelockDepositor(hardhat) {
                 ? lockDropBalance.decimalPlaces(2).toString()
                 : "0",
         });
+
+        /** Get token balance for our Safe only for LockDrop */
+        let wholeLockDropBalance = await getTokenBalance(
+            hardhat,
+            whitelistedToken.tokenAddress,
+            lockDropDeployment.address,
+            ethers.provider
+        );
+        wholeLockDropBalance = normalizeTokenNumber(wholeLockDropBalance, tokenDecimal);
+        wholeLockDropTokenBalances[whitelistedToken.tokenAddress] = {
+            tokenAddress: whitelistedToken.tokenAddress,
+            tokenName: whitelistedToken.tokenName,
+            tokenBalance: !wholeLockDropBalance.isNaN()
+                ? wholeLockDropBalance.decimalPlaces(2).toString()
+                : "0",
+        };
 
         /** Get token balance for Safe contract */
         let safeBalance = await getTokenBalance(
@@ -163,6 +181,12 @@ async function generateReportTimelockDepositor(hardhat) {
         safeDeployment.address,
         sovDeployment.address
     );
+    let wholeLockDropSovBalance = await getTokenBalance(
+        hardhat,
+        sovDeployment.address,
+        lockDropDeployment.address,
+        ethers.provider
+    );
     let safeSovBalance = await getTokenBalance(
         hardhat,
         sovDeployment.address,
@@ -170,6 +194,7 @@ async function generateReportTimelockDepositor(hardhat) {
         ethers.provider
     );
     lockDropSovBalance = normalizeTokenNumber(lockDropSovBalance, sovDecimal);
+    wholeLockDropSovBalance = normalizeTokenNumber(wholeLockDropSovBalance, sovDecimal);
     safeSovBalance = normalizeTokenNumber(safeSovBalance, sovDecimal);
 
     tokenBalancesDetail.lockDrop.push({
@@ -179,6 +204,14 @@ async function generateReportTimelockDepositor(hardhat) {
             ? lockDropSovBalance.decimalPlaces(2).toString()
             : "0",
     });
+
+    wholeLockDropTokenBalances[sovDeployment.address] = {
+        tokenAddress: sovDeployment.address,
+        tokenName: "SOV",
+        tokenBalance: !lockDropSovBalance.isNaN()
+            ? lockDropSovBalance.decimalPlaces(2).toString()
+            : "0",
+    };
 
     tokenBalancesDetail.safe.push({
         tokenAddress: sovDeployment.address,
@@ -190,8 +223,15 @@ async function generateReportTimelockDepositor(hardhat) {
     console.log("\n");
     logger.info("=== Bob LockDrop Contract ===");
     for (const tokenBalanceDetailLockDrop of tokenBalancesDetail.lockDrop) {
+        const totalBalanceLockDrop =
+            wholeLockDropTokenBalances[tokenBalanceDetailLockDrop.tokenAddress].tokenBalance;
+        const ratioLockDropBalance = new BigNumber(tokenBalanceDetailLockDrop.tokenBalance)
+            .dividedBy(totalBalanceLockDrop)
+            .multipliedBy(new BigNumber(100))
+            .decimalPlaces(2);
+        logger.info(`Token: balance (totalBalance, safeBalance / totalBalance %)`);
         logger.info(
-            `${tokenBalanceDetailLockDrop.tokenName}: ${tokenBalanceDetailLockDrop.tokenBalance}`
+            `${tokenBalanceDetailLockDrop.tokenName}: ${tokenBalanceDetailLockDrop.tokenBalance} (${totalBalanceLockDrop}, ${ratioLockDropBalance}%)`
         );
     }
 
