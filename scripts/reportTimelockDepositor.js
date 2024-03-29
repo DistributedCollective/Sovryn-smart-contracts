@@ -18,7 +18,8 @@ async function generateReportTimelockDepositor(hardhat) {
     const { ethers, network, deployments } = hardhat;
     const { get } = deployments;
     const lockDropDeployment = await get("BobLockDrop");
-    const safeDeployment = await get("SafeBobDeposits");
+    const safeDepositsDeployment = await get("SafeBobDeposits");
+    const safePrePreDepositsDeployment = await get("SafeBobPreDeposit"); //@todo add pre-deposits Safe balances: 0xB82c2b7Fb8678a7353A853e81108a52e2fCaa9b0
     const sovDeployment = await get("SOV");
 
     const lockDropContract = await ethers.getContract("BobLockDrop");
@@ -79,9 +80,12 @@ async function generateReportTimelockDepositor(hardhat) {
 
         /** Get token balance for our Safe only for LockDrop */
         let lockDropBalance = await lockDropContract.deposits(
-            safeDeployment.address,
-            whitelistedToken.tokenAddress
+            safeDepositsDeployment.address,
+            whitelistedToken.tokenAddress == ETH_NATIVE_TOKEN_ADDRS
+                ? ethers.constants.AddressZero
+                : whitelistedToken.tokenAddress
         );
+        // console.log("-1-");
         lockDropBalance = normalizeTokenNumber(lockDropBalance, tokenDecimal);
         tokenBalancesDetail.lockDrop.push({
             tokenAddress: whitelistedToken.tokenAddress,
@@ -106,12 +110,11 @@ async function generateReportTimelockDepositor(hardhat) {
                 ? wholeLockDropBalance.decimalPlaces(2).toString()
                 : "0",
         };
-
         /** Get token balance for Safe contract */
         let safeBalance = await getTokenBalance(
             hardhat,
             whitelistedToken.tokenAddress,
-            safeDeployment.address,
+            safeDepositsDeployment.address,
             ethers.provider
         );
         safeBalance = normalizeTokenNumber(safeBalance, tokenDecimal);
@@ -178,7 +181,7 @@ async function generateReportTimelockDepositor(hardhat) {
     const sovContract = await ethers.getContract("SOV");
     const sovDecimal = await sovContract.decimals();
     let lockDropSovBalance = await lockDropContract.deposits(
-        safeDeployment.address,
+        safeDepositsDeployment.address,
         sovDeployment.address
     );
     let wholeLockDropSovBalance = await getTokenBalance(
@@ -190,7 +193,7 @@ async function generateReportTimelockDepositor(hardhat) {
     let safeSovBalance = await getTokenBalance(
         hardhat,
         sovDeployment.address,
-        safeDeployment.address,
+        safeDepositsDeployment.address,
         ethers.provider
     );
     lockDropSovBalance = normalizeTokenNumber(lockDropSovBalance, sovDecimal);
@@ -222,6 +225,8 @@ async function generateReportTimelockDepositor(hardhat) {
     /** Process the token list lockdrop details */
     console.log("\n");
     logger.info("=== Bob LockDrop Contract ===");
+    logger.info(`Token: balance (totalBalance, safeBalance / totalBalance %)`);
+    logger.info(`===========================================================`);
     for (const tokenBalanceDetailLockDrop of tokenBalancesDetail.lockDrop) {
         const totalBalanceLockDrop =
             wholeLockDropTokenBalances[tokenBalanceDetailLockDrop.tokenAddress].tokenBalance;
@@ -229,34 +234,47 @@ async function generateReportTimelockDepositor(hardhat) {
             .dividedBy(totalBalanceLockDrop)
             .multipliedBy(new BigNumber(100))
             .decimalPlaces(2);
-        logger.info(`Token: balance (totalBalance, safeBalance / totalBalance %)`);
+        const addSpaces = " ".repeat(19 - tokenBalanceDetailLockDrop.tokenName.length);
         logger.info(
-            `${tokenBalanceDetailLockDrop.tokenName}: ${tokenBalanceDetailLockDrop.tokenBalance} (${totalBalanceLockDrop}, ${ratioLockDropBalance}%)`
+            `${tokenBalanceDetailLockDrop.tokenName + addSpaces}: ${tokenBalanceDetailLockDrop.tokenBalance} (${totalBalanceLockDrop}, ${ratioLockDropBalance}%)`
         );
     }
 
     if (totalSovRequiredLockDrop.isNaN()) totalSovRequiredLockDrop = "0";
-    logger.info(`SOV (Required): ${totalSovRequiredLockDrop}`);
+    logger.info(`SOV (Required)     : ${totalSovRequiredLockDrop}`);
 
     const sovMinusSovRequiredLockDrop = new BigNumber(
         tokenBalancesDetail.lockDrop[tokenBalancesDetail.lockDrop.length - 1].tokenBalance
     ).minus(new BigNumber(totalSovRequiredLockDrop));
-    logger.info(`SOV - SOV Required: ${sovMinusSovRequiredLockDrop}`);
+    logger.info(`SOV - SOV Required : ${sovMinusSovRequiredLockDrop}`);
 
     console.log("\n");
-    logger.info("=== Bob Safe Contract ===");
+    logger.info("=== Safe Deposits Contract ===");
     for (const tokenBalanceDetailSafe of tokenBalancesDetail.safe) {
-        logger.info(`${tokenBalanceDetailSafe.tokenName}: ${tokenBalanceDetailSafe.tokenBalance}`);
+        const addSpaces = " ".repeat(19 - tokenBalanceDetailSafe.tokenName.length);
+        logger.info(
+            `${tokenBalanceDetailSafe.tokenName + addSpaces}: ${tokenBalanceDetailSafe.tokenBalance}`
+        );
     }
 
     if (totalSovRequiredSafe.isNaN()) totalSovRequiredSafe = "0";
-    logger.info(`SOV (Required): ${totalSovRequiredSafe}`);
+    logger.info(`SOV (Required)     : ${totalSovRequiredSafe}`);
 
     const sovMinusSovRequiredSafe = new BigNumber(
         tokenBalancesDetail.safe[tokenBalancesDetail.safe.length - 1].tokenBalance
     ).minus(new BigNumber(totalSovRequiredSafe));
     if (sovMinusSovRequiredSafe != "0")
-        logger.info(`SOV - SOV Required: ${sovMinusSovRequiredSafe}`);
+        logger.info(`SOV - SOV Required : ${sovMinusSovRequiredSafe}`);
+
+    /** SECTION 2 (SLIPPAGE REPORT) */
+    if (!emptyBobSnapshotPrice.length && !exceedSlippageTolerance.length) return;
+    console.log("\n\n");
+    logger.info("===== Report Section 2 =====");
+    for (const emptyPrice of emptyBobSnapshotPrice) {
+        logger.info(
+            col.bgRed(`Empty price of ${emptyPrice.tokenName} - ${emptyPrice.tokenAddress}`)
+        );
+    }
 
     /** SECTION 2 (SLIPPAGE REPORT) */
     if (!emptyBobSnapshotPrice.length && !exceedSlippageTolerance.length) return;
