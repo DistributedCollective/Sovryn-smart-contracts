@@ -27,7 +27,8 @@ def main():
     #sendAggregatedTokensFromWallet(contracts['ETHes'], contracts['Aggregator-ETH-RSK'], '0xf5972e2bcc10404367cbdca2a3319470fbea3ff7', 2e17)
 
     #send eSOV send eSOV over the bridge to our gate.io address
-    #sendTokensToETHFromMultisig(contracts['SOV'], '0x5092019A3E0334586273A21a701F1BD859ECAbD6', 260000e18)
+    #
+    #sendTokensToETHFromMultisig(contracts['SOV'], '0xB82c2b7Fb8678a7353A853e81108a52e2fCaa9b0', 13_800_000 * 10 ** 18)
     #DLLR
     #setFeeAndMinPerToken(contracts['DLLR'], 60e18, 70e18)
     #allowToken('0xc1411567d2670e24d9C4DaAa7CdA95686e1250AA') #DLLR - one time whitelisting
@@ -35,8 +36,8 @@ def main():
     
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
 
-    setEthBridgeMaxTokensAllowed(10_000_000 * 10**18)
-    setEthBridgeDailyLimit(6_500_000 * 10**18)
+    #setEthBridgeMaxTokensAllowed(10_000_000 * 10**18)
+    #setEthBridgeDailyLimit(6_500_000 * 10**18)
     #printEthBridgeLimits()
 
 def loadConfig():
