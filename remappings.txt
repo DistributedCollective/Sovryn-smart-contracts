@@ -1,0 +1,10 @@
+@ensdomains/=node_modules/@ensdomains/
+@ethereum-waffle/=node_modules/@ethereum-waffle/
+ds-test/=foundry/lib/forge-std/lib/ds-test/src/
+eth-gas-reporter/=node_modules/eth-gas-reporter/
+forge-std/=foundry/lib/forge-std/src/
+hardhat-deploy/=node_modules/hardhat-deploy/
+hardhat/=node_modules/hardhat/
+truffle/=node_modules/truffle/
+@openzeppelin/=node_modules/@openzeppelin/
+@contracts/=contracts/

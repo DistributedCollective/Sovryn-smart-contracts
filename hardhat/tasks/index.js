@@ -8,3 +8,4 @@ require("./governance");
 require("./feeSharingCollector");
 require("./uniswap");
 require("./bridge");
+require("./bobDepositor");

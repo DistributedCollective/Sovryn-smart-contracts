@@ -17,7 +17,7 @@ const { increaseTime, blockNumber } = require("../Utils/Ethereum");
 
 const FeesEvents = artifacts.require("FeesEvents");
 const LoanClosingsEvents = artifacts.require("LoanClosingsEvents");
-const IERC20 = artifacts.require("IERC20");
+const IERC20 = artifacts.require("contracts/interfaces/IERC20.sol:IERC20");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
 const {

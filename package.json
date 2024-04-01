@@ -23,8 +23,7 @@
 		"external/",
 		"hardhat/",
 		"interfaces/",
-		"scripts/contractInteraction/mainnet_contracts.json",
-		"scripts/contractInteraction/testnet_contracts.json",
+		"scripts/",
 		"abi/"
 	],
 	"devDependencies": {
@@ -41,6 +40,7 @@
 		"@secrez/cryptoenv": "^0.2.4",
 		"@uniswap/sdk-core": "^4.1.3",
 		"@uniswap/v3-sdk": "^3.10.2",
+		"axios": "^1.6.8",
 		"bignumber.js": "^9.0.0",
 		"cli-color": "^2.0.3",
 		"coveralls": "^3.1.0",
@@ -63,6 +63,7 @@
 		"keccak": "^3.0.3",
 		"keccak256": "^1.0.6",
 		"mocha": "^8.2.1",
+		"moment": "^2.30.1",
 		"node-logs": "^1.1.0",
 		"patch-package": "^7.0.0",
 		"phantomjs-prebuilt": "^2.1.16",
@@ -108,5 +109,8 @@
 			"pre-commit": "yarn prettier",
 			"pre-push": "yarn lint && yarn prettier-check"
 		}
+	},
+	"dependencies": {
+		"@tenderly/hardhat-tenderly": "^1.8.0"
 	}
 }

@@ -370,6 +370,12 @@ def transferOwnershipAMMContractsToGovernance(contractAddress, newOwnerAddress, 
     sendWithMultisig(conf.contracts['multisig'], ammContract.address, data, conf.acct)
 
 def getExchequerBalances():
+    
+    dllrPool = getBalance(conf.contracts['(WR)BTC/DLLR'], conf.contracts['multisig'])
+    dllrPoolTotal = getTotalSupply(conf.contracts['DLLR'])
+    dllrBalanceInPool = getBalance(conf.contracts['DLLR'], conf.contracts['ConverterDLLR'])
+    dllrRbtcBalanceInPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterDLLR'])
+
     usdtPool = getBalance(conf.contracts['(WR)BTC/USDT2'], conf.contracts['multisig'])
     balanceAndFee = getReturnForV2PoolToken(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], usdtPool)
     usdtBalance = balanceAndFee[0]
@@ -380,9 +386,14 @@ def getExchequerBalances():
     rbtcBalanceInPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterBNBs'])
 
     print('----------------')
+    dllrBalance = dllrPool / dllrPoolTotal * dllrBalanceInPool
+    wrbtcDllrBalance = dllrPool / dllrPoolTotal * dllrRbtcBalanceInPool
+    
     bnbBalance = bnbPool / bnbPoolTotal * bnbBalanceInPool
     wrbtcBalance = bnbPool / bnbPoolTotal * rbtcBalanceInPool
 
+    print("DLLR balance: ", dllrBalance/1e18)
+    print("WRBTC balance in DLLR pool: ", wrbtcDllrBalance/1e18)
     print("USDT balance: ", usdtBalance/1e18)
     print("BNB balance: ", bnbBalance/1e18)
     print("WRBTC balance: ", wrbtcBalance/1e18)
