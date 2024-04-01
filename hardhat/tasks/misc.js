@@ -243,7 +243,7 @@ task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or ad
                     throw Error("Invalid account to get balance of!");
                 }
 
-                if (token === "RBTC") {
+                if (["RBTC", "ETH"].includes(token)) {
                     const balance = await ethers.provider.getBalance(accountAddress);
                     logger.success(
                         `RBTC balance of the account ${account} (${accountAddress}): 
@@ -251,7 +251,10 @@ task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or ad
                     );
                 } else {
                     const tokenContract = ethers.utils.isAddress(token)
-                        ? await ethers.getContractAt("IERC20", token)
+                        ? await ethers.getContractAt(
+                              "contracts/interfaces/IERC20.sol:IERC20",
+                              token
+                          )
                         : await ethers.getContract(token);
                     const tokenSymbol = await tokenContract.symbol();
                     const decimalsDivider = ethers.BigNumber.from(decimals ? 10 : 1).pow(

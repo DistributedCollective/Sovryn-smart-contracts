@@ -211,8 +211,8 @@ async function generateReportTimelockDepositor(hardhat) {
     wholeLockDropTokenBalances[sovDeployment.address] = {
         tokenAddress: sovDeployment.address,
         tokenName: "SOV",
-        tokenBalance: !lockDropSovBalance.isNaN()
-            ? lockDropSovBalance.decimalPlaces(2).toString()
+        tokenBalance: !wholeLockDropSovBalance.isNaN()
+            ? wholeLockDropSovBalance.decimalPlaces(2).toString()
             : "0",
     };
 
