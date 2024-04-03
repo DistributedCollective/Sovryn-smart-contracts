@@ -132,7 +132,7 @@ module.exports = {
     abiExporter: {
         clear: true,
         runOnCompile: true,
-        flat: true,
+        flat: false,
         spacing: 4,
     },
     contractSizer: {
