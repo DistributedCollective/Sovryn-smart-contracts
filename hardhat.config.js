@@ -263,8 +263,15 @@ module.exports = {
             accounts: mainnetAccounts,
         },
         bobTestnet: {
-            url: "https://bob-sepolia.rpc.caldera.xyz/http",
-            chainId: 9900367,
+            url: "https://sepolia-dencun.rpc.gobob.xyz/",
+            chainId: 606808,
+            accounts: testnetAccounts,
+            gasPrice: 50000000,
+            // tags: ["testnet"],
+        },
+        tenderlyVirtualNetwork: {
+            url: "https://virtual.mainnet.rpc.tenderly.co/4a0f7fb8-07fb-4cdd-baad-ec76fc7c6233",
+            chainId: 112233,
             accounts: testnetAccounts,
             gasPrice: 50000000,
             // tags: ["testnet"],

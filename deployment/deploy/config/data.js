@@ -21,6 +21,7 @@ const bobTestnetDeploymentConfigParams = {
 
 const CONFIG_DEPLOYMENT_PARAMS = {
     bobTestnet: bobTestnetDeploymentConfigParams,
+    tenderlyVirtualNetwork: bobTestnetDeploymentConfigParams,
 };
 
 module.exports = {

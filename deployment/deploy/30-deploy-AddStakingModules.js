@@ -41,13 +41,13 @@ const func = async function () {
 
     // use the list to exclude some staking modules from registering
     const dontAddModules = {
-        StakingAdminModule: "StakingAdminModule",
-        StakingGovernanceModule: "StakingGovernanceModule",
-        StakingStakeModule: "StakingStakeModule",
-        StakingStorageModule: "StakingStorageModule",
-        StakingVestingModule: "StakingVestingModule",
-        StakingWithdrawModule: "StakingWithdrawModule",
-        WeightedStakingModule: "WeightedStakingModule",
+        // StakingAdminModule: "StakingAdminModule",
+        // StakingGovernanceModule: "StakingGovernanceModule",
+        // StakingStakeModule: "StakingStakeModule",
+        // StakingStorageModule: "StakingStorageModule",
+        // StakingVestingModule: "StakingVestingModule",
+        // StakingWithdrawModule: "StakingWithdrawModule",
+        // WeightedStakingModule: "WeightedStakingModule",
     };
     const modulesToAdd =
         Object.keys(dontAddModules).length > 0

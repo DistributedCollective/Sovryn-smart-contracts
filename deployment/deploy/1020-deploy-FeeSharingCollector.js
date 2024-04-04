@@ -13,10 +13,10 @@ const func = async function (hre) {
         "FeeSharingCollector",
         "FeeSharingCollectorProxy",
         "",
-        "FeeSharingCollector_Proxy",
+        "FeeSharingCollectorProxy",
         true,
         [],
-        [(await get("SovrynProtocol")).address, (await get("StakingProxy")).address]
+        ["0x0000000000000000000000000000000000000000", (await get("StakingProxy")).address]
     );
 };
 func.tags = ["FeeSharingCollector"];
