@@ -17,8 +17,9 @@ const { increaseTime, blockNumber } = require("../Utils/Ethereum");
 
 const FeesEvents = artifacts.require("FeesEvents");
 const LoanClosingsEvents = artifacts.require("LoanClosingsEvents");
-const IERC20 = artifacts.require("IERC20");
+const IERC20 = artifacts.require("@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20");
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const {
     getSUSD,
@@ -59,6 +60,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
     let borrower, receiver;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        await mutexUtils.getOrDeployMutex();
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();

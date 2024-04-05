@@ -170,7 +170,6 @@ contract("Staking", (accounts) => {
             feeSharingCollectorProxyObj.address
         );
         await sovryn.setFeesController(feeSharingCollectorProxy.address);
-        await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
         await token.transfer(account1, 1000);
         await token.approve(staking.address, TOTAL_SUPPLY);
@@ -1401,7 +1400,6 @@ contract("Staking", (accounts) => {
                     feeSharingCollectorProxyObj.address
                 );
                 await sovryn.setFeesController(feeSharingCollectorProxy.address);
-                await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
                 let duration = new BN(i * TWO_WEEKS);
                 let lockedTS = await getTimeFromKickoff(duration);
