@@ -14,7 +14,7 @@ const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const FeesEvents = artifacts.require("FeesEvents");
 const LoanClosingsEvents = artifacts.require("LoanClosingsEvents");
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const {
     getSUSD,

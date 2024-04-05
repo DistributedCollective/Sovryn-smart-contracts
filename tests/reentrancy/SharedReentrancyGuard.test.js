@@ -1,5 +1,5 @@
 const { ethers } = require("hardhat");
-const { getOrDeployMutex } = require("./utils");
+const { getOrDeployMutex } = require("../../deployment/helpers/reentrancy/utils");
 
 describe("SharedReentrancyGuard", async () => {
     let nonReentrantValueSetter;

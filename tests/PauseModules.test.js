@@ -53,7 +53,7 @@ const {
     getSOV,
 } = require("./Utils/initializer.js");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
-const mutexUtils = require("./reentrancy/utils");
+const mutexUtils = require("../deployment/helpers/reentrancy/utils");
 
 contract("Pause Modules", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;

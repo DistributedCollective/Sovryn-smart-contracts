@@ -8,7 +8,6 @@ import "./TeamVesting.sol";
  * @notice Team tokens and investor tokens are vested. Therefore, a smart
  * contract needs to be developed to enforce the vesting schedule.
  *
- * @dev TODO add tests for governanceWithdrawTokens.
  * */
 contract Vesting is TeamVesting {
     /**

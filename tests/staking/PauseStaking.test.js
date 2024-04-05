@@ -438,7 +438,9 @@ contract("Staking", (accounts) => {
                 "TeamVestingPartiallyCancelled"
             )[0].args;
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
@@ -448,7 +450,7 @@ contract("Staking", (accounts) => {
             await staking.cancelTeamVesting(
                 vesting.address,
                 root,
-                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(TWO_WEEKS))
+                new BN(decodedIncompleteEvent["nextStartFrom"])
             );
 
             // verify amount
@@ -489,6 +491,14 @@ contract("Staking", (accounts) => {
             let previousAmount = await token.balanceOf(root);
             let toStake = ONE_MILLON;
 
+            // Upgradable Vesting Registry
+            vestingRegistryLogic = await VestingRegistryLogic.new();
+            vestingRegistry = await VestingRegistryProxy.new();
+            await vestingRegistry.setImplementation(vestingRegistryLogic.address);
+            vestingRegistry = await VestingRegistryLogic.at(vestingRegistry.address);
+
+            await staking.setVestingRegistry(vestingRegistry.address);
+
             // Stake
             vesting = await Vesting.new(
                 vestingLogic.address,
@@ -499,7 +509,9 @@ contract("Staking", (accounts) => {
                 36 * WEEK,
                 feeSharingCollectorProxy.address
             );
+
             vesting = await VestingLogic.at(vesting.address);
+            await staking.addContractCodeHash(vesting.address);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -517,6 +529,20 @@ contract("Staking", (accounts) => {
                 staking.governanceWithdrawVesting(vesting.address, root, { from: account1 }),
                 "paused"
             ); // WS04 : frozen
+
+            const sampleVesting = vesting.address;
+            const vestingType = new BN(0); // TeamVesting
+            const vestingCreationType = new BN(3);
+            const vestingCreationAndTypes = {
+                isSet: true,
+                vestingType: vestingType.toString(),
+                vestingCreationType: vestingCreationType.toString(),
+            };
+
+            await vestingRegistry.registerVestingToVestingCreationAndTypes(
+                [sampleVesting],
+                [vestingCreationAndTypes]
+            );
 
             await staking.freezeUnfreeze(false); // Unfreeze
             // governance withdraw until duration must withdraw all staked tokens without fees
@@ -554,6 +580,14 @@ contract("Staking", (accounts) => {
             let previousAmount = await token.balanceOf(root);
             let toStake = ONE_MILLON;
 
+            // Upgradable Vesting Registry
+            vestingRegistryLogic = await VestingRegistryLogic.new();
+            vestingRegistry = await VestingRegistryProxy.new();
+            await vestingRegistry.setImplementation(vestingRegistryLogic.address);
+            vestingRegistry = await VestingRegistryLogic.at(vestingRegistry.address);
+
+            await staking.setVestingRegistry(vestingRegistry.address);
+
             // Stake
             vesting = await Vesting.new(
                 vestingLogic.address,
@@ -565,6 +599,7 @@ contract("Staking", (accounts) => {
                 feeSharingCollectorProxy.address
             );
             vesting = await VestingLogic.at(vesting.address);
+            await staking.addContractCodeHash(vesting.address);
 
             await token.approve(vesting.address, toStake);
             await vesting.stakeTokens(toStake);
@@ -582,6 +617,20 @@ contract("Staking", (accounts) => {
                 staking.governanceWithdrawVesting(vesting.address, root, { from: account1 }),
                 "paused"
             ); // WS04 : frozen
+
+            let sampleVesting = vesting.address;
+            let vestingType = new BN(0); // TeamVesting
+            let vestingCreationType = new BN(3);
+            let vestingCreationAndTypes = {
+                isSet: true,
+                vestingType: vestingType.toString(),
+                vestingCreationType: vestingCreationType.toString(),
+            };
+
+            await vestingRegistry.registerVestingToVestingCreationAndTypes(
+                [sampleVesting],
+                [vestingCreationAndTypes]
+            );
 
             await staking.freezeUnfreeze(false); // Unfreeze
             // governance withdraw until duration must withdraw all staked tokens without fees
@@ -620,10 +669,10 @@ contract("Staking", (accounts) => {
 
             await staking.setVestingRegistry(vestingRegistry.address);
 
-            const sampleVesting = vesting.address;
-            const vestingType = new BN(0); // TeamVesting
-            const vestingCreationType = new BN(3);
-            const vestingCreationAndTypes = {
+            sampleVesting = vesting.address;
+            vestingType = new BN(0); // TeamVesting
+            vestingCreationType = new BN(3);
+            vestingCreationAndTypes = {
                 isSet: true,
                 vestingType: vestingType.toString(),
                 vestingCreationType: vestingCreationType.toString(),
@@ -739,8 +788,11 @@ contract("Staking", (accounts) => {
                 StakingWithdrawModule,
                 "TeamVestingPartiallyCancelled"
             )[0].args;
+
             // last processed date = starIteration + ( (max_iterations - 1) * 1209600 )  // 1209600 is TWO_WEEKS
-            expect(decodedIncompleteEvent["lastProcessedDate"].toString()).to.equal(
+            expect(
+                new BN(decodedIncompleteEvent["nextStartFrom"]).sub(new BN(TWO_WEEKS)).toString()
+            ).to.equal(
                 startIteration
                     .add(new BN(maxIterations.sub(new BN(1))).mul(new BN(TWO_WEEKS)))
                     .toString()
@@ -750,7 +802,7 @@ contract("Staking", (accounts) => {
             await staking.cancelTeamVesting(
                 vesting.address,
                 root,
-                new BN(decodedIncompleteEvent["lastProcessedDate"]).add(new BN(TWO_WEEKS))
+                new BN(decodedIncompleteEvent["nextStartFrom"])
             );
 
             // verify amount

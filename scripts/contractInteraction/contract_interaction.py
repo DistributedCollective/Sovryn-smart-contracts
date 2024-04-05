@@ -29,7 +29,7 @@ def main():
     '''
 
     # call the function you want here
-
+    
     ##################################
 
     #cancelTeamVestingsOfAccount('0x673b37941AB527e0EEe13C1Ff09298ef1911d7D6', 1703845695)
@@ -79,8 +79,10 @@ def main():
 
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
     
-    #print("fastBTC.balance()", loadBiDiFastBTC().balance()/1e18)
+    #print("fastBTCBiDi.balance()", loadBiDiFastBTC().balance()/1e18)
+    #print("getFastBTCOfframpAvailableBalance()", getFastBTCOfframpAvailableBalance()/1e18)
     #withdrawRBTCFromFastBTCBiDi(30e18, '0xD9ECB390a6a32ae651D5C614974c5570c50A5D89')
+    #withdrawRBTCFromFastBTCBiDi(30e18, conf.contracts['multisig'])
     #readPauser(conf.contracts['iXUSD'])
     #getBalance(conf.contracts['DLLR'], '0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a') ## testnet
     #transferTokensFromWallet(conf.contracts['DLLR'], '0xae2a6e86d5f5d534fb372693b0ccda8d0ba9744d', 40e18)
@@ -99,6 +101,7 @@ def main():
     #sendFromMultisig('0xc0AAcbDB9Ce627A348B91CfDB67eC6b2FBC3dCbd', 0.1e18)
     #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
     #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
+    #sendFromMultisig('0x986c65fc1783a445ceccade74234dc8627d429d8', 0.1e18) #FastBTC on-ramp master node
 
     #withdrawRBTCFromIWRBTC('0x9BD6759F6D9eA15D33076e55d4CBba7cf85877A7', 1.6e18)
     #sendMYNTFromMultisigToFeeSharingCollector(36632.144056847e18)
@@ -195,13 +198,12 @@ def main():
     #setFeesController(conf.contracts['FeeSharingCollectorProxy1DayStaking'])
 
     #revokeConfirmationMS(txId)
-    #bal = getContractBTCBalance(conf.contracts['FastBTCBiDi'])
+    #bal = getFastBTCOfframpAvailableBalance(conf.contracts['FastBTCBiDi'])
     #print('FastBTC offramp balance:', bal/10**18)
     #print('Multisig balance:', getContractBTCBalance(conf.contracts['multisig'])/1e18)
 
-    #transferRBTCFromFastBTCOffRampToOnRamp(20e18)
+    #transferRBTCFromFastBTCOffRampToOnRamp(bal)
     #withdrawRBTCFromWatcher(6e18, conf.contracts['FastBTC'])
-
     #redeemFromAggregatorWithMS(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], 16658.600400155126 * 10**18)
     #mintAggregatedTokenWithMS(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 249999e18)
     #minReturn = getReturnForFirstLiquidityProvisionOnV1([10e18, 250000e18])
@@ -251,6 +253,8 @@ def main():
 
     #transferOwnershipFromMultisig(conf.contracts["FourYearVestingFactory"], '0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b')
     # withdrawSovFromMyntReserved(2000000000000000000000)
+    # setupTorqueLoanParams(conf.contracts['iXUSD'], "0x0000000000000000000000000000000000000000", conf.contracts['SOV'], Wei("20 ether"), )
+    # checkTx(1344)
 
 def guardiansTransfer():
     ####################################################################

@@ -9,6 +9,10 @@ def withdrawRBTCFromFastBTCBiDi(amount, recipient):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTCOffRamp.address, data, conf.acct)
 
+def getFastBTCOfframpAvailableBalance():
+     fastBTCOffRamp = loadBiDiFastBTC()
+     return fastBTCOffRamp.totalAdminWithdrawableRbtc()
+
 def transferRBTCFromFastBTCOffRampToOnRamp(amount):
     fastBTCOffRamp = loadBiDiFastBTC()
     data = fastBTCOffRamp.withdrawRbtc.encode_input(amount, conf.contracts['FastBTC'])

@@ -57,7 +57,7 @@ const {
     getSOV,
 } = require("../Utils/initializer.js");
 const { etherGasCost } = require("../Utils/Ethereum.js");
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const { ZERO_ADDRESS } = constants;
