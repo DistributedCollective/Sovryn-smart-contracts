@@ -47,13 +47,6 @@ interface IStaking {
     function freezeUnfreeze(bool _freeze) external;
 
     /**
-     * @notice Allows the owner to set a fee sharing proxy contract.
-     * We need it for unstaking with slashing.
-     * @param _feeSharing The address of FeeSharingCollectorProxy contract.
-     * */
-    function setFeeSharing(address _feeSharing) external;
-
-    /**
      * @notice Allow the owner to set weight scaling.
      * We need it for unstaking with slashing.
      * @param _weightScaling The weight scaling.

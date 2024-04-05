@@ -67,7 +67,7 @@ contract StakingStorageModule is IFunctionsList, StakingStorageShared {
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](32);
+        bytes4[] memory functionsList = new bytes4[](31);
         functionsList[0] = this.getStorageMaxDurationToStakeTokens.selector;
         functionsList[1] = this.getStorageMaxVotingWeight.selector;
         functionsList[2] = this.getStorageWeightFactor.selector;
@@ -88,18 +88,17 @@ contract StakingStorageModule is IFunctionsList, StakingStorageShared {
         functionsList[17] = this.userStakingCheckpoints.selector;
         functionsList[18] = this.numUserStakingCheckpoints.selector;
         functionsList[19] = this.nonces.selector;
-        functionsList[20] = this.feeSharing.selector;
-        functionsList[21] = this.weightScaling.selector;
-        functionsList[22] = this.vestingWhitelist.selector;
-        functionsList[23] = this.admins.selector;
-        functionsList[24] = this.vestingCodeHashes.selector;
-        functionsList[25] = this.vestingCheckpoints.selector;
-        functionsList[26] = this.numVestingCheckpoints.selector;
-        functionsList[27] = this.vestingRegistryLogic.selector;
-        functionsList[28] = this.pausers.selector;
-        functionsList[29] = this.paused.selector;
-        functionsList[30] = this.frozen.selector;
-        functionsList[31] = this.getMaxVestingWithdrawIterations.selector;
+        functionsList[20] = this.weightScaling.selector;
+        functionsList[21] = this.vestingWhitelist.selector;
+        functionsList[22] = this.admins.selector;
+        functionsList[23] = this.vestingCodeHashes.selector;
+        functionsList[24] = this.vestingCheckpoints.selector;
+        functionsList[25] = this.numVestingCheckpoints.selector;
+        functionsList[26] = this.vestingRegistryLogic.selector;
+        functionsList[27] = this.pausers.selector;
+        functionsList[28] = this.paused.selector;
+        functionsList[29] = this.frozen.selector;
+        functionsList[30] = this.getMaxVestingWithdrawIterations.selector;
 
         return functionsList;
     }

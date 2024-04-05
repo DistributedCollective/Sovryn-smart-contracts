@@ -113,6 +113,8 @@ contract StakingStorageShared is Ownable {
     /*************************** Slashing *******************************/
 
     /// @notice the address of FeeSharingCollectorProxy contract, we need it for unstaking with slashing.
+    /// @notice this storage variable is no longer used since the penalties for unstaking early will be burned.
+    /// @notice we keep this storage variable here to keep the backward compatibility & prevent storage collision.
     IFeeSharingCollector public feeSharing;
 
     /// @notice used for weight scaling when unstaking with slashing.

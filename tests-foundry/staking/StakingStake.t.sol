@@ -109,9 +109,6 @@ contract StakingFuzzTest is Test {
         feeSharingCollectorProxy.setImplementation(address(feeSharingCollector));
         feeSharingCollector = IFeeSharingCollector(address(feeSharingCollectorProxy));
 
-        // Set FeeSharingCollectorProxy as the fee sharing address in the staking contract
-        staking.setFeeSharing(address(feeSharingCollector));
-
         amount = 1000;
         user = address(1);
         user2 = address(2);

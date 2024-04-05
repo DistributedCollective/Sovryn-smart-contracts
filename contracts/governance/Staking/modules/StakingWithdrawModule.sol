@@ -193,12 +193,6 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
                  * @note SOV token is not allowed to be transferred to zero address
                  */
                 SOVToken.transfer(address(0x1), punishedAmount);
-
-                // require(address(feeSharing) != address(0), "FeeSharing address wasn't set"); // S08
-                // /// @dev Move punished amount to fee sharing.
-                // /// @dev Approve transfer here and let feeSharing do transfer and write checkpoint.
-                // SOVToken.approve(address(feeSharing), punishedAmount);
-                // feeSharing.transferTokens(address(SOVToken), punishedAmount);
             }
         }
 
