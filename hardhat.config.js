@@ -287,10 +287,10 @@ module.exports = {
             tags: ["testnet"],
         },
         bobTestnet: {
-            url: "https://bob-sepolia.rpc.caldera.xyz/http",
-            chainId: 9900367,
+            url: "https://testnet.rpc.gobob.xyz/",
+            chainId: 111,
             accounts: testnetAccounts,
-            gasPrice: 50000000,
+            gasPrice: 980000000,
             tags: ["testnet"],
         },
         bobForkedTestnet: {
