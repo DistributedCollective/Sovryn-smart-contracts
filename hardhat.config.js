@@ -262,6 +262,11 @@ module.exports = {
             url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
             accounts: mainnetAccounts,
         },
+        sepolia: {
+            chainId: 11155111,
+            url: `https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
+            accounts: testnetAccounts,
+        },
         bobTestnet: {
             url: "https://sepolia-dencun.rpc.gobob.xyz/",
             chainId: 606808,

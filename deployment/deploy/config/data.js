@@ -1,4 +1,4 @@
-const bobTestnetDeploymentConfigParams = {
+const testnetDeploymentConfigParams = {
     multisigOwners: [
         "0x52e8f03e7c9c1Ef320ff7C31dB78EAead18E5F85",
         "0x9E0816a71B53ca67201a5088df960fE90910DE55",
@@ -20,8 +20,9 @@ const bobTestnetDeploymentConfigParams = {
 };
 
 const CONFIG_DEPLOYMENT_PARAMS = {
-    bobTestnet: bobTestnetDeploymentConfigParams,
-    tenderlyVirtualNetwork: bobTestnetDeploymentConfigParams,
+    bobTestnet: testnetDeploymentConfigParams,
+    tenderlyVirtualNetwork: testnetDeploymentConfigParams,
+    sepolia: testnetDeploymentConfigParams,
 };
 
 module.exports = {
