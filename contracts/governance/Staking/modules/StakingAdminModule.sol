@@ -91,16 +91,6 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
     }
 
     /**
-     * @notice Allow the owner to set a fee sharing proxy contract.
-     * We need it for unstaking with slashing.
-     * @param _feeSharing The address of FeeSharingCollectorProxy contract.
-     * */
-    function setFeeSharing(address _feeSharing) external onlyOwner whenNotFrozen {
-        require(_feeSharing != address(0), "FeeSharing address shouldn't be 0"); // S17
-        feeSharing = IFeeSharingCollector(_feeSharing);
-    }
-
-    /**
      * @notice Allow the owner to set weight scaling.
      * We need it for unstaking with slashing.
      * @param _weightScaling The weight scaling.
@@ -143,20 +133,19 @@ contract StakingAdminModule is IFunctionsList, StakingShared {
     }
 
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](13);
+        bytes4[] memory functionsList = new bytes4[](12);
         functionsList[0] = this.addAdmin.selector;
         functionsList[1] = this.removeAdmin.selector;
         functionsList[2] = this.addPauser.selector;
         functionsList[3] = this.removePauser.selector;
         functionsList[4] = this.pauseUnpause.selector;
         functionsList[5] = this.freezeUnfreeze.selector;
-        functionsList[6] = this.setFeeSharing.selector;
-        functionsList[7] = this.setWeightScaling.selector;
-        functionsList[8] = this.setNewStakingContract.selector;
-        functionsList[9] = this.owner.selector;
-        functionsList[10] = this.isOwner.selector;
-        functionsList[11] = this.transferOwnership.selector;
-        functionsList[12] = this.migrateToNewStakingContract.selector;
+        functionsList[6] = this.setWeightScaling.selector;
+        functionsList[7] = this.setNewStakingContract.selector;
+        functionsList[8] = this.owner.selector;
+        functionsList[9] = this.isOwner.selector;
+        functionsList[10] = this.transferOwnership.selector;
+        functionsList[11] = this.migrateToNewStakingContract.selector;
         return functionsList;
     }
 }

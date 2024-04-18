@@ -109,11 +109,8 @@ contract StakingFuzzTest is Test {
         feeSharingCollectorProxy.setImplementation(address(feeSharingCollector));
         feeSharingCollector = IFeeSharingCollector(address(feeSharingCollectorProxy));
 
-        // Set FeeSharingCollectorProxy as the fee sharing address in the staking contract
-        staking.setFeeSharing(address(feeSharingCollector));
-
         amount = 1000;
-        user = address(1);
+        user = address(100);
         user2 = address(2);
         delegatee = address(3);
 
@@ -944,7 +941,8 @@ contract StakingFuzzTest is Test {
 
             emit log_named_uint("test case 2: block.timestamp after withdraw", block.timestamp);
 
-            assertEq(sov.balanceOf(address(feeSharingCollector)), expectedSlashAmount);
+            assertEq(sov.balanceOf(address(feeSharingCollector)), 0); // we burn penalties amount rather than distributing it
+            assertEq(sov.balanceOf(address(0x1)), expectedSlashAmount); // burn by sending to 0x1 address
 
             //@test-case 3) _withdrawTS is in (lockDate, ∞) - should withdraw with no penalties
             if (block.timestamp >= lockDate) {

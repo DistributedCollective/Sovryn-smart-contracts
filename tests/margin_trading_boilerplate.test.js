@@ -49,7 +49,7 @@ const {
     expectRevert,
 } = require("@openzeppelin/test-helpers");
 
-const mutexUtils = require("./reentrancy/utils");
+const mutexUtils = require("../deployment/helpers/reentrancy/utils");
 
 contract("Margin Trading with Affiliates boilerplate", (accounts) => {
     let loanTokenLogic;

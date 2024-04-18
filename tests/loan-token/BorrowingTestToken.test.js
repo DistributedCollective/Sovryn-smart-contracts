@@ -23,7 +23,7 @@ const TestCrossReentrancyRBTC = artifacts.require("TestCrossReentrancyRBTC");
 const TestCrossReentrancyERC777 = artifacts.require("TestCrossReentrancyERC777");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const {
     getSUSD,

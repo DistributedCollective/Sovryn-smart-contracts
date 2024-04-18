@@ -23,7 +23,7 @@ const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const {
     getSUSD,

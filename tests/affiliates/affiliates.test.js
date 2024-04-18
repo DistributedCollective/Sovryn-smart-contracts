@@ -47,7 +47,7 @@ const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const Affiliates = artifacts.require("Affiliates");
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const {
     getSUSD,

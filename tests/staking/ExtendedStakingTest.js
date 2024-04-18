@@ -34,6 +34,7 @@ const {
     getSovryn,
     decodeLogs,
     getSOV,
+    CONSTANTS,
 } = require("../Utils/initializer.js");
 const {
     deployAndGetIStaking,
@@ -169,7 +170,6 @@ contract("Staking", (accounts) => {
             feeSharingCollectorProxyObj.address
         );
         await sovryn.setFeesController(feeSharingCollectorProxy.address);
-        await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
         await token.transfer(account1, 1000);
         await token.approve(staking.address, TOTAL_SUPPLY);
@@ -1303,8 +1303,12 @@ contract("Staking", (accounts) => {
             weight = weight * weightScaling;
             let punishedAmount = weight;
 
-            await expect(feeSharingBalance).to.be.bignumber.equal(new BN(punishedAmount));
+            /** no longer has punished amount in feeSharing */
+            await expect(feeSharingBalance).to.be.bignumber.equal(new BN(0));
             await expect(userBalance).to.be.bignumber.equal(new BN(amount - punishedAmount));
+
+            const burnRecipientBalance = await token.balanceOf(CONSTANTS.ONE_ADDRESS);
+            await expect(burnRecipientBalance.toString()).to.equal(punishedAmount.toString());
         });
 
         it("Should be able to withdraw second time", async () => {
@@ -1384,6 +1388,7 @@ contract("Staking", (accounts) => {
                     continue;
                 }
 
+                const initialBurnRecipientBalance = await token.balanceOf(CONSTANTS.ONE_ADDRESS);
                 // FeeSharingCollectorProxy
                 let feeSharingCollector = await FeeSharingCollector.new();
                 feeSharingCollectorProxyObj = await FeeSharingCollectorProxy.new(
@@ -1395,7 +1400,6 @@ contract("Staking", (accounts) => {
                     feeSharingCollectorProxyObj.address
                 );
                 await sovryn.setFeesController(feeSharingCollectorProxy.address);
-                await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
                 let duration = new BN(i * TWO_WEEKS);
                 let lockedTS = await getTimeFromKickoff(duration);
@@ -1436,12 +1440,17 @@ contract("Staking", (accounts) => {
 
                 let weeks = i * 2;
 
-                expect(feeSharingBalance).to.be.bignumber.equal(new BN(punishedAmount));
+                expect(feeSharingBalance).to.be.bignumber.equal(new BN(0));
 
                 expect(returnedPunishedAmount).to.be.bignumber.equal(new BN(punishedAmount));
                 expect(returnedAvailableAmount).to.be.bignumber.equal(
                     new BN(amount).sub(returnedPunishedAmount)
                 );
+
+                const latestBurnRecipientBalance = await token.balanceOf(CONSTANTS.ONE_ADDRESS);
+                await expect(
+                    latestBurnRecipientBalance.sub(initialBurnRecipientBalance).toString()
+                ).to.equal(punishedAmount.toString());
             }
         });
 

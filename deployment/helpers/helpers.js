@@ -142,9 +142,27 @@ const multisigRemoveOwner = async (removeAddress, sender) => {
     );
 };
 
+async function getSignerFromAccount(hre, signerAcc) {
+    const { ethers } = hre;
+    let signer;
+    let signerAddress;
+    if (ethers.utils.isAddress(signerAcc)) {
+        if (hre.network.tags["forked"]) {
+            signer = await getImpersonatedSignerFromJsonRpcProvider(signerAcc);
+            signerAddress = signer._address;
+        } else {
+            signer = await ethers.getSigner(signerAcc);
+            signerAddress = signer.address;
+        }
+    } else {
+        signer = await ethers.getSigner((await hre.getNamedAccounts())[signerAcc]);
+    }
+    return signer;
+}
+
 const sendWithMultisig = async (multisigAddress, contractAddress, data, sender, value = 0) => {
     const { ethers } = hre;
-    const signer = await ethers.getSigner(sender);
+    const signer = await getSignerFromAccount(hre, sender); //ethers.getSigner(sender);
     const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress, signer);
     const gasEstimated = (
         await multisig.estimateGas.submitTransaction(contractAddress, value, data)
@@ -504,7 +522,8 @@ const deployWithCustomProxy = async (
     args = [],
     proxyArgs = [],
     multisigName = "MultiSigWallet",
-    proxyOwner = "" // new proxy owner address, used for new proxy deployments and only if there are no post-deployment func calls from the creator address
+    newOwnerAddress = "", // new proxy owner address, used for new proxy deployments and only if there are no post-deployment func calls from the creator address
+    newProxyOwnerAddress = "" // if proxy has proxyOwner storage variable nd only if there are no post-deployment func calls from the creator address
 ) => {
     const {
         deployments: { deploy, get, getOrNull, log, save },
@@ -585,10 +604,21 @@ const deployWithCustomProxy = async (
                 `>>> New implementation ${await proxy.getImplementation()} is set to the proxy <<<`
             );
         }
-        if (ethers.utils.isAddress(proxyOwner) && (await proxy.getOwner()) !== proxyOwner) {
-            await proxy.transferOwnership(proxyOwner);
+        if (
+            ethers.utils.isAddress(newOwnerAddress) &&
+            (await proxy.owner()).toLowerCase() !== newOwnerAddress.toLowerCase()
+        ) {
+            await proxy.transferOwnership(newOwner);
+            logger.success(`Proxy ${proxyName} ownership transferred to ${await proxy.owner()}`);
+        }
+
+        if (
+            ethers.utils.isAddress(newProxyOwnerAddress) &&
+            (await proxy.getProxyOwner()).toLowerCase() !== newProxyOwnerAddress.toLowerCase()
+        ) {
+            await proxy.setProxyOwner(newProxyOwnerAddress);
             logger.success(
-                `Proxy ${proxyName} ownership transferred to ${await proxy.getOwner()}`
+                `Proxy ${proxyName} proxyOwner transferred to ${await proxy.getProxyOwner()}`
             );
         }
         log();
@@ -679,4 +709,5 @@ module.exports = {
     getTxRevertReason,
     delay,
     logTimer,
+    getSignerFromAccount,
 };

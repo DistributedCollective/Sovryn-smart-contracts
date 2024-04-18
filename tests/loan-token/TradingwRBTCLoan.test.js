@@ -43,7 +43,7 @@ const {
     open_margin_trade_position_iBTC,
 } = require("../Utils/initializer.js");
 
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const wei = web3.utils.toWei;
 

@@ -116,7 +116,6 @@ contract("Staking", (accounts) => {
         feeSharingCollectorProxy = await FeeSharingCollector.at(
             feeSharingCollectorProxyObj.address
         );
-        await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
         await staking.setVestingRegistry(vesting.address);
 
@@ -2425,42 +2424,6 @@ contract("Staking", (accounts) => {
         it("calling newStakingContract returns _newStakingContract", async () => {
             await staking.setNewStakingContract(a2);
             expect(await staking.newStakingContract()).to.equal(a2);
-        });
-    });
-
-    describe("setFeeSharing", () => {
-        it("the owner may set the fee sharing contract if the contract is not frozen", async () => {
-            expect(await staking.frozen()).to.be.false; // sanity check
-
-            await staking.setFeeSharing(a2);
-            expect(await staking.feeSharing()).to.equal(a2);
-        });
-
-        it("the owner may not set the fee sharing contract if the contract is frozen", async () => {
-            await staking.freezeUnfreeze(true);
-            await expectRevert(staking.setFeeSharing(a2), "paused");
-        });
-
-        it("the owner may set the fee sharing contract if the contract is paused", async () => {
-            await staking.pauseUnpause(true);
-            await staking.setFeeSharing(a2);
-            expect(await staking.feeSharing()).to.equal(a2);
-        });
-
-        it("any other address may not set the fee sharing contract", async () => {
-            await expectRevert(staking.setFeeSharing(a2, { from: a2 }), "unauthorized");
-        });
-
-        it("it is not allowed to set the fee sharing contract to the 0 address", async () => {
-            await expectRevert(
-                staking.setFeeSharing(ZERO_ADDRESS),
-                "FeeSharing address shouldn't be 0"
-            );
-        });
-
-        it("calling feeSharing returns _feeSharing", async () => {
-            await staking.setFeeSharing(a2);
-            expect(await staking.feeSharing()).to.equal(a2);
         });
     });
 

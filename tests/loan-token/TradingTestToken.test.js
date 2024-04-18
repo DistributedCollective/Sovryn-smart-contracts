@@ -62,7 +62,7 @@ const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
 const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25 * 10**13
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 contract("LoanTokenTrading", (accounts) => {
     let owner;

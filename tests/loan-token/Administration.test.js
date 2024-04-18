@@ -20,7 +20,7 @@ const LoanTokenLogicBeacon = artifacts.require("LoanTokenLogicBeacon");
 const LoanTokenLogicProxy = artifacts.require("LoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
-const mutexUtils = require("../reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils.js");
 
 const {
     getSUSD,

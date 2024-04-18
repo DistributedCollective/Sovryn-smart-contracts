@@ -262,24 +262,22 @@ module.exports = {
             url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
             accounts: mainnetAccounts,
         },
-        sepolia: {
-            chainId: 11155111,
-            url: `https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
-            accounts: testnetAccounts,
-        },
         bobTestnet: {
             url: "https://testnet.rpc.gobob.xyz/",
             chainId: 111,
             accounts: testnetAccounts,
             gasPrice: 50000000,
-            // tags: ["testnet"],
+            tags: ["testnet"],
         },
-        tenderlyVirtualNetwork: {
-            url: "https://virtual.mainnet.rpc.tenderly.co/4a0f7fb8-07fb-4cdd-baad-ec76fc7c6233",
-            chainId: 112233,
+
+        bobForkedTestnet: {
+            chainId: 31337,
             accounts: testnetAccounts,
+            url: "http://127.0.0.1:8545",
             gasPrice: 50000000,
-            // tags: ["testnet"],
+            live: true,
+            tags: ["testnet", "forked"],
+            timeout: 100000,
         },
     },
     paths: {
@@ -320,6 +318,11 @@ module.exports = {
                 "external/deployments/rskMainnet",
                 "deployment/deployments/rskSovrynMainnet",
                 "external/deployments/rskForkedMainnet",
+            ],
+            bobTestnet: ["external/deployments/bobTestnet"],
+            bobForkedTestnet: [
+                "external/deployments/bobTestnet",
+                "deployment/deployments/bobTestnet",
             ],
             ethMainnet: ["external/deployments/ethMainnet", "deployment/deployments/ethMainnet"],
         },
