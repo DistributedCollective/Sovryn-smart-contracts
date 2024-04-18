@@ -268,8 +268,8 @@ module.exports = {
             accounts: testnetAccounts,
         },
         bobTestnet: {
-            url: "https://sepolia-dencun.rpc.gobob.xyz/",
-            chainId: 606808,
+            url: "https://testnet.rpc.gobob.xyz/",
+            chainId: 111,
             accounts: testnetAccounts,
             gasPrice: 50000000,
             // tags: ["testnet"],
