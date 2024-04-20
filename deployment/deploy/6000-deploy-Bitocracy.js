@@ -1,5 +1,4 @@
 const path = require("path");
-const { getContractNameFromScriptFileName } = require("../helpers/utils");
 const { ethers } = require("hardhat");
 const col = require("cli-color");
 //const deploymentName = getContractNameFromScriptFileName(path.basename(__filename));
@@ -10,7 +9,7 @@ const func = async function (hre) {
     } = hre;
     const { deployer } = await getNamedAccounts(); //await ethers.getSigners();
 
-    const multisigDeployment = await get("MultiSigWallet");
+    const multisigDeployment = await get("BitocracyGuardianMultisig");
     let ownerDelay = 0;
     let adminDelay = 0;
     let guardian;
