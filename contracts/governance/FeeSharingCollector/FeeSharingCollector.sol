@@ -116,6 +116,8 @@ contract FeeSharingCollector is
         address indexed newLoanTokenWrbtc
     );
 
+    event SetProtocolAddress(address indexed sender, address _protocolAddress);
+
     /* Modifier */
     modifier oneTimeExecution(bytes4 _funcSig) {
         require(
@@ -159,6 +161,22 @@ contract FeeSharingCollector is
         require(Address.isContract(newWrbtcTokenAddress), "newWrbtcTokenAddress not a contract");
         emit SetWrbtcToken(msg.sender, wrbtcTokenAddress, newWrbtcTokenAddress);
         wrbtcTokenAddress = newWrbtcTokenAddress;
+    }
+
+    /**
+     * @notice Set the Protocol address if not set at initial deployment of the proxy contract
+     *
+     * only owner can perform this action.
+     *
+     * @param _protocolAddress Sovryn protocol address.
+     * */
+    function setProtocolAddress(
+        address _protocolAddress
+    ) public onlyOwner oneTimeExecution(this.setProtocolAddress.selector) {
+        require(Address.isContract(_protocolAddress), "_protocolAddress not a contract");
+        require(address(protocol) == address(0x0), "protocol address already set");
+        protocol = IProtocol(_protocolAddress);
+        emit SetProtocolAddress(msg.sender, _protocolAddress);
     }
 
     /**
