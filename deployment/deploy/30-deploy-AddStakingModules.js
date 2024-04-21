@@ -31,6 +31,11 @@ const func = async function () {
     // @dev stakingModulesProxy@stakingProxy
     const stakingModulesProxy = await ethers.getContract("StakingModulesProxy");
 
+    const stakingModulesProxyOwner = await stakingModulesProxy.owner();
+    const timelockOwnerAddress = (await ethers.getContract("TimelockOwner")).address;
+    const timelockAdminAddress = (await ethers.getContract("TimelockAdmin")).address;
+    const guardianAddress = (await ethers.getContract("ContractsGuardianMultisig")).address;
+
     const { deployer } = await getNamedAccounts();
 
     for (let moduleName in moduleNamesObject) {
@@ -91,10 +96,22 @@ const func = async function () {
         // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
         // TODO: figure out if possible to pass SIP via environment and run the script
         //const stakingProxyDeployment = await get("StakingProxy");
-        log(col.bgBlue("Staking modules and StakingModuleProxy are deployed"));
-        log(
-            "Prepare and run SIP function in sips.js to create the proposal\n or alternatively use the brownie python proposal creation script."
-        );
+        if (
+            stakingModulesProxyOwner === timelockOwnerAddress ||
+            stakingModulesProxyOwner === timelockAdminAddress
+        ) {
+            log(
+                "Prepare and run SIP function in sips.js to create the proposal\n or alternatively use the brownie python proposal creation script."
+            );
+        } else if (stakingModulesProxyOwner === guardianAddress) {
+            log(
+                `StakingModulesProxy is owned by the ContractsGuardianMultisig ${guardianAddress} - create and execute Safe tx`
+            );
+        } else {
+            await stakingModulesProxy.addModules(modulesToAdd);
+            log(col.bgBlue("Staking modules and StakingModuleProxy are deployed"));
+            log(col.bgYellow("Transfer ownership to Bitocracy or Multisig Wallet/Safe!"));
+        }
     } else {
         // hh ganache
         log(col.bgYellow("Adding modules..."));
