@@ -270,11 +270,11 @@ module.exports = {
             tags: ["testnet"],
         },
         bobMainnet: {
-            url: 'https://rpc.gobob.xyz/',
+            url: "https://rpc.gobob.xyz/",
             chainId: 60808,
             accounts: mainnetAccounts,
             live: true,
-            tags: ['mainnet'],
+            tags: ["mainnet"],
             gasPrice: 50000000,
         },
         bobForkedTestnet: {
