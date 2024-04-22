@@ -269,7 +269,14 @@ module.exports = {
             gasPrice: 50000000,
             tags: ["testnet"],
         },
-
+        bobMainnet: {
+            url: 'https://rpc.gobob.xyz/',
+            chainId: 60808,
+            accounts: mainnetAccounts,
+            live: true,
+            tags: ['mainnet'],
+            gasPrice: 50000000,
+        },
         bobForkedTestnet: {
             chainId: 31337,
             accounts: testnetAccounts,
