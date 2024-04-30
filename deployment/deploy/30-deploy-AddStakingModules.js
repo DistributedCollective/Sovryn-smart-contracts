@@ -31,7 +31,7 @@ const func = async function () {
     // @dev stakingModulesProxy@stakingProxy
     const stakingModulesProxy = await ethers.getContract("StakingModulesProxy");
 
-    const stakingModulesProxyOwner = await stakingModulesProxy.owner();
+    const stakingModulesProxyOwner = await stakingModulesProxy.getProxyOwner();
     const timelockOwnerAddress = (await ethers.getContract("TimelockOwner")).address;
     const timelockAdminAddress = (await ethers.getContract("TimelockAdmin")).address;
     const guardianAddress = (await ethers.getContract("ContractsGuardianMultisig")).address;
