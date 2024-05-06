@@ -86,7 +86,7 @@ contract StakingShared is StakingStorageShared, SafeMath96 {
      * */
     function _timestampToLockDate(uint256 timestamp) internal view returns (uint256 lockDate) {
         // Optimize gas costs by reading kickoffTS from storage only once.
-        uint256 start = kickoffTS;
+        uint256 start = _kickoffTS();
         require(timestamp >= start, "timestamp < contract creation"); // WS23
         /**
          * @dev If staking timestamp does not match any of the unstaking dates

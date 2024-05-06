@@ -6,7 +6,7 @@ const hre = require("hardhat");
 const { ethers } = hre;
 
 const StakingLogic = artifacts.require("IStaking");
-const StakingProxy = artifacts.require("StakingProxy");
+
 const SOV = artifacts.require("SOV");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
@@ -32,7 +32,7 @@ const increaseTimeEthers = async (time) => {
 
 contract("FourYearVesting", (accounts) => {
     let root, a1, a2, a3;
-    let token, staking, stakingLogic, stakingProxy, feeSharingCollectorProxy;
+    let token, staking, feeSharingCollectorProxy;
     let vestingLogic;
     let vestingFactory;
     let kickoffTS;
@@ -54,8 +54,8 @@ contract("FourYearVesting", (accounts) => {
         );
 
         // Creating the Staking Instance (Staking Modules Interface).
-        stakingProxy = await StakingProxy.new(token.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+        stakingModulesProxy = await StakingModulesProxy.new(token.address);
+        staking = await deployAndGetIStaking(token.address);
 
         //Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
@@ -912,8 +912,8 @@ contract("FourYearVesting", (accounts) => {
             // 1. set new staking contract address on staking contract
 
             // Creating the Staking Instance (Staking Modules Interface).
-            const stakingProxy = await StakingProxy.new(token.address);
-            const newStaking = await deployAndGetIStaking(stakingProxy.address);
+
+            const newStaking = await deployAndGetIStaking(token.address);
 
             await staking.setNewStakingContract(newStaking.address);
 
@@ -930,8 +930,7 @@ contract("FourYearVesting", (accounts) => {
         });
 
         it("should fail if there is no new staking contract set", async () => {
-            let newStaking = await StakingProxy.new(token.address);
-            await newStaking.setImplementation(await stakingProxy.getImplementation()); //setting StakingModulesProxy address
+            let newStaking = await StakingModulesProxy.new(token.address);
             await initializeStakingModulesAt(newStaking.address); // deployes and initializes modules in the newStaking storage using previous StakingModulesProxy contact
 
             vesting = await Vesting.new(
@@ -950,8 +949,7 @@ contract("FourYearVesting", (accounts) => {
         });
 
         it("should fail if the caller is neither owner nor token owner", async () => {
-            let newStaking = await StakingProxy.new(token.address);
-            await newStaking.setImplementation(await stakingProxy.getImplementation()); //setting StakingModulesProxy address
+            let newStaking = await StakingModulesProxy.new(token.address);
             await initializeStakingModulesAt(newStaking.address); // deploys and initializes modules in the newStaking storage using previous StakingModulesProxy contact
             newStaking = await StakingLogic.at(newStaking.address);
 

@@ -25,7 +25,6 @@ const {
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingProxy = artifacts.require("StakingProxy");
 
 const LoanToken = artifacts.require("LoanToken");
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
@@ -63,8 +62,8 @@ contract("LoanTokenUpgrade", (accounts) => {
         await sovryn.setSovrynProtocolAddress(sovryn.address);
 
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(SUSD.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(SUSD.address);
 
         // Governor
         timelock = await Timelock.new(root, TWO_DAYS);

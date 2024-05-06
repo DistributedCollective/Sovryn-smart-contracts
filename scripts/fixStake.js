@@ -167,12 +167,12 @@ async function main() {
     // const multisig2 = await ethers.getContractAt("MultiSigWallet", "0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711", account2);
     // const multisig3 = await ethers.getContractAt("MultiSigWallet", "0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711", account3);
 
-    /*let StakingProxyABI = [
+    /*let StakingModulesProxyABI = [
         //   // add "payable" to the Solidity signature
         "function setImplementation(address _implementation)",
     ];
 
-    let iStakingRewardsProxy = new ethers.utils.Interface(StakingProxyABI);
+    let iStakingRewardsProxy = new ethers.utils.Interface(StakingModulesProxyABI);
     const data = iStakingRewardsProxy.encodeFunctionData("setImplementation", [
         stakinRewardsLogic.address,
     ]);

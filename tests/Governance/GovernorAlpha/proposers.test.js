@@ -8,7 +8,6 @@
 const GovernorAlpha = artifacts.require("GovernorAlpha");
 const Timelock = artifacts.require("Timelock");
 const TestToken = artifacts.require("TestToken");
-const StakingProxy = artifacts.require("StakingProxy");
 
 const {
     time, // Convert different time units to seconds. Available helpers are: seconds, minutes, hours, days, weeks and years.
@@ -49,7 +48,7 @@ async function stake(tokenInstance, stakingInstance, stakeFor, delegatee, amount
 }
 
 contract("GovernorAlpha (Proposer Functions)", (accounts) => {
-    let governorAlpha, staking, stakingProxy, timelock, testToken;
+    let governorAlpha, staking, timelock, testToken;
     let guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo;
     let targets, values, signatures, callDatas, eta;
 
@@ -67,8 +66,8 @@ contract("GovernorAlpha (Proposer Functions)", (accounts) => {
 
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(testToken.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(testToken.address);
 
         // Creating the Timelock Contract instance.
         // We would be assigning the `guardianOne` as the admin for now.

@@ -21,7 +21,7 @@ const { ethers } = require("hardhat");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingProxy = artifacts.require("StakingProxy");
+
 const TestToken = artifacts.require("TestToken");
 //Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
@@ -59,8 +59,8 @@ contract("GovernorAlpha#queue/1", (accounts) => {
 
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(token.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(testToken.address);
 
         gov = await GovernorAlpha.new(timelock.address, staking.address, root, 4, 0);
 

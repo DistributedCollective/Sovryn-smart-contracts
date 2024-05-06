@@ -15,7 +15,6 @@ const { expectRevert, BN } = require("@openzeppelin/test-helpers");
 const { mineBlock, setTime } = require("../Utils/Ethereum");
 const { deployAndGetIStaking } = require("../Utils/initializer");
 
-const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
@@ -46,8 +45,8 @@ contract("WeightedStaking", (accounts) => {
 
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(token.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(token.address);
 
         //await token.transfer(a2, "1000");
         //await token.approve(staking.address, "1000", { from: a2 });

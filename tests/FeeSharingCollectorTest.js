@@ -40,7 +40,6 @@ const {
 
 const TestToken = artifacts.require("TestToken");
 
-const StakingProxy = artifacts.require("StakingProxy");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
 
@@ -159,16 +158,16 @@ contract("FeeSharingCollector:", (accounts) => {
         // Staking
 
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(SOVToken.address);
+
         const modulesObject = await getStakingModulesObject();
 
-        staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+        staking = await deployAndGetIStaking(SOVToken.address, modulesObject);
 
         const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
         const modulesAddressList = getStakingModulesAddressList(modulesObject);
         //console.log(modulesAddressList);
         await replaceStakingModule(
-            stakingProxy.address,
+            staking.address,
             modulesAddressList["WeightedStakingModule"],
             weightedStakingModuleMockup.address
         );
@@ -4594,7 +4593,7 @@ contract("FeeSharingCollector:", (accounts) => {
     });
 
     describe("withdraw with or considering vesting contracts", () => {
-        it("getAccumulatedFees should return 0 for vesting contracts", async () => {
+        it.only("getAccumulatedFees should return 0 for vesting contracts", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 

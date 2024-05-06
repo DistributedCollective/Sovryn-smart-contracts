@@ -32,7 +32,6 @@ const {
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingProxy = artifacts.require("StakingProxy");
 
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
@@ -48,9 +47,6 @@ const MAX_DURATION = ethers.BigNumber.from(24 * 60 * 60).mul(1092);
 const ONE_RBTC = ethers.utils.parseEther("1.0");
 
 describe("Staking Modules Deployments and Upgrades via Governance", () => {
-    let root, account1, account2, account3, account4;
-    let SUSD, staking, gov, timelock, stakingProxy;
-    let sovryn;
     // async function setupTest() {
     const getImpersonatedSignerFromJsonRpcProvider = async (addressToImpersonate) => {
         //await impersonateAccount(addressToImpersonate);
@@ -68,7 +64,6 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
         await deployments.fixture(["StakingModules", "StakingModulesProxy"], {
             keepExistingDeployments: true,
         }); // start from a fresh deployments
-        const stakingProxy = await ethers.getContract("StakingProxy", deployer);
         const stakingModulesProxy = await ethers.getContract("StakingModulesProxy", deployer);
 
         const god = await deployments.get("GovernorOwner");
@@ -91,7 +86,6 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
         return {
             deployer,
             deployerSigner,
-            stakingProxy,
             stakingModulesProxy,
             governorOwner,
             governorOwnerSigner,
@@ -105,99 +99,6 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
     afterEach(async () => {});
 
     describe("Staking Modules Onchain Testing", () => {
-        it("SIP 0049 is executable", async () => {
-            if (!hre.network.tags["forked"]) {
-                console.error("ERROR: Must run on a forked net");
-                return;
-            }
-            await hre.network.provider.request({
-                method: "hardhat_reset",
-                params: [
-                    {
-                        forking: {
-                            jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
-                            blockNumber: 5069115, //5079890 // block num at the time of the test creation with no Staking refactored deployed yet
-                            //blockNumber: 5037475, // block num at the time of the test creation with no Staking refactored deployed yet
-                        },
-                    },
-                ],
-            });
-
-            const {
-                deployer,
-                deployerSigner,
-                stakingProxy,
-                stakingModulesProxy,
-                governorOwner,
-                governorOwnerSigner,
-                timelockOwner,
-                timelockOwnerSigner,
-            } = await setupTest();
-
-            // CREATE PROPOSAL
-            const sov = await ethers.getContract("SOV", timelockOwnerSigner);
-            const whaleAmount = (await sov.totalSupply()).mul(ethers.BigNumber.from(5));
-            await sov.mint(deployer, whaleAmount);
-            /*
-            const quorumVotes = await governorOwner.quorumVotes();
-            console.log('quorumVotes:', quorumVotes);
-            */
-            await sov.connect(deployerSigner).approve(stakingProxy.address, whaleAmount);
-            const stakeABI = (await hre.artifacts.readArtifact("IStaking")).abi;
-            // alternatively for stakeABI can be used human readable ABI:
-            /*const stakeABI = [
-                'function stake(uint96 amount,uint256 until,address stakeFor,address delegatee)',
-                'function pauseUnpause(bool _pause)',
-                'function paused() view returns (bool)'
-            ];*/
-            const staking = await ethers.getContractAt(
-                stakeABI,
-                stakingProxy.address,
-                deployerSigner
-            );
-            const multisigSigner = await getImpersonatedSignerFromJsonRpcProvider(
-                (await get("MultiSigWallet")).address
-            );
-            if (await staking.paused()) await staking.connect(multisigSigner).pauseUnpause(false);
-            const kickoffTS = await stakingProxy.kickoffTS();
-            await staking.stake(whaleAmount, kickoffTS.add(MAX_DURATION), deployer, deployer);
-            await mine();
-
-            // CREATE PROPOSAL AND VERIFY
-            const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
-            await hre.run("sips:create", { argsFunc: "getArgsSip0049" });
-            const proposalId = await governorOwner.latestProposalIds(deployer);
-            expect(
-                proposalId.toString(),
-                "Proposal was not created. Check the SIP creation is not commented out."
-            ).not.equal(proposalIdBeforeSIP.toString());
-
-            // VOTE FOR PROPOSAL
-            await mine();
-            await governorOwner.connect(deployerSigner).castVote(proposalId, true);
-
-            // QUEUE PROPOSAL
-            let proposal = await governorOwner.proposals(proposalId);
-            await mine(proposal.endBlock);
-            await governorOwner.queue(proposalId);
-
-            // EXECUTE PROPOSAL
-            proposal = await governorOwner.proposals(proposalId);
-            await time.increaseTo(proposal.eta);
-            await expect(governorOwner.execute(proposalId))
-                .to.emit(governorOwner, "ProposalExecuted")
-                .withArgs(proposalId);
-
-            // VALIDATE EXECUTION
-            expect((await governorOwner.proposals(proposalId)).executed).to.be.true;
-            expect(await stakingProxy.getImplementation()).to.equal(
-                (await get("StakingModulesProxy_Implementation")).address
-            );
-            const modulesProxy = await ethers.getContractAt("ModulesProxy", stakingProxy.address);
-            expect(await modulesProxy.getFuncImplementation("0x8dae1b16")).to.equal(
-                (await get("WeightedStakingModule")).address
-            );
-        });
         it("SIP-0058 replacing staking modules is executable", async () => {
             if (!hre.network.tags["forked"]) {
                 console.error("ERROR: Must run on a forked net");
@@ -218,11 +119,8 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
             const {
                 deployer,
                 deployerSigner,
-                stakingProxy,
                 stakingModulesProxy,
                 governorOwner,
-                governorOwnerSigner,
-                timelockOwner,
                 timelockOwnerSigner,
             } = await setupTest();
 
@@ -231,18 +129,18 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
             const whaleAmount = (await sov.totalSupply()).mul(ethers.BigNumber.from(5));
             await sov.mint(deployer, whaleAmount);
 
-            await sov.connect(deployerSigner).approve(stakingProxy.address, whaleAmount);
+            await sov.connect(deployerSigner).approve(stakingModulesProxy.address, whaleAmount);
             const stakeABI = (await hre.artifacts.readArtifact("IStaking")).abi;
             const staking = await ethers.getContractAt(
                 stakeABI,
-                stakingProxy.address,
+                stakingModulesProxy.address,
                 deployerSigner
             );
             const multisigSigner = await getImpersonatedSignerFromJsonRpcProvider(
                 (await get("MultiSigWallet")).address
             );
             if (await staking.paused()) await staking.connect(multisigSigner).pauseUnpause(false);
-            const kickoffTS = await stakingProxy.kickoffTS();
+            const kickoffTS = await stakingModulesProxy.kickoffTS();
             await staking.stake(whaleAmount, kickoffTS.add(MAX_DURATION), deployer, deployer);
             await mine();
 
@@ -266,7 +164,7 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
             await governorOwner.queue(proposalId);
 
             // VERIFY REGISTERED MODULES ARE NOT THE DEPLOYED ONES BEFORE THE SIP EXECUTION
-            const modulesProxy = await ethers.getContractAt("ModulesProxy", stakingProxy.address);
+            const modulesProxy = await ethers.getContract("StakingModulesProxy");
             const stakingVestingModule = await ethers.getContract("StakingVestingModule");
             const stakingVestingModuleFuncs = await stakingVestingModule.getFunctionsList();
             for await (const func of stakingVestingModuleFuncs) {
@@ -323,10 +221,10 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                 ],
             });
 
-            const { stakingProxy, governorOwner } = await setupTest();
+            const { governorOwner } = await setupTest();
 
             // VERIFY REGISTERED MODULES ARE NOT THE DEPLOYED ONES BEFORE THE SIP EXECUTION
-            const modulesProxy = await ethers.getContractAt("ModulesProxy", stakingProxy.address);
+            const modulesProxy = await ethers.getContract("StakingModulesProxy");
             const stakingVestingModule = await ethers.getContract("StakingVestingModule");
             const stakingVestingModuleFuncs = await stakingVestingModule.getFunctionsList();
             for await (const func of stakingVestingModuleFuncs) {

@@ -15,8 +15,6 @@ const {
 
 const { deployAndGetIStaking, getStakingModulesWithBlockMockup } = require("../Utils/initializer");
 
-const StakingProxy = artifacts.require("StakingProxy");
-
 const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const FeeSharingCollector = artifacts.require("FeeSharingCollector");
@@ -40,9 +38,8 @@ contract("StakingRewards", (accounts) => {
     let totalRewards;
 
     const initStakingModules = async () => {
-        const stakingProxy = await StakingProxy.new(SOV.address);
         iStaking = await deployAndGetIStaking(
-            stakingProxy.address,
+            SOV.address,
             await getStakingModulesWithBlockMockup()
         );
 

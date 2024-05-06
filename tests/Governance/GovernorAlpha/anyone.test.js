@@ -29,7 +29,7 @@ const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("Timelock");
 const TestToken = artifacts.require("TestToken");
-const StakingProxy = artifacts.require("StakingProxy");
+
 const SetGet = artifacts.require("setGet");
 
 const {
@@ -104,7 +104,7 @@ async function advanceBlocks(num) {
 }
 
 contract("GovernorAlpha (Any User Functions)", (accounts) => {
-    let governorAlpha, staking, stakingProxy, timelock, testToken, setGet;
+    let governorAlpha, staking, stakingModulesProxy, timelock, testToken, setGet;
     let guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo;
     let targets, values, signatures, callDatas, eta, proposalId;
 
@@ -122,8 +122,7 @@ contract("GovernorAlpha (Any User Functions)", (accounts) => {
 
         // Staking
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(testToken.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+        staking = await deployAndGetIStaking(testToken.address);
 
         // Creating the Timelock Contract instance.
         // We would be assigning the `guardianOne` as the admin for now.

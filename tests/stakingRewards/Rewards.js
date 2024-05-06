@@ -20,7 +20,7 @@ const { deployAndGetIStaking, getStakingModulesWithBlockMockup } = require("../U
 const { takeSnapshot } = require("@nomicfoundation/hardhat-network-helpers");
 
 const SOV_ABI = artifacts.require("SOV");
-const StakingProxy = artifacts.require("StakingProxy");
+
 const StakingRewards = artifacts.require("StakingRewardsMockUp");
 const StakingRewardsProxy = artifacts.require("StakingRewardsProxy");
 const IStakingModuleBlockMockup = artifacts.require("IStakingModuleBlockMockup");
@@ -51,9 +51,9 @@ contract("StakingRewards - First Period", (accounts) => {
         blockMockUp = await BlockMockUp.new();
 
         // Deployed Staking Functionality
-        const stakingProxy = await StakingProxy.new(SOV.address);
+
         iStaking = await deployAndGetIStaking(
-            stakingProxy.address,
+            SOV.address,
             await getStakingModulesWithBlockMockup()
         );
         staking = await IStakingModuleBlockMockup.at(iStaking.address); // applying extended mockup interface

@@ -66,8 +66,16 @@ contract StakingStorageModule is IFunctionsList, StakingStorageShared {
         return maxVestingWithdrawIterations;
     }
 
+    function kickoffTS() public view returns (uint256) {
+        return _kickoffTS();
+    }
+
+    function SOVToken() public view returns (IERC20) {
+        return _SOVToken();
+    }
+
     function getFunctionsList() external pure returns (bytes4[] memory) {
-        bytes4[] memory functionsList = new bytes4[](31);
+        bytes4[] memory functionsList = new bytes4[](32);
         functionsList[0] = this.getStorageMaxDurationToStakeTokens.selector;
         functionsList[1] = this.getStorageMaxVotingWeight.selector;
         functionsList[2] = this.getStorageWeightFactor.selector;
@@ -99,6 +107,7 @@ contract StakingStorageModule is IFunctionsList, StakingStorageShared {
         functionsList[28] = this.paused.selector;
         functionsList[29] = this.frozen.selector;
         functionsList[30] = this.getMaxVestingWithdrawIterations.selector;
+        functionsList[31] = this.MAX_DURATION.selector;
 
         return functionsList;
     }

@@ -16,7 +16,7 @@ const { address, etherMantissa, encodeParameters, mineBlock } = require("../../U
 const { deployAndGetIStaking } = require("../../Utils/initializer");
 
 const GovernorAlpha = artifacts.require("GovernorAlpha");
-const StakingProxy = artifacts.require("StakingProxy");
+
 const TestToken = artifacts.require("TestToken");
 //Upgradable Vesting Registry
 const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
@@ -38,8 +38,8 @@ contract("GovernorAlpha#propose/5", (accounts) => {
 
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(token.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(testToken.address);
 
         gov = await GovernorAlpha.new(address(0), staking.address, address(0), 4, 0);
 

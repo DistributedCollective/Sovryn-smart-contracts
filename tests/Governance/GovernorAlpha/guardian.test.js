@@ -17,7 +17,6 @@
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("Timelock");
 const TestToken = artifacts.require("TestToken");
-const StakingProxy = artifacts.require("StakingProxy");
 
 const {
     time, // Convert different time units to seconds. Available helpers are: seconds, minutes, hours, days, weeks and years.
@@ -86,7 +85,7 @@ async function stake(tokenInstance, stakingInstance, stakeFor, delegatee, amount
 }*/
 
 contract("GovernorAlpha (Guardian Functions)", (accounts) => {
-    let governorAlpha, staking, stakingProxy, timelock, testToken;
+    let governorAlpha, staking, timelock, testToken;
     let guardianOne, guardianTwo, voterOne, voterTwo, voterThree, userOne, userTwo;
     let targets, values, signatures, callDatas, proposalId;
     let newGovernorAlpha;
@@ -105,8 +104,8 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 
         // Staking
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(testToken.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(testToken.address);
 
         // Calculating the tokens to be sent for the Voters to Stake.
         let amountOne = new BN((quorumPercentageVotes * totalSupply + 1) / 100);

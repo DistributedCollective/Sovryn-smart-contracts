@@ -23,7 +23,6 @@ const {
 
 const { mineBlock, setNextBlockTimestamp } = require("./Utils/Ethereum");
 
-const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -151,14 +150,13 @@ contract("OriginInvestorsClaim", (accounts) => {
         cSOV1 = await TestToken.new("cSOV1", "cSOV1", 18, TOTAL_SUPPLY);
         cSOV2 = await TestToken.new("cSOV2", "cSOV2", 18, TOTAL_SUPPLY);
 
-        const stakingProxy = await StakingProxy.new(SOV.address);
         const modulesObject = await getStakingModulesObject();
-        staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+        staking = await deployAndGetIStaking(SOV.address, modulesObject);
         const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
         const modulesAddressList = getStakingModulesAddressList(modulesObject);
         //console.log(modulesAddressList);
         await replaceStakingModule(
-            stakingProxy.address,
+            staking.address,
             modulesAddressList["WeightedStakingModule"],
             weightedStakingModuleMockup.address
         );

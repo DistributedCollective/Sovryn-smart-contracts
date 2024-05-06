@@ -12,7 +12,7 @@
 const SOV = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
 const LockedSOV = artifacts.require("LockedSOV");
-const StakingProxy = artifacts.require("StakingProxy");
+
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
@@ -65,8 +65,8 @@ contract("Locked SOV (Any User Functions)", (accounts) => {
 
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(sov.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(sov.address);
 
         // Creating the FeeSharing Instance.
         feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(

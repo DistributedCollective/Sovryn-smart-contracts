@@ -248,7 +248,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         /// @dev Retrieve the SOV tokens.
         if (transferToken)
             require(
-                SOVToken.transferFrom(sender, address(this), amount),
+                _SOVToken().transferFrom(sender, address(this), amount),
                 "Should transfer tokens successfully"
             ); // IS10
 
@@ -346,7 +346,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
 
         /// @dev transferring total SOV amount before staking
         require(
-            SOVToken.transferFrom(msg.sender, address(this), amount),
+            _SOVToken().transferFrom(msg.sender, address(this), amount),
             "Should transfer tokens successfully"
         ); // SS10
         /// @dev stakedPerInterval might lose some dust on rounding. Add it to the first staking date.
@@ -384,7 +384,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * @return The number of tokens held.
      * */
     function balanceOf(address account) external view returns (uint96 balance) {
-        for (uint256 i = kickoffTS; i <= block.timestamp + MAX_DURATION; i += TWO_WEEKS) {
+        for (uint256 i = _kickoffTS(); i <= block.timestamp + MAX_DURATION; i += TWO_WEEKS) {
             balance = add96(balance, _currentBalance(account, i), "Staking::balanceOf: overflow"); // S12
         }
     }
@@ -411,7 +411,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
         /// @dev Calculate stakes.
         uint256 count = 0;
         /// @dev We need to iterate from first possible stake date after deployment to the latest from current time.
-        for (uint256 i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
+        for (uint256 i = _kickoffTS() + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
             if (_currentBalance(account, i) > 0) {
                 count++;
             }
@@ -421,7 +421,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
 
         /// @dev We need to iterate from first possible stake date after deployment to the latest from current time.
         uint256 j = 0;
-        for (uint256 i = kickoffTS + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
+        for (uint256 i = _kickoffTS() + TWO_WEEKS; i <= latest; i += TWO_WEEKS) {
             uint96 balance = _currentBalance(account, i);
             if (balance > 0) {
                 dates[j] = i;
@@ -437,7 +437,7 @@ contract StakingStakeModule is IFunctionsList, StakingShared, CheckpointsShared,
      * @return The address of SOV token.
      * */
     function _getToken() internal view returns (address) {
-        return address(SOVToken);
+        return address(_SOVToken());
     }
 
     /**

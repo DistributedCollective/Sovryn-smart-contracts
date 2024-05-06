@@ -32,8 +32,6 @@ const SwapsExternal = artifacts.require("SwapsExternal");
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
 
-const StakingProxy = artifacts.require("StakingProxy");
-
 const FeeSharingCollector = artifacts.require("FeeSharingCollector");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
@@ -122,8 +120,8 @@ contract("SwapsExternal", (accounts) => {
         // Staking
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(SUSD.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(SUSD.address);
 
         // FeeSharingCollectorProxy
         feeSharingCollector = await FeeSharingCollector.new();
