@@ -43,7 +43,7 @@ jobs:
           key: ${{ runner.os }}-compiler-cache
 
       - name: Install python dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt && brownie pm install OpenZeppelin/openzeppelin-contracts@4.9.5
 
       - name: Extend Staking
         run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/fouryearvesting/extendStakingCron.py --network=rsk-mainnet

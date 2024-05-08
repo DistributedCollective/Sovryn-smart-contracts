@@ -170,7 +170,7 @@ def getBlockOfStakingRewardsTimestamp(timestamp):
 def getBlockOfStakingRewardsOsTimestamp(timestamp):
     # Get the contract instance
     stakingRewardsOs = Contract.from_abi("StakingRewardsOs", address=conf.contracts['StakingRewardsOsProxy'], abi=StakingRewardsOs.abi, owner=conf.acct)
-    return stakingRewardsOs.checkpointBlockNumber(timestamp)
+    return stakingRewardsOs.getCheckpointBlockNumber(timestamp)
 
 def isStakingRewardsOsAddressSet():
     return conf.contracts['StakingRewardsOsProxy']

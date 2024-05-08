@@ -13,8 +13,8 @@ def main():
         setBlockForStakingRewards()
         
     #StakingRewardsOs    
-    if isStakingRewardsOsAddressSet():
-        blockNumber = getBlockOfStakingRewardsOsTimestamp(timeLockDate)
-        print('StakingRewardsOs block number for current lock date: ', blockNumber)
-        if blockNumber == 0:
-            setBlockForStakingRewardsOs()
+    #if isStakingRewardsOsAddressSet():
+    blockNumber = getBlockOfStakingRewardsOsTimestamp(timeLockDate)
+    print('StakingRewardsOs block number for current lock date: ', blockNumber)
+    if blockNumber == 0:
+        setBlockForStakingRewardsOs()

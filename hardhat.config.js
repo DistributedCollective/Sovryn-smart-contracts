@@ -263,12 +263,32 @@ module.exports = {
             url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
             accounts: mainnetAccounts,
         },
+
         bobTestnet: {
             url: "https://testnet.rpc.gobob.xyz/",
             chainId: 111,
             accounts: testnetAccounts,
-            gasPrice: 50000000,
+            //gasPrice: 50000000,
             tags: ["testnet"],
+        },
+
+        bobMainnet: {
+            url: "https://rpc.gobob.xyz/",
+            chainId: 60808,
+            accounts: testnetAccounts,
+            //gasPrice: 50000000,
+            tags: ["mainnet"],
+        },
+
+        bobForkedTestnet: {
+            chainId: 31337,
+            accounts: mainnetAccounts,
+            url: "http://127.0.0.1:8545",
+            blockGasLimit: 6800000,
+            gasPrice: 50000000,
+            live: true,
+            tags: ["mainnet", "forked"],
+            timeout: 1000000,
         },
 
         bobForkedTestnet: {
@@ -324,6 +344,11 @@ module.exports = {
             bobForkedTestnet: [
                 "external/deployments/bobTestnet",
                 "deployment/deployments/bobTestnet",
+            ],
+            bobMainnet: ["external/deployments/bobMainnet"],
+            bobForkedMainnet: [
+                "external/deployments/bobMainnet",
+                "deployment/deployments/bobMainnet",
             ],
             ethMainnet: ["external/deployments/ethMainnet", "deployment/deployments/ethMainnet"],
         },
