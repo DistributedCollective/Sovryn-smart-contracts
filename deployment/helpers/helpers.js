@@ -513,7 +513,7 @@ const createProposal = async (
 
 // the proxy ABI must have setImplementation() and getImplementation() functions
 const deployWithCustomProxy = async (
-    deployer,
+    deployer, // an address, not a signer object
     logicArtifactName, //logic contract artifact name
     proxyArtifactName, // proxy deployment name
     logicInstanceName = undefined, // save logic implementation as
@@ -521,7 +521,7 @@ const deployWithCustomProxy = async (
     isOwnerMultisig = false, // overrides network dependency
     args = [],
     proxyArgs = [],
-    multisigName = "MultiSigWallet",
+    multisigName = undefined,
     newOwnerAddress = "", // new proxy owner address, used for new proxy deployments and only if there are no post-deployment func calls from the creator address
     newProxyOwnerAddress = "" // if proxy has proxyOwner storage variable nd only if there are no post-deployment func calls from the creator address
 ) => {
@@ -548,6 +548,7 @@ const deployWithCustomProxy = async (
 
     const logicName = logicInstanceName ?? logicArtifactName;
     const logicImplName = logicName + "_Implementation"; // naming convention like in hh deployment
+    log(`Deploying ${logicImplName}, ${logicArtifactName}, ${deployer}, ${args}`);
     const logicDeploymentTx = await deploy(logicImplName, {
         contract: logicArtifactName,
         from: deployer,
@@ -560,7 +561,9 @@ const deployWithCustomProxy = async (
     log(`Current ${proxyName} implementation: ${prevImpl}`);
 
     if (logicDeploymentTx.newlyDeployed || logicDeploymentTx.address != prevImpl) {
-        log(`New ${proxyName} implementation: ${logicImplName} @ ${logicDeploymentTx.address}`);
+        logger.warn(
+            `New ${proxyName} implementation: ${logicImplName} @ ${logicDeploymentTx.address}`
+        );
         await save(logicName, {
             address: proxy.address,
             implementation: logicDeploymentTx.address,
@@ -598,8 +601,8 @@ const deployWithCustomProxy = async (
             // governance is the owner - need a SIP to register
             // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
         } else {
-            const proxy = await ethers.getContractAt(proxyName, proxyDeployment.address);
-            await proxy.setImplementation(logicDeploymentTx.address);
+            const proxy = await ethers.getContractAt(proxyArtifactName, proxyDeployment.address);
+            await (await proxy.setImplementation(logicDeploymentTx.address)).wait();
             log(
                 `>>> New implementation ${await proxy.getImplementation()} is set to the proxy <<<`
             );
@@ -608,7 +611,7 @@ const deployWithCustomProxy = async (
             ethers.utils.isAddress(newOwnerAddress) &&
             (await proxy.owner()).toLowerCase() !== newOwnerAddress.toLowerCase()
         ) {
-            await proxy.transferOwnership(newOwner);
+            await proxy.transferOwnership(newOwnerAddress);
             logger.success(`Proxy ${proxyName} ownership transferred to ${await proxy.owner()}`);
         }
 
@@ -683,6 +686,125 @@ const getLoanTokensData = async () => {
     return loanTokens;
 };
 
+/// @dev This file requires HardhatRuntimeEnvironment `hre` variable in its parent context for functions using hre to work
+
+const upgradeWithTransparentUpgradableProxy = async (
+    deployer,
+    logicArtifactName, // logic contract artifact name
+    proxyArtifactName, // proxy deployment name
+    logicInstanceName = undefined, // save logic implementation as
+    proxyInstanceName = undefined, // save proxy implementation as
+    proxyAdminName = "TransparentUpgradableProxyAdmin", // proxy admin implementation
+    forceOwnerIsMultisig = false, // overrides network dependency
+    args = [],
+    multisigName = undefined
+) => {
+    const {
+        deployments: { deploy, get, log, save },
+        ethers,
+    } = hre;
+
+    proxyInstanceName = proxyInstanceName === "" ? undefined : proxyInstanceName;
+    logicInstanceName = logicInstanceName === "" ? undefined : logicInstanceName;
+
+    const proxyAdminDeployment = await get(proxyAdminName);
+    const proxyAdmin = await ethers.getContract(proxyAdminName);
+
+    const proxyName = proxyInstanceName ?? proxyArtifactName; // support multiple deployments of the same artifact
+
+    const logicName = logicInstanceName ?? logicArtifactName;
+    const logicImplName = `${logicName}_Implementation`; // naming convention like in hh deployment
+    const logicDeploymentTx = await deploy(logicImplName, {
+        contract: logicArtifactName,
+        from: deployer,
+        args: args,
+        log: true,
+    });
+
+    const proxy = await ethers.getContract(proxyName);
+    const proxyDeployment = await get(proxyName);
+    const prevImpl = await proxyAdmin.getProxyImplementation(proxy.address);
+    log(`Current ${proxyName} implementation: ${prevImpl}`);
+
+    if (logicDeploymentTx.newlyDeployed || logicDeploymentTx.address !== prevImpl) {
+        log(`New ${proxyName} implementation: ${logicImplName} @ ${logicDeploymentTx.address}`);
+        await save(logicName, {
+            address: proxy.address,
+            implementation: logicDeploymentTx.address,
+            abi: logicDeploymentTx.abi,
+            bytecode: logicDeploymentTx.bytecode,
+            deployedBytecode: logicDeploymentTx.deployedBytecode,
+            devdoc: logicDeploymentTx.devdoc,
+            userdoc: logicDeploymentTx.userdoc,
+            storageLayout: logicDeploymentTx.storageLayout,
+        });
+
+        if (hre.network.tags.testnet || hre.network.tags.mainnet) {
+            if (hre.network.tags.testnet || forceOwnerIsMultisig) {
+                // multisig is the owner
+                const multisigDeployment = await get(multisigName);
+                // @todo wrap getting ms tx data into a helper
+                const proxyAdminInterface = new ethers.utils.Interface(proxyAdminDeployment.abi);
+                const data = proxyAdminInterface.encodeFunctionData("upgrade", [
+                    proxyDeployment.address,
+                    logicDeploymentTx.address,
+                ]);
+                log(
+                    `Creating multisig tx to set ${logicArtifactName} (${logicDeploymentTx.address}) as implementation for ${proxyName} (${proxyDeployment.address}...`
+                );
+                log();
+                await sendWithMultisig(
+                    hre,
+                    multisigDeployment.address,
+                    proxyAdminDeployment.address,
+                    data,
+                    deployer
+                );
+                log(
+                    col.bgBlue(
+                        `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<
+                 >>> DON'T PUSH DEPLOYMENTS TO THE REPO UNTIL THE MULTISIG TX SUCCESSFULLY SIGNED & EXECUTED <<<`
+                    )
+                );
+            } else if (hre.network.tags.mainnet) {
+                log(">>> Create a Bitocracy proposal via SIP <<<");
+                log(
+                    col.bgBlue(
+                        "Prepare and run SIP function in sips.js to create the proposal with args:"
+                    )
+                );
+                const sipArgs = {
+                    targets: [proxyAdminDeployment.address],
+                    values: [0],
+                    signatures: ["upgrade(address,address)"],
+                    data: [
+                        ethers.utils.defaultAbiCoder.encode(
+                            ["address", "address"],
+                            [proxyDeployment.address, logicDeploymentTx.address]
+                        ),
+                    ],
+                };
+                log(col.yellowBright(JSON.stringify(sipArgs)));
+                log(
+                    ">>> DON'T MERGE DEPLOYMENTS TO THE MAIN (DEVELOPMENT) BRANCH UNTIL THE SIP IS SUCCESSFULLY EXECUTED <<<`"
+                );
+                // governance is the owner - need a SIP to register
+                // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
+            }
+        } else {
+            // eslint-disable-next-line no-shadow
+            const adminProxy = await ethers.getContractAt(proxyName, proxyDeployment.address);
+            await adminProxy.upgrade(proxyDeployment.address, logicDeploymentTx.address);
+            log(
+                `>>> New implementation ${await adminProxy.getProxyImplementation(
+                    proxyDeployment.address
+                )} is set to the proxy <<<`
+            );
+        }
+        log();
+    }
+};
+
 module.exports = {
     getStakingModulesNames,
     getLoanTokenModulesNames,
@@ -709,5 +831,6 @@ module.exports = {
     getTxRevertReason,
     delay,
     logTimer,
+    upgradeWithTransparentUpgradableProxy,
     getSignerFromAccount,
 };

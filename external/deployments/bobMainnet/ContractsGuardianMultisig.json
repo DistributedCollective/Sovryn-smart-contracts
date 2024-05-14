@@ -1,6 +1,6 @@
 {
     "type": "safe",
-    "url": "https://staging.safe.gobob.xyz/home?safe=bob:",
+    "url": "https://safe.gobob.xyz/home?safe=bob:0x04FB154FD8f611D2737A5ca4996Fb654CeAf2EBF",
     "address": "0x04FB154FD8f611D2737A5ca4996Fb654CeAf2EBF",
     "implementation": "0xfb1bffC9d739B8D520DaF37dF666da4C687191EA",
     "abi": [

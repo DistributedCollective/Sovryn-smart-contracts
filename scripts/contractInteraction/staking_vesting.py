@@ -167,6 +167,22 @@ def getBlockOfStakingInterval(timestamp):
     stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
     return stakingRewards.checkpointBlockDetails(timestamp)
 
+# Check StakingRewards block number
+def getBlockOfStakingRewardsTimestamp(timestamp):
+    # Get the contract instance
+    stakingRewards = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
+    return stakingRewards.checkpointBlockDetails(timestamp)
+
+# Check StakingRewardsOs block number
+def getBlockOfStakingRewardsOsTimestamp(timestamp):
+    # Get the contract instance
+    stakingRewardsOs = Contract.from_abi("StakingRewardsOs", address=conf.contracts['StakingRewardsOsProxy'], abi=StakingRewardsOs.abi, owner=conf.acct)
+    return stakingRewardsOs.getCheckpointBlockNumber(timestamp)
+
+def isStakingRewardsOsAddressSet():
+    return conf.contracts['StakingRewardsOsProxy']
+
+
 # Read last staking timestamp
 
 def readLockDate(timestamp):
@@ -206,6 +222,11 @@ def setBlockForStakingRewards():
     # Get the staking rewards proxy contract instance
     stakingRewardsProxy = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
     stakingRewardsProxy.setBlock()
+
+def setBlockForStakingRewardsOs():
+    if conf.contracts['StakingRewardsOsProxy']:
+        stakingRewardsProxy = Contract.from_abi("StakingRewardsOs", address=conf.contracts['StakingRewardsOsProxy'], abi=StakingRewardsOs.abi, owner=conf.acct)
+        stakingRewardsProxy.setBlock()
 
 # Set Historical Block
 
