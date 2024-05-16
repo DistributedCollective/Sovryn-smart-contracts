@@ -142,7 +142,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
 
     it("Defeated by time", async () => {
         // travel to end block
-        await advanceBlocks(20);
+        const votingPeriod = await gov.votingPeriod();
+        await advanceBlocks(votingPeriod.mul(new BN(2)));
 
         expect((await gov.state(trivialProposal.id)).toString()).to.be.equal(states["Defeated"]);
     });
@@ -159,7 +160,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
 
         await updateTime(staking);
         await gov.castVote(newProposalId, true, { from: accounts[3] });
-        await advanceBlocks(20);
+        const votingPeriod = await gov.votingPeriod();
+        await advanceBlocks(votingPeriod.mul(new BN(2)));
 
         // 2% of votes
         let proposal = await gov.proposals.call(newProposalId);
@@ -187,7 +189,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
         await updateTime(staking);
         await gov.castVote(newProposalId, true, { from: acct });
         await gov.castVote(newProposalId, false, { from: acct2 });
-        await advanceBlocks(20);
+        const votingPeriod = await gov.votingPeriod();
+        await advanceBlocks(votingPeriod.mul(new BN(2)));
 
         // 48% of votes
         let proposal = await gov.proposals.call(newProposalId);
@@ -211,7 +214,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
         await updateTime(staking);
         await gov.castVote(newProposalId, true);
         await gov.castVote(newProposalId, true, { from: accounts[3] });
-        await advanceBlocks(20);
+        const votingPeriod = await gov.votingPeriod();
+        await advanceBlocks(votingPeriod.mul(new BN(2)));
 
         expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Succeeded"]);
     });
@@ -226,7 +230,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
         await updateTime(staking);
         await gov.castVote(newProposalId, true);
         await gov.castVote(newProposalId, true, { from: accounts[3] });
-        await advanceBlocks(20);
+        const votingPeriod = await gov.votingPeriod();
+        await advanceBlocks(votingPeriod.mul(new BN(2)));
 
         await gov.queue(newProposalId, { from: acct });
         expect((await gov.state.call(newProposalId)).toString()).to.be.equal(states["Queued"]);
@@ -242,7 +247,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
         await updateTime(staking);
         await gov.castVote(newProposalId, true);
         await gov.castVote(newProposalId, true, { from: accounts[3] });
-        await advanceBlocks(20);
+        const votingPeriod = await gov.votingPeriod();
+        await advanceBlocks(votingPeriod.mul(new BN(2)));
 
         await increaseTime(1);
         await gov.queue(newProposalId, { from: acct });
@@ -272,7 +278,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
         await updateTime(staking);
         await gov.castVote(newProposalId, true);
         await gov.castVote(newProposalId, true, { from: accounts[3] });
-        await advanceBlocks(20);
+        const votingPeriod = await gov.votingPeriod();
+        await advanceBlocks(votingPeriod.mul(new BN(2)));
 
         await gov.queue(newProposalId, { from: acct });
 
