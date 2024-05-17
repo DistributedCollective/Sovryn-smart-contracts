@@ -30,7 +30,7 @@ const solparse = require("solparse");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingProxy = artifacts.require("StakingProxy");
+
 const TestToken = artifacts.require("TestToken");
 
 const governorAlphaPath = path.join(
@@ -341,8 +341,8 @@ contract("GovernorAlpha#state/1", (accounts) => {
     async function deployGovernor() {
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(token.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(testToken.address);
 
         delay = etherUnsigned(2 * 24 * 60 * 60).multipliedBy(2);
         timelock = await Timelock.new(root, delay);

@@ -16,7 +16,6 @@ const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test-helpers");
 const { deployAndGetIStaking } = require("../Utils/initializer");
 
-const StakingProxy = artifacts.require("StakingProxy");
 const SOV_ABI = artifacts.require("SOV");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -56,8 +55,8 @@ contract("VestingCreator", (accounts) => {
 
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(SOV.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(SOV.address);
 
         feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(
             ZERO_ADDRESS,

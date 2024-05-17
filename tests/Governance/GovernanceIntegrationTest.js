@@ -41,7 +41,6 @@ const { encodeParameters, etherMantissa, mineBlock, increaseTime } = require("..
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
 const Timelock = artifacts.require("TimelockHarness");
-const StakingProxy = artifacts.require("StakingProxy");
 
 const LoanTokenSettings = artifacts.require("LoanTokenSettingsLowerAdmin");
 const LoanToken = artifacts.require("LoanToken");
@@ -70,8 +69,8 @@ contract("GovernanceIntegration", (accounts) => {
 
         // Staking
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(SUSD.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(SUSD.address);
 
         // Governor
         timelock = await Timelock.new(root, TWO_DAYS);

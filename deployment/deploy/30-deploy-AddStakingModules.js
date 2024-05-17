@@ -26,9 +26,7 @@ const func = async function () {
     let modulesAddressList = [];
     let totalGas = ethers.BigNumber.from(0);
 
-    const stakingProxyDeployment = await get("StakingProxy");
     const stakingModulesProxyDeployment = await get("StakingModulesProxy"); //await ethers.getContract("StakingModulesProxy");
-    // @dev stakingModulesProxy@stakingProxy
     const stakingModulesProxy = await ethers.getContract("StakingModulesProxy");
 
     const stakingModulesProxyOwner = await stakingModulesProxy.getProxyOwner();
@@ -82,7 +80,7 @@ const func = async function () {
         log(col.bgYellow("Generating multisig transaction to register modules..."));
         await sendWithMultisig(
             multisigDeployment.address,
-            stakingProxyDeployment.address,
+            stakingModulesProxyDeployment.address,
             data,
             deployer
         );
@@ -95,7 +93,6 @@ const func = async function () {
         //owned by governance - need a SIP to register
         // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
         // TODO: figure out if possible to pass SIP via environment and run the script
-        //const stakingProxyDeployment = await get("StakingProxy");
         if (
             stakingModulesProxyOwner === timelockOwnerAddress ||
             stakingModulesProxyOwner === timelockAdminAddress

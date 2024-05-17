@@ -20,9 +20,7 @@ const func = async function (hre) {
         ethers,
     } = hre;
     const { deployer } = await getNamedAccounts();
-    const stakingProxyDeployment = await get("StakingProxy");
     const stakingModulesProxyDeployment = await get("StakingModulesProxy"); //await ethers.getContract("StakingModulesProxy");
-    // @dev stakingModulesProxy@stakingProxy
     const stakingModulesProxy = await ethers.getContract("StakingModulesProxy");
 
     const modulesList = getStakingModulesNames();
@@ -58,7 +56,7 @@ const func = async function (hre) {
         log("Generating multisig transaction to replace modules...");
         await sendWithMultisig(
             multisigDeployment.address,
-            stakingProxyDeployment.address,
+            stakingModulesProxyDeployment.address,
             data,
             deployer
         );
@@ -71,7 +69,6 @@ const func = async function (hre) {
         //owned by governance - need a SIP to register
         // TODO: implementation ; meanwhile use brownie sip_interaction scripts to create proposal
         // TODO: figure out if possible to pass SIP via environment and run the script
-        //const stakingProxyDeployment = await get("StakingProxy");
         log(
             col.bgBlue(
                 "Staking modules and StakingModuleProxy are deployed (those not modified are reused)"

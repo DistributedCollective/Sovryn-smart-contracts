@@ -35,7 +35,6 @@ const EIP712 = require("../Utils/EIP712");
 // const EIP712Ethers = require("../Utils/EIP712Ethers");
 const { getAccountsPrivateKeysBuffer } = require("../Utils/hardhat_utils");
 
-const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 const Vesting = artifacts.require("Vesting");
 const VestingLogic = artifacts.require("VestingLogic");
@@ -96,9 +95,9 @@ contract("Staking", (accounts) => {
 
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(token.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
-        stakingWrapperMockup = await StakingWrapperMockup.new(stakingProxy.address, token.address);
+
+        staking = await deployAndGetIStaking(token.address);
+        stakingWrapperMockup = await StakingWrapperMockup.new(staking.address, token.address);
 
         //Upgradable Vesting Registry
         const vestingRegistryLogic = await VestingRegistryLogic.new();

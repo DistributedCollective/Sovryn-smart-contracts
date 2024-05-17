@@ -15,7 +15,7 @@ const { expect } = require("chai");
 
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert, BN, expectEvent } = require("@openzeppelin/test-helpers");
-const StakingProxy = artifacts.require("StakingProxy");
+
 const FeeSharingCollector = artifacts.require("FeeSharingCollector");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 const Vesting = artifacts.require("TeamVesting");
@@ -131,9 +131,9 @@ contract("LoanTokenFunctionality", (accounts) => {
         it("should transfer to tokenOwner if passed recipient is vesting contract that has tokenOwner() selector", async () => {
             const vestingLogic = await VestingLogic.new();
             // Creating the Staking Instance (Staking Modules Interface).
-            const stakingProxy = await StakingProxy.new(SOVToken.address);
+
             const modulesObject = await getStakingModulesObject();
-            const staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+            const staking = await deployAndGetIStaking(SOVToken.address, modulesObject);
             const tokenOwner = accounts[3];
             const cliff = new BN(24 * 60 * 60).mul(new BN(1092));
 
@@ -190,15 +190,15 @@ contract("LoanTokenFunctionality", (accounts) => {
 
         it("should transfer to the passed recipient if passed recipient is EOA / Contract that has no tokenOwner() function", async () => {
             // Creating the Staking Instance (Staking Modules Interface).
-            const stakingProxy = await StakingProxy.new(SOVToken.address);
+
             const modulesObject = await getStakingModulesObject();
-            const staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+            const staking = await deployAndGetIStaking(SOVToken.address, modulesObject);
 
             await loanToken.setStakingContractAddress(staking.address);
             expect(await loanToken.getStakingContractAddress()).to.equal(staking.address);
 
             // we register the contract that has no tokenOwner function
-            const dummyContractAddress = stakingProxy.address;
+            const dummyContractAddress = staking.address;
             await staking.addContractCodeHash(dummyContractAddress);
 
             const previousDummyContractBalance = await loanToken.balanceOf(dummyContractAddress);
@@ -216,9 +216,9 @@ contract("LoanTokenFunctionality", (accounts) => {
         it("should transfer to the passed recipient if the passed recipient is not vesting contract", async () => {
             const vestingLogic = await VestingLogic.new();
             // Creating the Staking Instance (Staking Modules Interface).
-            const stakingProxy = await StakingProxy.new(SOVToken.address);
+
             const modulesObject = await getStakingModulesObject();
-            const staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+            const staking = await deployAndGetIStaking(SOVToken.address, modulesObject);
             const tokenOwner = accounts[3];
             const passedRecipient = accounts[2];
             const cliff = new BN(24 * 60 * 60).mul(new BN(1092));

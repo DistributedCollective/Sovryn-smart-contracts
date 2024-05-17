@@ -4,7 +4,6 @@ pragma solidity ^0.8.17;
 import "forge-std/Test.sol";
 
 import { IStaking } from "./interfaces/IStaking.sol";
-import { IStakingProxy } from "./interfaces/IStaking.sol";
 import { IStakingModulesProxy } from "./interfaces/IStaking.sol";
 import { IFeeSharingCollector, IFeeSharingCollectorProxy } from "./interfaces/IFeeSharingCollector.sol";
 import { IERC20 } from "./interfaces/ITokens.sol";
@@ -80,12 +79,9 @@ contract StakingFuzzTest is Test {
             deployCode("WeightedStakingModule.sol")
         ];
 
-        IStakingProxy stakingProxy = IStakingProxy(
-            deployCode("StakingProxy.sol", abi.encode(address(sov)))
+        IStakingModulesProxy stakingModulesProxy = IStakingModulesProxy(
+            deployCode("StakingModulesProxy.sol", abi.encode(address(sov)))
         );
-        address stakingProxyAddress = address(stakingProxy);
-        stakingProxy.setImplementation(deployCode("ModulesProxy.sol"));
-        IStakingModulesProxy stakingModulesProxy = IStakingModulesProxy(stakingProxyAddress);
 
         for (uint256 i = 0; i < stakingModules.length; i++) {
             stakingModulesProxy.addModule(stakingModules[i]);

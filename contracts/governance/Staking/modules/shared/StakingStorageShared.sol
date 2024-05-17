@@ -5,6 +5,7 @@ import "../../../../openzeppelin/Ownable.sol";
 import "../../../../interfaces/IERC20.sol";
 import "../../../IFeeSharingCollector.sol";
 import "../../../Vesting/IVestingRegistry.sol";
+import "./StakingStorageInitializableSlots.sol";
 
 /**
  * @title StakingStorageShared contract is inherited by Staking modules.
@@ -21,7 +22,7 @@ import "../../../Vesting/IVestingRegistry.sol";
  * voting rights in the Bitocracy. Stakers are further incentivised through
  * fee and slashing rewards.
  * */
-contract StakingStorageShared is Ownable {
+contract StakingStorageShared is StakingStorageInitializableSlots, Ownable {
     /// @notice 2 weeks in seconds.
     uint256 constant TWO_WEEKS = 1209600;
 
@@ -45,13 +46,31 @@ contract StakingStorageShared is Ownable {
     uint96 constant MIN_WEIGHT_SCALING = 1;
     uint96 constant MAX_WEIGHT_SCALING = 9;
 
+    uint256 public constant REENTRANCY_GUARD_FREE = 1;
+
+    function _kickoffTS() internal view returns (uint256 kickoffTS) {
+        bytes32 slot = STAKING_KICKOFF_TS_STORAGE_SLOT;
+        assembly {
+            kickoffTS := sload(slot)
+        }
+    }
+
+    function _SOVToken() internal view returns (IERC20 SOVToken) {
+        bytes32 slot = SOV_TOKEN_ADDRESS_STORAGE_SLOT;
+        address SOVTokenAddress;
+        assembly {
+            SOVTokenAddress := sload(slot)
+        }
+        SOVToken = IERC20(SOVTokenAddress);
+    }
+
     /// @notice The timestamp of contract creation. Base for the staking period calculation.
-    uint256 public kickoffTS;
+    //uint256 public kickoffTS; - moved to an unstructured storage
 
     string name = "SOVStaking";
 
     /// @notice The token to be staked.
-    IERC20 public SOVToken;
+    //IERC20 public SOVToken; - moved to an unstructured storage
 
     /// @notice A record of each accounts delegate.
     mapping(address => mapping(uint256 => address)) public delegates;

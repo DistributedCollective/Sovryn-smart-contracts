@@ -192,12 +192,12 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
                 /** Burn the punished amount by sending it to 0x1 address
                  * @note SOV token is not allowed to be transferred to zero address
                  */
-                SOVToken.transfer(address(0x1), punishedAmount);
+                _SOVToken().transfer(address(0x1), punishedAmount);
             }
         }
 
         /// @dev transferFrom
-        bool success = SOVToken.transfer(receiver, amount);
+        bool success = _SOVToken().transfer(receiver, amount);
         require(success, "Token transfer failed"); // S09
 
         emit StakingWithdrawn(msg.sender, amount, until, receiver, isGovernance);
@@ -239,7 +239,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         _decreaseDelegateStake(delegates[vesting][until], until, amount);
 
         /// @dev transferFrom
-        bool success = SOVToken.transfer(receiver, amount);
+        bool success = _SOVToken().transfer(receiver, amount);
         require(success, "Token transfer failed"); // S09
 
         emit StakingWithdrawn(vesting, amount, until, receiver, true);
@@ -311,7 +311,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
      * */
     function unlockAllTokens() external onlyOwner whenNotFrozen {
         allUnlocked = true;
-        emit TokensUnlocked(SOVToken.balanceOf(address(this)));
+        emit TokensUnlocked(_SOVToken().balanceOf(address(this)));
     }
 
     /**

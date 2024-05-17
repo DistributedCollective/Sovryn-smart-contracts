@@ -28,7 +28,7 @@ contract StakingRewards is StakingRewardsStorage {
      * @notice Replacement of constructor by initialize function for Upgradable Contracts
      * This function will be called only once by the owner.
      * @param _SOV SOV token address
-     * @param _staking StakingProxy address should be passed
+     * @param _staking StakingModulesProxy address should be passed
      * */
     function initialize(address _SOV, IStaking _staking) external onlyOwner {
         require(_SOV != address(0), "Invalid SOV Address.");

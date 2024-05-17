@@ -31,7 +31,7 @@ const { getAccountsPrivateKeysBuffer } = require("../../Utils/hardhat_utils");
 const { deployAndGetIStaking } = require("../../Utils/initializer");
 
 const GovernorAlpha = artifacts.require("GovernorAlphaMockup");
-const StakingProxy = artifacts.require("StakingProxy");
+
 const TestToken = artifacts.require("TestToken");
 
 const DELAY = 86400 * 14;
@@ -64,8 +64,8 @@ contract("governorAlpha#castVote/2", (accounts) => {
 
         // Staking
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(token.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(testToken.address);
 
         gov = await GovernorAlpha.new(address(0), staking.address, root, 4, 0);
 

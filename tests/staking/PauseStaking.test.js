@@ -26,8 +26,6 @@ const {
 const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
 const IWeightedStakingModuleMockup = artifacts.require("IWeightedStakingModuleMockup");
 
-const StakingProxy = artifacts.require("StakingProxy");
-
 const SOV = artifacts.require("SOV");
 
 const LoanTokenLogic = artifacts.require("LoanTokenLogicStandard");
@@ -89,14 +87,14 @@ contract("Staking", (accounts) => {
         // Staking
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(token.address);
+
         const modulesObject = await getStakingModulesObject();
-        staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+        staking = await deployAndGetIStaking(token.address, modulesObject);
         const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
         const modulesAddressList = getStakingModulesAddressList(modulesObject);
         //console.log(modulesAddressList);
         await replaceStakingModule(
-            stakingProxy.address,
+            staking.address,
             modulesAddressList["WeightedStakingModule"],
             weightedStakingModuleMockup.address
         );

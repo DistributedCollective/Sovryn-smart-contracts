@@ -9,7 +9,6 @@
  *
  */
 
-const StakingProxy = artifacts.require("StakingProxy");
 const TestToken = artifacts.require("TestToken");
 
 const TOTAL_SUPPLY = "10000000000000000000000000";
@@ -27,8 +26,8 @@ contract("TeamVesting", (accounts) => {
         token = await TestToken.new(name, symbol, 18, TOTAL_SUPPLY);
 
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(token.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(token.address);
 
         await token.transfer(a2, "1000");
         await token.approve(staking.address, "1000", { from: a2 });

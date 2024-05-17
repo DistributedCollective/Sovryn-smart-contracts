@@ -57,7 +57,6 @@ const {
     advanceBlocks,
 } = require("../Utils/Ethereum");
 
-const StakingProxy = artifacts.require("StakingProxy");
 const VestingLogic = artifacts.require("VestingLogicMockup");
 const Vesting = artifacts.require("TeamVesting");
 
@@ -118,14 +117,13 @@ contract("Staking", (accounts) => {
         /// Staking Modules
         // Creating the Staking Instance (Staking Modules Interface Mockup).
 
-        const stakingProxy = await StakingProxy.new(token.address);
         modulesObject = await getStakingModulesObject();
-        staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+        staking = await deployAndGetIStaking(token.address, modulesObject);
         const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
         modulesAddressList = getStakingModulesAddressList(modulesObject);
 
         await replaceStakingModule(
-            stakingProxy.address,
+            staking.address,
             modulesAddressList["WeightedStakingModule"],
             weightedStakingModuleMockup.address
         );

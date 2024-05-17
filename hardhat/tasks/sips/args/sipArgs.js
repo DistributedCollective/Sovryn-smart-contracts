@@ -80,107 +80,6 @@ const getArgsSip0078 = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
-const getArgsSip0049 = async (hre) => {
-    const {
-        ethers,
-        deployments: { get },
-    } = hre;
-    const abiCoder = new ethers.utils.AbiCoder();
-    const stakingModulesProxyDeployment = await get("StakingModulesProxy");
-    const stakingModulesProxyInterface = new ethers.utils.Interface(
-        stakingModulesProxyDeployment.abi
-    );
-    const stakingProxy = await ethers.getContract("StakingProxy");
-    const isNewModulesProxy =
-        (await stakingProxy.getImplementation()) != stakingModulesProxyDeployment.implementation;
-
-    const moduleNamesObject = getStakingModulesNames();
-
-    const addModules = [];
-    const replaceModulesFrom = [];
-    const replaceModulesTo = [];
-    const invalidModules = [];
-    const targets = [];
-    const values = [];
-    const signatures = [];
-    const datas = [];
-
-    for (let newModuleName in moduleNamesObject) {
-        const newModuleDeployment = await get(newModuleName);
-        const newModuleAddress = newModuleDeployment.address;
-        addModules.push(newModuleAddress);
-        /* we are skipping these validations because otherwise we would need to have Staking modules proxy implementation set (and voted) 
-            // first and then execute modules replacement 
-            // but leaving here commented to be used further as a boilerplate
-            if (await stakingModules.canAddModule(newModuleAddress)) {
-                addModules.push(newModuleAddress);
-            } else {
-                const clashing = await stakingModules.checkClashingFuncSelectors(
-                    newModuleAddress
-                );
-                const clashingUnique = clashing.clashingModules.filter(arrayToUnique);
-
-                if (clashingUnique.length == 1) {
-                    replaceModulesFrom.push(clashingUnique[0]);
-                    replaceModulesTo.push(newModuleAddress);
-                } else if (clashing.clashingModules.length > 1) {
-                    const invalidModulesLog = clashing.clashingModules.reduce((o, c, i) => {
-                        o[c] = o[c]
-                            ? o[c] + ", " + clashing.clashingModulesFuncSelectors[i]
-                            : clashing.clashingModulesFuncSelectors[i];
-                        return o;
-                    });
-                    invalidModules.push({
-                        name: newModuleName,
-                        address: newModuleAddress,
-                        clashing: invalidModulesLog,
-                    });
-                }
-        } 
-        */
-    }
-
-    // if (invalidModules.length != 0)
-    //    throw Exception("Function clashing with multiple modules log:" + invalidModules);
-
-    //targets = [contracts['Staking'], contracts['Staking']]
-    if (isNewModulesProxy) {
-        targets.push(stakingProxy.address);
-        values.push(0);
-        signatures.push("setImplementation(address)");
-        datas.push(abiCoder.encode(["address"], [stakingModulesProxyDeployment.implementation]));
-    }
-    if (addModules.length > 0) {
-        targets.push(stakingProxy.address);
-        values.push(0);
-        signatures.push("addModules(address[])");
-        datas.push(abiCoder.encode(["address[]"], [addModules]));
-    }
-    if (replaceModulesFrom.length > 0) {
-        targets.push(stakingProxy.address);
-        values.push(0);
-        signatures.push("replaceModules(address[],address[])");
-        datas.push(
-            abiCoder.encode(["address[]", "address[]"], [replaceModulesFrom, replaceModulesTo])
-        );
-        throw new Error(
-            "SIP-0049 is initial Staking modules deployment and should not have modules to replace"
-        );
-    }
-    description =
-        "SIP-0049: Staking contract refactoring and other improvements, Details: https://github.com/DistributedCollective/SIPS/blob/48a3f26/SIP-0049.md, sha256: 666a1d06a574d17acb44c34d443edcce724bbd34709b005d0f49b848e4adf9ce";
-
-    const args = {
-        targets: targets,
-        values: values,
-        signatures: signatures,
-        data: datas,
-        description: description,
-    };
-
-    return { args, governor: "GovernorOwner" };
-};
-
 const getArgsSip0058 = async (hre) => {
     const {
         ethers,
@@ -199,7 +98,7 @@ const getArgsSip0058 = async (hre) => {
     console.log(modulesTo);
 
     const args = {
-        targets: [(await get("StakingProxy")).address],
+        targets: [(await get("StakingModulesProxy")).address],
         values: [0],
         signatures: ["replaceModules(address[],address[])"],
         data: [
@@ -229,7 +128,7 @@ const getArgsSip0063 = async (hre) => {
     console.log([modulesFrom], "->", [modulesTo]);
 
     const args = {
-        targets: [(await get("StakingProxy")).address],
+        targets: [(await get("StakingModulesProxy")).address],
         values: [0],
         signatures: ["replaceModules(address[],address[])"],
         data: [
@@ -1086,7 +985,6 @@ module.exports = {
     sampleGovernorOwnerSIP,
     getArgsSip0047,
     getArgsSip0058,
-    getArgsSip0049,
     getArgsSip0063,
     getArgsSip0065,
     getArgsSip0046Part1,

@@ -12,8 +12,13 @@ const func = async function (hre) {
     } = hre;
     const { deployer } = await getNamedAccounts();
     log(col.bgYellow("Deploying StakingModulesProxy..."));
-    await deployWithCustomProxy(deployer, "ModulesProxy", "StakingProxy", "StakingModulesProxy");
+    await deploy("StakingModulesProxy", {
+        from: deployer,
+        args: [(await get("SOV")).address],
+        log: true,
+        skipIfAlreadyDeployed: true,
+    });
 };
 func.tags = ["StakingModulesProxy"];
-func.dependencies = ["StakingProxy"];
+func.dependencies = ["SOV"];
 module.exports = func;

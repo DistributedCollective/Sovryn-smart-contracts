@@ -40,7 +40,6 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
         await deployments.fixture(["StakingModules", "StakingModulesProxy"], {
             keepExistingDeployments: true,
         }); // start from a fresh deployments
-        const stakingProxy = await ethers.getContract("StakingProxy", deployer);
         const stakingModulesProxy = await ethers.getContract("StakingModulesProxy", deployer);
 
         const god = await deployments.get("GovernorOwner");
@@ -61,7 +60,6 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
         return {
             deployer,
             deployerSigner,
-            stakingProxy,
             stakingModulesProxy,
             governorOwner,
             governorOwnerSigner,
@@ -88,26 +86,31 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
                 ],
             });
 
-            const { deployer, deployerSigner, stakingProxy, governorOwner, timelockOwnerSigner } =
-                await setupTest();
+            const {
+                deployer,
+                deployerSigner,
+                stakingModulesProxy,
+                governorOwner,
+                timelockOwnerSigner,
+            } = await setupTest();
 
             // CREATE PROPOSAL
             const sov = await ethers.getContract("SOV", timelockOwnerSigner);
             const whaleAmount = (await sov.totalSupply()).mul(ethers.BigNumber.from(5));
             await sov.mint(deployer, whaleAmount);
 
-            await sov.connect(deployerSigner).approve(stakingProxy.address, whaleAmount);
+            await sov.connect(deployerSigner).approve(stakingModulesProxy.address, whaleAmount);
             const stakeABI = (await hre.artifacts.readArtifact("IStaking")).abi;
             const staking = await ethers.getContractAt(
                 stakeABI,
-                stakingProxy.address,
+                stakingModulesProxy.address,
                 deployerSigner
             );
             const multisigSigner = await getImpersonatedSigner(
                 (await get("MultiSigWallet")).address
             );
             if (await staking.paused()) await staking.connect(multisigSigner).pauseUnpause(false);
-            const kickoffTS = await stakingProxy.kickoffTS();
+            const kickoffTS = await staking.kickoffTS();
             await staking.stake(whaleAmount, kickoffTS.add(MAX_DURATION), deployer, deployer);
             await mine();
 
@@ -131,7 +134,10 @@ describe("Staking Modules Deployments and Upgrades via Governance", () => {
             await governorOwner.queue(proposalId);
 
             // VERIFY REGISTERED MODULES ARE NOT THE DEPLOYED ONES BEFORE THE SIP EXECUTION
-            const modulesProxy = await ethers.getContractAt("ModulesProxy", stakingProxy.address);
+            const modulesProxy = await ethers.getContractAt(
+                "ModulesProxy",
+                stakingModulesProxy.address
+            );
 
             const stakingStakeModule = await ethers.getContract("StakingStakeModule");
             const stakingStakeModuleFuncs = await stakingStakeModule.getFunctionsList();

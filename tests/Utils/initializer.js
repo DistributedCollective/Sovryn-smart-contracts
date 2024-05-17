@@ -51,13 +51,12 @@ const StakingVestingModule = artifacts.require("StakingVestingModule");
 const StakingWithdrawModule = artifacts.require("StakingWithdrawModule");
 const WeightedStakingModule = artifacts.require("WeightedStakingModule");
 const StakingModuleBlockMockup = artifacts.require("StakingModuleBlockMockup");
-const StakingProxy = artifacts.require("StakingProxy");
 
 const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
 const IWeightedStakingModuleMockup = artifacts.require("IWeightedStakingModuleMockup");
 
 const IStaking = artifacts.require("IStaking");
-const StakingModulesProxy = artifacts.require("ModulesProxy");
+const StakingModulesProxy = artifacts.require("StakingModulesProxy");
 
 let modulesAddress;
 
@@ -100,13 +99,12 @@ const getStakingModulesWithBlockMockup = async () => {
 };
 
 const initWeightedStakingModulesMockup = async (tokenAddress) => {
-    const stakingProxy = await StakingProxy.new(tokenAddress);
     const modulesObject = await getStakingModulesObject();
-    const staking = await deployAndGetIStaking(stakingProxy.address, modulesObject);
+    const staking = await deployAndGetIStaking(tokenAddress, modulesObject);
     const weightedStakingModuleMockup = await WeightedStakingModuleMockup.new();
     const modulesAddressList = getStakingModulesAddressList(modulesObject);
     await replaceStakingModule(
-        stakingProxy.address,
+        staking.address,
         modulesAddressList["WeightedStakingModule"],
         weightedStakingModuleMockup.address
     );
@@ -122,15 +120,11 @@ const getStakingModulesAddressList = (modulesObject) => {
     return newObject;
 };
 
-const deployAndGetStakingModulesProxyAtStakingProxy = async (
-    stakingProxyAddress,
-    modulesObject = undefined
-) => {
+const deployAndGetStakingModulesProxy = async (tokenAddress, modulesObject = undefined) => {
     const modules = modulesObject ? modulesObject : await getStakingModulesObject();
-    const stakingProxy = await StakingProxy.at(stakingProxyAddress);
-    let stakingModulesProxy = await StakingModulesProxy.new();
-    await stakingProxy.setImplementation(stakingModulesProxy.address);
-    stakingModulesProxy = await StakingModulesProxy.at(stakingProxyAddress);
+
+    let stakingModulesProxy = await StakingModulesProxy.new(tokenAddress);
+
     //let i = 0;
     for (let moduleName in modules) {
         //console.log(++i);
@@ -149,16 +143,13 @@ const initializeStakingModulesAt = async (address) => {
     }
 };
 
-const deployAndGetIStaking = async (stakingProxyAddress, modulesObject = undefined) => {
-    const stakingModulesProxy = await deployAndGetStakingModulesProxyAtStakingProxy(
-        stakingProxyAddress,
-        modulesObject
-    );
+const deployAndGetIStaking = async (tokenAddress, modulesObject = undefined) => {
+    const stakingModulesProxy = await deployAndGetStakingModulesProxy(tokenAddress, modulesObject);
     return await getIStaking(stakingModulesProxy.address);
 };
 
-const getIStaking = async (stakingProxyAddress) => {
-    return await IStaking.at(stakingProxyAddress);
+const getIStaking = async (stakingModulesProxyAddress) => {
+    return await IStaking.at(stakingModulesProxyAddress);
 };
 
 const getStakingModulesProxyAt = async (address) => {
@@ -166,9 +157,9 @@ const getStakingModulesProxyAt = async (address) => {
 };
 
 /// @dev intended for mocking modules
-const replaceStakingModule = async (stakingProxyAddress, moduleFromAddress, moduleToAddress) => {
-    const stakingProxy = await StakingModulesProxy.at(stakingProxyAddress);
-    await stakingProxy.replaceModule(moduleFromAddress, moduleToAddress);
+const replaceStakingModule = async (stakingAddress, moduleFromAddress, moduleToAddress) => {
+    const stakingModulesProxy = await StakingModulesProxy.at(stakingAddress);
+    await stakingModulesProxy.replaceModule(moduleFromAddress, moduleToAddress);
 };
 
 // <------------------- STAKING -------------------> //
@@ -735,7 +726,7 @@ module.exports = {
     getMockLoanTokenWRBTC,
 
     // staking
-    deployAndGetStakingModulesProxyAtStakingProxy,
+    deployAndGetStakingModulesProxy,
     deployAndGetIStaking,
     getIStaking,
     replaceStakingModule,

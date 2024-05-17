@@ -16,7 +16,7 @@ const func = async function (hre) {
         "FeeSharingCollectorProxy",
         true,
         [],
-        ["0x0000000000000000000000000000000000000000", (await get("StakingProxy")).address],
+        ["0x0000000000000000000000000000000000000000", (await get("StakingModulesProxy")).address],
         "ContractsGuardianMultisig"
     );
 };

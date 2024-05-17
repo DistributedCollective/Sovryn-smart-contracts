@@ -22,7 +22,7 @@ const LockedSOV = artifacts.require("LockedSOV"); // Ideally should be using act
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
 const VestingRegistry = artifacts.require("VestingRegistry3");
-const StakingProxy = artifacts.require("StakingProxy");
+
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const SOV = artifacts.require("TestToken");
 
@@ -376,8 +376,8 @@ contract("Escrow Rewards (State)", (accounts) => {
         sov = await SOV.new("Sovryn", "SOV", 18, zero);
 
         // Creating the Staking Instance (Staking Modules Interface).
-        const stakingProxy = await StakingProxy.new(sov.address);
-        staking = await deployAndGetIStaking(stakingProxy.address);
+
+        staking = await deployAndGetIStaking(sov.address);
 
         // Creating the FeeSharing Instance.
         feeSharingCollectorProxy = await FeeSharingCollectorProxy.new(

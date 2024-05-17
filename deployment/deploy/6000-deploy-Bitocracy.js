@@ -40,7 +40,7 @@ const func = async function (hre) {
     });
 
     const timelockOwnerDeployment = await get("TimelockOwner");
-    const stakingDeployment = await get("StakingProxy");
+    const stakingDeployment = await get("StakingModulesProxy");
     log(col.bgYellow("Deploying GovernorOwner..."));
     await deploy("GovernorOwner", {
         contract: "GovernorAlpha",
