@@ -240,7 +240,8 @@ contract("GovernanceIntegration", (accounts) => {
         await mineBlock();
         await gov.castVote(proposalId, true);
 
-        await advanceBlocks(10);
+        const votingPeriod = await gov.votingPeriod();
+        await advanceBlocks(votingPeriod);
         await gov.queue(proposalId);
 
         await increaseTime(TWO_DAYS);

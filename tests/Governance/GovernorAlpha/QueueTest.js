@@ -85,7 +85,8 @@ contract("GovernorAlpha#queue/1", (accounts) => {
             await mineBlock();
 
             await gov.castVote(proposalId1, true, { from: a1 });
-            await advanceBlocks(10);
+            const votingPeriod = await gov.votingPeriod();
+            await advanceBlocks(votingPeriod);
             await expectRevert(
                 gov.queue(proposalId1),
                 "GovernorAlpha::_queueOrRevert: proposal action already queued at eta"
@@ -113,7 +114,8 @@ contract("GovernorAlpha#queue/1", (accounts) => {
             await gov.castVote(proposalId1, true, { from: a1 });
             await gov.castVote(proposalId2, true, { from: a2 });
 
-            await mine(30);
+            const votingPeriod = await gov.votingPeriod();
+            await mine(votingPeriod.mul(new BN(3)));
             await expectRevert(
                 gov.queueProposals([proposalId1, proposalId2]),
                 "GovernorAlpha::_queueOrRevert: proposal action already queued at eta"

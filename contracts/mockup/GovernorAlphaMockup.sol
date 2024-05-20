@@ -13,7 +13,7 @@ contract GovernorAlphaMockup is GovernorAlpha {
     ) public GovernorAlpha(timelock_, staking_, guardian_, quorumVotes_, _minPercentageVotes) {}
 
     function votingPeriod() public pure returns (uint256) {
-        return 10;
+        return 150;
     }
 
     function queueProposals(uint256[] calldata proposalIds) external {
