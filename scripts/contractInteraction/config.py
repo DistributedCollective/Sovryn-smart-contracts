@@ -53,6 +53,11 @@ def loadConfig():
             environ.get('FEE_CLAIMER'))
         configFile = open(
             './scripts/contractInteraction/mainnet_contracts.json')
+    elif thisNetwork == "bob-mainnet" and environ.get('REWARDS_CRON') == "1":
+        acct = accounts.add(
+            environ.get('FEE_CLAIMER'))
+        configFile = open(
+            './scripts/contractInteraction/bob_mainnet_contracts.json')
     elif thisNetwork == "rsk-testnet":
         acct = accounts.load("rskdeployer")
         configFile = open(
@@ -87,6 +92,10 @@ def loadConfig():
         acct = accounts.load("rskdeployer")
         configFile = open(
             './scripts/contractInteraction/sepolia_contracts.json')
+    elif thisNetwork == "bob-mainnet":
+        acct = accounts.load("rskdeployer")
+        configFile = open(
+            './scripts/contractInteraction/bob_mainnet_contracts.json')
     else:
         raise Exception("Network not supported.")
     contracts = json.load(configFile)
