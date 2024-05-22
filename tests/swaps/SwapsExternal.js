@@ -487,7 +487,7 @@ contract("SwapsExternal", (accounts) => {
             // need to sub by swap fee because at this point, protocol will received the trading fee again.
             loanTokenWRBTCBalanceShouldBe = amount.mul(new BN(1)).sub(swapFee);
 
-            expectEvent(tx, "FeeWithdrawnInRBTC", {
+            expectEvent(tx, "FeeWithdrawnInNativeToken", {
                 sender: lender,
                 amount: loanTokenWRBTCBalanceShouldBe,
             });

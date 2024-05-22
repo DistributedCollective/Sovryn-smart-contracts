@@ -83,7 +83,7 @@ contract ProtocolSettingsEvents is ModulesCommonEvents {
         uint256 lendingAmount,
         uint256 tradingAmount,
         uint256 borrowingAmount,
-        uint256 wRBTCConverted
+        uint256 wrappedNativeTokenConverted
     );
 
     event WithdrawLendingFees(
