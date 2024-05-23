@@ -327,6 +327,7 @@ module.exports = {
                 "external/deployments/rskForkedMainnet",
             ],
             bobTestnet: ["external/deployments/bobTestnet"],
+            bobMainnet: ["external/deployments/bobMainnet"],
             bobForkedTestnet: [
                 "external/deployments/bobTestnet",
                 "deployment/deployments/bobTestnet",

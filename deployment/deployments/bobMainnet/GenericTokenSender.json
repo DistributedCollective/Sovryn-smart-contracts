@@ -1,0 +1,357 @@
+{
+  "address": "0x08429a6E565d7D3C15C40da30f1401b8985d71e3",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "AdminAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "AdminRemoved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "TokensTransferred",
+      "type": "event"
+    },
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_admin",
+          "type": "address"
+        }
+      ],
+      "name": "addAdmin",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "admins",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_admin",
+          "type": "address"
+        }
+      ],
+      "name": "removeAdmin",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_receiver",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "transferTokens",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "address[]",
+          "name": "_receivers",
+          "type": "address[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "_amounts",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "transferTokensUsingList",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x7071a43afbb1bca11acc40e60d2e74de9be7f525534358fe12508f5cb198a850",
+  "receipt": {
+    "to": null,
+    "from": "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E",
+    "contractAddress": "0x08429a6E565d7D3C15C40da30f1401b8985d71e3",
+    "transactionIndex": 1,
+    "gasUsed": "603785",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000800000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000080000000000000000000000000000000020000000000000000000800000000000000000000000000000000400000000000000000002000000000000000000000000000000002000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x27d4e97a283f2f3ea6ab261b8ed8e13ebe87b638d03cc4cdc5364662e692cc93",
+    "transactionHash": "0x7071a43afbb1bca11acc40e60d2e74de9be7f525534358fe12508f5cb198a850",
+    "logs": [
+      {
+        "transactionIndex": 1,
+        "blockNumber": 1801194,
+        "transactionHash": "0x7071a43afbb1bca11acc40e60d2e74de9be7f525534358fe12508f5cb198a850",
+        "address": "0x08429a6E565d7D3C15C40da30f1401b8985d71e3",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000fee171a152c02f336021fb9e79b4fac2304a9e7e"
+        ],
+        "data": "0x",
+        "logIndex": 0,
+        "blockHash": "0x27d4e97a283f2f3ea6ab261b8ed8e13ebe87b638d03cc4cdc5364662e692cc93"
+      }
+    ],
+    "blockNumber": 1801194,
+    "cumulativeGasUsed": "647636",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "c328c548947d2a825fa1cfc237a9888d",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"}],\"name\":\"AdminRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensTransferred\",\"type\":\"event\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"addAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"admins\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"removeAdmin\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_receiver\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"transferTokens\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address[]\",\"name\":\"_receivers\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_amounts\",\"type\":\"uint256[]\"}],\"name\":\"transferTokensUsingList\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"addAdmin(address)\":{\"params\":{\"_admin\":\"The addresses of the account to grant permissions.\"}},\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"removeAdmin(address)\":{\"params\":{\"_admin\":\"The addresses of the account to revoke permissions.\"}},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"},\"transferTokens(address,address,uint256)\":{\"params\":{\"_amount\":\"The amount to be transferred.\",\"_receiver\":\"The address of the token receiver.\",\"_token\":\"The address of the token.\"}},\"transferTokensUsingList(address,address[],uint256[])\":{\"params\":{\"_amounts\":\"The amounts to be transferred.\",\"_receivers\":\"The addresses of the receivers.\",\"_token\":\"The address of the token.\"}}},\"title\":\"Token sender contract.\"},\"userdoc\":{\"methods\":{\"addAdmin(address)\":{\"notice\":\"Add account to ACL.\"},\"removeAdmin(address)\":{\"notice\":\"Remove account from ACL.\"},\"transferTokens(address,address,uint256)\":{\"notice\":\"Transfer tokens to given address.\"},\"transferTokensUsingList(address,address[],uint256[])\":{\"notice\":\"Transfer given amounts of tokens to the given addresses.\"}},\"notice\":\"This contract includes functions to transfer tokens to a recipient or to several recipients in a list. There is an ACL control check by modifier. \"}},\"settings\":{\"compilationTarget\":{\"contracts/governance/Vesting/GenericTokenSender.sol\":\"GenericTokenSender\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":forge-std/=foundry/lib/forge-std/src/\"]},\"sources\":{\"contracts/governance/Vesting/GenericTokenSender.sol\":{\"content\":\"pragma solidity ^0.5.17;\\n\\nimport \\\"../../openzeppelin/Ownable.sol\\\";\\nimport \\\"../../interfaces/IERC20.sol\\\";\\nimport \\\"../../utils/AdminRole.sol\\\";\\n\\n/**\\n * @title Token sender contract.\\n *\\n * @notice This contract includes functions to transfer tokens\\n * to a recipient or to several recipients in a list. There is\\n * an ACL control check by modifier.\\n *\\n */\\ncontract GenericTokenSender is AdminRole {\\n    /* Events */\\n\\n    event TokensTransferred(address indexed token, address indexed receiver, uint256 amount);\\n\\n    /* Functions */\\n\\n    /**\\n     * @notice Transfer given amounts of tokens to the given addresses.\\n     * @param _token The address of the token.\\n     * @param _receivers The addresses of the receivers.\\n     * @param _amounts The amounts to be transferred.\\n     * */\\n    function transferTokensUsingList(\\n        address _token,\\n        address[] calldata _receivers,\\n        uint256[] calldata _amounts\\n    ) external onlyAuthorized {\\n        require(_receivers.length == _amounts.length, \\\"arrays mismatch\\\");\\n\\n        for (uint256 i = 0; i < _receivers.length; i++) {\\n            _transferTokens(_token, _receivers[i], _amounts[i]);\\n        }\\n    }\\n\\n    function() external payable {}\\n\\n    /**\\n     * @notice Transfer tokens to given address.\\n     * @param _token The address of the token.\\n     * @param _receiver The address of the token receiver.\\n     * @param _amount The amount to be transferred.\\n     * */\\n    function transferTokens(\\n        address _token,\\n        address _receiver,\\n        uint256 _amount\\n    ) external onlyAuthorized {\\n        _transferTokens(_token, _receiver, _amount);\\n    }\\n\\n    function _transferTokens(address _token, address _receiver, uint256 _amount) internal {\\n        require(_receiver != address(0), \\\"receiver address invalid\\\");\\n        require(_amount != 0, \\\"amount invalid\\\");\\n        if (_token != address(0)) {\\n            require(IERC20(_token).transfer(_receiver, _amount), \\\"transfer failed\\\");\\n        } else {\\n            (bool success, ) = _receiver.call.value(_amount)(\\\"\\\");\\n            require(success, \\\"RBTC transfer failed\\\");\\n        }\\n        emit TokensTransferred(_token, _receiver, _amount);\\n    }\\n}\\n\",\"keccak256\":\"0x09477d6a97a70df0e0d710ba9ab36dc9c3f869dc479e056bbfd09f00be9adef3\"},\"contracts/interfaces/IERC20.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ncontract IERC20 {\\n    string public name;\\n    uint8 public decimals;\\n    string public symbol;\\n\\n    function totalSupply() external view returns (uint256);\\n\\n    function balanceOf(address _who) external view returns (uint256);\\n\\n    function allowance(address _owner, address _spender) external view returns (uint256);\\n\\n    function approve(address _spender, uint256 _value) external returns (bool);\\n\\n    function transfer(address _to, uint256 _value) external returns (bool);\\n\\n    function transferFrom(address _from, address _to, uint256 _value) external returns (bool);\\n\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0xac035e47e8a8f7e694cc6a90790bbfcaa8ae90d072d30832fc851ab6f1b19145\"},\"contracts/openzeppelin/Context.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\ncontract Context {\\n    // Empty internal constructor, to prevent people from mistakenly deploying\\n    // an instance of this contract, which should be used via inheritance.\\n    constructor() internal {}\\n\\n    // solhint-disable-previous-line no-empty-blocks\\n\\n    function _msgSender() internal view returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\"},\"contracts/openzeppelin/Ownable.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\ncontract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() internal {\\n        address msgSender = _msgSender();\\n        _owner = msgSender;\\n        emit OwnershipTransferred(address(0), msgSender);\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(isOwner(), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns true if the caller is the current owner.\\n     */\\n    function isOwner() public view returns (bool) {\\n        return _msgSender() == _owner;\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public onlyOwner {\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     */\\n    function _transferOwnership(address newOwner) internal {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        emit OwnershipTransferred(_owner, newOwner);\\n        _owner = newOwner;\\n    }\\n}\\n\",\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\"},\"contracts/utils/AdminRole.sol\":{\"content\":\"pragma solidity 0.5.17;\\n\\nimport \\\"../openzeppelin/Ownable.sol\\\";\\n\\ncontract AdminRole is Ownable {\\n    /// @dev user => flag whether user has admin role.\\n    mapping(address => bool) public admins;\\n\\n    event AdminAdded(address admin);\\n    event AdminRemoved(address admin);\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner or admin.\\n     * or on our own overriding sovrynOwnable.\\n     */\\n    modifier onlyAuthorized() {\\n        require(isOwner() || admins[msg.sender], \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @notice Add account to ACL.\\n     * @param _admin The addresses of the account to grant permissions.\\n     * */\\n    function addAdmin(address _admin) public onlyOwner {\\n        admins[_admin] = true;\\n        emit AdminAdded(_admin);\\n    }\\n\\n    /**\\n     * @notice Remove account from ACL.\\n     * @param _admin The addresses of the account to revoke permissions.\\n     * */\\n    function removeAdmin(address _admin) public onlyOwner {\\n        admins[_admin] = false;\\n        emit AdminRemoved(_admin);\\n    }\\n}\\n\",\"keccak256\":\"0x7333f56bc6887f53b12ec51d9e6d7f2aae23063000b101e6bb7c3ae684cca51d\"}},\"version\":1}",
+  "bytecode": "0x608060405260006100176001600160e01b0361006616565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a35061006a565b3390565b610981806100796000396000f3fe60806040526004361061007b5760003560e01c80638f32d59b1161004e5780638f32d59b1461015b578063a64b6e5f14610170578063f2fde38b146101b3578063fdc24b69146101e65761007b565b80631785f53c1461007d578063429b62e5146100b057806370480275146100f75780638da5cb5b1461012a575b005b34801561008957600080fd5b5061007b600480360360208110156100a057600080fd5b50356001600160a01b03166102c5565b3480156100bc57600080fd5b506100e3600480360360208110156100d357600080fd5b50356001600160a01b0316610365565b604080519115158252519081900360200190f35b34801561010357600080fd5b5061007b6004803603602081101561011a57600080fd5b50356001600160a01b031661037a565b34801561013657600080fd5b5061013f61041e565b604080516001600160a01b039092168252519081900360200190f35b34801561016757600080fd5b506100e361042d565b34801561017c57600080fd5b5061007b6004803603606081101561019357600080fd5b506001600160a01b03813581169160208101359091169060400135610451565b3480156101bf57600080fd5b5061007b600480360360208110156101d657600080fd5b50356001600160a01b03166104c3565b3480156101f257600080fd5b5061007b6004803603606081101561020957600080fd5b6001600160a01b03823516919081019060408101602082013564010000000081111561023457600080fd5b82018360208201111561024657600080fd5b8035906020019184602083028401116401000000008311171561026857600080fd5b91939092909160208101903564010000000081111561028657600080fd5b82018360208201111561029857600080fd5b803590602001918460208302840111640100000000831117156102ba57600080fd5b509092509050610517565b6102cd61042d565b61030d576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020908152604091829020805460ff19169055815192835290517fa3b62bc36326052d97ea62d63c3d60308ed4c3ea8ac079dd8499f1e9c4f80c0f9281900390910190a150565b60016020526000908152604090205460ff1681565b61038261042d565b6103c2576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020818152604092839020805460ff1916909217909155815192835290517f44d6d25963f097ad14f29f06854a01f575648a1ef82f30e562ccd3889717e3399281900390910190a150565b6000546001600160a01b031690565b600080546001600160a01b0316610442610612565b6001600160a01b031614905090565b61045961042d565b8061047357503360009081526001602052604090205460ff165b6104b3576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6104be838383610616565b505050565b6104cb61042d565b61050b576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61051481610886565b50565b61051f61042d565b8061053957503360009081526001602052604090205460ff165b610579576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b8281146105bf576040805162461bcd60e51b815260206004820152600f60248201526e0c2e4e4c2f2e640dad2e6dac2e8c6d608b1b604482015290519081900360640190fd5b60005b8381101561060a57610602868686848181106105da57fe5b905060200201356001600160a01b03168585858181106105f657fe5b90506020020135610616565b6001016105c2565b505050505050565b3390565b6001600160a01b038216610671576040805162461bcd60e51b815260206004820152601860248201527f7265636569766572206164647265737320696e76616c69640000000000000000604482015290519081900360640190fd5b806106b4576040805162461bcd60e51b815260206004820152600e60248201526d185b5bdd5b9d081a5b9d985b1a5960921b604482015290519081900360640190fd5b6001600160a01b0383161561079757826001600160a01b031663a9059cbb83836040518363ffffffff1660e01b815260040180836001600160a01b03166001600160a01b0316815260200182815260200192505050602060405180830381600087803b15801561072357600080fd5b505af1158015610737573d6000803e3d6000fd5b505050506040513d602081101561074d57600080fd5b5051610792576040805162461bcd60e51b815260206004820152600f60248201526e1d1c985b9cd9995c8819985a5b1959608a1b604482015290519081900360640190fd5b610836565b6040516000906001600160a01b0384169083908381818185875af1925050503d80600081146107e2576040519150601f19603f3d011682016040523d82523d6000602084013e6107e7565b606091505b5050905080610834576040805162461bcd60e51b815260206004820152601460248201527314909510c81d1c985b9cd9995c8819985a5b195960621b604482015290519081900360640190fd5b505b816001600160a01b0316836001600160a01b03167f1b89874203ff7f0bba87c969ada3f32fda22ed38a6706d35199d21280c7811b1836040518082815260200191505060405180910390a3505050565b6001600160a01b0381166108cb5760405162461bcd60e51b81526004018080602001828103825260268152602001806109276026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a72315820df35c09f2c63b609215ae5b2acc76dfdffc7b538defc758ad85527d5205a3fac64736f6c63430005110032",
+  "deployedBytecode": "0x60806040526004361061007b5760003560e01c80638f32d59b1161004e5780638f32d59b1461015b578063a64b6e5f14610170578063f2fde38b146101b3578063fdc24b69146101e65761007b565b80631785f53c1461007d578063429b62e5146100b057806370480275146100f75780638da5cb5b1461012a575b005b34801561008957600080fd5b5061007b600480360360208110156100a057600080fd5b50356001600160a01b03166102c5565b3480156100bc57600080fd5b506100e3600480360360208110156100d357600080fd5b50356001600160a01b0316610365565b604080519115158252519081900360200190f35b34801561010357600080fd5b5061007b6004803603602081101561011a57600080fd5b50356001600160a01b031661037a565b34801561013657600080fd5b5061013f61041e565b604080516001600160a01b039092168252519081900360200190f35b34801561016757600080fd5b506100e361042d565b34801561017c57600080fd5b5061007b6004803603606081101561019357600080fd5b506001600160a01b03813581169160208101359091169060400135610451565b3480156101bf57600080fd5b5061007b600480360360208110156101d657600080fd5b50356001600160a01b03166104c3565b3480156101f257600080fd5b5061007b6004803603606081101561020957600080fd5b6001600160a01b03823516919081019060408101602082013564010000000081111561023457600080fd5b82018360208201111561024657600080fd5b8035906020019184602083028401116401000000008311171561026857600080fd5b91939092909160208101903564010000000081111561028657600080fd5b82018360208201111561029857600080fd5b803590602001918460208302840111640100000000831117156102ba57600080fd5b509092509050610517565b6102cd61042d565b61030d576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020908152604091829020805460ff19169055815192835290517fa3b62bc36326052d97ea62d63c3d60308ed4c3ea8ac079dd8499f1e9c4f80c0f9281900390910190a150565b60016020526000908152604090205460ff1681565b61038261042d565b6103c2576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116600081815260016020818152604092839020805460ff1916909217909155815192835290517f44d6d25963f097ad14f29f06854a01f575648a1ef82f30e562ccd3889717e3399281900390910190a150565b6000546001600160a01b031690565b600080546001600160a01b0316610442610612565b6001600160a01b031614905090565b61045961042d565b8061047357503360009081526001602052604090205460ff165b6104b3576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6104be838383610616565b505050565b6104cb61042d565b61050b576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61051481610886565b50565b61051f61042d565b8061053957503360009081526001602052604090205460ff165b610579576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b8281146105bf576040805162461bcd60e51b815260206004820152600f60248201526e0c2e4e4c2f2e640dad2e6dac2e8c6d608b1b604482015290519081900360640190fd5b60005b8381101561060a57610602868686848181106105da57fe5b905060200201356001600160a01b03168585858181106105f657fe5b90506020020135610616565b6001016105c2565b505050505050565b3390565b6001600160a01b038216610671576040805162461bcd60e51b815260206004820152601860248201527f7265636569766572206164647265737320696e76616c69640000000000000000604482015290519081900360640190fd5b806106b4576040805162461bcd60e51b815260206004820152600e60248201526d185b5bdd5b9d081a5b9d985b1a5960921b604482015290519081900360640190fd5b6001600160a01b0383161561079757826001600160a01b031663a9059cbb83836040518363ffffffff1660e01b815260040180836001600160a01b03166001600160a01b0316815260200182815260200192505050602060405180830381600087803b15801561072357600080fd5b505af1158015610737573d6000803e3d6000fd5b505050506040513d602081101561074d57600080fd5b5051610792576040805162461bcd60e51b815260206004820152600f60248201526e1d1c985b9cd9995c8819985a5b1959608a1b604482015290519081900360640190fd5b610836565b6040516000906001600160a01b0384169083908381818185875af1925050503d80600081146107e2576040519150601f19603f3d011682016040523d82523d6000602084013e6107e7565b606091505b5050905080610834576040805162461bcd60e51b815260206004820152601460248201527314909510c81d1c985b9cd9995c8819985a5b195960621b604482015290519081900360640190fd5b505b816001600160a01b0316836001600160a01b03167f1b89874203ff7f0bba87c969ada3f32fda22ed38a6706d35199d21280c7811b1836040518082815260200191505060405180910390a3505050565b6001600160a01b0381166108cb5760405162461bcd60e51b81526004018080602001828103825260268152602001806109276026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b039290921691909117905556fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f2061646472657373a265627a7a72315820df35c09f2c63b609215ae5b2acc76dfdffc7b538defc758ad85527d5205a3fac64736f6c63430005110032",
+  "devdoc": {
+    "methods": {
+      "addAdmin(address)": {
+        "params": {
+          "_admin": "The addresses of the account to grant permissions."
+        }
+      },
+      "isOwner()": {
+        "details": "Returns true if the caller is the current owner."
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "removeAdmin(address)": {
+        "params": {
+          "_admin": "The addresses of the account to revoke permissions."
+        }
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      },
+      "transferTokens(address,address,uint256)": {
+        "params": {
+          "_amount": "The amount to be transferred.",
+          "_receiver": "The address of the token receiver.",
+          "_token": "The address of the token."
+        }
+      },
+      "transferTokensUsingList(address,address[],uint256[])": {
+        "params": {
+          "_amounts": "The amounts to be transferred.",
+          "_receivers": "The addresses of the receivers.",
+          "_token": "The address of the token."
+        }
+      }
+    },
+    "title": "Token sender contract."
+  },
+  "userdoc": {
+    "methods": {
+      "addAdmin(address)": {
+        "notice": "Add account to ACL."
+      },
+      "removeAdmin(address)": {
+        "notice": "Remove account from ACL."
+      },
+      "transferTokens(address,address,uint256)": {
+        "notice": "Transfer tokens to given address."
+      },
+      "transferTokensUsingList(address,address[],uint256[])": {
+        "notice": "Transfer given amounts of tokens to the given addresses."
+      }
+    },
+    "notice": "This contract includes functions to transfer tokens to a recipient or to several recipients in a list. There is an ACL control check by modifier. "
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 55642,
+        "contract": "contracts/governance/Vesting/GenericTokenSender.sol:GenericTokenSender",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 63173,
+        "contract": "contracts/governance/Vesting/GenericTokenSender.sol:GenericTokenSender",
+        "label": "admins",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_address,t_bool)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      }
+    }
+  }
+}
