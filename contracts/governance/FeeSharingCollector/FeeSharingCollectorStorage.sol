@@ -87,6 +87,11 @@ contract FeeSharingCollectorStorage is Ownable {
     address public loanWrappedNativeTokenAddress;
 
     /**
+     * @dev sovrynDex
+     */
+    address public sovrynDexAddress;
+
+    /**
      * @dev Prevents a contract from calling itself, directly or indirectly.
      * If you mark a function `nonReentrant`, you should also
      * mark it `external`. Calling one `nonReentrant` function from
