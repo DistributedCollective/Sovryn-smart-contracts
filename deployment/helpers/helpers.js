@@ -281,6 +281,7 @@ const multisigCheckTx = async (txId, multisigAddress = ethers.constants.AddressZ
     // Serialized tx
     var tx = await multisig.populateTransaction.confirmTransaction(txId);
     delete tx.from;
+    console.log("tx: ", tx);
     console.log(col.yellow("serialized tx: "));
     console.log(ethers.utils.serializeTransaction(tx));
 };
