@@ -502,8 +502,12 @@ contract("FeeSharingCollector:", (accounts) => {
         });
 
         it("setSovrynDexAddress should only be called once", async () => {
+            expect(await feeSharingCollector.sovrynDexAddress()).to.equal(sovrynDex.address);
             const newSovrynDexAddress = (await MockSovrynDex.new()).address;
-            await expectRevert(feeSharingCollector.setSovrynDexAddress(newSovrynDexAddress), "FeeSharingCollector: function can only be called once");
+            await expectRevert(
+                feeSharingCollector.setSovrynDexAddress(newSovrynDexAddress),
+                "FeeSharingCollector: function can only be called once"
+            );
         });
     });
 
