@@ -80,8 +80,6 @@ const SwapsExternal = artifacts.require("SwapsExternal");
 const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
 const IWeightedStakingModuleMockup = artifacts.require("IWeightedStakingModuleMockup");
 
-const MockSovrynDex = artifacts.require("MockSovrynDex");
-
 const TOTAL_SUPPLY = etherMantissa(1000000000);
 
 const MAX_DURATION = new BN(24 * 60 * 60).mul(new BN(1092));
@@ -136,7 +134,6 @@ contract("FeeSharingCollector:", (accounts) => {
     let mockPrice;
     let liquidityPoolV1Converter;
     let iWeightedStakingModuleMockup;
-    let sovrynDex;
 
     before(async () => {
         [root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -331,9 +328,6 @@ contract("FeeSharingCollector:", (accounts) => {
             loanWrappedNativeToken.address
         );
 
-        sovrynDex = await MockSovrynDex.new();
-        await feeSharingCollector.setSovrynDexAddress(sovrynDex.address);
-
         return sovryn;
     }
 
@@ -498,15 +492,6 @@ contract("FeeSharingCollector:", (accounts) => {
             await feeSharingCollector.setLoanWrappedNativeToken(newLoanWrappedNativeTokenAddress);
             expect(await feeSharingCollector.loanWrappedNativeTokenAddress()).to.equal(
                 newLoanWrappedNativeTokenAddress
-            );
-        });
-
-        it("setSovrynDexAddress should only be called once", async () => {
-            expect(await feeSharingCollector.sovrynDexAddress()).to.equal(sovrynDex.address);
-            const newSovrynDexAddress = (await MockSovrynDex.new()).address;
-            await expectRevert(
-                feeSharingCollector.setSovrynDexAddress(newSovrynDexAddress),
-                "FeeSharingCollector: function can only be called once"
             );
         });
     });
@@ -5171,151 +5156,6 @@ contract("FeeSharingCollector:", (accounts) => {
 
             tx = await feeSharingCollector.withdrawFeesAMM([liquidityPoolV1Converter.address]);
 
-            //check WrappedNativeToken balance (wrappedNativeToken balance = (totalFeeTokensHeld * mockPrice) - swapFee)
-            let feeSharingCollectorProxyBalance = await loanWrappedNativeToken.balanceOf.call(
-                feeSharingCollector.address
-            );
-            expect(feeSharingCollectorProxyBalance.toString()).to.be.equal(feeAmount.toString());
-
-            // make sure wrappedNativeToken balance is 0 after withdrawal
-            let feeSharingCollectorProxyWrappedNativeTokenBalance =
-                await WrappedNativeToken.balanceOf.call(feeSharingCollector.address);
-            expect(feeSharingCollectorProxyWrappedNativeTokenBalance.toString()).to.be.equal(
-                new BN(0).toString()
-            );
-
-            //checkpoints
-            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
-                loanWrappedNativeToken.address
-            );
-            expect(totalTokenCheckpoints.toNumber()).to.be.equal(0);
-            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(
-                loanWrappedNativeToken.address,
-                0
-            );
-            expect(checkpoint.blockNumber.toNumber()).to.be.equal(0);
-            expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(0);
-            expect(checkpoint.numTokens.toString()).to.be.equal("0");
-
-            //check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
-                loanWrappedNativeToken.address
-            );
-            expect(lastFeeWithdrawalTime.toString()).to.be.equal("0");
-        });
-    });
-
-    describe("withdraw Dex Fees", async () => {
-        it("should not be able to withdraw fees if invalid token address", async () => {
-            /// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
-
-            await expectRevert(
-                feeSharingCollector.withdrawFeesFromDex([accounts[0]]),
-                "FeeSharingCollector::withdrawFeesFromDex: token is not a contract"
-            );
-        });
-
-        it("Should be able to withdraw Dex Fees", async () => {
-            /// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
-
-            //stake - getPriorTotalVotingPower
-            let totalStake = 1000;
-            await stake(totalStake, root);
-
-            await expectRevert(
-                feeSharingCollector.withdrawFeesFromDex([SUSD.address]),
-                "Only Treasury"
-            );
-
-            //mock data
-            const feeAmount = new BN(wei("1", "ether"));
-            await sovrynDex.setTokenDexFee(SUSD.address, feeAmount.toString());
-            await sovrynDex.setTreasury(feeSharingCollector.address);
-            await sovrynDex.setWrbtcToken(WrappedNativeToken.address);
-
-            await WrappedNativeToken.mint(sovrynDex.address, wei("2", "ether"));
-
-            let previousFeeSharingCollectorProxyNativeTokenBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollector.address)
-            );
-            tx = await feeSharingCollector.withdrawFeesFromDex([SUSD.address]);
-
-            //check WrappedNativeToken balance (wrappedNativeToken balance = (totalFeeTokensHeld * mockPrice) - swapFee)
-            let feeSharingCollectorProxyBalance = await loanWrappedNativeToken.balanceOf.call(
-                feeSharingCollector.address
-            );
-            expect(feeSharingCollectorProxyBalance.toString()).to.be.equal("0");
-
-            // nativeToken balance of feeSharingCollector should be increased
-            let latestFeeSharingCollectorProxyNativeTokenBalance = new BN(
-                await web3.eth.getBalance(feeSharingCollector.address)
-            );
-            expect(
-                previousFeeSharingCollectorProxyNativeTokenBalance
-                    .add(new BN(feeAmount))
-                    .toString()
-            ).to.equal(latestFeeSharingCollectorProxyNativeTokenBalance.toString());
-
-            // make sure wrappedNativeToken balance is 0 after withdrawal
-            let feeSharingCollectorProxyWrappedNativeTokenBalance =
-                await WrappedNativeToken.balanceOf.call(feeSharingCollector.address);
-            expect(feeSharingCollectorProxyWrappedNativeTokenBalance.toString()).to.be.equal(
-                new BN(0).toString()
-            );
-
-            //checkpoints
-            let totalTokenCheckpoints = await feeSharingCollector.totalTokenCheckpoints.call(
-                NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT
-            );
-            expect(totalTokenCheckpoints.toNumber()).to.be.equal(1);
-            let checkpoint = await feeSharingCollector.tokenCheckpoints.call(
-                NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                0
-            );
-            expect(checkpoint.blockNumber.toNumber()).to.be.equal(tx.receipt.blockNumber);
-            expect(checkpoint.totalWeightedStake.toNumber()).to.be.equal(
-                totalStake * MAX_VOTING_WEIGHT
-            );
-            expect(checkpoint.numTokens.toString()).to.be.equal(feeAmount.toString());
-
-            //check lastFeeWithdrawalTime
-            let lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime.call(
-                NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT
-            );
-            let block = await web3.eth.getBlock(tx.receipt.blockNumber);
-            expect(lastFeeWithdrawalTime.toString()).to.be.equal(block.timestamp.toString());
-
-            expectEvent(tx, "FeeDexWithdrawn", {
-                sender: root,
-                token: SUSD.address,
-                amount: feeAmount,
-            });
-        });
-
-        it("Should be able to withdraw with 0 AMM Fees", async () => {
-            /// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
-
-            //stake - getPriorTotalVotingPower
-            let totalStake = 1000;
-            await stake(totalStake, root);
-
-            await expectRevert(
-                feeSharingCollector.withdrawFeesFromDex([SUSD.address]),
-                "Only Treasury"
-            );
-
-            //mock data
-            const feeAmount = new BN(wei("0", "ether"));
-            await sovrynDex.setTokenDexFee(SUSD.address, feeAmount.toString());
-            await sovrynDex.setTreasury(feeSharingCollector.address);
-            await sovrynDex.setWrbtcToken(WrappedNativeToken.address);
-
-            await WrappedNativeToken.mint(sovrynDex.address, wei("2", "ether"));
-
-            tx = await feeSharingCollector.withdrawFeesFromDex([SUSD.address]);
             //check WrappedNativeToken balance (wrappedNativeToken balance = (totalFeeTokensHeld * mockPrice) - swapFee)
             let feeSharingCollectorProxyBalance = await loanWrappedNativeToken.balanceOf.call(
                 feeSharingCollector.address

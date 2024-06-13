@@ -9,7 +9,6 @@ import "../IFeeSharingCollector.sol";
 import "../../openzeppelin/Address.sol";
 import "./FeeSharingCollectorStorage.sol";
 import "../../interfaces/IConverterAMM.sol";
-import "../../interfaces/ISovrynDex.sol";
 
 /**
  * @title The FeeSharingCollector contract.
@@ -59,8 +58,6 @@ contract FeeSharingCollector is
     address constant ZERO_ADDRESS = address(0);
     address public constant NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT =
         address(uint160(uint256(keccak256("NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT"))));
-    uint16 public constant SOVRYN_DEX_COLD_PATH_PROXY_IDX = 3;
-    uint8 public constant SOVRYN_DEX_CMD_COLLECT_TREASURY_CODE = 40;
 
     /* Events */
 
@@ -99,15 +96,6 @@ contract FeeSharingCollector is
      */
     event FeeAMMWithdrawn(address indexed sender, address indexed converter, uint256 amount);
 
-    /**
-     * @notice An event emitted when fee from Dex get withdrawn.
-     *
-     * @param sender sender who initiate the withdrawn dex protocol fees.
-     * @param token the token address.
-     * @param amount total amount of fee (Already converted to wrappedNativeToken).
-     */
-    event FeeDexWithdrawn(address indexed sender, address indexed token, uint256 amount);
-
     /// @notice An event emitted when converter address has been registered to be whitelisted.
     event WhitelistedConverter(address indexed sender, address converter);
 
@@ -130,11 +118,15 @@ contract FeeSharingCollector is
 
     event SetProtocolAddress(address indexed sender, address _protocolAddress);
 
-    event SetSovrynDexAddress(
-        address indexed sender,
-        address indexed oldSovrynDexAddress,
-        address indexed newSovrynDexAddress
-    );
+    /* Modifier */
+    modifier oneTimeExecution(bytes4 _funcSig) {
+        require(
+            !isFunctionExecuted[_funcSig],
+            "FeeSharingCollector: function can only be called once"
+        );
+        _;
+        isFunctionExecuted[_funcSig] = true;
+    }
 
     /* Functions */
 
@@ -192,14 +184,6 @@ contract FeeSharingCollector is
         require(address(protocol) == address(0x0), "protocol address already set");
         protocol = IProtocol(_protocolAddress);
         emit SetProtocolAddress(msg.sender, _protocolAddress);
-    }
-
-    function setSovrynDexAddress(
-        address _sovrynDexAddress
-    ) public onlyOwner oneTimeExecution(this.setSovrynDexAddress.selector) {
-        require(Address.isContract(_sovrynDexAddress), "_sovrynDexAddress not a contract");
-        emit SetSovrynDexAddress(msg.sender, sovrynDexAddress, _sovrynDexAddress);
-        sovrynDexAddress = _sovrynDexAddress;
     }
 
     /**
@@ -306,63 +290,6 @@ contract FeeSharingCollector is
                     _converters[i],
                     wrappedNativeTokenAmountWithdrawn
                 );
-            }
-        }
-
-        if (totalPoolTokenAmount > 0) {
-            _addCheckpoint(NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT, totalPoolTokenAmount);
-        }
-    }
-
-    /**
-     * @notice Withdraw amm fees for the given converter addresses:
-     * protocolFee from the conversion
-     * the fees will be converted in wrappedNativeToken form, and then will be transferred to wrappedNativeToken loan pool
-     *
-     * @param _tokens array addresses of the tokens
-     * */
-    function withdrawFeesFromDex(address[] memory _tokens) public {
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            require(
-                Address.isContract(_tokens[i]),
-                "FeeSharingCollector::withdrawFeesFromDex: token is not a contract"
-            );
-        }
-
-        IWrappedNativeTokenERC20 wrappedNativeToken = IWrappedNativeTokenERC20(
-            wrappedNativeTokenAddress
-        );
-
-        uint96 totalPoolTokenAmount;
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            address token = _tokens[i];
-            /** Withdraw from dex */
-            bytes memory cmd = abi.encode(SOVRYN_DEX_CMD_COLLECT_TREASURY_CODE, token);
-            bytes memory withdrawnData = ISovrynDex(sovrynDexAddress).userCmd(
-                SOVRYN_DEX_COLD_PATH_PROXY_IDX,
-                cmd
-            );
-
-            // Convert the return bytes data from dex to uint256
-            uint256 wrappedNativeTokenAmountWithdrawn = bytesToUint256(withdrawnData);
-
-            if (wrappedNativeTokenAmountWithdrawn > 0) {
-                // unwrap wrappedNativeToken to nativeToken, and hold the nativeToken
-                wrappedNativeToken.withdraw(wrappedNativeTokenAmountWithdrawn);
-
-                /// @notice Update unprocessed amount of tokens
-                uint96 amount96 = safe96(
-                    wrappedNativeTokenAmountWithdrawn,
-                    "FeeSharingCollector::withdrawFeesAMM: wrappedNativeToken token amount exceeds 96 bits"
-                );
-
-                totalPoolTokenAmount = add96(
-                    totalPoolTokenAmount,
-                    amount96,
-                    "FeeSharingCollector::withdrawFeesAMM: total wrappedNativeToken token amount exceeds 96 bits"
-                );
-
-                emit FeeDexWithdrawn(msg.sender, token, wrappedNativeTokenAmountWithdrawn);
             }
         }
 
@@ -1367,19 +1294,6 @@ contract FeeSharingCollector is
      */
     function numTokenCheckpoints(address _token) external view returns (uint256) {
         return totalTokenCheckpoints[_token];
-    }
-
-    // Function to convert bytes to uint256
-    function bytesToUint256(bytes memory b) private pure returns (uint256) {
-        require(b.length == 32, "Invalid bytes length, must be 32 bytes");
-
-        uint256 result;
-
-        assembly {
-            result := mload(add(b, 0x20))
-        }
-
-        return result;
     }
 }
 
