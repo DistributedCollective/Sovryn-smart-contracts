@@ -16,6 +16,7 @@ import "../../interfaces/IWrappedNativeTokenERC20.sol";
 contract FeeSharingCollectorStorage is Ownable {
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
     uint256 constant FEE_WITHDRAWAL_INTERVAL = 172800;
+    uint32 constant MAX_CHECKPOINTS = 100;
 
     IProtocol public protocol;
     IStaking public staking;
@@ -104,6 +105,16 @@ contract FeeSharingCollectorStorage is Ownable {
         reentrancyLock = REENTRANCY_GUARD_LOCKED;
         _;
         reentrancyLock = REENTRANCY_GUARD_FREE;
+    }
+
+    /* Modifier */
+    modifier oneTimeExecution(bytes4 _funcSig) {
+        require(
+            !isFunctionExecuted[_funcSig],
+            "FeeSharingCollector: function can only be called once"
+        );
+        _;
+        isFunctionExecuted[_funcSig] = true;
     }
 }
 

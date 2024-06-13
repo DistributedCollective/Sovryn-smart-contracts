@@ -136,16 +136,6 @@ contract FeeSharingCollector is
         address indexed newSovrynDexAddress
     );
 
-    /* Modifier */
-    modifier oneTimeExecution(bytes4 _funcSig) {
-        require(
-            !isFunctionExecuted[_funcSig],
-            "FeeSharingCollector: function can only be called once"
-        );
-        _;
-        isFunctionExecuted[_funcSig] = true;
-    }
-
     /* Functions */
 
     /// @dev fallback function to support nativeToken transfer when unwrap the wrappedNativeToken.
