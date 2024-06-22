@@ -286,6 +286,13 @@ module.exports = {
             tags: ["testnet", "forked"],
             timeout: 100000,
         },
+        bitlayerTestnet: {
+            url: 'https://rpc.ankr.com/bitlayer_testnet',
+            chainId: 200810,
+            accounts: testnetAccounts,
+            maxPriorityFeePerGas: 110000000, // 0.11 gwei
+            tags: ["testnet"],
+        },
     },
     paths: {
         sources: "./contracts",
