@@ -5,13 +5,13 @@ import "../Staking/SafeMath96.sol";
 import "../../openzeppelin/SafeMath.sol";
 import "../../openzeppelin/SafeERC20.sol";
 import "../../openzeppelin/Ownable.sol";
-import "../IFeeSharingCollectorMultipleToken.sol";
+import "../IFeeSharingCollectorMultiToken.sol";
 import "../../openzeppelin/Address.sol";
 import "./FeeSharingCollectorStorage.sol";
 import "../../interfaces/ISovrynDex.sol";
 
 /**
- * @title The FeeSharingCollectorMultipleToken contract.
+ * @title The FeeSharingCollectorMultiToken contract.
  * @notice Staking is not only granting voting rights, but also access to fee
  * sharing according to the own voting power in relation to the total. Whenever
  * somebody decides to collect the fees from the protocol, they get transferred
@@ -40,12 +40,12 @@ import "../../interfaces/ISovrynDex.sol";
  * The protocol is collecting fees in all sorts of currencies and then automatically
  * supplies them to the respective lending pools. Therefore, all fees are
  * generating interest for the SOV holders. If one of them withdraws fees, it will
- * get pool tokens. It is planned to add the option to convert anything to rBTC
+ * get pool tokens. It is planned to add the option to convert anything to native token
  * before withdrawing, but not yet implemented.
  * */
-contract FeeSharingCollectorMultipleToken is
+contract FeeSharingCollectorMultiToken is
     SafeMath96,
-    IFeeSharingCollectorMultipleToken,
+    IFeeSharingCollectorMultiToken,
     Ownable,
     FeeSharingCollectorStorage
 {
@@ -53,8 +53,9 @@ contract FeeSharingCollectorMultipleToken is
     using SafeERC20 for IERC20;
 
     address constant ZERO_ADDRESS = address(0);
-    address public constant NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT =
-        address(uint160(uint256(keccak256("NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT"))));
+    /** To support backward compatibility, we need to keep this constant variable name as it is (which is derived from rsk network) */
+    address public constant RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT =
+        address(uint160(uint256(keccak256("RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT"))));
     uint16 public constant SOVRYN_DEX_COLD_PATH_PROXY_IDX = 3;
     uint8 public constant SOVRYN_DEX_CMD_COLLECT_TREASURY_CODE = 40;
 
@@ -115,9 +116,7 @@ contract FeeSharingCollectorMultipleToken is
      *
      * @param newWrappedNativeTokenAddress The new address of the wrappedNativeToken token.
      * */
-    function setWrappedNativeToken(
-        address newWrappedNativeTokenAddress
-    ) public onlyOwner oneTimeExecution(this.setWrappedNativeToken.selector) {
+    function setWrappedNativeToken(address newWrappedNativeTokenAddress) public onlyOwner {
         require(
             Address.isContract(newWrappedNativeTokenAddress),
             "newWrappedNativeTokenAddress not a contract"
@@ -146,9 +145,7 @@ contract FeeSharingCollectorMultipleToken is
         emit SetProtocolAddress(msg.sender, _protocolAddress);
     }
 
-    function setSovrynDexAddress(
-        address _sovrynDexAddress
-    ) public onlyOwner oneTimeExecution(this.setSovrynDexAddress.selector) {
+    function setSovrynDexAddress(address _sovrynDexAddress) public onlyOwner {
         require(Address.isContract(_sovrynDexAddress), "_sovrynDexAddress not a contract");
         emit SetSovrynDexAddress(msg.sender, sovrynDexAddress, _sovrynDexAddress);
         sovrynDexAddress = _sovrynDexAddress;
@@ -157,8 +154,6 @@ contract FeeSharingCollectorMultipleToken is
     /**
      * @notice Withdraw fees for the given token:
      * lendingFee + tradingFee + borrowingFee
-     * the fees (except SOV) will be converted in wRBTC form, and then will be transferred to wRBTC loan pool.
-     * For SOV, it will be directly deposited into the FeeSharingCollectorMultipleToken from the protocol.
      *
      * @param _tokens array address of the token
      * */
@@ -166,34 +161,39 @@ contract FeeSharingCollectorMultipleToken is
         for (uint256 i = 0; i < _tokens.length; i++) {
             require(
                 Address.isContract(_tokens[i]),
-                "FeeSharingCollectorMultipleToken::withdrawFees: token is not a contract"
+                "FeeSharingCollectorMultiToken::withdrawFees: token is not a contract"
             );
         }
 
-        uint256 wrbtcAmountWithdrawn = protocol.withdrawFees(_tokens, address(this));
+        uint256 wrappedNativeTokenAmountWithdrawn = protocol.withdrawFees(_tokens, address(this));
         uint256 poolTokenAmount;
 
-        address wRBTCAddress = wrappedNativeTokenAddress;
         require(
-            wRBTCAddress != address(0),
-            "FeeSharingCollectorMultipleToken::withdrawFees: wRBTCAddress is not set"
+            wrappedNativeTokenAddress != address(0),
+            "FeeSharingCollectorMultiToken::withdrawFees: wrappedNativeTokenAddress is not set"
         );
 
-        address loanPoolToken = protocol.underlyingToLoanPool(wRBTCAddress);
+        address loanPoolToken = protocol.underlyingToLoanPool(wrappedNativeTokenAddress);
         require(
             loanPoolToken != address(0),
-            "FeeSharingCollectorMultipleToken::withdrawFees: loan wRBTC not found"
+            "FeeSharingCollectorMultiToken::withdrawFees: loan wrappedNativeTokenAddress not found"
         );
 
-        if (wrbtcAmountWithdrawn > 0) {
+        if (wrappedNativeTokenAmountWithdrawn > 0) {
             /// @dev TODO can be also used - function addLiquidity(IERC20Token _reserveToken, uint256 _amount, uint256 _minReturn)
-            IERC20(wRBTCAddress).approve(loanPoolToken, wrbtcAmountWithdrawn);
-            poolTokenAmount = ILoanToken(loanPoolToken).mint(address(this), wrbtcAmountWithdrawn);
+            IERC20(wrappedNativeTokenAddress).approve(
+                loanPoolToken,
+                wrappedNativeTokenAmountWithdrawn
+            );
+            poolTokenAmount = ILoanToken(loanPoolToken).mint(
+                address(this),
+                wrappedNativeTokenAmountWithdrawn
+            );
 
             /// @notice Update unprocessed amount of tokens
             uint96 amount96 = safe96(
                 poolTokenAmount,
-                "FeeSharingCollectorMultipleToken::withdrawFees: pool token amount exceeds 96 bits"
+                "FeeSharingCollectorMultiToken::withdrawFees: pool token amount exceeds 96 bits"
             );
 
             _addCheckpoint(loanPoolToken, amount96);
@@ -203,7 +203,7 @@ contract FeeSharingCollectorMultipleToken is
     }
 
     /**
-     * @notice Withdraw fees from sovryn dex:
+     * @notice Withdraw fees from Sovryn DEX
      * protocolFee from the conversion
      * the fees will be converted in wrappedNativeToken form, and then will be transferred to wrappedNativeToken loan pool
      *
@@ -229,15 +229,16 @@ contract FeeSharingCollectorMultipleToken is
      * @notice Transfer tokens to this contract.
      * @dev We just update amount of tokens here and write checkpoint in a separate methods
      * in order to prevent adding checkpoints too often.
+     * @dev the caller should take care of setting allowance for the token
      * @param _token Address of the token.
      * @param _amount Amount to be transferred.
      * */
     function transferTokens(address _token, uint96 _amount) public {
         require(
             _token != ZERO_ADDRESS,
-            "FeeSharingCollectorMultipleToken::transferTokens: invalid address"
+            "FeeSharingCollectorMultiToken::transferTokens: invalid address"
         );
-        require(_amount > 0, "FeeSharingCollectorMultipleToken::transferTokens: invalid amount");
+        require(_amount > 0, "FeeSharingCollectorMultiToken::transferTokens: invalid amount");
 
         /// @notice Transfer tokens from msg.sender
         bool success = IERC20(_token).transferFrom(address(msg.sender), address(this), _amount);
@@ -249,7 +250,7 @@ contract FeeSharingCollectorMultipleToken is
         );
         if (_token == address(wrappedNativeToken)) {
             wrappedNativeToken.withdraw(_amount);
-            _token = NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT;
+            _token = RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT;
         }
 
         _addCheckpoint(_token, _amount);
@@ -267,7 +268,7 @@ contract FeeSharingCollectorMultipleToken is
             uint96 amount = add96(
                 unprocessedAmount[_token],
                 _amount,
-                "FeeSharingCollectorMultipleToken::_addCheckpoint: amount exceeds 96 bits"
+                "FeeSharingCollectorMultiToken::_addCheckpoint: amount exceeds 96 bits"
             );
 
             /// @notice Reset unprocessed amount of tokens to zero.
@@ -279,7 +280,7 @@ contract FeeSharingCollectorMultipleToken is
             unprocessedAmount[_token] = add96(
                 unprocessedAmount[_token],
                 _amount,
-                "FeeSharingCollectorMultipleToken::_addCheckpoint: unprocessedAmount exceeds 96 bits"
+                "FeeSharingCollectorMultiToken::_addCheckpoint: unprocessedAmount exceeds 96 bits"
             );
         }
     }
@@ -359,19 +360,19 @@ contract FeeSharingCollectorMultipleToken is
         /// @dev Prevents processing / checkpoints because of block gas limit.
         require(
             _maxCheckpoint > 0,
-            "FeeSharingCollectorMultipleToken::withdraw: _maxCheckpoints should be positive"
+            "FeeSharingCollectorMultiToken::withdraw: _maxCheckpoints should be positive"
         );
 
         address _wrappedNativeTokenAddress = wrappedNativeTokenAddress;
         require(
             _wrappedNativeTokenAddress != address(0),
-            "FeeSharingCollectorMultipleToken::withdraw: _wrappedNativeTokenAddress is not set"
+            "FeeSharingCollectorMultiToken::withdraw: _wrappedNativeTokenAddress is not set"
         );
 
         address loanWrappedNativeToken = protocol.underlyingToLoanPool(_wrappedNativeTokenAddress);
         require(
             loanWrappedNativeToken != address(0),
-            "FeeSharingCollectorMultipleToken::withdraw: loan wrapped native token not found"
+            "FeeSharingCollectorMultiToken::withdraw: loan wrapped native token not found"
         );
 
         address user = msg.sender;
@@ -384,23 +385,18 @@ contract FeeSharingCollectorMultipleToken is
         (amount, end) = _getAccumulatedFees(user, _token, _maxCheckpoint);
         require(
             amount > 0,
-            "FeeSharingCollectorMultipleToken::withdrawFees: no tokens for a withdrawal"
+            "FeeSharingCollectorMultiToken::withdrawFees: no tokens for a withdrawal"
         );
 
         processedCheckpoints[user][_token] = end;
 
         if (loanWrappedNativeToken == _token) {
-            // We will change, so that FeeSharingCollectorMultipleToken will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
-            uint256 loanAmountPaid = ILoanWrappedNativeToken(_token).burnToBTC(
-                _receiver,
-                amount,
-                false
-            );
+            // We will change, so that FeeSharingCollectorMultiToken will directly burn then loan wrapped native token to native token and send to the user --- by call burnToBTC function
+            ILoanWrappedNativeToken(_token).burnToBTC(_receiver, amount, false);
         } else {
-            // Previously it directly send the token to the user
             require(
                 IERC20(_token).transfer(_receiver, amount),
-                "FeeSharingCollectorMultipleToken::withdraw: withdrawal failed"
+                "FeeSharingCollectorMultiToken::withdraw: withdrawal failed"
             );
         }
 
@@ -457,7 +453,7 @@ contract FeeSharingCollectorMultipleToken is
             /// @dev withdraw -> _getAccumulatedFees
             require(
                 start < totalTokenCheckpoints[_loanPoolToken],
-                "FeeSharingCollectorMultipleToken::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollectorMultiToken::withdrawFees: no tokens for a withdrawal"
             );
             end = _getEndOfRange(start, _loanPoolToken, _maxCheckpoints);
         } else {
@@ -522,7 +518,7 @@ contract FeeSharingCollectorMultipleToken is
             }
             end = safe32(
                 start + _maxCheckpoints,
-                "FeeSharingCollectorMultipleToken::withdraw: checkpoint index exceeds 32 bits"
+                "FeeSharingCollectorMultiToken::withdraw: checkpoint index exceeds 32 bits"
             );
             if (end > nCheckpoints) {
                 end = nCheckpoints;
@@ -546,11 +542,11 @@ contract FeeSharingCollectorMultipleToken is
     function _writeTokenCheckpoint(address _token, uint96 _numTokens) internal {
         uint32 blockNumber = safe32(
             block.number,
-            "FeeSharingCollectorMultipleToken::_writeCheckpoint: block number exceeds 32 bits"
+            "FeeSharingCollectorMultiToken::_writeCheckpoint: block number exceeds 32 bits"
         );
         uint32 blockTimestamp = safe32(
             block.timestamp,
-            "FeeSharingCollectorMultipleToken::_writeCheckpoint: block timestamp exceeds 32 bits"
+            "FeeSharingCollectorMultiToken::_writeCheckpoint: block timestamp exceeds 32 bits"
         );
         uint256 nCheckpoints = totalTokenCheckpoints[_token];
 
@@ -588,21 +584,23 @@ contract FeeSharingCollectorMultipleToken is
         totalWeightedStake = sub96(
             totalWeightedStake,
             vestingWeightedStake,
-            "FeeSharingCollectorMultipleToken::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
+            "FeeSharingCollectorMultiToken::_getTotalVoluntaryWeightedStake: vested stake exceeds total stake"
         );
     }
 
-    function withdrawWRBTC(address receiver, uint256 wrbtcAmount) external onlyOwner {
-        address wRBTCAddress = wrappedNativeTokenAddress;
+    function withdrawWrappedNativeToken(
+        address receiver,
+        uint256 wrappedNativeTokenAmount
+    ) external onlyOwner {
         require(
-            wRBTCAddress != address(0),
-            "FeeSharingCollectorMultipleToken::withdrawFees: wRBTCAddress is not set"
+            wrappedNativeTokenAddress != address(0),
+            "FeeSharingCollectorMultiToken::withdrawFees: wrappedNativeTokenAddress is not set"
         );
 
-        uint256 balance = IERC20(wRBTCAddress).balanceOf(address(this));
-        require(wrbtcAmount <= balance, "Insufficient balance");
+        uint256 balance = IERC20(wrappedNativeTokenAddress).balanceOf(address(this));
+        require(wrappedNativeTokenAmount <= balance, "Insufficient balance");
 
-        IERC20(wRBTCAddress).safeTransfer(receiver, wrbtcAmount);
+        IERC20(wrappedNativeTokenAddress).safeTransfer(receiver, wrappedNativeTokenAmount);
     }
 }
 

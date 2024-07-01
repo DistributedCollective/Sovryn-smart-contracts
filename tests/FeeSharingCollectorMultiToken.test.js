@@ -4,14 +4,14 @@ const { expectRevert, expectEvent, constants, BN } = require("@openzeppelin/test
 
 const { ZERO_ADDRESS } = constants;
 
-const { etherMantissa, mineBlock, increaseTime } = require("./Utils/Ethereum");
+const { etherMantissa, mineBlock, increaseTime } = require("./Utils/Ethereum.js");
 
 const {
     deployAndGetIStaking,
     replaceStakingModule,
     getStakingModulesObject,
     getStakingModulesAddressList,
-} = require("./Utils/initializer");
+} = require("./Utils/initializer.js");
 
 const TestToken = artifacts.require("TestToken");
 
@@ -36,10 +36,10 @@ const LoanTokenLogicWrbtc = artifacts.require("LoanTokenLogicWrbtc");
 const LoanToken = artifacts.require("LoanToken");
 const LockedSOV = artifacts.require("LockedSOV");
 
-const FeeSharingCollector = artifacts.require("FeeSharingCollectorMultipleToken");
+const FeeSharingCollector = artifacts.require("FeeSharingCollectorMultiToken");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
-const FeeSharingCollectorMockup = artifacts.require("FeeSharingCollectorMultipleTokenMockup");
-const MockSovrynDex = artifacts.require("MockSovrynDexMultipleToken");
+const FeeSharingCollectorMockup = artifacts.require("FeeSharingCollectorMultiTokenMockup");
+const MockSovrynDex = artifacts.require("MockSovrynDexMultiToken");
 const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
 const IWeightedStakingModuleMockup = artifacts.require("IWeightedStakingModuleMockup");
 
@@ -66,9 +66,9 @@ const MOCK_PRIOR_WEIGHTED_STAKE = false;
 
 const wei = web3.utils.toWei;
 
-const { lend_btc_before_cashout } = require("./loan-token/helpers");
+const { lend_btc_before_cashout } = require("./loan-token/helpers.js");
 
-const mutexUtils = require("../deployment/helpers/reentrancy/utils");
+const mutexUtils = require("../deployment/helpers/reentrancy/utils.js");
 
 let cliff = 1; // This is in 4 weeks. i.e. 1 * 4 weeks.
 let duration = 11; // This is in 4 weeks. i.e. 11 * 4 weeks.
@@ -90,7 +90,7 @@ const {
     getSOV,
 } = require("./Utils/initializer.js");
 
-contract("FeeSharingCollectorMultipleToken:", (accounts) => {
+contract("FeeSharingCollectorMultiToken:", (accounts) => {
     const name = "Test SOVToken";
     const symbol = "TST";
 
@@ -335,15 +335,6 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
                 "function can only be called once"
             );
         });
-
-        it("setSovrynDexAddress should only be called once", async () => {
-            expect(await feeSharingCollector.sovrynDexAddress()).to.equal(sovrynDex.address);
-            const newSovrynDexAddress = (await MockSovrynDex.new()).address;
-            await expectRevert(
-                feeSharingCollector.setSovrynDexAddress(newSovrynDexAddress),
-                "FeeSharingCollector: function can only be called once"
-            );
-        });
     });
 
     describe("FeeSharingCollectorProxy", () => {
@@ -379,7 +370,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollector.withdrawFees([ZERO_ADDRESS]),
-                "FeeSharingCollectorMultipleToken::withdrawFees: token is not a contract"
+                "FeeSharingCollectorMultiToken::withdrawFees: token is not a contract"
             );
         });
 
@@ -404,7 +395,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
 
             await expectRevert(
                 feeSharingCollector.withdrawFees([WrappedNativeToken.address]),
-                "FeeSharingCollectorMultipleToken::withdrawFees: loan wRBTC not found"
+                "FeeSharingCollectorMultiToken::withdrawFees: loan wrappedNativeTokenAddress not found"
             );
         });
 
@@ -908,12 +899,90 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
         });
     });
 
+    describe("withdraw Dex Fees", async () => {
+        it("should not be able to withdraw fees if invalid token address", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            await expectRevert(
+                feeSharingCollector.withdrawFeesFromDex([accounts[0]]),
+                "FeeSharingCollector::withdrawFeesFromDex: token is not a contract"
+            );
+        });
+
+        it("Should be able to withdraw Dex Fees", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            //stake - getPriorTotalVotingPower
+            let totalStake = 1000;
+            await stake(totalStake, root);
+
+            await expectRevert(
+                feeSharingCollector.withdrawFeesFromDex([SUSD.address]),
+                "Only Treasury"
+            );
+
+            //mock data
+            const feeAmount = new BN(wei("1", "ether"));
+            await sovrynDex.setTokenDexFee(SUSD.address, feeAmount.toString());
+            await sovrynDex.setTreasury(feeSharingCollector.address);
+            await sovrynDex.setWrbtcToken(WrappedNativeToken.address);
+
+            await SUSD.mint(sovrynDex.address, wei("2000", "ether"));
+
+            let previousProtocolBalance = await SUSD.balanceOf(sovrynDex.address);
+            let previousFeeSharingCollectorBalance = await SUSD.balanceOf(
+                feeSharingCollector.address
+            );
+            tx = await feeSharingCollector.withdrawFeesFromDex([SUSD.address]);
+
+            let latestProtocolBalance = await SUSD.balanceOf(sovrynDex.address);
+            let latestFeeSharingCollectorBalance = await SUSD.balanceOf(
+                feeSharingCollector.address
+            );
+
+            expect(previousProtocolBalance.toString()).to.equal(
+                latestProtocolBalance.add(feeAmount).toString()
+            );
+
+            expect(previousFeeSharingCollectorBalance.toString()).to.equal("0");
+            expect(latestFeeSharingCollectorBalance.toString()).to.equal(feeAmount.toString());
+        });
+
+        it("Should not be able to withdraw with 0 AMM Fees", async () => {
+            /// @dev This test requires redeploying the protocol
+            await protocolDeploymentFixture();
+
+            //stake - getPriorTotalVotingPower
+            let totalStake = 1000;
+            await stake(totalStake, root);
+
+            await expectRevert(
+                feeSharingCollector.withdrawFeesFromDex([SUSD.address]),
+                "Only Treasury"
+            );
+
+            //mock data
+            const feeAmount = new BN(wei("0", "ether"));
+            await sovrynDex.setTokenDexFee(SUSD.address, feeAmount.toString());
+            await sovrynDex.setTreasury(feeSharingCollector.address);
+            await sovrynDex.setWrbtcToken(WrappedNativeToken.address);
+
+            await SUSD.mint(sovrynDex.address, wei("2", "ether"));
+            await expectRevert(
+                feeSharingCollector.withdrawFeesFromDex([SUSD.address]),
+                "FeeSharingCollectorMultiToken::transferTokens: invalid amount"
+            );
+        });
+    });
+
     describe("transferTokens", () => {
         it("Shouldn't be able to use zero token address", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollector.transferTokens(ZERO_ADDRESS, 1000),
-                "FeeSharingCollectorMultipleToken::transferTokens: invalid address"
+                "FeeSharingCollectorMultiToken::transferTokens: invalid address"
             );
         });
 
@@ -921,7 +990,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollector.transferTokens(SOVToken.address, 0),
-                "FeeSharingCollectorMultipleToken::transferTokens: invalid amount"
+                "FeeSharingCollectorMultiToken::transferTokens: invalid amount"
             );
         });
 
@@ -1026,7 +1095,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollector.withdraw(loanToken.address, 0, account2, { from: account1 }),
-                "FeeSharingCollectorMultipleToken::withdraw: _maxCheckpoints should be positive"
+                "FeeSharingCollectorMultiToken::withdraw: _maxCheckpoints should be positive"
             );
         });
 
@@ -1036,7 +1105,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
                 feeSharingCollector.withdraw(loanWrappedNativeToken.address, 0, account2, {
                     from: account1,
                 }),
-                "FeeSharingCollectorMultipleToken::withdraw: _maxCheckpoints should be positive"
+                "FeeSharingCollectorMultiToken::withdraw: _maxCheckpoints should be positive"
             );
         });
 
@@ -1049,7 +1118,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
                 feeSharingCollector.withdraw(loanToken.address, 10, ZERO_ADDRESS, {
                     from: account1,
                 }),
-                "FeeSharingCollectorMultipleToken::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollectorMultiToken::withdrawFees: no tokens for a withdrawal"
             );
         });
 
@@ -1065,7 +1134,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
                 feeSharingCollector.withdraw(loanWrappedNativeToken.address, 10, ZERO_ADDRESS, {
                     from: account1,
                 }),
-                "FeeSharingCollectorMultipleToken::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollectorMultiToken::withdrawFees: no tokens for a withdrawal"
             );
         });
 
@@ -1813,7 +1882,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
                 feeSharingCollector.withdrawTokens([loanToken.address], [0], account2, {
                     from: account1,
                 }),
-                "FeeSharingCollectorMultipleToken::withdraw: _maxCheckpoints should be positive"
+                "FeeSharingCollectorMultiToken::withdraw: _maxCheckpoints should be positive"
             );
         });
 
@@ -1826,7 +1895,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
                     account2,
                     { from: account1 }
                 ),
-                "FeeSharingCollectorMultipleToken::withdraw: _maxCheckpoints should be positive"
+                "FeeSharingCollectorMultiToken::withdraw: _maxCheckpoints should be positive"
             );
         });
 
@@ -1839,7 +1908,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
                 feeSharingCollector.withdrawTokens([loanToken.address], [10], ZERO_ADDRESS, {
                     from: account1,
                 }),
-                "FeeSharingCollectorMultipleToken::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollectorMultiToken::withdrawFees: no tokens for a withdrawal"
             );
         });
 
@@ -1860,7 +1929,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
                         from: account1,
                     }
                 ),
-                "FeeSharingCollectorMultipleToken::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollectorMultiToken::withdrawFees: no tokens for a withdrawal"
             );
         });
 
@@ -2636,7 +2705,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
             await setFeeTokensHeld(new BN(100), new BN(200), new BN(300));
             await expectRevert(
                 vestingInstance.collectDividends(loanToken.address, 5, root),
-                "FeeSharingCollectorMultipleToken::withdrawFees: no tokens for a withdrawal"
+                "FeeSharingCollectorMultiToken::withdrawFees: no tokens for a withdrawal"
             );
         });
 
@@ -2672,7 +2741,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
             const receiver = accounts[1];
             const previousBalanceReceiver = await WrappedNativeToken.balanceOf(receiver);
             await expectRevert(
-                feeSharingCollector.withdrawWRBTC(receiver, 0, { from: accounts[1] }),
+                feeSharingCollector.withdrawWrappedNativeToken(receiver, 0, { from: accounts[1] }),
                 "unauthorized"
             );
         });
@@ -2681,7 +2750,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
             await protocolDeploymentFixture();
             const receiver = accounts[1];
             const previousBalanceReceiver = await WrappedNativeToken.balanceOf(receiver);
-            await feeSharingCollector.withdrawWRBTC(receiver, 0);
+            await feeSharingCollector.withdrawWrappedNativeToken(receiver, 0);
             const latestBalanceReceiver = await WrappedNativeToken.balanceOf(receiver);
             const latestBalanceFeeSharingProxy = await WrappedNativeToken.balanceOf(
                 feeSharingCollector.address
@@ -2709,7 +2778,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
             );
 
             await expectRevert(
-                feeSharingCollector.withdrawWRBTC(receiver, amount.toString()),
+                feeSharingCollector.withdrawWrappedNativeToken(receiver, amount.toString()),
                 "Insufficient balance"
             );
 
@@ -2737,7 +2806,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
                 feeSharingCollector.address
             );
 
-            const tx = await feeSharingCollector.withdrawWRBTC(
+            const tx = await feeSharingCollector.withdrawWrappedNativeToken(
                 receiver,
                 feeSharingProxyBalance.toString()
             );
@@ -2780,7 +2849,10 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
             );
             expect(previousBalanceFeeSharingProxy.toString()).to.equal(wei("1", "ether"));
 
-            const tx = await feeSharingCollector.withdrawWRBTC(receiver, amount.toString());
+            const tx = await feeSharingCollector.withdrawWrappedNativeToken(
+                receiver,
+                amount.toString()
+            );
             await expectEvent.inTransaction(
                 tx.receipt.rawLogs[0].transactionHash,
                 WrappedNativeToken,
@@ -2803,7 +2875,7 @@ contract("FeeSharingCollectorMultipleToken:", (accounts) => {
             expect(latestBalanceFeeSharingProxy.toString()).to.equal(restAmount.toString());
 
             // try to withdraw the rest
-            const tx2 = await feeSharingCollector.withdrawWRBTC(
+            const tx2 = await feeSharingCollector.withdrawWrappedNativeToken(
                 receiver,
                 latestBalanceFeeSharingProxy.toString()
             );

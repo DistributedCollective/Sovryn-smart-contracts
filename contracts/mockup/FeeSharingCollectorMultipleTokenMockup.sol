@@ -1,8 +1,8 @@
 pragma solidity ^0.5.17;
 
-import "../governance/FeeSharingCollector/FeeSharingCollectorMultipleToken.sol";
+import "../governance/FeeSharingCollector/FeeSharingCollectorMultiToken.sol";
 
-contract FeeSharingCollectorMultipleTokenMockup is FeeSharingCollectorMultipleToken {
+contract FeeSharingCollectorMultiTokenMockup is FeeSharingCollectorMultiToken {
     struct TestData {
         address loanPoolToken;
         uint32 maxCheckpoints;

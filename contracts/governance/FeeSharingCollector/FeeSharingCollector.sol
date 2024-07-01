@@ -56,8 +56,9 @@ contract FeeSharingCollector is
     using SafeERC20 for IERC20;
 
     address constant ZERO_ADDRESS = address(0);
-    address public constant NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT =
-        address(uint160(uint256(keccak256("NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT"))));
+    /** To support backward compatibility, we need to keep this constant variable name as it is (which is derived from rsk network) */
+    address public constant RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT =
+        address(uint160(uint256(keccak256("RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT"))));
 
     /* Events */
 
@@ -117,16 +118,6 @@ contract FeeSharingCollector is
     );
 
     event SetProtocolAddress(address indexed sender, address _protocolAddress);
-
-    /* Modifier */
-    modifier oneTimeExecution(bytes4 _funcSig) {
-        require(
-            !isFunctionExecuted[_funcSig],
-            "FeeSharingCollector: function can only be called once"
-        );
-        _;
-        isFunctionExecuted[_funcSig] = true;
-    }
 
     /* Functions */
 
@@ -238,11 +229,11 @@ contract FeeSharingCollector is
                 "FeeSharingCollector::withdrawFees: wrappedNativeToken token amount exceeds 96 bits"
             );
 
-            _addCheckpoint(NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
+            _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
         }
 
         // note deprecated event since we unify the wrappedNativeToken & nativeToken
-        // emit FeeWithdrawn(msg.sender, NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT, poolTokenAmount);
+        // emit FeeWithdrawn(msg.sender, RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, poolTokenAmount);
 
         // note new emitted event
         emit FeeWithdrawnInNativeToken(msg.sender, wrappedNativeTokenAmountWithdrawn);
@@ -294,7 +285,7 @@ contract FeeSharingCollector is
         }
 
         if (totalPoolTokenAmount > 0) {
-            _addCheckpoint(NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT, totalPoolTokenAmount);
+            _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, totalPoolTokenAmount);
         }
     }
 
@@ -319,7 +310,7 @@ contract FeeSharingCollector is
         );
         if (_token == address(wrappedNativeToken)) {
             wrappedNativeToken.withdraw(_amount);
-            _token = NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT;
+            _token = RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT;
         }
 
         _addCheckpoint(_token, _amount);
@@ -336,7 +327,7 @@ contract FeeSharingCollector is
         uint96 _amount = uint96(msg.value);
         require(_amount > 0, "FeeSharingCollector::transferNativeToken: invalid value");
 
-        _addCheckpoint(NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT, _amount);
+        _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, _amount);
 
         emit TokensTransferred(msg.sender, ZERO_ADDRESS, _amount);
     }
@@ -403,7 +394,7 @@ contract FeeSharingCollector is
 
         processedCheckpoints[user][_token] = end;
         if (loanWrappedNativeTokenAddress == _token) {
-            // We will change, so that feeSharingCollector will directly burn then loanWrappedNativeToken (IWrappedNativeToken) to nativeToken and send to the user --- by call burnToBTC function
+            // We will change, so that feeSharingCollector will directly burn then loanWrappedNativeToken (IWrappedNativeToken) to nativeToken and send to the user --- by call burnToBTC function which is burning to a native token - to be renamed to burnedToNativeToken
             ILoanWrappedNativeToken(_token).burnToBTC(_receiver, amount, false);
         } else {
             // Previously it directly send the loanWrappedNativeToken to the user
@@ -491,11 +482,11 @@ contract FeeSharingCollector is
         for (uint256 i = 0; i < _tokens.length; i++) {
             address _token = _tokens[i];
             if (
-                _token != NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT &&
+                _token != RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT &&
                 _token != wrappedNativeTokenAddress &&
                 _token != loanWrappedNativeTokenAddress
             ) {
-                revert("only nativeToken-based tokens are allowed");
+                revert("only native token based tokens are allowed");
             }
         }
     }
@@ -549,7 +540,7 @@ contract FeeSharingCollector is
             if (
                 tokenData.tokenAddress == wrappedNativeTokenAddress ||
                 tokenData.tokenAddress == loanWrappedNativeTokenAddress ||
-                tokenData.tokenAddress == NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT
+                tokenData.tokenAddress == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
             ) {
                 (totalAmount, endToken) = _withdrawNativeTokenStartingFromCheckpoint(
                     tokenData.tokenAddress,
@@ -576,9 +567,9 @@ contract FeeSharingCollector is
         }
 
         if (nativeTokenAmountToSend > 0) {
-            // send all nativeToken withdrawal
+            // send all native token withdrawal
             (bool success, ) = _receiver.call.value(nativeTokenAmountToSend)("");
-            require(success, "FeeSharingCollector::withdra: Withdrawal failed");
+            require(success, "FeeSharingCollector: Withdrawal failed");
 
             emit NativeTokenWithdrawn(msg.sender, _receiver, nativeTokenAmountToSend);
         }
@@ -586,12 +577,12 @@ contract FeeSharingCollector is
 
     /**
      * @dev Function to wrap:
-     * 1. regular withdrawal for both nativeToken & non-nativeToken token
-     * 2. skipped checkpoints withdrawal for both nativeToken & non-nativeToken token
+     * 1. regular withdrawal for both nativeToken & non native token token
+     * 2. skipped checkpoints withdrawal for both native token & non native token
      *
-     * @param _nonNativeTokensRegularWithdraw array of non-nativeToken token address with no skipped checkpoints that will be withdrawn
+     * @param _nonNativeTokensRegularWithdraw array of non native token token address with no skipped checkpoints that will be withdrawn
      * @param _nativeTokensRegularWithdraw array of nativeToken token address with no skipped checkpoints that will be withdrawn
-     * @param _tokensWithSkippedCheckpoints array of nativeToken & non-nativeToken TokenWithSkippedCheckpointsWithdraw struct, which has skipped checkpoints that will be withdrawn
+     * @param _tokensWithSkippedCheckpoints array of nativeToken & non native token TokenWithSkippedCheckpointsWithdraw struct, which has skipped checkpoints that will be withdrawn
      *
      */
     function claimAllCollectedFees(
@@ -616,7 +607,7 @@ contract FeeSharingCollector is
             );
         }
 
-        /** Process normal non-nativeToken token withdrawal */
+        /** Process normal non native token token withdrawal */
         for (uint256 i = 0; i < _nonNativeTokensRegularWithdraw.length; i++) {
             if (_maxCheckpoints == 0) break;
             uint256 endTokenCheckpoint;
@@ -706,7 +697,7 @@ contract FeeSharingCollector is
      * - iWrappedNativeToken balance which will be unwrapped to nativeToken or
      *
      *
-     * @param _tokens array of either NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT or wrappedNativeToken address or iWrappedNativeToken address
+     * @param _tokens array of either RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT or wrappedNativeToken address or iWrappedNativeToken address
      * @param _maxCheckpoints  Maximum number of checkpoints to be processed to workaround block gas limit
      * @param _receiver An optional tokens receiver (msg.sender used if 0)
      */
@@ -1134,45 +1125,12 @@ contract FeeSharingCollector is
         IERC20 wrappedNativeToken = IERC20(wrappedNativeTokenAddress);
 
         uint256 balance = wrappedNativeToken.balanceOf(address(this));
-        require(wrappedNativeTokenAmount <= balance, "Insufficient balance");
-
-        wrappedNativeToken.safeTransfer(receiver, wrappedNativeTokenAmount);
-    }
-
-    /**
-     * @dev This function is dedicated to recover the wrong fee allocation for the 4 year vesting contracts.
-     * This function can only be called once
-     * The affected tokens to be withdrawn
-     * 1. NativeToken
-     * 2. ZUSD
-     * 3. SOV
-     * The amount for all of the tokens above is hardcoded
-     * The withdrawn tokens will be sent to the owner.
-     */
-    function recoverIncorrectAllocatedFees()
-        external
-        oneTimeExecution(this.recoverIncorrectAllocatedFees.selector)
-        onlyOwner
-    {
-        uint256 nativeTokenAmount = 878778886164898400;
-        uint256 zusdAmount = 16658600400155126000000;
-        uint256 sovAmount = 6275898259771202000000;
-
-        address zusdToken = 0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d;
-        address sovToken = 0xEFc78fc7d48b64958315949279Ba181c2114ABBd;
-
-        // Withdraw nativeToken
-        (bool success, ) = owner().call.value(nativeTokenAmount)("");
         require(
-            success,
-            "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal nativeToken failed"
+            wrappedNativeTokenAmount <= balance,
+            "FeeSharingCollector::withdrawWrappedNativeToken:Insufficient balance"
         );
 
-        // Withdraw ZUSD
-        IERC20(zusdToken).safeTransfer(owner(), zusdAmount);
-
-        // Withdraw SOV
-        IERC20(sovToken).safeTransfer(owner(), sovAmount);
+        wrappedNativeToken.safeTransfer(receiver, wrappedNativeTokenAmount);
     }
 
     /**
@@ -1231,7 +1189,7 @@ contract FeeSharingCollector is
     {
         (_nativeTokenAmount, _endNativeToken) = _getAccumulatedFees({
             _user: _user,
-            _token: NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT,
+            _token: RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
             _startFrom: 0,
             _maxCheckpoints: _maxCheckpoints
         });
@@ -1253,7 +1211,7 @@ contract FeeSharingCollector is
     /**
      * @dev private function that responsible to calculate the user's token that has NativeToken as underlying token (nativeToken, wrappedNativeToken, iWrappedNativeToken)
      *
-     * @param _token either NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT or wrappedNativeToken address or iWrappedNativeToken address
+     * @param _token either RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT or wrappedNativeToken address or iWrappedNativeToken address
      * @param _user address of the user.
      * @param _maxCheckpoints maximum checkpoints.
      *
@@ -1266,7 +1224,7 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints
     ) internal view returns (uint256 _tokenAmount, uint256 _endToken) {
         if (
-            _token == NATIVE_TOKEN_DUMMY_ADDRESS_FOR_CHECKPOINT ||
+            _token == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT ||
             _token == wrappedNativeTokenAddress ||
             _token == loanWrappedNativeTokenAddress
         ) {
@@ -1278,7 +1236,7 @@ contract FeeSharingCollector is
             });
         } else {
             revert(
-                "FeeSharingCollector::_getNativeTokenBalance: only nativeToken-based tokens are allowed"
+                "FeeSharingCollector::_getNativeTokenBalance: only native token based tokens are allowed"
             );
         }
     }

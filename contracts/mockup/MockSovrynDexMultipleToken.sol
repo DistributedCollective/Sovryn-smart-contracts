@@ -1,9 +1,9 @@
 pragma solidity 0.5.17;
 
 import "../interfaces/IERC20.sol";
-import "../governance/IFeeSharingCollectorMultipleToken.sol";
+import "../governance/IFeeSharingCollectorMultiToken.sol";
 
-contract MockSovrynDexMultipleToken {
+contract MockSovrynDexMultiToken {
     mapping(address => uint96) public tokenFees;
     uint16 public constant SOVRYN_DEX_COLD_PATH_PROXY_IDX = 3;
     uint8 public constant SOVRYN_DEX_CMD_COLLECT_TREASURY_CODE = 40;
@@ -27,7 +27,8 @@ contract MockSovrynDexMultipleToken {
             callpath == SOVRYN_DEX_COLD_PATH_PROXY_IDX &&
             cmdCode == SOVRYN_DEX_CMD_COLLECT_TREASURY_CODE
         ) {
-            IFeeSharingCollectorMultipleToken(treasury).transferTokens(token, tokenFees[token]);
+            IERC20(token).approve(treasury, tokenFees[token]);
+            IFeeSharingCollectorMultiToken(treasury).transferTokens(token, tokenFees[token]);
         }
     }
 
