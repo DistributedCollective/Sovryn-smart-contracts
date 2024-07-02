@@ -27,7 +27,7 @@ contract MockSovrynDexMultiToken {
             callpath == SOVRYN_DEX_COLD_PATH_PROXY_IDX &&
             cmdCode == SOVRYN_DEX_CMD_COLLECT_TREASURY_CODE
         ) {
-            for(uint256 i = 0; i < tokens.length; i++) {
+            for (uint256 i = 0; i < tokens.length; i++) {
                 address token = tokens[i];
                 IERC20(token).approve(treasury, tokenFees[token]);
                 IFeeSharingCollectorMultiToken(treasury).transferTokens(token, tokenFees[token]);
