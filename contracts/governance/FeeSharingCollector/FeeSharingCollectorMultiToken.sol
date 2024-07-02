@@ -217,12 +217,9 @@ contract FeeSharingCollectorMultiToken is
             );
         }
 
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            address token = _tokens[i];
-            /** Withdraw from dex */
-            bytes memory cmd = abi.encode(SOVRYN_DEX_CMD_COLLECT_TREASURY_CODE, token);
-            ISovrynDex(sovrynDexAddress).userCmd(SOVRYN_DEX_COLD_PATH_PROXY_IDX, cmd);
-        }
+        /** Withdraw from dex */
+        bytes memory cmd = abi.encode(SOVRYN_DEX_CMD_COLLECT_TREASURY_CODE, _tokens);
+        ISovrynDex(sovrynDexAddress).userCmd(SOVRYN_DEX_COLD_PATH_PROXY_IDX, cmd);
     }
 
     /**

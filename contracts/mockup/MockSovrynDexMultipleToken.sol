@@ -22,13 +22,16 @@ contract MockSovrynDexMultiToken {
 
     function userCmd(uint16 callpath, bytes calldata cmd) external payable {
         require(msg.sender == treasury, "Only Treasury");
-        (uint8 cmdCode, address token) = abi.decode(cmd, (uint8, address));
+        (uint8 cmdCode, address[] memory tokens) = abi.decode(cmd, (uint8, address[]));
         if (
             callpath == SOVRYN_DEX_COLD_PATH_PROXY_IDX &&
             cmdCode == SOVRYN_DEX_CMD_COLLECT_TREASURY_CODE
         ) {
-            IERC20(token).approve(treasury, tokenFees[token]);
-            IFeeSharingCollectorMultiToken(treasury).transferTokens(token, tokenFees[token]);
+            for(uint256 i = 0; i < tokens.length; i++) {
+                address token = tokens[i];
+                IERC20(token).approve(treasury, tokenFees[token]);
+                IFeeSharingCollectorMultiToken(treasury).transferTokens(token, tokenFees[token]);
+            }
         }
     }
 
