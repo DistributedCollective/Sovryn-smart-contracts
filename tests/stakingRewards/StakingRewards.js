@@ -80,7 +80,6 @@ contract("StakingRewards", (accounts) => {
         feeSharingCollectorProxy = await FeeSharingCollector.at(
             feeSharingCollectorProxyObj.address
         );
-        await staking.setFeeSharing(feeSharingCollectorProxy.address);
 
         //Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
