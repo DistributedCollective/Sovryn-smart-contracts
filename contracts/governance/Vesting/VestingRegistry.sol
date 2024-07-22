@@ -7,6 +7,10 @@ import "./IVesting.sol";
 import "./ITeamVesting.sol";
 import "./VestingRegistryStorage.sol";
 
+/**
+ * @dev This is the logic / implementation contract of vesting registry
+ * previously was named as VestingRegistryLogic
+ */
 contract VestingRegistry is VestingRegistryStorage {
     event SOVTransferred(address indexed receiver, uint256 amount);
     event VestingCreated(

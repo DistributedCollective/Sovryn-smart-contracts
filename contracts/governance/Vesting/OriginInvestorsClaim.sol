@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./VestingRegistry.sol";
 import "../Staking/interfaces/IStaking.sol";
+import "../../locked/ILockedSOV.sol";
 
 /**
  * @title Origin investors claim vested cSOV tokens.
@@ -193,8 +194,9 @@ contract OriginInvestorsClaim is Ownable {
      * are sent to vesting contract.
      * */
     function createVesting() internal {
-        uint256 cliff = vestingTerm.sub(now);
-        uint256 duration = cliff;
+        ILockedSOV lockedSOV = vestingRegistry.lockedSOV();
+        uint256 cliff = lockedSOV.cliff();
+        uint256 duration = lockedSOV.duration();
         uint256 amount = investorsAmountsList[msg.sender];
         address vestingContractAddress;
 

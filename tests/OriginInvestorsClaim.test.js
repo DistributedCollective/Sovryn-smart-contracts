@@ -69,13 +69,19 @@ contract("OriginInvestorsClaim", (accounts) => {
         return kickoffTS.add(new BN(offset));
     }
 
-    async function checkVestingContractCreatedAndStaked(txHash, receiver, cliff, amount) {
+    async function checkVestingContractCreatedAndStaked(
+        txHash,
+        receiver,
+        cliff,
+        duration,
+        amount
+    ) {
         const vestingAddress = await vestingRegistry.getVesting(receiver);
         await expectEvent.inTransaction(txHash, vestingRegistry, "VestingCreated", {
             tokenOwner: receiver,
             vesting: vestingAddress,
             cliff: cliff,
-            duration: cliff,
+            duration: duration,
             amount: amount,
         });
 
@@ -175,9 +181,9 @@ contract("OriginInvestorsClaim", (accounts) => {
         vestingLogic = await VestingLogic.new();
         vestingFactory = await VestingFactory.new(vestingLogic.address);
         vestingRegistry = await VestingRegistry.new();
-        vesting = await VestingRegistryProxy.new();
-        await vesting.setImplementation(vestingRegistry.address);
-        vestingRegistry = await VestingRegistry.at(vesting.address);
+        vestingRegistryProxy = await VestingRegistryProxy.new();
+        await vestingRegistryProxy.setImplementation(vestingRegistry.address);
+        vestingRegistry = await VestingRegistry.at(vestingRegistryProxy.address);
 
         let cliff = 1;
         let duration = 20;
@@ -192,7 +198,7 @@ contract("OriginInvestorsClaim", (accounts) => {
             feeSharingCollectorProxy.address,
             accounts[2],
             lockedSOV.address,
-            []
+            [vestingRegistry.address]
         );
 
         await vestingFactory.transferOwnership(vestingRegistry.address);
@@ -348,7 +354,7 @@ contract("OriginInvestorsClaim", (accounts) => {
             );
         });
 
-        it("should be able to sert investor initial amount list", async () => {
+        it("should create vesting contract within vesting period", async () => {
             await createOriginInvestorsClaimContract({
                 _initializeInvestorsList: true,
                 _fundContract: true,
@@ -364,6 +370,50 @@ contract("OriginInvestorsClaim", (accounts) => {
 
             const timeFromKickoff = getTimeFromKickoff(ONE_WEEK);
             await setNextBlockTimestamp(timeFromKickoff.toNumber());
+            tx = await investorsClaim.claim({ from: investor1 });
+
+            await expectEvent(tx.receipt, "ClaimVested", {
+                investor: investor1,
+                amount: amount1,
+            });
+
+            let txHash = tx.receipt.transactionHash;
+
+            await checkVestingContractCreatedAndStaked(
+                txHash,
+                investor1,
+                FOUR_WEEKS,
+                await lockedSOV.duration(),
+                amount1
+            );
+
+            expect(await investorsClaim.investorsAmountsList(investor1)).to.be.bignumber.equal(
+                new BN(0)
+            );
+
+            await setNextBlockTimestamp(getTimeFromKickoff(SIX_WEEKS).subn(1).toNumber());
+            tx = await investorsClaim.claim({ from: investor2 });
+
+            await expectEvent(tx.receipt, "ClaimVested", {
+                investor: investor2,
+                amount: amount2,
+            });
+
+            txHash = tx.receipt.transactionHash;
+
+            await checkVestingContractCreatedAndStaked(
+                txHash,
+                investor2,
+                FOUR_WEEKS,
+                await lockedSOV.duration(),
+                amount2
+            );
+
+            expect(await investorsClaim.investorsAmountsList(investor2)).to.be.bignumber.equal(
+                new BN(0)
+            );
+
+            // TODO: check vesting created and the user is in the list
         });
 
         // address1 claims - failure
@@ -392,12 +442,11 @@ contract("OriginInvestorsClaim", (accounts) => {
             expect(balance).to.be.bignumber.equal(amount3);
         });
 
-        it("investors should be able to claim", async () => {
-            const tx = await investorsClaim.claim({ from: investor1 });
-            await expectEvent(tx.receipt, "ClaimTransferred", {
-                investor: investor1,
-                amount: amount1,
-            });
+        it("investors with vesting contracts created cannot withdraw here", async () => {
+            await expectRevert(
+                investorsClaim.claim({ from: investor1 }),
+                "OriginInvestorsClaim::onlyWhitelisted: not whitelisted or already claimed"
+            );
         });
 
         it("can withdraw only once", async () => {

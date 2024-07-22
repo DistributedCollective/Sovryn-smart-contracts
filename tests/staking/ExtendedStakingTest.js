@@ -138,9 +138,9 @@ contract("Staking", (accounts) => {
 
         // Upgradable Vesting Registry
         vestingRegistry = await VestingRegistry.new();
-        vesting = await VestingRegistryProxy.new();
-        await vesting.setImplementation(vestingRegistry.address);
-        vesting = await VestingRegistry.at(vesting.address);
+        vestingRegistryProxy = await VestingRegistryProxy.new();
+        await vestingRegistryProxy.setImplementation(vestingRegistry.address);
+        vesting = await VestingRegistry.at(vestingRegistryProxy.address);
 
         await staking.setVestingRegistry(vesting.address);
 

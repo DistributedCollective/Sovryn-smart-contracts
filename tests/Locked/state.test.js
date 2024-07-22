@@ -183,9 +183,9 @@ contract("Locked SOV (State)", (accounts) => {
         vestingFactory = await VestingFactory.new(vestingLogic.address);
 
         vestingRegistry = await VestingRegistry.new();
-        vesting = await VestingRegistryProxy.new();
-        await vesting.setImplementation(vestingRegistry.address);
-        vestingRegistry = await VestingRegistry.at(vesting.address);
+        vestingRegistryProxy = await VestingRegistryProxy.new();
+        await vestingRegistryProxy.setImplementation(vestingRegistry.address);
+        vestingRegistry = await VestingRegistry.at(vestingRegistryProxy.address);
         await vestingFactory.transferOwnership(vestingRegistry.address);
 
         // Creating the instance of newLockedSOV Contract.
