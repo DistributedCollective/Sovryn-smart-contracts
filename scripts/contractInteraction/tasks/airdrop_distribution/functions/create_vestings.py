@@ -45,13 +45,13 @@ def createVestings(path, dryRun, multiplier):
             vestingCreationType = 3
         elif teamVesting[3] == 26: # 2 year vestings
             vestingCreationType = 1
-        elif teamVesting[3] == 39 or teamVesting[3] == 22: # 3 year vestings. if cliff < 6 use FourYearVesting
+        elif teamVesting[3] == 39 or teamVesting[3] == 22: # 3 year vestings. 
             vestingCreationType = 5 #type 4 is reserved for 4 year vestings - a separate contract
             print("Make sure 3 year vesting 2 contracts split is really expected!")
         elif teamVesting[3] == 32 or teamVesting[3] == 16: # 3 year vestings. ad-hoc to reissue a contract with 2 periods unlocked
             vestingCreationType = 5 #type 4 is reserved for 4 year vestings - a separate contract
             print("Make sure 3 year vesting 2 contracts split is really expected!")
-        elif teamVesting[3] == 37 or teamVesting[3] == 19: # Strategic investores round may 22
+        elif teamVesting[3] == 37 or teamVesting[3] == 19: # Strategic investors round may 22
             vestingCreationType = 6 #type 4 is reserved for 4 year vestings - a separate contract
             print("Make sure 3 year vesting 2 contracts split is really expected!")
         else:

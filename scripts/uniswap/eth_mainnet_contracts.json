@@ -9,6 +9,7 @@
     "ethMultisig": "0xdD0E3546EEBf3f1Cc4454a16b4DC5b677923bDC1",
     "UniswapV2Router02": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
     "eSOV": "0xbdab72602e9ad40fc6a6852caf43258113b8f7a5",
+    "eDLLR": "0xbdbb63f938c8961af31ead3deba5c96e6a323dd1",
     "UniswapV2eSovPool": "0x127cadea890813125ca083280ab921d2220558c2",
     "UniswapV3eSovPool": "0x3c4323f83d91b500b0f52cb19f7086813595f4c9"
 }

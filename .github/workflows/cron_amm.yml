@@ -60,7 +60,7 @@ jobs:
       #       ${{ runner.os }}-pip-
 
       - name: Install python dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt && brownie pm install OpenZeppelin/openzeppelin-contracts@4.9.5
 
       - name: Withdraw Fees
         run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron_amm.py --network=rsk-mainnet

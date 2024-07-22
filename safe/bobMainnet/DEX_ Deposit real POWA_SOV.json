@@ -1,0 +1,140 @@
+{
+    "version": "1.0",
+    "chainId": "60808",
+    "createdAt": 1715080529753,
+    "meta": {
+      "name": "Deposit real POWA/SOV",
+      "description": "",
+      "txBuilderVersion": "1.16.5",
+      "createdFromSafeAddress": "0x4ff3D7a244fE5094b38baFA49290E0CC5fCbc172",
+      "createdFromOwnerAddress": "",
+      "checksum": "0x98521da0f8b7ca8605a45b0040fffe55113e49acdd0ddd61b0ce6e1ebae18550"
+    },
+    "transactions": [
+      {
+        "to": "0xba20a5e63eeEFfFA6fD365E7e540628F8fC61474",
+        "value": "0",
+        "data": null,
+        "contractMethod": {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_spender",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_value",
+              "type": "uint256"
+            }
+          ],
+          "name": "approve",
+          "payable": false
+        },
+        "contractInputsValues": {
+          "_spender": "0xe5bc234A484A912A61Aa74501960cFc202e773dA",
+          "_value": "30000000000000000000000"
+        }
+      },
+      {
+        "to": "0xd0C2f08a873186db5cFB7b767dB62BEF9e495BFF",
+        "value": "0",
+        "data": null,
+        "contractMethod": {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_spender",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_value",
+              "type": "uint256"
+            }
+          ],
+          "name": "approve",
+          "payable": false
+        },
+        "contractInputsValues": {
+          "_spender": "0xe5bc234A484A912A61Aa74501960cFc202e773dA",
+          "_value": "20000000000000000000000000000"
+        }
+      },
+      {
+        "to": "0xe5bc234A484A912A61Aa74501960cFc202e773dA",
+        "value": "0",
+        "data": null,
+        "contractMethod": {
+          "inputs": [
+            {
+              "internalType": "uint16",
+              "name": "callpath",
+              "type": "uint16"
+            },
+            {
+              "internalType": "bytes",
+              "name": "cmd",
+              "type": "bytes"
+            }
+          ],
+          "name": "userCmd",
+          "payable": true
+        },
+        "contractInputsValues": {
+          "callpath": "128",
+          "cmd": "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000ba20a5e63eeefffa6fd365e7e540628f8fc61474000000000000000000000000d0c2f08a873186db5cfb7b767db62bef9e495bff00000000000000000000000000000000000000000000000000000000000001a40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003e2351c8eda9862119b3000000000000000000000000000000000000000000000000000000505273e840000000000000000000000000000000000000000000000000000000505cbc8f3c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000bfb1bf6dcc02baceb8c4c336457798c9b4ed1225"
+        }
+      },
+      {
+        "to": "0xba20a5e63eeEFfFA6fD365E7e540628F8fC61474",
+        "value": "0",
+        "data": null,
+        "contractMethod": {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_spender",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_value",
+              "type": "uint256"
+            }
+          ],
+          "name": "approve",
+          "payable": false
+        },
+        "contractInputsValues": {
+          "_spender": "0xe5bc234A484A912A61Aa74501960cFc202e773dA",
+          "_value": "0"
+        }
+      },
+      {
+        "to": "0xd0C2f08a873186db5cFB7b767dB62BEF9e495BFF",
+        "value": "0",
+        "data": null,
+        "contractMethod": {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_spender",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_value",
+              "type": "uint256"
+            }
+          ],
+          "name": "approve",
+          "payable": false
+        },
+        "contractInputsValues": {
+          "_spender": "0xe5bc234A484A912A61Aa74501960cFc202e773dA",
+          "_value": "0"
+        }
+      }
+    ]
+  }

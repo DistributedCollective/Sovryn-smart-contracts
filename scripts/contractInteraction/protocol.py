@@ -457,6 +457,7 @@ def withdrawFeesAMM():
         conf.contracts["ConverterRIF"],
         conf.contracts["ConverterMYNT"],
         conf.contracts["ConverterDLLR"],
+        conf.contracts["ConverterPOWA"],
     ])
 
 def setSupportedToken(tokenAddress):

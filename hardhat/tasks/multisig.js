@@ -105,7 +105,7 @@ task("multisig:execute-txs", "Execute multisig tx by one of tx signers")
     .addPositionalParam("ids", "Multisig transaction to sign", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .addOptionalParam("multisig", "Multisig wallet address", ethers.constants.AddressZero)
-    .setAction(async ({ id, signer, multisig }, hre) => {
+    .setAction(async ({ ids, signer, multisig }, hre) => {
         const { ethers } = hre;
         const signerAcc = ethers.utils.isAddress(signer)
             ? signer
@@ -125,7 +125,7 @@ task("multisig:execute-txs", "Execute multisig tx by one of tx signers")
             } else {
                 const txnRangeArray = txId.split("-", 2).map((num) => parseInt(num));
                 for (let id = txnRangeArray[0]; id <= txnRangeArray[1]; id++) {
-                    await multisigExecuteTx(txId, signerAcc, multisig);
+                    await multisigExecuteTx(id, signerAcc, multisig);
                 }
             }
         }

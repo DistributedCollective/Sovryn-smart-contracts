@@ -7,6 +7,7 @@
         "compiler-version": "warn",
         "no-global-import": "warn",
         "no-console": "warn",
-        "private-vars-leading-underscore": "warn"
+        "private-vars-leading-underscore": "warn",
+        "custom-errors": "off"
     }
 }

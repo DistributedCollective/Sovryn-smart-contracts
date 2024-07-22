@@ -38,7 +38,7 @@ const DELAY = TWO_WEEKS;
 
 contract("StakingRewards - First Period", (accounts) => {
     let root, a1, a2, a3, a4, a5;
-    let SOV, staking, blockMockUp;
+    let SOV, staking, blockMockUp, stakingRewards;
     let kickoffTS, inOneYear, inTwoYears, inThreeYears;
     let snapshot;
     before(async () => {
@@ -96,7 +96,22 @@ contract("StakingRewards - First Period", (accounts) => {
         stakingRewards = await StakingRewards.at(stakingRewards.address);
         stakingRewards.setAverageBlockTime(30);
         await stakingRewards.setBlockMockUpAddr(blockMockUp.address);
+
         await staking.setBlockMockUpAddr(blockMockUp.address);
+
+        await expectRevert(
+            stakingRewards.initialize(constants.ZERO_ADDRESS, staking.address),
+            "Invalid SOV Address."
+        );
+        await expectRevert(stakingRewards.initialize(a1, staking.address), "_SOV not a contract");
+        // Staking Rewards Contract is loaded
+        await SOV.transfer(stakingRewards.address, wei("1000000", "ether"));
+        // Initialize
+        await stakingRewards.initialize(SOV.address, staking.address); // Test - 24/08/2021
+        await increaseTimeAndBlocks(100800);
+        await staking.stake(wei("1000", "ether"), inOneYear, a1, a1, { from: a1 }); // Staking after program is initialised
+        await increaseTimeAndBlocks(100800);
+        await staking.stake(wei("50000", "ether"), inTwoYears, a2, a2, { from: a2 });
     });
 
     after(async () => {
@@ -105,27 +120,12 @@ contract("StakingRewards - First Period", (accounts) => {
     });
 
     describe("Flow - StakingRewards", () => {
-        it("should revert if SOV Address is invalid", async () => {
-            await expectRevert(
-                stakingRewards.initialize(constants.ZERO_ADDRESS, staking.address),
-                "Invalid SOV Address."
-            );
-            // Staking Rewards Contract is loaded
-            await SOV.transfer(stakingRewards.address, wei("1000000", "ether"));
-            // Initialize
-            await stakingRewards.initialize(SOV.address, staking.address); // Test - 24/08/2021
-            await increaseTimeAndBlocks(100800);
-            await staking.stake(wei("1000", "ether"), inOneYear, a1, a1, { from: a1 }); // Staking after program is initialised
-            await increaseTimeAndBlocks(100800);
-            await staking.stake(wei("50000", "ether"), inTwoYears, a2, a2, { from: a2 });
-        });
-
         it("should account for stakes made till start date of the program for a1", async () => {
             await increaseTimeAndBlocks(1209614);
 
             let fields = await stakingRewards.getStakerCurrentReward(true, 0, { from: a1 });
             let numOfIntervals = 1;
-            let fullTermAvg = avgWeight(26, 27, 9, 78);
+            let fullTermAvg = avgWeight(26, 27, 9, 78, 29.75);
             let expectedAmount = numOfIntervals * ((1000 * fullTermAvg) / 26);
             expect(new BN(Math.floor(expectedAmount * 10 ** 10))).to.be.bignumber.equal(
                 new BN(fields.amount).div(new BN(10).pow(new BN(8)))
@@ -244,7 +244,7 @@ contract("StakingRewards - First Period", (accounts) => {
         });
     });
 
-    function avgWeight(from, to, maxWeight, maxDuration) {
+    function avgWeight(from, to, maxWeight, maxDuration = 29.75) {
         let weight = 0;
         for (let i = from; i < to; i++) {
             weight += Math.floor(

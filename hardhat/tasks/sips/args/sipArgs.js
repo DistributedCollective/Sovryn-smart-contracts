@@ -59,6 +59,27 @@ const sampleGovernorAdminSIP = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
+const getArgsSip0078 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![30, 31, 31337].includes(chainId)) {
+        throw new Error(`sampleGovernorOwnerSIP cannot run on the network ID == ${chainId}`);
+    }
+    const args = {
+        targets: [(await hre.deployments.get("SOV")).address],
+        values: [0],
+        signatures: ["name()"],
+        data: ["0x"],
+        description:
+            "SIP-0078: Proposal for Sovryn to Launch on BOB Chain, Details: https://github.com/DistributedCollective/SIPS/blob/6de9960/SIP-0078.md, sha256: c49f1e4092e072e3b0f3da174dc3e5c839187a00389785421b57b039b4081a10",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
 const getArgsSip0049 = async (hre) => {
     const {
         ethers,
@@ -1026,6 +1047,57 @@ const getArgsSip0076 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0079 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const adoptionFundDeployment = await get("AdoptionFund");
+    const sovTokenDeployment = await get("SOV");
+    const multisigDeployment = await get("MultiSigWallet");
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [adoptionFundDeployment.address, sovTokenDeployment.address],
+        values: [0, 0],
+        signatures: ["withdrawTokensByUnlockedTokenOwner(uint256)", "transfer(address,uint256)"],
+        data: [
+            abiCoder.encode(["uint256"], [ethers.utils.parseEther("13800000")]),
+            abiCoder.encode(
+                ["address", "uint256"],
+                [multisigDeployment.address, ethers.utils.parseEther("13800000")]
+            ),
+        ],
+        description:
+            "SIP-0079: Transfer of SOV from Adoption Fund to Build on Bitcoin Mainnet, Details: https://github.com/DistributedCollective/SIPS/blob/dbb02e3/SIP-0079.md, sha256: a6b8125b25258ca75564df3ce3d470951e8aa8929edee0991bc2f43b3cba9764",
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSIP0077 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get, log },
+    } = hre;
+
+    const args = {
+        targets: [(await get("SOV")).address],
+        values: [0],
+        signatures: ["symbol()"],
+        data: ["0x"],
+        description:
+            "SIP-0077: Enhancement of Staking Rewards and Governance Mechanisms in Anticipation of BitcoinOS, Details: https://github.com/DistributedCollective/SIPS/blob/8cb4f72/SIP-0077.md, sha256: f7d785c2b5c6bd6135eeef07ea00a1111bc08b356f20c501ca470f2896f03ee1",
+    };
+    return { args, governor: "GovernorAdmin" };
+};
+
 const getArgsSov3686 = async (hre) => {
     const {
         ethers,
@@ -1075,8 +1147,11 @@ module.exports = {
     getArgsSip0046Part4,
     getArgsSipSov625,
     getArgsSip0073,
-    getArgsSov3686,
+    getArgsSIP0077,
     getArgsSip_SOV_3161,
     getArgsSip0074,
     getArgsSip0076,
+    getArgsSip0078,
+    getArgsSip0079,
+    getArgsSov3686,
 };

@@ -49,6 +49,12 @@ def getLMInfo():
     print('getPoolInfoList():\n', lm.getPoolInfoList())
     print('wrapper():\n', lm.wrapper())
 
+def getPoolInfo(poolToken):
+    lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
+    poolInfo = lm.getPoolInfo(poolToken)
+    print(poolInfo)
+    return poolInfo
+
 def setLockedSOV(newLockedSOV):
     lm = Contract.from_abi("LiquidityMining", address = conf.contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = conf.acct)
     data = lm.setLockedSOV.encode_input(newLockedSOV)

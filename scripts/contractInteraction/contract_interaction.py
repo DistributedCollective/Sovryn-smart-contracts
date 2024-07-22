@@ -29,9 +29,30 @@ def main():
     '''
 
     # call the function you want here
-
+    
     ##################################
+    #addWhitelistConverterFeeSharingCollectorProxy(conf.contracts['ConverterPOWA'])
 
+    #getExchequerBalances()
+    # transferOwnershipFromMultisig(conf.contracts['ConverterPOWA'], conf.contracts['TimelockOwner'])
+    # transferOwnershipFromMultisig(conf.contracts['POWAPoolOracle'], conf.contracts['TimelockAdmin'])
+    #printV1ConverterData('0x4531DD0f24D204c08b251084E12ce3D3e70Dd03e')
+    #printV1ConverterData('0xe81373285eb8cdee2e0108e98c5aa022948da9d2')
+    #getLMInfo()
+    #getPoolInfo(conf.contracts['LiquidityMiningConfigToken'])
+    #getPoolInfo(conf.contracts['(WR)BTC/POWA'])
+    # rbtcBalance = 1.2235*10**18
+    # powaBalance = 29071399974.7820*10**18 
+    # product = powaBalance * rbtcBalance
+    # amount = 1000 *1e18
+    # getTargetAmountFromAMM(sovBalance, 50000, rbtcBalance, 50000, amount)
+
+    #sendTokensFromMultisig(conf.contracts['POWA'], '0x8510fe153b9e6fabee709d75bf0a864cd27d7593', 683101993102460714498381053952)
+    #printV1ConverterData(conf.contracts['ConverterPOWA'])
+    #addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterPOWA'], [conf.contracts['WRBTC'], conf.contracts['POWA']], [1.2235*10**18,29071399974.7820*10**18], 1)
+
+    #addOwnerToAnyMultisig('0x37a706259F5201c03f6Cb556A960f30F86842D01','0x13Be55487D37FE3C66EE7305e1e9C1ac85de75Ae') # BF
+    #removeOwnerFromAnyMultisig('0x37a706259F5201c03f6Cb556A960f30F86842D01','0x9E0816a71B53ca67201a5088df960fE90910DE55') # BF
     #cancelTeamVestingsOfAccount('0x673b37941AB527e0EEe13C1Ff09298ef1911d7D6', 1703845695)
     #cancelTeamVestingsOfAccount('0x56B00ca0a274fB53449fBF2DB0253B809E364975')
 
@@ -79,8 +100,10 @@ def main():
 
     #withdrawRBTCFromWatcher(30e18, conf.contracts['multisig'])
     
-    #print("fastBTC.balance()", loadBiDiFastBTC().balance()/1e18)
-    #withdrawRBTCFromFastBTCBiDi(30e18, '0xD9ECB390a6a32ae651D5C614974c5570c50A5D89')
+    #print("fastBTCBiDi.balance()", loadBiDiFastBTC().balance()/1e18)
+    #print("getFastBTCOfframpAvailableBalance()", getFastBTCOfframpAvailableBalance()/1e18)
+    #withdrawRBTCFromFastBTCBiDi(25e18, '0xD9ECB390a6a32ae651D5C614974c5570c50A5D89')
+    #withdrawRBTCFromFastBTCBiDi(30e18, conf.contracts['multisig'])
     #readPauser(conf.contracts['iXUSD'])
     #getBalance(conf.contracts['DLLR'], '0xAc2D05a148Ab512EDEdc7280C00292ed33D31F1a') ## testnet
     #transferTokensFromWallet(conf.contracts['DLLR'], '0xae2a6e86d5f5d534fb372693b0ccda8d0ba9744d', 40e18)
@@ -97,7 +120,7 @@ def main():
     #sendTokensFromMultisig(conf.contracts['SOV'], '0x4f3948816785e30c3378eD3b9F2de034e3AE2E97', 250000e18)
     #sendFromMultisig(conf.contracts['GenericTokenSender'], 0.014e18)
     #sendFromMultisig('0xc0AAcbDB9Ce627A348B91CfDB67eC6b2FBC3dCbd', 0.1e18)
-    #sendFromMultisig(conf.contracts['FastBTC'], 15e18)
+    #sendFromMultisig(conf.contracts['FastBTC'], 6e18)
     #sendFromMultisig('0xD9ECB390a6a32ae651D5C614974c5570c50A5D89', 30e18)
     #sendFromMultisig('0x986c65fc1783a445ceccade74234dc8627d429d8', 0.1e18) #FastBTC on-ramp master node
 
@@ -196,7 +219,7 @@ def main():
     #setFeesController(conf.contracts['FeeSharingCollectorProxy1DayStaking'])
 
     #revokeConfirmationMS(txId)
-    #bal = getFastBTCOfframpAvailableBalance(conf.contracts['FastBTCBiDi'])
+    #bal = getFastBTCOfframpAvailableBalance()
     #print('FastBTC offramp balance:', bal/10**18)
     #print('Multisig balance:', getContractBTCBalance(conf.contracts['multisig'])/1e18)
 
@@ -207,6 +230,8 @@ def main():
     #minReturn = getReturnForFirstLiquidityProvisionOnV1([10e18, 250000e18])
     #addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterDLLR'], [conf.contracts['WRBTC'], conf.contracts['DLLR']], [0.1e18,2500e18] , 1)
     #acceptOwnershipWithMultisig(conf.contracts['ConverterDLLR'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterPOWA'])
+    #acceptOwnershipWithMultisig(conf.contracts['POWAPoolOracle'])
     #redeemFromAggregator(conf.contracts['XUSDAggregatorProxy'], conf.contracts['DLLR'], 5e18)
     #mintAggregatedToken(conf.contracts['DLLRAggregatorProxy'], conf.contracts['ZUSD'], 5e18) #can be still used if having free ZUSD
     #buyWRBTC(0.0002e18)

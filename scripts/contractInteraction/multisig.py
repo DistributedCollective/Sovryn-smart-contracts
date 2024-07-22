@@ -160,10 +160,20 @@ def addOwnerToMultisig(newOwner):
     data = multisig.addOwner.encode_input(newOwner)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['multisig'], data, conf.acct)
 
+def addOwnerToAnyMultisig(multisigAddress, newOwner):
+    multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=conf.acct)
+    data = multisig.addOwner.encode_input(newOwner)
+    sendWithMultisig(multisigAddress, multisigAddress, data, conf.acct)
+
 def removeOwnerFromMultisig(newOwner):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
     data = multisig.removeOwner.encode_input(newOwner)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['multisig'], data, conf.acct)
+
+def removeOwnerFromAnyMultisig(multisigAddress, removeOwner):
+    multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=conf.acct)
+    data = multisig.removeOwner.encode_input(removeOwner)
+    sendWithMultisig(multisigAddress, multisigAddress, data, conf.acct)
 
 def requiredConfirmations(multisigAddress):
     multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=conf.acct)

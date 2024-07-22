@@ -18,6 +18,7 @@ def main():
     # addTestETHPoolToken()
     # addETHPoolToken()
     updateLMConfig()
+    #addNewPoolTokenNoAllocation(contracts['(WR)BTC/POWA'])
     # addFISHtoken()
     # addBRZtoken()
 
@@ -79,6 +80,31 @@ def addETHPoolToken():
     txId = tx.events["Submission"]["transactionId"]
     print("txid",txId)
 
+def getPoolInfo(poolToken):
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+    poolInfo = lm.getPoolInfo(poolToken)
+    print(poolInfo)
+    return poolInfo
+
+def addNewPoolTokenNoAllocation(poolTokenAddress):
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
+
+    configTokenPoolInfo = getPoolInfo(contracts['LiquidityMiningConfigToken'])
+    configTokenPoints = configTokenPoolInfo[1]
+
+    print ("Adding new pool token:", poolTokenAddress, "with allocation point:", 1)
+    data = lm.add.encode_input(poolTokenAddress,1,False) # set 1 allocation point if no LM program for the token
+    tx = multisig.submitTransaction(lm.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
+    print("Updating config token: new allocation points:",configTokenPoints - 1)
+    data = lm.update.encode_input(contracts['LiquidityMiningConfigToken'],configTokenPoints - 1,True)
+    tx = multisig.submitTransaction(lm.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print("txid",txId)
+
 def addFISHtoken():
     multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
@@ -110,9 +136,9 @@ def updateLMConfig():
     # DLLR/rBTC - 7.5k SOV
     ALLOCATION_POINT_BTC_DLLR =  7500 # (WR)BTC/DLLR
 
-    ALLOCATION_POINT_DEFAULT = 1 # 14 tokens with 1 alloc point to account: (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF | (WR)BTC/MYNT | (WR)BTC/BNB | (WR)BTC/ETH | iXUSD | (WR)BTC/XUSD
+    ALLOCATION_POINT_DEFAULT = 1 # 14 tokens with 1 alloc point to account: (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF | (WR)BTC/MYNT | (WR)BTC/BNB | (WR)BTC/ETH | iXUSD | (WR)BTC/XUSD | (WR)BTC/POWA
     ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV \
-                                     - ALLOCATION_POINT_BTC_DLLR  - (ALLOCATION_POINT_DEFAULT * 14)
+                                     - ALLOCATION_POINT_BTC_DLLR  - (ALLOCATION_POINT_DEFAULT * 15)
 
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
 

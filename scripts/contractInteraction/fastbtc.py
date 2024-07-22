@@ -5,6 +5,11 @@ import scripts.contractInteraction.config as conf
 
 def withdrawRBTCFromFastBTCBiDi(amount, recipient):
     fastBTCOffRamp = loadBiDiFastBTC()
+    fastBTCOfframpAvailableBalance = getFastBTCOfframpAvailableBalance()
+    if amount > fastBTCOfframpAvailableBalance:
+        print('amount', amount, 'exceeds off-ramp contract balance', fastBTCOfframpAvailableBalance)
+        print('sending available off-ramp balance', fastBTCOfframpAvailableBalance)
+        amount = fastBTCOfframpAvailableBalance
     data = fastBTCOffRamp.withdrawRbtc.encode_input(amount, recipient)
     print(data)
     sendWithMultisig(conf.contracts['multisig'], fastBTCOffRamp.address, data, conf.acct)

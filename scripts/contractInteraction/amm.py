@@ -232,9 +232,9 @@ def addLiquidityV1FromMultisigUsingWrapper(wrapper, converter, tokens, amounts, 
     # approve
     token = Contract.from_abi("ERC20", address=tokens[1], abi=ERC20.abi, owner=conf.acct)
     data = token.approve.encode_input(wrapperProxy.address, amounts[1])
-    #print(data)
+    print(data)
 
-    #sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
+    sendWithMultisig(conf.contracts['multisig'], token.address, data, conf.acct)
     
     # addLiquidityToV1
     data = wrapperProxy.addLiquidityToV1.encode_input(converter, tokens, amounts, minReturn)
@@ -374,18 +374,75 @@ def getExchequerBalances():
     balanceAndFee = getReturnForV2PoolToken(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], usdtPool)
     usdtBalance = balanceAndFee[0]
 
+    bproPool = getBalance(conf.contracts['(WR)BTC/BPRO2'], conf.contracts['multisig'])
+    balanceAndFee = getReturnForV2PoolToken(conf.contracts['ConverterBPRO'], conf.contracts['(WR)BTC/BPRO2'], bproPool)
+    bproBalance = balanceAndFee[0]
+
+    # V1 pools
     bnbPool = getBalance(conf.contracts['(WR)BTC/BNB'], conf.contracts['multisig'])
     bnbPoolTotal = getTotalSupply(conf.contracts['(WR)BTC/BNB'])
     bnbBalanceInPool = getBalance(conf.contracts['BNBs'], conf.contracts['ConverterBNBs'])
     rbtcBalanceInPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterBNBs'])
+    
+    dllrPool = getBalance(conf.contracts['(WR)BTC/DLLR'], conf.contracts['multisig'])
+    dllrPoolTotal = getTotalSupply(conf.contracts['(WR)BTC/DLLR'])
+    dllrBalanceInPool = getBalance(conf.contracts['DLLR'], conf.contracts['ConverterDLLR'])
+    rbtcBalanceInDllrPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterDLLR'])
+    
+    xusdPool = getBalance(conf.contracts['(WR)BTC/XUSD'], conf.contracts['multisig'])
+    xusdPoolTotal = getTotalSupply(conf.contracts['(WR)BTC/XUSD'])
+    xusdBalanceInPool = getBalance(conf.contracts['XUSD'], conf.contracts['ConverterXUSD'])
+    rbtcBalanceInXusdPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterXUSD'])
+    
+    sovPool = getBalance(conf.contracts['(WR)BTC/SOV'], conf.contracts['multisig'])
+    sovPoolTotal = getTotalSupply(conf.contracts['(WR)BTC/SOV'])
+    sovBalanceInPool = getBalance(conf.contracts['SOV'], conf.contracts['ConverterSOV'])
+    rbtcBalanceInSovPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterSOV'])
+    
+    mocPool = getBalance(conf.contracts['(WR)BTC/MOC'], conf.contracts['multisig'])
+    mocPoolTotal = getTotalSupply(conf.contracts['(WR)BTC/MOC'])
+    mocBalanceInPool = getBalance(conf.contracts['MOC'], conf.contracts['ConverterMOC'])
+    rbtcBalanceInMocPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterMOC'])
+
+    powaPool = getBalance(conf.contracts['(WR)BTC/POWA'], conf.contracts['multisig'])
+    powaPoolTotal = getTotalSupply(conf.contracts['(WR)BTC/POWA'])
+    powaBalanceInPool = getBalance(conf.contracts['POWA'], conf.contracts['ConverterPOWA'])
+    rbtcBalanceInPowaPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterPOWA'])
 
     print('----------------')
     bnbBalance = bnbPool / bnbPoolTotal * bnbBalanceInPool
-    wrbtcBalance = bnbPool / bnbPoolTotal * rbtcBalanceInPool
+    wrbtcBnbBalance = bnbPool / bnbPoolTotal * rbtcBalanceInPool
+
+    dllrBalance = dllrPool / dllrPoolTotal * dllrBalanceInPool
+    wrbtcDllrBalance = dllrPool / dllrPoolTotal * rbtcBalanceInDllrPool
+
+    xusdBalance = xusdPool / xusdPoolTotal * xusdBalanceInPool
+    wrbtcXusdBalance = xusdPool / xusdPoolTotal * rbtcBalanceInXusdPool
+
+    sovBalance = sovPool / sovPoolTotal * sovBalanceInPool
+    wrbtcSovBalance = sovPool / sovPoolTotal * rbtcBalanceInSovPool
+
+    mocBalance = mocPool / mocPoolTotal * mocBalanceInPool
+    wrbtcMocBalance = mocPool / mocPoolTotal * rbtcBalanceInMocPool
+
+    powaBalance = powaPool / powaPoolTotal * powaBalanceInPool
+    wrbtcPowaBalance = powaPool / powaPoolTotal * rbtcBalanceInPowaPool
 
     print("USDT balance: ", usdtBalance/1e18)
+    print("BPRO balance: ", bproBalance/1e18)
     print("BNB balance: ", bnbBalance/1e18)
-    print("WRBTC balance: ", wrbtcBalance/1e18)
+    print("WRBTC balance in BNB pool: ", wrbtcBnbBalance/1e18)
+    print("DLLR balance: ", dllrBalance/1e18)
+    print("WRBTC balance in DLLR pool: ", wrbtcDllrBalance/1e18)
+    print("XUSD balance: ", xusdBalance/1e18)
+    print("WRBTC balance in XUSD pool: ", wrbtcXusdBalance/1e18)
+    print("SOV balance: ", sovBalance/1e18)
+    print("WRBTC balance in SOV pool: ", wrbtcSovBalance/1e18)
+    print("MOC balance: ", mocBalance/1e18)
+    print("WRBTC balance in MOC pool: ", wrbtcMocBalance/1e18)
+    print("POWA balance: ", powaBalance/1e18)
+    print("WRBTC balance in POWA pool: ", wrbtcPowaBalance/1e18)
+
 
 def getConversionFee(converterAddress):
     converter = getV1Converter(converterAddress)

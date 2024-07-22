@@ -28,6 +28,12 @@ And then install all the python packages using pip3:
 pip3 install -r requirements.txt
 ```
 
+Install Openzeppelin contracts 4.9.5
+
+```
+brownie pm install OpenZeppelin/openzeppelin-contracts@4.9.5
+```
+
 To run prettier:
 
 ```
