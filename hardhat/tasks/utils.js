@@ -1,5 +1,5 @@
-const fs = require('fs');
-const csv = require('csv-parser');
+const fs = require("fs");
+const csv = require("csv-parser");
 const { task } = require("hardhat/config");
 const Logs = require("node-logs");
 /*const {
@@ -12,17 +12,23 @@ const Logs = require("node-logs");
 } = require("../../deployment/helpers/helpers");*/
 
 const currencies = {
-    eth: "0x",
-    usdc: "0x",
-    usdt: "0x",
-    dai: "0x",
-    wbtc: "0x",
-    weth: "0x",
-    sov: "0x",
-    xusd: "0x",
-    powa: "0x",
-    sat: "0x",
-}
+    eth: "0x0000000000000000000000000000000000000000",
+    usdc: "0xe75d0fb2c24a55ca1e3f96781a2bcc7bdba058f0",
+    usdt: "0x05d032ac25d322df992303dca074ee7392c117b9",
+    dai: "0x6c851f501a3f24e29a8e39a29591cddf09369080",
+    wbtc: "0x03c7054bcb39f7b2e5b2c7acb37583e32d70cfa3",
+    weth: "0x4200000000000000000000000000000000000006", // or... may be: 0x148964f7E4f96d347528467BFe8Bff36a953ba60 (ERC20) or 0x140c1A044D7d6650b73D4045b5ea1D2AD4666c2B (ERC-721)
+    sov: "0xba20a5e63eeEFfFA6fD365E7e540628F8fC61474",
+    // xusd: "0x", // not found in BOB mainnet
+    powa: "0xd0c2f08a873186db5cfb7b767db62bef9e495bff",
+    sat: "0x78fea795cbfcc5ffd6fb5b845a4f53d25c283bdb",
+    tbtc: "0xbba2ef945d523c4e2608c9e1214c2cc64d4fc2e2",
+    reth: "0xb5686c4f60904ec2bda6277d6fe1f7caa8d1b41a",
+    alex: "0xa669e059fdcbdfc532a2edd658eb2922799eedb8",
+    dllr: "0xf3107eec1e6f067552c035fd87199e1a5169cb20",
+    wsteth: "0x85008ae6198bc91ac0735cb5497cf125ddaac528",
+    // stone: "0x",
+};
 
 const logger = new Logs().showInConsole(true);
 
@@ -206,15 +212,15 @@ async function parseFileNATIVE(fileName) {
     let totalAmount = 0;
     let receivers = [];
     let amounts = [];
-    let errorMsg = '';
+    let errorMsg = "";
 
     return new Promise((resolve, reject) => {
         fs.createReadStream(fileName)
             .pipe(csv())
-            .on('data', (row) => {
+            .on("data", (row) => {
                 const tokenOwner = row[0].trim();
                 let rawAmount = row[1].trim();
-                let amountStr = rawAmount.replace(',', '').replace('.', '').replace(' ', '');
+                let amountStr = rawAmount.replace(",", "").replace(".", "").replace(" ", "");
 
                 if (parseInt(amountStr, 10) !== parseInt(rawAmount, 10)) {
                     errorMsg += `\n${tokenOwner} amount: ${rawAmount}`;
@@ -230,21 +236,21 @@ async function parseFileNATIVE(fileName) {
                 console.log(`'${tokenOwner}',`);
                 console.log(amount);
             })
-            .on('end', () => {
+            .on("end", () => {
                 console.log(receivers);
                 console.log(amounts);
 
-                if (errorMsg !== '') {
+                if (errorMsg !== "") {
                     reject(new Error(`Formatting error: ${errorMsg}`));
                 } else {
                     resolve({
                         totalAmount,
                         receivers,
-                        amounts
+                        amounts,
                     });
                 }
             })
-            .on('error', (err) => {
+            .on("error", (err) => {
                 reject(err);
             });
     });
@@ -256,21 +262,21 @@ async function parseFile(fileName, multiplier) {
     let totalAmount = 0;
     let receivers = [];
     let amounts = [];
-    let errorMsg = '';
+    let errorMsg = "";
 
     return new Promise((resolve, reject) => {
         fs.createReadStream(fileName)
             .pipe(csv())
-            .on('data', (row) => {
+            .on("data", (row) => {
                 const tokenOwner = row[0].trim();
                 const amountStr = row[1].trim();
-                const decimals = amountStr.split('.');
+                const decimals = amountStr.split(".");
 
                 if (decimals.length !== 2 || decimals[1].length !== 2) {
                     errorMsg += `\n${tokenOwner} amount: ${amountStr}`;
                 }
 
-                let amount = amountStr.replace(',', '').replace('.', '');
+                let amount = amountStr.replace(",", "").replace(".", "");
                 amount = parseInt(amount, 10) * multiplier;
                 totalAmount += amount;
 
@@ -281,21 +287,21 @@ async function parseFile(fileName, multiplier) {
                 console.log(`'${tokenOwner}',`);
                 console.log(amount);
             })
-            .on('end', () => {
+            .on("end", () => {
                 console.log(receivers);
                 console.log(amounts);
 
-                if (errorMsg !== '') {
+                if (errorMsg !== "") {
                     reject(new Error(`Formatting error: ${errorMsg}`));
                 } else {
                     resolve({
                         totalAmount,
                         receivers,
-                        amounts
+                        amounts,
                     });
                 }
             })
-            .on('error', (err) => {
+            .on("error", (err) => {
                 reject(err);
             });
     });
@@ -304,15 +310,17 @@ async function parseFile(fileName, multiplier) {
 // a task to use the GenericTokenSender.transferTokensUsingList function to distribute tokens
 // way of use: $ hh sendDirect --currency=USDC --path=./scripts/externalData/dist.csv --dryrun=false --multiplier=10*16 --network bobMainnet
 task("sendDirect", "Direct token sender script")
-    .addParam("currency", "The currency type (e.g., NATIVE, USDC, USDT, DAI, WBTC, WETH, SOV, XUSD, POWA, SAT)")
+    .addParam(
+        "currency",
+        "The currency type (e.g., NATIVE, USDC, USDT, DAI, WBTC, WETH, SOV, XUSD, POWA, SAT)"
+    )
     .addParam("path", "The file path for addresses")
     .addParam("dryrun", "Whether to do a SIMULATION or not")
-    .addParam("multiplier", "The multiplier for token amounts", 10*16, types.int)
+    .addParam("multiplier", "The multiplier for token amounts", 10 * 16, types.int)
     .setAction(async ({ currency, path, dryrun, multiplier }, hre) => {
-
         const { ethers } = hre;
 
-        const acct = (await ethers.getSigners())[0] // Use the first signer from ethers
+        const acct = (await ethers.getSigners())[0]; // Use the first signer from ethers
 
         const GenericTokenSender = await ethers.getContract("GenericTokenSender");
 
@@ -320,18 +328,23 @@ task("sendDirect", "Direct token sender script")
         let totalAmount = 0;
 
         // Data parsing
-        const data = currency === "NATIVE" ? await parseFileNATIVE(path) : await parseFile(path, multiplier);
+        const data =
+            currency === "NATIVE"
+                ? await parseFileNATIVE(path)
+                : await parseFile(path, multiplier);
         totalAmount += data.totalAmount;
 
         // Check if the currency exists in the currencies object
         if (currency !== "NATIVE" && !currencies.hasOwnProperty(currency)) {
-            throw new Error(`Currency "${currency}" not found in the supported currencies list. Please check for typos or add the currency.`);
+            throw new Error(
+                `Currency "${currency}" not found in the supported currencies list. Please check for typos or add the currency.`
+            );
         }
 
         // Dry run check
         if (!dryrun) {
             const tx = await GenericTokenSender.transferTokensUsingList(
-                currency !== "NATIVE" ? currencies[currency] : ethers.constants.AddressZero,
+                currency !== "NATIVE" ? currencies[currency.toLowerCase()] : ethers.constants.AddressZero,
                 data.receivers,
                 data.amounts
             );
@@ -340,18 +353,22 @@ task("sendDirect", "Direct token sender script")
             console.log(tx.hash);
             console.log("Transaction gas used:");
             console.log(tx.gasUsed);
-            fs.writeFileSync(`./scripts/externalData/${currency}_distribution_tx_receipt.json`, JSON.stringify(receiptTx, null, 2), {flags: 'w'});
+            fs.writeFileSync(
+                `./scripts/externalData/${currency}_distribution_tx_receipt.json`,
+                JSON.stringify(receiptTx, null, 2),
+                { flags: "w" }
+            );
         } else {
             // MISSING SCRIPT TO SIMULATE TRANSACTION
         }
 
         console.log("=======================================");
         console.log(`${currency} amount:`);
-        console.log(totalAmount / 10**18);
+        console.log(totalAmount / 10 ** 18);
 
         const balanceAfter = await conf.acct.getBalance();
-        console.log("Deployment cost:");
-        console.log((balanceBefore - balanceAfter) / 10**18);
+        console.log("Execution cost:");
+        console.log((balanceBefore - balanceAfter) / 10 ** 18);
 });
 
 // way of use: $ hh simulate-tx --tx-to <address> --tx-value <value> --tx-data <data> --tx-from <address> --tx-gas-limit <gas-limit> --tx-gas-price <gas-price> --tx-nonce <nonce> --url <url>
@@ -402,7 +419,7 @@ task("simulate-tx", "Simulates a transaction on forked network")
         };
         signer = await getImpersonatedSigner(taskArgs.txFrom);
         const balance = await ethers.provider.getBalance(signer.address);
-        if(balance.eq(0)) {
+        if (balance.eq(0)) {
             console.log(`Setting balance for address ${signer.address}...`);
             await setBalance(signer.address, ethers.utils.parseEther("1.0"));
         }
@@ -412,9 +429,8 @@ task("simulate-tx", "Simulates a transaction on forked network")
         console.log("Simulated Transaction hash: ", txResponse.hash);
         fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), { flag: "w+" });
         fs.writeFileSync("./txReceipt.json", JSON.stringify(txReceipt, null, 2), { flag: "w+" });
-    }
-);
-// way of use: $ hh send-tx --network <network-according-hh-config> --tx-to <address> --tx-value <value> --tx-data <data> --tx-from <address> --tx-gas-limit <gas-limit> --tx-gas-price <gas-price> --tx-nonce <nonce> --simulate 
+});
+// way of use: $ hh send-tx --network <network-according-hh-config> --tx-to <address> --tx-value <value> --tx-data <data> --tx-from <address> --tx-gas-limit <gas-limit> --tx-gas-price <gas-price> --tx-nonce <nonce> --simulate
 task("send-tx", "Creates and sends a raw transaction")
     .addParam("txTo", "address: The address to send the transaction to")
     .addParam("txValue", "number: The value to send in the transaction")
@@ -428,7 +444,9 @@ task("send-tx", "Creates and sends a raw transaction")
         const { ethers } = hre;
         if (!taskArgs.txGasPrice) {
             taskArgs.txGasPrice = await ethers.provider.getGasPrice();
-            console.log(`Current gas price: ${ethers.utils.formatUnits(taskArgs.txGasPrice, "gwei")} gwei`);
+            console.log(
+                `Current gas price: ${ethers.utils.formatUnits(taskArgs.txGasPrice, "gwei")} gwei`
+            );
         }
         const tx = {
             to: taskArgs.txTo.toLowerCase(),
@@ -441,75 +459,86 @@ task("send-tx", "Creates and sends a raw transaction")
         let signer;
         if (taskArgs.txFrom) {
             const accounts = await ethers.getSigners();
-            signer = accounts.find(account => account.address.toLowerCase() === taskArgs.txFrom.toLowerCase());
+            signer = accounts.find(
+                (account) => account.address.toLowerCase() === taskArgs.txFrom.toLowerCase()
+            );
             if (!signer || taskArgs.simulate) {
                 console.log(`simulating on forked network...`);
-                const command = 
-                    "hh simulate-tx " + 
+                const command =
+                    "hh simulate-tx " +
                     `--tx-to ${tx.to} ` +
                     `--tx-value ${tx.value} ` +
-                    `--tx-from ${taskArgs.txFrom} ` + 
+                    `--tx-from ${taskArgs.txFrom} ` +
                     `--url ${network.config.url} ` +
                     `--tx-data ${tx.data} ` +
-                    `${taskArgs.txGasLimit ? `--tx-gas-limit ${tx.gasLimit}` : ""} ` + 
+                    `${taskArgs.txGasLimit ? `--tx-gas-limit ${tx.gasLimit}` : ""} ` +
                     `${taskArgs.txGasPrice ? `--tx-gas-price ${tx.gasPrice}` : ""} ` +
-                    `${taskArgs.txNonce ? `--tx-nonce ${tx.nonce}`: ""}` 
-                ; 
+                    `${taskArgs.txNonce ? `--tx-nonce ${tx.nonce}` : ""}`;
                 console.log(`Running command: ${command}`);
                 try {
                     // Run the child task synchronously
-                    const output = execSync(command, { stdio: 'inherit' });
+                    const output = execSync(command, { stdio: "inherit" });
                     console.log(`Child task completed successfully.`);
                 } catch (error) {
                     console.error(`Error executing child task: ${error.message}`);
                 }
                 return;
             } else if (signer && !simulate) {
-                console.log(`WARINIG: REAL TRANSACTION;\n Address ${taskArgs.txFrom} found in wallet, sending transaction...`);
+                console.log(
+                    `WARINIG: REAL TRANSACTION;\n Address ${taskArgs.txFrom} found in wallet, sending transaction...`
+                );
                 const signedTx = await ethers.provider.getSigner().signTransaction(tx);
                 const txResponse = await ethers.provider.sendTransaction(signedTx);
                 const txReceipt = await txResponse.wait();
                 console.log("Transaction hash: ", txResponse.hash);
-                fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), { flag: "w+" });
-                fs.writeFileSync("./txReceipt.json", JSON.stringify(txReceipt, null, 2), { flag: "w+" });
+                fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), {
+                    flag: "w+",
+                });
+                fs.writeFileSync("./txReceipt.json", JSON.stringify(txReceipt, null, 2), {
+                    flag: "w+",
+                });
                 return;
             }
         } else {
             signer = await ethers.provider.getSigner();
             if (taskArgs.simulate) {
                 console.log("simulating on forked network...");
-                const command = 
-                    "hh simulate-tx " + 
+                const command =
+                    "hh simulate-tx " +
                     `--tx-to ${tx.to} ` +
                     `--tx-value ${tx.value} ` +
-                    `--tx-from ${taskArgs.txFrom} ` + 
+                    `--tx-from ${taskArgs.txFrom} ` +
                     `--url ${network.config.url} ` +
                     `--tx-data ${tx.data} ` +
-                    `${taskArgs.txGasLimit ? `--tx-gas-limit ${tx.gasLimit}` : ""} ` + 
+                    `${taskArgs.txGasLimit ? `--tx-gas-limit ${tx.gasLimit}` : ""} ` +
                     `${taskArgs.txGasPrice ? `--tx-gas-price ${tx.gasPrice}` : ""} ` +
-                    `${taskArgs.txNonce ? `--tx-nonce ${tx.nonce}`: ""}` 
-                ; 
+                    `${taskArgs.txNonce ? `--tx-nonce ${tx.nonce}` : ""}`;
                 try {
                     // Run the child task synchronously
-                    const output = execSync(command, { stdio: 'inherit' });
+                    const output = execSync(command, { stdio: "inherit" });
                     console.log(`Child task completed successfully.`);
                 } catch (error) {
                     console.error(`Error executing child task: ${error.message}`);
                 }
-            return;
+                return;
             } else {
-                console.log("WARINIG: REAL TRANSACTION;\n No address provided, sending transaction from account[0]...");
+                console.log(
+                    "WARINIG: REAL TRANSACTION;\n No address provided, sending transaction from account[0]..."
+                );
                 const signedTx = await signer.signTransaction(tx);
                 const txResponse = await ethers.provider.sendTransaction(signedTx);
                 const txReceipt = await txResponse.wait();
                 console.log("Transaction hash: ", txResponse.hash);
-                fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), { flag: "w+" });
-                fs.writeFileSync("./txReceipt.json", JSON.stringify(txReceipt, null, 2), { flag: "w+" });
+                fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), {
+                    flag: "w+",
+                });
+                fs.writeFileSync("./txReceipt.json", JSON.stringify(txReceipt, null, 2), {
+                    flag: "w+",
+                });
                 return;
             }
         }
-    }
-);
+});
 // way of use: $ hh data-parser --abi <abi> --params <params>
 task("data-parser", "Encode data into abi format")
     .addParam("abi", "must follow the following syntax: 'function functionName(type1,type2,...)'")
@@ -519,7 +548,7 @@ task("data-parser", "Encode data into abi format")
         const iface = new ethers.utils.Interface([taskArgs.abi]);
         const regex = /function\s+(\w+)\s*\(.*\)/;
         const match = taskArgs.abi.match(regex);
-        let fName = '';
+        let fName = "";
         // convert params to array
         const params = taskArgs.params.split(",");
         // JSON parse each parameter from params
@@ -541,8 +570,7 @@ task("data-parser", "Encode data into abi format")
         } else {
             console.log("Invalid ABI syntax");
         }
-    }
-);
+});
 // way of use: $ hh unit-parser --unit <unit> --decimals <decimals>
 task("unit-parser", "Parse unit from string")
     .addParam("unit", "The unit to parse")
@@ -553,8 +581,7 @@ task("unit-parser", "Parse unit from string")
         const decimals = taskArgs.decimals;
         const unitParsed = ethers.utils.parseUnits(unit, decimals);
         console.log("Unit parsed: ", unitParsed.toString());
-    }
-);
+});
 // way of use: $ hh zero-padder --arg <arg> --bytes <number-of-bytes>
 task("zero-padder", "Pad an argument with zeros")
     .addParam("arg", "The argument to pad")
@@ -565,5 +592,4 @@ task("zero-padder", "Pad an argument with zeros")
         const bytesLength = taskArgs.bytes;
         const paddedArg = ethers.utils.hexZeroPad(arg, bytesLength);
         console.log("Padded argument: ", paddedArg);
-    }
-);
+});
