@@ -265,10 +265,10 @@ module.exports = {
         },
 
         bobTestnet: {
-            url: "https://testnet.rpc.gobob.xyz/",
-            chainId: 111,
+            url: "https://bob-sepolia.rpc.gobob.xyz/",
+            chainId: 808813,
             accounts: testnetAccounts,
-            //gasPrice: 50000000,
+            gasPrice: 50000000,
             tags: ["testnet"],
         },
 
