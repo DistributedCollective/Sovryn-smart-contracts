@@ -146,7 +146,7 @@ task(
                 logger.error(`at the track comparison ${U} and coincidence index ${N}`);
             }
         }
-});
+    });
 
 task("utils:replace-tx", "Replace tx in mempool")
     .addParam("hash", "Replaced transaction hash", undefined, types.string)
@@ -204,7 +204,7 @@ task("utils:replace-tx", "Replace tx in mempool")
                 logger.error(`Transaction ${hash} is already mined, co cannot be replaced`);
             }
         }
-);
+    );
 
 // functions to parse distribution .csv files on NATIVE coin
 async function parseFileNATIVE(fileName) {
@@ -344,7 +344,9 @@ task("sendDirect", "Direct token sender script")
         // Dry run check
         if (!dryrun) {
             const tx = await GenericTokenSender.transferTokensUsingList(
-                currency !== "NATIVE" ? currencies[currency.toLowerCase()] : ethers.constants.AddressZero,
+                currency !== "NATIVE"
+                    ? currencies[currency.toLowerCase()]
+                    : ethers.constants.AddressZero,
                 data.receivers,
                 data.amounts
             );
@@ -369,7 +371,7 @@ task("sendDirect", "Direct token sender script")
         const balanceAfter = await conf.acct.getBalance();
         console.log("Execution cost:");
         console.log((balanceBefore - balanceAfter) / 10 ** 18);
-});
+    });
 
 // way of use: $ hh simulate-tx --tx-to <address> --tx-value <value> --tx-data <data> --tx-from <address> --tx-gas-limit <gas-limit> --tx-gas-price <gas-price> --tx-nonce <nonce> --url <url>
 task("simulate-tx", "Simulates a transaction on forked network")
@@ -429,7 +431,7 @@ task("simulate-tx", "Simulates a transaction on forked network")
         console.log("Simulated Transaction hash: ", txResponse.hash);
         fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), { flag: "w+" });
         fs.writeFileSync("./txReceipt.json", JSON.stringify(txReceipt, null, 2), { flag: "w+" });
-});
+    });
 // way of use: $ hh send-tx --network <network-according-hh-config> --tx-to <address> --tx-value <value> --tx-data <data> --tx-from <address> --tx-gas-limit <gas-limit> --tx-gas-price <gas-price> --tx-nonce <nonce> --simulate
 task("send-tx", "Creates and sends a raw transaction")
     .addParam("txTo", "address: The address to send the transaction to")
@@ -538,7 +540,7 @@ task("send-tx", "Creates and sends a raw transaction")
                 return;
             }
         }
-});
+    });
 // way of use: $ hh data-parser --abi <abi> --params <params>
 task("data-parser", "Encode data into abi format")
     .addParam("abi", "must follow the following syntax: 'function functionName(type1,type2,...)'")
@@ -570,7 +572,7 @@ task("data-parser", "Encode data into abi format")
         } else {
             console.log("Invalid ABI syntax");
         }
-});
+    });
 // way of use: $ hh unit-parser --unit <unit> --decimals <decimals>
 task("unit-parser", "Parse unit from string")
     .addParam("unit", "The unit to parse")
@@ -581,7 +583,7 @@ task("unit-parser", "Parse unit from string")
         const decimals = taskArgs.decimals;
         const unitParsed = ethers.utils.parseUnits(unit, decimals);
         console.log("Unit parsed: ", unitParsed.toString());
-});
+    });
 // way of use: $ hh zero-padder --arg <arg> --bytes <number-of-bytes>
 task("zero-padder", "Pad an argument with zeros")
     .addParam("arg", "The argument to pad")
@@ -592,4 +594,4 @@ task("zero-padder", "Pad an argument with zeros")
         const bytesLength = taskArgs.bytes;
         const paddedArg = ethers.utils.hexZeroPad(arg, bytesLength);
         console.log("Padded argument: ", paddedArg);
-});
+    });
