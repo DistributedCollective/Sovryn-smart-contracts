@@ -39,7 +39,8 @@ const LockedSOV = artifacts.require("LockedSOV");
 const FeeSharingCollector = artifacts.require("FeeSharingCollectorMultiToken");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 const FeeSharingCollectorMockup = artifacts.require("FeeSharingCollectorMultiTokenMockup");
-const MockSovrynDex = artifacts.require("MockSovrynDexMultiToken");
+const MockSovrynLBFactory = artifacts.require("MockSovrynLBFactory");
+const MockSovrynLBPair = artifacts.require("MockSovrynLBPair");
 const WeightedStakingModuleMockup = artifacts.require("WeightedStakingModuleMockup");
 const IWeightedStakingModuleMockup = artifacts.require("IWeightedStakingModuleMockup");
 
@@ -103,7 +104,7 @@ contract("FeeSharingCollectorMultiToken:", (accounts) => {
     let loanWrappedNativeToken;
     let tradingFeePercent;
     let mockPrice;
-    let sovrynDex;
+    let sovrynLBFactory;
 
     before(async () => {
         [root, account1, account2, account3, account4, ...accounts] = accounts;
@@ -289,9 +290,9 @@ contract("FeeSharingCollectorMultiToken:", (accounts) => {
         const maxDisagreement = new BN(wei("5", "ether"));
         await sovryn.setMaxDisagreement(maxDisagreement);
 
-        sovrynDex = await MockSovrynDex.new();
+        sovrynLBFactory = await MockSovrynLBFactory.new();
 
-        await feeSharingCollector.initialize(WrappedNativeToken.address, sovrynDex.address);
+        await feeSharingCollector.initialize(WrappedNativeToken.address, sovrynLBFactory.address);
 
         return sovryn;
     }
@@ -331,7 +332,7 @@ contract("FeeSharingCollectorMultiToken:", (accounts) => {
                 await TestToken.new("IWrappedNativeToken", "IWNT", 18, 100)
             ).address;
             await expectRevert(
-                feeSharingCollector.initialize(wrappedNativeTokenAddress, sovrynDex.address),
+                feeSharingCollector.initialize(wrappedNativeTokenAddress, sovrynLBFactory.address),
                 "function can only be called once"
             );
         });
@@ -899,17 +900,7 @@ contract("FeeSharingCollectorMultiToken:", (accounts) => {
         });
     });
 
-    describe("withdraw Dex Fees", async () => {
-        it("should not be able to withdraw fees if invalid token address", async () => {
-            /// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
-
-            await expectRevert(
-                feeSharingCollector.withdrawFeesFromDex([accounts[0]]),
-                "FeeSharingCollector::withdrawFeesFromDex: token is not a contract"
-            );
-        });
-
+    describe("withdraw LB Dex Fees", async () => {
         it("Should be able to withdraw Dex Fees", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
@@ -918,61 +909,96 @@ contract("FeeSharingCollectorMultiToken:", (accounts) => {
             let totalStake = 1000;
             await stake(totalStake, root);
 
-            await expectRevert(
-                feeSharingCollector.withdrawFeesFromDex([SUSD.address]),
-                "Only Treasury"
+            const lbPair1Amount = new BN(wei("1", "ether"));
+            const lbPair2Amount = new BN(wei("2", "ether"));
+
+            const lbPair1 = await MockSovrynLBPair.new(
+                sovrynLBFactory.address,
+                SUSD.address,
+                WrappedNativeToken.address,
+                lbPair1Amount,
+                lbPair1Amount
+            );
+            const lbPair2 = await MockSovrynLBPair.new(
+                sovrynLBFactory.address,
+                SUSD.address,
+                SOVToken.address,
+                lbPair2Amount,
+                lbPair2Amount
             );
 
             //mock data
-            const feeAmount = new BN(wei("1", "ether"));
-            await sovrynDex.setTokenDexFee(SUSD.address, feeAmount.toString());
-            await sovrynDex.setTreasury(feeSharingCollector.address);
-            await sovrynDex.setWrbtcToken(WrappedNativeToken.address);
+            const totalFeeAmount = lbPair1Amount.add(lbPair2Amount);
+            await SUSD.mint(lbPair1.address, wei("2000", "ether"));
+            await WrappedNativeToken.mint(lbPair1.address, wei("2000", "ether"));
+            await SUSD.mint(lbPair2.address, wei("2000", "ether"));
+            await SOVToken.mint(lbPair2.address, wei("2000", "ether"));
 
-            await SUSD.mint(sovrynDex.address, wei("2000", "ether"));
+            await sovrynLBFactory.addLbPairs(2, [lbPair1.address, lbPair2.address]);
 
-            let previousProtocolBalance = await SUSD.balanceOf(sovrynDex.address);
-            let previousFeeSharingCollectorBalance = await SUSD.balanceOf(
+            await expectRevert(feeSharingCollector.withdrawFeesFromLBDex(), "Only feeRecipient");
+
+            await sovrynLBFactory.setFeeRecipient(feeSharingCollector.address);
+
+            let previousLBPair1BalanceSUSD = await SUSD.balanceOf(lbPair1.address);
+            let previousLBPair2BalanceSUSD = await SUSD.balanceOf(lbPair2.address);
+            let previousFeeSharingCollectorBalanceSUSD = await SUSD.balanceOf(
                 feeSharingCollector.address
             );
-            tx = await feeSharingCollector.withdrawFeesFromDex([SUSD.address]);
 
-            let latestProtocolBalance = await SUSD.balanceOf(sovrynDex.address);
-            let latestFeeSharingCollectorBalance = await SUSD.balanceOf(
+            let previousLBPair1BalanceWrbtc = await WrappedNativeToken.balanceOf(lbPair1.address);
+            let previousFeeSharingCollectorBalanceWrbtc = await WrappedNativeToken.balanceOf(
                 feeSharingCollector.address
             );
 
-            expect(previousProtocolBalance.toString()).to.equal(
-                latestProtocolBalance.add(feeAmount).toString()
+            let previousLBPair2BalanceSov = await SOVToken.balanceOf(lbPair2.address);
+            let previousFeeSharingCollectorBalanceSov = await SOVToken.balanceOf(
+                feeSharingCollector.address
             );
 
-            expect(previousFeeSharingCollectorBalance.toString()).to.equal("0");
-            expect(latestFeeSharingCollectorBalance.toString()).to.equal(feeAmount.toString());
-        });
+            tx = await feeSharingCollector.withdrawFeesFromLBDex();
 
-        it("Should not be able to withdraw with 0 AMM Fees", async () => {
-            /// @dev This test requires redeploying the protocol
-            await protocolDeploymentFixture();
-
-            //stake - getPriorTotalVotingPower
-            let totalStake = 1000;
-            await stake(totalStake, root);
-
-            await expectRevert(
-                feeSharingCollector.withdrawFeesFromDex([SUSD.address]),
-                "Only Treasury"
+            let latestLBPair1BalanceSUSD = await SUSD.balanceOf(lbPair1.address);
+            let latestLBPair2BalanceSUSD = await SUSD.balanceOf(lbPair2.address);
+            let latestFeeSharingCollectorBalanceSUSD = await SUSD.balanceOf(
+                feeSharingCollector.address
             );
 
-            //mock data
-            const feeAmount = new BN(wei("0", "ether"));
-            await sovrynDex.setTokenDexFee(SUSD.address, feeAmount.toString());
-            await sovrynDex.setTreasury(feeSharingCollector.address);
-            await sovrynDex.setWrbtcToken(WrappedNativeToken.address);
+            let latestLBPair1BalanceWrbtc = await WrappedNativeToken.balanceOf(lbPair1.address);
+            let latestFeeSharingCollectorBalanceWrbtc = await WrappedNativeToken.balanceOf(
+                feeSharingCollector.address
+            );
 
-            await SUSD.mint(sovrynDex.address, wei("2", "ether"));
-            await expectRevert(
-                feeSharingCollector.withdrawFeesFromDex([SUSD.address]),
-                "FeeSharingCollectorMultiToken::transferTokens: invalid amount"
+            let latestLBPair2BalanceSov = await SOVToken.balanceOf(lbPair2.address);
+            let latestFeeSharingCollectorBalanceSov = await SOVToken.balanceOf(
+                feeSharingCollector.address
+            );
+
+            expect(previousLBPair1BalanceSUSD.toString()).to.equal(
+                latestLBPair1BalanceSUSD.add(lbPair1Amount).toString()
+            );
+            expect(previousLBPair2BalanceSUSD.toString()).to.equal(
+                latestLBPair2BalanceSUSD.add(lbPair2Amount).toString()
+            );
+            expect(previousFeeSharingCollectorBalanceSUSD.toString()).to.equal("0");
+            expect(latestFeeSharingCollectorBalanceSUSD.toString()).to.equal(
+                totalFeeAmount.toString()
+            );
+
+            expect(previousLBPair1BalanceWrbtc.toString()).to.equal(
+                latestLBPair1BalanceWrbtc.add(lbPair1Amount).toString()
+            );
+            expect(previousFeeSharingCollectorBalanceWrbtc.toString()).to.equal("0");
+            expect(latestFeeSharingCollectorBalanceWrbtc.toString()).to.equal(
+                lbPair1Amount.toString()
+            );
+
+            expect(previousLBPair2BalanceSov.toString()).to.equal(
+                latestLBPair2BalanceSov.add(lbPair2Amount).toString()
+            );
+            expect(previousFeeSharingCollectorBalanceSov.toString()).to.equal("0");
+            expect(latestFeeSharingCollectorBalanceSov.toString()).to.equal(
+                lbPair2Amount.toString()
             );
         });
     });
@@ -1205,7 +1231,10 @@ contract("FeeSharingCollectorMultiToken:", (accounts) => {
             );
             await sovryn.setFeesController(feeSharingCollector.address);
 
-            await feeSharingCollector.initialize(WrappedNativeToken.address, sovrynDex.address);
+            await feeSharingCollector.initialize(
+                WrappedNativeToken.address,
+                sovrynLBFactory.address
+            );
 
             // stake - getPriorTotalVotingPower
             let rootStake = 700;
@@ -2000,7 +2029,10 @@ contract("FeeSharingCollectorMultiToken:", (accounts) => {
             );
             await sovryn.setFeesController(feeSharingCollector.address);
 
-            await feeSharingCollector.initialize(WrappedNativeToken.address, sovrynDex.address);
+            await feeSharingCollector.initialize(
+                WrappedNativeToken.address,
+                sovrynLBFactory.address
+            );
 
             // stake - getPriorTotalVotingPower
             let rootStake = 700;

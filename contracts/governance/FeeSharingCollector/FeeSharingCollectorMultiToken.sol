@@ -8,7 +8,8 @@ import "../../openzeppelin/Ownable.sol";
 import "../IFeeSharingCollectorMultiToken.sol";
 import "../../openzeppelin/Address.sol";
 import "./FeeSharingCollectorStorage.sol";
-import "../../interfaces/ISovrynDex.sol";
+import "../../interfaces/ISovrynLBFactoryDex.sol";
+import "../../interfaces/ISovrynLBPairDex.sol";
 
 /**
  * @title The FeeSharingCollectorMultiToken contract.
@@ -86,10 +87,10 @@ contract FeeSharingCollectorMultiToken is
 
     event SetProtocolAddress(address indexed sender, address _protocolAddress);
 
-    event SetSovrynDexAddress(
+    event SetSovrynLBDexFactoryAddress(
         address indexed sender,
-        address indexed oldSovrynDexAddress,
-        address indexed newSovrynDexAddress
+        address indexed oldSovrynLBDexFactoryAddress,
+        address indexed newSovrynLBDexFactoryAddress
     );
 
     /* Functions */
@@ -106,7 +107,7 @@ contract FeeSharingCollectorMultiToken is
         address dexAddress
     ) external onlyOwner oneTimeExecution(this.initialize.selector) {
         setWrappedNativeToken(wrappedNativeToken);
-        setSovrynDexAddress(dexAddress);
+        setSovrynLBDexFactoryAddress(dexAddress);
     }
 
     /**
@@ -145,10 +146,17 @@ contract FeeSharingCollectorMultiToken is
         emit SetProtocolAddress(msg.sender, _protocolAddress);
     }
 
-    function setSovrynDexAddress(address _sovrynDexAddress) public onlyOwner {
-        require(Address.isContract(_sovrynDexAddress), "_sovrynDexAddress not a contract");
-        emit SetSovrynDexAddress(msg.sender, sovrynDexAddress, _sovrynDexAddress);
-        sovrynDexAddress = _sovrynDexAddress;
+    function setSovrynLBDexFactoryAddress(address _sovrynLBDexFactoryAddress) public onlyOwner {
+        require(
+            Address.isContract(_sovrynLBDexFactoryAddress),
+            "_sovrynLBDexFactoryAddress not a contract"
+        );
+        emit SetSovrynLBDexFactoryAddress(
+            msg.sender,
+            sovrynLBDexFactoryAddress,
+            _sovrynLBDexFactoryAddress
+        );
+        sovrynLBDexFactoryAddress = _sovrynLBDexFactoryAddress;
     }
 
     /**
@@ -203,23 +211,44 @@ contract FeeSharingCollectorMultiToken is
     }
 
     /**
-     * @notice Withdraw fees from Sovryn DEX
-     * protocolFee from the conversion
+     * @notice Withdraw fees from sovryn-lb-dex
+     *
      * the fees will be converted in wrappedNativeToken form, and then will be transferred to wrappedNativeToken loan pool
      *
-     * @param _tokens array addresses of the tokens
      * */
-    function withdrawFeesFromDex(address[] memory _tokens) public {
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            require(
-                Address.isContract(_tokens[i]),
-                "FeeSharingCollector::withdrawFeesFromDex: token is not a contract"
+    function withdrawFeesFromLBDex() public {
+        /** Get all of the pairs that has > 0 protocol fee */
+        uint256 totalPairs = ISovrynLBFactoryDex(sovrynLBDexFactoryAddress).getNumberOfLBPairs();
+        for (uint256 i = 0; i < totalPairs; i++) {
+            address lbPair = ISovrynLBFactoryDex(sovrynLBDexFactoryAddress).getLBPairAtIndex(i);
+            (uint128 feeX, uint128 feeY) = ISovrynLBPairDex(lbPair).getProtocolFees();
+
+            /** Skip if lbPair contains 0 protocol fees */
+            if (feeX == 0 && feeY == 0) continue;
+
+            /** Withdraw fee */
+            ISovrynLBPairDex(lbPair).collectProtocolFees();
+
+            /** Get tokenX & tokenY */
+            address tokenX = ISovrynLBPairDex(lbPair).getTokenX();
+            address tokenY = ISovrynLBPairDex(lbPair).getTokenY();
+
+            /** Add checkpoint for the token */
+            _addCheckpoint(
+                tokenX,
+                safe96(
+                    uint256(feeX),
+                    "FeeSharingProxy::withdrawFeesFromLBDex: tokenFeeX amount exceeds 96 bits"
+                )
+            );
+            _addCheckpoint(
+                tokenY,
+                safe96(
+                    uint256(feeY),
+                    "FeeSharingProxy::withdrawFeesFromLBDex: tokenFeeY amount exceeds 96 bits"
+                )
             );
         }
-
-        /** Withdraw from dex */
-        bytes memory cmd = abi.encode(SOVRYN_DEX_CMD_COLLECT_TREASURY_CODE, _tokens);
-        ISovrynDex(sovrynDexAddress).userCmd(SOVRYN_DEX_COLD_PATH_PROXY_IDX, cmd);
     }
 
     /**

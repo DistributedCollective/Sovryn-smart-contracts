@@ -88,9 +88,9 @@ contract FeeSharingCollectorStorage is Ownable {
     address public loanWrappedNativeTokenAddress;
 
     /**
-     * @dev sovrynDex
+     * @dev sovryn lb dex factory address
      */
-    address public sovrynDexAddress;
+    address public sovrynLBDexFactoryAddress;
 
     /**
      * @dev Prevents a contract from calling itself, directly or indirectly.
