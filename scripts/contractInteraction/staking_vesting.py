@@ -25,7 +25,7 @@ def vestingRegistryAddAdmin(admin, vestingRegistryAddress):
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
 def vestingRegistryProxyAddAdmin(admin):
-    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     vestingRegistryAddAdmin(admin, vestingRegistry.address)    
 
 def vestingRegistryRemoveAdmin(admin, vestingRegistryAddress):
@@ -35,7 +35,7 @@ def vestingRegistryRemoveAdmin(admin, vestingRegistryAddress):
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
 def vestingRegistryProxyRemoveAdmin(admin):
-    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     vestingRegistryRemoveAdmin(admin, vestingRegistry.address)    
 
 def isVestingRegistryAdmin(admin, vestingRegistryAddress):
@@ -64,7 +64,7 @@ def readTeamVestingContractForAddress(userAddress):
 
 def cancelTeamVestingsOfAccount(userAddress, startFrom):
     staking = Contract.from_abi("Staking", address=conf.contracts['Staking'], abi=interface.IStaking.abi, owner=conf.acct)
-    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     vestings = vestingRegistry.getVestingsOf(userAddress)
     for vesting in vestings:
         vestingContract = Contract.from_abi("VestingLogic", address=vesting[2], abi=VestingLogic.abi, owner=conf.acct)
@@ -82,13 +82,13 @@ def readLMVestingContractForAddress(userAddress):
 # vesting type 0 -> team vesting
 # vesting type 1 -> owner vesting
 def readAllVestingContractsForAddress(userAddress):
-    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     addresses = vestingRegistry.getVestingsOf(userAddress)
     print(addresses)
 
 def addVestingAdmin(admin):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
-    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     data = vestingRegistry.addAdmin.encode_input(admin)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
@@ -100,12 +100,12 @@ def setMaxVestingWithdrawIterations(num):
 
 def removeVestingAdmin(admin):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
-    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     data = vestingRegistry.removeAdmin.encode_input(admin)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
 def isVestingAdmin(admin):
-    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     print(vestingRegistry.admins(admin))
 
 def readStakingKickOff():
@@ -366,14 +366,14 @@ def upgradeVestingRegistry():
     print("Upgrading vesting registry")
 
     # Deploy the staking logic contracts
-    vestingRegistryLogic = conf.acct.deploy(VestingRegistryLogic)
-    print("New vesting registry logic address:", vestingRegistryLogic.address)
+    vestingRegistry = conf.acct.deploy(VestingRegistry)
+    print("New vesting registry logic address:", vestingRegistry.address)
     
     # Get the proxy contract instance
     vestingRegistryProxy = Contract.from_abi("VestingRegistryProxy", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryProxy.abi, owner=conf.acct)
 
     # Register logic in Proxy
-    data = vestingRegistryProxy.setImplementation.encode_input(vestingRegistryLogic.address)
+    data = vestingRegistryProxy.setImplementation.encode_input(vestingRegistry.address)
     sendWithMultisig(conf.contracts['multisig'], conf.contracts['VestingRegistryProxy'], data, conf.acct)
 
 # Set Vesting Registry Address for Staking
@@ -608,12 +608,12 @@ def registerVestingToVestingCreationAndTypes(addresses, vestingCreationAndTypeDe
     if len(addresses) != len(vestingCreationAndTypeDetails):
         raise Exception("umatched length of array between addresses & vestingCreationAndTypeDetails")
 
-    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     data = vestingRegistry.registerVestingToVestingCreationAndTypes.encode_input(addresses, vestingCreationAndTypeDetails)
     sendWithMultisig(conf.contracts['multisig'], vestingRegistry.address, data, conf.acct)
 
 def getVestingCreationAndTypes(vestingAddress):
-    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=conf.acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=conf.contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=conf.acct)
     print(vestingRegistry.vestingCreationAndTypes(vestingAddress))
 
 def readTokenOwner(vestingAddress):
