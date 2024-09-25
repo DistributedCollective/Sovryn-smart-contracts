@@ -111,6 +111,17 @@ task("sips:create", "Create SIP to Sovryn Governance")
         const signerAcc = await ethers.getSigner(signerAddress);
         const governor = await ethers.getContract(governorName, signerAcc);
 
+        /** Check the timelock's admin */
+        const timelockAddress = await governor.timelock();
+        const timelock = await ethers.getContractAt("Timelock", timelockAddress, signerAcc);
+        const timelockAdmin = await timelock.admin();
+
+        if (timelockAdmin.toLowerCase() !== governor.address.toLowerCase()) {
+            throw new Error(
+                `[Authentication]::Mismatch governor address (${governor.address.toLowerCase()}) with the timelock's admin (${timelockAdmin.toLowerCase()})`
+            );
+        }
+
         logger.info("=== Creating SIP ===");
         logger.info(`Governor Address:    ${governorDeployment.address}`);
         logger.info(`Targets:             ${sipArgs.targets}`);
