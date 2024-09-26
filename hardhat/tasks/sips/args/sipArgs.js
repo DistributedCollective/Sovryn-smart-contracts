@@ -1064,8 +1064,14 @@ const getArgsSip0079 = async (hre) => {
         process.exit(1);
     }
 
+    const adoptionFund = await ethers.getContract("AdoptionFund");
+    const sovToken = await ethers.getContract("SOV");
+    const adoptionFundOwner = await adoptionFund.lockedTokenOwner();
+    const sovTokenOwner = await sovToken.owner();
+
     const args = {
         targets: [adoptionFundDeployment.address, sovTokenDeployment.address],
+        targetOwnerValidationAddresses: [adoptionFundOwner, sovTokenOwner],
         values: [0, 0],
         signatures: ["withdrawTokensByUnlockedTokenOwner(uint256)", "transfer(address,uint256)"],
         data: [

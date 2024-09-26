@@ -122,6 +122,28 @@ task("sips:create", "Create SIP to Sovryn Governance")
             );
         }
 
+        for (const [index, target] of sipArgs.targets.entries()) {
+            if (
+                !sipArgs.targetOwnerValidationAddresses ||
+                (sipArgs.targetOwnerValidationAddresses &&
+                    typeof sipArgs.targetOwnerValidationAddresses[index]) === "undefined"
+            ) {
+                logger.warning(
+                    `WARNING!!! target contract owner at index ${index} with address ${target} is not validated!!!`
+                );
+                continue;
+            }
+
+            if (
+                sipArgs.targetOwnerValidationAddresses[index].toLowerCase() !==
+                timelockAddress.toLowerCase()
+            ) {
+                throw new Error(
+                    `[Authentication]::Mismatch owner of target contract (${target.toLowerCase()}) at index (${index}), target contract owner (${sipArgs.targetOwnerValidationAddresses[index].toLowerCase()}, timelock (${timelockAddress.toLowerCase()}))  `
+                );
+            }
+        }
+
         logger.info("=== Creating SIP ===");
         logger.info(`Governor Address:    ${governorDeployment.address}`);
         logger.info(`Targets:             ${sipArgs.targets}`);
