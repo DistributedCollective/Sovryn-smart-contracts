@@ -126,7 +126,7 @@ contract FeeSharingCollector is
 
     /**
      * @dev initialize function for fee sharing collector proxy
-     * @param wrappedNativeToken wrappedNativeToken token address
+     * @param wrappedNativeToken wrappedNativeToken address
      * @param loanWrappedNativeToken address of loan token wrappedNativeToken (IWrappedNativeToken)
      */
     function initialize(
@@ -142,11 +142,11 @@ contract FeeSharingCollector is
     }
 
     /**
-     * @notice Set the wrappedNativeToken token address of fee sharing collector.
+     * @notice Set the wrappedNativeToken address of fee sharing collector.
      *
      * only owner can perform this action.
      *
-     * @param newWrappedNativeTokenAddress The new address of the wrappedNativeToken token.
+     * @param newWrappedNativeTokenAddress The new address of the wrappedNativeToken.
      * */
     function setWrappedNativeToken(address newWrappedNativeTokenAddress) public onlyOwner {
         require(
@@ -178,11 +178,11 @@ contract FeeSharingCollector is
     }
 
     /**
-     * @notice Set the loan wrappedNativeToken token address of fee sharing collector.
+     * @notice Set the loan wrappedNativeToken address of fee sharing collector.
      *
      * only owner can perform this action.
      *
-     * @param newLoanWrappedNativeTokenAddress The new address of the loan wrappedNativeToken token.
+     * @param newLoanWrappedNativeTokenAddress The new address of the loan wrappedNativeToken.
      * */
     function setLoanWrappedNativeToken(address newLoanWrappedNativeTokenAddress) public onlyOwner {
         require(
@@ -226,7 +226,7 @@ contract FeeSharingCollector is
             /// @notice Update unprocessed amount of tokens
             uint96 amount96 = safe96(
                 wrappedNativeTokenAmountWithdrawn,
-                "FeeSharingCollector::withdrawFees: wrappedNativeToken token amount exceeds 96 bits"
+                "FeeSharingCollector::withdrawFees: wrappedNativeToken amount exceeds 96 bits"
             );
 
             _addCheckpoint(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
@@ -267,13 +267,13 @@ contract FeeSharingCollector is
                 /// @notice Update unprocessed amount of tokens
                 uint96 amount96 = safe96(
                     wrappedNativeTokenAmountWithdrawn,
-                    "FeeSharingCollector::withdrawFeesAMM: wrappedNativeToken token amount exceeds 96 bits"
+                    "FeeSharingCollector::withdrawFeesAMM: wrappedNativeToken amount exceeds 96 bits"
                 );
 
                 totalPoolTokenAmount = add96(
                     totalPoolTokenAmount,
                     amount96,
-                    "FeeSharingCollector::withdrawFeesAMM: total wrappedNativeToken token amount exceeds 96 bits"
+                    "FeeSharingCollector::withdrawFeesAMM: total wrappedNativeToken amount exceeds 96 bits"
                 );
 
                 emit FeeAMMWithdrawn(
@@ -577,12 +577,12 @@ contract FeeSharingCollector is
 
     /**
      * @dev Function to wrap:
-     * 1. regular withdrawal for both nativeToken & non native token token
+     * 1. regular withdrawal for both native & non native token
      * 2. skipped checkpoints withdrawal for both native token & non native token
      *
-     * @param _nonNativeTokensRegularWithdraw array of non native token token address with no skipped checkpoints that will be withdrawn
-     * @param _nativeTokensRegularWithdraw array of nativeToken token address with no skipped checkpoints that will be withdrawn
-     * @param _tokensWithSkippedCheckpoints array of nativeToken & non native token TokenWithSkippedCheckpointsWithdraw struct, which has skipped checkpoints that will be withdrawn
+     * @param _nonNativeTokensRegularWithdraw array of non native token address with no skipped checkpoints that will be withdrawn
+     * @param _nativeTokensRegularWithdraw array of native token address with no skipped checkpoints that will be withdrawn
+     * @param _tokensWithSkippedCheckpoints array of native token & non native token TokenWithSkippedCheckpointsWithdraw struct, which has skipped checkpoints that will be withdrawn
      *
      */
     function claimAllCollectedFees(
@@ -607,7 +607,7 @@ contract FeeSharingCollector is
             );
         }
 
-        /** Process normal non native token token withdrawal */
+        /** Process normal non native token withdrawal */
         for (uint256 i = 0; i < _nonNativeTokensRegularWithdraw.length; i++) {
             if (_maxCheckpoints == 0) break;
             uint256 endTokenCheckpoint;
