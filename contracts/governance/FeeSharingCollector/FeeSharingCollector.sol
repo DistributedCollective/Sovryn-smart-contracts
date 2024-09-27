@@ -397,7 +397,7 @@ contract FeeSharingCollector is
             // We will change, so that feeSharingCollector will directly burn then loanWrappedNativeToken (IWrappedNativeToken) to nativeToken and send to the user --- by call burnToBTC function which is burning to a native token - to be renamed to burnedToNativeToken
             ILoanWrappedNativeToken(_token).burnToBTC(_receiver, amount, false);
         } else {
-            // Previously it directly send the loanWrappedNativeToken to the user
+            // Previously it directly send the loanToken to the user
             require(
                 IERC20(_token).transfer(_receiver, amount),
                 "FeeSharingCollector::withdraw: withdrawal failed"

@@ -417,7 +417,7 @@ contract FeeSharingCollectorMultiToken is
         processedCheckpoints[user][_token] = end;
 
         if (loanWrappedNativeToken == _token) {
-            // We will change, so that FeeSharingCollectorMultiToken will directly burn then loan wrapped native token to native token and send to the user --- by call burnToBTC function
+            // We will change, so that feeSharingCollector will directly burn then loanWrappedNativeToken (IWrappedNativeToken) to nativeToken and send to the user --- by call burnToBTC function which is burning to a native token - to be renamed to burnedToNativeToken
             ILoanWrappedNativeToken(_token).burnToBTC(_receiver, amount, false);
         } else {
             require(
