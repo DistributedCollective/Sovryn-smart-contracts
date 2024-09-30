@@ -106,6 +106,7 @@ task("sips:create", "Create SIP to Sovryn Governance")
             deployments: { get },
         } = hre;
 
+        const sovDeployment = await get("SOV");
         const governorDeployment = await get(governorName);
         const signerAddress = (await hre.getNamedAccounts())[signer];
         const signerAcc = await ethers.getSigner(signerAddress);
@@ -124,14 +125,17 @@ task("sips:create", "Create SIP to Sovryn Governance")
 
         for (const [index, target] of sipArgs.targets.entries()) {
             if (
-                !sipArgs.targetOwnerValidationAddresses ||
-                (sipArgs.targetOwnerValidationAddresses &&
-                    typeof sipArgs.targetOwnerValidationAddresses[index]) === "undefined"
+                sipArgs.targets.length == 1 &&
+                sipArgs.targets[0].toLowerCase() === sovDeployment.address.toLowerCase() &&
+                ["name()", "symbol()"].includes(sipArgs.signatures[0])
             ) {
-                logger.warning(
-                    `WARNING!!! target contract owner at index ${index} with address ${target} is not validated!!!`
-                );
                 continue;
+            }
+
+            if (sipArgs.targetOwnerValidationAddresses.length != sipArgs.targets.length) {
+                throw new Error(
+                    `Mismatch length between targets (${sipArgs.targets.length}) and targetOwnerValidationAddresses (${sipArgs.targetOwnerValidationAddresses.length})`
+                );
             }
 
             if (
