@@ -29,7 +29,7 @@ const FeeSharingCollector = artifacts.require("FeeSharingCollector");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
 // Upgradable Vesting Registry
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistryLogic = artifacts.require("VestingRegistry");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 const BlockMockUp = artifacts.require("BlockMockUp");
 const IStakingModuleBlockMockup = artifacts.require("IStakingModuleBlockMockup");
@@ -91,9 +91,9 @@ contract("StakingRewardsOs", (accounts) => {
 
         //Upgradable Vesting Registry
         vestingRegistryLogic = await VestingRegistryLogic.new();
-        vesting = await VestingRegistryProxy.new();
-        await vesting.setImplementation(vestingRegistryLogic.address);
-        vesting = await VestingRegistryLogic.at(vesting.address);
+        vestingRegistryProxy = await VestingRegistryProxy.new();
+        await vestingRegistryProxy.setImplementation(vestingRegistryLogic.address);
+        vesting = await VestingRegistryLogic.at(vestingRegistryProxy.address);
 
         await staking.setVestingRegistry(vesting.address);
 

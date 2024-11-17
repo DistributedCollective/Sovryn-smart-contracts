@@ -27,10 +27,10 @@ def main():
     # load deployed contracts addresses
     contracts = json.load(configFile)
     
-    vestingRegistryLogic = Contract.from_abi(
-        "VestingRegistryLogic",
+    vestingRegistry = Contract.from_abi(
+        "VestingRegistry",
         address=contracts['VestingRegistryProxy'],
-        abi=VestingRegistryLogic.abi,
+        abi=VestingRegistry.abi,
         owner=acct)
 
     # open the file in universal line ending mode 
@@ -51,13 +51,13 @@ def main():
     print(tokenOwners)
     print(vestingCreationTypes)
 
-    vestingRegistryLogic.addDeployedVestings(tokenOwners, vestingCreationTypes)
-    # data = vestingRegistryLogic.addDeployedVestings.encode_input(tokenOwners, vestingCreationTypes)
+    vestingRegistry.addDeployedVestings(tokenOwners, vestingCreationTypes)
+    # data = vestingRegistry.addDeployedVestings.encode_input(tokenOwners, vestingCreationTypes)
     # print(data)
 
     # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     # print(multisig)
-    # tx = multisig.submitTransaction(vestingRegistryLogic.address, 0, data, {'allow_revert':True})
+    # tx = multisig.submitTransaction(vestingRegistry.address, 0, data, {'allow_revert':True})
     # print(tx.revert_msg)
     # txId = tx.events["Submission"]["transactionId"]
     # print(txId)

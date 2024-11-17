@@ -70,7 +70,7 @@ const FeeSharingCollector = artifacts.require("FeeSharingCollector");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
 // Upgradable Vesting Registry
-const VestingRegistryLogic = artifacts.require("VestingRegistryLogic");
+const VestingRegistry = artifacts.require("VestingRegistry");
 const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
 
 const StakingStakeModule = artifacts.require("StakingStakeModule");
@@ -137,10 +137,10 @@ contract("Staking", (accounts) => {
         await staking.setMaxVestingWithdrawIterations(maxWithdrawIterations);
 
         // Upgradable Vesting Registry
-        vestingRegistryLogic = await VestingRegistryLogic.new();
-        vesting = await VestingRegistryProxy.new();
-        await vesting.setImplementation(vestingRegistryLogic.address);
-        vesting = await VestingRegistryLogic.at(vesting.address);
+        vestingRegistry = await VestingRegistry.new();
+        vestingRegistryProxy = await VestingRegistryProxy.new();
+        await vestingRegistryProxy.setImplementation(vestingRegistry.address);
+        vesting = await VestingRegistry.at(vestingRegistryProxy.address);
 
         await staking.setVestingRegistry(vesting.address);
 

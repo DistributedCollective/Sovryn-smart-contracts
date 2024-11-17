@@ -77,7 +77,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         uint256 startFrom
     ) external onlyAuthorized whenNotFrozen {
         /// require the caller only for team vesting contract.
-        require(vestingRegistryLogic.isTeamVesting(vesting), "Only team vesting allowed");
+        require(vestingRegistry.isTeamVesting(vesting), "Only team vesting allowed");
 
         _cancelTeamVesting(vesting, receiver, startFrom);
     }
@@ -340,7 +340,7 @@ contract StakingWithdrawModule is IFunctionsList, StakingShared, CheckpointsShar
         address vesting,
         address receiver
     ) public onlyAuthorized whenNotFrozen {
-        require(vestingRegistryLogic.isTeamVesting(vesting), "Only team vesting allowed");
+        require(vestingRegistry.isTeamVesting(vesting), "Only team vesting allowed");
 
         ITeamVesting teamVesting = ITeamVesting(vesting);
         uint256 teamVestingStartDate = teamVesting.startDate();

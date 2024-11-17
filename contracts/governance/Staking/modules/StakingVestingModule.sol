@@ -20,7 +20,7 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
      * various other functionalities without the necessity of linking it with Vesting Registry
      */
     function setVestingRegistry(address _vestingRegistryProxy) external onlyOwner whenNotFrozen {
-        vestingRegistryLogic = IVestingRegistry(_vestingRegistryProxy);
+        vestingRegistry = IVestingRegistry(_vestingRegistryProxy);
     }
 
     /**
@@ -278,8 +278,8 @@ contract StakingVestingModule is IFunctionsList, StakingShared {
     function isVestingContract(address stakerAddress) external view returns (bool) {
         bool isVesting;
         bytes32 codeHash = _getCodeHash(stakerAddress);
-        if (address(vestingRegistryLogic) != address(0)) {
-            isVesting = vestingRegistryLogic.isVestingAddress(stakerAddress);
+        if (address(vestingRegistry) != address(0)) {
+            isVesting = vestingRegistry.isVestingAddress(stakerAddress);
         }
 
         if (isVesting) return true;

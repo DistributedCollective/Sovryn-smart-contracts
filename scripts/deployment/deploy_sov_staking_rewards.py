@@ -38,7 +38,7 @@ def main():
 
     # ================================ SOV Staking Rewards - SIP-0024 ===================================
 
-    # deploy VestingRegistryLogic
+    # deploy VestingRegistry
     stakingRewardsLogic = acct.deploy(StakingRewards)
     stakingRewardsProxy = acct.deploy(StakingRewardsProxy)
     stakingRewardsProxy.setImplementation(stakingRewardsLogic.address)

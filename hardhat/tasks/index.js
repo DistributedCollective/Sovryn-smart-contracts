@@ -6,5 +6,6 @@ require("./utils");
 require("./misc");
 require("./governance");
 require("./feeSharingCollector");
+require("./adminManagerRole");
 require("./uniswap");
 require("./bridge");

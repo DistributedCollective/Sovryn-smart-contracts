@@ -29,10 +29,10 @@ def main():
 
     balanceBefore = acct.balance()
     
-    vestingRegistryLogic = Contract.from_abi(
-        "VestingRegistryLogic",
+    vestingRegistry = Contract.from_abi(
+        "VestingRegistry",
         address=contracts['VestingRegistryProxy'],
-        abi=VestingRegistryLogic.abi,
+        abi=VestingRegistry.abi,
         owner=acct)
 
     # open the file in universal line ending mode 
@@ -53,17 +53,17 @@ def main():
     print(tokenOwners)
     print(vestingAddresses)
 
-    vestingRegistryLogic.addFourYearVestings(tokenOwners, vestingAddresses)
+    vestingRegistry.addFourYearVestings(tokenOwners, vestingAddresses)
 
     print("deployment cost:")
     print((balanceBefore - acct.balance()) / 10**18)
     
-    # data = vestingRegistryLogic.addFourYearVestings.encode_input(tokenOwners, vestingAddresses)
+    # data = vestingRegistry.addFourYearVestings.encode_input(tokenOwners, vestingAddresses)
     # print(data)
 
     # multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
     # print(multisig)
-    # tx = multisig.submitTransaction(vestingRegistryLogic.address, 0, data, {'allow_revert':True})
+    # tx = multisig.submitTransaction(vestingRegistry.address, 0, data, {'allow_revert':True})
     # print(tx.revert_msg)
     # txId = tx.events["Submission"]["transactionId"]
     # print(txId)

@@ -417,7 +417,7 @@ interface IStaking {
     function numVestingCheckpoints(uint256 date) external view returns (uint32 checkpointsQty);
 
     ///@notice vesting registry contract PROXY address
-    function vestingRegistryLogic() external view returns (address);
+    function vestingRegistry() external view returns (address);
 
     /// @dev user => flag whether user has pauser role.
     function pausers(address isPauser) external view returns (bool);

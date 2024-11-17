@@ -39,7 +39,7 @@ const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
 
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
-const VestingRegistry = artifacts.require("VestingRegistry3");
+const VestingRegistry = artifacts.require("VestingRegistry");
 const {
     getSUSD,
     getRBTC,

@@ -30,7 +30,7 @@ def main():
     registries.append(Contract.from_abi("VestingRegistry", address=contracts['VestingRegistry3'], abi=VestingRegistry.abi, owner=acct))
     '''
 
-    vestingRegistry = Contract.from_abi("VestingRegistryLogic", address=contracts['VestingRegistryProxy'], abi=VestingRegistryLogic.abi, owner=acct)
+    vestingRegistry = Contract.from_abi("VestingRegistry", address=contracts['VestingRegistryProxy'], abi=VestingRegistry.abi, owner=acct)
 
 
     INPUT_FILE = "./scripts/staking/users.csv"

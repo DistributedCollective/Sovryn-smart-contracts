@@ -68,7 +68,7 @@ const FeeSharingCollectorMockup = artifacts.require("FeeSharingCollectorMockup")
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 
 const VestingFactory = artifacts.require("VestingFactory");
-const VestingRegistry = artifacts.require("VestingRegistry3");
+const VestingRegistry = artifacts.require("VestingRegistry");
 
 const LiquidityPoolV1Converter = artifacts.require("LiquidityPoolV1ConverterMockup");
 

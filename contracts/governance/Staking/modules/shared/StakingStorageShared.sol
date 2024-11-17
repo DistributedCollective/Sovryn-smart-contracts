@@ -139,7 +139,7 @@ contract StakingStorageShared is Ownable {
     mapping(uint256 => uint32) public numVestingCheckpoints;
 
     ///@notice vesting registry contract
-    IVestingRegistry public vestingRegistryLogic;
+    IVestingRegistry public vestingRegistry;
 
     /// @dev user => flag whether user has pauser role.
     mapping(address => bool) public pausers;

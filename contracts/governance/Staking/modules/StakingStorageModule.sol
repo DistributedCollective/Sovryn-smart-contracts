@@ -95,7 +95,7 @@ contract StakingStorageModule is IFunctionsList, StakingStorageShared {
         functionsList[24] = this.vestingCodeHashes.selector;
         functionsList[25] = this.vestingCheckpoints.selector;
         functionsList[26] = this.numVestingCheckpoints.selector;
-        functionsList[27] = this.vestingRegistryLogic.selector;
+        functionsList[27] = this.vestingRegistry.selector;
         functionsList[28] = this.pausers.selector;
         functionsList[29] = this.paused.selector;
         functionsList[30] = this.frozen.selector;

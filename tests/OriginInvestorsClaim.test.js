@@ -30,7 +30,9 @@ const TestWrbtc = artifacts.require("TestWrbtc");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorMockup");
 const VestingLogic = artifacts.require("VestingLogic");
 const VestingFactory = artifacts.require("VestingFactory");
-const VestingRegistry = artifacts.require("VestingRegistry2"); // removed some methods from VestingRegistry to prevent double spendings
+const VestingRegistry = artifacts.require("VestingRegistry"); // removed some methods from VestingRegistry to prevent double spendings
+const VestingRegistryProxy = artifacts.require("VestingRegistryProxy");
+const LockedSOV = artifacts.require("LockedSOV");
 const OriginInvestorsClaim = artifacts.require("OriginInvestorsClaim");
 
 const {
@@ -67,13 +69,19 @@ contract("OriginInvestorsClaim", (accounts) => {
         return kickoffTS.add(new BN(offset));
     }
 
-    async function checkVestingContractCreatedAndStaked(txHash, receiver, cliff, amount) {
+    async function checkVestingContractCreatedAndStaked(
+        txHash,
+        receiver,
+        cliff,
+        duration,
+        amount
+    ) {
         const vestingAddress = await vestingRegistry.getVesting(receiver);
         await expectEvent.inTransaction(txHash, vestingRegistry, "VestingCreated", {
             tokenOwner: receiver,
             vesting: vestingAddress,
             cliff: cliff,
-            duration: cliff,
+            duration: duration,
             amount: amount,
         });
 
@@ -172,15 +180,27 @@ contract("OriginInvestorsClaim", (accounts) => {
 
         vestingLogic = await VestingLogic.new();
         vestingFactory = await VestingFactory.new(vestingLogic.address);
-        vestingRegistry = await VestingRegistry.new(
+        vestingRegistry = await VestingRegistry.new();
+        vestingRegistryProxy = await VestingRegistryProxy.new();
+        await vestingRegistryProxy.setImplementation(vestingRegistry.address);
+        vestingRegistry = await VestingRegistry.at(vestingRegistryProxy.address);
+
+        let cliff = 1;
+        let duration = 20;
+        lockedSOV = await LockedSOV.new(SOV.address, vestingRegistry.address, cliff, duration, [
+            account1,
+        ]);
+
+        await vestingRegistry.initialize(
             vestingFactory.address,
             SOV.address,
-            [cSOV1.address, cSOV2.address],
-            priceSats,
             staking.address,
             feeSharingCollectorProxy.address,
-            account1
+            accounts[2],
+            lockedSOV.address,
+            [vestingRegistry.address]
         );
+
         await vestingFactory.transferOwnership(vestingRegistry.address);
 
         kickoffTS = await staking.kickoffTS.call();
@@ -362,7 +382,8 @@ contract("OriginInvestorsClaim", (accounts) => {
             await checkVestingContractCreatedAndStaked(
                 txHash,
                 investor1,
-                SIX_WEEKS.sub(ONE_WEEK),
+                FOUR_WEEKS,
+                await lockedSOV.duration(),
                 amount1
             );
 
@@ -380,7 +401,13 @@ contract("OriginInvestorsClaim", (accounts) => {
 
             txHash = tx.receipt.transactionHash;
 
-            await checkVestingContractCreatedAndStaked(txHash, investor2, new BN(1), amount2);
+            await checkVestingContractCreatedAndStaked(
+                txHash,
+                investor2,
+                FOUR_WEEKS,
+                await lockedSOV.duration(),
+                amount2
+            );
 
             expect(await investorsClaim.investorsAmountsList(investor2)).to.be.bignumber.equal(
                 new BN(0)
