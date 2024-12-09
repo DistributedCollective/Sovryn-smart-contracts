@@ -32,59 +32,6 @@ const getEthersLog = async (contract, filter) => {
     return parsedEvents;
 };
 
-task("VestingStakeSet-event", "get transactions with VestingStakeSet event emitted").setAction(
-    async (taskArgs, hre) => {
-        const {
-            deployments: { deploy, get, log },
-            getNamedAccounts,
-            ethers,
-        } = hre;
-        const staking = await ethers.getContractAt(
-            "IStaking",
-            "0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e"
-        );
-        //const abi = (await deployments.getArtifact("Staking")).abi;
-        const abi = ["event VestingStakeSet(uint256,uint96)"];
-        //const abi = ["event TokensStaked(address,uint256,uint256,uint256)"];
-        const iface = new ethers.utils.Interface(abi);
-        //const filter = staking.filters.VestingStakeSet(null, null);
-        //cblock = 3780053; // a block with the first vesting created
-        cblock = 5190053; // a block with the first vesting created
-        block = await ethers.provider.getBlockNumber();
-        let index = 0;
-        while (cblock != block) {
-            cblock += 10000;
-            if (cblock > block) cblock = block;
-            const filter = {
-                address: "0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e",
-                topics: [
-                    //ethers.utils.id("TokensStaked(address,uint256,uint256,uint256)")
-                    ethers.utils.id("VestingStakeSet(uint256,uint96)"),
-                ],
-                fromBlock: cblock - 10000,
-                toBlock: cblock,
-            };
-            let cres = [];
-
-            try {
-                cres = await ethers.provider.getLogs(filter);
-            } catch (e) {
-                console.log(e);
-                console.log("failure at block", cblock);
-                return;
-            }
-            //console.log(await getEthersLog(staking, filter));
-            if (cres[0]) {
-                console.log("index: ", index++, "\n", cres);
-                //break;
-            }
-            if (cblock % 500000 == 0) {
-                console.log(cblock, "block reached");
-            }
-        }
-    }
-);
-
 const getImpersonatedSigner = async (addressToImpersonate) => {
     await impersonateAccount(addressToImpersonate);
     return await ethers.getSigner(addressToImpersonate);
@@ -212,7 +159,7 @@ task("misc:forkedchain:vestingStake", "Stakes from vesting contract")
         logger.warning(await staking.getStakes(vesting));
     });
 
-task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or address")
+task("misc:get-balance-of-accounts", "Get ERC20 or native token balance of account or address")
     .addPositionalParam(
         "accounts",
         "Address(es) or named account(s) contract name(s) to get balance of: 'deployer' or 'MultiSigWallet,deployer,0x542fda317318ebf1d3deaf76e0b632741a7e677d'"
@@ -267,4 +214,123 @@ task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or ad
                 }
             }
         }
+    });
+task(
+    "misc:vesting-stake-set-event",
+    "get transactions with VestingStakeSet event emitted"
+).setAction(async (taskArgs, hre) => {
+    const {
+        deployments: { deploy, get, log },
+        getNamedAccounts,
+        ethers,
+    } = hre;
+    const staking = await ethers.getContractAt(
+        "IStaking",
+        "0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e"
+    );
+    //const abi = (await deployments.getArtifact("Staking")).abi;
+    const abi = ["event VestingStakeSet(uint256,uint96)"];
+    //const abi = ["event TokensStaked(address,uint256,uint256,uint256)"];
+    const iface = new ethers.utils.Interface(abi);
+    //const filter = staking.filters.VestingStakeSet(null, null);
+    //cblock = 3780053; // a block with the first vesting created
+    cblock = 5190053; // a block with the first vesting created
+    block = await ethers.provider.getBlockNumber();
+    let index = 0;
+    while (cblock != block) {
+        cblock += 10000;
+        if (cblock > block) cblock = block;
+        const filter = {
+            address: "0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e",
+            topics: [
+                //ethers.utils.id("TokensStaked(address,uint256,uint256,uint256)")
+                ethers.utils.id("VestingStakeSet(uint256,uint96)"),
+            ],
+            fromBlock: cblock - 10000,
+            toBlock: cblock,
+        };
+        let cres = [];
+
+        try {
+            cres = await ethers.provider.getLogs(filter);
+        } catch (e) {
+            console.log(e);
+            console.log("failure at block", cblock);
+            return;
+        }
+        //console.log(await getEthersLog(staking, filter));
+        if (cres[0]) {
+            console.log("index: ", index++, "\n", cres);
+            //break;
+        }
+        if (cblock % 500000 == 0) {
+            console.log(cblock, "block reached");
+        }
+    }
+});
+
+/**
+ * This is the infura node version to run an eth node
+ * It is throwing the error:
+ * 
+ * "Error HH604: Error running JSON-RPC server: Too Many Requests error received from mainnet.infura.io"
+ * 
+task("misc:run-forked-eth-mainnet", "Runs a forked eth node")
+    .addOptionalParam("forkBlock", "Block number to fork from")
+    .setAction(async (taskArgs, hre) => {
+        const { NODE_REAL_API_KEY } = process.env;
+        const forkParams = {
+            jsonRpcUrl: `https://eth-mainnet.nodereal.io/v1/${NODE_REAL_API_KEY}`,
+            blockNumber: taskArgs.forkBlock ? parseInt(taskArgs.forkBlock) : undefined,
+        };
+        await hre.network.provider.request({
+            method: "hardhat_reset",
+            params: [
+                {
+                    forking: forkParams,
+                },
+            ],
+        });
+        await hre.run("node", { noDeploy: true });
+    }
+);
+*/
+
+// Please obtain a node-real api key and config it on .env file
+task("misc:run-forked-eth-mainnet", "Runs a forked eth node")
+    .addOptionalParam("forkBlock", "Block number to fork from")
+    .setAction(async (taskArgs, hre) => {
+        const { NODE_REAL_API_KEY } = process.env;
+        const forkParams = {
+            jsonRpcUrl: `https://eth-mainnet.nodereal.io/v1/${NODE_REAL_API_KEY}`,
+            blockNumber: taskArgs.forkBlock ? parseInt(taskArgs.forkBlock) : undefined,
+        };
+
+        await hre.network.provider.request({
+            method: "hardhat_reset",
+            params: [{ forking: forkParams }],
+        });
+
+        // Now we run the node task with the noDeploy option
+        await hre.run("node", { noDeploy: true });
+    });
+
+// Testing with a Tenderly's RPC endpoint
+/// @todo: replace with a more reliable RPC endpoint
+task("misc:run-forked-bob-mainnet", "Runs a forked bob node")
+    .addOptionalParam("forkBlock", "Block number to fork from")
+    .setAction(async (taskArgs, hre) => {
+        const forkParams = {
+            jsonRpcUrl: `https://bob.gateway.tenderly.co/${process.env.TENDERLY_BOB_RPC_KEY}`,
+            blockNumber: taskArgs.forkBlock ? parseInt(taskArgs.forkBlock) : undefined,
+        };
+        await hre.network.provider.request({
+            method: "hardhat_reset",
+            params: [
+                {
+                    forking: forkParams,
+                },
+            ],
+        });
+        await hre.run("node", { noDeploy: true });
     });

@@ -34,6 +34,11 @@ const mainnetPKs = [
 ].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
 const mainnetAccounts = mainnetPKs.length > 0 ? mainnetPKs : mnemonic;
 
+const networkIdToUse = process.env.NETWORK_ID ? JSON.parse(process.env.NETWORK_ID) : 31337;
+// minGasPrice parameter: Only for use from london or higher evm onwards
+// NOT recommended fo RSK
+const minGasPrice = process.env.MIN_GAS_PRICE ? JSON.parse(process.env.MIN_GAS_PRICE) : 0;
+
 /*
  * Test hardhat forking with patched hardhat
  *
@@ -162,19 +167,55 @@ module.exports = {
     },
     networks: {
         hardhat: {
-            chainId: 31337,
+            // hardfork: "shanghai",
+            chains: {
+                30: {
+                    hardforkHistory: {
+                        istanbul: 2000000,
+                        london: 4000000,
+                    },
+                },
+                31: {
+                    hardforkHistory: {
+                        istanbul: 1000000,
+                        london: 3000000,
+                    },
+                },
+                1: {
+                    hardforkHistory: {
+                        istanbul: 9069000,
+                        london: 12965000,
+                        // shanghai: 17000000,
+                    },
+                },
+                56: {
+                    hardforkHistory: {
+                        istanbul: 5184000,
+                        london: 30720096,
+                        // shanghai: 42578785,
+                    },
+                },
+                // 60808: {
+                //     hardforkHistory: {
+                //         london: 0,
+                //         // shanghai: 0,
+                //     },
+                // },
+            },
+            chainId: networkIdToUse,
             allowUnlimitedContractSize: true,
             accounts: { mnemonic: "test test test test test test test test test test test junk" },
             initialBaseFeePerGas: 0,
+            // initialBaseFeePerGas: minGasPrice,   // Only for use from london or higher evm - not recommended fo RSK
             //blockGasLimit: 6800000,
             //gasPrice: 66000010,
-            //timeout: 1000000,
+            timeout: 10000000,
         },
         localhost: {
             timeout: 100000,
         },
         rskForkedTestnet: {
-            chainId: 31337,
+            chainId: networkIdToUse,
             url: "http://127.0.0.1:8545/",
             gasPrice: 66000010,
             blockGasLimit: 6800000,
@@ -203,7 +244,7 @@ module.exports = {
             timeout: 100000,
         },
         rskForkedMainnet: {
-            chainId: 31337,
+            chainId: networkIdToUse,
             accounts: mainnetAccounts,
             url: "http://127.0.0.1:8545",
             blockGasLimit: 6800000,
@@ -262,6 +303,13 @@ module.exports = {
             url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
             accounts: mainnetAccounts,
         },
+        ethForkedMainnet: {
+            chainId: networkIdToUse,
+            accounts: mainnetAccounts,
+            url: "http://127.0.0.1:8545",
+            live: true,
+            tags: ["mainnet", "forked"],
+        },
         bobTestnet: {
             url: "https://bob-sepolia.rpc.gobob.xyz/",
             chainId: 808813,
@@ -278,13 +326,35 @@ module.exports = {
             gasPrice: 50000000,
         },
         bobForkedTestnet: {
-            chainId: 31337,
+            chainId: networkIdToUse,
             accounts: testnetAccounts,
             url: "http://127.0.0.1:8545",
             gasPrice: 50000000,
             live: true,
             tags: ["testnet", "forked"],
             timeout: 100000,
+        },
+        bobForkedMainnet: {
+            chainId: networkIdToUse,
+            accounts: mainnetAccounts,
+            url: "http://127.0.0.1:8545",
+            live: true,
+            tags: ["mainnet", "forked"],
+        },
+        bnbMainnet: {
+            url: "https://bsc.sovryn.app/mainnet",
+            chainId: 56,
+            accounts: mainnetAccounts,
+            // live: true,
+            tags: ["mainnet"],
+            // gasPrice: 50000000,
+        },
+        bnbForkedMainnet: {
+            chainId: networkIdToUse,
+            accounts: mainnetAccounts,
+            url: "http://127.0.0.1:8545",
+            live: true,
+            tags: ["mainnet", "forked"],
         },
     },
     paths: {
@@ -306,33 +376,43 @@ module.exports = {
         deployments: {
             rskSovrynTestnet: ["external/deployments/rskTestnet"],
             rskTestnet: [
-                "external/deployments/rskTestnet",
                 "deployment/deployments/rskSovrynTestnet",
+                "external/deployments/rskTestnet",
             ],
             rskForkedTestnet: [
-                "external/deployments/rskTestnet",
                 "external/deployments/rskForkedTestnet",
                 "deployment/deployments/rskSovrynTestnet",
+                "external/deployments/rskTestnet",
             ],
             rskForkedTestnetFlashback: ["external/deployments/rskForkedTestnetFlashback"],
             rskForkedMainnetFlashback: ["external/deployments/rskForkedMainnetFlashback"],
             rskSovrynMainnet: ["external/deployments/rskMainnet"],
             rskMainnet: [
-                "external/deployments/rskMainnet",
                 "deployment/deployments/rskSovrynMainnet",
+                "external/deployments/rskMainnet",
             ],
             rskForkedMainnet: [
-                "external/deployments/rskMainnet",
                 "deployment/deployments/rskSovrynMainnet",
                 "external/deployments/rskForkedMainnet",
+                "external/deployments/rskMainnet",
             ],
-            bobTestnet: ["external/deployments/bobTestnet"],
-            bobMainnet: ["external/deployments/bobMainnet"],
+            bobTestnet: ["external/deployments/bobTestnet", "deployment/deployments/bobTestnet"],
+            bobMainnet: ["external/deployments/bobMainnet", "deployment/deployments/bobMainnet"],
+            bobForkedMainnet: [
+                "external/deployments/bobMainnet",
+                "deployment/deployments/bobMainnet",
+            ],
             bobForkedTestnet: [
                 "external/deployments/bobTestnet",
                 "deployment/deployments/bobTestnet",
             ],
-            ethMainnet: ["external/deployments/ethMainnet", "deployment/deployments/ethMainnet"],
+            ethMainnet: ["deployment/deployments/ethMainnet", "external/deployments/ethMainnet"],
+            ethForkedMainnet: [
+                "external/deployments/ethMainnet",
+                "deployment/deployments/ethMainnet",
+            ],
+            bnbMainnet: ["external/deployments/bnbMainnet"],
+            bnbForkedMainnet: ["external/deployments/bnbMainnet"],
         },
     },
     typechain: {

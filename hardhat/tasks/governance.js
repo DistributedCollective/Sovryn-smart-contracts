@@ -12,6 +12,11 @@ const {
 const { sendWithMultisig, getSignerFromAccount } = require("../../deployment/helpers/helpers");
 const { default: BigNumber } = require("bignumber.js");
 
+const VestingType = {
+    TeamVesting: 5,
+    Vesting: 1,
+};
+
 const getImpersonatedSignerFromJsonRpcProvider = async (addressToImpersonate) => {
     //await impersonateAccount(addressToImpersonate);
     //return await ethers.getSigner(addressToImpersonate);
@@ -242,37 +247,6 @@ async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
     console.log(ethers.utils.formatEther(balanceBefore.sub(balanceAfter)).toString());
 }
 
-task("governance:cancelTeamVestingsOfAccount", "Cancel all team vesting contracts of account")
-    .addPositionalParam("address", "Cancel this user's all team vestings")
-    .addOptionalParam("startFrom", "Cancel starting from timestamp", 0, types.int)
-    .addOptionalParam(
-        "signer",
-        "Cancelling multisig transaction creator",
-        "deployer",
-        types.string
-    )
-    .setAction(async ({ address: userAddress, signer: signerAcc, startFrom }, hre) => {
-        const { ethers } = hre;
-        const vestingRegistry = await ethers.getContract("VestingRegistry");
-        const vestings = await vestingRegistry.getVestingsOf(userAddress);
-        for (const vesting of vestings) {
-            await cancelTeamVesting(hre, vesting.vestingAddress, startFrom, signerAcc);
-        }
-    });
-
-task("governance:cancelTeamVesting", "Cancel team vesting contract")
-    .addPositionalParam("address", "Team vesting contract to cancel")
-    .addOptionalParam("startFrom", "Cancel starting from timestamp", 0, types.int)
-    .addOptionalParam(
-        "signer",
-        "Cancelling multisig transaction creator",
-        "deployer",
-        types.string
-    )
-    .setAction(async ({ address: vestingAddress, signer: signerAcc, startFrom }, hre) => {
-        await cancelTeamVesting(hre, vestingAddress, startFrom, signerAcc);
-    });
-
 async function cancelTeamVesting(hre, vestingAddress, startFrom, signerAcc) {
     const {
         ethers,
@@ -348,21 +322,6 @@ async function parseVestingsFile(ethers, fileName, multiplier) {
             });
     });
 }
-
-task("governance:createVestings", "Create vestings")
-    .addParam("path", "The file path")
-    .addParam("decimals", "Number of decimals for amount", 2, types.int)
-    .addFlag("dryRun", "Dry run")
-    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ path, signer, dryRun, decimals }, hre) => {
-        const multiplier = (10 ** (18 - decimals)).toString();
-        await createVestings(hre, dryRun, path, multiplier, signer);
-    });
-
-const VestingType = {
-    TeamVesting: 5,
-    Vesting: 1,
-};
 
 function calculateUid(tokenOwner, vestingCreationType, cliff, duration) {
     /*const uid = ethers.utils.keccak256(
@@ -556,6 +515,47 @@ async function createFourYearVestings(hre, path, signerAcc) {
     console.log(balanceBefore.sub(balanceAfter) / ethers.constants.WeiPerEther);
 }
 
+task("governance:cancelTeamVestingsOfAccount", "Cancel all team vesting contracts of account")
+    .addPositionalParam("address", "Cancel this user's all team vestings")
+    .addOptionalParam("startFrom", "Cancel starting from timestamp", 0, types.int)
+    .addOptionalParam(
+        "signer",
+        "Cancelling multisig transaction creator",
+        "deployer",
+        types.string
+    )
+    .setAction(async ({ address: userAddress, signer: signerAcc, startFrom }, hre) => {
+        const { ethers } = hre;
+        const vestingRegistry = await ethers.getContract("VestingRegistry");
+        const vestings = await vestingRegistry.getVestingsOf(userAddress);
+        for (const vesting of vestings) {
+            await cancelTeamVesting(hre, vesting.vestingAddress, startFrom, signerAcc);
+        }
+    });
+
+task("governance:cancelTeamVesting", "Cancel team vesting contract")
+    .addPositionalParam("address", "Team vesting contract to cancel")
+    .addOptionalParam("startFrom", "Cancel starting from timestamp", 0, types.int)
+    .addOptionalParam(
+        "signer",
+        "Cancelling multisig transaction creator",
+        "deployer",
+        types.string
+    )
+    .setAction(async ({ address: vestingAddress, signer: signerAcc, startFrom }, hre) => {
+        await cancelTeamVesting(hre, vestingAddress, startFrom, signerAcc);
+    });
+
+task("governance:createVestings", "Create vestings")
+    .addParam("path", "The file path")
+    .addParam("decimals", "Number of decimals for amount", 2, types.int)
+    .addFlag("dryRun", "Dry run")
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ path, signer, dryRun, decimals }, hre) => {
+        const multiplier = (10 ** (18 - decimals)).toString();
+        await createVestings(hre, dryRun, path, multiplier, signer);
+    });
+
 task("governance:createFourYearVestings", "Create vestings")
     .addParam("path", "The file path")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
@@ -607,7 +607,7 @@ task(
     create4YUVestings().catch((error) => {
         console.error("Error:", error);
     });
-    */
+*/
 
 task("governance:getVotingPower", "Get a staker's voting power current or at a block")
     .addParam("address", "The staker's address to get current voting power for")
