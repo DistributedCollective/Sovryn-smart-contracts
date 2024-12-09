@@ -14,15 +14,22 @@ const { getSignerFromAccount } = require("../../deployment/helpers/helpers");
     multisigRemoveOwner,
 } = require("../../deployment/helpers/helpers");*/
 
-// function to parse distribution .csv files on NATIVE coin
-async function parseFileForSendNATIVE(fileName) {
+const assetNamesByNetwork = {
+    1: "ETH",
+    30: "RBTC",
+    56: "BNB",
+    60808: "ETH",
+};
+
+// functions to parse .csv files on asset distribution
+async function parseFileForSendDirect(fileName, decimals) {
     const { BigNumber } = require("ethers");
     console.log(fileName);
     let totalAmount = BigNumber.from("0");
     let receivers = [];
     let amounts = [];
     let errorMsg = "";
-    const DECIMALS = 18; // We know the number of decimals is always 18
+    const DECIMALS = decimals;
 
     return new Promise((resolve, reject) => {
         fs.createReadStream(fileName)
@@ -44,7 +51,7 @@ async function parseFileForSendNATIVE(fileName) {
                     integerPart = "0";
                 }
 
-                // Ensure the decimal part has exactly 18 digits
+                // Ensure the decimal part has exactly DECIMALS digits
                 if (decimalPart.length < DECIMALS) {
                     decimalPart = decimalPart.padEnd(DECIMALS, "0");
                 } else if (decimalPart.length > DECIMALS) {
@@ -64,7 +71,7 @@ async function parseFileForSendNATIVE(fileName) {
 
                 totalAmount = totalAmount.add(amountBN);
 
-                receivers.push(tokenOwner);
+                receivers.push(tokenOwner.toLowerCase());
                 amounts.push(normalizedAmountStr);
 
                 console.log("=======================================");
@@ -80,60 +87,6 @@ async function parseFileForSendNATIVE(fileName) {
                 } else {
                     resolve({
                         totalAmount: totalAmount.toString(),
-                        receivers,
-                        amounts,
-                    });
-                }
-            })
-            .on("error", (err) => {
-                reject(err);
-            });
-    });
-}
-
-// functions to parse distribution .csv files on ERC20 token
-async function parseFileForSendDirect(fileName, multiplier) {
-    console.log(fileName);
-    let totalAmount = 0;
-    let receivers = [];
-    let amounts = [];
-    let errorMsg = "";
-
-    return new Promise((resolve, reject) => {
-        fs.createReadStream(fileName)
-            // The default behavior of csv-parser with a header line present
-            // is that it will use the first line as headers automatically.
-            .pipe(csv())
-            .on("data", (row) => {
-                // Now using the header names directly:
-                const tokenOwner = row.tokenOwner.trim();
-                const amountStr = row.amount.trim();
-                const decimals = amountStr.split(".");
-
-                if (decimals.length !== 2 || decimals[1].length !== 2) {
-                    errorMsg += `\n${tokenOwner} amount: ${amountStr}`;
-                }
-
-                let amount = amountStr.replace(",", "").replace(".", "");
-                amount = parseInt(amount, 10) * multiplier;
-                totalAmount += amount;
-
-                receivers.push(tokenOwner);
-                amounts.push(amount);
-
-                console.log("=======================================");
-                console.log(`'${tokenOwner}',`);
-                console.log(amount);
-            })
-            .on("end", () => {
-                console.log(receivers);
-                console.log(amounts);
-
-                if (errorMsg !== "") {
-                    reject(new Error(`Formatting error: ${errorMsg}`));
-                } else {
-                    resolve({
-                        totalAmount,
                         receivers,
                         amounts,
                     });
@@ -319,7 +272,9 @@ task("utils:replace-tx", "Replace tx in mempool")
         }
     );
 // a task to use the GenericTokenSender.transferTokensUsingList function to distribute tokens
-// way of use: $ hh utils:send-direct --currency USDC --path "./scripts/externalData/dist.csv" --dryrun --network bobMainnet
+// way of use: $ hh utils:send-direct --currency USDC --path "./scripts/externalData/dist.csv" --network bobMainnet
+// example of dryRun: while running in another terminal: $ npm run fork:rsk-mainnet-chained
+// we do: $ export NETWORK_ID=30 && hh utils:send-direct --currency BPro --path ./scripts/externalData/example_native.csv --dry-run --network rskForkedMainnet --account 0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711
 task("utils:send-direct", "Direct token sender script")
     .addOptionalParam("currency", "The currency type (e.g., WBTC, XUSD, POWA, SAT...)")
     .addParam("path", "The file path for addresses")
@@ -329,7 +284,8 @@ task("utils:send-direct", "Direct token sender script")
         "native",
         "When present, the flag instructs the script to use the native currency and ignore the currency parameter"
     )
-    .setAction(async ({ currency, path, account, dryrun, native }, hre) => {
+    .setAction(async ({ currency, path, account, dryRun, native }, hre) => {
+        const { BigNumber } = require("ethers");
         // if native flag is not present, the currency parameter is required
         if (!native && !currency) {
             logger.error(
@@ -350,28 +306,95 @@ task("utils:send-direct", "Direct token sender script")
         }
 
         let signer = await getSignerFromAccount(hre, account);
-        let signerAddress = signer.address;
+        let signerAddress = signer._address;
+        console.log("Signer address: ", signerAddress);
 
         // this action is only valid in RSK or BOB networks.
         // We will update on future deployments on Eth and Bnb networks.
         const netId = await ethers.provider.getNetwork().then((n) => n.chainId);
+        console.log("Network ID: ", netId);
         if (netId === 1 || netId === 56) {
             logger.error("This action is only valid in RSK or BOB networks");
             return;
         }
 
+        // GenericTokenSender contract address in BoB: 0x08429a6E565d7D3C15C40da30f1401b8985d71e3
+        // GenericTokenSender contract address in RSK: 0x10DE444DE46E106eEF67f3793EE08cFf5297B0AA
         const GenericTokenSender = await ethers.getContract("GenericTokenSender", signer);
-        const token = native ? constants.AddressZero : await ethers.getContract(currency);
+        const token = native ? constants.AddressZero : await ethers.getContract(currency, signer);
         const decimals = native ? 18 : await token.decimals();
+        console.log(`Decimals of ${currency} is: `, decimals);
 
         const balanceBefore = await signer.getBalance();
         let totalAmount = 0;
 
         // Data parsing
         const data = native
-            ? await parseFileForSendNATIVE(path)
-            : await parseFileForSendDirect(path, 10 ** decimals);
+            ? await parseFileForSendDirect(path, 18)
+            : await parseFileForSendDirect(path, decimals);
         totalAmount += data.totalAmount;
+        console.log("Data successfully parsed");
+
+        if (native) {
+            currency = assetNamesByNetwork[netId.toString()];
+        }
+
+        if (!native) {
+            // check if signer hold enough assets and if so, send it to GenericTokenSender
+            const balance = await token.balanceOf(signerAddress);
+            const contractBalance = await token.balanceOf(GenericTokenSender.address);
+            console.log("Sender's balance of token: ", balance.toString());
+            console.log("GenericTokenSender's balance of token: ", contractBalance.toString());
+            if (balance.add(contractBalance).lt(totalAmount)) {
+                logger.error("Insufficient funds to distribute");
+                return;
+            }
+            const amountToTransfer = BigNumber.from(totalAmount).sub(contractBalance);
+            const transfer_tx = await token.transfer(GenericTokenSender.address, amountToTransfer);
+            const transfer_receipt = await transfer_tx.wait();
+            console.log("Token transferred");
+            fs.writeFileSync(
+                `./scripts/externalData/${currency}_distribution_initial_transfer.json`,
+                JSON.stringify(transfer_receipt, null, 2),
+                { flags: "w" }
+            );
+
+            // const approved = await token.allowance(signerAddress, GenericTokenSender.address);
+            // console.log("Amount of token approved: ", approved.toString());
+            // let tx_approval_receipt;
+            // if (approved.lt(totalAmount)) {
+            //     const tx_approval = await token.approve(GenericTokenSender.address, totalAmount);
+            //     tx_approval_receipt = await tx_approval.wait();
+            // }
+            // console.log("Token approved");
+            // fs.writeFileSync(
+            //     `./scripts/externalData/${currency}_distribution_approval.json`,
+            //     JSON.stringify(tx_approval_receipt, null, 2),
+            //     { flags: "w" }
+            // );
+        } else {
+            // check if signer hold enough assets and if so, send it to GenericTokenSender
+            const balance = await signer.getBalance();
+            const contractBalance = await ethers.provider.getBalance(GenericTokenSender.address);
+            console.log("sender's balance of token: ", balance.toString());
+            console.log("GenericTokenSender's balance of token: ", contractBalance.toString());
+            if (balance.add(contractBalance).lt(totalAmount)) {
+                logger.error("Insufficient funds to distribute");
+                return;
+            }
+            const amountToTransfer = BigNumber.from(totalAmount).sub(contractBalance);
+            const transfer_tx = await signer.sendTransaction({
+                to: GenericTokenSender.address,
+                value: amountToTransfer,
+            });
+            const transfer_receipt = await transfer_tx.wait();
+            console.log("Native Asset transferred");
+            fs.writeFileSync(
+                `./scripts/externalData/${currency}_distribution_initial_transfer.json`,
+                JSON.stringify(transfer_receipt, null, 2),
+                { flags: "w" }
+            );
+        }
 
         const usersBalancesBefore = [];
 
@@ -411,21 +434,25 @@ task("utils:send-direct", "Direct token sender script")
 
         console.log("=======================================");
         console.log(`${currency} amount:`);
-        console.log(totalAmount / 10 ** decimals);
+        // console.log(totalAmount / 10 ** decimals);
+        console.log(ethers.utils.formatUnits(totalAmount, decimals).toString() * 1);
 
-        const balanceAfter = await conf.acct.getBalance();
+        const balanceAfter = await signer.getBalance();
         console.log("Execution cost:");
-        console.log((balanceBefore - balanceAfter) / 10 ** 18);
+        // console.log((balanceBefore.sub(balanceAfter)) / 10 ** 18);
+        console.log(
+            ethers.utils.formatUnits(balanceBefore.sub(balanceAfter), "ether").toString() * 1
+        );
 
         for (let i = 0; i < data.receivers.length; i++) {
             const diff = usersBalancesAfter[i] - usersBalancesBefore[i];
-            const expectedDiff = data.amounts[i];
-            const matchDiff = diff === expectedDiff;
+            const expectedDiff = data.amounts[i].toString();
+            const matchDiff = diff == expectedDiff.toString();
             console.log("=======================================");
             console.log(`amount received by '${data.receivers[i]}',`);
             console.log(diff / 10 ** decimals);
             console.log("while the expected amount was:");
-            console.log(data.amounts[i] / 10 ** decimals);
+            console.log(data.amounts[i].toString() / 10 ** decimals);
             if (matchDiff) {
                 console.log(`The expected amount matches for ${data.receivers[i]}`);
             } else {
