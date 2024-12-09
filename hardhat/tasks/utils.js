@@ -323,6 +323,9 @@ task("utils:send-direct", "Direct token sender script")
         const GenericTokenSender = await ethers.getContract("GenericTokenSender", signer);
         const token = native ? constants.AddressZero : await ethers.getContract(currency, signer);
         const decimals = native ? 18 : await token.decimals();
+        if (native) {
+            currency = assetNamesByNetwork[netId.toString()];
+        }
         console.log(`Decimals of ${currency} is: `, decimals);
 
         const balanceBefore = await signer.getBalance();
@@ -334,10 +337,6 @@ task("utils:send-direct", "Direct token sender script")
             : await parseFileForSendDirect(path, decimals);
         totalAmount += data.totalAmount;
         console.log("Data successfully parsed");
-
-        if (native) {
-            currency = assetNamesByNetwork[netId.toString()];
-        }
 
         if (!native) {
             // check if signer hold enough assets and if so, send it to GenericTokenSender
