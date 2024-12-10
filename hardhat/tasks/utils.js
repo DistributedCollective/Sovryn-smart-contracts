@@ -233,8 +233,8 @@ task("utils:replace-tx", "Replace tx in mempool")
                 newTo,
                 newGasPrice,
                 newGasLimit,
-                newMaxFee,
                 newMaxPriorityFee,
+                newMaxFee,
                 newData,
                 newValue,
                 signer,
@@ -271,6 +271,153 @@ task("utils:replace-tx", "Replace tx in mempool")
             }
         }
     );
+// canceltx actually is a replacer of a transaction that we don't want to be confirmed
+// when something goes wrong and we want to prevent the confirmation and we need to proceed fast.
+// the prupose of this task is actually to replace with a dummy tx with higher gas price offering
+// it is a special case of the utils:replace-tx task
+task("canceltx", "Cancel tx in mempool")
+    .addParam("signer", "Signer name: 'signer' or 'deployer", "deployer")
+    .addOptionalParam("hash", "Transaction hash to cancel")
+    // WARN: have at hand this number by making: const N = await provider.getTransactionCount(signer);
+    // "N" will match the next nonce to be used
+    .addOptionalParam("n", "Nonce of the transaction to cancel")
+    .setAction(async ({ signer, hash, n }, hre) => {
+        const {
+            ethers: { provider },
+            ethers,
+        } = hre;
+        const { AddressZero } = hre.ethers.constants;
+
+        const signerAcc = (await hre.getNamedAccounts())[signer].toLowercase();
+        const deployerSigner = await ethers.getSigner(signerAcc);
+
+        let nonce;
+        if (!n) {
+            logger.error("THERE IS A GREAT CHANCE YOUR TRANSACTION IS ALREADY MINED");
+            logger.error("A DUMMY TX WITH THE EXPECTED NEXT NONCE WILL BE SENT");
+            nonce = await provider.getTransactionCount(signerAcc);
+        } else {
+            nonce = n;
+        }
+
+        let newGasPrice;
+        let newMaxFee;
+        if (hash) {
+            // Fetch the transaction details
+            const tx = await provider.getTransaction(hash);
+            if (tx) {
+                if (tx.blockNumber) {
+                    logger.error(`Transaction with hash ${hash} has already been mined.`);
+                    return;
+                }
+                // Calculate new gas price (or max fee per gas for EIP-1559)
+                const newGasPrice = tx.gasPrice ? tx.gasPrice.mul(3).div(2) : null;
+                const newMaxFee = tx.maxFeePerGas ? tx.maxFeePerGas.mul(3).div(2) : null;
+            }
+        }
+
+        if (!newGasPrice) {
+            newGasPrice = (await provider.getFeeData()).gasPrice.mul(3).div(2);
+        }
+
+        if (!newMaxFee) {
+            currentMaxFee = (await provider.getFeeData()).maxFeePerGas;
+            newMaxFee = currentMaxFee ? currentMaxFee.mul(3).div(2) : null;
+        }
+
+        const replacementTx = {
+            nonce: nonce,
+            from: signerAcc,
+            to: AddressZero,
+            data: "0x",
+            value: 0,
+            gasLimit: 100000,
+            gasPrice: newGasPrice,
+        };
+        if (newMaxFee) {
+            replacementTx.maxFeePerGas = newMaxFee;
+        }
+        const dummyTx = await deployerSigner.sendTransaction(replacementTx);
+        logger.info(`Dummy transaction hash successfully broadcated at: `);
+        logger.info(dummyTx.hash);
+        const dummyReceipt = await dummyTx.wait();
+
+        logger.success(`Target transaction has been successfully cancelled.`);
+    });
+// droptx actually is a replacer of a transaction that we don't want to be confirmed
+// when something goes wrong and we want to prevent the confirmation and we need to proceed fast.
+// the prupose of this task is actually to replace with a dummy tx with higher gas price offering
+// it is a special case of the utils:replace-tx task
+// fastest, safest way of use:                          $ hh droptx --n <Current-Tx-Count>
+task("droptx", "Cancel tx in mempool")
+    .addParam("signer", "Signer name: 'signer' or 'deployer", "deployer")
+    .addOptionalParam("hash", "Transaction hash to cancel")
+    // WARN: have at hand this number by making: const N = await provider.getTransactionCount(signer);
+    // "N" will match the next nonce to be used
+    .addOptionalParam("n", "Nonce of the transaction to cancel")
+    .setAction(async ({ signer, hash, n }, hre) => {
+        const {
+            ethers: { provider },
+            ethers,
+        } = hre;
+        const { AddressZero } = hre.ethers.constants;
+
+        const signerAcc = (await hre.getNamedAccounts())[signer].toLowercase();
+        const deployerSigner = await ethers.getSigner(signerAcc);
+
+        let nonce;
+        if (!n) {
+            logger.error("THERE IS A GREAT CHANCE YOUR TRANSACTION IS ALREADY MINED");
+            logger.error("A DUMMY TX WITH THE EXPECTED NEXT NONCE WILL BE SENT");
+            nonce = await provider.getTransactionCount(signerAcc);
+        } else {
+            nonce = n;
+        }
+
+        let newGasPrice;
+        let newMaxFee;
+        if (hash) {
+            // Fetch the transaction details
+            const tx = await provider.getTransaction(hash);
+            if (tx) {
+                if (tx.blockNumber) {
+                    logger.error(`Transaction with hash ${hash} has already been mined.`);
+                    return;
+                }
+                // Calculate new gas price (or max fee per gas for EIP-1559)
+                const newGasPrice = tx.gasPrice ? tx.gasPrice.mul(3).div(2) : null;
+                const newMaxFee = tx.maxFeePerGas ? tx.maxFeePerGas.mul(3).div(2) : null;
+            }
+        }
+
+        if (!newGasPrice) {
+            newGasPrice = (await provider.getFeeData()).gasPrice.mul(3).div(2);
+        }
+
+        if (!newMaxFee) {
+            currentMaxFee = (await provider.getFeeData()).maxFeePerGas;
+            newMaxFee = currentMaxFee ? currentMaxFee.mul(3).div(2) : null;
+        }
+
+        const replacementTx = {
+            nonce: nonce,
+            from: signerAcc,
+            to: AddressZero,
+            data: "0x",
+            value: 0,
+            gasLimit: 100000,
+            gasPrice: newGasPrice,
+        };
+        if (newMaxFee) {
+            replacementTx.maxFeePerGas = newMaxFee;
+        }
+        const dummyTx = await deployerSigner.sendTransaction(replacementTx);
+        logger.info(`Dummy transaction hash successfully broadcated at: `);
+        logger.info(dummyTx.hash);
+        const dummyReceipt = await dummyTx.wait();
+
+        logger.success(`Target transaction has been successfully cancelled.`);
+    });
 // a task to use the GenericTokenSender.transferTokensUsingList function to distribute tokens
 // way of use: $ hh utils:send-direct --currency USDC --path "./scripts/externalData/dist.csv" --network bobMainnet
 // example of dryRun: while running in another terminal: $ npm run fork:rsk-mainnet-chained

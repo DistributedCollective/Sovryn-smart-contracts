@@ -290,7 +290,7 @@ module.exports = {
         },
         rskSovrynMainnet: {
             chainId: 30,
-            url: "https://mainnet-dev.sovryn.app/rpc",
+            url: "https://mainnet-dev.sovryn.app/rpc", // "txpool_content" AVAILABLE!!!
             accounts: mainnetAccounts,
             gasPrice: 66000010,
             blockGasLimit: 6800000,
@@ -300,7 +300,9 @@ module.exports = {
         },
         ethMainnet: {
             chainId: 1,
-            url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+            // url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,  // "txpool_content" NOT AVAILABLE
+            // url: `https://eth-mainnet.nodereal.io/v1/${process.env.NODE_REAL_API_KEY}`,  // "txpool_content" NOT AVAILABLE
+            url: `https://go.getblock.io/${process.env.GETBLOCK_API_KEY}`, // "txpool_content" AVAILABLE!!!
             accounts: mainnetAccounts,
         },
         ethForkedMainnet: {
@@ -318,7 +320,8 @@ module.exports = {
             tags: ["testnet"],
         },
         bobMainnet: {
-            url: "https://rpc.gobob.xyz/",
+            url: "https://rpc.gobob.xyz/", // "txpool_content" NOT AVAILABLE
+            // url: `https://bob.gateway.tenderly.co/${process.env.TENDERLY_BOB_RPC_KEY}`,  // "txpool_content" NOT AVAILABLE
             chainId: 60808,
             accounts: mainnetAccounts,
             live: true,
@@ -342,7 +345,7 @@ module.exports = {
             tags: ["mainnet", "forked"],
         },
         bnbMainnet: {
-            url: "https://bsc.sovryn.app/mainnet",
+            url: "https://bsc.sovryn.app/mainnet", // "txpool_content" AVAILABLE!!!
             chainId: 56,
             accounts: mainnetAccounts,
             // live: true,
