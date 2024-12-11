@@ -1193,9 +1193,7 @@ const getArgsSIP0085 = async (hre) => {
         targets: [borrowerOperationsProxy.address],
         values: [0],
         signatures: ["setImplementation(address)"],
-        data: [
-            abiCoder.encode(["address"], [newBorrowerOperationsImplementation.address]),
-        ],
+        data: [abiCoder.encode(["address"], [newBorrowerOperationsImplementation.address])],
         // @todo update sip description
         description:
             "SIP-0085: Zero Smart Contracts Upgrade (Apply Reentrancy Guard), Details: https://github.com/DistributedCollective/SIPS/blob/a86ac0e/SIP-0085.md, sha256: ",
