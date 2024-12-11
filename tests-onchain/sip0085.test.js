@@ -163,14 +163,9 @@ describe("SIP-0085 test onchain", () => {
             const borrowerOperationsProxy = await ethers.getContract("BorrowerOperations_Proxy");
             const borrowerOperationsImpl = await get("BorrowerOperations_Implementation");
 
-            const troveManagerProxy = await ethers.getContract("TroveManager_Proxy");
-            const troveManagerImpl = await get("TroveManager_Implementation");
-
             expect(await borrowerOperationsProxy.getImplementation()).to.equal(
                 borrowerOperationsImpl.address
             );
-
-            expect(await troveManagerProxy.getImplementation()).to.equal(troveManagerImpl.address);
         });
     });
 });

@@ -1187,20 +1187,16 @@ const getArgsSIP0085 = async (hre) => {
     } = hre;
 
     const newBorrowerOperationsImplementation = await get("BorrowerOperations_Implementation");
-    const newTroveManagerImplementation = await get("TroveManager_Implementation");
-
     const borrowerOperationsProxy = await get("BorrowerOperations_Proxy");
-    const troveManagerProxy = await get("TroveManager_Proxy");
 
     const args = {
-        targets: [borrowerOperationsProxy.address, troveManagerProxy.address],
-        values: [0, 0],
-        signatures: ["setImplementation(address)", "setImplementation(address)"],
+        targets: [borrowerOperationsProxy.address],
+        values: [0],
+        signatures: ["setImplementation(address)"],
         data: [
             abiCoder.encode(["address"], [newBorrowerOperationsImplementation.address]),
-            abiCoder.encode(["address"], [newTroveManagerImplementation.address]),
         ],
-        // @todo updatee sip description
+        // @todo update sip description
         description:
             "SIP-0085: Zero Smart Contracts Upgrade (Apply Reentrancy Guard), Details: https://github.com/DistributedCollective/SIPS/blob/a86ac0e/SIP-0085.md, sha256: ",
     };
