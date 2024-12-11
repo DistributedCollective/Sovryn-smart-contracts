@@ -1104,6 +1104,82 @@ const getArgsSIP0077 = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
+const getArgsSip0084Part1 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get, log },
+    } = hre;
+
+    const abiCoder = new ethers.utils.AbiCoder();
+    const priceFeeds = await ethers.getContract("PriceFeeds");
+    const priceFeedsOwner = await priceFeeds.owner();
+
+    const wrbtcAddress = (await get("WRBTC")).address;
+    const priceFeedMocAddress = (await get("PriceFeedsMoC")).address;
+
+    const currentWrbtcPriceFeed = await priceFeeds.pricesFeeds(wrbtcAddress);
+    if (currentWrbtcPriceFeed.toLowerCase() === priceFeedMocAddress.toLowerCase()) {
+        throw new Error(
+            `new wrbtc priceFeed ${priceFeedMocAddress} could not be the same with the current one ${currentWrbtcPriceFeed}`
+        );
+    }
+
+    const args = {
+        targets: [priceFeeds.address],
+        targetOwnerValidationAddresses: [priceFeedsOwner],
+        values: [0],
+        signatures: ["setPriceFeed(address[],address[])"],
+        data: [
+            abiCoder.encode(["address[]", "address[]"], [[wrbtcAddress], [priceFeedMocAddress]]),
+        ],
+        description:
+            // @todo update description
+            "SIP-0084: Deactivate Fallback Price Oracle Contract (Part 1), Details: https://github.com/DistributedCollective/SIPS/blob/9cab4ef/SIP-0084_part-1.md, sha256: 1904484df674f8c09090768f051f9aeb722ddd3ab68759e1022cf34b9eca97f1",
+    };
+    return { args, governor: "GovernorAdmin" };
+};
+
+const getArgsSip0084Part2 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const zeroPriceFeed = await ethers.getContract("ZeroPriceFeed");
+    const zeroPriceFeedImplementation = await ethers.getContract("ZeroPriceFeed_Implementation"); // @todo update the address in the deployment file
+
+    const currentZeroPriceFeedImplementation = await zeroPriceFeed.getImplementation();
+    if (
+        currentZeroPriceFeedImplementation.toLowerCase() ===
+        zeroPriceFeedImplementation.address.toLowerCase()
+    ) {
+        throw new Error(
+            `new zero priceFeed implementation ${zeroPriceFeedImplementation.address} could not be the same with the current one ${currentZeroPriceFeedImplementation}`
+        );
+    }
+
+    const fallbackOracle = await get("FallbackOracle");
+
+    const args = {
+        targets: [zeroPriceFeed.address, zeroPriceFeed.address],
+        targetOwnerValidationAddresses: [
+            await zeroPriceFeed.getOwner(),
+            await zeroPriceFeed.getOwner(),
+        ],
+        values: [0, 0],
+        signatures: ["setImplementation(address)", "setAddress(uint8,address)"],
+        data: [
+            abiCoder.encode(["address"], [zeroPriceFeedImplementation.address]),
+            abiCoder.encode(["uint8", "address"], [1, fallbackOracle.address]),
+        ],
+        description:
+            "SIP-0084: Deactivate Fallback Price Oracle Contract (Part 2), Details: https://github.com/DistributedCollective/SIPS/blob/03a8a3e/SIP-0084_part-2.md, sha256: dc23cdcd178e4d2ff49c00ab0b39a5bcf11af8e9ca5800539a5d9f0fcd3bf902",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
 const getArgsSIP0085 = async (hre) => {
     const {
         ethers,
@@ -1151,5 +1227,7 @@ module.exports = {
     getArgsSip0076,
     getArgsSip0078,
     getArgsSip0079,
+    getArgsSip0084Part1,
+    getArgsSip0084Part2,
     getArgsSIP0085,
 };

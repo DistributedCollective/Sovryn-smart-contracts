@@ -1,0 +1,38 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/feeds/FallbackOracle.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity 0.5.17;\n\n/// @title A generic interface for external price providers\ninterface IExternalPriceFeed {\n    /// @dev The returned price should be 18-decimal value\n    /// @return the prive value and a boolean stating if the query was successful\n    function latestAnswer() external view returns (uint256, bool);\n}\n\n/**\n * @dev Dummy Oracle contract that supports MoC medianizer interface (latestAnswer) which will always return (0, false) value\n */\ncontract FallbackOracle is IExternalPriceFeed {\n    constructor() public {}\n\n    /**\n     * @dev dummy function to support MoC medianizer\n     * @return priceValue which is hardcoded to 0\n     * @return flag that indicate if the price is valid or not, hardcoded to false\n     */\n    function latestAnswer() external view returns (uint256, bool) {\n        return (0, false);\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "storageLayout",
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    },
+    "remappings": [
+      "forge-std/=foundry/lib/forge-std/src/"
+    ]
+  }
+}

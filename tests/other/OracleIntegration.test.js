@@ -23,6 +23,7 @@ const PriceFeedsMoCMockup = artifacts.require("PriceFeedsMoCMockup");
 const PriceFeedRSKOracleMockup = artifacts.require("PriceFeedRSKOracleMockup");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
+const FallbackOracle = artifacts.require("DummyFallbackOracle");
 
 const {
     getSUSD,
@@ -58,8 +59,11 @@ contract("OracleIntegration", (accounts) => {
         await loadFixture(deploymentAndInitFixture);
     });
 
-    const set_oracle = async (price_feed_rsk_mockup, oracle_address = sovryn.address) => {
-        const price_feeds_moc = await PriceFeedsMoC.new(oracle_address, price_feed_rsk_mockup);
+    const set_oracle = async (price_feed_fallback_mockup, oracle_address = sovryn.address) => {
+        const price_feeds_moc = await PriceFeedsMoC.new(
+            oracle_address,
+            price_feed_fallback_mockup
+        );
         const price_feeds = await PriceFeeds.new(WRBTC.address, BZRX.address, SUSD.address);
 
         await price_feeds.setPriceFeed(
@@ -80,17 +84,15 @@ contract("OracleIntegration", (accounts) => {
         await price_feeds_moc_mockup.setValue(new BN(10).pow(new BN(22)));
         return price_feeds_moc_mockup;
     };
-    const price_feed_rsk_mockup = async () => {
-        const price_feed_rsk_mockup = await PriceFeedRSKOracleMockup.new();
-        await price_feed_rsk_mockup.setHas(true);
-        await price_feed_rsk_mockup.setValue(new BN(10).pow(new BN(20)));
-        return price_feed_rsk_mockup;
+    const price_feed_fallback_mockup = async () => {
+        const price_feed_dummy_mockup = await FallbackOracle.new();
+        return price_feed_dummy_mockup;
     };
 
     describe("OracleIntegration Tests", () => {
         it("Test moc oracle integration", async () => {
             const [price_feeds, price_feeds_moc] = await set_oracle(
-                (await price_feed_rsk_mockup()).address,
+                (await price_feed_fallback_mockup()).address,
                 (await price_feed_moc_mockup()).address
             );
 
@@ -102,7 +104,9 @@ contract("OracleIntegration", (accounts) => {
         });
 
         it("Test set moc oracle address", async () => {
-            const [, price_feeds_moc] = await set_oracle((await price_feed_rsk_mockup()).address);
+            const [, price_feeds_moc] = await set_oracle(
+                (await price_feed_fallback_mockup()).address
+            );
             expectEvent(
                 await price_feeds_moc.setMoCOracleAddress(BZRX.address),
                 "SetMoCOracleAddress",
@@ -115,22 +119,25 @@ contract("OracleIntegration", (accounts) => {
         });
 
         it("Test set moc oracle address unauthorized user should fail", async () => {
-            const [, price_feeds_moc] = await set_oracle((await price_feed_rsk_mockup()).address);
+            const [, price_feeds_moc] = await set_oracle(
+                (await price_feed_fallback_mockup()).address
+            );
             await expectRevert(
                 price_feeds_moc.setMoCOracleAddress(BZRX.address, { from: accounts[1] }),
                 "unauthorized"
             );
         });
 
-        it("Test get price from rsk when hasValue false", async () => {
+        it("Test get price from fallback oracle when hasValue false", async () => {
+            const new_price_feed_fallback_mockup = await price_feed_fallback_mockup();
             const price_feed_mockup = await price_feed_moc_mockup();
             await price_feed_mockup.setHas(false);
             const [, price_feeds_moc] = await set_oracle(
-                (await price_feed_rsk_mockup()).address,
+                new_price_feed_fallback_mockup.address,
                 price_feed_mockup.address
             );
             const res = await price_feeds_moc.latestAnswer();
-            expect(res.eq(new BN(10).pow(new BN(20)))).to.be.true;
+            expect(res.eq((await new_price_feed_fallback_mockup.latestAnswer())[0])).to.be.true;
         });
     });
 });

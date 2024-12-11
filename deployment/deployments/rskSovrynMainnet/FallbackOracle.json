@@ -1,0 +1,69 @@
+{
+  "address": "0x16261C66D8D687600E5CbF7945986044A6569cBe",
+  "abi": [
+    {
+      "inputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "latestAnswer",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x7ff545d11d22d9bb68e06fdec9952f0c06bd19c5c65d20f28992fd3ad35bae24",
+  "receipt": {
+    "to": null,
+    "from": "0xa0Fdcd9d4Ca7d5a34aaB00b325d92865B830ED8b",
+    "contractAddress": "0x16261C66D8D687600E5CbF7945986044A6569cBe",
+    "transactionIndex": 1,
+    "gasUsed": "82817",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xe1574abcf65f91bcb9cd7d3e4b871b7821c5d38161fdc4d66c947d545fb23dbd",
+    "transactionHash": "0x7ff545d11d22d9bb68e06fdec9952f0c06bd19c5c65d20f28992fd3ad35bae24",
+    "logs": [],
+    "blockNumber": 6920273,
+    "cumulativeGasUsed": "139037",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "0b1da6df82ab86bd428fa9fbe0919a7c",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"constant\":true,\"inputs\":[],\"name\":\"latestAnswer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Dummy Oracle contract that supports MoC medianizer interface (latestAnswer) which will always return (0, false) value\",\"methods\":{\"latestAnswer()\":{\"details\":\"dummy function to support MoC medianizer\",\"return\":\"priceValue which is hardcoded to 0flag that indicate if the price is valid or not, hardcoded to false\"}}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/feeds/FallbackOracle.sol\":\"FallbackOracle\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":forge-std/=foundry/lib/forge-std/src/\"]},\"sources\":{\"contracts/feeds/FallbackOracle.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.5.17;\\n\\n/// @title A generic interface for external price providers\\ninterface IExternalPriceFeed {\\n    /// @dev The returned price should be 18-decimal value\\n    /// @return the prive value and a boolean stating if the query was successful\\n    function latestAnswer() external view returns (uint256, bool);\\n}\\n\\n/**\\n * @dev Dummy Oracle contract that supports MoC medianizer interface (latestAnswer) which will always return (0, false) value\\n */\\ncontract FallbackOracle is IExternalPriceFeed {\\n    constructor() public {}\\n\\n    /**\\n     * @dev dummy function to support MoC medianizer\\n     * @return priceValue which is hardcoded to 0\\n     * @return flag that indicate if the price is valid or not, hardcoded to false\\n     */\\n    function latestAnswer() external view returns (uint256, bool) {\\n        return (0, false);\\n    }\\n}\\n\",\"keccak256\":\"0xaff93c4ca27bcf7d6eb33612dd16e550899b59a3fbbd3fc6a1d13703fc74ec55\"}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b5060888061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c806350d25bcd14602d575b600080fd5b6033604c565b6040805192835290151560208301528051918290030190f35b600080909156fea265627a7a7231582063592a686011058c3361df46e4f8b0091fcadce1596b14bd8bbc8a26c90720b564736f6c63430005110032",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060285760003560e01c806350d25bcd14602d575b600080fd5b6033604c565b6040805192835290151560208301528051918290030190f35b600080909156fea265627a7a7231582063592a686011058c3361df46e4f8b0091fcadce1596b14bd8bbc8a26c90720b564736f6c63430005110032",
+  "devdoc": {
+    "details": "Dummy Oracle contract that supports MoC medianizer interface (latestAnswer) which will always return (0, false) value",
+    "methods": {
+      "latestAnswer()": {
+        "details": "dummy function to support MoC medianizer",
+        "return": "priceValue which is hardcoded to 0flag that indicate if the price is valid or not, hardcoded to false"
+      }
+    }
+  },
+  "userdoc": {
+    "methods": {}
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

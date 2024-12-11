@@ -1,11 +1,14 @@
 pragma solidity 0.5.17;
 
-import "../PriceFeeds.sol";
-import "../IRSKOracle.sol";
-import "../../openzeppelin/Address.sol";
+import "./PriceFeeds.sol";
+import "../openzeppelin/Address.sol";
 
 interface Medianizer {
     function peek() external view returns (bytes32, bool);
+}
+
+interface IPriceFeedLatestAnswer {
+    function latestAnswer() external view returns (uint256 price, bool success);
 }
 
 /**
@@ -18,12 +21,12 @@ contract PriceFeedsMoC is IPriceFeedsExt, Ownable {
     /* Storage */
 
     address public mocOracleAddress;
-    address public rskOracleAddress;
+    address public fallbackOracleAddress;
 
     /* Events */
 
     event SetMoCOracleAddress(address indexed mocOracleAddress, address changerAddress);
-    event SetRSKOracleAddress(address indexed rskOracleAddress, address changerAddress);
+    event SetFallbackOracleAddress(address indexed fallbackOracleAddress, address changerAddress);
 
     /* Functions */
 
@@ -31,11 +34,11 @@ contract PriceFeedsMoC is IPriceFeedsExt, Ownable {
      * @notice Initialize a new MoC Oracle.
      *
      * @param _mocOracleAddress The MoC Oracle address.
-     * @param _rskOracleAddress The RSK Oracle address.
+     * @param _fallbackOracleAddress The fallback Oracle address.
      * */
-    constructor(address _mocOracleAddress, address _rskOracleAddress) public {
+    constructor(address _mocOracleAddress, address _fallbackOracleAddress) public {
         setMoCOracleAddress(_mocOracleAddress);
-        setRSKOracleAddress(_rskOracleAddress);
+        setFallbackOracleAddress(_fallbackOracleAddress);
     }
 
     /**
@@ -47,8 +50,9 @@ contract PriceFeedsMoC is IPriceFeedsExt, Ownable {
         if (hasValue) {
             return uint256(value);
         } else {
-            (uint256 price, ) = IRSKOracle(rskOracleAddress).getPricing();
-            return price;
+            (uint256 price, bool success) = IPriceFeedLatestAnswer(fallbackOracleAddress)
+                .latestAnswer();
+            return success ? price : 0;
         }
     }
 
@@ -64,13 +68,16 @@ contract PriceFeedsMoC is IPriceFeedsExt, Ownable {
     }
 
     /**
-     * @notice Set the RSK Oracle address.
+     * @notice Set the fallback Oracle address.
      *
-     * @param _rskOracleAddress The RSK Oracle address.
+     * @param _fallbackOracleAddress The fallback Oracle address.
      */
-    function setRSKOracleAddress(address _rskOracleAddress) public onlyOwner {
-        require(Address.isContract(_rskOracleAddress), "_rskOracleAddress not a contract");
-        rskOracleAddress = _rskOracleAddress;
-        emit SetRSKOracleAddress(rskOracleAddress, msg.sender);
+    function setFallbackOracleAddress(address _fallbackOracleAddress) public onlyOwner {
+        require(
+            Address.isContract(_fallbackOracleAddress),
+            "_fallbackOracleAddress not a contract"
+        );
+        fallbackOracleAddress = _fallbackOracleAddress;
+        emit SetFallbackOracleAddress(fallbackOracleAddress, msg.sender);
     }
 }

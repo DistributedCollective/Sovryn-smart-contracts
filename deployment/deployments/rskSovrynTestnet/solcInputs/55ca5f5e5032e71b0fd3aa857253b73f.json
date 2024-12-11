@@ -1,0 +1,38 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/feeds/testnet/MockMoCMedianizer.sol": {
+      "content": "pragma solidity 0.5.17;\n\n/** Mock medianizer contract that will support for MoC medianizer interface to be used for testnet */\ncontract MockMoCMedianizer {\n    uint256 public price;\n\n    constructor(uint256 _price) public {\n        price = _price;\n    }\n\n    /**\n     * @dev set mock price\n     * @param _price new price\n     */\n    function setPrice(uint256 _price) external {\n        price = _price;\n    }\n\n    /**\n     * @dev returning fixed price of rbtc (e.g: 100k)\n     * @return value value price of rbtc\n     * @return hasValue flag that is indicating the price is working or not\n     */\n    function peek() external view returns (bytes32 value, bool hasValue) {\n        return (bytes32(price), true);\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "storageLayout",
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    },
+    "remappings": [
+      "forge-std/=foundry/lib/forge-std/src/"
+    ]
+  }
+}

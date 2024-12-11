@@ -1,0 +1,128 @@
+{
+  "address": "0xCE1D1A2509575eD65c0b6eCde43Ad6Fffd428fB7",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_price",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "peek",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "value",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "hasValue",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "price",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_price",
+          "type": "uint256"
+        }
+      ],
+      "name": "setPrice",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x3850b26f38191032d38c727db7098cd6aa3e92f387ce2e397e604d1c183c71ef",
+  "receipt": {
+    "to": null,
+    "from": "0xa0Fdcd9d4Ca7d5a34aaB00b325d92865B830ED8b",
+    "contractAddress": "0xCE1D1A2509575eD65c0b6eCde43Ad6Fffd428fB7",
+    "transactionIndex": 0,
+    "gasUsed": "122035",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x4aefbb7804f8cfbf2e17c412b21bb17a3f6a11c739f510758081f6d234270a71",
+    "transactionHash": "0x3850b26f38191032d38c727db7098cd6aa3e92f387ce2e397e604d1c183c71ef",
+    "logs": [],
+    "blockNumber": 5788137,
+    "cumulativeGasUsed": "122035",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "100000000000000000000000"
+  ],
+  "numDeployments": 3,
+  "solcInputHash": "55ca5f5e5032e71b0fd3aa857253b73f",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"constant\":true,\"inputs\":[],\"name\":\"peek\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"value\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"hasValue\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"price\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\"}],\"name\":\"setPrice\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"peek()\":{\"details\":\"returning fixed price of rbtc (e.g: 100k)\",\"return\":\"value value price of rbtchasValue flag that is indicating the price is working or not\"},\"setPrice(uint256)\":{\"details\":\"set mock price\",\"params\":{\"_price\":\"new price\"}}}},\"userdoc\":{\"methods\":{},\"notice\":\"Mock medianizer contract that will support for MoC medianizer interface to be used for testnet \"}},\"settings\":{\"compilationTarget\":{\"contracts/feeds/testnet/MockMoCMedianizer.sol\":\"MockMoCMedianizer\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":forge-std/=foundry/lib/forge-std/src/\"]},\"sources\":{\"contracts/feeds/testnet/MockMoCMedianizer.sol\":{\"content\":\"pragma solidity 0.5.17;\\n\\n/** Mock medianizer contract that will support for MoC medianizer interface to be used for testnet */\\ncontract MockMoCMedianizer {\\n    uint256 public price;\\n\\n    constructor(uint256 _price) public {\\n        price = _price;\\n    }\\n\\n    /**\\n     * @dev set mock price\\n     * @param _price new price\\n     */\\n    function setPrice(uint256 _price) external {\\n        price = _price;\\n    }\\n\\n    /**\\n     * @dev returning fixed price of rbtc (e.g: 100k)\\n     * @return value value price of rbtc\\n     * @return hasValue flag that is indicating the price is working or not\\n     */\\n    function peek() external view returns (bytes32 value, bool hasValue) {\\n        return (bytes32(price), true);\\n    }\\n}\\n\",\"keccak256\":\"0xd97414a8b2d7779de82b8eaae7ff6fc11921ad99b77052e4cd48055f71d6be2a\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506040516101233803806101238339818101604052602081101561003357600080fd5b505160005560dd806100466000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c806359e02dd714604157806391b7f5ed146060578063a035b1fe14607c575b600080fd5b60476094565b6040805192835290151560208301528051918290030190f35b607a60048036036020811015607457600080fd5b5035609d565b005b608260a2565b60408051918252519081900360200190f35b60005460019091565b600055565b6000548156fea265627a7a723158206a671e76933e50fbff6eb48393fd95b3c74045f594b5f83ca0b284b04c8a598364736f6c63430005110032",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b5060043610603c5760003560e01c806359e02dd714604157806391b7f5ed146060578063a035b1fe14607c575b600080fd5b60476094565b6040805192835290151560208301528051918290030190f35b607a60048036036020811015607457600080fd5b5035609d565b005b608260a2565b60408051918252519081900360200190f35b60005460019091565b600055565b6000548156fea265627a7a723158206a671e76933e50fbff6eb48393fd95b3c74045f594b5f83ca0b284b04c8a598364736f6c63430005110032",
+  "devdoc": {
+    "methods": {
+      "peek()": {
+        "details": "returning fixed price of rbtc (e.g: 100k)",
+        "return": "value value price of rbtchasValue flag that is indicating the price is working or not"
+      },
+      "setPrice(uint256)": {
+        "details": "set mock price",
+        "params": {
+          "_price": "new price"
+        }
+      }
+    }
+  },
+  "userdoc": {
+    "methods": {},
+    "notice": "Mock medianizer contract that will support for MoC medianizer interface to be used for testnet "
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 3,
+        "contract": "contracts/feeds/testnet/MockMoCMedianizer.sol:MockMoCMedianizer",
+        "label": "price",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      }
+    ],
+    "types": {
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

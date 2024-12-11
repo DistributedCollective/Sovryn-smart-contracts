@@ -1,6 +1,6 @@
 pragma solidity 0.5.17;
 
-import "../feeds/testnet/PriceFeedsMoC.sol";
+import "../feeds/PriceFeedsMoC.sol";
 
 // This contract is only for test purposes
 // https://github.com/money-on-chain/Amphiraos-Oracle/blob/master/contracts/medianizer/medianizer.sol
