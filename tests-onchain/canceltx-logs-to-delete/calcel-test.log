@@ -1,0 +1,24 @@
+hh droptx --n 393 --network rskSovrynTestnet
+
+An unexpected error occurred:
+
+Error: nonce has already been used
+
+// we need to repeat with lower gas price
+
+// nonce expired
+
+hh droptx --n 394 --network rskSovrynTestnet
+
+
+ubuntu@ip-10-0-12-30:~/SOVRYN/CORE$ hh droptx --n 394 --network rskSovrynTestnet
+You have both ethereum-waffle and @nomicfoundation/hardhat-chai-matchers installed. They don't work correctly together, so please make sure you only use one.
+
+We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://hardhat.org/migrate-from-waffle
+CryptoEnv > Type your password to decrypt the env, or press enter to skip it
+
+CryptoEnv > 3 keys decrypted
+2024-12-11 01:35:45 Dummy transaction hash successfully broadcated at: 
+2024-12-11 01:35:45 0x197d1d737b0b0c1059693edf4bf1a70c3762024b5715e8e64f6a42ecfcd7d971
+2024-12-11 01:36:21 Target transaction has been successfully cancelled.
+ubuntu@ip-10-0-12-30:~/SOVRYN/CORE$

@@ -288,7 +288,7 @@ task("canceltx", "Cancel tx in mempool")
         } = hre;
         const { AddressZero } = hre.ethers.constants;
 
-        const signerAcc = (await hre.getNamedAccounts())[signer].toLowercase();
+        const signerAcc = (await hre.getNamedAccounts())[signer].toLowerCase();
         const deployerSigner = await ethers.getSigner(signerAcc);
 
         let nonce;
@@ -348,7 +348,7 @@ task("canceltx", "Cancel tx in mempool")
 // when something goes wrong and we want to prevent the confirmation and we need to proceed fast.
 // the prupose of this task is actually to replace with a dummy tx with higher gas price offering
 // it is a special case of the utils:replace-tx task
-// fastest, safest way of use:                          $ hh droptx --n <Current-Tx-Count>
+// fastest, safest way of use:               $ hh droptx --n <Current-Tx-Count> --network <network>
 task("droptx", "Cancel tx in mempool")
     .addParam("signer", "Signer name: 'signer' or 'deployer", "deployer")
     .addOptionalParam("hash", "Transaction hash to cancel")
@@ -362,7 +362,7 @@ task("droptx", "Cancel tx in mempool")
         } = hre;
         const { AddressZero } = hre.ethers.constants;
 
-        const signerAcc = (await hre.getNamedAccounts())[signer].toLowercase();
+        const signerAcc = (await hre.getNamedAccounts())[signer].toLowerCase();
         const deployerSigner = await ethers.getSigner(signerAcc);
 
         let nonce;
@@ -665,7 +665,7 @@ task("utils:simulate-tx", "Simulates a transaction on forked network")
         fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), { flag: "w+" });
         fs.writeFileSync("./txReceipt.json", JSON.stringify(txReceipt, null, 2), { flag: "w+" });
     });
-// way of use: $ hh send-tx --network <network-according-hh-config> --tx-to <address> --tx-value <value> --tx-data <data> --tx-from <address> --tx-gas-limit <gas-limit> --tx-gas-price <gas-price> --tx-nonce <nonce> --simulate
+// way of use: $ hh utils:send-tx --network <network-according-hh-config> --tx-to <address> --tx-value <value> --tx-data <data> --tx-from <address> --tx-gas-limit <gas-limit> --tx-gas-price <gas-price> --tx-nonce <nonce> --simulate
 task("utils:send-tx", "Creates and sends a raw transaction")
     .addParam("txTo", "address: The address to send the transaction to")
     .addParam("txValue", "number: The value to send in the transaction")
@@ -718,14 +718,14 @@ task("utils:send-tx", "Creates and sends a raw transaction")
                     console.error(`Error executing child task: ${error.message}`);
                 }
                 return;
-            } else if (signer && !simulate) {
+            } else if (signer && !taskArgs.simulate) {
                 console.log(
                     `WARINIG: REAL TRANSACTION;\n Address ${taskArgs.txFrom} found in wallet, sending transaction...`
                 );
-                const signedTx = await ethers.provider.getSigner().signTransaction(tx);
-                const txResponse = await ethers.provider.sendTransaction(signedTx);
-                const txReceipt = await txResponse.wait();
+                // const signedTx = await ethers.provider.getSigner().signTransaction(tx);
+                const txResponse = await signer.sendTransaction(tx);
                 console.log("Transaction hash: ", txResponse.hash);
+                const txReceipt = await txResponse.wait();
                 fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), {
                     flag: "w+",
                 });
