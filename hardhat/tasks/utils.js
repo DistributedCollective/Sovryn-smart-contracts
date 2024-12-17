@@ -5,15 +5,6 @@ const logger = new Logs().showInConsole(true);
 const { task } = require("hardhat/config");
 const { getSignerFromAccount } = require("../../deployment/helpers/helpers");
 
-/*const {
-    signWithMultisig,
-    multisigCheckTx,
-    multisigRevokeConfirmation,
-    multisigExecuteTx,
-    multisigAddOwner,
-    multisigRemoveOwner,
-} = require("../../deployment/helpers/helpers");*/
-
 const assetNamesByNetwork = {
     1: "ETH",
     30: "RBTC",
@@ -24,7 +15,7 @@ const assetNamesByNetwork = {
 // functions to parse .csv files on asset distribution
 async function parseFileForSendDirect(fileName, decimals) {
     const { BigNumber } = require("ethers");
-    console.log(fileName);
+    logger.info(fileName);
     let totalAmount = BigNumber.from("0");
     let receivers = [];
     let amounts = [];
@@ -74,13 +65,13 @@ async function parseFileForSendDirect(fileName, decimals) {
                 receivers.push(tokenOwner.toLowerCase());
                 amounts.push(normalizedAmountStr);
 
-                console.log("=======================================");
-                console.log(`'${tokenOwner}',`);
-                console.log(normalizedAmountStr);
+                logger.info("=======================================");
+                logger.info(`'${tokenOwner}',`);
+                logger.info(normalizedAmountStr);
             })
             .on("end", () => {
-                console.log(receivers);
-                console.log(amounts);
+                logger.info(receivers);
+                logger.info(amounts);
 
                 if (errorMsg !== "") {
                     reject(new Error(`Formatting error: ${errorMsg}`));
@@ -156,9 +147,6 @@ task(
             ? address
             : deployment.implementation ?? deployment.address;
         const onchainBytecode = await provider.getCode(contractAddress);
-        // console.log("onchain bytecode: ", await provider.getCode(contractAddress));
-        // console.log();
-        // console.log("expected deployedBytecode: ", deploymentObject.deployedBytecode);
         const sameLength = onchainBytecode.length === expectedBytecode.length;
         if (!sameLength) {
             logger.error(
@@ -454,12 +442,12 @@ task("utils:send-direct", "Direct token sender script")
 
         let signer = await getSignerFromAccount(hre, account);
         let signerAddress = signer._address;
-        console.log("Signer address: ", signerAddress);
+        logger.info("Signer address: ", signerAddress);
 
         // this action is only valid in RSK or BOB networks.
         // We will update on future deployments on Eth and Bnb networks.
         const netId = await ethers.provider.getNetwork().then((n) => n.chainId);
-        console.log("Network ID: ", netId);
+        logger.info("Network ID: ", netId);
         if (netId === 1 || netId === 56) {
             logger.error("This action is only valid in RSK or BOB networks");
             return;
@@ -473,7 +461,7 @@ task("utils:send-direct", "Direct token sender script")
         if (native) {
             currency = assetNamesByNetwork[netId.toString()];
         }
-        console.log(`Decimals of ${currency} is: `, decimals);
+        logger.info(`Decimals of ${currency} is: `, decimals);
 
         const balanceBefore = await signer.getBalance();
         let totalAmount = 0;
@@ -483,14 +471,14 @@ task("utils:send-direct", "Direct token sender script")
             ? await parseFileForSendDirect(path, 18)
             : await parseFileForSendDirect(path, decimals);
         totalAmount += data.totalAmount;
-        console.log("Data successfully parsed");
+        logger.success("Data successfully parsed");
 
         if (!native) {
             // check if signer hold enough assets and if so, send it to GenericTokenSender
             const balance = await token.balanceOf(signerAddress);
             const contractBalance = await token.balanceOf(GenericTokenSender.address);
-            console.log("Sender's balance of token: ", balance.toString());
-            console.log("GenericTokenSender's balance of token: ", contractBalance.toString());
+            logger.info("Sender's balance of token: ", balance.toString());
+            logger.info("GenericTokenSender's balance of token: ", contractBalance.toString());
             if (balance.add(contractBalance).lt(totalAmount)) {
                 logger.error("Insufficient funds to distribute");
                 return;
@@ -498,32 +486,18 @@ task("utils:send-direct", "Direct token sender script")
             const amountToTransfer = BigNumber.from(totalAmount).sub(contractBalance);
             const transfer_tx = await token.transfer(GenericTokenSender.address, amountToTransfer);
             const transfer_receipt = await transfer_tx.wait();
-            console.log("Token transferred");
+            logger.success("Token transferred");
             fs.writeFileSync(
                 `./scripts/externalData/${currency}_distribution_initial_transfer.json`,
                 JSON.stringify(transfer_receipt, null, 2),
                 { flags: "w" }
             );
-
-            // const approved = await token.allowance(signerAddress, GenericTokenSender.address);
-            // console.log("Amount of token approved: ", approved.toString());
-            // let tx_approval_receipt;
-            // if (approved.lt(totalAmount)) {
-            //     const tx_approval = await token.approve(GenericTokenSender.address, totalAmount);
-            //     tx_approval_receipt = await tx_approval.wait();
-            // }
-            // console.log("Token approved");
-            // fs.writeFileSync(
-            //     `./scripts/externalData/${currency}_distribution_approval.json`,
-            //     JSON.stringify(tx_approval_receipt, null, 2),
-            //     { flags: "w" }
-            // );
         } else {
             // check if signer hold enough assets and if so, send it to GenericTokenSender
             const balance = await signer.getBalance();
             const contractBalance = await ethers.provider.getBalance(GenericTokenSender.address);
-            console.log("sender's balance of token: ", balance.toString());
-            console.log("GenericTokenSender's balance of token: ", contractBalance.toString());
+            logger.info("sender's balance of token: ", balance.toString());
+            logger.info("GenericTokenSender's balance of token: ", contractBalance.toString());
             if (balance.add(contractBalance).lt(totalAmount)) {
                 logger.error("Insufficient funds to distribute");
                 return;
@@ -534,7 +508,7 @@ task("utils:send-direct", "Direct token sender script")
                 value: amountToTransfer,
             });
             const transfer_receipt = await transfer_tx.wait();
-            console.log("Native Asset transferred");
+            logger.success("Native Asset transferred");
             fs.writeFileSync(
                 `./scripts/externalData/${currency}_distribution_initial_transfer.json`,
                 JSON.stringify(transfer_receipt, null, 2),
@@ -558,10 +532,10 @@ task("utils:send-direct", "Direct token sender script")
             data.amounts
         );
         const receiptTx = await tx.wait();
-        console.log("Transaction hash:");
-        console.log(tx.hash);
-        console.log("Transaction gas used:");
-        console.log(tx.gasUsed);
+        logger.info("Transaction hash:");
+        logger.info(tx.hash);
+        logger.info("Transaction gas used:");
+        logger.info(tx.gasUsed);
         fs.writeFileSync(
             `./scripts/externalData/${currency}_distribution_tx_receipt.json`,
             JSON.stringify(receiptTx, null, 2),
@@ -578,15 +552,13 @@ task("utils:send-direct", "Direct token sender script")
             usersBalancesAfter.push(balance);
         }
 
-        console.log("=======================================");
-        console.log(`${currency} amount:`);
-        // console.log(totalAmount / 10 ** decimals);
-        console.log(ethers.utils.formatUnits(totalAmount, decimals).toString() * 1);
+        logger.info("=======================================");
+        logger.info(`${currency} amount:`);
+        logger.info(ethers.utils.formatUnits(totalAmount, decimals).toString() * 1);
 
         const balanceAfter = await signer.getBalance();
-        console.log("Execution cost:");
-        // console.log((balanceBefore.sub(balanceAfter)) / 10 ** 18);
-        console.log(
+        logger.info("Execution cost:");
+        logger.info(
             ethers.utils.formatUnits(balanceBefore.sub(balanceAfter), "ether").toString() * 1
         );
 
@@ -594,13 +566,13 @@ task("utils:send-direct", "Direct token sender script")
             const diff = usersBalancesAfter[i] - usersBalancesBefore[i];
             const expectedDiff = data.amounts[i].toString();
             const matchDiff = diff == expectedDiff.toString();
-            console.log("=======================================");
-            console.log(`amount received by '${data.receivers[i]}',`);
-            console.log(diff / 10 ** decimals);
-            console.log("while the expected amount was:");
-            console.log(data.amounts[i].toString() / 10 ** decimals);
+            logger.info("=======================================");
+            logger.info(`amount received by '${data.receivers[i]}',`);
+            logger.info(diff / 10 ** decimals);
+            logger.info("while the expected amount was:");
+            logger.info(data.amounts[i].toString() / 10 ** decimals);
             if (matchDiff) {
-                console.log(`The expected amount matches for ${data.receivers[i]}`);
+                logger.success(`The expected amount matches for ${data.receivers[i]}`);
             } else {
                 console.error(`The amounts DO NOT match for ${data.receivers[i]}`);
             }
@@ -655,13 +627,12 @@ task("utils:simulate-tx", "Simulates a transaction on forked network")
         signer = await getImpersonatedSigner(taskArgs.txFrom);
         const balance = await ethers.provider.getBalance(signer.address);
         if (balance.eq(0)) {
-            console.log(`Setting balance for address ${signer.address}...`);
+            logger.info(`Setting balance for address ${signer.address}...`);
             await setBalance(signer.address, ethers.utils.parseEther("1.0"));
         }
-        // const signedTx = await signer.signTransaction(tx);
         const txResponse = await signer.sendTransaction(tx);
         const txReceipt = await txResponse.wait();
-        console.log("Simulated Transaction hash: ", txResponse.hash);
+        logger.info("Simulated Transaction hash: ", txResponse.hash);
         fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), { flag: "w+" });
         fs.writeFileSync("./txReceipt.json", JSON.stringify(txReceipt, null, 2), { flag: "w+" });
     });
@@ -679,7 +650,7 @@ task("utils:send-tx", "Creates and sends a raw transaction")
         const { ethers } = hre;
         if (!taskArgs.txGasPrice) {
             taskArgs.txGasPrice = await ethers.provider.getGasPrice();
-            console.log(
+            logger.info(
                 `Current gas price: ${ethers.utils.formatUnits(taskArgs.txGasPrice, "gwei")} gwei`
             );
         }
@@ -698,7 +669,7 @@ task("utils:send-tx", "Creates and sends a raw transaction")
                 (account) => account.address.toLowerCase() === taskArgs.txFrom.toLowerCase()
             );
             if (!signer || taskArgs.simulate) {
-                console.log(`simulating on forked network...`);
+                logger.info(`simulating on forked network...`);
                 const command =
                     "hh simulate-tx " +
                     `--tx-to ${tx.to} ` +
@@ -709,22 +680,21 @@ task("utils:send-tx", "Creates and sends a raw transaction")
                     `${taskArgs.txGasLimit ? `--tx-gas-limit ${tx.gasLimit}` : ""} ` +
                     `${taskArgs.txGasPrice ? `--tx-gas-price ${tx.gasPrice}` : ""} ` +
                     `${taskArgs.txNonce ? `--tx-nonce ${tx.nonce}` : ""}`;
-                console.log(`Running command: ${command}`);
+                logger.info(`Running command: ${command}`);
                 try {
                     // Run the child task synchronously
                     const output = execSync(command, { stdio: "inherit" });
-                    console.log(`Child task completed successfully.`);
+                    logger.success(`Child task completed successfully.`);
                 } catch (error) {
                     console.error(`Error executing child task: ${error.message}`);
                 }
                 return;
             } else if (signer && !taskArgs.simulate) {
-                console.log(
+                logger.warning(
                     `WARINIG: REAL TRANSACTION;\n Address ${taskArgs.txFrom} found in wallet, sending transaction...`
                 );
-                // const signedTx = await ethers.provider.getSigner().signTransaction(tx);
                 const txResponse = await signer.sendTransaction(tx);
-                console.log("Transaction hash: ", txResponse.hash);
+                logger.info("Transaction hash: ", txResponse.hash);
                 const txReceipt = await txResponse.wait();
                 fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), {
                     flag: "w+",
@@ -737,7 +707,7 @@ task("utils:send-tx", "Creates and sends a raw transaction")
         } else {
             signer = await ethers.provider.getSigner();
             if (taskArgs.simulate) {
-                console.log("simulating on forked network...");
+                logger.info("simulating on forked network...");
                 const command =
                     "hh simulate-tx " +
                     `--tx-to ${tx.to} ` +
@@ -751,19 +721,19 @@ task("utils:send-tx", "Creates and sends a raw transaction")
                 try {
                     // Run the child task synchronously
                     const output = execSync(command, { stdio: "inherit" });
-                    console.log(`Child task completed successfully.`);
+                    logger.success(`Child task completed successfully.`);
                 } catch (error) {
                     console.error(`Error executing child task: ${error.message}`);
                 }
                 return;
             } else {
-                console.log(
+                logger.warning(
                     "WARINIG: REAL TRANSACTION;\n No address provided, sending transaction from account[0]..."
                 );
                 const signedTx = await signer.signTransaction(tx);
                 const txResponse = await ethers.provider.sendTransaction(signedTx);
                 const txReceipt = await txResponse.wait();
-                console.log("Transaction hash: ", txResponse.hash);
+                logger.info("Transaction hash: ", txResponse.hash);
                 fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), {
                     flag: "w+",
                 });
@@ -790,20 +760,17 @@ task("utils:data-parser", "Encode data into abi format")
         params.forEach((param, index) => {
             try {
                 const x = JSON.parse(param);
-                // if JSON parse is successful, convert param into ethers BigNumber
                 params[index] = ethers.BigNumber.from(x);
-                // console.log(`Parsed parameter for index ${index}: `, params[index]);
             } catch (e) {
                 params[index] = param.toLowerCase();
-                // console.log(`Parsed parameter for index ${index}: `, params[index]);
             }
         });
         if (match && match[1]) {
             fName = match[1];
             const data = iface.encodeFunctionData(fName, params);
-            console.log("\n\nEncoded data: \n\n", data, "\n\n");
+            logger.success("\n\nEncoded data: \n\n", data, "\n\n");
         } else {
-            console.log("Invalid ABI syntax");
+            logger.error("Invalid ABI syntax");
         }
     });
 // way of use: $ hh unit-parser --unit <unit> --decimals <decimals>
@@ -815,7 +782,7 @@ task("utils:unit-parser", "Parse unit from string")
         const unit = taskArgs.unit;
         const decimals = taskArgs.decimals;
         const unitParsed = ethers.utils.parseUnits(unit, decimals);
-        console.log("Unit parsed: ", unitParsed.toString());
+        logger.info("Unit parsed: ", unitParsed.toString());
     });
 // way of use: $ hh zero-padder --arg <arg> --bytes <number-of-bytes>
 task("utils:zero-padder", "Pad an argument with zeros")
@@ -826,5 +793,5 @@ task("utils:zero-padder", "Pad an argument with zeros")
         const arg = taskArgs.arg.toLowerCase();
         const bytesLength = taskArgs.bytes;
         const paddedArg = ethers.utils.hexZeroPad(arg, bytesLength);
-        console.log("Padded argument: ", paddedArg);
+        logger.info("Padded argument: ", paddedArg);
     });

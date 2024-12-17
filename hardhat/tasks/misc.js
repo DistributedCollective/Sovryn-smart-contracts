@@ -1,5 +1,13 @@
+require("dotenv").config();
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
+const { NODE_REAL_API_KEY, TENDERLY_BOB_RPC_KEY } = process.env;
+
+const forkRpcUrls = {
+    ethMainnet: `https://eth-mainnet.nodereal.io/v1/${NODE_REAL_API_KEY}`,
+    bobMainnet: `https://bob.gateway.tenderly.co/${TENDERLY_BOB_RPC_KEY}`,
+};
+
 const {
     impersonateAccount,
     mine,
@@ -224,24 +232,21 @@ task(
         getNamedAccounts,
         ethers,
     } = hre;
-    const staking = await ethers.getContractAt(
-        "IStaking",
-        "0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e"
-    );
+    const staking = await ethers.getContract("Staking");
     //const abi = (await deployments.getArtifact("Staking")).abi;
-    const abi = ["event VestingStakeSet(uint256,uint96)"];
+    // const abi = ["event VestingStakeSet(uint256,uint96)"];
     //const abi = ["event TokensStaked(address,uint256,uint256,uint256)"];
-    const iface = new ethers.utils.Interface(abi);
+    // const iface = new ethers.utils.Interface(abi);
     //const filter = staking.filters.VestingStakeSet(null, null);
-    //cblock = 3780053; // a block with the first vesting created
-    cblock = 5190053; // a block with the first vesting created
+    cblock = 3780053; // a block with the first vesting created
+    // cblock = 5190053; // a block with the first vesting created
     block = await ethers.provider.getBlockNumber();
     let index = 0;
     while (cblock != block) {
         cblock += 10000;
         if (cblock > block) cblock = block;
         const filter = {
-            address: "0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e",
+            address: staking.address,
             topics: [
                 //ethers.utils.id("TokensStaked(address,uint256,uint256,uint256)")
                 ethers.utils.id("VestingStakeSet(uint256,uint96)"),
@@ -258,10 +263,8 @@ task(
             console.log("failure at block", cblock);
             return;
         }
-        //console.log(await getEthersLog(staking, filter));
         if (cres[0]) {
             console.log("index: ", index++, "\n", cres);
-            //break;
         }
         if (cblock % 500000 == 0) {
             console.log(cblock, "block reached");
@@ -300,9 +303,8 @@ task("misc:run-forked-eth-mainnet", "Runs a forked eth node")
 task("misc:run-forked-eth-mainnet", "Runs a forked eth node")
     .addOptionalParam("forkBlock", "Block number to fork from")
     .setAction(async (taskArgs, hre) => {
-        const { NODE_REAL_API_KEY } = process.env;
         const forkParams = {
-            jsonRpcUrl: `https://eth-mainnet.nodereal.io/v1/${NODE_REAL_API_KEY}`,
+            jsonRpcUrl: forkRpcUrls.ethMainnet,
             blockNumber: taskArgs.forkBlock ? parseInt(taskArgs.forkBlock) : undefined,
         };
 
@@ -321,7 +323,7 @@ task("misc:run-forked-bob-mainnet", "Runs a forked bob node")
     .addOptionalParam("forkBlock", "Block number to fork from")
     .setAction(async (taskArgs, hre) => {
         const forkParams = {
-            jsonRpcUrl: `https://bob.gateway.tenderly.co/${process.env.TENDERLY_BOB_RPC_KEY}`,
+            jsonRpcUrl: forkRpcUrls.bobMainnet,
             blockNumber: taskArgs.forkBlock ? parseInt(taskArgs.forkBlock) : undefined,
         };
         await hre.network.provider.request({
