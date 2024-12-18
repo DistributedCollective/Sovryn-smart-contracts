@@ -1189,14 +1189,26 @@ const getArgsSIP0085 = async (hre) => {
     const newBorrowerOperationsImplementation = await get("BorrowerOperations_Implementation");
     const borrowerOperationsProxy = await get("BorrowerOperations_Proxy");
 
+    /** SOV3564 Mynt */
+    const myntAdminProxy = await get("MyntAdminProxy");
+
+    const basketManagerProxy = await get("BasketManagerV3_Proxy");
+    const newBasketManagerImpl = await get("BasketManagerV3_Implementation");
+
     const args = {
-        targets: [borrowerOperationsProxy.address],
-        values: [0],
-        signatures: ["setImplementation(address)"],
-        data: [abiCoder.encode(["address"], [newBorrowerOperationsImplementation.address])],
+        targets: [borrowerOperationsProxy.address, myntAdminProxy.address],
+        values: [0, 0],
+        signatures: ["setImplementation(address)", "upgrade(address,address)"],
+        data: [
+            abiCoder.encode(["address"], [newBorrowerOperationsImplementation.address]),
+            abiCoder.encode(
+                ["address", "address"],
+                [basketManagerProxy.address, newBasketManagerImpl.address]
+            ),
+        ],
         // @todo update sip description
         description:
-            "SIP-0085: Zero Smart Contracts Upgrade (Apply Reentrancy Guard), Details: https://github.com/DistributedCollective/SIPS/blob/a86ac0e/SIP-0085.md, sha256: ",
+            "SIP-0085: Zero Smart Contracts Upgrade (Apply Reentrancy Guard) & Mynt BasketManager Upgrade, Details: https://github.com/DistributedCollective/SIPS/blob/a86ac0e/SIP-0085.md, sha256: ",
     };
     return { args, governor: "GovernorOwner" };
 };

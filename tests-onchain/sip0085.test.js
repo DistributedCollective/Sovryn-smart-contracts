@@ -159,13 +159,22 @@ describe("SIP-0085 test onchain", () => {
             // VERIFY execution
             expect((await governorAdmin.proposals(proposalId)).executed).to.be.true;
 
-            // Validate zero contracs upgrade
+            // Validate zero contracts upgrade
             const borrowerOperationsProxy = await ethers.getContract("BorrowerOperations_Proxy");
             const borrowerOperationsImpl = await get("BorrowerOperations_Implementation");
 
             expect(await borrowerOperationsProxy.getImplementation()).to.equal(
                 borrowerOperationsImpl.address
             );
+
+            // Validate mynt contracts upgrade
+            const basketManagerProxy = await get("BasketManagerV3_Proxy"); // MocIntegration
+            const basketManagerImpl = await get("BasketManagerV3_Implementation");
+            const myntAdminProxy = await ethers.getContract("MyntAdminProxy");
+
+            expect(
+                await myntAdminProxy.getProxyImplementation(basketManagerProxy.address)
+            ).to.equal(basketManagerImpl.implementation);
         });
     });
 });
