@@ -1180,23 +1180,29 @@ const getArgsSip0084Part2 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
-const getArgsSIP0085 = async (hre) => {
+const getArgsSip0086 = async (hre) => {
     const {
         ethers,
         deployments: { get, log },
     } = hre;
 
+    const abiCoder = new ethers.utils.AbiCoder();
+
     const newBorrowerOperationsImplementation = await get("BorrowerOperations_Implementation");
-    const borrowerOperationsProxy = await get("BorrowerOperations_Proxy");
+    const borrowerOperationsProxy = await ethers.getContract("BorrowerOperations_Proxy");
 
     /** SOV3564 Mynt */
-    const myntAdminProxy = await get("MyntAdminProxy");
+    const myntAdminProxy = await ethers.getContract("MyntAdminProxy");
 
     const basketManagerProxy = await get("BasketManagerV3_Proxy");
     const newBasketManagerImpl = await get("BasketManagerV3_Implementation");
 
+    const borrowerOperationsProxyOwner = await borrowerOperationsProxy.getOwner();
+    const myntAdminProxyOwner = await myntAdminProxy.owner();
+
     const args = {
         targets: [borrowerOperationsProxy.address, myntAdminProxy.address],
+        targetOwnerValidationAddresses: [borrowerOperationsProxyOwner, myntAdminProxyOwner],
         values: [0, 0],
         signatures: ["setImplementation(address)", "upgrade(address,address)"],
         data: [
@@ -1235,5 +1241,5 @@ module.exports = {
     getArgsSip0079,
     getArgsSip0084Part1,
     getArgsSip0084Part2,
-    getArgsSIP0085,
+    getArgsSip0086,
 };
