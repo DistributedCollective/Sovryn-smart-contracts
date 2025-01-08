@@ -36,7 +36,13 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.9" # or another version compatible with your package
-      - name: Install python dependencies 1
+      - name: Check Python version
+        run: python --version # Verify the Python version
+      - name: Print working directory
+        run: pwd # Print the current working directory
+      - name: List files
+        run: ls -la
+      - name: Install python dependencies
         run: pip install -r requirements.txt && brownie pm install OpenZeppelin/openzeppelin-contracts@4.9.5
       - name: Withdraw Fees
         run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron_amm.py --network=rsk-mainnet
