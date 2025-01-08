@@ -17,24 +17,34 @@ jobs:
         node-version: [18.x]
 
     steps:
-      - name: Set pip cache directory path
-        id: pip-cache-dir-path
-        run: |
-          echo "::set-output name=dir::$(pip cache dir)"
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Save current directory
+        run: echo "CURRENT_DIR=$(pwd)" >> $GITHUB_ENV
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Restore correct directory
+        run: cd ${{ env.CURRENT_DIR }}
+      # - name: Set pip cache directory path
+      #   id: pip-cache-dir-path
+      #   run: |
+      #     echo "::set-output name=dir::$(pip cache dir)"
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: "3.9" # or another version compatible with your package
-      - name: Restore pip cache
-        uses: actions/cache@v4
-        id: pip-cache
-        with:
-          path: |
-            ${{ steps.pip-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-            ${{ runner.os }}-pip-
+      # - name: Restore pip cache
+      #   uses: actions/cache@v4
+      #   id: pip-cache
+      #   with:
+      #     path: |
+      #       ${{ steps.pip-cache-dir-path.outputs.dir }}
+      #     key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      #       ${{ runner.os }}-pip-
       - name: Check Python version
         run: python --version # Verify the Python version
       - name: Print working directory
