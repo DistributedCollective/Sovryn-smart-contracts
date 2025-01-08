@@ -32,13 +32,14 @@ jobs:
       #     restore-keys: |
       #       ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
       #       ${{ runner.os }}-pip-
-
-      - name: Install python dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9.6" # or another version compatible with your package
+      - name: Install python dependencies 1
         run: |
           pip install --upgrade pip setuptools wheel
-          pip install PyYAML==5.4.1  # Install PyYAML first
           pip install -r requirements.txt && brownie pm install OpenZeppelin/openzeppelin-contracts@4.9.5
-
       - name: Withdraw Fees
         run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron_amm.py --network=rsk-mainnet
         env:
