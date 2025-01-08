@@ -35,7 +35,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.9.6" # or another version compatible with your package
+          python-version: "3.9" # or another version compatible with your package
       - name: Install python dependencies 1
         run: |
           pip install --upgrade pip setuptools wheel
