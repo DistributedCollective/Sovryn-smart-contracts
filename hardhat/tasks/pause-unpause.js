@@ -385,7 +385,7 @@ const freezeUnfreezeBiDiFastBTC = async (hre, signer, bool) => {
 
 const isFastBtcFrozen = async (hre) => {
     const { ethers } = hre;
-    return await (await ethers.getContract("FastBTCBiDiPauseFreeze")).frozen();
+    return await (await ethers.getContract("FastBTCBiDi")).frozen();
 };
 
 const pauseUnpauseBiDiFastBTC = async (hre, signer, bool) => {
@@ -404,7 +404,7 @@ const pauseUnpauseBiDiFastBTC = async (hre, signer, bool) => {
     const targetDeployment = await get("FastBTCBiDiPauseFreeze");
 
     const targetInterface = new ethers.utils.Interface(targetDeployment.abi);
-    const funcName = bool ? "pause" : "ununpause";
+    const funcName = bool ? "pause" : "unpause";
     let data = targetInterface.encodeFunctionData(funcName);
     logger.warn(`Generating multisig tx to ${funcName} FastBTCBiDi ...`);
     await sendWithMultisig(multisigDeployment.address, targetDeployment.address, data, signerAcc);
@@ -412,7 +412,7 @@ const pauseUnpauseBiDiFastBTC = async (hre, signer, bool) => {
 
 const isFastBtcPaused = async (hre) => {
     const { ethers } = hre;
-    return await (await ethers.getContract("FastBTCBiDiPauseFreeze")).paused();
+    return await (await ethers.getContract("FastBTCBiDi")).paused();
 };
 
 const printIsFastBtcPaused = async (hre) => {

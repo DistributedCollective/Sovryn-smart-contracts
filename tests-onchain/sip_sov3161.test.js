@@ -1,4 +1,4 @@
-//@note hh test tests-onchain/sip0047.test.js --network rskForkedMainnet
+//@note hh test ./tests-onchain/sip_sov3161.test.js --network rskForkedMainnet
 
 const {
     impersonateAccount,

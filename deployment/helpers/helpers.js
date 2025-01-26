@@ -12,6 +12,12 @@ const col = require("cli-color");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 
+const getImpersonatedSignerFromJsonRpcProvider = async (addressToImpersonate) => {
+    const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
+    await provider.send("hardhat_impersonateAccount", [addressToImpersonate]);
+    return provider.getSigner(addressToImpersonate);
+};
+
 const logTimer = (time, passedTime) => {
     const delaySeconds = time / 1000;
     let timer = delaySeconds - passedTime;

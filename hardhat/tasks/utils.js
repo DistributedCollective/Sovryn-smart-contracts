@@ -183,3 +183,74 @@ task("utils:replace-tx", "Replace tx in mempool")
             }
         }
     );
+
+task("utils:find-block-by-timestamp", "Finds the block closest to a given timestamp")
+    .addParam("timestamp", "The target UNIX timestamp")
+    .setAction(async (taskArgs, hre) => {
+        const { ethers } = hre;
+        const targetTimestamp = parseInt(taskArgs.timestamp);
+
+        const provider = ethers.provider;
+
+        // Function to get the timestamp of a specific block
+        const getBlockTimestamp = async (blockNumber) => {
+            const block = await provider.getBlock(blockNumber);
+            return block.timestamp;
+        };
+
+        // Start binary search
+        let latestBlock = await provider.getBlockNumber();
+        let earliestBlock = 0;
+        let closestBlock = -1;
+
+        while (earliestBlock <= latestBlock) {
+            const midBlock = Math.floor((earliestBlock + latestBlock) / 2);
+            const midTimestamp = await getBlockTimestamp(midBlock);
+
+            if (midTimestamp === targetTimestamp) {
+                closestBlock = midBlock;
+                break;
+            }
+
+            if (midTimestamp < targetTimestamp) {
+                earliestBlock = midBlock + 1;
+                closestBlock = midBlock; // Keep track of the closest block so far
+            } else {
+                latestBlock = midBlock - 1;
+            }
+        }
+
+        const closestTimestamp = await getBlockTimestamp(closestBlock);
+
+        console.log(`Closest Block: ${closestBlock}`);
+        console.log(`Block Timestamp: ${closestTimestamp}`);
+        console.log(`Difference: ${Math.abs(targetTimestamp - closestTimestamp)} seconds`);
+    });
+
+task(
+    "utils:convert-date-to-timestamp",
+    "Converts a date in 'YYYY-MM-DD-hh:mm' format to a UNIX timestamp"
+)
+    .addParam("date", "The date in 'YYYY-MM-DD-hh:mm' format (interpreted as UTC-0)")
+    .setAction(async (taskArgs) => {
+        const dateStr = taskArgs.date;
+
+        try {
+            // Parse the date string into a Date object in UTC-0
+            const [year, month, day, hour, minute] = dateStr.split(/[-:]/).map(Number);
+            const date = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+
+            // Validate the date
+            if (isNaN(date.getTime())) {
+                throw new Error("Invalid date format. Ensure it's in 'YYYY-MM-DD-hh:mm' format.");
+            }
+
+            // Convert to UNIX timestamp
+            const timestamp = Math.floor(date.getTime() / 1000);
+
+            console.log(`Date: ${dateStr} (UTC-0)`);
+            console.log(`UNIX Timestamp: ${timestamp}`);
+        } catch (error) {
+            console.error(`Error: ${error.message}`);
+        }
+    });

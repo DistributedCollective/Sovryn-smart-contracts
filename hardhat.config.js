@@ -34,6 +34,8 @@ const mainnetPKs = [
 ].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
 const mainnetAccounts = mainnetPKs.length > 0 ? mainnetPKs : mnemonic;
 
+const networkIdToUse = process.env.NETWORK_ID ? JSON.parse(process.env.NETWORK_ID) : 31337;
+
 /*
  * Test hardhat forking with patched hardhat
  *
@@ -159,10 +161,34 @@ module.exports = {
         proposer2: {
             default: 1,
         },
+        exchequerOwner0: {
+            rskForkedMainnet: "0x324066770C0b11E0095f44cb0CC9d8f178320EB9",
+        },
+        exchequerOwner1: {
+            rskForkedMainnet: "0x9E0816a71B53ca67201a5088df960fE90910DE55",
+        },
+        exchequerOwner2: {
+            rskForkedMainnet: "0xEaBB83a1cEFc5f50C83BC4252C618d3294152A86",
+        },
+        exchequerOwner3: {
+            rskForkedMainnet: "0xaaa5a190ACCbc50F4F9c130b5876521E4D5F9D6c",
+        },
+        exchequerOwner4: {
+            rskForkedMainnet: "0xDFD4dA0E0E656Af349e192b954BAAef0fc1EbA62",
+        },
+        exchequerOwner5: {
+            rskForkedMainnet: "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E",
+        },
+        exchequerOwner6: {
+            rskForkedMainnet: "0xa0Fdcd9d4Ca7d5a34aaB00b325d92865B830ED8b",
+        },
+        exchequerOwner7: {
+            rskForkedMainnet: "0x9E9C0A0c51e730f6C915f80A145c9312385DCF22",
+        },
     },
     networks: {
         hardhat: {
-            chainId: 31337,
+            chainId: networkIdToUse,
             allowUnlimitedContractSize: true,
             accounts: { mnemonic: "test test test test test test test test test test test junk" },
             initialBaseFeePerGas: 0,
@@ -204,7 +230,7 @@ module.exports = {
             timeout: 100000,
         },
         rskForkedMainnet: {
-            chainId: 31337,
+            chainId: 30,
             accounts: mainnetAccounts,
             url: "http://127.0.0.1:8545",
             blockGasLimit: 6800000,
