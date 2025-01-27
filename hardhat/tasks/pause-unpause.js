@@ -38,10 +38,13 @@ const pauseUnpauseProtocol = async (hre, signer, bool) => {
         logger.warn(`Sovryn protocol is already ${isProtocolPaused ? "paused" : "not paused"}`);
         return;
     }
+    const multisigDeployment = await get("MultiSigWallet");
     const signerAcc = (await hre.getNamedAccounts())[signer];
     const targetDeploymentAddress = (await get("ISovryn")).address;
     const iface = new ethers.utils.Interface(["function togglePaused(bool paused)"]);
     let data = await iface.encodeFunctionData("togglePaused", [bool]);
+    console.log("P A U S I N G data: ");
+    console.log(JSON.stringify(data, null, 2));
     await sendWithMultisig(multisigDeployment.address, targetDeploymentAddress, data, signerAcc);
 };
 
