@@ -4,6 +4,7 @@
 // npx hardhat test ./tests-onchain/protocol_pause.test.js --network rskForkedMainnet
 //@note     hh test ./tests-onchain/protocol_pause.test.js --network rskForkedMainnet
 
+const fs = require("fs");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 const log = console.log;
@@ -131,11 +132,32 @@ describe("Pause Protocol - Check is paused - Unpause Protocol", () => {
         const secondConfirmerAcc = (await hre.getNamedAccounts())["exchequerOwner2"];
         await setBalance(secondConfirmerAcc, ONE_RBTC);
         const confirmerTwo = await getImpersonatedSignerFromJsonRpcProvider(secondConfirmerAcc);
-        await (
+        const confirmReceipt2 = await (
             await multisig
                 .connect(confirmerTwo)
                 .confirmTransaction(txCountBefore, { gasLimit: 6000000, gasPrice: 66000000 })
         ).wait();
+
+        const debugTraceTx2 = await hre.network.provider.request({
+            method: "debug_traceTransaction",
+            params: [
+                confirmReceipt2.transactionHash,
+                {
+                    // Some example flags:
+                    disableStorage: false, // set to true to omit storage diffs (less verbose)
+                    disableStack: false, // set to true to omit stack traces
+                    disableMemory: false, // set to true to omit memory changes
+                },
+            ],
+        });
+        fs.writeFileSync(
+            "./tmp/PAUSE_FREEZE/debugTraceTx2.json",
+            JSON.stringify(debugTraceTx2, null, 2)
+        );
+        LOG(
+            `\n    The debug trace of the second confirmation tx is: ${col.yellowBright("debugTraceTx2.json")}`
+        );
+
         const secondConfirmationCount = await multisig.getConfirmationCount(txCountBefore);
         LOG(
             col.yellowBright("    secondConfirmationCount: ") +
