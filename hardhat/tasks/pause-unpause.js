@@ -200,7 +200,7 @@ task("pausing:unpause-lp-beacon(s)", "Unpause Lending Pools Beacons")
     )
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .setAction(async ({ signer, names: beaconsList }, hre) => {
-        await beaconsPauseUnpause(hre, signer, beaconsList, true);
+        await beaconsPauseUnpause(hre, signer, beaconsList, false);
     });
 
 // -------- Lending pools (Loan tokens) functions -------- //
@@ -240,9 +240,13 @@ const loanTokenFunctionsPauseUnpause = async (
     functionsListParam,
     bool
 ) => {
-    const { ethers } = hre;
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
 
     const signerAcc = (await hre.getNamedAccounts())[signer];
+    const multisigDeployment = await get("MultiSigWallet");
 
     let tokens = loanTokensListParam.split(",");
     let functions = functionsListParam.split(",");
@@ -252,9 +256,13 @@ const loanTokenFunctionsPauseUnpause = async (
 
     for (let loanTokenDeploymentName of tokens) {
         const loanToken = await ethers.getContract(loanTokenDeploymentName);
+        const loanTokenSettingsLowerAdminLogic = await ethers.getContractAt(
+            "LoanTokenSettingsLowerAdmin",
+            loanToken.address
+        );
         for (let loanTokenFunctionName of functions) {
             let funcId = loanTokenFunctionsList[loanTokenFunctionName]; //"borrow(bytes32,uint256,uint256,uint256,address,address,address,bytes)";
-            const funcIsPaused = await loanToken.checkPause(funcId);
+            const funcIsPaused = await loanTokenSettingsLowerAdminLogic.checkPause(funcId);
             if (funcIsPaused == bool) {
                 logger.warn(
                     `Loan Token function ${loanTokenDeploymentName}.${loanTokenFunctionName} is already ${
