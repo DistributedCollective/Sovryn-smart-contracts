@@ -60,7 +60,7 @@ task("check-fork-patch", "Check Hardhat Fork Patch by Rainer").setAction(async (
     });
     //const xusd = await IERC20.at("0xb5999795BE0EbB5bAb23144AA5FD6A02D080299F");
     const xusd = await hre.ethers.getContractAt(
-        "ERC20",
+        "./contracts/openzeppelin/ERC20.sol:ERC20",
         "0xb5999795BE0EbB5bAb23144AA5FD6A02D080299F"
     );
     const totalSupply = await xusd.totalSupply();
