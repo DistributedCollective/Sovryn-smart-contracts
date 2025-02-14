@@ -471,21 +471,18 @@ task("watcher:checkBalances", "Check balances of the watcher contract").setActio
                 assetAddress.toLowerCase()
             );
             const balance = await tokenContract.balanceOf(watcherContractAddress);
-            if (assetsList[assetAddress] === "RBTC") {
-                balances[assetsList[assetAddress]] = ethers.utils.formatUnits(
-                    (
-                        await ethers.provider.getBalance(
-                            "0x3a680a34aea376501ba19dccc0d99e972357945b".toLowerCase()
-                        )
-                    ).toString(),
-                    18
-                );
-            } else {
-                balances[assetsList[assetAddress]] = ethers.utils.formatUnits(
-                    balance.toString(),
-                    18
-                );
-            }
+            // if (assetsList[assetAddress] === "RBTC") {
+            //     balances[assetsList[assetAddress]] = ethers.utils.formatUnits(
+            //         (
+            //             await ethers.provider.getBalance(
+            //                 "0x3a680a34aea376501ba19dccc0d99e972357945b".toLowerCase()
+            //             )
+            //         ).toString(),
+            //         18
+            //     );
+            // } else {
+            balances[assetsList[assetAddress]] = ethers.utils.formatUnits(balance.toString(), 18);
+            // }
         }
 
         console.log("Balances:", JSON.stringify(balances, null, 2));
