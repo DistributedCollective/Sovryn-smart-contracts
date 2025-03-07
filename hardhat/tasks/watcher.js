@@ -591,7 +591,7 @@ task("watcher:consolidate", "Consolidate funds needed for both drop and surge sc
         } else {
             const message = `🔴 WATCHER: FUNDS LACKING ❌\n\n${Object.entries(lackingFunds)
                 .map(([asset, amount]) => `${asset}: ${formatNumber(amount)}`)
-                .join("\n")}`;
+                .join("\n")}\n\nSimulation done with ±${percentage}% fluctuation on BTC price\n\n`;
             await hre.run("discord:sendAlertMessage", {
                 channelId: process.env.DISCORD_CHANNEL_ID.toString(),
                 userId: process.env.DISCORD_USER_ID.toString(),

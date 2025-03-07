@@ -28,7 +28,7 @@ task("discord:sendAlertMessage", "Send a message to a specific channel")
         await discordClient.login(process.env.WATCHER_BOT_TOKEN);
         let messageToSend = message;
         if (userId) {
-            messageToSend = `<@${userId}>\n${message}`;
+            messageToSend = `<@${userId}>\n\n${message}`;
         }
         try {
             // await waitForReady();
