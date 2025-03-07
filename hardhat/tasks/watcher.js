@@ -40,13 +40,24 @@ const getEthersLog = async (contract, filter) => {
 const assetsList = {
     "0xb5999795be0ebb5bab23144aa5fd6a02d080299f": "XUSD",
     "0xe700691da7b9851f2f35f8b8182c69c53ccad9db": "DOC",
-    "0x542fda317318ebf1d3deaf76e0b632741a7e677d": "RBTC",
+    "0x542fda317318ebf1d3deaf76e0b632741a7e677d": "WRBTC",
     "0xc1411567d2670e24d9c4daaa7cda95686e1250aa": "DLLR",
     "0xEf213441a85DF4d7acBdAe0Cf78004E1e486BB96": "rUSDT",
     "0x440cd83c160de5c96ddb20246815ea44c7abbca8": "BPro",
 };
 
-// how to: $ hh watcher:findEmptyActiveLoans
+const loanIdExceptions = [
+    "0x839c5e3e54c478d5b7b4f07914552f88c7fd974a067045ee20260bfed07b988f",
+    "0x3a5e42c0a954113d0d9723a6feae1bd718e2ee3de6526e644ed2644d9452bde2",
+    "0x7bd4dd1b477d9da2a05db6799bd64b57d551c8cfa08ce88a59855b7823dc284d",
+    "0x78ac142f3e1b5a1ec8e2b6f0658455a8fedf35e647f0b598fbb4ae3f52c455ad",
+    "0x025e12b1ef09ba962ea72b9cb591c6622aee9a7db83de361c1302501532b0a1a",
+    "0xc95376a523540b7375fabd693a1175345242691aa5c844ccc21fc99943dc4c3a",
+    "0xeff0550dcd9cc9b69b71fd10edc73df03cf934a78108ed71b4f038aebf0b46b4",
+    "0x864c1b1c9d113968a61079e26d262a685a0eadc4cffae263f51830233b1737f1",
+];
+
+// how to: $ hh watcher:findUnhealthyByDrop
 task(
     "watcher:findUnhealthyByDrop",
     "Find the list of unhealthy positions after a drop in BTC price is simulated"
@@ -162,7 +173,7 @@ task(
         });
         progressBar.start(totalSteps, 0);
 
-        // Loop through the loan positions in chunks of 50
+        // Loop through the loan positions in chunks of 10 instead of 50
         for (let indexer = 0; indexer < netLoanPositions; indexer += chunkSize) {
             let nextIndex = indexer + chunkSize;
             if (nextIndex > netLoanPositions) {
@@ -188,7 +199,9 @@ task(
         // ---------------------------
         const simplifiedArray = unhealthyDropPositions.map((position) => position[0]);
         const uniqueLoanIds = new Set(simplifiedArray);
-        const uniqueSimplifiedArray = Array.from(uniqueLoanIds);
+        const uniqueSimplifiedArray = Array.from(uniqueLoanIds).filter(
+            (loanId) => !loanIdExceptions.includes(loanId)
+        );
         const dedupedArray = [];
         for (const loanId of uniqueSimplifiedArray) {
             const loanData = unhealthyDropPositions.find((position) => position[0] === loanId);
@@ -396,7 +409,9 @@ task(
         // ---------------------------
         const simplifiedArray = unhealthySurgePositions.map((position) => position[0]);
         const uniqueLoanIds = new Set(simplifiedArray);
-        const uniqueSimplifiedArray = Array.from(uniqueLoanIds);
+        const uniqueSimplifiedArray = Array.from(uniqueLoanIds).filter(
+            (loanId) => !loanIdExceptions.includes(loanId)
+        );
         const dedupedArray = [];
         for (const loanId of uniqueSimplifiedArray) {
             const loanData = unhealthySurgePositions.find((position) => position[0] === loanId);
@@ -457,37 +472,134 @@ task(
         return data;
     });
 
-// how to: $ hh watcher:checkBalances --network rskSovrynMainnet
+// how to: $ hh watcher:checkBalances
 task("watcher:checkBalances", "Check balances of the watcher contract").setAction(
     async ({}, hre) => {
         const { ethers } = hre;
-        const watcherContract = await ethers.getContract("Watcher");
+        const provider = new ethers.providers.JsonRpcProvider(
+            "https://mainnet-dev.sovryn.app/rpc"
+        );
+        const path = require("path");
+        const watcherArtifact = require(
+            path.join(process.cwd(), "external/deployments/rskMainnet/Watcher.json")
+        );
+        const watcherContract = new ethers.Contract(
+            watcherArtifact.address,
+            watcherArtifact.abi,
+            provider
+        );
         const watcherContractAddress = watcherContract.address;
 
         const balances = {};
         for (const assetAddress in assetsList) {
-            const tokenContract = await ethers.getContractAt(
-                "./contracts/openzeppelin/ERC20.sol:ERC20",
-                assetAddress.toLowerCase()
+            const tokenContract = new ethers.Contract(
+                assetAddress.toLowerCase(),
+                ["function balanceOf(address) view returns (uint256)"],
+                provider
             );
             const balance = await tokenContract.balanceOf(watcherContractAddress);
-            // if (assetsList[assetAddress] === "RBTC") {
-            //     balances[assetsList[assetAddress]] = ethers.utils.formatUnits(
-            //         (
-            //             await ethers.provider.getBalance(
-            //                 "0x3a680a34aea376501ba19dccc0d99e972357945b".toLowerCase()
-            //             )
-            //         ).toString(),
-            //         18
-            //     );
-            // } else {
             balances[assetsList[assetAddress]] = ethers.utils.formatUnits(balance.toString(), 18);
-            // }
         }
 
         console.log("Balances:", JSON.stringify(balances, null, 2));
         return balances;
     }
 );
+
+// how to: $ hh watcher:consolidate 15
+// solving memory issues: $ export NODE_OPTIONS=--max_old_space_size=8192 && hh watcher:consolidate 15
+task("watcher:consolidate", "Consolidate funds needed for both drop and surge scenarios")
+    .addOptionalPositionalParam(
+        "percentage",
+        "Percentage of BTC price change to simulate (default: 10, max: 95)",
+        "10"
+    )
+    .setAction(async ({ percentage }, hre) => {
+        const { ethers } = hre;
+
+        // percentage sanity check
+        let percentageNumber = parseFloat(percentage);
+        if (isNaN(percentageNumber)) {
+            throw new Error("The percentage parameter must be a valid number.");
+        }
+        if (percentageNumber > 95) {
+            console.log("Percentage greater than 95 provided, capping it at 95.");
+            percentageNumber = 95;
+        }
+
+        // running watcher:findUnhealthyByDrop
+        const dropData = await hre.run("watcher:findUnhealthyByDrop", {
+            percentage: percentageNumber.toString(),
+        });
+
+        // running watcher:findUnhealthyBySurge
+        const surgeData = await hre.run("watcher:findUnhealthyBySurge", {
+            percentage: percentageNumber.toString(),
+            netLoanPositions: dropData.netLoanPositions.toString(),
+            forkingBlockNumber: dropData.blockNumber.toString(),
+        });
+
+        // getting the worst values of fundsNeededByAsset
+        const totalFundsNeeded = {};
+        const allAssets = new Set([
+            ...Object.keys(dropData.fundsNeededByAsset),
+            ...Object.keys(surgeData.fundsNeededByAsset),
+        ]);
+
+        for (const asset of allAssets) {
+            const dropAmount = parseFloat(dropData.fundsNeededByAsset[asset] || "0");
+            const surgeAmount = parseFloat(surgeData.fundsNeededByAsset[asset] || "0");
+            totalFundsNeeded[asset] = Math.max(dropAmount, surgeAmount).toString();
+        }
+
+        // getting the balances of the watcher contract
+        const balances = await hre.run("watcher:checkBalances");
+
+        // comparing totalFundsNeeded with balances
+        const lackingFunds = {};
+        for (const asset in totalFundsNeeded) {
+            const needed = parseFloat(totalFundsNeeded[asset]);
+            const available = parseFloat(balances[asset] || "0");
+            if (needed > available) {
+                lackingFunds[asset] = (needed - available).toString();
+            }
+        }
+
+        const formatNumber = (number) => {
+            return Number(number).toLocaleString("en-US", {
+                maximumFractionDigits: 18, // Adjusted according to the precision needed
+            });
+        };
+
+        // returning the consolidated data
+        const out = {
+            dropData,
+            surgeData,
+            totalFundsNeeded,
+            balances,
+            lackingFunds,
+        };
+        fs.writeFileSync("./tmp/WATCHER/consolidatedData.json", JSON.stringify(out, null, 2));
+        logger.info("Consolidated watcher data stored in ./tmp/WATCHER/consolidatedData.json");
+
+        if (Object.keys(lackingFunds).length === 0) {
+            logger.info("No lacking funds found");
+            await hre.run("discord:sendCalmMessage", {
+                channelId: process.env.DISCORD_CHANNEL_ID.toString(),
+            });
+            return;
+        } else {
+            const message = `🔴 WATCHER: FUNDS LACKING ❌\n\n${Object.entries(lackingFunds)
+                .map(([asset, amount]) => `${asset}: ${formatNumber(amount)}`)
+                .join("\n")}`;
+            await hre.run("discord:sendAlertMessage", {
+                channelId: process.env.DISCORD_CHANNEL_ID.toString(),
+                userId: process.env.DISCORD_USER_ID.toString(),
+                message: message,
+            });
+        }
+
+        return out;
+    });
 
 // module.exports = {};

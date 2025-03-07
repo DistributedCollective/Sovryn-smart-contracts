@@ -1,6 +1,5 @@
 {
-    "address": "0x051B89f575fCd540F0a6a5B49c75f9a83BB2Cf07",
-
+    "address": "0x051b89f575fcd540f0a6a5b49c75f9a83bb2cf07",
     "abi": [
         {
             "inputs": [
@@ -123,7 +122,12 @@
         {
             "anonymous": false,
             "inputs": [
-                { "indexed": true, "internalType": "bytes32", "name": "role", "type": "bytes32" },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
                 {
                     "indexed": true,
                     "internalType": "bytes32",
@@ -143,14 +147,24 @@
         {
             "anonymous": false,
             "inputs": [
-                { "indexed": true, "internalType": "bytes32", "name": "role", "type": "bytes32" },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
                 {
                     "indexed": true,
                     "internalType": "address",
                     "name": "account",
                     "type": "address"
                 },
-                { "indexed": true, "internalType": "address", "name": "sender", "type": "address" }
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
             ],
             "name": "RoleGranted",
             "type": "event"
@@ -158,14 +172,24 @@
         {
             "anonymous": false,
             "inputs": [
-                { "indexed": true, "internalType": "bytes32", "name": "role", "type": "bytes32" },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
                 {
                     "indexed": true,
                     "internalType": "address",
                     "name": "account",
                     "type": "address"
                 },
-                { "indexed": true, "internalType": "address", "name": "sender", "type": "address" }
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
             ],
             "name": "RoleRevoked",
             "type": "event"
@@ -216,28 +240,52 @@
         {
             "inputs": [],
             "name": "DEFAULT_ADMIN_ROLE",
-            "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
             "stateMutability": "view",
             "type": "function"
         },
         {
             "inputs": [],
             "name": "RBTC_ADDRESS",
-            "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
             "stateMutability": "view",
             "type": "function"
         },
         {
             "inputs": [],
             "name": "ROLE_EXECUTOR",
-            "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
             "stateMutability": "view",
             "type": "function"
         },
         {
             "inputs": [],
             "name": "ROLE_OWNER",
-            "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
             "stateMutability": "view",
             "type": "function"
         },
@@ -248,8 +296,16 @@
                     "name": "_conversionPath",
                     "type": "address[]"
                 },
-                { "internalType": "uint256", "name": "_amount", "type": "uint256" },
-                { "internalType": "uint256", "name": "_minProfit", "type": "uint256" }
+                {
+                    "internalType": "uint256",
+                    "name": "_amount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_minProfit",
+                    "type": "uint256"
+                }
             ],
             "name": "arbitrage",
             "outputs": [],
@@ -258,8 +314,16 @@
         },
         {
             "inputs": [
-                { "internalType": "contract IERC20", "name": "_token", "type": "address" },
-                { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+                {
+                    "internalType": "contract IERC20",
+                    "name": "_token",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_amount",
+                    "type": "uint256"
+                }
             ],
             "name": "depositTokens",
             "outputs": [],
@@ -267,16 +331,36 @@
             "type": "function"
         },
         {
-            "inputs": [{ "internalType": "bytes32", "name": "role", "type": "bytes32" }],
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                }
+            ],
             "name": "getRoleAdmin",
-            "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
             "stateMutability": "view",
             "type": "function"
         },
         {
             "inputs": [
-                { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-                { "internalType": "address", "name": "account", "type": "address" }
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
             ],
             "name": "grantRole",
             "outputs": [],
@@ -285,45 +369,107 @@
         },
         {
             "inputs": [
-                { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-                { "internalType": "address", "name": "account", "type": "address" }
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
             ],
             "name": "hasRole",
-            "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
             "stateMutability": "view",
             "type": "function"
         },
         {
             "inputs": [
-                { "internalType": "bytes32", "name": "_loanId", "type": "bytes32" },
-                { "internalType": "uint256", "name": "_closeAmount", "type": "uint256" }
+                {
+                    "internalType": "bytes32",
+                    "name": "_loanId",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_closeAmount",
+                    "type": "uint256"
+                }
             ],
             "name": "liquidate",
             "outputs": [
-                { "internalType": "uint256", "name": "loanCloseAmount", "type": "uint256" },
-                { "internalType": "uint256", "name": "seizedAmount", "type": "uint256" },
-                { "internalType": "address", "name": "seizedToken", "type": "address" }
+                {
+                    "internalType": "uint256",
+                    "name": "loanCloseAmount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "seizedAmount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "seizedToken",
+                    "type": "address"
+                }
             ],
             "stateMutability": "nonpayable",
             "type": "function"
         },
         {
             "inputs": [
-                { "internalType": "bytes32", "name": "_loanId", "type": "bytes32" },
-                { "internalType": "uint256", "name": "_closeAmount", "type": "uint256" },
+                {
+                    "internalType": "bytes32",
+                    "name": "_loanId",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_closeAmount",
+                    "type": "uint256"
+                },
                 {
                     "internalType": "contract IERC20[]",
                     "name": "_swapbackConversionPath",
                     "type": "address[]"
                 },
-                { "internalType": "uint256", "name": "_swapbackMinProfit", "type": "uint256" },
-                { "internalType": "bool", "name": "_requireSwapback", "type": "bool" }
+                {
+                    "internalType": "uint256",
+                    "name": "_swapbackMinProfit",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "_requireSwapback",
+                    "type": "bool"
+                }
             ],
             "name": "liquidateWithSwapback",
             "outputs": [
-                { "internalType": "uint256", "name": "loanCloseAmount", "type": "uint256" },
-                { "internalType": "uint256", "name": "seizedAmount", "type": "uint256" },
-                { "internalType": "address", "name": "seizedToken", "type": "address" }
+                {
+                    "internalType": "uint256",
+                    "name": "loanCloseAmount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "seizedAmount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "seizedToken",
+                    "type": "address"
+                }
             ],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -331,14 +477,28 @@
         {
             "inputs": [],
             "name": "priceFeeds",
-            "outputs": [{ "internalType": "contract IPriceFeeds", "name": "", "type": "address" }],
+            "outputs": [
+                {
+                    "internalType": "contract IPriceFeeds",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
             "stateMutability": "view",
             "type": "function"
         },
         {
             "inputs": [
-                { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-                { "internalType": "address", "name": "account", "type": "address" }
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
             ],
             "name": "renounceRole",
             "outputs": [],
@@ -347,8 +507,16 @@
         },
         {
             "inputs": [
-                { "internalType": "bytes32", "name": "role", "type": "bytes32" },
-                { "internalType": "address", "name": "account", "type": "address" }
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
             ],
             "name": "revokeRole",
             "outputs": [],
@@ -411,7 +579,11 @@
             "inputs": [],
             "name": "sovrynProtocol",
             "outputs": [
-                { "internalType": "contract ISovrynProtocol", "name": "", "type": "address" }
+                {
+                    "internalType": "contract ISovrynProtocol",
+                    "name": "",
+                    "type": "address"
+                }
             ],
             "stateMutability": "view",
             "type": "function"
@@ -420,22 +592,46 @@
             "inputs": [],
             "name": "sovrynSwapNetwork",
             "outputs": [
-                { "internalType": "contract ISovrynSwapNetwork", "name": "", "type": "address" }
+                {
+                    "internalType": "contract ISovrynSwapNetwork",
+                    "name": "",
+                    "type": "address"
+                }
             ],
             "stateMutability": "view",
             "type": "function"
         },
         {
-            "inputs": [{ "internalType": "bytes4", "name": "interfaceId", "type": "bytes4" }],
+            "inputs": [
+                {
+                    "internalType": "bytes4",
+                    "name": "interfaceId",
+                    "type": "bytes4"
+                }
+            ],
             "name": "supportsInterface",
-            "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
             "stateMutability": "view",
             "type": "function"
         },
         {
             "inputs": [
-                { "internalType": "uint256", "name": "_amount", "type": "uint256" },
-                { "internalType": "address payable", "name": "_receiver", "type": "address" }
+                {
+                    "internalType": "uint256",
+                    "name": "_amount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address payable",
+                    "name": "_receiver",
+                    "type": "address"
+                }
             ],
             "name": "withdrawRbtc",
             "outputs": [],
@@ -444,9 +640,21 @@
         },
         {
             "inputs": [
-                { "internalType": "contract IERC20", "name": "_token", "type": "address" },
-                { "internalType": "uint256", "name": "_amount", "type": "uint256" },
-                { "internalType": "address payable", "name": "_receiver", "type": "address" }
+                {
+                    "internalType": "contract IERC20",
+                    "name": "_token",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_amount",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address payable",
+                    "name": "_receiver",
+                    "type": "address"
+                }
             ],
             "name": "withdrawTokens",
             "outputs": [],
@@ -456,10 +664,19 @@
         {
             "inputs": [],
             "name": "wrbtcToken",
-            "outputs": [{ "internalType": "contract IWRBTCToken", "name": "", "type": "address" }],
+            "outputs": [
+                {
+                    "internalType": "contract IWRBTCToken",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
             "stateMutability": "view",
             "type": "function"
         },
-        { "stateMutability": "payable", "type": "receive" }
+        {
+            "stateMutability": "payable",
+            "type": "receive"
+        }
     ]
 }
