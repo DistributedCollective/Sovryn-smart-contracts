@@ -651,12 +651,10 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         uint256 userShare = user.amount.mul(PRECISION).div(totalPoolTokens);
 
         // Calculate the undistributed rewards
-        uint256 undistributedRewards = // user.accumulatedReward.mul(PRECISION.sub(userShare)).div(PRECISION); // 1st try
-            // user.accumulatedReward.mul(PRECISION.add(userShare)).div(PRECISION); // 2nd try
-            user.accumulatedReward; // 3rd try
+        uint256 undistributedRewards = user.accumulatedReward; // user.accumulatedReward.mul(PRECISION.add(userShare)).div(PRECISION); // 2nd try // user.accumulatedReward.mul(PRECISION.sub(userShare)).div(PRECISION); // 1st try // 3rd try
 
         // Update the pool's accumulatedRewardPerShare to redistribute the undistributed rewards
-        if (undistributedRewards > 0) {
+        if (undistributedRewards > 0 && totalPoolTokens > user.amount) {
             pool.accumulatedRewardPerShare = pool.accumulatedRewardPerShare.add(
                 undistributedRewards.mul(PRECISION).div(totalPoolTokens.sub(user.amount))
             );
