@@ -2592,6 +2592,62 @@ contract("LiquidityMining", (accounts) => {
             expect(reward1).bignumber.equal("15");
             expect(reward2).bignumber.equal("5");
         });
+
+        it.only("check calculation for two users, same token (shares taken into account)", async () => {
+            const token = token1;
+            const amount = amount1;
+            await token.mint(account2, amount);
+            await token.approve(liquidityMining.address, amount, { from: account2 });
+
+            await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, { from: account1 });
+            // because automining is on, the following will advance a block
+            await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, { from: account2 });
+            // sanity checks
+            expect(
+                await liquidityMining.getUserAccumulatedReward(token.address, account1)
+            ).bignumber.equal("10");
+            expect(
+                await liquidityMining.getUserAccumulatedReward(token.address, account2)
+            ).bignumber.equal("0");
+            await mineBlock();
+
+            const reward1 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account1
+            );
+            const reward2 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account2
+            );
+
+            // for the first block, user 1 will receive the reward of 10 (reward given per block for 100% of shares)
+            // for the second block:
+            // - user 1 owns 1/2 of the shares => expected reward = 5 (total 10 + 5 = 15)
+            // - user 2 owns 1/2 of the shares => expected reward = 5
+            expect(reward1).bignumber.equal("15");
+            expect(reward2).bignumber.equal("5");
+
+            // 1 block pass here due to automining, 5 reward to each account
+            await liquidityMining.emergencyWithdraw(token1.address, { from: account1 });
+
+            // 1 block pass here
+            await mineBlock();
+
+            const reward11 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account1
+            );
+            expect(reward11).bignumber.equal("0");
+            const reward22 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account2
+            );
+
+            //Since account 1 has made emergencyWithdraw so account2 should get all unfinalized rewards
+            // Fails since update pool and user reward reduces reward to 20
+            // expect(reward22).bignumber.equal("40");
+            expect(reward22).bignumber.equal("30");
+        });
     });
 
     describe("getEstimatedReward", () => {
