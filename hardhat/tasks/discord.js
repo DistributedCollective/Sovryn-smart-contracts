@@ -23,13 +23,16 @@ const discordClient = new Client({
 task("discord:sendAlertMessage", "Send a message to a specific channel")
     .addParam("channelId", "The ID of the channel to send the message to")
     .addParam("message", "The message to send")
-    .addOptionalParam("userId", "The ID of the user to mention")
-    .setAction(async ({ channelId, message, userId }) => {
+    .addOptionalParam("userIds", "Comma-separated list of user IDs to mention")
+    .setAction(async ({ channelId, message, userIds }) => {
         await discordClient.login(process.env.WATCHER_BOT_TOKEN);
         let messageToSend = message;
-        if (userId) {
-            messageToSend = `<@${userId}>\n\n${message}`;
+        if (userIds) {
+            const userIdsArray = userIds.split(",").map((id) => id.trim());
+            const userMentions = userIdsArray.map((userId) => `<@${userId}>`).join("\n");
+            messageToSend = `${userMentions}\n\n${message}`;
         }
+
         try {
             // await waitForReady();
             logger.info(`Logged in as ${discordClient.user.tag}`);
@@ -49,6 +52,7 @@ task("discord:sendAlertMessage", "Send a message to a specific channel")
 
 task("discord:sendCalmMessage", "Send a message to a specific channel")
     .addParam("channelId", "The ID of the channel to send the message to")
+    .addOptionalParam("percentage", "The percentage used for simulations")
     .setAction(async ({ channelId }) => {
         await discordClient.login(process.env.WATCHER_BOT_TOKEN);
         try {
@@ -59,7 +63,7 @@ task("discord:sendCalmMessage", "Send a message to a specific channel")
                 logger.error(`Channel not found: ${channelId}`);
                 return;
             }
-            const message = `🟢 WATCHER: FUNDS ENOUGH ✅`;
+            const message = `🟢 WATCHER: FUNDS ENOUGH ✅\n\nSimulation done with ±${percentage}% fluctuation on BTC price\n\n`;
             await channel.send(message);
             logger.success(`Message sent to channel: ${channelId}`);
         } catch (error) {

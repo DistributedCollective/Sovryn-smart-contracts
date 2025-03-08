@@ -586,15 +586,25 @@ task("watcher:consolidate", "Consolidate funds needed for both drop and surge sc
             logger.info("No lacking funds found");
             await hre.run("discord:sendCalmMessage", {
                 channelId: process.env.DISCORD_CHANNEL_ID.toString(),
+                percentage: percentageNumber.toString(),
             });
             return;
         } else {
-            const message = `🔴 WATCHER: FUNDS LACKING ❌\n\n${Object.entries(lackingFunds)
-                .map(([asset, amount]) => `${asset}: ${formatNumber(amount)}`)
-                .join("\n")}\n\nSimulation done with ±${percentage}% fluctuation on BTC price\n\n`;
+            const message =
+                `🔴 WATCHER: FUNDS LACKING ❌\n\n` +
+                `Current Balances:\n${Object.entries(balances)
+                    .map(([asset, amount]) => `${asset}: ${formatNumber(amount)}`)
+                    .join("\n")}\n\n` +
+                `Total Funds Needed:\n${Object.entries(totalFundsNeeded)
+                    .map(([asset, amount]) => `${asset}: ${formatNumber(amount)}`)
+                    .join("\n")}\n\n` +
+                `Missing Funds for Simulated Scenarios:\n${Object.entries(lackingFunds)
+                    .map(([asset, amount]) => `${asset}: ${formatNumber(amount)}`)
+                    .join("\n")}\n\n` +
+                `Simulation done with ±${percentage}% fluctuation on BTC price\n\n`;
             await hre.run("discord:sendAlertMessage", {
                 channelId: process.env.DISCORD_CHANNEL_ID.toString(),
-                userId: process.env.DISCORD_USER_ID.toString(),
+                userIds: [process.env.DISCORD_USER_ID].join(","),
                 message: message,
             });
         }
