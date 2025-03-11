@@ -53,7 +53,7 @@ task("discord:sendAlertMessage", "Send a message to a specific channel")
 task("discord:sendCalmMessage", "Send a message to a specific channel")
     .addParam("channelId", "The ID of the channel to send the message to")
     .addOptionalParam("percentage", "The percentage used for simulations")
-    .setAction(async ({ channelId }) => {
+    .setAction(async ({ channelId, percentage }) => {
         await discordClient.login(process.env.WATCHER_BOT_TOKEN);
         try {
             // await waitForReady();
