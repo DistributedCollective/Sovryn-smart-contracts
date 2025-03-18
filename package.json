@@ -108,5 +108,8 @@
 			"pre-commit": "yarn prettier",
 			"pre-push": "yarn lint && yarn prettier-check"
 		}
+	},
+	"dependencies": {
+		"csv-writer": "^1.6.0"
 	}
 }
