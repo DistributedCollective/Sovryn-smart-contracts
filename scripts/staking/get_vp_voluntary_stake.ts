@@ -4,6 +4,7 @@ const STAKING_ABI = [
   "function getCurrentVotes(address account) external view returns (uint96)",
   "function getPriorVotes(address account, uint256 blockNumber, uint256 date) public view returns (uint96)",
   "function isVestingContract(address stakerAddress) external view returns (bool)",
+  "function getPriorWeightedStake(address account, uint256 blockNumber, uint256 time) external view returns (uint96)",
 ];
 
 interface ChainConfig {
@@ -52,10 +53,19 @@ async function getVoluntaryVotingPower(
     }
 
     // Get current voting power for voluntary staking
-    const votingPower = await stakingContract.getCurrentVotes(stakerAddress);
+    const block = await provider.getBlock("latest");
+    const ref_block = block.number - 1;
+    const ref_block_ts = block.timestamp;
+
+    //  the staker Voluntary Weighted Stake
+    const stakerVWS = await stakingContract.getPriorWeightedStake(
+      stakerAddress,
+      ref_block,
+      ref_block_ts,
+    );
 
     return {
-      votingPower: votingPower.toString(),
+      votingPower: stakerVWS.toString(),
       isVesting: false,
     };
   } catch (error) {
