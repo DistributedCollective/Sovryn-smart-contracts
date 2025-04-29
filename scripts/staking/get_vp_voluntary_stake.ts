@@ -28,10 +28,10 @@ const CHAIN_CONFIG: Record<string, ChainConfig> = {
   },
 };
 
-async function getVoluntaryVotingPower(
+async function getWeightedStakingAtBlock(
   chainConfig: ChainConfig,
   stakerAddress: string,
-): Promise<{ votingPower: string; isVesting: boolean }> {
+): Promise<{ weightedStake: string; isVesting: boolean }> {
   const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
 
   const stakingContract = new ethers.Contract(
@@ -44,47 +44,50 @@ async function getVoluntaryVotingPower(
     // Check if the address is a vesting contract
     const isVesting = await stakingContract.isVestingContract(stakerAddress);
 
-    // If it's a vesting contract, return 0 voting power
+    // If it's a vesting contract, return 0 weighted voluntary stake
     if (isVesting) {
       return {
-        votingPower: "0",
+        weightedStake: "0",
         isVesting: true,
       };
     }
 
-    // Get current voting power for voluntary staking
+    // Get current weighted voluntary stake
     const block = await provider.getBlock("latest");
     const ref_block = block.number - 1;
     const ref_block_ts = block.timestamp;
 
     //  the staker Voluntary Weighted Stake
-    const stakerVWS = await stakingContract.getPriorWeightedStake(
+    const weightedStake = await stakingContract.getPriorWeightedStake(
       stakerAddress,
       ref_block,
       ref_block_ts,
     );
 
     return {
-      votingPower: stakerVWS.toString(),
+      weightedStake: weightedStake.toString(),
       isVesting: false,
     };
   } catch (error) {
-    console.error(`Error getting voting power for ${stakerAddress}:`, error);
+    console.error(
+      `Error getting weighted voluntary stake for ${stakerAddress}:`,
+      error,
+    );
     throw error;
   }
 }
 
-async function getTotalVoluntaryVotingPower(
+async function getStakerTotalWeightedStaking(
   addresses: StakingAddresses,
 ): Promise<{
-  bob: { votingPower: string; isVesting: boolean };
-  rsk: { votingPower: string; isVesting: boolean };
+  bob: { weightedStake: string; isVesting: boolean };
+  rsk: { weightedStake: string; isVesting: boolean };
 }> {
   try {
-    // Get voting power from both chains in parallel
+    // Get weighted voluntary stake from both chains in parallel
     const [bobVP, rskVP] = await Promise.all([
-      getVoluntaryVotingPower(CHAIN_CONFIG.BOB, addresses.bob_staker),
-      getVoluntaryVotingPower(CHAIN_CONFIG.RSK, addresses.rsk_staker),
+      getWeightedStakingAtBlock(CHAIN_CONFIG.BOB, addresses.bob_staker),
+      getWeightedStakingAtBlock(CHAIN_CONFIG.RSK, addresses.rsk_staker),
     ]);
 
     return {
@@ -92,7 +95,7 @@ async function getTotalVoluntaryVotingPower(
       rsk: rskVP,
     };
   } catch (error) {
-    console.error("Error getting total voting power:", error);
+    console.error("Error getting weighted voluntary stake:", error);
     throw error;
   }
 }
@@ -113,18 +116,24 @@ async function main() {
   };
 
   try {
-    const votingPowers = await getTotalVoluntaryVotingPower(addresses);
+    const weightedStakes = await getStakerTotalWeightedStaking(addresses);
 
-    console.log("Voting Powers:");
+    console.log("Weighted Stakes:");
     console.log("BOB Chain:", {
       address: addresses.bob_staker,
-      ...votingPowers.bob,
-      votingPower: ethers.utils.formatUnits(votingPowers.bob.votingPower, 18), // 18 decimals
+      ...weightedStakes.bob,
+      weightedStake: ethers.utils.formatUnits(
+        weightedStakes.bob.weightedStake,
+        18,
+      ), // 18 decimals
     });
     console.log("RSK Chain:", {
       address: addresses.rsk_staker,
-      ...votingPowers.rsk,
-      votingPower: ethers.utils.formatUnits(votingPowers.rsk.votingPower, 18), // 18 decimals
+      ...weightedStakes.rsk,
+      weightedStake: ethers.utils.formatUnits(
+        weightedStakes.rsk.weightedStake,
+        18,
+      ), // 18 decimals
     });
   } catch (error) {
     console.error("Error in main:", error);
