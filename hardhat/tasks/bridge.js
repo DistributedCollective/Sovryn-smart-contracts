@@ -133,16 +133,16 @@ task("bridge:setDailyLimit", "Set daily tokens transfer limit on a bridge")
             );
             logger.warn("Populating multisig tx...");
 
-            const gasEstimated = (
-                await multisigContract.estimateGas.submitTransaction(allowTokensAddress, 0, data)
-            ).toNumber();
+            // const gasEstimated = (
+            //     await multisigContract.estimateGas.submitTransaction(allowTokensAddress, 0, data)
+            // ).toNumber();
 
             const unsignedTx = await multisigContract.populateTransaction.submitTransaction(
                 allowTokensAddress,
                 0,
                 data,
                 {
-                    gasLimit: Math.round(gasEstimated * 1.3),
+                    gasLimit: Math.round(6800000),
                 }
             );
 
@@ -218,17 +218,17 @@ task("bridge:setMaxTokensAllowed", "Set max tokens transfer limit per transfer o
             );
             logger.warn("Populating multisig tx...");
 
-            const gasEstimated = (
-                await multisigContract.estimateGas.submitTransaction(allowTokensAddress, 0, data)
-            ).toNumber();
-
+            // const gasEstimated = (
+            //     await multisigContract.estimateGas.submitTransaction(allowTokensAddress, 0, data)
+            // ).toNumber();
+            //logger.warn(`Gas estimated: ${gasEstimated}`);
             const unsignedTx = await multisigContract.populateTransaction.submitTransaction(
                 allowTokensAddress,
                 0,
-                data,
-                {
-                    gasLimit: Math.round(gasEstimated * 1.3),
-                }
+                data
+                // {
+                //     gasLimit: Math.round(gasEstimated * 1.3),
+                // }
             );
 
             delete unsignedTx.from;
