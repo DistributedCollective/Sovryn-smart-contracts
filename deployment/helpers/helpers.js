@@ -124,6 +124,27 @@ const multisigAddOwner = async (addAddress, sender) => {
     );
 };
 
+const multisigReplaceOwner = async (oldAddress, newAddress, sender) => {
+    const {
+        ethers,
+        getNamedAccounts,
+        deployments: { get },
+    } = hre;
+    const multisigDeployment = await get("MultiSigWallet");
+    let multisigInterface = new ethers.utils.Interface(multisigDeployment.abi);
+    let data = multisigInterface.encodeFunctionData("replaceOwner", [oldAddress, newAddress]);
+    ///@todo check if the deployer is one of ms owners
+    console.log(
+        `Creating multisig tx to replace owner ${oldAddress} with the new owner ${newAddress}...`
+    );
+    await sendWithMultisig(multisigDeployment.address, multisigDeployment.address, data, sender);
+    console.log(
+        col.bgBlue(
+            `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
+        )
+    );
+};
+
 const multisigRemoveOwner = async (removeAddress, sender) => {
     const {
         ethers,
@@ -839,4 +860,5 @@ module.exports = {
     logTimer,
     upgradeWithTransparentUpgradableProxy,
     getSignerFromAccount,
+    multisigReplaceOwner,
 };
