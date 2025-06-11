@@ -134,6 +134,12 @@ module.exports = {
         runOnCompile: true,
         flat: true,
         spacing: 4,
+        only: [
+            "^contracts/.*",
+            "!^contracts/openzeppelin/.*",
+            "!^contracts/utils/ProxyOwnable.sol",
+        ],
+        except: ["^contracts/test/.*", "^contracts/mocks/.*"],
     },
     contractSizer: {
         alphaSort: false,
