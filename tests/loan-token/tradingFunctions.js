@@ -190,7 +190,7 @@ const margin_trading_sov_reward_payment = async (
     // send the transaction
     const leverage_amount = oneEth.mul(BN2);
     const collateral_sent = new BN(0);
-    lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+    lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
     const sov_initial_balance = (await SOV.balanceOf(trader)).add(
         await lockedSOV.getLockedBalance(trader)
     );
@@ -247,7 +247,7 @@ const margin_trading_sov_reward_payment_with_special_rebates = async (
     // send the transaction
     const leverage_amount = oneEth.mul(BN2);
     const collateral_sent = new BN(0);
-    lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+    lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
     const sov_initial_balance = (await SOV.balanceOf(trader)).add(
         await lockedSOV.getLockedBalance(trader)
     );
@@ -581,7 +581,7 @@ const close_complete_margin_trade_sov_reward_payment = async (
     // complete closure means the whole collateral is swapped
     const swap_amount = initial_loan["collateral"];
 
-    lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+    lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
     const sov_initial_balance = (await SOV.balanceOf(trader)).add(
         await lockedSOV.getLockedBalance(trader)
     );
@@ -646,7 +646,7 @@ const close_complete_margin_trade_sov_reward_payment_with_special_rebates = asyn
     // complete closure means the whole collateral is swapped
     const swap_amount = initial_loan["collateral"];
 
-    lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+    lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
     const sov_initial_balance = (await SOV.balanceOf(trader)).add(
         await lockedSOV.getLockedBalance(trader)
     );
@@ -806,7 +806,7 @@ const close_partial_margin_trade_sov_reward_payment = async (
     // partial closure means 80% of the collateral is swapped
     const swap_amount = new BN(initial_loan["collateral"]).mul(new BN(80).mul(oneEth)).div(hunEth);
 
-    lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+    lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
     const sov_initial_balance = (await SOV.balanceOf(trader)).add(
         await lockedSOV.getLockedBalance(trader)
     );
@@ -865,7 +865,7 @@ const close_partial_margin_trade_sov_reward_payment_with_special_rebates = async
     // partial closure means 80% of the collateral is swapped
     const swap_amount = new BN(initial_loan["collateral"]).mul(new BN(80).mul(oneEth)).div(hunEth);
 
-    lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+    lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
     const sov_initial_balance = (await SOV.balanceOf(trader)).add(
         await lockedSOV.getLockedBalance(trader)
     );

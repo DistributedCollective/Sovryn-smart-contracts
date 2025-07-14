@@ -63,7 +63,7 @@ const liquidate = async (
         value = 0;
     }
 
-    lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+    lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
     const sov_borrower_initial_balance = (await SOV.balanceOf(borrower)).add(
         await lockedSOV.getLockedBalance(borrower)
     );

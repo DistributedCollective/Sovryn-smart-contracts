@@ -144,7 +144,7 @@ contract("Affliates", (accounts) => {
 
         await sovryn.setAffiliateTradingTokenFeePercent(affiliateTradingTokenFeePercent);
         expect(
-            (await sovryn.affiliateTradingTokenFeePercent()).toString() ==
+            (await sovryn.getAffiliateTradingTokenFeePercent()).toString() ==
                 affiliateTradingTokenFeePercent
         ).to.be.true;
     });

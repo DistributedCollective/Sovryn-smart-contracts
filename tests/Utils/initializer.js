@@ -703,7 +703,7 @@ const verify_sov_reward_payment = async (
         if ((await sovryn.specialRebates(sourceTokenAddress, destTokenAddress)) > 0) {
             feeRebatePercent = await sovryn.specialRebates(sourceTokenAddress, destTokenAddress);
         } else {
-            feeRebatePercent = await sovryn.feeRebatePercent();
+            feeRebatePercent = await sovryn.getFeeRebatePercent();
         }
         expect(args["receiver"]).to.equal(borrower);
         expect(args["token"]).to.equal(SOV.address);
@@ -712,7 +712,7 @@ const verify_sov_reward_payment = async (
         reward = reward.add(new BN(args["amount"]));
     }
 
-    lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+    lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
     expect(
         (await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
     ).to.be.a.bignumber.equal(sov_initial_balance.add(reward));

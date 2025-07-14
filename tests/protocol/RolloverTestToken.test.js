@@ -148,7 +148,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 
             const lender_pool_initial_balance = await SUSD.balanceOf(loanToken.address);
 
-            lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
             const sov_borrower_initial_balance = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -475,7 +475,7 @@ contract("ProtocolCloseDeposit", (accounts) => {
 
             const lender_pool_initial_balance = await SUSD.balanceOf(loanToken.address);
 
-            lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
             const sov_borrower_initial_balance = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );

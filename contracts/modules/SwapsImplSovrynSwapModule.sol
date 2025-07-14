@@ -1,6 +1,7 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
+import "../core/State.sol";
 import "../swaps/connectors/SwapsImplSovrynSwapLib.sol";
 import "../events/ModulesCommonEvents.sol";
 

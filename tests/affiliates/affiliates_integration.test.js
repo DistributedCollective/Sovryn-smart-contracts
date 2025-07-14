@@ -153,7 +153,7 @@ contract("Affiliates", (accounts) => {
             (await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner]))
                 .address
         );
-        lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
+        lockedSOV = await LockedSOV.at(await sovryn.getLockedSOVAddress());
 
         // initialize
         /// @dev Optimization: Init same feeds for all tests
@@ -385,7 +385,7 @@ contract("Affiliates", (accounts) => {
         leverageAmount = web3.utils.toWei("2", "ether");
         // underlyingToken.approve(loanTokenV2.address, loanTokenSent*2)
 
-        let previousAffiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        let previousAffiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         let tx = await loanTokenV2.marginTradeAffiliate(
             constants.ZERO_BYTES32, // loanId (0 for new loans)
             leverageAmount, // Leverage
@@ -409,7 +409,7 @@ contract("Affiliates", (accounts) => {
             }
         );
 
-        let referrerOnChain = await sovryn.affiliatesUserReferrer(trader);
+        let referrerOnChain = await sovryn.getAffiliatesUserReferrer(trader);
         expect(referrerOnChain, "Incorrect User Affiliate").to.be.equal(referrer);
 
         notFirstTradeFlagOnChain = await sovryn.getUserNotFirstTradeFlag(trader);
@@ -422,7 +422,7 @@ contract("Affiliates", (accounts) => {
         }
 
         let isHeld = decode[0].args["isHeld"];
-        let affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        let affiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         let submittedAffiliatesReward = decode[0].args["sovBonusAmount"];
         let submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
         let submittedReferrer = decode[0].args["referrer"];
@@ -472,7 +472,7 @@ contract("Affiliates", (accounts) => {
         const leverageAmount = web3.utils.toWei("2", "ether");
         // underlyingToken.approve(loanTokenV2.address, loanTokenSent*2)
 
-        let previousAffiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        let previousAffiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         let tx = await loanTokenV2.marginTradeAffiliate(
             constants.ZERO_BYTES32, // loanId (0 for new loans)
             leverageAmount, // Leverage
@@ -491,7 +491,7 @@ contract("Affiliates", (accounts) => {
             referrer: referrer,
         });
 
-        let referrerOnChain = await sovryn.affiliatesUserReferrer(trader);
+        let referrerOnChain = await sovryn.getAffiliatesUserReferrer(trader);
         expect(referrerOnChain, "Incorrect User Affiliate").to.be.equal(referrer);
 
         notFirstTradeFlagOnChain = await sovryn.getUserNotFirstTradeFlag(trader);
@@ -505,7 +505,7 @@ contract("Affiliates", (accounts) => {
         }
 
         let isHeld = decode[0].args["isHeld"];
-        let affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        let affiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         let submittedAffiliatesReward = decode[0].args["sovBonusAmount"];
         let submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
         let submittedReferrer = decode[0].args["referrer"];
@@ -529,7 +529,7 @@ contract("Affiliates", (accounts) => {
         // Change the min referrals to payout to 1
         await sovryn.setMinReferralsToPayoutAffiliates(1);
 
-        previousAffiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        previousAffiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         tx = await loanTokenV2.marginTradeAffiliate(
             constants.ZERO_BYTES32, // loanId (0 for new loans)
             leverageAmount, // Leverage
@@ -551,7 +551,7 @@ contract("Affiliates", (accounts) => {
         isHeld = decode[0].args["isHeld"];
         expect(isHeld, "First trade affiliates reward must not be in held").to.be.false;
 
-        affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        affiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         submittedAffiliatesReward = decode[0].args["sovBonusAmount"];
         submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
         sovBonusAmountPaid = decode[0].args["sovBonusAmountPaid"];
@@ -761,7 +761,7 @@ contract("Affiliates", (accounts) => {
         const leverageAmount = web3.utils.toWei("2", "ether");
         // underlyingToken.approve(loanTokenV2.address, loanTokenSent*2)
 
-        let previousAffiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        let previousAffiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         let tx = await loanTokenV2.marginTradeAffiliate(
             constants.ZERO_BYTES32, // loanId (0 for new loans)
             leverageAmount, // Leverage
@@ -780,7 +780,7 @@ contract("Affiliates", (accounts) => {
             referrer: referrer,
         });
 
-        let referrerOnChain = await sovryn.affiliatesUserReferrer(trader);
+        let referrerOnChain = await sovryn.getAffiliatesUserReferrer(trader);
         expect(referrerOnChain, "Incorrect User Affiliate").to.be.equal(referrer);
 
         notFirstTradeFlagOnChain = await sovryn.getUserNotFirstTradeFlag(trader);
@@ -794,7 +794,7 @@ contract("Affiliates", (accounts) => {
         }
 
         let isHeld = decode[0].args["isHeld"];
-        let affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        let affiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         let submittedAffiliatesReward = decode[0].args["sovBonusAmount"];
         let submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
         expect(isHeld, "First trade affiliates reward must be in held").to.be.true;
@@ -813,7 +813,7 @@ contract("Affiliates", (accounts) => {
         // Change the min referrals to payout to 1
         await sovryn.setMinReferralsToPayoutAffiliates(1);
 
-        previousAffiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        previousAffiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         tx = await loanTokenV2.marginTradeAffiliate(
             constants.ZERO_BYTES32, // loanId (0 for new loans)
             leverageAmount, // Leverage
@@ -835,7 +835,7 @@ contract("Affiliates", (accounts) => {
         isHeld = decode[0].args["isHeld"];
         expect(isHeld, "First trade affiliates reward must not be in held").to.be.false;
 
-        affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        affiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         submittedAffiliatesReward = decode[0].args["sovBonusAmount"];
         submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
         sovBonusAmountPaid = decode[0].args["sovBonusAmountPaid"];
@@ -1040,7 +1040,7 @@ contract("Affiliates", (accounts) => {
         const leverageAmount = web3.utils.toWei("2", "ether");
         // underlyingToken.approve(loanTokenV2.address, loanTokenSent*2)
 
-        let previousAffiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        let previousAffiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         let tx = await loanTokenV2.marginTradeAffiliate(
             constants.ZERO_BYTES32, // loanId (0 for new loans)
             leverageAmount, // Leverage
@@ -1073,7 +1073,7 @@ contract("Affiliates", (accounts) => {
         }
 
         let isHeld = decode[0].args["isHeld"];
-        let affiliateRewardsHeld = await sovryn.affiliateRewardsHeld(referrer);
+        let affiliateRewardsHeld = await sovryn.getAffiliateRewardsHeld(referrer);
         let submittedAffiliatesReward = decode[0].args["sovBonusAmount"];
         let submittedTokenBonusAmount = decode[0].args["tokenBonusAmount"];
         expect(isHeld, "First trade affiliates reward must be in held").to.be.true;

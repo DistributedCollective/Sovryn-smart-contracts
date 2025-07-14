@@ -808,7 +808,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const deposit_amount = owed_per_day.mul(days_to_extend);
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVFailedMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVFailedMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_extend = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -829,7 +829,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 borrower_initial_balance.toString()
             );
 
-            const feeRebatePercent = await sovryn.feeRebatePercent();
+            const feeRebatePercent = await sovryn.getFeeRebatePercent();
             const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnRewardFail");
             const args = decode[0].args;
             expect(args["receiver"] == borrower).to.be.true;
@@ -864,7 +864,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const deposit_amount = owed_per_day.mul(days_to_extend);
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVFailedMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVFailedMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_extend = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -885,7 +885,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 borrower_initial_balance.toString()
             );
 
-            const feeRebatePercent = await sovryn.feeRebatePercent();
+            const feeRebatePercent = await sovryn.getFeeRebatePercent();
             const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnRewardFail");
             const args = decode[0].args;
             expect(args["receiver"] == borrower).to.be.true;
@@ -919,7 +919,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const deposit_amount = owed_per_day.mul(days_to_extend);
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVFailedMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVFailedMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_extend = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -970,7 +970,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const deposit_amount = owed_per_day.mul(days_to_extend);
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_extend = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -987,7 +987,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 (await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
             );
 
-            const feeRebatePercent = await sovryn.feeRebatePercent();
+            const feeRebatePercent = await sovryn.getFeeRebatePercent();
             const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnReward");
             const args = decode[0].args;
             expect(args["receiver"] == borrower).to.be.true;
@@ -1023,7 +1023,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const deposit_amount = owed_per_day.mul(days_to_extend);
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_extend = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -1096,7 +1096,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const deposit_amount = owed_per_day.mul(days_to_extend);
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_extend = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -1249,7 +1249,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const receiver = accounts[3];
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_reduce = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -1270,7 +1270,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 borrower_initial_balance.toString()
             );
 
-            const feeRebatePercent = await sovryn.feeRebatePercent();
+            const feeRebatePercent = await sovryn.getFeeRebatePercent();
             const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnRewardFail");
             const args = decode[0].args;
             expect(args["receiver"] == borrower).to.be.true;
@@ -1307,7 +1307,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const receiver = accounts[3];
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_reduce = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -1364,7 +1364,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const deposit_amount = owed_per_day.mul(days_to_extend);
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_extend = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -1441,7 +1441,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const receiver = accounts[3];
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_reduce = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );
@@ -1458,7 +1458,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
                 (await SOV.balanceOf(borrower)).add(await lockedSOV.getLockedBalance(borrower))
             );
 
-            const feeRebatePercent = await sovryn.feeRebatePercent();
+            const feeRebatePercent = await sovryn.getFeeRebatePercent();
             const decode = decodeLogs(receipt.rawLogs, FeesEvents, "EarnReward");
             const args = decode[0].args;
             expect(args["receiver"] == borrower).to.be.true;
@@ -1495,7 +1495,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
             const receiver = accounts[3];
 
             await increaseTime(10 * 24 * 60 * 60);
-            lockedSOV = await LockedSOVMockup.at(await sovryn.lockedSOVAddress());
+            lockedSOV = await LockedSOVMockup.at(await sovryn.getLockedSOVAddress());
             const borrower_initial_balance_before_reduce = (await SOV.balanceOf(borrower)).add(
                 await lockedSOV.getLockedBalance(borrower)
             );

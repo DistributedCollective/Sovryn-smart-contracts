@@ -148,7 +148,7 @@ contract("Affiliates", (accounts) => {
             (await LockedSOV.new(SUSD.address, vestingRegistry.address, cliff, duration, [owner]))
                 .address
         );
-        lockedSOV = await LockedSOV.at(await sovryn.lockedSOVAddress());
+        lockedSOV = await LockedSOV.at(await sovryn.getLockedSOVAddress());
 
         // initialize
         feeds = await PriceFeedsLocal.new(WRBTC.address, sovryn.address);

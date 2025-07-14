@@ -172,7 +172,7 @@ contract("Margin Trading with Affiliates boilerplate", (accounts) => {
         // Giving some WRBTC to sovrynAddress (by minting some WRBTC), so that it can open position in wRBTC.
         await WRBTC.mint(sovryn.address, wei("500", "ether"));
 
-        assert.equal(await sovryn.protocolAddress(), sovryn.address);
+        assert.equal(await sovryn.getProtocolAddress(), sovryn.address);
 
         const leverageAmount = web3.utils.toWei("3", "ether");
         const loanTokenSent = web3.utils.toWei("20", "ether");
