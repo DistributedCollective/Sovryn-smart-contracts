@@ -343,6 +343,9 @@ def main():
     #setPriceFeed(conf.contracts['USDT0'], conf.contracts['USDTPriceFeed'])
     #lendToPool(conf.contracts['iUSDT0'], conf.contracts['USDT0'], 5000e18)
     #testBorrow(conf.contracts['sovrynProtocol'], conf.contracts['iUSDT0'], conf.contracts['USDT0'], conf.contracts['SOV'], 100e18)
+
+    # add liquidity to USDT0 pool
+    # addLiquidityV1( conf.contracts['ConverterUSDT0'], [conf.contracts['WRBTC'], conf.contracts['USDT0']], [0.0002e18,5e18])
     
 
 def guardiansTransfer():
