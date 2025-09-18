@@ -9,6 +9,8 @@ const {
     multisigExecuteTx, // <---- this calls and executes multisig.executeTransaction(txId)
     multisigAddOwner, // this calls and executes multisig.addOwner(newOwner)
     multisigRemoveOwner, // this calls and executes multisig.removeOwner(owner)
+    sendWithMultisig,
+    multisigReplaceOwner,
 } = require("../../deployment/helpers/helpers");
 
 const logger = new Logs().showInConsole(true);
@@ -241,13 +243,24 @@ task("multisig:revoke-sigs", "Revoke multisig tx confirmation")
     });
 
 task("multisig:add-owner", "Add or remove multisig owner")
-    .addParam("address", "Owner address to add or remove", undefined, types.string)
+    .addPositionalParam("address", "Owner address to add or remove", undefined, types.string)
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .setAction(async ({ address, signer }, hre) => {
         const signerAcc = ethers.utils.isAddress(signer)
             ? signer
             : (await hre.getNamedAccounts())[signer];
         await multisigAddOwner(address, signerAcc);
+    });
+
+task("multisig:replace-owner", "Replace multisig owner")
+    .addParam("from", "Existing owner address to remove", undefined, types.string)
+    .addParam("to", "New owner address to add", undefined, types.string)
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ from, to, signer }, hre) => {
+        const signerAcc = ethers.utils.isAddress(signer)
+            ? signer
+            : (await hre.getNamedAccounts())[signer];
+        await multisigReplaceOwner(from, to, signerAcc);
     });
 
 task("multisig:get-owners", "Print multisig owners")
@@ -278,3 +291,33 @@ task("multisig:remove-owner", "Add or remove multisig owner")
             : (await hre.getNamedAccounts())[signer];
         await multisigRemoveOwner(address, signerAcc);
     });
+
+task("multisig:sendTo", "Send gas token using multisig")
+    .addPositionalParam("address", "Receiver", undefined, types.string)
+    .addPositionalParam("amount", "Amount in wei/sat", undefined, types.string)
+    .addOptionalParam("multisig", "Multisig address", "MultiSigWallet")
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ address, amount, multisig, signer }, hre) => {
+        const signerAcc = ethers.utils.isAddress(signer)
+            ? signer
+            : (await hre.getNamedAccounts())[signer];
+        //const signerObj = await getSignerFromAccount(hre, sender);
+        const ms = await getMultisig(multisig);
+        await sendWithMultisig(ms.address, signerAcc, amount);
+    });
+
+const getMultisig = async (multisig = undefined) => {
+    const { ethers } = hre;
+    if (!ethers.utils.isAddress(multisig)) {
+        multisig = ethers.constants.AddressZero;
+    }
+    const code = await ethers.provider.getCode(multisig);
+    if (code === "0x") {
+        multisig = ethers.constants.AddressZero;
+    }
+    const ms =
+        multisig === ethers.constants.AddressZero
+            ? await ethers.getContract("MultiSigWallet")
+            : await ethers.getContractAt("MultiSigWallet", multisig);
+    return ms;
+};
