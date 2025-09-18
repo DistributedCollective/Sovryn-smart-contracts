@@ -1180,6 +1180,74 @@ const getArgsSip0084Part2 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0086 = async (hre) => {
+    // SOV-5158 Fix Liquidation Blocking Vulnerability
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const protocol = await ethers.getContract("ISovryn");
+    const modulesList = getProtocolModules();
+    const loanClosingsLiquidationModule = await get(
+        modulesList.LoanClosingsLiquidation.moduleName
+    );
+    const loanClosingsRolloverModule = await get(modulesList.LoanClosingsRollover.moduleName);
+    const loanClosingsWithModule = await get(modulesList.LoanClosingsWith.moduleName);
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget(modulesList.LoanClosingsLiquidation.sampleFunction)) ==
+        loanClosingsLiquidationModule.address
+    ) {
+        logger.error(
+            "LoanClosingsLiquidation module deployment already registered in the protocol"
+        );
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget(modulesList.LoanClosingsRollover.sampleFunction)) ==
+        loanClosingsRolloverModule.address
+    ) {
+        logger.error("LoanClosingsRollover module deployment already registered in the protocol");
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget(modulesList.LoanClosingsWith.sampleFunction)) ==
+        loanClosingsWithModule.address
+    ) {
+        logger.error("LoanClosingsWith module deployment already registered in the protocol");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [protocol.address, protocol.address, protocol.address],
+        values: [0, 0, 0],
+        signatures: [
+            "replaceContract(address)",
+            "replaceContract(address)",
+            "replaceContract(address)",
+        ],
+        data: [
+            abiCoder.encode(["address"], [loanOpeningsModule.address]),
+            abiCoder.encode(["address"], [loanClosingsRolloverModule.address]),
+            abiCoder.encode(["address"], [loanClosingsWithModule.address]),
+        ],
+        // @todo updatee sip description
+        description:
+            "SIP-0086: Fix Liquidation Blocking Vulnerability, Details: https://github.com/DistributedCollective/SIPS/blob/a86ac0e/SIP-0086.md, sha256: ", // @todo update the sha256,
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1202,4 +1270,5 @@ module.exports = {
     getArgsSip0079,
     getArgsSip0084Part1,
     getArgsSip0084Part2,
+    getArgsSip0086,
 };

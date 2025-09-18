@@ -15,6 +15,10 @@ import "../mixins/RewardHelper.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
 import "../interfaces/ILoanTokenModules.sol";
 
+interface IFeeSharingCollector {
+    function transferRBTC() external payable;
+}
+
 /**
  * @title LoanClosingsShared contract.
  * @notice This contract should only contains the internal function that is being used / utilized by
@@ -218,11 +222,51 @@ contract LoanClosingsShared is
     function _withdrawAsset(address assetToken, address receiver, uint256 assetAmount) internal {
         if (assetAmount != 0) {
             if (assetToken == address(wrbtcToken)) {
-                vaultEtherWithdraw(receiver, assetAmount);
+                _safeEtherWithdraw(receiver, assetAmount);
             } else {
                 vaultWithdraw(assetToken, receiver, assetAmount);
             }
         }
+    }
+
+    /**
+     * @notice Safely withdraw RBTC to receiver, donating to FeeSharingCollector if transfer fails.
+     *
+     * @param receiver The address of the receiver.
+     * @param amount The RBTC amount to withdraw.
+     * */
+    function _safeEtherWithdraw(address receiver, uint256 amount) internal {
+        if (amount != 0) {
+            IWrbtcERC20 _wrbtcToken = wrbtcToken;
+            uint256 balance = address(this).balance;
+            if (amount > balance) {
+                _wrbtcToken.withdraw(amount - balance);
+            }
+
+            // Try to send RBTC to the receiver
+            (bool success, ) = receiver.call.value(amount)("");
+
+            if (!success) {
+                // If transfer fails, donate to FeeSharingCollector instead
+                _donateToFeeSharingCollector(receiver, amount);
+            } else {
+                emit VaultWithdraw(address(_wrbtcToken), receiver, amount);
+            }
+        }
+    }
+
+    /**
+     * @notice Donate RBTC to FeeSharingCollector when direct transfer fails.
+     *
+     * @param originalRecipient The original intended recipient.
+     * @param amount The RBTC amount to donate.
+     * */
+    function _donateToFeeSharingCollector(address originalRecipient, uint256 amount) internal {
+        require(feesController != address(0), "feesController not set");
+
+        IFeeSharingCollector(feesController).transferRBTC.value(amount)();
+
+        emit DonateToFeeSharingCollector(originalRecipient, amount);
     }
 
     /**
