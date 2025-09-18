@@ -70,6 +70,5 @@ contract LoanClosingsEvents is ModulesCommonEvents {
 
     event swapExcess(bool shouldRefund, uint256 amount, uint256 amountInRbtc, uint256 threshold);
 
-    /// topic0: 0x[hash]
     event DonateToFeeSharingCollector(address indexed originalRecipient, uint256 amount);
 }
