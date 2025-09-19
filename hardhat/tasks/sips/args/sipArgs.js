@@ -1180,6 +1180,43 @@ const getArgsSip0084Part2 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0087 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const newTroveManagerImplementation = await get("TroveManager_Implementation");
+    const newTroveManagerRedeemOps = await get("TroveManagerRedeemOps");
+
+    const troveManagerProxy = await get("TroveManager_Proxy");
+    const troveManagerContract = await ethers.getContract("TroveManager");
+    const troveManagerOwner = await troveManagerContract.getOwner();
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [troveManagerProxy.address, troveManagerProxy.address],
+        targetOwnerValidationAddresses: [troveManagerOwner, troveManagerOwner],
+        values: [0, 0],
+        signatures: ["setImplementation(address)", "setTroveManagerRedeemOps(address)"],
+        data: [
+            abiCoder.encode(["address"], [newTroveManagerImplementation.address]),
+            abiCoder.encode(["address"], [newTroveManagerRedeemOps.address]),
+        ],
+        // @todo update sip description & sha256
+        description:
+            "SIP-0087: Fix LiquityBaseParamsAddressChanges event argument, Details: https://github.com/DistributedCollective/SIPS/blob/a86ac0e/SIP-0087.md, sha256: ",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1202,4 +1239,5 @@ module.exports = {
     getArgsSip0079,
     getArgsSip0084Part1,
     getArgsSip0084Part2,
+    getArgsSip0087,
 };
