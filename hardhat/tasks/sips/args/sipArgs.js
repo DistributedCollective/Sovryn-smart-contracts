@@ -1195,6 +1195,7 @@ const getArgsSip0086 = async (hre) => {
     );
     const loanClosingsRolloverModule = await get(modulesList.LoanClosingsRollover.moduleName);
     const loanClosingsWithModule = await get(modulesList.LoanClosingsWith.moduleName);
+    const protocolOwner = await protocol.owner();
 
     //validate
     if (!network.tags.mainnet) {
@@ -1230,6 +1231,7 @@ const getArgsSip0086 = async (hre) => {
 
     const args = {
         targets: [protocol.address, protocol.address, protocol.address],
+        targetOwnerValidationAddresses: [protocolOwner, protocolOwner, protocolOwner],
         values: [0, 0, 0],
         signatures: [
             "replaceContract(address)",
