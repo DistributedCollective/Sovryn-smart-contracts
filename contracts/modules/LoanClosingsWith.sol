@@ -106,7 +106,8 @@ contract LoanClosingsWith is LoanClosingsShared {
                 receiver,
                 swapAmount,
                 returnTokenIsCollateral,
-                "" /// loanDataBytes
+                "", /// loanDataBytes
+                false
             );
     }
 

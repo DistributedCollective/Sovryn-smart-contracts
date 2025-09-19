@@ -226,7 +226,8 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                     msg.sender,
                     loanLocal.collateral,
                     false,
-                    "" // loanDataBytes
+                    "", // loanDataBytes
+                    false
                 );
             } else {
                 // pay out reward to caller
@@ -244,7 +245,8 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                     loanLocal.borrower,
                     loanLocal.collateral, // swap all collaterals
                     false,
-                    "" /// loanDataBytes
+                    "", /// loanDataBytes
+                    true
                 );
             } else {
                 (uint256 currentMargin, ) = IPriceFeeds(priceFeeds).getCurrentMargin(
