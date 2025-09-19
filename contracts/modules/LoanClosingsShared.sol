@@ -223,6 +223,17 @@ contract LoanClosingsShared is
         _withdrawAsset(assetToken, receiver, assetAmount, false);
     }
 
+    /**
+     * @notice Withdraw asset to receiver with optional donation fallback for forced operations.
+     *
+     * @param assetToken The token to withdraw (WRBTC or ERC20).
+     * @param receiver The address to receive the tokens.
+     * @param assetAmount The amount to withdraw.
+     * @param allowDonationOnFailure If true, donate to FeeSharingCollector if WRBTC transfer fails.
+     *                               This prevents liquidation/rollover blocking attacks where malicious
+     *                               borrowers use contracts that revert on receive()/fallback() calls.
+     *                               Only used for forced operations (liquidation/rollover), not normal closures.
+     */
     function _withdrawAsset(
         address assetToken,
         address receiver,

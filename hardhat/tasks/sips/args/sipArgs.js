@@ -1239,11 +1239,11 @@ const getArgsSip0086 = async (hre) => {
             "replaceContract(address)",
         ],
         data: [
-            abiCoder.encode(["address"], [loanOpeningsModule.address]),
+            abiCoder.encode(["address"], [loanClosingsLiquidationModule.address]),
             abiCoder.encode(["address"], [loanClosingsRolloverModule.address]),
             abiCoder.encode(["address"], [loanClosingsWithModule.address]),
         ],
-        // @todo updatee sip description
+        // @todo update sip description
         description:
             "SIP-0086: Fix Liquidation Blocking Vulnerability, Details: https://github.com/DistributedCollective/SIPS/blob/a86ac0e/SIP-0086.md, sha256: ", // @todo update the sha256,
     };
