@@ -158,7 +158,8 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
             _withdrawAsset(
                 loanParamsLocal.loanToken,
                 loanLocal.borrower,
-                loanCloseAmount - loanCloseAmountLessInterest
+                loanCloseAmount - loanCloseAmountLessInterest,
+                true // Allow donation on failure for liquidation
             );
         }
 

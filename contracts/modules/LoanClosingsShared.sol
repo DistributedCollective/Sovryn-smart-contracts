@@ -220,9 +220,22 @@ contract LoanClosingsShared is
      * @param assetAmount The loan token amount.
      * */
     function _withdrawAsset(address assetToken, address receiver, uint256 assetAmount) internal {
+        _withdrawAsset(assetToken, receiver, assetAmount, false);
+    }
+
+    function _withdrawAsset(
+        address assetToken,
+        address receiver,
+        uint256 assetAmount,
+        bool allowDonationOnFailure
+    ) internal {
         if (assetAmount != 0) {
             if (assetToken == address(wrbtcToken)) {
-                _safeEtherWithdraw(receiver, assetAmount);
+                if (allowDonationOnFailure) {
+                    _safeEtherWithdraw(receiver, assetAmount);
+                } else {
+                    vaultEtherWithdraw(receiver, assetAmount);
+                }
             } else {
                 vaultWithdraw(assetToken, receiver, assetAmount);
             }
@@ -231,6 +244,7 @@ contract LoanClosingsShared is
 
     /**
      * @notice Safely withdraw RBTC to receiver, donating to FeeSharingCollector if transfer fails.
+     * This function is used for forced operations (liquidation/rollover) where we don't want to revert.
      *
      * @param receiver The address of the receiver.
      * @param amount The RBTC amount to withdraw.
