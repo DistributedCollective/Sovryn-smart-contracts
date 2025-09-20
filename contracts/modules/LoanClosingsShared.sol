@@ -521,19 +521,16 @@ contract LoanClosingsShared is
         SwapCloseParams memory params
     ) internal returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) {
         // Calculate initial close amount and settle interest if needed
-        uint256 loanCloseAmountLessInterest = _calculateInitialCloseAmount(
-            loanLocal,
-            loanParamsLocal,
-            params.swapAmount,
-            params.returnTokenIsCollateral,
-            params.receiver
-        );
-
-        if (loanCloseAmountLessInterest > 0) {
-            loanCloseAmount = params.swapAmount == loanLocal.collateral
-                ? loanLocal.principal
-                : loanLocal.principal.mul(params.swapAmount).div(loanLocal.collateral);
-        }
+        (
+            uint256 loanCloseAmount,
+            uint256 loanCloseAmountLessInterest
+        ) = _calculateInitialCloseAmount(
+                loanLocal,
+                loanParamsLocal,
+                params.swapAmount,
+                params.returnTokenIsCollateral,
+                params.receiver
+            );
 
         return
             _executeAndFinalizeSwap(
@@ -590,13 +587,13 @@ contract LoanClosingsShared is
         uint256 swapAmount,
         bool returnTokenIsCollateral,
         address receiver
-    ) internal returns (uint256 loanCloseAmountLessInterest) {
+    ) internal returns (uint256 loanCloseAmount, uint256 loanCloseAmountLessInterest) {
         bool isFullCollateralSwap = swapAmount == loanLocal.collateral;
         if (isFullCollateralSwap || returnTokenIsCollateral) {
             /// loanCloseAmountLessInterest will be passed as required amount amount of destination tokens.
             /// this means, the actual swapAmount passed to the swap contract does not matter at all.
             /// the source token amount will be computed depending on the required amount amount of destination tokens.
-            uint256 loanCloseAmount = isFullCollateralSwap
+            loanCloseAmount = isFullCollateralSwap
                 ? loanLocal.principal
                 : loanLocal.principal.mul(swapAmount).div(loanLocal.collateral);
             require(loanCloseAmount != 0, "loanCloseAmount == 0");
@@ -611,6 +608,7 @@ contract LoanClosingsShared is
         } else {
             /// loanCloseAmount is calculated after swap; for this case we want to swap the entire source amount
             /// and determine the loanCloseAmount and withdraw amount based on that.
+            loanCloseAmount = 0;
             loanCloseAmountLessInterest = 0;
         }
     }
