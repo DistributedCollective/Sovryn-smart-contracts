@@ -256,6 +256,8 @@ contract LoanClosingsShared is
      *                               This prevents liquidation/rollover blocking attacks where malicious
      *                               borrowers use contracts that revert on receive()/fallback() calls.
      *                               Only used for forced operations (liquidation/rollover), not normal closures.
+     *                               Note: The donation fallback only applies to WRBTC/RBTC transfers.
+     *                               For ERC20 tokens, the donation fallback is not used.
      */
     function _withdrawAsset(
         address assetToken,
