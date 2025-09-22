@@ -294,7 +294,7 @@ contract LoanClosingsShared is
             }
 
             // Try to send RBTC to the receiver
-            (bool success, ) = receiver.call.value(amount)("");
+            (bool success, ) = receiver.call.value(amount).gas(2300)("");
 
             if (!success) {
                 // If transfer fails, donate to FeeSharingCollector instead
@@ -608,9 +608,10 @@ contract LoanClosingsShared is
         } else {
             /// loanCloseAmount is calculated after swap; for this case we want to swap the entire source amount
             /// and determine the loanCloseAmount and withdraw amount based on that.
-            loanCloseAmount = 0;
             loanCloseAmountLessInterest = 0;
         }
+
+        return (loanCloseAmount, loanCloseAmountLessInterest);
     }
 
     /**
@@ -979,6 +980,8 @@ contract LoanClosingsShared is
                 withdrawAmount = 0;
             }
         }
+
+        return (coveredPrincipal, withdrawAmount, finalSourceUsed);
     }
 
     function _emitClosingEvents(
