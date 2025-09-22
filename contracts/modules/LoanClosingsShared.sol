@@ -294,7 +294,7 @@ contract LoanClosingsShared is
             }
 
             // Try to send RBTC to the receiver
-            (bool success, ) = receiver.call.value(amount).gas(2300)("");
+            (bool success, ) = receiver.call.value(amount)("");
 
             if (!success) {
                 // If transfer fails, donate to FeeSharingCollector instead
