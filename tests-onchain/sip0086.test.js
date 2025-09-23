@@ -14,7 +14,7 @@ const { getProtocolModules } = require("../deployment/helpers/helpers");
 
 const {
     ethers,
-    deployments: { createFixture, get },
+    deployments: { createFixture, get, deploy },
 } = hre;
 
 const MAX_DURATION = ethers.BigNumber.from(24 * 60 * 60).mul(1092);
@@ -63,6 +63,94 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
             timelockOwner.address
         );
         await setBalance(timelockOwnerSigner._address, ONE_RBTC);
+
+        // check if the new modules are deployed
+        const loanClosingsRollover = await get("LoanClosingsRollover");
+        const loanClosingsWith = await get("LoanClosingsWith");
+        const loanClosingsLiquidation = await get("LoanClosingsLiquidation");
+
+        const modulesList = getProtocolModules();
+        let deployLoanClosingsRolloverResult;
+        const swapsImplSovrynSwapLibDeployment = await get("SwapsImplSovrynSwapLib");
+        const libraries = {
+            SwapsImplSovrynSwapLib: swapsImplSovrynSwapLibDeployment.address,
+        };
+        if (
+            loanClosingsRollover.address ===
+            (await sovrynProtocol.getTarget(modulesList.LoanClosingsRollover.sampleFunction))
+        ) {
+            console.log("deploying LoanClosingsRollover");
+            deployLoanClosingsRolloverResult = await deploy("LoanClosingsRollover", {
+                contract: "LoanClosingsRollover",
+                args: [],
+                libraries: libraries,
+                from: (await ethers.getSigners())[0].address,
+                log: true,
+            });
+
+            await deployments.save("LoanClosingsRollover", {
+                address: deployLoanClosingsRolloverResult.address,
+                implementation: deployLoanClosingsRolloverResult.address,
+                abi: deployLoanClosingsRolloverResult.abi,
+                bytecode: deployLoanClosingsRolloverResult.bytecode,
+                deployedBytecode: deployLoanClosingsRolloverResult.deployedBytecode,
+                devdoc: deployLoanClosingsRolloverResult.devdoc,
+                userdoc: deployLoanClosingsRolloverResult.userdoc,
+                storageLayout: deployLoanClosingsRolloverResult.storageLayout,
+            });
+        }
+
+        let deployLoanClosingsWithResult;
+        if (
+            loanClosingsWith.address ===
+            (await sovrynProtocol.getTarget(modulesList.LoanClosingsWith.sampleFunction))
+        ) {
+            console.log("deploying LoanClosingsWith");
+            deployLoanClosingsWithResult = await deploy("LoanClosingsWith", {
+                contract: "LoanClosingsWith",
+                args: [],
+                libraries: libraries,
+                from: (await ethers.getSigners())[0].address,
+                log: true,
+            });
+
+            await deployments.save("LoanClosingsWith", {
+                address: deployLoanClosingsWithResult.address,
+                implementation: deployLoanClosingsWithResult.address,
+                abi: deployLoanClosingsWithResult.abi,
+                bytecode: deployLoanClosingsWithResult.bytecode,
+                deployedBytecode: deployLoanClosingsWithResult.deployedBytecode,
+                devdoc: deployLoanClosingsWithResult.devdoc,
+                userdoc: deployLoanClosingsWithResult.userdoc,
+                storageLayout: deployLoanClosingsWithResult.storageLayout,
+            });
+        }
+
+        let deployLoanClosingsLiquidationResult;
+        if (
+            loanClosingsLiquidation.address ===
+            (await sovrynProtocol.getTarget(modulesList.LoanClosingsLiquidation.sampleFunction))
+        ) {
+            console.log("deploying LoanClosingsLiquidation");
+            deployLoanClosingsLiquidationResult = await deploy("LoanClosingsLiquidation", {
+                contract: "LoanClosingsLiquidation",
+                args: [],
+                libraries: libraries,
+                from: (await ethers.getSigners())[0].address,
+                log: true,
+            });
+
+            await deployments.save("LoanClosingsLiquidation", {
+                address: deployLoanClosingsLiquidationResult.address,
+                implementation: deployLoanClosingsLiquidationResult.address,
+                abi: deployLoanClosingsLiquidationResult.abi,
+                bytecode: deployLoanClosingsLiquidationResult.bytecode,
+                deployedBytecode: deployLoanClosingsLiquidationResult.deployedBytecode,
+                devdoc: deployLoanClosingsLiquidationResult.devdoc,
+                userdoc: deployLoanClosingsLiquidationResult.userdoc,
+                storageLayout: deployLoanClosingsLiquidationResult.storageLayout,
+            });
+        }
 
         //
         return {
