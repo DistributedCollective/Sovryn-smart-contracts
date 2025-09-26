@@ -18,7 +18,7 @@ const func = async function (hre) {
             moduleName: "Affiliates",
             sampleFunction: "setAffiliatesReferrer(address,address)",
             requireSwapsImplSovrynSwapLib: false,
-        },
+        },*/
         LoanClosingsLiquidation: {
             moduleName: "LoanClosingsLiquidation",
             sampleFunction: "liquidate(bytes32,address,uint256)",
@@ -33,13 +33,13 @@ const func = async function (hre) {
             moduleName: "LoanClosingsWith",
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
             requireSwapsImplSovrynSwapLib: true,
-        },*/
-        LoanOpenings: {
+        },
+        /*LoanOpenings: {
             moduleName: "LoanOpenings",
             sampleFunction: "setDelegatedManager(bytes32,address,bool)",
             requireSwapsImplSovrynSwapLib: true,
         },
-        /*LoanMaintenance: {
+        LoanMaintenance: {
             moduleName: "LoanMaintenance",
             sampleFunction: "getActiveLoans(uint256,uint256,bool)",
             requireSwapsImplSovrynSwapLib: true,
