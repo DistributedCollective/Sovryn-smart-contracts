@@ -721,7 +721,12 @@ contract LoanClosingsShared is
 
         // Withdraw to receiver
         if (withdrawAmount != 0) {
-            _withdrawAsset(withdrawToken, params.receiver, withdrawAmount);
+            _withdrawAsset(
+                withdrawToken,
+                params.receiver,
+                withdrawAmount,
+                params.allowDonationOnFailure
+            );
         }
 
         // Finalize
