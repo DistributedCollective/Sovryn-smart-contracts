@@ -62,7 +62,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken)
     {
         _checkAuthorized(loanId);
-        return _closeWithDeposit(loanId, receiver, depositAmount);
+        return _closeWithDeposit(loanId, receiver, depositAmount, false);
     }
 
     /**
@@ -128,7 +128,8 @@ contract LoanClosingsWith is LoanClosingsShared {
     function _closeWithDeposit(
         bytes32 loanId,
         address receiver,
-        uint256 depositAmount /// Denominated in loanToken.
+        uint256 depositAmount, /// Denominated in loanToken.
+        bool allowDonationOnFailure
     ) internal returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) {
         require(depositAmount != 0, "depositAmount == 0");
 
@@ -153,7 +154,8 @@ contract LoanClosingsWith is LoanClosingsShared {
             loanLocal,
             loanParamsLocal,
             loanCloseAmount,
-            receiver
+            receiver,
+            allowDonationOnFailure
         );
 
         if (loanCloseAmountLessInterest != 0) {

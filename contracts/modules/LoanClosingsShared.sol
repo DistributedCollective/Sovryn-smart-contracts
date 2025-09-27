@@ -99,7 +99,8 @@ contract LoanClosingsShared is
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
         uint256 loanCloseAmount,
-        address receiver
+        address receiver,
+        bool allowDonationOnFailure
     ) internal returns (uint256) {
         uint256 loanCloseAmountLessInterest = loanCloseAmount;
 
@@ -134,7 +135,12 @@ contract LoanClosingsShared is
 
             if (interestRefundToBorrower != 0) {
                 // refund overage
-                _withdrawAsset(loanParamsLocal.loanToken, receiver, interestRefundToBorrower);
+                _withdrawAsset(
+                    loanParamsLocal.loanToken,
+                    receiver,
+                    interestRefundToBorrower,
+                    allowDonationOnFailure
+                );
             }
         }
 
@@ -529,7 +535,8 @@ contract LoanClosingsShared is
                 loanParamsLocal,
                 params.swapAmount,
                 params.returnTokenIsCollateral,
-                params.receiver
+                params.receiver,
+                params.allowDonationOnFailure
             );
 
         return
@@ -586,7 +593,8 @@ contract LoanClosingsShared is
         LoanParams storage loanParamsLocal,
         uint256 swapAmount,
         bool returnTokenIsCollateral,
-        address receiver
+        address receiver,
+        bool allowDonationOnFailure
     ) internal returns (uint256 loanCloseAmount, uint256 loanCloseAmountLessInterest) {
         bool isFullCollateralSwap = swapAmount == loanLocal.collateral;
         if (isFullCollateralSwap || returnTokenIsCollateral) {
@@ -603,7 +611,8 @@ contract LoanClosingsShared is
                 loanLocal,
                 loanParamsLocal,
                 loanCloseAmount,
-                receiver
+                receiver,
+                allowDonationOnFailure
             );
         } else {
             /// loanCloseAmount is calculated after swap; for this case we want to swap the entire source amount
@@ -690,7 +699,8 @@ contract LoanClosingsShared is
                 loanLocal,
                 loanParamsLocal,
                 loanCloseAmount,
-                params.receiver
+                params.receiver,
+                params.allowDonationOnFailure
             );
 
             /// Remaining amount withdrawn to the receiver.

@@ -150,7 +150,8 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
             loanLocal,
             loanParamsLocal,
             loanCloseAmount,
-            loanLocal.borrower
+            loanLocal.borrower,
+            true
         );
 
         if (loanCloseAmount > loanCloseAmountLessInterest) {
