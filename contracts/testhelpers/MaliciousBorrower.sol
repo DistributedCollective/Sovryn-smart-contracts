@@ -94,4 +94,74 @@ contract MaliciousBorrower {
                 loanDataBytes
             );
     }
+
+    /**
+     * @notice Close a loan with swap using this contract as the borrower
+     * @param protocolAddress The protocol contract address
+     * @param loanId The loan ID to close
+     * @param receiver The receiver address
+     * @param swapAmount The amount to swap
+     * @param returnTokenIsCollateral Whether return token is collateral
+     * @param loanDataBytes Additional loan data
+     */
+    function closeWithSwap(
+        address protocolAddress,
+        bytes32 loanId,
+        address receiver,
+        uint256 swapAmount,
+        bool returnTokenIsCollateral,
+        bytes calldata loanDataBytes
+    ) external returns (uint256, uint256, address) {
+        // Import the protocol interface
+        (bool success, bytes memory data) = protocolAddress.call(
+            abi.encodeWithSignature(
+                "closeWithSwap(bytes32,address,uint256,bool,bytes)",
+                loanId,
+                receiver,
+                swapAmount,
+                returnTokenIsCollateral,
+                loanDataBytes
+            )
+        );
+        require(success, "closeWithSwap failed");
+
+        // Decode the return values
+        (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) = abi.decode(
+            data,
+            (uint256, uint256, address)
+        );
+        return (loanCloseAmount, withdrawAmount, withdrawToken);
+    }
+
+    /**
+     * @notice Close a loan with deposit using this contract as the borrower
+     * @param protocolAddress The protocol contract address
+     * @param loanId The loan ID to close
+     * @param receiver The receiver address
+     * @param depositAmount The amount to deposit
+     */
+    function closeWithDeposit(
+        address protocolAddress,
+        bytes32 loanId,
+        address receiver,
+        uint256 depositAmount
+    ) external payable returns (uint256, uint256, address) {
+        // Import the protocol interface
+        (bool success, bytes memory data) = protocolAddress.call.value(msg.value)(
+            abi.encodeWithSignature(
+                "closeWithDeposit(bytes32,address,uint256)",
+                loanId,
+                receiver,
+                depositAmount
+            )
+        );
+        require(success, "closeWithDeposit failed");
+
+        // Decode the return values
+        (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) = abi.decode(
+            data,
+            (uint256, uint256, address)
+        );
+        return (loanCloseAmount, withdrawAmount, withdrawToken);
+    }
 }
