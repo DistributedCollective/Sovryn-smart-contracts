@@ -1180,7 +1180,7 @@ const getArgsSip0084Part2 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
-const getArgsSip0086 = async (hre) => {
+const getArgsSip0087 = async (hre) => {
     // SOV-5158 Fix Liquidation Blocking Vulnerability
     const {
         ethers,
@@ -1245,7 +1245,7 @@ const getArgsSip0086 = async (hre) => {
         ],
         // @todo update sip description
         description:
-            "SIP-0086: Fix Liquidation Blocking Vulnerability, Details: https://github.com/DistributedCollective/SIPS/blob/a86ac0e/SIP-0086.md, sha256: ", // @todo update the sha256,
+            "SIP-0087 : Lending pools contract hardening against liquidation circumvention via refund reverts, Details: https://github.com/DistributedCollective/SIPS/blob/[TBD]/SIP-0087.md, sha256: ", // @todo update the sha256, and the gh commit hash
     };
     return { args, governor: "GovernorOwner" };
 };
@@ -1272,5 +1272,5 @@ module.exports = {
     getArgsSip0079,
     getArgsSip0084Part1,
     getArgsSip0084Part2,
-    getArgsSip0086,
+    getArgsSip0087,
 };

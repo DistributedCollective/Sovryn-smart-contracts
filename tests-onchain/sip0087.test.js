@@ -213,7 +213,7 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
 
             // CREATE PROPOSAL AND VERIFY
             const proposalIdBeforeSIP = await governorOwner.latestProposalIds(deployer);
-            await hre.run("sips:create", { argsFunc: "getArgsSip0086" });
+            await hre.run("sips:create", { argsFunc: "getArgsSip0087" });
             const proposalId = await governorOwner.latestProposalIds(deployer);
             expect(
                 proposalId,

@@ -15,7 +15,7 @@ const { default: BigNumber } = require("bignumber.js");
 const getImpersonatedSignerFromJsonRpcProvider = async (addressToImpersonate) => {
     //await impersonateAccount(addressToImpersonate);
     //return await ethers.getSigner(addressToImpersonate);
-    const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
+    const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
     await provider.send("hardhat_impersonateAccount", [addressToImpersonate]);
     console.log(
         "provider.getSigner(addressToImpersonate):",
