@@ -156,6 +156,7 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
 
         if (loanCloseAmount > loanCloseAmountLessInterest) {
             // full interest refund goes to the borrower
+            // allowDonationOnFailure is true to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
             _withdrawAsset(
                 loanParamsLocal.loanToken,
                 loanLocal.borrower,
@@ -178,8 +179,8 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
 
         if (seizedAmount != 0) {
             loanLocal.collateral = loanLocal.collateral.sub(seizedAmount);
-
-            _withdrawAsset(seizedToken, receiver, seizedAmount);
+            // allowDonationOnFailure is false because the receiver here is not necessarily the borrower
+            _withdrawAsset(seizedToken, receiver, seizedAmount, false);
         }
 
         _closeLoan(loanLocal, loanCloseAmount);

@@ -135,6 +135,8 @@ contract LoanClosingsShared is
 
             if (interestRefundToBorrower != 0) {
                 // refund overage
+                // allowDonationOnFailure here is following the arguments passed from the caller
+                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
                 _withdrawAsset(
                     loanParamsLocal.loanToken,
                     receiver,
@@ -242,17 +244,6 @@ contract LoanClosingsShared is
     }
 
     /**
-     * @notice Withdraw asset to receiver.
-     *
-     * @param assetToken The loan token.
-     * @param receiver The address of the receiver.
-     * @param assetAmount The loan token amount.
-     * */
-    function _withdrawAsset(address assetToken, address receiver, uint256 assetAmount) internal {
-        _withdrawAsset(assetToken, receiver, assetAmount, false);
-    }
-
-    /**
      * @notice Withdraw asset to receiver with optional donation fallback for forced operations.
      *
      * @param assetToken The token to withdraw (WRBTC or ERC20).
@@ -264,6 +255,11 @@ contract LoanClosingsShared is
      *                               Only used for forced operations (liquidation/rollover), not normal closures.
      *                               Note: The donation fallback only applies to WRBTC/RBTC transfers.
      *                               For ERC20 tokens, the donation fallback is not used.
+     *
+     * @notice This function should be called with care when used in operations not favorable to users
+     *         because sending native (gas) token can be reverted by malicious contracts.
+     *         Currently it is used in liquidations and rollovers only, where the donation fallback
+     *         prevents blocking attacks by malicious borrowers who revert on receive()/fallback() calls.
      */
     function _withdrawAsset(
         address assetToken,
@@ -731,6 +727,8 @@ contract LoanClosingsShared is
 
         // Withdraw to receiver
         if (withdrawAmount != 0) {
+            // allowDonationOnFailure here is following the arguments passed from the caller
+            // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
             _withdrawAsset(
                 withdrawToken,
                 params.receiver,
@@ -939,6 +937,8 @@ contract LoanClosingsShared is
             /// Send excess to borrower if the amount is big enough to be
             /// worth the gas fees.
             if (worthTheTransfer(loanParamsLocal.loanToken, excess)) {
+                // allowDonationOnFailure here is following the arguments passed from the caller
+                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
                 _withdrawAsset(
                     loanParamsLocal.loanToken,
                     loanLocal.borrower,
@@ -983,6 +983,8 @@ contract LoanClosingsShared is
 
                 /// Excess collateral refunds to the borrower.
                 uint256 excessCollateral = loanLocal.collateral - sourceTokenAmountUsed;
+                // allowDonationOnFailure here is following the arguments passed from the caller
+                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
                 _withdrawAsset(
                     loanParamsLocal.collateralToken,
                     loanLocal.borrower,

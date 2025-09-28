@@ -150,6 +150,7 @@ contract LoanClosingsWith is LoanClosingsShared {
             );
         }
 
+        // allowDonationOnFailure is always false because we don't want to donate on failure for normal closures
         uint256 loanCloseAmountLessInterest = _settleInterestToPrincipal(
             loanLocal,
             loanParamsLocal,
@@ -176,7 +177,8 @@ contract LoanClosingsWith is LoanClosingsShared {
 
         if (withdrawAmount != 0) {
             loanLocal.collateral = loanLocal.collateral.sub(withdrawAmount);
-            _withdrawAsset(withdrawToken, receiver, withdrawAmount);
+            // allowDonationOnFailure is always false because we don't want to donate on failure for normal closures
+            _withdrawAsset(withdrawToken, receiver, withdrawAmount, allowDonationOnFailure);
         }
 
         _finalizeClose(
