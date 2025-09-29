@@ -1243,9 +1243,8 @@ const getArgsSip0087 = async (hre) => {
             abiCoder.encode(["address"], [loanClosingsRolloverModule.address]),
             abiCoder.encode(["address"], [loanClosingsWithModule.address]),
         ],
-        // @todo update sip description
         description:
-            "SIP-0087 : Lending pools contract hardening against liquidation circumvention via refund reverts, Details: https://github.com/DistributedCollective/SIPS/blob/[TBD]/SIP-0087.md, sha256: ", // @todo update the sha256, and the gh commit hash
+            "SIP-0087 : Lending pools contract hardening against liquidation circumvention via refund reverts, Details: https://github.com/DistributedCollective/SIPS/blob/04ad90b/SIP-0087.md, sha256: a32b2fc1c3855bd3caa4f045b2e2c512c5fdc04fa184a052ef933315df80b28e",
     };
     return { args, governor: "GovernorOwner" };
 };
