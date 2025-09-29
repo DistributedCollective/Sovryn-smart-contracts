@@ -283,31 +283,20 @@ contract("Liquidation Blocking Fix", (accounts) => {
             console.log("✅ FeeSharingCollector balance unchanged");
         });
 
-        it("Should handle rollover with malicious borrower", async () => {
+        it("Should handle rollover with malicious borrower and trigger donation when loan is closed", async () => {
             const lender = accounts[0];
-            const loan_token_sent = new BN(10).mul(oneEth); // Larger amount
+            const borrower = maliciousBorrower.address;
+            // Create a small WRBTC loan that will become tiny and trigger closure during rollover
+            const borrowAmount = new BN(2).mul(new BN(10).pow(new BN(14))); // 0.0002 WRBTC
+            const duration = 28 * 24 * 60 * 60; // 28 days
 
-            console.log("=== Testing Rollover with Malicious Borrower ===");
+            console.log("=== Testing Rollover with Malicious Borrower - Donation Required ===");
+            console.log(
+                "Creating tiny WRBTC loan that will trigger closure and donation during rollover"
+            );
 
             // Reset prices to healthy levels first
-            await priceFeeds.setRates(
-                RBTC.address,
-                SUSD.address,
-                new BN(10).pow(new BN(22)).toString()
-            );
-            await priceFeeds.setRates(
-                SUSD.address,
-                WRBTC.address,
-                new BN(10).pow(new BN(22)).toString()
-            );
-
-            // Set up malicious borrower with WRBTC (to trigger donation mechanism)
-            await WRBTC.mint(maliciousBorrower.address, loan_token_sent);
-            await maliciousBorrower.approveToken(
-                WRBTC.address,
-                loanTokenWRBTC.address,
-                loan_token_sent
-            );
+            await priceFeeds.setRates(SUSD.address, WRBTC.address, new BN(10).pow(new BN(22)));
 
             // Lender provides WRBTC liquidity
             const lendAmount = new BN(10).pow(new BN(21));
@@ -315,75 +304,116 @@ contract("Liquidation Blocking Fix", (accounts) => {
             await WRBTC.approve(loanTokenWRBTC.address, lendAmount, { from: lender });
             await loanTokenWRBTC.mint(lender, lendAmount, { from: lender });
 
-            // Malicious borrower opens margin trade with WRBTC
-            const tx = await maliciousBorrower.performMarginTrade(
+            // Calculate required SUSD collateral for tiny WRBTC loan
+            const collateralRequired = await loanTokenWRBTC.getDepositAmountForBorrow(
+                borrowAmount,
+                duration,
+                SUSD.address
+            );
+            const collateralWithBuffer = collateralRequired.mul(new BN(2)); // 2x buffer
+
+            console.log("SUSD collateral required:", collateralRequired.toString());
+            console.log("SUSD collateral with buffer:", collateralWithBuffer.toString());
+
+            // Fund malicious borrower and create loan
+            await SUSD.mint(borrower, collateralWithBuffer);
+            await maliciousBorrower.approveToken(
+                SUSD.address,
                 loanTokenWRBTC.address,
-                "0x0",
-                new BN(2).mul(oneEth),
-                loan_token_sent,
-                0,
-                SUSD.address, // collateral token
-                0,
-                "0x",
-                { value: 0 }
+                collateralWithBuffer
             );
 
-            const decode = decodeLogs(tx.receipt.rawLogs, LoanOpenings, "Trade");
+            const tx = await maliciousBorrower.performBorrow(
+                loanTokenWRBTC.address, // WRBTC loan token
+                "0x0", // new loan
+                borrowAmount, // 0.0003 WRBTC
+                duration, // 28 days
+                collateralWithBuffer, // SUSD collateral
+                SUSD.address, // collateral token
+                borrower, // receiver (malicious contract)
+                "0x" // loan data
+            );
+
+            const decode = decodeLogs(tx.receipt.rawLogs, LoanOpenings, "Borrow");
             const loanId = decode[0].args["loanId"];
 
+            console.log(
+                "Loan opened: 0.0002 WRBTC borrow with SUSD collateral, borrower=malicious"
+            );
+
             // Wait for loan to expire
-            await increaseTime(28 * 24 * 60 * 60 + 3600); // 28 days + 1 hour
+            await increaseTime(duration + 3600);
+
+            const loanBefore = await sovryn.getLoan(loanId);
+            console.log(
+                "Loan before rollover - Principal:",
+                loanBefore.principal.toString(),
+                "wei"
+            );
+            console.log(
+                "Loan before rollover - Collateral:",
+                loanBefore.collateral.toString(),
+                "wei"
+            );
+
+            // Apply price manipulation to make WRBTC principal tiny
+            const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25e13
+            await priceFeeds.setRates(WRBTC.address, WRBTC.address, TINY_AMOUNT);
+            console.log("Applied price manipulation to make WRBTC principal tiny");
+
+            // Increase maxSwapSize to handle the swap
+            const currentMaxSwapSize = await sovryn.maxSwapSize();
+            const largeMaxSwapSize = new BN(10).pow(new BN(30));
+            await sovryn.setMaxSwapSize(largeMaxSwapSize);
 
             // Get initial FeeSharingCollector balance
             const initialBalance = await web3.eth.getBalance(feeSharingCollector.address);
+            console.log("FeeSharingCollector balance before:", initialBalance);
 
-            // Get loan info before rollover
-            const loanBefore = await sovryn.getLoan(loanId);
-            console.log("Loan before rollover - Principal:", loanBefore.principal.toString());
-            console.log("Loan before rollover - Collateral:", loanBefore.collateral.toString());
-
-            // Attempt rollover - should succeed despite malicious borrower
+            // Attempt rollover - this should trigger tiny position closure and donation
+            console.log("Attempting rollover - expecting tiny position closure with donation...");
             const rolloverTx = await sovryn.rollover(loanId, "0x", { from: accounts[4] });
 
-            console.log("✅ Rollover succeeded despite malicious borrower");
+            console.log("✅ Rollover completed successfully!");
 
-            // Get loan info after rollover
-            const loanAfter = await sovryn.getLoan(loanId);
-            console.log("Loan after rollover - Principal:", loanAfter.principal.toString());
-            console.log("Loan after rollover - Collateral:", loanAfter.collateral.toString());
-
-            // Check if donation event was emitted (may or may not happen depending on rollover scenario)
+            // Check for donation events - THIS IS THE CRITICAL TEST
             const donationDecode = decodeLogs(
                 rolloverTx.receipt.rawLogs,
                 LoanClosingsEvents,
                 "DonateToFeeSharingCollector"
             );
 
-            if (donationDecode.length > 0) {
-                console.log("✅ Donation to FeeSharingCollector event emitted during rollover");
-                console.log("Original recipient:", donationDecode[0].args.originalRecipient);
-                console.log("Donated amount:", donationDecode[0].args.amount.toString());
+            console.log("Number of donation events:", donationDecode.length);
 
-                // Verify FeeSharingCollector received the donation
-                const finalBalance = await web3.eth.getBalance(feeSharingCollector.address);
-                const balanceIncrease = new BN(finalBalance).sub(new BN(initialBalance));
-                expect(balanceIncrease).to.be.greaterThan(new BN(0));
-                console.log("FeeSharingCollector balance increase:", balanceIncrease.toString());
-            } else {
+            // The test MUST have donation events, otherwise it fails
+            expect(donationDecode.length).to.be.greaterThan(0);
+            console.log("🎉 SUCCESS! Rollover triggered donation as expected!");
+
+            for (let i = 0; i < donationDecode.length; i++) {
+                console.log(`Donation ${i + 1}:`, donationDecode[i].args.amount.toString());
                 console.log(
-                    "ℹ️  No donation occurred during rollover (this is normal if no WRBTC was sent to malicious borrower)"
+                    `Original recipient ${i + 1}:`,
+                    donationDecode[i].args.originalRecipient
                 );
-
-                // Verify FeeSharingCollector balance didn't change
-                const finalBalance = await web3.eth.getBalance(feeSharingCollector.address);
-                const balanceIncrease = new BN(finalBalance).sub(new BN(initialBalance));
-                console.log("FeeSharingCollector balance change:", balanceIncrease.toString());
+                expect(donationDecode[i].args.originalRecipient.toLowerCase()).to.equal(
+                    borrower.toLowerCase()
+                );
             }
 
-            // The main success criteria is that rollover succeeded despite malicious borrower
-            console.log(
-                "✅ Main test passed: Rollover completed successfully with malicious borrower"
-            );
+            // Verify FeeSharingCollector received the donation
+            const finalBalance = await web3.eth.getBalance(feeSharingCollector.address);
+            const balanceIncrease = new BN(finalBalance).sub(new BN(initialBalance));
+            expect(balanceIncrease).to.be.greaterThan(new BN(0));
+            console.log("FeeSharingCollector balance increase:", balanceIncrease.toString());
+
+            // Verify loan was closed due to tiny position
+            const loanAfter = await sovryn.getLoan(loanId);
+            console.log("Final loan principal:", loanAfter.principal.toString());
+            expect(loanAfter.principal.toString()).to.equal("0");
+            console.log("✅ Loan was closed due to tiny position");
+
+            // Restore maxSwapSize
+            await sovryn.setMaxSwapSize(currentMaxSwapSize);
         });
     });
 

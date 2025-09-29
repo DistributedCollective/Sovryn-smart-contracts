@@ -233,7 +233,7 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                 // pay out reward to caller
                 loanLocal.collateral = loanLocal.collateral.sub(rolloverReward);
 
-                // allowDonationOnFailure is false because the msg.sender here is not necessarily the borrower
+                // allowDonationOnFailure is false because the msg.sender here is the rollover caller, not the borrower
                 _withdrawAsset(loanParamsLocal.collateralToken, msg.sender, rolloverReward, false);
             }
         }

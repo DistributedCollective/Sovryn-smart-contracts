@@ -179,7 +179,7 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
 
         if (seizedAmount != 0) {
             loanLocal.collateral = loanLocal.collateral.sub(seizedAmount);
-            // allowDonationOnFailure is false because the receiver here is not necessarily the borrower
+            // allowDonationOnFailure is false because the receiver here is the liquidator, not the borrower
             _withdrawAsset(seizedToken, receiver, seizedAmount, false);
         }
 
