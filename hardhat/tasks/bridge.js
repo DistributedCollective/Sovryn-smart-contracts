@@ -133,16 +133,16 @@ task("bridge:setDailyLimit", "Set daily tokens transfer limit on a bridge")
             );
             logger.warn("Populating multisig tx...");
 
-            const gasEstimated = (
-                await multisigContract.estimateGas.submitTransaction(allowTokensAddress, 0, data)
-            ).toNumber();
+            // const gasEstimated = (
+            //     await multisigContract.estimateGas.submitTransaction(allowTokensAddress, 0, data)
+            // ).toNumber();
 
             const unsignedTx = await multisigContract.populateTransaction.submitTransaction(
                 allowTokensAddress,
                 0,
                 data,
                 {
-                    gasLimit: Math.round(gasEstimated * 1.3),
+                    gasLimit: Math.round(6800000),
                 }
             );
 
@@ -218,17 +218,78 @@ task("bridge:setMaxTokensAllowed", "Set max tokens transfer limit per transfer o
             );
             logger.warn("Populating multisig tx...");
 
-            const gasEstimated = (
-                await multisigContract.estimateGas.submitTransaction(allowTokensAddress, 0, data)
-            ).toNumber();
-
+            // const gasEstimated = (
+            //     await multisigContract.estimateGas.submitTransaction(allowTokensAddress, 0, data)
+            // ).toNumber();
+            //logger.warn(`Gas estimated: ${gasEstimated}`);
             const unsignedTx = await multisigContract.populateTransaction.submitTransaction(
                 allowTokensAddress,
                 0,
+                data
+                // {
+                //     gasLimit: Math.round(gasEstimated * 1.3),
+                // }
+            );
+
+            delete unsignedTx.from;
+            logger.warning("==================== populated tx start ====================");
+            logger.info(unsignedTx);
+            logger.warning("==================== populated tx end   =================");
+        }
+    });
+
+task("bridge:sovFromMultisig", "Bridge SOV from am exchequer multisig")
+    .addPositionalParam("amount", "SOV amount to transfer (will be multiplied by 1e18)")
+    .addPositionalParam("receiver", "Receiver address")
+    .addOptionalParam("bridge", "Bridge contract to set allowance to", "Bridge")
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .setAction(async ({ signer, amount, bridge, receiver }, hre) => {
+        const {
+            deployments: { getArtifact },
+            ethers,
+        } = hre;
+
+        const signerAcc = (await hre.getNamedAccounts())[signer];
+        const bridgeContract = await ethers.getContract(bridge);
+        const multisigContract = await ethers.getContract("MultiSigWallet");
+
+        // Get the token address (assume token is deployment name or address)
+        const tokenAddress = (await ethers.getContract("SOV")).address;
+
+        // Prepare the data for receiveTokensAt(token, amount, receiver, bytes)
+        const bridgeArtifact = await getArtifact("Bridge");
+        const receiveTokensAtInterface = new ethers.utils.Interface(bridgeArtifact.abi);
+        let data = receiveTokensAtInterface.encodeFunctionData("receiveTokensAt", [
+            tokenAddress,
+            ethers.utils.parseEther(amount),
+            receiver,
+            "0x",
+        ]);
+
+        if (await multisigContract.isOwner(signerAcc)) {
+            await sendWithMultisig(
+                multisigContract.address,
+                bridgeContract.address,
                 data,
-                {
-                    gasLimit: Math.round(gasEstimated * 1.3),
-                }
+                signerAcc
+            );
+        } else {
+            logger.warn(
+                `The wallet ${signerAcc} is not an owner of the multisig ${multisigContract.address}. Only multisig owners can create txs on a bridge`
+            );
+            logger.warn("Populating multisig tx...");
+
+            // const gasEstimated = (
+            //     await multisigContract.estimateGas.submitTransaction(allowTokensAddress, 0, data)
+            // ).toNumber();
+            //logger.warn(`Gas estimated: ${gasEstimated}`);
+            const unsignedTx = await multisigContract.populateTransaction.submitTransaction(
+                bridgeContract.address,
+                0,
+                data
+                // {
+                //     gasLimit: Math.round(gasEstimated * 1.3),
+                // }
             );
 
             delete unsignedTx.from;

@@ -15,7 +15,7 @@ def main():
     #call the function you want here
 
     # RSK-USDTes 0.01
-    #sendTokensFromBridgeRSKMultisig(contracts['RSK-USDTes'], 10**16)
+    #sendTokensToETHFromMultisig(contracts['RSK-USDTes'], 'receiver', 10**16)
 
     #sendTokensFromBridgeETHMultisig(contracts['ETH-USDT'], 10**16)
     #print(acct)
@@ -149,6 +149,19 @@ def sendTokensFromBridgeETHMultisig(token, amount):
     data = bridgeETH.receiveTokensAt.encode_input(token, amount, aggregator, receiver)
     print(data)
     tx = bridgeETHMultisig.submitTransaction(bridgeETH.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def sendTokensFromETHMultisigToRSKMultisig(token, amount):
+    abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
+    abi = json.load(abiFile)
+    bridgeETH = Contract.from_abi("BridgeETH", address=contracts['BridgeETH'], abi=abi, owner=acct)
+    ethMultisig = Contract.from_abi("MultiSig", address=contracts['ethMultisig'], abi=MultiSigWallet.abi, owner=acct)
+    receiver = contracts['multisig']
+
+    data = bridgeETH.receiveTokensAt.encode_input(token, amount, receiver, b'')
+    print(data)
+    tx = ethMultisig.submitTransaction(bridgeETH.address,0,data)
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 

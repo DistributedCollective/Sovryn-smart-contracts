@@ -17,6 +17,12 @@ contract FeeSharingCollectorMockup is FeeSharingCollector {
         staking = _staking;
     }
 
+    /**
+     * @notice Ensure transferRBTC works properly in tests by inheriting parent implementation
+     * This function accepts RBTC donations from the protocol during liquidation blocking fix
+     * Note: In Solidity 0.5.17, we don't need explicit override - the parent function is inherited
+     */
+
     function withdraw(address _token, uint32 _maxCheckpoints, address _receiver) public {
         testData = TestData(_token, _maxCheckpoints, _receiver);
     }

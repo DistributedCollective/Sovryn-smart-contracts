@@ -15,6 +15,10 @@ import "../mixins/RewardHelper.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
 import "../interfaces/ILoanTokenModules.sol";
 
+interface IFeeSharingCollector {
+    function transferRBTC() external payable;
+}
+
 /**
  * @title LoanClosingsShared contract.
  * @notice This contract should only contains the internal function that is being used / utilized by
@@ -40,6 +44,29 @@ contract LoanClosingsShared is
         Deposit,
         Swap,
         Liquidation
+    }
+
+    struct SwapCloseParams {
+        uint256 swapAmount;
+        bool returnTokenIsCollateral;
+        bytes loanDataBytes;
+        bool allowDonationOnFailure;
+        address receiver;
+    }
+
+    struct SwapResults {
+        uint256 coveredPrincipal;
+        uint256 usedCollateral;
+        uint256 swapWithdrawAmount;
+        uint256 collateralToLoanSwapRate;
+    }
+
+    struct CoverPrincipalParams {
+        uint256 swapAmount;
+        uint256 principalNeeded;
+        bool returnTokenIsCollateral;
+        bytes loanDataBytes;
+        bool allowDonationOnFailure;
     }
 
     /** modifier for invariant check */
@@ -72,7 +99,8 @@ contract LoanClosingsShared is
         Loan memory loanLocal,
         LoanParams memory loanParamsLocal,
         uint256 loanCloseAmount,
-        address receiver
+        address receiver,
+        bool allowDonationOnFailure
     ) internal returns (uint256) {
         uint256 loanCloseAmountLessInterest = loanCloseAmount;
 
@@ -107,7 +135,14 @@ contract LoanClosingsShared is
 
             if (interestRefundToBorrower != 0) {
                 // refund overage
-                _withdrawAsset(loanParamsLocal.loanToken, receiver, interestRefundToBorrower);
+                // allowDonationOnFailure here is following the arguments passed from the caller
+                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
+                _withdrawAsset(
+                    loanParamsLocal.loanToken,
+                    receiver,
+                    interestRefundToBorrower,
+                    allowDonationOnFailure
+                );
             }
         }
 
@@ -209,20 +244,81 @@ contract LoanClosingsShared is
     }
 
     /**
-     * @notice Withdraw asset to receiver.
+     * @notice Withdraw asset to receiver with optional donation fallback for forced operations.
      *
-     * @param assetToken The loan token.
-     * @param receiver The address of the receiver.
-     * @param assetAmount The loan token amount.
-     * */
-    function _withdrawAsset(address assetToken, address receiver, uint256 assetAmount) internal {
+     * @param assetToken The token to withdraw (WRBTC or ERC20).
+     * @param receiver The address to receive the tokens.
+     * @param assetAmount The amount to withdraw.
+     * @param allowDonationOnFailure If true, donate to FeeSharingCollector if WRBTC transfer fails.
+     *                               This prevents liquidation/rollover blocking attacks where malicious
+     *                               borrowers use contracts that revert on receive()/fallback() calls.
+     *                               Only used for forced operations (liquidation/rollover), not normal closures.
+     *                               Note: The donation fallback only applies to WRBTC/RBTC transfers.
+     *                               For ERC20 tokens, the donation fallback is not used.
+     *
+     * @notice This function should be called with care when used in operations not favorable to users
+     *         because sending native (gas) token can be reverted by malicious contracts.
+     *         Currently it is used in liquidations and rollovers only, where the donation fallback
+     *         prevents blocking attacks by malicious borrowers who revert on receive()/fallback() calls.
+     */
+    function _withdrawAsset(
+        address assetToken,
+        address receiver,
+        uint256 assetAmount,
+        bool allowDonationOnFailure
+    ) internal {
         if (assetAmount != 0) {
             if (assetToken == address(wrbtcToken)) {
-                vaultEtherWithdraw(receiver, assetAmount);
+                if (allowDonationOnFailure) {
+                    _safeEtherWithdraw(receiver, assetAmount);
+                } else {
+                    vaultEtherWithdraw(receiver, assetAmount);
+                }
             } else {
                 vaultWithdraw(assetToken, receiver, assetAmount);
             }
         }
+    }
+
+    /**
+     * @notice Safely withdraw RBTC to receiver, donating to FeeSharingCollector if transfer fails.
+     * This function is used for forced operations (liquidation/rollover) where we don't want to revert.
+     *
+     * @param receiver The address of the receiver.
+     * @param amount The RBTC amount to withdraw.
+     * */
+    function _safeEtherWithdraw(address receiver, uint256 amount) internal {
+        if (amount != 0) {
+            IWrbtcERC20 _wrbtcToken = wrbtcToken;
+            uint256 balance = address(this).balance;
+            if (amount > balance) {
+                _wrbtcToken.withdraw(amount - balance);
+            }
+
+            // Try to send RBTC to the receiver
+            (bool success, ) = receiver.call.value(amount)("");
+
+            if (!success) {
+                // If transfer fails, donate to FeeSharingCollector instead
+                _donateToFeeSharingCollector(receiver, amount);
+            } else {
+                emit VaultWithdraw(address(_wrbtcToken), receiver, amount);
+            }
+        }
+    }
+
+    /**
+     * @notice Donate RBTC to FeeSharingCollector when direct transfer fails.
+     *
+     * @param originalRecipient The original intended recipient.
+     * @param amount The RBTC amount to donate.
+     * */
+    function _donateToFeeSharingCollector(address originalRecipient, uint256 amount) internal {
+        require(feesController != address(0), "feesController not set");
+
+        IFeeSharingCollector(feesController).transferRBTC.value(amount)();
+
+        emit DonateToFeeSharingCollector(originalRecipient, amount);
     }
 
     /**
@@ -341,6 +437,7 @@ contract LoanClosingsShared is
      *     Else coveredPrincipal
      * @param returnTokenIsCollateral Defines if the remainder should be paid
      *   out in collateral tokens or underlying loan tokens.
+     * @param allowDonationOnFailure Should be true on forced closings (liquidation, rollover) - if refund to the borrower reverts, it is donated to Sovryn stakers via FeeSharingCollector.
      *
      * @return loanCloseAmount The amount of the collateral token of the loan.
      * @return withdrawAmount The withdraw amount in the collateral token.
@@ -351,17 +448,45 @@ contract LoanClosingsShared is
         address receiver,
         uint256 swapAmount,
         bool returnTokenIsCollateral,
-        bytes memory loanDataBytes
+        bytes memory loanDataBytes,
+        bool allowDonationOnFailure
     ) internal returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) {
         require(swapAmount != 0, "swapAmount == 0");
 
         (Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
 
+        SwapCloseParams memory params = SwapCloseParams({
+            swapAmount: _adjustSwapAmountForTinyPosition(loanLocal, loanParamsLocal, swapAmount),
+            returnTokenIsCollateral: returnTokenIsCollateral,
+            loanDataBytes: loanDataBytes,
+            allowDonationOnFailure: allowDonationOnFailure,
+            receiver: receiver
+        });
+
+        (loanCloseAmount, withdrawAmount, withdrawToken) = _executeSwapAndClose(
+            loanLocal,
+            loanParamsLocal,
+            params
+        );
+    }
+
+    /**
+     * @notice Adjust swap amount to close entire position if tiny amount would remain
+     * @param loanLocal The loan object
+     * @param loanParamsLocal The loan parameters
+     * @param swapAmount The initial swap amount
+     * @return The adjusted swap amount
+     */
+    function _adjustSwapAmountForTinyPosition(
+        Loan storage loanLocal,
+        LoanParams storage loanParamsLocal,
+        uint256 swapAmount
+    ) internal view returns (uint256) {
         /// Can't swap more than collateral.
         swapAmount = swapAmount > loanLocal.collateral ? loanLocal.collateral : swapAmount;
 
         //close whole loan if tiny position will remain
-        if (loanLocal.collateral - swapAmount > 0) {
+        if (loanLocal.collateral > swapAmount) {
             if (
                 _getAmountInRbtc(
                     loanParamsLocal.collateralToken,
@@ -372,12 +497,107 @@ contract LoanClosingsShared is
             }
         }
 
-        uint256 loanCloseAmountLessInterest;
-        if (swapAmount == loanLocal.collateral || returnTokenIsCollateral) {
+        return swapAmount;
+    }
+
+    /**
+     * @notice Execute the swap and close logic
+     * @param loanLocal The loan object
+     * @param loanParamsLocal The loan parameters
+     * @param params The swap close parameters
+     * @return loanCloseAmount The loan close amount
+     * @return withdrawAmount The withdraw amount
+     * @return withdrawToken The withdraw token address
+     */
+    function _executeSwapAndClose(
+        Loan storage loanLocal,
+        LoanParams storage loanParamsLocal,
+        SwapCloseParams memory params
+    ) internal returns (uint256, uint256, address) {
+        return _processSwapClose(loanLocal, loanParamsLocal, params);
+    }
+
+    function _processSwapClose(
+        Loan storage loanLocal,
+        LoanParams storage loanParamsLocal,
+        SwapCloseParams memory params
+    ) internal returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) {
+        // Calculate initial close amount and settle interest if needed
+        (
+            uint256 loanCloseAmount,
+            uint256 loanCloseAmountLessInterest
+        ) = _calculateInitialCloseAmount(
+                loanLocal,
+                loanParamsLocal,
+                params.swapAmount,
+                params.returnTokenIsCollateral,
+                params.receiver,
+                params.allowDonationOnFailure
+            );
+
+        return
+            _executeAndFinalizeSwap(
+                loanLocal,
+                loanParamsLocal,
+                params,
+                loanCloseAmount,
+                loanCloseAmountLessInterest
+            );
+    }
+
+    function _executeAndFinalizeSwap(
+        Loan storage loanLocal,
+        LoanParams storage loanParamsLocal,
+        SwapCloseParams memory params,
+        uint256 loanCloseAmount,
+        uint256 loanCloseAmountLessInterest
+    ) internal returns (uint256, uint256, address) {
+        // Execute the swap
+        SwapResults memory swapResults;
+        (
+            swapResults.coveredPrincipal,
+            swapResults.usedCollateral,
+            swapResults.swapWithdrawAmount,
+            swapResults.collateralToLoanSwapRate
+        ) = _executeSwapForClose(
+            loanLocal,
+            loanParamsLocal,
+            params.swapAmount,
+            loanCloseAmountLessInterest,
+            params.returnTokenIsCollateral,
+            params.loanDataBytes,
+            params.allowDonationOnFailure
+        );
+
+        // Handle post-swap calculations and finalization
+        return
+            _finalizeSwapClose(
+                loanLocal,
+                loanParamsLocal,
+                params,
+                loanCloseAmount,
+                loanCloseAmountLessInterest,
+                swapResults
+            );
+    }
+
+    /**
+     * @notice Calculate initial close amount and settle interest if applicable
+     */
+    function _calculateInitialCloseAmount(
+        Loan storage loanLocal,
+        LoanParams storage loanParamsLocal,
+        uint256 swapAmount,
+        bool returnTokenIsCollateral,
+        address receiver,
+        bool allowDonationOnFailure
+    ) internal returns (uint256 loanCloseAmount, uint256 loanCloseAmountLessInterest) {
+        bool isFullCollateralSwap = swapAmount == loanLocal.collateral;
+        if (isFullCollateralSwap || returnTokenIsCollateral) {
             /// loanCloseAmountLessInterest will be passed as required amount amount of destination tokens.
             /// this means, the actual swapAmount passed to the swap contract does not matter at all.
             /// the source token amount will be computed depending on the required amount amount of destination tokens.
-            loanCloseAmount = swapAmount == loanLocal.collateral
+            loanCloseAmount = isFullCollateralSwap
                 ? loanLocal.principal
                 : loanLocal.principal.mul(swapAmount).div(loanLocal.collateral);
             require(loanCloseAmount != 0, "loanCloseAmount == 0");
@@ -387,7 +607,8 @@ contract LoanClosingsShared is
                 loanLocal,
                 loanParamsLocal,
                 loanCloseAmount,
-                receiver
+                receiver,
+                allowDonationOnFailure
             );
         } else {
             /// loanCloseAmount is calculated after swap; for this case we want to swap the entire source amount
@@ -395,26 +616,77 @@ contract LoanClosingsShared is
             loanCloseAmountLessInterest = 0;
         }
 
-        uint256 coveredPrincipal;
-        uint256 usedCollateral;
+        return (loanCloseAmount, loanCloseAmountLessInterest);
+    }
 
-        /// swapAmount repurposed for collateralToLoanSwapRate to avoid stack too deep error.
-        (coveredPrincipal, usedCollateral, withdrawAmount, swapAmount) = _coverPrincipalWithSwap(
+    /**
+     * @notice Execute the swap for loan closure
+     */
+    function _executeSwapForClose(
+        Loan storage loanLocal,
+        LoanParams storage loanParamsLocal,
+        uint256 swapAmount,
+        uint256 loanCloseAmountLessInterest,
+        bool returnTokenIsCollateral,
+        bytes memory loanDataBytes,
+        bool allowDonationOnFailure
+    )
+        internal
+        returns (
+            uint256 coveredPrincipal,
+            uint256 usedCollateral,
+            uint256 withdrawAmount,
+            uint256 collateralToLoanSwapRate
+        )
+    {
+        (
+            coveredPrincipal,
+            usedCollateral,
+            withdrawAmount,
+            collateralToLoanSwapRate
+        ) = _coverPrincipalWithSwap(
             loanLocal,
             loanParamsLocal,
-            swapAmount, /// The amount of source tokens to swap (only matters if !returnTokenIsCollateral or loanCloseAmountLessInterest = 0)
-            loanCloseAmountLessInterest, /// This is the amount of destination tokens we want to receive (only matters if returnTokenIsCollateral)
+            swapAmount,
+            loanCloseAmountLessInterest,
             returnTokenIsCollateral,
-            loanDataBytes
+            loanDataBytes,
+            allowDonationOnFailure
         );
+    }
+
+    /**
+     * @notice Finalize the swap closure process by calculating final amounts, updating loan state,
+     *         repaying the lender, and withdrawing remaining funds to the receiver.
+     * @param loanLocal The loan object containing borrower, lender, principal, collateral, etc.
+     * @param loanParamsLocal The loan parameters containing loan token, collateral token, etc.
+     * @param params The swap close parameters including swap amount, return token preference, etc.
+     * @param loanCloseAmount The initial amount to close (principal or lower), may be recalculated
+     * @param loanCloseAmountLessInterest The amount that is returned to the lender after interest settlement
+     * @param swapResults The results from the swap execution including covered principal, used collateral, etc.
+     * @return loanCloseAmount The final amount of the loan that was closed (principal or lower)
+     * @return withdrawAmount The amount being withdrawn to the receiver (remaining collateral + profit)
+     * @return withdrawToken The address of the token being withdrawn (collateral or loan token)
+     */
+    function _finalizeSwapClose(
+        Loan storage loanLocal,
+        LoanParams storage loanParamsLocal,
+        SwapCloseParams memory params,
+        uint256 loanCloseAmount,
+        uint256 loanCloseAmountLessInterest,
+        SwapResults memory swapResults
+    ) internal returns (uint256, uint256, address) {
+        uint256 withdrawAmount = swapResults.swapWithdrawAmount;
 
         if (loanCloseAmountLessInterest == 0) {
             /// Condition prior to swap: swapAmount != loanLocal.collateral && !returnTokenIsCollateral
 
             /// Amounts that is closed.
-            loanCloseAmount = coveredPrincipal;
-            if (coveredPrincipal != loanLocal.principal) {
-                loanCloseAmount = loanCloseAmount.mul(usedCollateral).div(loanLocal.collateral);
+            loanCloseAmount = swapResults.coveredPrincipal;
+            if (swapResults.coveredPrincipal != loanLocal.principal) {
+                loanCloseAmount = loanCloseAmount.mul(swapResults.usedCollateral).div(
+                    loanLocal.collateral
+                );
             }
             require(loanCloseAmount != 0, "loanCloseAmount == 0");
 
@@ -423,21 +695,24 @@ contract LoanClosingsShared is
                 loanLocal,
                 loanParamsLocal,
                 loanCloseAmount,
-                receiver
+                params.receiver,
+                params.allowDonationOnFailure
             );
 
             /// Remaining amount withdrawn to the receiver.
-            withdrawAmount = withdrawAmount.add(coveredPrincipal).sub(loanCloseAmountLessInterest);
+            withdrawAmount = withdrawAmount.add(swapResults.coveredPrincipal).sub(
+                loanCloseAmountLessInterest
+            );
         } else {
             /// Pay back the amount which was covered by the swap.
-            loanCloseAmountLessInterest = coveredPrincipal;
+            loanCloseAmountLessInterest = swapResults.coveredPrincipal;
         }
 
         require(loanCloseAmountLessInterest != 0, "closeAmount is 0 after swap");
 
         /// Reduce the collateral by the amount which was swapped for the closure.
-        if (usedCollateral != 0) {
-            loanLocal.collateral = loanLocal.collateral.sub(usedCollateral);
+        if (swapResults.usedCollateral != 0) {
+            loanLocal.collateral = loanLocal.collateral.sub(swapResults.usedCollateral);
         }
 
         /// Repays principal to lender.
@@ -445,22 +720,34 @@ contract LoanClosingsShared is
         /// withdraw directly rather than use the _withdrawAsset helper function.
         vaultWithdraw(loanParamsLocal.loanToken, loanLocal.lender, loanCloseAmountLessInterest);
 
-        withdrawToken = returnTokenIsCollateral
+        // Set withdraw token
+        address withdrawToken = params.returnTokenIsCollateral
             ? loanParamsLocal.collateralToken
             : loanParamsLocal.loanToken;
 
+        // Withdraw to receiver
         if (withdrawAmount != 0) {
-            _withdrawAsset(withdrawToken, receiver, withdrawAmount);
+            // allowDonationOnFailure here is following the arguments passed from the caller
+            // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
+            _withdrawAsset(
+                withdrawToken,
+                params.receiver,
+                withdrawAmount,
+                params.allowDonationOnFailure
+            );
         }
 
+        // Finalize
         _finalizeClose(
             loanLocal,
             loanParamsLocal,
             loanCloseAmount,
-            usedCollateral,
-            swapAmount, /// collateralToLoanSwapRate
+            swapResults.usedCollateral,
+            swapResults.collateralToLoanSwapRate, /// collateralToLoanSwapRate
             CloseTypes.Swap
         );
+
+        return (loanCloseAmount, withdrawAmount, withdrawToken);
     }
 
     /**
@@ -547,6 +834,7 @@ contract LoanClosingsShared is
      *   cover the principle (only used if returnTokenIsCollateral).
      * @param returnTokenIsCollateral Tells if the user wants to withdraw his
      *   remaining collateral + profit in collateral tokens.
+     * @param allowDonationOnFailure If true, allow donation on failure for forced operations.
      *
      * @return coveredPrincipal The amount of principal that is covered.
      * @return usedCollateral The amount of collateral used.
@@ -559,7 +847,32 @@ contract LoanClosingsShared is
         uint256 swapAmount,
         uint256 principalNeeded,
         bool returnTokenIsCollateral,
-        bytes memory loanDataBytes
+        bytes memory loanDataBytes,
+        bool allowDonationOnFailure
+    )
+        internal
+        returns (
+            uint256 coveredPrincipal,
+            uint256 usedCollateral,
+            uint256 withdrawAmount,
+            uint256 collateralToLoanSwapRate
+        )
+    {
+        CoverPrincipalParams memory params = CoverPrincipalParams({
+            swapAmount: swapAmount,
+            principalNeeded: principalNeeded,
+            returnTokenIsCollateral: returnTokenIsCollateral,
+            loanDataBytes: loanDataBytes,
+            allowDonationOnFailure: allowDonationOnFailure
+        });
+
+        return _executeCoverPrincipalWithSwap(loanLocal, loanParamsLocal, params);
+    }
+
+    function _executeCoverPrincipalWithSwap(
+        Loan memory loanLocal,
+        LoanParams memory loanParamsLocal,
+        CoverPrincipalParams memory params
     )
         internal
         returns (
@@ -578,72 +891,114 @@ contract LoanClosingsShared is
         ) = _doCollateralSwap(
             loanLocal,
             loanParamsLocal,
-            swapAmount,
-            principalNeeded,
-            returnTokenIsCollateral,
-            loanDataBytes
+            params.swapAmount,
+            params.principalNeeded,
+            params.returnTokenIsCollateral,
+            params.loanDataBytes
         );
 
-        if (returnTokenIsCollateral) {
-            coveredPrincipal = principalNeeded;
-
-            /// Better fill than expected.
-            if (destTokenAmountReceived > coveredPrincipal) {
-                /// Send excess to borrower if the amount is big enough to be
-                /// worth the gas fees.
-                if (
-                    worthTheTransfer(
-                        loanParamsLocal.loanToken,
-                        destTokenAmountReceived - coveredPrincipal
-                    )
-                ) {
-                    _withdrawAsset(
-                        loanParamsLocal.loanToken,
-                        loanLocal.borrower,
-                        destTokenAmountReceived - coveredPrincipal
-                    );
-                }
-                /// Else, give the excess to the lender (if it goes to the
-                /// borrower, they're very confused. causes more trouble than it's worth)
-                else {
-                    coveredPrincipal = destTokenAmountReceived;
-                }
-            }
-            withdrawAmount = swapAmount > sourceTokenAmountUsed
-                ? swapAmount - sourceTokenAmountUsed
-                : 0;
+        if (params.returnTokenIsCollateral) {
+            (coveredPrincipal, withdrawAmount) = _handleCollateralReturn(
+                loanLocal,
+                loanParamsLocal,
+                params,
+                destTokenAmountReceived,
+                sourceTokenAmountUsed
+            );
         } else {
-            require(sourceTokenAmountUsed == swapAmount, "swap error");
+            (coveredPrincipal, withdrawAmount, sourceTokenAmountUsed) = _handleLoanTokenReturn(
+                loanLocal,
+                loanParamsLocal,
+                params,
+                destTokenAmountReceived,
+                sourceTokenAmountUsed
+            );
+        }
 
-            if (swapAmount == loanLocal.collateral) {
-                /// sourceTokenAmountUsed == swapAmount == loanLocal.collateral
+        usedCollateral = sourceTokenAmountUsed > params.swapAmount
+            ? sourceTokenAmountUsed
+            : params.swapAmount;
 
-                coveredPrincipal = principalNeeded;
-                withdrawAmount = destTokenAmountReceived - principalNeeded;
+        return (coveredPrincipal, usedCollateral, withdrawAmount, collateralToLoanSwapRate);
+    }
+
+    function _handleCollateralReturn(
+        Loan memory loanLocal,
+        LoanParams memory loanParamsLocal,
+        CoverPrincipalParams memory params,
+        uint256 destTokenAmountReceived,
+        uint256 sourceTokenAmountUsed
+    ) internal returns (uint256 coveredPrincipal, uint256 withdrawAmount) {
+        coveredPrincipal = params.principalNeeded;
+
+        /// Better fill than expected.
+        if (destTokenAmountReceived > coveredPrincipal) {
+            uint256 excess = destTokenAmountReceived - coveredPrincipal;
+            /// Send excess to borrower if the amount is big enough to be
+            /// worth the gas fees.
+            if (worthTheTransfer(loanParamsLocal.loanToken, excess)) {
+                // allowDonationOnFailure here is following the arguments passed from the caller
+                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
+                _withdrawAsset(
+                    loanParamsLocal.loanToken,
+                    loanLocal.borrower,
+                    excess,
+                    params.allowDonationOnFailure
+                );
+            }
+            /// Else, give the excess to the lender (if it goes to the
+            /// borrower, they're very confused. causes more trouble than it's worth)
+            else {
+                coveredPrincipal = destTokenAmountReceived;
+            }
+        }
+        withdrawAmount = params.swapAmount > sourceTokenAmountUsed
+            ? params.swapAmount - sourceTokenAmountUsed
+            : 0;
+    }
+
+    function _handleLoanTokenReturn(
+        Loan memory loanLocal,
+        LoanParams memory loanParamsLocal,
+        CoverPrincipalParams memory params,
+        uint256 destTokenAmountReceived,
+        uint256 sourceTokenAmountUsed
+    )
+        internal
+        returns (uint256 coveredPrincipal, uint256 withdrawAmount, uint256 finalSourceUsed)
+    {
+        require(sourceTokenAmountUsed == params.swapAmount, "swap error");
+        finalSourceUsed = sourceTokenAmountUsed;
+
+        if (params.swapAmount == loanLocal.collateral) {
+            /// sourceTokenAmountUsed == swapAmount == loanLocal.collateral
+            coveredPrincipal = params.principalNeeded;
+            withdrawAmount = destTokenAmountReceived - params.principalNeeded;
+        } else {
+            /// sourceTokenAmountUsed == swapAmount < loanLocal.collateral
+            if (destTokenAmountReceived >= loanLocal.principal) {
+                /// Edge case where swap covers full principal.
+                coveredPrincipal = loanLocal.principal;
+                withdrawAmount = destTokenAmountReceived - loanLocal.principal;
+
+                /// Excess collateral refunds to the borrower.
+                uint256 excessCollateral = loanLocal.collateral - sourceTokenAmountUsed;
+                // allowDonationOnFailure here is following the arguments passed from the caller
+                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
+                _withdrawAsset(
+                    loanParamsLocal.collateralToken,
+                    loanLocal.borrower,
+                    excessCollateral,
+                    params.allowDonationOnFailure
+                );
+                finalSourceUsed = loanLocal.collateral;
             } else {
-                /// sourceTokenAmountUsed == swapAmount < loanLocal.collateral
-
-                if (destTokenAmountReceived >= loanLocal.principal) {
-                    /// Edge case where swap covers full principal.
-
-                    coveredPrincipal = loanLocal.principal;
-                    withdrawAmount = destTokenAmountReceived - loanLocal.principal;
-
-                    /// Excess collateral refunds to the borrower.
-                    _withdrawAsset(
-                        loanParamsLocal.collateralToken,
-                        loanLocal.borrower,
-                        loanLocal.collateral - sourceTokenAmountUsed
-                    );
-                    sourceTokenAmountUsed = loanLocal.collateral;
-                } else {
-                    coveredPrincipal = destTokenAmountReceived;
-                    withdrawAmount = 0;
-                }
+                coveredPrincipal = destTokenAmountReceived;
+                withdrawAmount = 0;
             }
         }
 
-        usedCollateral = sourceTokenAmountUsed > swapAmount ? sourceTokenAmountUsed : swapAmount;
+        return (coveredPrincipal, withdrawAmount, finalSourceUsed);
     }
 
     function _emitClosingEvents(

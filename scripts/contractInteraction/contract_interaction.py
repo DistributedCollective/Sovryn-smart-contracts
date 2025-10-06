@@ -29,8 +29,17 @@ def main():
     '''
 
     # call the function you want here
-    
+
     ##################################
+    #getAmmExchequerBalances()
+    
+    #bal = getBalance(conf.contracts['(WR)BTC/USDT2'], conf.contracts['multisig'])
+    #removeLiquidityV2toMultisig(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal, 88000)
+    #removeLiquidityV2toMultisig(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], 127477*10**18, 169500)
+    #sendTokensFromMultisig(conf.contracts['USDT'],'0x2Ed881D546a92727f95d034542c996aBa271dF22', 98727611725740920151418) #jamie
+    #print(getReturnForV2PoolToken(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal)[0]/1e18)
+
+    #print(getReturnForV2PoolToken(conf.contracts['ConverterUSDT'], conf.contracts['(WR)BTC/USDT2'], bal)[0]/1e18)
     
     ### swap BPro -> WRBTC on Watcher
     # withdrawTokensFromWatcher(conf.contracts["BPro"], 1.15e18, conf.contracts["multisig"])
@@ -40,11 +49,12 @@ def main():
 
     #readPriceFromOracle()
     #cancelProposal('GovernorOwner', 47) # type == 'GovernorOwner' or 'GovernorAdmin'; proposalId - proposal ordered number
-    #replaceOwnerOnMultisig("0x832E1bd30d037d0327F2A0447eD44FB952A9a043", "0xaaa5a190ACCbc50F4F9c130b5876521E4D5F9D6c")
+    #replaceOwnerOnArbitraryMultisig("0xdD0E3546EEBf3f1Cc4454a16b4DC5b677923bDC1", "0x85bF86a8afe427bBe238EDC20bAAb8bb8a10cfc1", "0xaaa5a190ACCbc50F4F9c130b5876521E4D5F9D6c") #soulBit -> tiltom
+    #replaceOwnerOnArbitraryMultisig("0xdD0E3546EEBf3f1Cc4454a16b4DC5b677923bDC1", "0x9E0816a71B53ca67201a5088df960fE90910DE55", "0x9E9C0A0c51e730f6C915f80A145c9312385DCF22") #ororo -> Hyde
     #checkRates()
-    
-    #transferRBTCFromFastBTCOffRampToOnRamp(15e18)
-    #withdrawRBTCFromFastBTCBiDi(20e18, "0xD9ECB390a6a32ae651D5C614974c5570c50A5D89") #send to jamie to refill FastBTC on bitcoin
+    # bal = getFastBTCOfframpAvailableBalance()
+    #transferRBTCFromFastBTCOffRampToOnRamp(15*1e18)
+    #withdrawRBTCFromFastBTCBiDi(9.999*1e18, "0x7aa20504b9c1af913ff8b979a923c2f032e7d24a") #send to jamie to refill FastBTC on bitcoin
     #sendTokensFromMultisig(conf.contracts['POWA'], '0x5744eB85eB99aAE7ff8ce12Cff423c8b39733ddC', 3269230769.230769*10**18)
     # bal = 238563927653782540924338044928
     # withdrawFromMerkleDistributor('0x0d33b91738d97341364ee43e8ff84fb9f9013ce6',[conf.contracts['POWA']], [bal], conf.contracts['multisig'])

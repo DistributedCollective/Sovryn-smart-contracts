@@ -226,13 +226,15 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                     msg.sender,
                     loanLocal.collateral,
                     false,
-                    "" // loanDataBytes
+                    "", // loanDataBytes
+                    false
                 );
             } else {
                 // pay out reward to caller
                 loanLocal.collateral = loanLocal.collateral.sub(rolloverReward);
 
-                _withdrawAsset(loanParamsLocal.collateralToken, msg.sender, rolloverReward);
+                // allowDonationOnFailure is false because the msg.sender here is the rollover caller, not the borrower
+                _withdrawAsset(loanParamsLocal.collateralToken, msg.sender, rolloverReward, false);
             }
         }
 
@@ -244,7 +246,8 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                     loanLocal.borrower,
                     loanLocal.collateral, // swap all collaterals
                     false,
-                    "" /// loanDataBytes
+                    "", /// loanDataBytes
+                    true
                 );
             } else {
                 (uint256 currentMargin, ) = IPriceFeeds(priceFeeds).getCurrentMargin(

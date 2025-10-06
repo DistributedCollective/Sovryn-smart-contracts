@@ -12,6 +12,12 @@ def sendFromMultisig(receiver, amount):
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
+def sendFromArbitraryMultisig(multisigAddress, receiver, amount):
+    multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=conf.acct)
+    tx = multisig.submitTransaction(receiver,amount,b'')
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
 def sendTokensFromMultisig(token, receiver, amount):
     tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=conf.acct)
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
@@ -49,6 +55,11 @@ def printMultisigOwnersOnAny(multisigAddress):
 
 def replaceOwnerOnMultisig(oldOwner, newOwner):
     multisig = Contract.from_abi("MultiSig", address=conf.contracts['multisig'], abi=MultiSigWallet.abi, owner=conf.acct)
+    data = multisig.replaceOwner.encode_input(oldOwner, newOwner)
+    sendWithMultisig(multisig, multisig, data, conf.acct)
+
+def replaceOwnerOnArbitraryMultisig(multisigAddress, oldOwner, newOwner):
+    multisig = Contract.from_abi("MultiSig", address=multisigAddress, abi=MultiSigWallet.abi, owner=conf.acct)
     data = multisig.replaceOwner.encode_input(oldOwner, newOwner)
     sendWithMultisig(multisig, multisig, data, conf.acct)
 
