@@ -173,6 +173,7 @@ module.exports = {
         },
         localhost: {
             timeout: 100000,
+            url: "http://127.0.0.1:8545/",
         },
         rskForkedTestnet: {
             chainId: 31337,

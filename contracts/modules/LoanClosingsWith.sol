@@ -62,7 +62,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken)
     {
         _checkAuthorized(loanId);
-        return _closeWithDeposit(loanId, receiver, depositAmount);
+        return _closeWithDeposit(loanId, receiver, depositAmount, false);
     }
 
     /**
@@ -106,7 +106,8 @@ contract LoanClosingsWith is LoanClosingsShared {
                 receiver,
                 swapAmount,
                 returnTokenIsCollateral,
-                "" /// loanDataBytes
+                "", /// loanDataBytes
+                false
             );
     }
 
@@ -127,7 +128,8 @@ contract LoanClosingsWith is LoanClosingsShared {
     function _closeWithDeposit(
         bytes32 loanId,
         address receiver,
-        uint256 depositAmount /// Denominated in loanToken.
+        uint256 depositAmount, /// Denominated in loanToken.
+        bool allowDonationOnFailure
     ) internal returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) {
         require(depositAmount != 0, "depositAmount == 0");
 
@@ -148,11 +150,13 @@ contract LoanClosingsWith is LoanClosingsShared {
             );
         }
 
+        // allowDonationOnFailure is always false because we don't want to donate on failure for normal closures
         uint256 loanCloseAmountLessInterest = _settleInterestToPrincipal(
             loanLocal,
             loanParamsLocal,
             loanCloseAmount,
-            receiver
+            receiver,
+            allowDonationOnFailure
         );
 
         if (loanCloseAmountLessInterest != 0) {
@@ -173,7 +177,8 @@ contract LoanClosingsWith is LoanClosingsShared {
 
         if (withdrawAmount != 0) {
             loanLocal.collateral = loanLocal.collateral.sub(withdrawAmount);
-            _withdrawAsset(withdrawToken, receiver, withdrawAmount);
+            // allowDonationOnFailure is always false because we don't want to donate on failure for normal closures
+            _withdrawAsset(withdrawToken, receiver, withdrawAmount, allowDonationOnFailure);
         }
 
         _finalizeClose(
