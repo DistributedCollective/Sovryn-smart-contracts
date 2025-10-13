@@ -64,16 +64,17 @@ yarn ts-node scripts/staking/snapshot_staking.ts --help
 
 | Option | Type | Description |
 |--------|------|-------------|
+| `--network` | string | **Required**. Network to use: `BOB` or `RSK` |
 | `--timestamp` | number | Unix timestamp for the snapshot (conflicts with --current-timestamp) |
 | `--current-timestamp` | boolean | Use a recent timestamp (~2 blocks ago) for the snapshot (conflicts with --timestamp) |
-| `--voluntary-only` | boolean | Use voluntary VP (fee sharing). **Default: true**. Use `--no-voluntary-only` for total VP (SIP voting). |
+| `--voluntary-only` | boolean | Use voluntary VP. **Default: true**. Use `--no-voluntary-only` for total VP |
 
 ### Current Snapshot
 
 To take a snapshot at a recent timestamp (uses voluntary VP by default):
 
 ```bash
-yarn ts-node scripts/staking/snapshot_staking.ts --current-timestamp
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-timestamp
 ```
 
 **Note**: The script uses a block that's ~2 blocks behind the latest to avoid calculation errors.
@@ -83,29 +84,35 @@ yarn ts-node scripts/staking/snapshot_staking.ts --current-timestamp
 To take a snapshot at a specific Unix timestamp:
 
 ```bash
-yarn ts-node scripts/staking/snapshot_staking.ts --timestamp 1728432000
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 1728432000
 ```
 
 Example for October 9, 2025 at midnight UTC:
 
 ```bash
-yarn ts-node scripts/staking/snapshot_staking.ts --timestamp 1728432000
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 1728432000
 ```
 
 ### Voting Power Modes
 
-**Default behavior (voluntary VP - fee sharing):**
+**Default behavior (voluntary VP):**
 ```bash
 # Uses voluntary VP by default
-yarn ts-node scripts/staking/snapshot_staking.ts --current-timestamp
-yarn ts-node scripts/staking/snapshot_staking.ts --timestamp 1728432000
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-timestamp
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 1728432000
 ```
 
-**Total VP mode (for SIP voting):**
+**Total VP mode:**
 ```bash
 # Use --no-voluntary-only for total VP
-yarn ts-node scripts/staking/snapshot_staking.ts --current-timestamp --no-voluntary-only
-yarn ts-node scripts/staking/snapshot_staking.ts --timestamp 1728432000 --no-voluntary-only
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-timestamp --no-voluntary-only
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 1728432000 --no-voluntary-only
+```
+
+**For RSK network:**
+```bash
+yarn ts-node scripts/staking/snapshot_staking.ts --network RSK --current-timestamp
+yarn ts-node scripts/staking/snapshot_staking.ts --network RSK --timestamp 1728432000
 ```
 
 The flag controls which voting power value is shown in the main "Voting Power" field:
@@ -117,17 +124,17 @@ Note: The `votingPowerMode` field clearly indicates which calculation method was
 ### Complete Examples
 
 ```bash
-# Take snapshot at current time (shows voluntary VP by default - fee sharing)
-yarn ts-node scripts/staking/snapshot_staking.ts --current-timestamp
+# Take snapshot at current time on BOB (shows voluntary VP by default)
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-timestamp
 
-# Take snapshot at specific timestamp (shows voluntary VP by default - fee sharing)
-yarn ts-node scripts/staking/snapshot_staking.ts --timestamp 1728432000
+# Take snapshot at specific timestamp on BOB
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 1728432000
 
-# Current snapshot with total VP (for SIP voting)
-yarn ts-node scripts/staking/snapshot_staking.ts --current-timestamp --no-voluntary-only
+# Current snapshot with total VP on BOB
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-timestamp --no-voluntary-only
 
-# Historical snapshot with total VP (for SIP voting)
-yarn ts-node scripts/staking/snapshot_staking.ts --timestamp 1728432000 --no-voluntary-only
+# Historical snapshot on RSK
+yarn ts-node scripts/staking/snapshot_staking.ts --network RSK --timestamp 1728432000
 ```
 
 ## Output
@@ -231,7 +238,7 @@ To verify the results are correct, you can compare the snapshot output with data
 
 1. Run the snapshot (uses voluntary VP by default):
    ```bash
-   yarn ts-node scripts/staking/snapshot_staking.ts --timestamp <TIMESTAMP>
+   yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp <TIMESTAMP>
    ```
 
 2. Compare the "Voting Power" values in the output with the fee sharing VP from Origins BE BD

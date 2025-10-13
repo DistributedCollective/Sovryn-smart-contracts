@@ -35,6 +35,7 @@ async function getStakingSnapshot(params: {
   stakerAddresses: string[];
   snapshotTimestamp: number;
   voluntaryOnly: boolean;
+  averageBlockTime: number;
 }) {
   const {
     rpcUrl,
@@ -42,6 +43,7 @@ async function getStakingSnapshot(params: {
     stakerAddresses,
     snapshotTimestamp,
     voluntaryOnly,
+    averageBlockTime,
   } = params;
   console.log(
     `Starting staking snapshot process... (voluntaryOnly: ${voluntaryOnly})`,
@@ -59,7 +61,7 @@ async function getStakingSnapshot(params: {
   // Calculate target block number based on timestamp
   const targetBlock = await calculateBlockNumber(
     provider,
-    TBOS_SNAPSHOT_STAKING_CONFIG.averageBlockTime,
+    averageBlockTime,
     targetTimestamp,
   );
   console.log(
@@ -209,7 +211,14 @@ async function main() {
         "Use voluntary VP. Default: true. Use --no-voluntary-only for total VP",
       default: true,
     })
+    .option("network", {
+      type: "string",
+      description: "Network to use",
+      choices: ["BOB", "RSK"],
+      demandOption: true,
+    })
     .parseSync() as {
+    network: "BOB" | "RSK";
     timestamp?: number;
     currentTimestamp?: boolean;
     voluntaryOnly?: boolean;
@@ -229,8 +238,12 @@ async function main() {
 
   let snapshotTimestamp: number;
 
+  // Get network-specific config
+  const networkConfig = TBOS_SNAPSHOT_STAKING_CONFIG[argv.network];
+  console.log(`Using network: ${argv.network}`);
+
   if (argv.currentTimestamp) {
-    const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL!);
+    const provider = new ethers.providers.JsonRpcProvider(networkConfig.rpcUrl);
     const currentBlock = await provider.getBlock("latest");
     const blockSafeThreshold = 2;
     const safeBlockNumber = currentBlock.number - blockSafeThreshold; // to avoid calculation error (not determined yet) for the most recent block
@@ -247,11 +260,12 @@ async function main() {
   }
 
   await getStakingSnapshot({
-    rpcUrl: process.env.RPC_URL!,
-    stakingAddress: TBOS_SNAPSHOT_STAKING_CONFIG.stakingAddress,
+    rpcUrl: networkConfig.rpcUrl,
+    stakingAddress: networkConfig.stakingAddress,
     stakerAddresses: stakerAddresses,
     snapshotTimestamp,
     voluntaryOnly: argv.voluntaryOnly ?? true,
+    averageBlockTime: networkConfig.averageBlockTime,
   });
 }
 
