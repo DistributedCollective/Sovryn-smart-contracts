@@ -1,4 +1,4 @@
-// scripts/staking/snapshot-staking.ts
+// scripts/staking/snapshot_staking.ts
 import { ethers } from "ethers";
 import { createObjectCsvWriter } from "csv-writer";
 import fs from "fs";
@@ -33,17 +33,15 @@ async function getStakingSnapshot(params: {
   rpcUrl: string;
   stakingAddress: string;
   stakerAddresses: string[];
-  snapshotTimestamp: number;
+  blockNumber: number;
   voluntaryOnly: boolean;
-  averageBlockTime: number;
 }) {
   const {
     rpcUrl,
     stakingAddress,
     stakerAddresses,
-    snapshotTimestamp,
+    blockNumber,
     voluntaryOnly,
-    averageBlockTime,
   } = params;
   console.log(
     `Starting staking snapshot process... (voluntaryOnly: ${voluntaryOnly})`,
@@ -56,18 +54,16 @@ async function getStakingSnapshot(params: {
     provider,
   );
 
-  const targetTimestamp = snapshotTimestamp;
+  const targetBlock = blockNumber;
 
-  // Calculate target block number based on timestamp
-  const targetBlock = await calculateBlockNumber(
-    provider,
-    averageBlockTime,
-    targetTimestamp,
-  );
-  console.log(
-    `Target timestamp: ${targetTimestamp} (${new Date(targetTimestamp * 1000).toISOString()})`,
-  );
+  // Get timestamp from the block
+  const block = await provider.getBlock(targetBlock);
+  const targetTimestamp = block.timestamp;
+
   console.log(`Target block: ${targetBlock}`);
+  console.log(
+    `Block timestamp: ${targetTimestamp} (${new Date(targetTimestamp * 1000).toISOString()})`,
+  );
 
   const results: StakingSnapshot[] = [];
   let processedCount = 0;
@@ -147,11 +143,17 @@ async function getStakingSnapshot(params: {
   }
 
   // Save as JSON
-  const jsonPath = path.join(resultsDir, `staking_snapshot_${timestamp}.json`);
+  const jsonPath = path.join(
+    resultsDir,
+    `staking_snapshot_block_${targetBlock}_${timestamp}.json`,
+  );
   fs.writeFileSync(jsonPath, JSON.stringify(results, null, 2));
 
   // Save as CSV
-  const csvPath = path.join(resultsDir, `staking_snapshot_${timestamp}.csv`);
+  const csvPath = path.join(
+    resultsDir,
+    `staking_snapshot_block_${targetBlock}_${timestamp}.csv`,
+  );
   const csvWriter = createObjectCsvWriter({
     path: csvPath,
     header: [
@@ -173,37 +175,18 @@ async function getStakingSnapshot(params: {
   return results;
 }
 
-async function calculateBlockNumber(
-  provider: ethers.providers.JsonRpcProvider,
-  averageBlockTime: number,
-  targetTimestamp: number,
-): Promise<number> {
-  // Get current block
-  const currentBlock = await provider.getBlock("latest");
-  const currentTs = currentBlock.timestamp;
-
-  // Calculate blocks between current time and sales end
-  const timeDifference = currentTs - targetTimestamp;
-  const blockDifference = Math.floor(timeDifference / averageBlockTime);
-
-  // Calculate target block number
-  const targetBlockNumber = currentBlock.number - blockDifference;
-
-  return targetBlockNumber;
-}
-
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Script entry point
 async function main() {
   const argv = yargs(hideBin(process.argv))
-    .option("timestamp", {
+    .option("block-number", {
       type: "number",
-      description: "Unix timestamp for the snapshot",
+      description: "Specific block number for the snapshot",
     })
-    .option("current-timestamp", {
+    .option("current-block-number", {
       type: "boolean",
-      description: "Use the current block timestamp for the snapshot",
+      description: "Use the current block number for the snapshot",
     })
     .option("voluntary-only", {
       type: "boolean",
@@ -219,53 +202,50 @@ async function main() {
     })
     .parseSync() as {
     network: "BOB" | "RSK";
-    timestamp?: number;
-    currentTimestamp?: boolean;
+    blockNumber?: number;
+    currentBlockNumber?: boolean;
     voluntaryOnly?: boolean;
   };
 
-  // Validate that exactly one timestamp option is provided
-  if (!argv.timestamp && !argv.currentTimestamp) {
+  // Validate that exactly one block option is provided
+  if (!argv.blockNumber && !argv.currentBlockNumber) {
     console.error(
-      "Error: Must provide either --timestamp <UNIX_TIMESTAMP> or --current-timestamp",
+      "Error: Must provide either --block-number <NUMBER> or --current-block-number",
     );
     process.exit(1);
   }
-  if (argv.timestamp && argv.currentTimestamp) {
-    console.error("Error: Cannot use both --timestamp and --current-timestamp");
+  if (argv.blockNumber && argv.currentBlockNumber) {
+    console.error(
+      "Error: Cannot use both --block-number and --current-block-number",
+    );
     process.exit(1);
   }
-
-  let snapshotTimestamp: number;
 
   // Get network-specific config
   const networkConfig = TBOS_SNAPSHOT_STAKING_CONFIG[argv.network];
   console.log(`Using network: ${argv.network}`);
 
-  if (argv.currentTimestamp) {
+  let targetBlockNumber: number;
+
+  if (argv.currentBlockNumber) {
     const provider = new ethers.providers.JsonRpcProvider(networkConfig.rpcUrl);
     const currentBlock = await provider.getBlock("latest");
     const blockSafeThreshold = 2;
-    const safeBlockNumber = currentBlock.number - blockSafeThreshold; // to avoid calculation error (not determined yet) for the most recent block
-    const safeBlock = await provider.getBlock(safeBlockNumber);
-    snapshotTimestamp = safeBlock.timestamp;
+    targetBlockNumber = currentBlock.number - blockSafeThreshold; // to avoid calculation error (not determined yet) for the most recent block
     console.log(
-      `Using recent timestamp (block ${safeBlockNumber}): ${snapshotTimestamp} (${new Date(snapshotTimestamp * 1000).toISOString()})`,
+      `Using current block number (with safety threshold): ${targetBlockNumber}`,
     );
   } else {
-    snapshotTimestamp = argv.timestamp!;
-    console.log(
-      `Using specified timestamp: ${snapshotTimestamp} (${new Date(snapshotTimestamp * 1000).toISOString()})`,
-    );
+    targetBlockNumber = argv.blockNumber!;
+    console.log(`Using specified block number: ${targetBlockNumber}`);
   }
 
   await getStakingSnapshot({
     rpcUrl: networkConfig.rpcUrl,
     stakingAddress: networkConfig.stakingAddress,
     stakerAddresses: stakerAddresses,
-    snapshotTimestamp,
+    blockNumber: targetBlockNumber,
     voluntaryOnly: argv.voluntaryOnly ?? true,
-    averageBlockTime: networkConfig.averageBlockTime,
   });
 }
 

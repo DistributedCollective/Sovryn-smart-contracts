@@ -1,6 +1,6 @@
 # Staking Snapshot Tool
 
-This tool generates snapshots of staking data from the Sovryn staking contract at a specific point in time (or current state). It retrieves staking amounts and voting power for a list of addresses and exports the data in both JSON and CSV formats.
+This tool generates snapshots of staking data from the Sovryn staking contract at a specific block number (or current block). It retrieves staking amounts and voting power for a list of addresses and exports the data in both JSON and CSV formats.
 
 ## Overview
 
@@ -18,9 +18,14 @@ The snapshot tool queries on-chain staking data including:
 
 ```typescript
 export const TBOS_SNAPSHOT_STAKING_CONFIG = {
-  averageBlockTime: 15,                                    // Average block time in seconds
-  stakingAddress: "0xc17C6462cEAFE9A8819258c6bA168BEF5544Fc21", // Staking contract address
-  rpcUrl: "https://rpc.gobob.xyz/",                        // RPC endpoint
+  BOB: {
+    stakingAddress: "0xc17C6462cEAFE9A8819258c6bA168BEF5544Fc21", // Staking contract address
+    rpcUrl: "https://rpc.gobob.xyz/", // RPC endpoint
+  },
+  RSK: {
+    stakingAddress: "0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e", // Staking contract address
+    rpcUrl: "https://rpc.rsk.co/", // RPC endpoint
+  }
 } as const;
 ```
 
@@ -50,7 +55,7 @@ Or create a `.env` file in the project root.
 
 ## Usage
 
-**Important**: You must explicitly specify either a Unix timestamp OR use the `--current-timestamp` flag. The script will not run without one of these options.
+**Important**: You must explicitly specify either a block number OR use the `--current-block-number` flag. The script will not run without one of these options.
 
 ### Getting Help
 
@@ -65,32 +70,32 @@ yarn ts-node scripts/staking/snapshot_staking.ts --help
 | Option | Type | Description |
 |--------|------|-------------|
 | `--network` | string | **Required**. Network to use: `BOB` or `RSK` |
-| `--timestamp` | number | Unix timestamp for the snapshot (conflicts with --current-timestamp) |
-| `--current-timestamp` | boolean | Use a recent timestamp (~2 blocks ago) for the snapshot (conflicts with --timestamp) |
+| `--block-number` | number | Specific block number for the snapshot (conflicts with --current-block-number) |
+| `--current-block-number` | boolean | Use the current block number for the snapshot (conflicts with --block-number) |
 | `--voluntary-only` | boolean | Use voluntary VP. **Default: true**. Use `--no-voluntary-only` for total VP |
 
 ### Current Snapshot
 
-To take a snapshot at a recent timestamp (uses voluntary VP by default):
+To take a snapshot at the current block (uses voluntary VP by default):
 
 ```bash
-yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-timestamp
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-block-number
 ```
 
-**Note**: The script uses a block that's ~2 blocks behind the latest to avoid calculation errors.
+**Note**: The script uses a block that's 2 blocks behind the latest to avoid calculation errors on the most recent blocks.
 
 ### Historical Snapshot
 
-To take a snapshot at a specific Unix timestamp:
+To take a snapshot at a specific block number:
 
 ```bash
-yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 1728432000
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --block-number 12345678
 ```
 
-Example for October 9, 2025 at midnight UTC:
+Example for a specific block on RSK:
 
 ```bash
-yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 1728432000
+yarn ts-node scripts/staking/snapshot_staking.ts --network RSK --block-number 5000000
 ```
 
 ### Voting Power Modes
@@ -98,21 +103,21 @@ yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 17284
 **Default behavior (voluntary VP):**
 ```bash
 # Uses voluntary VP by default
-yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-timestamp
-yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 1728432000
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-block-number
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --block-number 12345678
 ```
 
 **Total VP mode:**
 ```bash
 # Use --no-voluntary-only for total VP
-yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-timestamp --no-voluntary-only
-yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 1728432000 --no-voluntary-only
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-block-number --no-voluntary-only
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --block-number 12345678 --no-voluntary-only
 ```
 
 **For RSK network:**
 ```bash
-yarn ts-node scripts/staking/snapshot_staking.ts --network RSK --current-timestamp
-yarn ts-node scripts/staking/snapshot_staking.ts --network RSK --timestamp 1728432000
+yarn ts-node scripts/staking/snapshot_staking.ts --network RSK --current-block-number
+yarn ts-node scripts/staking/snapshot_staking.ts --network RSK --block-number 5000000
 ```
 
 The flag controls which voting power value is shown in the main "Voting Power" field:
@@ -124,26 +129,28 @@ Note: The `votingPowerMode` field clearly indicates which calculation method was
 ### Complete Examples
 
 ```bash
-# Take snapshot at current time on BOB (shows voluntary VP by default)
-yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-timestamp
+# Take snapshot at current block on BOB (shows voluntary VP by default)
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-block-number
 
-# Take snapshot at specific timestamp on BOB
-yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp 1728432000
+# Take snapshot at specific block on BOB
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --block-number 12345678
 
 # Current snapshot with total VP on BOB
-yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-timestamp --no-voluntary-only
+yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --current-block-number --no-voluntary-only
 
-# Historical snapshot on RSK
-yarn ts-node scripts/staking/snapshot_staking.ts --network RSK --timestamp 1728432000
+# Historical snapshot on RSK at specific block
+yarn ts-node scripts/staking/snapshot_staking.ts --network RSK --block-number 5000000
 ```
 
 ## Output
 
-The tool generates two files in the `output/` directory with timestamps in their filenames:
+The tool generates two files in the `output/` directory with block numbers and timestamps in their filenames:
 
 ### JSON Format
 
-`staking_snapshot_YYYY-MM-DDTHH-MM-SS-MMMZ.json`
+`staking_snapshot_block_<BLOCK_NUMBER>_YYYY-MM-DDTHH-MM-SS-MMMZ.json`
+
+Example: `staking_snapshot_block_12345678_2025-10-14T12-00-00-000Z.json`
 
 ```json
 [
@@ -160,7 +167,9 @@ The tool generates two files in the `output/` directory with timestamps in their
 
 ### CSV Format
 
-`staking_snapshot_YYYY-MM-DDTHH-MM-SS-MMMZ.csv`
+`staking_snapshot_block_<BLOCK_NUMBER>_YYYY-MM-DDTHH-MM-SS-MMMZ.csv`
+
+Example: `staking_snapshot_block_12345678_2025-10-14T12-00-00-000Z.csv`
 
 ```csv
 Address,Amount Staked,Voting Power,VP Mode,Is Vesting
@@ -181,14 +190,12 @@ Address,Amount Staked,Voting Power,VP Mode,Is Vesting
 
 ## How It Works
 
-### 1. Block Calculation
-The script calculates the target block number based on the provided timestamp (or uses the current block if `--current-timestamp` is specified).
+### 1. Block Selection
+The script uses the block number you specify directly:
+- If `--block-number` is provided: Uses that exact block
+- If `--current-block-number` is specified: Uses the current block minus 2 (safety threshold to avoid calculation errors on the most recent blocks)
 
-Formula:
-```
-blockDifference = (currentTimestamp - targetTimestamp) / averageBlockTime
-targetBlockNumber = currentBlockNumber - blockDifference
-```
+The timestamp is then retrieved from the selected block for data queries and output file naming.
 
 ### 2. Data Retrieval
 For each address in the configuration file:
@@ -214,13 +221,11 @@ Formula: `Total VP = Voluntary VP + Delegated VP`
 
 ### 4. Output Selection
 The `--voluntary-only` flag determines which value appears in the main "Voting Power" field:
-- `--voluntary-only`: Uses voluntary VP (own stake only)
-- Without flag: Uses total VP (own + delegated)
-
-All values (total, voluntary, and delegated VP) are always captured in the output.
+- `--voluntary-only` (default): Uses voluntary VP (own stake only)
+- `--no-voluntary-only`: Uses total VP (own + delegated)
 
 ### 5. Export
-Results are saved in both JSON and CSV formats with timestamped filenames.
+Results are saved in both JSON and CSV formats with block numbers and timestamps in the filenames.
 
 ### 6. Rate Limiting
 The script includes a 100ms delay between requests to avoid overwhelming the RPC endpoint.
@@ -238,7 +243,7 @@ To verify the results are correct, you can compare the snapshot output with data
 
 1. Run the snapshot (uses voluntary VP by default):
    ```bash
-   yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --timestamp <TIMESTAMP>
+   yarn ts-node scripts/staking/snapshot_staking.ts --network BOB --block-number <BLOCK_NUMBER>
    ```
 
 2. Compare the "Voting Power" values in the output with the fee sharing VP from Origins BE BD
@@ -252,6 +257,14 @@ To verify the results are correct, you can compare the snapshot output with data
 
 Pick a few known addresses and verify:
 - The voluntary VP matches fee sharing calculations
-- The total VP (without `--voluntary-only`) matches SIP voting power
+- The total VP (with `--no-voluntary-only`) matches SIP voting power
 - Delegated VP = Total VP - Voluntary VP
+
+### Finding Block Numbers
+
+To find a specific block number for a given timestamp, you can use block explorers:
+- **BOB**: https://explorer.gobob.xyz/
+- **RSK**: https://explorer.rsk.co/
+
+Or use web3 tools to query blocks by timestamp.
 
