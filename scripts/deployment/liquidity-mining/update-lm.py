@@ -8,6 +8,7 @@ brownie run scripts/deployment/liquidity-mining/update-lm.py --network rsk-mainn
 
 from brownie import *
 import json
+from pprint import pprint
 
 def main():
     
@@ -130,31 +131,82 @@ def updateLMConfig():
     lm = Contract.from_abi("LiquidityMining", address = contracts['LiquidityMiningProxy'], abi = LiquidityMining.abi, owner = acct)
 
     MAX_ALLOCATION_POINT = 100000 * 1000 # 100 M
-    # SOV/rBTC - 5k SOV
-    ALLOCATION_POINT_BTC_SOV = 5000 # (WR)BTC/SOV
+    # SOV/rBTC - 5k SOV - cancelled 14.10.2025
+    ALLOCATION_POINT_BTC_SOV = 1 # (WR)BTC/SOV
 
-    # DLLR/rBTC - 7.5k SOV
-    ALLOCATION_POINT_BTC_DLLR =  7500 # (WR)BTC/DLLR
+    # DLLR/rBTC - 7.5k SOV - cancelled 14.10.2025
+    ALLOCATION_POINT_BTC_DLLR = 1 # (WR)BTC/DLLR
 
     ALLOCATION_POINT_DEFAULT = 1 # 14 tokens with 1 alloc point to account: (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF | (WR)BTC/MYNT | (WR)BTC/BNB | (WR)BTC/ETH | iXUSD | (WR)BTC/XUSD | (WR)BTC/POWA
     ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV \
-                                     - ALLOCATION_POINT_BTC_DLLR  - (ALLOCATION_POINT_DEFAULT * 15)
+    - ALLOCATION_POINT_BTC_DLLR  - (ALLOCATION_POINT_DEFAULT * 15)
 
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
 
     print('LiquidityMiningConfigToken:', lm.getPoolInfo(contracts['LiquidityMiningConfigToken']))
-    print('WRBTC/DLLR:',lm.getPoolInfo(contracts['(WR)BTC/DLLR']))
-    print('WRBTC/XUSD:',lm.getPoolInfo(contracts['(WR)BTC/XUSD']))
-    print('WRBTC/SOV:',lm.getPoolInfo(contracts['(WR)BTC/XUSD']))
+    required_contracts = [
+        '(WR)BTC/USDT1',
+        '(WR)BTC/USDT2',
+        '(WR)BTC/DOC1',
+        '(WR)BTC/DOC2',
+        '(WR)BTC/BPRO1',
+        '(WR)BTC/BPRO2',
+        '(WR)BTC/MOC',
+        '(WR)BTC/FISH',
+        '(WR)BTC/RIF',
+        '(WR)BTC/MYNT',
+        '(WR)BTC/BNB',
+        '(WR)BTC/ETH',
+        'iXUSD',
+        '(WR)BTC/XUSD',
+        '(WR)BTC/POWA',
+        '(WR)BTC/SOV',
+        '(WR)BTC/DLLR'
+    ]
+
+    missing_contracts = [name for name in required_contracts if name not in contracts]
+    if missing_contracts:
+        print("Missing contracts in mainnet_contracts.json:", missing_contracts)
+        exit(1)
+    else:
+        print("All required contracts exist in mainnet_contracts.json.")
+
+    # print('WRBTC/POWA:', lm.getPoolInfo(contracts['(WR)BTC/POWA']))
+    print('WRBTC/USDT1:', lm.getPoolInfo(contracts['(WR)BTC/USDT1']))
+    print('WRBTC/USDT2:', lm.getPoolInfo(contracts['(WR)BTC/USDT2']))
+    print('WRBTC/DOC1:', lm.getPoolInfo(contracts['(WR)BTC/DOC1']))
+    print('WRBTC/DOC2:', lm.getPoolInfo(contracts['(WR)BTC/DOC2']))
+    print('WRBTC/BPRO1:', lm.getPoolInfo(contracts['(WR)BTC/BPRO1']))
+    print('WRBTC/BPRO2:', lm.getPoolInfo(contracts['(WR)BTC/BPRO2']))
+    print('WRBTC/MOC:', lm.getPoolInfo(contracts['(WR)BTC/MOC']))
+    print('WRBTC/FISH:', lm.getPoolInfo(contracts['(WR)BTC/FISH']))
+    print('WRBTC/RIF:', lm.getPoolInfo(contracts['(WR)BTC/RIF']))
+    print('WRBTC/MYNT:', lm.getPoolInfo(contracts['(WR)BTC/MYNT']))
+    print('WRBTC/BNB:', lm.getPoolInfo(contracts['(WR)BTC/BNB']))
+    print('WRBTC/ETH:', lm.getPoolInfo(contracts['(WR)BTC/ETH']))
+    print('iXUSD:', lm.getPoolInfo(contracts['iXUSD']))
+    print('WRBTC/XUSD:', lm.getPoolInfo(contracts['(WR)BTC/XUSD']))
+    print('WRBTC/POWA:', lm.getPoolInfo(contracts['(WR)BTC/POWA']))
+    print('WBTC/SOV:', lm.getPoolInfo(contracts['(WR)BTC/SOV']))
+    print('WBTC/DLLR:', lm.getPoolInfo(contracts['(WR)BTC/DLLR']))
+
+    # Prettify output for LM POOLS INFO LIST
+
+    print("LM POOLS INFO LIST:")
+    pprint(lm.getPoolInfoList())
+    
+    #print("Total allocation points:", lm.totalAllocationPoints())
+    #
 
     # update this before executing
     data = lm.updateTokens.encode_input(
         #[contracts['(WR)BTC/SOV'], contracts['(WR)BTC/DLLR'], contracts['(WR)BTC/XUSD'], contracts['LiquidityMiningConfigToken']],
-        [contracts['(WR)BTC/DLLR'], contracts['LiquidityMiningConfigToken']],
+        [contracts['(WR)BTC/DLLR'], contracts['(WR)BTC/SOV'], contracts['LiquidityMiningConfigToken']],
         #[ALLOCATION_POINT_BTC_SOV, ALLOCATION_POINT_BTC_DLLR, ALLOCATION_POINT_DEFAULT, ALLOCATION_POINT_CONFIG_TOKEN],
-        [ALLOCATION_POINT_BTC_DLLR, ALLOCATION_POINT_CONFIG_TOKEN],
+        [ALLOCATION_POINT_BTC_DLLR, ALLOCATION_POINT_BTC_SOV, ALLOCATION_POINT_CONFIG_TOKEN],
         True
     )
+    print(data)
     # tx = multisig.submitTransaction(lm.address,0,data)
     # txId = tx.events["Submission"]["transactionId"]
     # print("txid",txId)
