@@ -7,6 +7,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { TBOS_SNAPSHOT_STAKING_CONFIG } from "./config/tbos_snapshot_staking.config";
 import dotenv from "dotenv";
+import { network } from "hardhat";
 dotenv.config();
 
 interface StakingSnapshot {
@@ -145,14 +146,14 @@ async function getStakingSnapshot(params: {
   // Save as JSON
   const jsonPath = path.join(
     resultsDir,
-    `staking_snapshot_block_${targetBlock}_${timestamp}.json`,
+    `staking_snapshot_${network}_block_${targetBlock}_${timestamp}.json`,
   );
   fs.writeFileSync(jsonPath, JSON.stringify(results, null, 2));
 
   // Save as CSV
   const csvPath = path.join(
     resultsDir,
-    `staking_snapshot_block_${targetBlock}_${timestamp}.csv`,
+    `staking_snapshot_${network}_block_${targetBlock}_${timestamp}.csv`,
   );
   const csvWriter = createObjectCsvWriter({
     path: csvPath,
