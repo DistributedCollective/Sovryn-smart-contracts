@@ -100,18 +100,43 @@ const stakingRegisterModuleWithMultisig = () => {
     return process.env.STAKING_REG_WITH_MULTISIG == "true";
 };
 
-const isMultisigOwner = async (multisigAddress, checkAddress) => {
-    const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress);
-    return await multisig.isOwner(checkAddress);
+const getMultisigWallet = async (multisig = undefined) => {
+    const { ethers } = hre;
+    if (multisig === undefined) {
+        multisig = "MultiSigWallet";
+    }
+    if (!ethers.utils.isAddress(multisig)) {
+        const multisigWallet = await ethers.getContractOrNull(multisig);
+        if (multisigWallet === null) {
+            multisig = ethers.constants.AddressZero;
+        } else {
+            multisig = multisigWallet.address;
+        }
+    } else {
+        const code = await ethers.provider.getCode(multisig);
+        if (code === "0x") {
+            multisig = ethers.constants.AddressZero;
+        }
+    }
+    const ms =
+        multisig === ethers.constants.AddressZero
+            ? await ethers.getContract("MultiSigWallet")
+            : await ethers.getContractAt("MultiSigWallet", multisig);
+    return ms;
 };
 
-const multisigAddOwner = async (addAddress, sender) => {
+const isMultisigOwner = async (checkAddress, multisig = "MultiSigWallet") => {
+    const multisigWallet = await getMultisigWallet(multisig);
+    return await multisigWallet.isOwner(checkAddress);
+};
+
+const multisigAddOwner = async (addAddress, sender, multisig = "MultiSigWallet") => {
     const {
         ethers,
-        getNamedAccounts,
         deployments: { get },
     } = hre;
-    const multisigDeployment = await get("MultiSigWallet");
+    const multisigWallet = await getMultisigWallet(multisig);
+    const multisigDeployment = await get(multisigWallet.address);
     let multisigInterface = new ethers.utils.Interface(multisigDeployment.abi);
     let data = multisigInterface.encodeFunctionData("addOwner", [addAddress]);
     ///@todo check if the deployer is one of ms owners
@@ -124,13 +149,17 @@ const multisigAddOwner = async (addAddress, sender) => {
     );
 };
 
-const multisigReplaceOwner = async (oldAddress, newAddress, sender) => {
+const multisigReplaceOwner = async (
+    oldAddress,
+    newAddress,
+    sender,
+    multisig = "MultiSigWallet"
+) => {
     const {
         ethers,
-        getNamedAccounts,
         deployments: { get },
     } = hre;
-    const multisigDeployment = await get("MultiSigWallet");
+    const multisigDeployment = await get(multisig);
     let multisigInterface = new ethers.utils.Interface(multisigDeployment.abi);
     let data = multisigInterface.encodeFunctionData("replaceOwner", [oldAddress, newAddress]);
     ///@todo check if the deployer is one of ms owners
@@ -145,13 +174,12 @@ const multisigReplaceOwner = async (oldAddress, newAddress, sender) => {
     );
 };
 
-const multisigRemoveOwner = async (removeAddress, sender) => {
+const multisigRemoveOwner = async (removeAddress, sender, multisig = "MultiSigWallet") => {
     const {
         ethers,
-        getNamedAccounts,
         deployments: { get },
     } = hre;
-    const multisigDeployment = await get("MultiSigWallet");
+    const multisigDeployment = await get(multisig);
     let multisigInterface = new ethers.utils.Interface(multisigDeployment.abi);
     let data = multisigInterface.encodeFunctionData("removeOwner", [removeAddress]);
     console.log(`creating multisig tx to remove owner ${removeAddress}...`);
@@ -842,6 +870,7 @@ module.exports = {
     getEthersLog,
     parseEthersLogToValue,
     getParsedEventLogFromReceipt,
+    getMultisigWallet,
     sendWithMultisig,
     sendWithMultisigReturningId,
     signWithMultisig,
