@@ -7,7 +7,6 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { TBOS_SNAPSHOT_STAKING_CONFIG } from "./config/tbos_snapshot_staking.config";
 import dotenv from "dotenv";
-import { network } from "hardhat";
 dotenv.config();
 
 interface StakingSnapshot {
@@ -36,6 +35,7 @@ async function getStakingSnapshot(params: {
   stakerAddresses: string[];
   blockNumber: number;
   voluntaryOnly: boolean;
+  network: string;
 }) {
   const {
     rpcUrl,
@@ -43,6 +43,7 @@ async function getStakingSnapshot(params: {
     stakerAddresses,
     blockNumber,
     voluntaryOnly,
+    network,
   } = params;
   console.log(
     `Starting staking snapshot process... (voluntaryOnly: ${voluntaryOnly})`,
@@ -78,39 +79,29 @@ async function getStakingSnapshot(params: {
         continue;
       }
 
-      // Get total voting power (used for SIP voting)
-      // Includes voluntary staking VP + delegated VP from vesting contracts and other stakers
-      const totalVotingPower = await stakingContract.getPriorVotes(
-        staker,
-        targetBlock,
-        targetTimestamp,
-      );
-
-      // Get voluntary voting power
-      // Only includes VP from own stake - no delegated VP from vesting or other stakers
-      const ownWeightedStake = await stakingContract.getPriorWeightedStake(
-        staker,
-        targetBlock,
-        targetTimestamp,
-      );
-
-      // Calculate delegated voting power (from vesting contracts and other stakers)
-      const delegatedVotingPower = totalVotingPower.sub(ownWeightedStake);
-
-      // Voluntary voting power = own weighted stake only
-      const voluntaryVotingPower = ownWeightedStake;
-
       // Get staked amount
       const stakedAmount = await stakingContract.balanceOf(staker, {
         blockTag: targetBlock,
       });
 
-      // Select which VP to use based on flag:
-      // voluntaryOnly == true (default): use getPriorWeightedStake
-      // voluntaryOnly == false: use getPriorVotes
-      const votingPowerToUse = voluntaryOnly
-        ? voluntaryVotingPower
-        : totalVotingPower;
+      // Only call the VP function we actually need based on voluntaryOnly flag
+      let votingPowerToUse;
+
+      if (voluntaryOnly) {
+        // Get voluntary voting power only
+        votingPowerToUse = await stakingContract.getPriorWeightedStake(
+          staker,
+          targetBlock,
+          targetTimestamp,
+        );
+      } else {
+        // Get total voting power
+        votingPowerToUse = await stakingContract.getPriorVotes(
+          staker,
+          targetBlock,
+          targetTimestamp,
+        );
+      }
 
       results.push({
         address: staker,
@@ -247,6 +238,7 @@ async function main() {
     stakerAddresses: stakerAddresses,
     blockNumber: targetBlockNumber,
     voluntaryOnly: argv.voluntaryOnly ?? true,
+    network: argv.network,
   });
 }
 
