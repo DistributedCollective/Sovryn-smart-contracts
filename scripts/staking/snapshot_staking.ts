@@ -235,7 +235,7 @@ async function main() {
   await getStakingSnapshot({
     rpcUrl: networkConfig.rpcUrl,
     stakingAddress: networkConfig.stakingAddress,
-    stakerAddresses: stakerAddresses,
+    stakerAddresses,
     blockNumber: targetBlockNumber,
     voluntaryOnly: argv.voluntaryOnly ?? true,
     network: argv.network,
@@ -248,13 +248,25 @@ if (fs.existsSync(configPath)) {
   try {
     const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
     stakerAddresses = config.addresses;
+
+    if (!stakerAddresses || stakerAddresses.length === 0) {
+      console.error("Error: No addresses found in config file");
+      process.exit(1);
+    }
+
     console.log(
-      `Loaded ${stakerAddresses?.length} staker addresses from config.json`,
+      `Loaded ${stakerAddresses.length} staker addresses from config.json`,
     );
   } catch (error) {
     console.error("Error reading addresses config file:", error);
     throw new Error(`Error reading addresses config file: ${error}`);
   }
+} else {
+  console.error(`Error: Config file not found at ${configPath}`);
+  console.error(
+    "Please create config/stakerAddresses.json with the addresses to snapshot",
+  );
+  process.exit(1);
 }
 
 main()
