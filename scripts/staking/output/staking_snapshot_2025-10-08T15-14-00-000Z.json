@@ -1,0 +1,842 @@
+[
+    {
+        "address": "0x060d080fb3e524fc61f4b16144fc39fc37a2ae39",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x09f77d14dd558a4d8fc08b2a7330defcf117107d",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x0cdf53551f75f2508303b94245b9b708f03a1d83",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x14a887bf6adce514753fc81de8a00187a1a7b47a",
+        "amountStaked": "12458.041553279151986251",
+        "votingPower": "123334.611377463604663884",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x18f28be1fb20d5322b0d908b375de41b9d9dd8c9",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x19c379fb39e46a4ca2b3e59a12b4c76fbb51e2b7",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x1cca95810a1cd6dd316b0ce85783ccc835a77402",
+        "amountStaked": "24117.40642113376702416",
+        "votingPower": "45215.6831633242228604",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x1cf7ae8b006d3116edef8a6d5419ab41109a2c3e",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x1eb3b49941c666d398c786745cd059eba5a4be9e",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x225b292e2523103b546d83e3ae58c6e57527e2a8",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x26fb82cd87338268a77825f168e619d6502e2c99",
+        "amountStaked": "20000.237100610510460235",
+        "votingPower": "28000.331940854714644329",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x283a49b59846dce46752b7ebb7ba5df7a8564960",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x287a3bcb53c90f190aed3397d9aeca629766ec9a",
+        "amountStaked": "106497.487059460821657186",
+        "votingPower": "785567.064102430534671813",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x2b1e65441cbbcfb1b91d987e63642911991f2afa",
+        "amountStaked": "40.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x2b45400a61927e8ba22e379ea00498dc573329c6",
+        "amountStaked": "10000.000076923076923178",
+        "votingPower": "77000.00059230769230847",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x2c85892e5188d47019492ad0711cffaa6d777f01",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x30bc553aca18694f6e5b840ef597738b90731114",
+        "amountStaked": "10189.894359292184646346",
+        "votingPower": "70160.045076591081110254",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x30eba9565b347f6da2743d659ebd808e00541b99",
+        "amountStaked": "0.00003856855134",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x33abd4f9b8af819a543d550400647e1734120008",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x348b6f28fe84425b8612fbb099c827fcfa17507c",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x380e9bcd38aa621201b7b14231ede711be8cad15",
+        "amountStaked": "1105.160017134338945485",
+        "votingPower": "2388.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x38862f26fb16dcb7f58a91c23f1f9cc159bb0000",
+        "amountStaked": "94773.549748751589383553",
+        "votingPower": "938258.142512640734897174",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x3889931763a3852644caacbec22ad3e18a8577c3",
+        "amountStaked": "1000.0",
+        "votingPower": "9900.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x3a9e0da873dbe52d7869e2fa76aeed965ffc01dc",
+        "amountStaked": "6911.683893106933707365",
+        "votingPower": "8860.355213797542615176",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x3d170616c9402a2ff5771d85f38bd8f87f97d297",
+        "amountStaked": "4708.290885103955762393",
+        "votingPower": "46612.07976252916204769",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x3d5d7f406ae4ae4ccf1745b6509bd79913ef49c1",
+        "amountStaked": "2127.98722997807114821",
+        "votingPower": "9788.741257899127281766",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x3f84e2b70d215241e7e5aa988b90d1412cd0f8c8",
+        "amountStaked": "5728.276398396174517928",
+        "votingPower": "26350.071432622402782468",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x3ff003142742d54e7c6a0c8da2861deae392dcce",
+        "amountStaked": "22.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x41a8078e5e5e6af0edce03977168e2b5af90ecf7",
+        "amountStaked": "253.568908536928591721",
+        "votingPower": "633.922271342321479302",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x4434c4683e93bb73f34b026df385125e80069c1f",
+        "amountStaked": "4950.443742330663196233",
+        "votingPower": "45544.082429442101405343",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x4436d0999e0f407252d23a9ce9b7071031a0df77",
+        "amountStaked": "2000.0",
+        "votingPower": "2400.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x464cd65ce856a62d424f1f4ef5feb3c95ac94844",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x48731a48591b8a1869fa0f742334532a88b2ce92",
+        "amountStaked": "10010.0",
+        "votingPower": "56056.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x494ee9266560f1a17c2a2438d9d0c55406ff088f",
+        "amountStaked": "2996.575649589001479178",
+        "votingPower": "29666.098930931114643862",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x4e964eb134cb28c4dafb689dd2973192a0b2986f",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x50d0a6a2b4115e0177dd23c1fe2b2c75f1fa4005",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x518192448edc7ab26a357b8f1412e96a3d354f1a",
+        "amountStaked": "1441.696766945370408626",
+        "votingPower": "10303.780929159128050884",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x54f998ccc66070372b0ca9eb54dfee2c1c4be858",
+        "amountStaked": "2509.87944210003514264",
+        "votingPower": "18824.0958157502635698",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x5772f52d552edc131ca14f14126c08e928b23155",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x57c74ff640e2d7316c5fb46d7c393c6560bb447c",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x5894a716231109e420600de169734bd2666df89c",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x598e4690ddb8222480b5b9657579be6b46c61ffa",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x5cce53d05e9143aee8723776fd27f669e6f1fb59",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x5f357da1cd6f4ea12d2da590eb75e8c47d3d0381",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x5f702f65028630a3937d73ebf91697a7f451bedd",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x5f7c5220c0bf8889838897f2902d25e6d3b0fcbd",
+        "amountStaked": "40195.650385900857245176",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x60090335df2550ee20b564965b817ad18e52a09e",
+        "amountStaked": "10627.730413637920861101",
+        "votingPower": "51373.08445817499697185",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x6298b4449b0417e88cc3a63bf9322742c4a2ef33",
+        "amountStaked": "323.614722530496001398",
+        "votingPower": "441.112712693465486785",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x638f0f711c45a43e225c49b3ac1464d4f524a2b3",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x65b2689f54618359ecf7455d14fafbfcc180a47a",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x65bab1a7550b1fe168cb434830fb959d607e03fc",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x68911e58f65062066abc81559a6def797402f345",
+        "amountStaked": "112.0",
+        "votingPower": "862.4",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x72f4c63d3a948b86b9288f4d93b419a76ba88129",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x740dce091631e17a17175f810ba2157a9ad64639",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x742a7b943546b61dfe7408bcd51a0a6d8f91fcd3",
+        "amountStaked": "14080.0",
+        "votingPower": "19712.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x74dd73d498fceed337a35961e07d29e2b6b24782",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x769beebdbf202381fec33336efdf2b49b4001acb",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x7ad9386e30e13d3d1268a9f6d9bb7f36f164b6e3",
+        "amountStaked": "23116.804364480330064809",
+        "votingPower": "175687.713170050508492548",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x7f97f1e1173741f971565779cbdeeda97d60d164",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x80b230907fef58bf99ad75be76eb437315f8d142",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x81e7436ae65a5d3a35793ff1b5dc82e3b12c9a68",
+        "amountStaked": "87.047601332087268991",
+        "votingPower": "783.428411988785420919",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x84c11998bc94072265cbe837c1d4890237f98e46",
+        "amountStaked": "3598.945642196946794452",
+        "votingPower": "14035.888004568092498362",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x871a67b40ae162439a33424b54f898bb2a710109",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x8a4d4a1f50d5927c37ce702497b1927cee6ecb08",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x8c534924ac55c7563b592986ca22eacc5d27470f",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x918b12a60ef21802cab10261e2a6fc39d305c03d",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x95033e0027273b220fba8e9514977b25204425fe",
+        "amountStaked": "40000.0",
+        "votingPower": "364000.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x961c1aaf7fe0d2b84999944362ad90e848b59aa7",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x962d4cf024f687e5f04176ead33f461d371a7a0f",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x98f2ce1dbf528fa51126a41863e91e8a9a259c46",
+        "amountStaked": "3144.638974480221763898",
+        "votingPower": "12176.268182690420434098",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0x99679f6c76d4bdb3082bd4b944437ecee93d596a",
+        "amountStaked": "18281.023432129047604989",
+        "votingPower": "180982.131978077571289391",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xa0da6f9f30e980bc03b25a539c2652b3d5bef212",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xa4c4f41bf6742dcd9f549fe68ee386b128b3872f",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xab837f3bb0ba520cace8f30f0742c60e38461399",
+        "amountStaked": "30816.779629107287012822",
+        "votingPower": "242613.293411181929044238",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xb3cebcf743faa0b4d5efb2907d280bd7ddf2ddd8",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xb757faa4e8948eae292234763a2044865593352a",
+        "amountStaked": "64584.078165554364108492",
+        "votingPower": "645840.78165554364108492",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xba6c3ee93b3c571a92db2a7ea54165eb76f1a628",
+        "amountStaked": "328.256207055979502014",
+        "votingPower": "3249.736449854197069938",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xba9636ed6a47ff6b4f50060172a01f362b91b7b6",
+        "amountStaked": "3106.323556810929996168",
+        "votingPower": "30752.603212428206962063",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xbaeca48d3ab36bedf24dc0e47ec46e84b4709f55",
+        "amountStaked": "4020.74807466934347306",
+        "votingPower": "36588.807479491025604846",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xbb579d861e5885f867d46c126bdfa8025415faaa",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xbe8d471def32b6e9f0ed6241780f63d005852dc9",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xbf550e97a0859e70579b49700ec9ac55d4bfc361",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xc1d00cb4adc2d751673335ec4dbf691f81d5e023",
+        "amountStaked": "409.698840444528017783",
+        "votingPower": "1024.247101111320044457",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xc3836599de06bc821ce9b99ab30cae1b426760ea",
+        "amountStaked": "13499.425030248919796798",
+        "votingPower": "669.327687927194352637",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xc3bbcf4260b204ed8d87e62629bc979a2ccc3161",
+        "amountStaked": "9173.372565639829546758",
+        "votingPower": "24768.105927227539776246",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xc5978f0f386b69f60cfd33867de4309752438e79",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xc857a07ca20babeda3f76e9be6b1b2701a29fc11",
+        "amountStaked": "4279.194876338554162999",
+        "votingPower": "4767.39844135648698633",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xc8b19839ae371bd541f20b15c3a3cb82bfb6a6c6",
+        "amountStaked": "101.874814023999410053",
+        "votingPower": "974.897252348124876879",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xc93a3f243515c65bd0c6f77cc5fd7bc3299ed6f4",
+        "amountStaked": "6612.349743943474300065",
+        "votingPower": "15208.404411069990890149",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xca96a64c6ffb25798aced111db48442bdc8d4e9d",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xcceea200668750aeeb155d2c609d8223b054dbd5",
+        "amountStaked": "295.272113778167513101",
+        "votingPower": "280.272113778167513101",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xce67147f8cc3d389cbbf6b0d81614f0f3386b612",
+        "amountStaked": "2000.0",
+        "votingPower": "3500.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xcf059f40e9d9504a95c0a879a6c81644c2c96042",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xd116f82b52926b421317d3a176c31934023ea6c0",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xd2b3f647ebb1ef32b7b366947f50c75bf19a73cb",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xd39af3fc016e3e36f10423d885f0f39e9e1d1cc1",
+        "amountStaked": "1042.988528959319830196",
+        "votingPower": "9804.092172217606403842",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xd86076a23c589b5288a65f570bcfd925c972f266",
+        "amountStaked": "194681.971009758209887682",
+        "votingPower": "1927351.512996606277888051",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xd9f153db848d8165e855af26c9be7304d3adc2e9",
+        "amountStaked": "4610.125677109900642294",
+        "votingPower": "37865.978490423622792032",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xdb3f49e793743539e192f1f5cf271590941d79f0",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xdc284582e6c556fbdc1f85e18afaeb3a6cbdf289",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xdd16f14aa9226e7ecc456f8b52427f92eb7b84ee",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xde5d6076f557a4c71897d90919b0b0a4ad0a8257",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xdeffdce128c9e919a089d48d8530cf52fc179b23",
+        "amountStaked": "178992.7934562840241753",
+        "votingPower": "1391301.953507475731453711",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xdf14e16dedcafc209fc7cafd9da0322d8691bdeb",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xe0290f11a134e3a0b247d555ae67f1f4f752ce09",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xe15affab343f85e275773be71fd85ded53ea75e1",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xe48440c1f17235038c2b9e535c50fc64c6f8703a",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xe66e9c6c46cdf646edcfd5082503755b448dcf18",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xe759b5d4efd26f7d4f40989b644d986a73d774b2",
+        "amountStaked": "28.75513374554714",
+        "votingPower": "66.136807614758422",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xe7ea6bbed00cf814af6a06d47739231aa82793c4",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xe895084850c04af3a57fdd90c0ba42ba440bc3a8",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xeb41d485bb7e714da845ffabd3b23d4b37caf611",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xed251842b7f1c277d95b7fb1d34904e053242281",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xf1d16b920b3c66b2d151d2974d81f80894631b40",
+        "amountStaked": "2400.0",
+        "votingPower": "23760.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xf2aa7991de3c181c7423e92d427b02d0a28b5550",
+        "amountStaked": "1003.462968898549890553",
+        "votingPower": "9934.283392095643916474",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xf32e96c8c7af61522ec2f5d19a38eced963d3306",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xf727d89d989681f363a5fbdf128ce4192eb8c479",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xf8f2f3c11d730fbaae07571a034104e57c73c9ff",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xfbfab8eabc4179693e6d8dd97764a172ab71e037",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    },
+    {
+        "address": "0xfe1c94ab457dafdfc9b38be986bb8b3729891cae",
+        "amountStaked": "0.0",
+        "votingPower": "0.0",
+        "votingPowerMode": "voluntary",
+        "isVesting": false
+    }
+]
