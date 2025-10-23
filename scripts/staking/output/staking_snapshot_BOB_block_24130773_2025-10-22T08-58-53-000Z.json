@@ -1,0 +1,2004 @@
+[
+  {
+    "address": "0x0400dbe6bf2a46e2f42f84843c4b9cb42cb7beb4",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x060d080fb3e524fc61f4b16144fc39fc37a2ae39",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x06359486bc0f501032519e7fc0eaf1f92b79ae08",
+    "amountStaked": "1.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x09f77d14dd558a4d8fc08b2a7330defcf117107d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x0bcc7b085afbd0994776b78599c08415ffbc6071",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x0cdf53551f75f2508303b94245b9b708f03a1d83",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x0ceb46119d3d2b676b0a962fcccec476664c433d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x0edf68ad3a10c183aaf73f99c496d8460100e873",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x0fc3444dc5a70bd41aaa61857d1169c43ba19893",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x11f4a4be0a947851b0133290ddb6726a44dc70a4",
+    "amountStaked": "1.0",
+    "votingPower": "9.7",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1204b108fe449740a7d391dcd1f0b3501b6f07e8",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x123dccdaf785bd26190dbbabc86f25d69c2926b7",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x12931fdb3981efd45d8fe32101e4c319c84938f9",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x12e0f83edd8c2f13e534700fb0d48d06c1afbf30",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x14a887bf6adce514753fc81de8a00187a1a7b47a",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x154b8aa0e6c0f4df6c1a7a8c92a72d79ae5c7955",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x15ffcb0d30ab7310cf5dba9ea61085f220970994",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x16dc8b5342368f73860e880b5ee1f32f61f3e950",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x17aa0157235528bfb9d270e78377d7f9d98e303b",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x18f28be1fb20d5322b0d908b375de41b9d9dd8c9",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x19c379fb39e46a4ca2b3e59a12b4c76fbb51e2b7",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1a2a2da5f89b93d465174c1ff5f747ef52a87696",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1bb92acabf4bd087fbc077c80239c915b2029bc3",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1cc46367d9055ce7d63f772368470e4e548b3b4b",
+    "amountStaked": "0.14209358291776325",
+    "votingPower": "1.321470321135198225",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1cca95810a1cd6dd316b0ce85783ccc835a77402",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1cf7ae8b006d3116edef8a6d5419ab41109a2c3e",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1d73a531a6e9b02c97658ee8db56f75748e022d8",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1df31b667a197a1275a09c19c0362dc7467dd959",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1e7010ec7af357b2422bca420b3ae733f4049e25",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1e9cfcfb32c578ba8f1e36d1d4c7c101f73c01e2",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1eb3b49941c666d398c786745cd059eba5a4be9e",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1faa4096fd1238f914826979b6b1ff3c2661cfd2",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x1fc2bfeecfb2a96e16a9cec285b17aa703c7d2a2",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x20942a70efb66c9280afee609fb214651765124d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x20f6322bf83cb8b86439c260bc82562d8d567f97",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x210781c0a8a192b9edf20d0a3e297c1789256779",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x2153c971854436938031aa105f28558011f4518f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x225b292e2523103b546d83e3ae58c6e57527e2a8",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x2340d8265a6108e58e4d90a84d3e6df3a3d61319",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x26fb82cd87338268a77825f168e619d6502e2c99",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x27afca928750df50e68185d576f678db351ff3a4",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x283a49b59846dce46752b7ebb7ba5df7a8564960",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x287a3bcb53c90f190aed3397d9aeca629766ec9a",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x287f1ed9087e906b83101277fdcd05a917a6dfe8",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x2b1e65441cbbcfb1b91d987e63642911991f2afa",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x2b45400a61927e8ba22e379ea00498dc573329c6",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x2c85892e5188d47019492ad0711cffaa6d777f01",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x2cedb695d990f71ca6a394005e328a20068d3d94",
+    "amountStaked": "2192.037381860915868181",
+    "votingPower": "2630.444858233099041817",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x2db47b0ecc1812d6d2153b15a4ef7a78c7bb4bdd",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x2df292af809fd693d94c7d17e36be352e15bb98a",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x2f4f897bb43f7247df7bdf312ff92081d8883704",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x30bc553aca18694f6e5b840ef597738b90731114",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x30eba9565b347f6da2743d659ebd808e00541b99",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x313992c253f2cbaa274dbdef88c735c9274a5b2f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x330a0bbddd2837008329b308d6bda3a8a4e3c9dc",
+    "amountStaked": "314.28491146457517651",
+    "votingPower": "565.712840636235317718",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x33abd4f9b8af819a543d550400647e1734120008",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x33df3a4d6ad28e5dee60d57948765b47d0a09344",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x348b6f28fe84425b8612fbb099c827fcfa17507c",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x354da0bdb92595cc13ef2bb0fe055ace49f3ddb5",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x357e1978d9a9f37eccc0284b728bd3e91da4d0a3",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x36aeddbd87b092e01ea5327efbb619187f9a9c13",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x380321d5ef1596a15b78ff63a7b268399968769c",
+    "amountStaked": "3000.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x380e9bcd38aa621201b7b14231ede711be8cad15",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x38862f26fb16dcb7f58a91c23f1f9cc159bb0000",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x3889931763a3852644caacbec22ad3e18a8577c3",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x39a3817d6f4969bc47c10dab73bc189e8744339a",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x3a78434cb13e9b6f0c0e51d5c7bc32973dd786ad",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x3a9e0da873dbe52d7869e2fa76aeed965ffc01dc",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x3ab3ad0c22ca1c643a84c35543c3f5e0890497d7",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x3bf89bef6b2e657691c3688cefc381510623239b",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x3d170616c9402a2ff5771d85f38bd8f87f97d297",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x3d5d7f406ae4ae4ccf1745b6509bd79913ef49c1",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x3f84e2b70d215241e7e5aa988b90d1412cd0f8c8",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x3fa8d30e3963042c0bc05853bfeb3f524a6cbb4a",
+    "amountStaked": "2157.523742256362281636",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x3ff003142742d54e7c6a0c8da2861deae392dcce",
+    "amountStaked": "20.0",
+    "votingPower": "20.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x403420a506c9969ddc26e25494d752ef24f1a48d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x41a8078e5e5e6af0edce03977168e2b5af90ecf7",
+    "amountStaked": "1.04976869464777",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x4340941ed24a531e420f3a324a1ccd129c4667a5",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x4434c4683e93bb73f34b026df385125e80069c1f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x4436d0999e0f407252d23a9ce9b7071031a0df77",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x446025b9d2b075cd927660efaaeb81552a8ba884",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x464cd65ce856a62d424f1f4ef5feb3c95ac94844",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x47f82858184e5563998d60c2b5206195544780ff",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x48731a48591b8a1869fa0f742334532a88b2ce92",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x494ee9266560f1a17c2a2438d9d0c55406ff088f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x4b397cd9c3bf69211ed91d7c0d065fd68a42d263",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x4bdb07206e2f88d0766e900768601d6886e85405",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x4c2746eb79f4c9a13d9ca15a34293463c6e474a0",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x4e964eb134cb28c4dafb689dd2973192a0b2986f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x4fda03dd0e4eaf958f48862e1e8019e02c064d9f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x50d0a6a2b4115e0177dd23c1fe2b2c75f1fa4005",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x514ce71b11ad5c2fc40e282a7ddbc52a8f010074",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x518192448edc7ab26a357b8f1412e96a3d354f1a",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x52e8d4811b67867a6a495b2d6f2ab47a0bc8b524",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x54f998ccc66070372b0ca9eb54dfee2c1c4be858",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x5554cd1dc8f60ec7bf6b51ba3cc327d74208c881",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x5772f52d552edc131ca14f14126c08e928b23155",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x57c74ff640e2d7316c5fb46d7c393c6560bb447c",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x5894a716231109e420600de169734bd2666df89c",
+    "amountStaked": "555.21610260260078355",
+    "votingPower": "5496.639415765747757145",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x58b753f0c417494226af608b63e80028255cbc64",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x598e4690ddb8222480b5b9657579be6b46c61ffa",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x59cd000ddd359cd4804e0d75afc8daecd1a59c69",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x5a6fafa7c3e54fa659636719d694bf0432582365",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x5af17d63bdf490c052a7997e6b493cdb3fda1f80",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x5cce53d05e9143aee8723776fd27f669e6f1fb59",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x5da68351bd082abda73e42ac981db51d9364fe69",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x5f357da1cd6f4ea12d2da590eb75e8c47d3d0381",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x5f702f65028630a3937d73ebf91697a7f451bedd",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x5f7c5220c0bf8889838897f2902d25e6d3b0fcbd",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x60090335df2550ee20b564965b817ad18e52a09e",
+    "amountStaked": "1229.106253650702232524",
+    "votingPower": "10570.313781396039199706",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x6118b3c6a876313bf8a757a2f77294695a0a4e6e",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x6298b4449b0417e88cc3a63bf9322742c4a2ef33",
+    "amountStaked": "1258.533135322914103842",
+    "votingPower": "9942.411769051021420351",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x638f0f711c45a43e225c49b3ac1464d4f524a2b3",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x643e8237b1c9a27711dbb39708b7bf1cd136b32e",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x64d97c10d11dbcd70608eb6c1213b1849fd16d23",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x658cb73cc7cba343f5546177741b48851601e303",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x65b2689f54618359ecf7455d14fafbfcc180a47a",
+    "amountStaked": "3039.468615374295072581",
+    "votingPower": "30090.739292205521218551",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x65bab1a7550b1fe168cb434830fb959d607e03fc",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x65cd9b11c9c374a83adbee8411df10b44e138935",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x68911e58f65062066abc81559a6def797402f345",
+    "amountStaked": "10000.96572545965277406",
+    "votingPower": "14001.352015643513883684",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x68cbac8e2058239ac5108563e99c5d843f40cbe2",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x68e365a51b5f871573bddf840d35300ff31e8381",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x695773becca5391aaaeea1378647b8330efefe20",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x6b671003646a334165be92e07df8ef63c274f527",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x6c77c4e432012e1b11745d48660705c63486cb97",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x6daed895545fceb1a23bbf7944a80fbfa3291a67",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x72f4c63d3a948b86b9288f4d93b419a76ba88129",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x7304e3bd9d1baa2abe2788beea038d55fe134d9b",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x73258b80638cd79e168c638a997f90052051d7be",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x73d2a51ba95f1e05fb271b3f4140617c2bd9c691",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x740dce091631e17a17175f810ba2157a9ad64639",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x741ab948fdeb452f9ab8fe908118a33a7715b208",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x742a7b943546b61dfe7408bcd51a0a6d8f91fcd3",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x74dd73d498fceed337a35961e07d29e2b6b24782",
+    "amountStaked": "2.0",
+    "votingPower": "3.6",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x769beebdbf202381fec33336efdf2b49b4001acb",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x78e141b3c91bdd8f3e70aa0529764f6ca671a564",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x79e443c3a85e01fc44277a1f82643414a2a7695c",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x7ad9386e30e13d3d1268a9f6d9bb7f36f164b6e3",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x7b01a4a1fe62dbb93534c3f1a7e7744485eac907",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x7ccf61c948a85602eca999bebcf5b7d46be6ea82",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x7e2dd5bf03209f130699a182c5ef03403631cc1f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x7e496d8fa4d9f6c620596225329660f07cbf676d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x7f154223d14a5be5129cd43658861ead9a212e9e",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x7f97f1e1173741f971565779cbdeeda97d60d164",
+    "amountStaked": "59.353008974896424004",
+    "votingPower": "534.177080774067816036",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x807129267f8f0778c79778ef2eb842bae09b2728",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x80b230907fef58bf99ad75be76eb437315f8d142",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x815822aadf12ad789379791a1a056e5bd9a663a8",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x81e7436ae65a5d3a35793ff1b5dc82e3b12c9a68",
+    "amountStaked": "104.292075090675343369",
+    "votingPower": "1032.491543397685899353",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x83f5bc068c1c5b7d59339179a52154c21c42f9db",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x84c11998bc94072265cbe837c1d4890237f98e46",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x84fa24d61e260d904c53683ec7a1b869a1b7ae0c",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x85ca517437174438c6f1f01c501045be559c68de",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x8640c518406417d8f53bc8a9fec37a6f29b7830c",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x871a67b40ae162439a33424b54f898bb2a710109",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x88e86917f4b0b737023dfec8ad9cac47554f7e0c",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x8a4d4a1f50d5927c37ce702497b1927cee6ecb08",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x8a8e9f389c7b2fda8865da1249071a8ac83f8f4f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x8adedaeb0a45d7cb6878c63f1281e76ed24ea712",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x8b31c4cfef98b2b7099d0178bb256be15b7f9db8",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x8bc25dfa5bfa4d28c8181d7222ff79298beb9b21",
+    "amountStaked": "12.6211593617845",
+    "votingPower": "116.1146661284174",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x8c534924ac55c7563b592986ca22eacc5d27470f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x8c92fbda7d73c60fa7c5a3877ba36f3570623eda",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x8d87cbcb6798de4281478fc665d6959cd4e81a28",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x8fbb3245b6b2208231833f7bc1bf59aeb949b4f2",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x9039e38cd65d26079f95a23c5744c9b418d54cfc",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x91060d82f70e1cd5c3ef189ea1845e0597a725dc",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x918b12a60ef21802cab10261e2a6fc39d305c03d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x935a5b02e8e10552b577d67fcfe89d3a86706b4b",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x93ae948e9aae99406f4ddd0e3cfd47cd1b599c2a",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x93ebe1906f3193a5530a818d233ccd00d54c3dd1",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x943159aa9310c450d3d47811cdf4494795b119d6",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x95033e0027273b220fba8e9514977b25204425fe",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x95968df2746b6fc0b09690cab6f9d012c834d12d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x961c1aaf7fe0d2b84999944362ad90e848b59aa7",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x962d4cf024f687e5f04176ead33f461d371a7a0f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x9666946c62deca06f1770a4915d503d25399eb20",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x97a19489f60b59d7ace3e48bb66c1d4a78f27c5f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x97c502f467e0547a28bb937fe2534eceb2ba6a29",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x98f2ce1dbf528fa51126a41863e91e8a9a259c46",
+    "amountStaked": "261.201516558669747535",
+    "votingPower": "548.523184773206469823",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x99679f6c76d4bdb3082bd4b944437ecee93d596a",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x9a2aa0c1156ec9f010548a9b2bfc33f692392b09",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x9bfc70c95489eae25ee3d68c08cfee51ee7c7ff5",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0x9c32b3563e3ce2a6720974a3c2d67fd18090b3ea",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xa0b9f0fd3fbf46dbe6749010ff4d513494e93557",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xa0da6f9f30e980bc03b25a539c2652b3d5bef212",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xa1522ae152f335f31e2bbabbd51d8e3f0ccb8108",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xa1a95411f6d836db9dd3860f6528e6534f3b1d5c",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xa1eb1c196b72d52d6831184714c003f1e0fcf156",
+    "amountStaked": "1029.508401933715825949",
+    "votingPower": "9986.231498757043511705",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xa4c4f41bf6742dcd9f549fe68ee386b128b3872f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xa652dd9d5fecf75280965d7d0767882206d24fcb",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xa7d862394234c3480a1f3f278fa710e1a0d2d728",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xaa7b5b46be99c72ea2eddbb0d109f0a417de6a18",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xaaa5a190accbc50f4f9c130b5876521e4d5f9d6c",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xaac7601032a7b09542fb450e8bbca8e486f0acae",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xab837f3bb0ba520cace8f30f0742c60e38461399",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xac988b93303bdb8b16b4971b089a36bdb2f6e127",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xad0e40342d335e2c3768bbd6d58b736e2999f8bc",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xb232958612c830d674b81377e1e9682e3606ea8e",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xb3cebcf743faa0b4d5efb2907d280bd7ddf2ddd8",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xb757faa4e8948eae292234763a2044865593352a",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xb8532d81e59e7e14388a920bb30026295c6e6f2e",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xb86e4f3a99d1f86b50eff205c322187d504084c2",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xba6c3ee93b3c571a92db2a7ea54165eb76f1a628",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xba82b8b988fd253d3ac1b27c481906ae76ca04ba",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xba9636ed6a47ff6b4f50060172a01f362b91b7b6",
+    "amountStaked": "303.633179926982875402",
+    "votingPower": "1396.712627664121226849",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xbaeca48d3ab36bedf24dc0e47ec46e84b4709f55",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xbb579d861e5885f867d46c126bdfa8025415faaa",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xbbe90ecb90ef9fe6dca2cae212018bd1dc0941bc",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xbcee8194777c0fbf12800200a9903249c0d06a71",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xbe8d471def32b6e9f0ed6241780f63d005852dc9",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xbf550e97a0859e70579b49700ec9ac55d4bfc361",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xbfeb73be8202672dd07b571b427ace6448d7ca3d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc0b6dec333048d44bfc27c15bd4a84658f579e04",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc0cabfb85ace357eb404e7735b969764a2c867ef",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc1d00cb4adc2d751673335ec4dbf691f81d5e023",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc3511f291c2c11c525ed557b27d8a5b3620a1a21",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc3836599de06bc821ce9b99ab30cae1b426760ea",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc3bbcf4260b204ed8d87e62629bc979a2ccc3161",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc3d1a1a4e16eb63d079b845ce9b772e1c9b7384b",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc5978f0f386b69f60cfd33867de4309752438e79",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc62aa23c983accc15e324da2fd8eeda84156c631",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc857a07ca20babeda3f76e9be6b1b2701a29fc11",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc8b19839ae371bd541f20b15c3a3cb82bfb6a6c6",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xc93a3f243515c65bd0c6f77cc5fd7bc3299ed6f4",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xca96a64c6ffb25798aced111db48442bdc8d4e9d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xcab56c67f6af4a95f39bdb0db4085b8b486480ea",
+    "amountStaked": "1220.0",
+    "votingPower": "12078.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xcb3dca7d51b2dc0dd109b2144ce58421727baf68",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xcceea200668750aeeb155d2c609d8223b054dbd5",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xcdbd0275da339a71774561472fcf2a9fe05755a1",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xce67147f8cc3d389cbbf6b0d81614f0f3386b612",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xce987081204d0bef08244099815b0e4b1b86cf4f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xcf059f40e9d9504a95c0a879a6c81644c2c96042",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xcfe5106f83ba35bb16b62f7228e95a32dabf69da",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd02d05eca20ad29fe51a9f325ad87c36c0b15f4b",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd03b342373d7223b60d7960086978611ddd2a9ef",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd116f82b52926b421317d3a176c31934023ea6c0",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd24761e76653bfa051efe5011cff88f3f557a412",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd2b3f647ebb1ef32b7b366947f50c75bf19a73cb",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd334a3709a4d519163ee09bf99f4dfe65bcb5ea9",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd39af3fc016e3e36f10423d885f0f39e9e1d1cc1",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd56e7cd98d0d6c359adaaafaf05b0dff4fb18a7c",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd789b630236946a12cc451c5b87192f6d19a6aa7",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd86076a23c589b5288a65f570bcfd925c972f266",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd88c6685823daf1d791ef85b442f968dc95366ba",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xd9f153db848d8165e855af26c9be7304d3adc2e9",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xdb3f49e793743539e192f1f5cf271590941d79f0",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xdc284582e6c556fbdc1f85e18afaeb3a6cbdf289",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xdd16f14aa9226e7ecc456f8b52427f92eb7b84ee",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xdd26d587f6b968558c9f35d3c7362c90e44b1505",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xde5d6076f557a4c71897d90919b0b0a4ad0a8257",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xdeffdce128c9e919a089d48d8530cf52fc179b23",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xdf14e16dedcafc209fc7cafd9da0322d8691bdeb",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe0290f11a134e3a0b247d555ae67f1f4f752ce09",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe15affab343f85e275773be71fd85ded53ea75e1",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe198ccde3380491eb8d9d4a54b82a52b7cb6b806",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe3d17e572708383b0ae389e0bfb83c8483487921",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe4310926e0c3b6edb1e9b2f64bb829b8bf30c2b0",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe4321f0aa947479a2ad94dbff687a9c260c1a70f",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe48440c1f17235038c2b9e535c50fc64c6f8703a",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe66e9c6c46cdf646edcfd5082503755b448dcf18",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe740981d5a674c81baf3618fe25f167bc6849af8",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe759b5d4efd26f7d4f40989b644d986a73d774b2",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe7ea6bbed00cf814af6a06d47739231aa82793c4",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xe895084850c04af3a57fdd90c0ba42ba440bc3a8",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xeb41d485bb7e714da845ffabd3b23d4b37caf611",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xec35c0e9f4e04ee8fa21c26d37a0fd601e5c939d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xed251842b7f1c277d95b7fb1d34904e053242281",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xed5820582daf3d6639eba998fb72ca0bad79d8b5",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xed9a912182745fe101ecb4291d00b802d982ba0f",
+    "amountStaked": "111.020332309224081443",
+    "votingPower": "1054.693156937628773708",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xf0dc2f6177b1f19277d27ec706f9e405f455a29d",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xf1ab8d34d79aaa39076e0734c79ab29e78da6385",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xf1d16b920b3c66b2d151d2974d81f80894631b40",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xf2aa7991de3c181c7423e92d427b02d0a28b5550",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xf32e96c8c7af61522ec2f5d19a38eced963d3306",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xf727d89d989681f363a5fbdf128ce4192eb8c479",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xf8f044aaab0b697cb314c3a063b56f2f8f7b54b2",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xf8f2f3c11d730fbaae07571a034104e57c73c9ff",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xfac69a67e3d71233e9fd056c06108c4194307f10",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xfbfab8eabc4179693e6d8dd97764a172ab71e037",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xfd6e82da1de08a628dacc7c0eed1775125b436e6",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xfdc4a83b16b971d92a46bb18d7a788f07b5a400a",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xfe1c94ab457dafdfc9b38be986bb8b3729891cae",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xfebc300c1a955a30870282e1b1aa3eaca7196c98",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xff174b2be489d89108d4e47a78fddc860682bf47",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xff5c421aa007fb64d6e3e1e653eb8cc6b63eb9cc",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  },
+  {
+    "address": "0xfff9eb4621bad19955f0fa0365c7954af4e7b4f6",
+    "amountStaked": "0.0",
+    "votingPower": "0.0",
+    "votingPowerMode": "voluntary",
+    "isVesting": false
+  }
+]
