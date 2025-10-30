@@ -42,6 +42,7 @@ const {
     set_demand_curve,
     open_margin_trade_position,
 } = require("../Utils/initializer.js");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const wei = web3.utils.toWei;
 
@@ -52,6 +53,10 @@ contract("LoanTokenTrading", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Deploy mutex for loan & shared global reentrant guard
+        await mutexUtils.getOrDeployMutex();
+        await mutexUtils.getOrDeployLoanIdMutex();
+
         SUSD = await getSUSD();
         RBTC = await getRBTC();
         WRBTC = await getWRBTC();

@@ -57,6 +57,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         payable
         nonReentrant
         globallyNonReentrant
+        loanIdNonReentrant(loanId)
         iTokenSupplyUnchanged(loanId)
         whenNotPaused
         returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken)
@@ -95,6 +96,7 @@ contract LoanClosingsWith is LoanClosingsShared {
         public
         nonReentrant
         globallyNonReentrant
+        loanIdNonReentrant(loanId)
         iTokenSupplyUnchanged(loanId)
         whenNotPaused
         returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken)

@@ -71,8 +71,9 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
-        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        // Deploy mutex for loan & shared global reentrant guard
         await mutexUtils.getOrDeployMutex();
+        await mutexUtils.getOrDeployLoanIdMutex();
 
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();

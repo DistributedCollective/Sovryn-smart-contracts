@@ -62,6 +62,10 @@ contract("LoanTokenBorrowing", (accounts) => {
     let sovryn, SUSD, TestERC777, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Deploy mutex for loan & shared global reentrant guard
+        await mutexUtils.getOrDeployMutex();
+        await mutexUtils.getOrDeployLoanIdMutex();
+
         SUSD = await getSUSD();
         TestERC777 = await getERC777(owner);
         RBTC = await getRBTC();
@@ -76,9 +80,6 @@ contract("LoanTokenBorrowing", (accounts) => {
         await loan_pool_setup(sovryn, owner, RBTC, WRBTC, SUSD, loanToken, loanTokenWRBTC);
 
         SOV = await getSOV(sovryn, priceFeeds, SUSD, accounts);
-
-        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
-        await mutexUtils.getOrDeployMutex();
     }
 
     before(async () => {
@@ -1290,7 +1291,7 @@ contract("LoanTokenBorrowing", (accounts) => {
             await WRBTC.transfer(testCrossReentrancyRBTC.address, new BN(wei("15", "ether")));
             await expectRevert(
                 testCrossReentrancyRBTC.testCrossReentrancy(withdrawAmount, collateralTokenSent),
-                "loan token supply invariant check failure"
+                "loan ID already used in this block"
             );
         });
 
@@ -1341,7 +1342,7 @@ contract("LoanTokenBorrowing", (accounts) => {
             await WRBTC.transfer(testCrossReentrancyRBTC.address, new BN(wei("15", "ether")));
             await expectRevert(
                 testCrossReentrancyRBTC.testCrossReentrancy(withdrawAmount, collateralTokenSent),
-                "reentrancy violation"
+                "loan ID already used in this block"
             );
         });
 
@@ -1401,7 +1402,7 @@ contract("LoanTokenBorrowing", (accounts) => {
             await WRBTC.transfer(testCrossReentrancyERC777.address, collateralTokenSent);
             await expectRevert(
                 testCrossReentrancyERC777.testCrossReentrancy(withdrawAmount, collateralTokenSent),
-                "loan token supply invariant check failure"
+                "loan ID already used in this block"
             );
         });
 
@@ -1461,7 +1462,7 @@ contract("LoanTokenBorrowing", (accounts) => {
             await WRBTC.transfer(testCrossReentrancyERC777.address, collateralTokenSent);
             await expectRevert(
                 testCrossReentrancyERC777.testCrossReentrancy(withdrawAmount, collateralTokenSent),
-                "reentrancy violation"
+                "loan ID already used in this block"
             );
         });
     });

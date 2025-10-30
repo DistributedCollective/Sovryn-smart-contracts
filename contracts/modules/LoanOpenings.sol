@@ -364,6 +364,9 @@ contract LoanOpenings is
             )
         ];
 
+        // Lock the loan ID to prevent multiple operations in the same block
+        LOAN_ID_MUTEX.checkAndToggle(loanLocal.id);
+
         // Get required interest.
         uint256 amount = _initializeInterest(
             loanParamsLocal,

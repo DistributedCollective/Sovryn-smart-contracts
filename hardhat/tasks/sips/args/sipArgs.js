@@ -1249,6 +1249,91 @@ const getArgsSip0087 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0088 = async (hre) => {
+    // SOV-5206 Reentrancy Guard for Loan Closings Modules
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const protocol = await ethers.getContract("ISovryn");
+    const modulesList = getProtocolModules();
+    const loanOpeningsModule = await get(modulesList.LoanOpenings.moduleName);
+    const loanClosingsLiquidationModule = await get(
+        modulesList.LoanClosingsLiquidation.moduleName
+    );
+    const loanClosingsRolloverModule = await get(modulesList.LoanClosingsRollover.moduleName);
+    const loanClosingsWithModule = await get(modulesList.LoanClosingsWith.moduleName);
+    const protocolOwner = await protocol.owner();
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget(modulesList.LoanOpenings.sampleFunction)) ==
+        loanOpeningsModule.address
+    ) {
+        logger.error("LoanOpenings module deployment already registered in the protocol");
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget(modulesList.LoanClosingsLiquidation.sampleFunction)) ==
+        loanClosingsLiquidationModule.address
+    ) {
+        logger.error(
+            "LoanClosingsLiquidation module deployment already registered in the protocol"
+        );
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget(modulesList.LoanClosingsRollover.sampleFunction)) ==
+        loanClosingsRolloverModule.address
+    ) {
+        logger.error("LoanClosingsRollover module deployment already registered in the protocol");
+        process.exit(1);
+    }
+
+    if (
+        (await protocol.getTarget(modulesList.LoanClosingsWith.sampleFunction)) ==
+        loanClosingsWithModule.address
+    ) {
+        logger.error("LoanClosingsWith module deployment already registered in the protocol");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [protocol.address, protocol.address, protocol.address, protocol.address],
+        targetOwnerValidationAddresses: [
+            protocolOwner,
+            protocolOwner,
+            protocolOwner,
+            protocolOwner,
+        ],
+        values: [0, 0, 0, 0],
+        signatures: [
+            "replaceContract(address)",
+            "replaceContract(address)",
+            "replaceContract(address)",
+            "replaceContract(address)",
+        ],
+        data: [
+            abiCoder.encode(["address"], [loanOpeningsModule.address]),
+            abiCoder.encode(["address"], [loanClosingsLiquidationModule.address]),
+            abiCoder.encode(["address"], [loanClosingsRolloverModule.address]),
+            abiCoder.encode(["address"], [loanClosingsWithModule.address]),
+        ],
+        description:
+            "SIP-0088 : [Desc], Details: https://github.com/DistributedCollective/SIPS/blob/04ad90b/SIP-0088.md, sha256: ", // @todo update sha256
+    };
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1272,4 +1357,5 @@ module.exports = {
     getArgsSip0084Part1,
     getArgsSip0084Part2,
     getArgsSip0087,
+    getArgsSip0088,
 };

@@ -54,8 +54,9 @@ contract("LoanTokenTrading", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, SOV, priceFeeds;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
-        // Need to deploy the mutex in the initialization. Otherwise, the global reentrancy prevention will not be working & throw an error.
+        // Deploy mutex for loan & shared global reentrant guard
         await mutexUtils.getOrDeployMutex();
+        await mutexUtils.getOrDeployLoanIdMutex();
 
         SUSD = await getSUSD();
         RBTC = await getRBTC();

@@ -37,6 +37,7 @@ const {
     getSOV,
     verify_sov_reward_payment,
 } = require("../Utils/initializer.js");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const wei = web3.utils.toWei;
 
@@ -59,6 +60,10 @@ contract("ProtocolCloseDeposit", (accounts) => {
     let borrower, receiver;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Deploy mutex for loan & shared global reentrant guard
+        await mutexUtils.getOrDeployMutex();
+        await mutexUtils.getOrDeployLoanIdMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();

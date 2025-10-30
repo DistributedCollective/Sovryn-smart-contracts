@@ -35,6 +35,7 @@ const {
     getSOV,
     verify_sov_reward_payment,
 } = require("../Utils/initializer.js");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const LockedSOVMockup = artifacts.require("LockedSOVMockup");
 
@@ -58,6 +59,10 @@ contract("ProtocolCloseDeposit", (accounts) => {
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, SOV;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Deploy mutex for loan & shared global reentrant guard
+        await mutexUtils.getOrDeployMutex();
+        await mutexUtils.getOrDeployLoanIdMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();

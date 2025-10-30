@@ -60,7 +60,10 @@ contract("Pause Modules", (accounts) => {
     let loanParams, loanParamsId;
     /// @note https://stackoverflow.com/questions/68182729/implementing-fixtures-with-nomiclabs-hardhat-waffle
     async function fixtureInitialize(_wallets, _provider) {
+        // Deploy mutex for loan & shared global reentrant guard
         await mutexUtils.getOrDeployMutex();
+        await mutexUtils.getOrDeployLoanIdMutex();
+
         SUSD = await getSUSD(); // Underlying Token
         RBTC = await getRBTC();
         WRBTC = await getWRBTC();
