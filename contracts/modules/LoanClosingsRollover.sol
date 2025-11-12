@@ -64,7 +64,6 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
         external
         nonReentrant
         globallyNonReentrant
-        loanIdNonReentrant(loanId)
         iTokenSupplyUnchanged(loanId)
         whenNotPaused
     {

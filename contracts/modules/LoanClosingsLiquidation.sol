@@ -69,7 +69,6 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
         payable
         nonReentrant
         globallyNonReentrant
-        loanIdNonReentrant(loanId)
         iTokenSupplyUnchanged(loanId)
         whenNotPaused
         returns (uint256 loanCloseAmount, uint256 seizedAmount, address seizedToken)
