@@ -94,7 +94,6 @@ contract LoanOpenings is
         external
         payable
         nonReentrant
-        loanIdNonReentrant(loanId)
         whenNotPaused
         returns (uint256 newPrincipal, uint256 newCollateral)
     {
