@@ -1260,10 +1260,6 @@ const getArgsSip0088 = async (hre) => {
     const protocol = await ethers.getContract("ISovryn");
     const modulesList = getProtocolModules();
     const loanOpeningsModule = await get(modulesList.LoanOpenings.moduleName);
-    const loanClosingsLiquidationModule = await get(
-        modulesList.LoanClosingsLiquidation.moduleName
-    );
-    const loanClosingsRolloverModule = await get(modulesList.LoanClosingsRollover.moduleName);
     const loanClosingsWithModule = await get(modulesList.LoanClosingsWith.moduleName);
     const protocolOwner = await protocol.owner();
 
@@ -1282,24 +1278,6 @@ const getArgsSip0088 = async (hre) => {
     }
 
     if (
-        (await protocol.getTarget(modulesList.LoanClosingsLiquidation.sampleFunction)) ==
-        loanClosingsLiquidationModule.address
-    ) {
-        logger.error(
-            "LoanClosingsLiquidation module deployment already registered in the protocol"
-        );
-        process.exit(1);
-    }
-
-    if (
-        (await protocol.getTarget(modulesList.LoanClosingsRollover.sampleFunction)) ==
-        loanClosingsRolloverModule.address
-    ) {
-        logger.error("LoanClosingsRollover module deployment already registered in the protocol");
-        process.exit(1);
-    }
-
-    if (
         (await protocol.getTarget(modulesList.LoanClosingsWith.sampleFunction)) ==
         loanClosingsWithModule.address
     ) {
@@ -1308,24 +1286,12 @@ const getArgsSip0088 = async (hre) => {
     }
 
     const args = {
-        targets: [protocol.address, protocol.address, protocol.address, protocol.address],
-        targetOwnerValidationAddresses: [
-            protocolOwner,
-            protocolOwner,
-            protocolOwner,
-            protocolOwner,
-        ],
-        values: [0, 0, 0, 0],
-        signatures: [
-            "replaceContract(address)",
-            "replaceContract(address)",
-            "replaceContract(address)",
-            "replaceContract(address)",
-        ],
+        targets: [protocol.address, protocol.address],
+        targetOwnerValidationAddresses: [protocolOwner, protocolOwner],
+        values: [0, 0],
+        signatures: ["replaceContract(address)", "replaceContract(address)"],
         data: [
             abiCoder.encode(["address"], [loanOpeningsModule.address]),
-            abiCoder.encode(["address"], [loanClosingsLiquidationModule.address]),
-            abiCoder.encode(["address"], [loanClosingsRolloverModule.address]),
             abiCoder.encode(["address"], [loanClosingsWithModule.address]),
         ],
         description:

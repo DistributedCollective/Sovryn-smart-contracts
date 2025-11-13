@@ -66,16 +66,9 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
 
         // check if the new modules are deployed
         const loanOpenings = await get("LoanOpenings");
-        const loanClosingsRollover = await get("LoanClosingsRollover");
         const loanClosingsWith = await get("LoanClosingsWith");
-        const loanClosingsLiquidation = await get("LoanClosingsLiquidation");
 
         const modulesList = getProtocolModules();
-        let deployLoanClosingsRolloverResult;
-        const swapsImplSovrynSwapLibDeployment = await get("SwapsImplSovrynSwapLib");
-        const libraries = {
-            SwapsImplSovrynSwapLib: swapsImplSovrynSwapLibDeployment.address,
-        };
 
         let deployLoanOpeningsResult;
         if (
@@ -97,31 +90,6 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
                 devdoc: deployLoanOpeningsResult.devdoc,
                 userdoc: deployLoanOpeningsResult.userdoc,
                 storageLayout: deployLoanOpeningsResult.storageLayout,
-            });
-        }
-
-        if (
-            loanClosingsRollover.address ===
-            (await sovrynProtocol.getTarget(modulesList.LoanClosingsRollover.sampleFunction))
-        ) {
-            console.log("deploying LoanClosingsRollover");
-            deployLoanClosingsRolloverResult = await deploy("LoanClosingsRollover", {
-                contract: "LoanClosingsRollover",
-                args: [],
-                libraries: libraries,
-                from: (await ethers.getSigners())[0].address,
-                log: true,
-            });
-
-            await deployments.save("LoanClosingsRollover", {
-                address: deployLoanClosingsRolloverResult.address,
-                implementation: deployLoanClosingsRolloverResult.address,
-                abi: deployLoanClosingsRolloverResult.abi,
-                bytecode: deployLoanClosingsRolloverResult.bytecode,
-                deployedBytecode: deployLoanClosingsRolloverResult.deployedBytecode,
-                devdoc: deployLoanClosingsRolloverResult.devdoc,
-                userdoc: deployLoanClosingsRolloverResult.userdoc,
-                storageLayout: deployLoanClosingsRolloverResult.storageLayout,
             });
         }
 
@@ -151,32 +119,6 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
             });
         }
 
-        let deployLoanClosingsLiquidationResult;
-        if (
-            loanClosingsLiquidation.address ===
-            (await sovrynProtocol.getTarget(modulesList.LoanClosingsLiquidation.sampleFunction))
-        ) {
-            console.log("deploying LoanClosingsLiquidation");
-            deployLoanClosingsLiquidationResult = await deploy("LoanClosingsLiquidation", {
-                contract: "LoanClosingsLiquidation",
-                args: [],
-                libraries: libraries,
-                from: (await ethers.getSigners())[0].address,
-                log: true,
-            });
-
-            await deployments.save("LoanClosingsLiquidation", {
-                address: deployLoanClosingsLiquidationResult.address,
-                implementation: deployLoanClosingsLiquidationResult.address,
-                abi: deployLoanClosingsLiquidationResult.abi,
-                bytecode: deployLoanClosingsLiquidationResult.bytecode,
-                deployedBytecode: deployLoanClosingsLiquidationResult.deployedBytecode,
-                devdoc: deployLoanClosingsLiquidationResult.devdoc,
-                userdoc: deployLoanClosingsLiquidationResult.userdoc,
-                storageLayout: deployLoanClosingsLiquidationResult.storageLayout,
-            });
-        }
-
         //
         return {
             deployer,
@@ -192,9 +134,9 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
         };
     });
 
-    /// @todo change the SIP name
-    describe("SIP-0086 Test creation and execution", () => {
-        it("SIP-0086 is executable and valid", async () => {
+    /// SIP-0088 Test creation and execution
+    describe("SIP-0088 Test creation and execution", () => {
+        it("SIP-0088 is executable and valid", async () => {
             if (!hre.network.tags["forked"]) {
                 console.error("ERROR: Must run on a forked net");
                 return;
@@ -273,12 +215,6 @@ describe("Protocol Modules Deployments and Upgrades via Governance", () => {
             expect(
                 await sovrynProtocol.getTarget(modulesList.LoanOpenings.sampleFunction)
             ).to.equal((await get(modulesList.LoanOpenings.moduleName)).address);
-            expect(
-                await sovrynProtocol.getTarget(modulesList.LoanClosingsLiquidation.sampleFunction)
-            ).to.equal((await get(modulesList.LoanClosingsLiquidation.moduleName)).address);
-            expect(
-                await sovrynProtocol.getTarget(modulesList.LoanClosingsRollover.sampleFunction)
-            ).to.equal((await get(modulesList.LoanClosingsRollover.moduleName)).address);
             expect(
                 await sovrynProtocol.getTarget(modulesList.LoanClosingsWith.sampleFunction)
             ).to.equal((await get(modulesList.LoanClosingsWith.moduleName)).address);

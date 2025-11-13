@@ -18,7 +18,7 @@ const func = async function (hre) {
     // getOrDeployLoanIdMutex will automatically fund the deployer address if needed
     const loanIdMutex = await getOrDeployLoanIdMutex();
     if (loanIdMutex.address !== contractAddress) {
-        throw Exception(
+        throw new Error(
             `LoanIdMutex address is ${loanIdMutex.address}, expected ${contractAddress}`
         );
     }

@@ -47,7 +47,7 @@ contract LoanIdMutex {
      * @param loanId The ID of the loan.
      * @return The block number (0 if never operated on).
      */
-    function getBlockNumber(bytes32 loanId) external view returns (uint256) {
+    function getLoanIdLastBlockNumber(bytes32 loanId) external view returns (uint256) {
         return loanIdToBlockNumber[loanId];
     }
 }
