@@ -298,3 +298,16 @@ task("bridge:sovFromMultisig", "Bridge SOV from am exchequer multisig")
             logger.warning("==================== populated tx end   =================");
         }
     });
+
+task("bridge:getGasTokenFee", "Print the bridge.ethFeeCollected()")
+    .addOptionalParam("bridge", "Bridge contract to query", "Bridge")
+    .setAction(async ({ bridge }, hre) => {
+        const { ethers } = hre;
+        const bridgeContract = await ethers.getContract(bridge);
+        const feeCollected = await bridgeContract.ethFeeCollected();
+        console.log(
+            `Bridge ${bridgeContract.address} ethFeeCollected: ${ethers.utils.formatEther(feeCollected)} ETH`
+        );
+    });
+
+// ...existing code...

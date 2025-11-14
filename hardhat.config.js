@@ -263,6 +263,14 @@ module.exports = {
             chainId: 1,
             url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
             accounts: mainnetAccounts,
+            tags: ["mainnet"],
+        },
+        bscMainnet: {
+            chainId: 56,
+            url: "https://bsc-dataseed.binance.org/",
+            accounts: mainnetAccounts,
+            blockGasLimit: 30000000,
+            tags: ["mainnet"],
         },
 
         bobTestnet: {
@@ -352,6 +360,7 @@ module.exports = {
                 "deployment/deployments/bobMainnet",
             ],
             ethMainnet: ["external/deployments/ethMainnet", "deployment/deployments/ethMainnet"],
+            bscMainnet: ["external/deployments/bscMainnet", "deployment/deployments/bscMainnet"],
         },
     },
     typechain: {
