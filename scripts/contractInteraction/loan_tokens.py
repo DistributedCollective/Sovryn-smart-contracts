@@ -390,7 +390,7 @@ def readTransactionLimits(loanTokenAddress, SUSD, RBTC, USDT, BPro, XUSD):
 def readLendingBalanceForUser(loanTokenAddress, userAddress):
     loanToken = Contract.from_abi("loanToken", address=loanTokenAddress, abi=LoanTokenLogicStandard.abi, owner=userAddress)
     bal = loanToken.balanceOf(userAddress)
-    print('iToken balance', bal)
+    print(f'{loanToken.symbol()} ({loanTokenAddress}) balance\n', bal)
     bal = loanToken.assetBalanceOf(userAddress)
     print('underlying token balance', bal)
     return bal

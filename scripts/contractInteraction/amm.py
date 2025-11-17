@@ -409,8 +409,29 @@ def getAmmExchequerBalances():
     powaPoolTotal = getTotalSupply(conf.contracts['(WR)BTC/POWA'])
     powaBalanceInPool = getBalance(conf.contracts['POWA'], conf.contracts['ConverterPOWA'])
     rbtcBalanceInPowaPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterPOWA'])
+    
+    ethPool = getBalance(conf.contracts['(WR)BTC/ETH'], conf.contracts['multisig'])
+    ethPoolTotal = getTotalSupply(conf.contracts['(WR)BTC/ETH'])
+    ethBalanceInPool = getBalance(conf.contracts['ETHs'], conf.contracts['ConverterETHs'])
+    rbtcBalanceInEthPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterETHs'])
+    
+    myntPool = getBalance(conf.contracts['(WR)BTC/MYNT'], conf.contracts['multisig'])
+    myntPoolTotal = getTotalSupply(conf.contracts['(WR)BTC/MYNT'])
+    myntBalanceInPool = getBalance(conf.contracts['MYNT'], conf.contracts['ConverterMYNT'])
+    rbtcBalanceInMyntPool = getBalance(conf.contracts['WRBTC'], conf.contracts['ConverterMYNT'])
 
     print('----------------')
+
+    myntBalance = myntPool / myntPoolTotal * myntBalanceInPool
+    wrbtcMyntBalance = myntPool / myntPoolTotal * rbtcBalanceInMyntPool
+    print("MYNT balance: ", myntBalance/1e18)
+    print("WRBTC balance in MYNT pool: ", wrbtcMyntBalance/1e18)
+
+    ethBalance = ethPool / ethPoolTotal * ethBalanceInPool
+    wrbtcEthBalance = ethPool / ethPoolTotal * rbtcBalanceInEthPool
+    print("ETH balance: ", ethBalance/1e18)
+    print("WRBTC balance in ETH pool: ", wrbtcEthBalance/1e18)
+
     bnbBalance = bnbPool / bnbPoolTotal * bnbBalanceInPool
     wrbtcBnbBalance = bnbPool / bnbPoolTotal * rbtcBalanceInPool
 
@@ -429,8 +450,11 @@ def getAmmExchequerBalances():
     powaBalance = powaPool / powaPoolTotal * powaBalanceInPool
     wrbtcPowaBalance = powaPool / powaPoolTotal * rbtcBalanceInPowaPool
 
+    print("V2 pools:")
     print("USDT balance: ", usdtBalance/1e18)
     print("BPRO balance: ", bproBalance/1e18)
+
+    print("V1 pools:")
     print("BNB balance: ", bnbBalance/1e18)
     print("WRBTC balance in BNB pool: ", wrbtcBnbBalance/1e18)
     print("DLLR pool token balance: ", dllrPool/1e18)
