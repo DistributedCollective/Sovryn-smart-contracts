@@ -31,6 +31,9 @@ def main():
     # call the function you want here
 
     ##################################
+
+        
+    withdrawAllMultisigLiquidityFromAmm()
     #getAmmExchequerBalances()
     
     #bal = getBalance(conf.contracts['(WR)BTC/USDT2'], conf.contracts['multisig'])
@@ -44,7 +47,7 @@ def main():
     ### swap BPro -> WRBTC on Watcher
     # withdrawTokensFromWatcher(conf.contracts["BPro"], 1.15e18, conf.contracts["multisig"])
     # swapTokensWithMultisig(1.15e18,1.3e18,conf.contracts['BPro'],conf.contracts['WRBTC'])
-    # sendFromMultisig(conf.contracts['Watcher'], 1e18)
+    #sendFromMultisig('0x511893483dcc1a9a98f153ec8298b63be010a99f', 0.004e18) //cron job executor
     #################################
 
     #readPriceFromOracle()
@@ -391,3 +394,58 @@ def governanceTransferStep2():
 
     # getLMInfo()
     transferVestingRegistryOwnershipToGovernance()
+
+def withdrawAllMultisigLiquidityFromAmm():
+    '''
+    Withdraws all multisig liquidity from all AMM pools (V1 and V2), computing minReturn for each pool.
+    '''
+    # V2 pools
+    v2_pools = [
+        {
+            'converter': conf.contracts['ConverterUSDT'],
+            'poolToken': conf.contracts['(WR)BTC/USDT2'],
+        },
+        {
+            'converter': conf.contracts['ConverterBPRO'],
+            'poolToken': conf.contracts['(WR)BTC/BPRO2'],
+        },
+    ]
+
+    for pool in v2_pools:
+        pool_token = pool['poolToken']
+        converter = pool['converter']
+        amount = getBalance(pool_token, conf.contracts['multisig'])
+        if amount == 0:
+            print(f"No liquidity in V2 pool token {pool_token}")
+            continue
+        # Compute minReturn as 99% of expected return (to allow for slippage)
+        expected = getReturnForV2PoolToken(converter, pool_token, amount)
+        minReturn = int(expected[0] * 0.99)
+        print(f"Withdrawing {amount/1e18} from V2 pool {pool_token} with minReturn {minReturn/1e18}")
+        removeLiquidityV2toMultisig(converter, pool_token, amount, minReturn)
+
+    # V1 pools - avoid duplication of wrapper and WRBTC
+    wrapper = conf.contracts['RBTCWrapperProxyWithoutLM']
+    wrbtc = conf.contracts['WRBTC']
+    v1_pools = [
+        (conf.contracts['ConverterBNBs'], conf.contracts['(WR)BTC/BNB'], conf.contracts['BNBs']),
+        (conf.contracts['ConverterDLLR'], conf.contracts['(WR)BTC/DLLR'], conf.contracts['DLLR']),
+        (conf.contracts['ConverterXUSD'], conf.contracts['(WR)BTC/XUSD'], conf.contracts['XUSD']),
+        (conf.contracts['ConverterSOV'], conf.contracts['(WR)BTC/SOV'], conf.contracts['SOV']),
+        (conf.contracts['ConverterMOC'], conf.contracts['(WR)BTC/MOC'], conf.contracts['MOC']),
+        (conf.contracts['ConverterPOWA'], conf.contracts['(WR)BTC/POWA'], conf.contracts['POWA']),
+        (conf.contracts['ConverterETHs'], conf.contracts['(WR)BTC/ETH'], conf.contracts['ETHs']),
+        (conf.contracts['ConverterMYNT'], conf.contracts['(WR)BTC/MYNT'], conf.contracts['MYNT']),
+    ]
+
+    for converter, pool_token, token1 in v1_pools:
+        amount = getBalance(pool_token, conf.contracts['multisig'])
+        if amount == 0:
+            print(f"No liquidity in V1 pool token {pool_token}")
+            continue
+        pool_total = getTotalSupply(pool_token)
+        tokens = [wrbtc, token1]
+        reserves = [getBalance(t, converter) for t in tokens]
+        minReturn = [int(amount / pool_total * r * 0.99) for r in reserves]
+        print(f"Withdrawing {amount/1e18} from V1 pool {pool_token} with minReturn {[x/1e18 for x in minReturn]}")
+        removeLiquidityV1toMultisigUsingWrapper(wrapper, converter, amount, tokens, minReturn)
