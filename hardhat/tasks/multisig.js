@@ -294,7 +294,7 @@ task("multisig:replace-owner", "Replace multisig owner")
         await multisigReplaceOwner(oldOwner, newOwner, signerAcc, multisig);
     });
 
-// @todo  create helper to send tokens via multisig
+// @todo  create helper to send ERC20 tokens and gas token via multisig. if the user is one of the owners - create tx - call submitTransaction. If not - just create and print tx data: to address, value 0, excoded tx data. it should accept and process multiple tokens - either passed as addresses or deployed names like BOS, SOV, DLLR etc. reserved word for the gas token is GasToken. it should accept an arbitrary multisig optionally, by default - MultiSigWallet.
 // task("multisig:sendTo", "Send gas token using multisig")
 //     .addPositionalParam("address", "Receiver", undefined, types.string)
 //     .addPositionalParam("amount", "Amount in wei/sat", undefined, types.string)
