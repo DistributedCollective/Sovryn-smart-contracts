@@ -860,6 +860,102 @@ const upgradeWithTransparentUpgradableProxy = async (
     }
 };
 
+/**
+ * Send ERC20 tokens or gas tokens via multisig
+ * @param {Array} transfers Array of transfer objects: [{token, to, amount}]
+ *                          token can be: address, deployment name (e.g., 'SOV', 'DLLR'), or 'GasToken'
+ * @param {string} sender Sender address
+ * @param {string} multisig Multisig wallet address or deployment name (default: 'MultiSigWallet')
+ * @returns {Promise<void>}
+ */
+const sendTokensWithMultisig = async (transfers, sender, multisig = "MultiSigWallet") => {
+    const { ethers } = hre;
+    const signer = await getSignerFromAccount(hre, sender);
+    const multisigWallet = await getMultisigWallet(multisig);
+
+    // Check if sender is an owner
+    const isOwner = await multisigWallet.isOwner(sender);
+
+    logger.info(`Sender ${sender} is ${isOwner ? "an owner" : "not an owner"} of multisig ${multisigWallet.address}`);
+
+    // Process each transfer
+    for (let i = 0; i < transfers.length; i++) {
+        const transfer = transfers[i];
+        const { token, to, amount } = transfer;
+
+        logger.info(`\nProcessing transfer ${i + 1}/${transfers.length}:`);
+        logger.info(`  Token: ${token}`);
+        logger.info(`  To: ${to}`);
+        logger.info(`  Amount: ${amount}`);
+
+        let tokenAddress;
+        let data;
+        let value = 0;
+
+        // Handle GasToken (native token)
+        if (token === "GasToken") {
+            tokenAddress = to;
+            data = "0x";
+            value = amount;
+            logger.info(`  Type: Native Gas Token`);
+        } else {
+            // Resolve token address from name or use address directly
+            if (ethers.utils.isAddress(token)) {
+                tokenAddress = token;
+            } else {
+                // Try to get contract by deployment name
+                const tokenContract = await ethers.getContractOrNull(token);
+                if (tokenContract === null) {
+                    logger.error(`  Error: Token "${token}" not found in deployments`);
+                    continue;
+                }
+                tokenAddress = tokenContract.address;
+            }
+
+            logger.info(`  Token address: ${tokenAddress}`);
+
+            // Encode ERC20 transfer function call
+            const erc20Interface = new ethers.utils.Interface([
+                "function transfer(address to, uint256 amount) returns (bool)",
+            ]);
+            data = erc20Interface.encodeFunctionData("transfer", [to, amount]);
+            logger.info(`  Type: ERC20 Token`);
+        }
+
+        if (isOwner) {
+            // User is an owner - submit transaction
+            logger.info(`  Submitting transaction to multisig...`);
+            try {
+                const gasEstimated = (
+                    await multisigWallet.estimateGas.submitTransaction(tokenAddress, value, data)
+                ).toNumber();
+                const receipt = await (
+                    await multisigWallet.submitTransaction(tokenAddress, value, data, {
+                        gasLimit: Math.round(gasEstimated * 1.3),
+                    })
+                ).wait();
+
+                const abi = ["event Submission(uint256 indexed transactionId)"];
+                let iface = new ethers.utils.Interface(abi);
+                const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "Submission");
+                const txId = parsedEvent.transactionId.value;
+                logger.success(`  Transaction submitted! Transaction ID: ${txId}`);
+                await multisigCheckTx(txId, multisigWallet.address);
+            } catch (error) {
+                logger.error(`  Error submitting transaction: ${error.message}`);
+            }
+        } else {
+            // User is not an owner - print transaction data
+            logger.warn(`  User is not an owner. Transaction data for manual submission:`);
+            logger.info(`  To address: ${tokenAddress}`);
+            logger.info(`  Value: ${value}`);
+            logger.info(`  Encoded data: ${data}`);
+            logger.info(`  \nTo submit this transaction, an owner should call:`);
+            logger.info(`  multisig.submitTransaction("${tokenAddress}", ${value}, "${data}")`);
+        }
+    }
+};
+
 module.exports = {
     getStakingModulesNames,
     getLoanTokenModulesNames,
@@ -890,4 +986,5 @@ module.exports = {
     upgradeWithTransparentUpgradableProxy,
     getSignerFromAccount,
     multisigReplaceOwner,
+    sendTokensWithMultisig,
 };
