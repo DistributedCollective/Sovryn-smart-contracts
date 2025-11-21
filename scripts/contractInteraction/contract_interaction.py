@@ -31,8 +31,6 @@ def main():
     # call the function you want here
 
     ##################################
-    sendTokensFromMultisig(conf.contracts['BOS'],'0x3ff003142742d54e7c6a0c8da2861deae392dcce', 10000*10**18) #Luna
-    sendTokensFromMultisig(conf.contracts['BOS'],'0x9e9c0a0c51e730f6c915f80a145c9312385dcf22', 9160*10**18) #Hyde
 
     # TODO Adjust amounts to deposit/withdraw
     #addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterBOS'], [conf.contracts['WRBTC'], conf.contracts['BOS']], [10**18,18793886*10**18], 1)
@@ -51,7 +49,7 @@ def main():
     ### swap BPro -> WRBTC on Watcher
     # withdrawTokensFromWatcher(conf.contracts["BPro"], 1.15e18, conf.contracts["multisig"])
     # swapTokensWithMultisig(1.15e18,1.3e18,conf.contracts['BPro'],conf.contracts['WRBTC'])
-    #sendFromMultisig('0x511893483dcc1a9a98f153ec8298b63be010a99f', 0.0011*10**18) 
+    #sendFromMultisig('0x511893483dcc1a9a98f153ec8298b63be010a99f', 0.004e18) //cron job executor
     #################################
 
     #readPriceFromOracle()
