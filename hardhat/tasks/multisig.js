@@ -331,9 +331,7 @@ task("multisig:send-tokens", "Send ERC20 tokens or gas tokens via multisig")
         // Validate each transfer
         for (const transfer of transfersArray) {
             if (!transfer.token || !transfer.to || !transfer.amount) {
-                logger.error(
-                    "Each transfer must have 'token', 'to', and 'amount' properties"
-                );
+                logger.error("Each transfer must have 'token', 'to', and 'amount' properties");
                 return;
             }
         }

@@ -870,13 +870,17 @@ const upgradeWithTransparentUpgradableProxy = async (
  */
 const sendTokensWithMultisig = async (transfers, sender, multisig = "MultiSigWallet") => {
     const { ethers } = hre;
-    const signer = await getSignerFromAccount(hre, sender);
-    const multisigWallet = await getMultisigWallet(multisig);
+    //const signer = await getSignerFromAccount(hre, sender);
+    const signer = await ethers.getSigner(sender);
+    console.log("signer address:", signer.address);
+    let multisigWallet = await getMultisigWallet(multisig);
 
     // Check if sender is an owner
     const isOwner = await multisigWallet.isOwner(sender);
 
-    logger.info(`Sender ${sender} is ${isOwner ? "an owner" : "not an owner"} of multisig ${multisigWallet.address}`);
+    logger.info(
+        `Sender ${sender} is ${isOwner ? "an owner" : "not an owner"} of multisig ${multisigWallet.address}`
+    );
 
     // Process each transfer
     for (let i = 0; i < transfers.length; i++) {
@@ -924,6 +928,7 @@ const sendTokensWithMultisig = async (transfers, sender, multisig = "MultiSigWal
 
         if (isOwner) {
             // User is an owner - submit transaction
+            multisigWallet = multisigWallet.connect(signer);
             logger.info(`  Submitting transaction to multisig...`);
             try {
                 const gasEstimated = (
@@ -937,7 +942,11 @@ const sendTokensWithMultisig = async (transfers, sender, multisig = "MultiSigWal
 
                 const abi = ["event Submission(uint256 indexed transactionId)"];
                 let iface = new ethers.utils.Interface(abi);
-                const parsedEvent = await getParsedEventLogFromReceipt(receipt, iface, "Submission");
+                const parsedEvent = await getParsedEventLogFromReceipt(
+                    receipt,
+                    iface,
+                    "Submission"
+                );
                 const txId = parsedEvent.transactionId.value;
                 logger.success(`  Transaction submitted! Transaction ID: ${txId}`);
                 await multisigCheckTx(txId, multisigWallet.address);
