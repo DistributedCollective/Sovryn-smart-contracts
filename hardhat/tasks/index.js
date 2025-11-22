@@ -9,3 +9,4 @@ require("./feeSharingCollector");
 require("./uniswap");
 require("./bridge");
 require("./fastBTC");
+require("./redeem-zero-collateral");
