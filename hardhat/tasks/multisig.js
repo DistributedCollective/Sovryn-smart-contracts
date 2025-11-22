@@ -11,6 +11,7 @@ const {
     multisigRemoveOwner, // this calls and executes multisig.removeOwner(owner)
     sendWithMultisig,
     multisigReplaceOwner, // this calls and executes multisig.replaceOwner(oldOwner, newOwner)
+    sendTokensWithMultisig,
 } = require("../../deployment/helpers/helpers");
 
 const logger = new Logs().showInConsole(true);
@@ -294,7 +295,51 @@ task("multisig:replace-owner", "Replace multisig owner")
         await multisigReplaceOwner(oldOwner, newOwner, signerAcc, multisig);
     });
 
-// @todo  create helper to send tokens via multisig
+task("multisig:send-tokens", "Send ERC20 tokens or gas tokens via multisig")
+    .addParam(
+        "transfers",
+        "JSON array of transfers: [{token, to, amount}]. Token can be an address, deployment name (SOV, DLLR, etc.), or 'GasToken' for native token",
+        undefined,
+        types.string
+    )
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .addOptionalParam("multisig", "Multisig address or deployment name", "MultiSigWallet")
+    .setAction(async ({ transfers, signer, multisig }, hre) => {
+        const { ethers } = hre;
+        const signerAcc = ethers.utils.isAddress(signer)
+            ? signer
+            : (await hre.getNamedAccounts())[signer];
+
+        // Parse the transfers JSON
+        let transfersArray;
+        try {
+            transfersArray = JSON.parse(transfers);
+        } catch (error) {
+            logger.error(`Error parsing transfers JSON: ${error.message}`);
+            logger.error(
+                `Expected format: '[{"token":"SOV","to":"0x...","amount":"1000000000000000000"}]'`
+            );
+            return;
+        }
+
+        // Validate transfers array
+        if (!Array.isArray(transfersArray) || transfersArray.length === 0) {
+            logger.error("Transfers must be a non-empty array");
+            return;
+        }
+
+        // Validate each transfer
+        for (const transfer of transfersArray) {
+            if (!transfer.token || !transfer.to || !transfer.amount) {
+                logger.error("Each transfer must have 'token', 'to', and 'amount' properties");
+                return;
+            }
+        }
+
+        await sendTokensWithMultisig(transfersArray, signerAcc, multisig);
+    });
+
+// @todo  create helper to send ERC20 tokens and gas token via multisig. if the user is one of the owners - create tx - call submitTransaction. If not - just create and print tx data: to address, value 0, excoded tx data. it should accept and process multiple tokens - either passed as addresses or deployed names like BOS, SOV, DLLR etc. reserved word for the gas token is GasToken. it should accept an arbitrary multisig optionally, by default - MultiSigWallet.
 // task("multisig:sendTo", "Send gas token using multisig")
 //     .addPositionalParam("address", "Receiver", undefined, types.string)
 //     .addPositionalParam("amount", "Amount in wei/sat", undefined, types.string)

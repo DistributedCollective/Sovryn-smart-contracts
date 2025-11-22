@@ -32,8 +32,10 @@ def main():
 
     ##################################
 
+    # TODO Adjust amounts to deposit/withdraw
+    #addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterBOS'], [conf.contracts['WRBTC'], conf.contracts['BOS']], [10**18,18793886*10**18], 1)
         
-    withdrawAllMultisigLiquidityFromAmm()
+    #withdrawAllMultisigLiquidityFromAmm()
     #getAmmExchequerBalances()
     
     #bal = getBalance(conf.contracts['(WR)BTC/USDT2'], conf.contracts['multisig'])
