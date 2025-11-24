@@ -212,6 +212,138 @@ task("misc:forkedchain:vestingStake", "Stakes from vesting contract")
         logger.warning(await staking.getStakes(vesting));
     });
 
+task(
+    "misc:loan:check-collateral",
+    "Checks if a collateral token is enabled on a loan token (Torque or margin) and prints the loan params"
+)
+    .addParam("loanToken", "Loan token address or deployment name")
+    .addParam("collateral", "Collateral token address")
+    .addOptionalParam(
+        "sovryn",
+        "Sovryn protocol address (defaults to loanToken.sovrynContractAddress())"
+    )
+    .addOptionalParam(
+        "isTorque",
+        "true to check borrow/Torque params, false to check margin params",
+        true,
+        boolean
+    )
+    .setAction(async ({ loanToken, collateral, sovryn, isTorque }, hre) => {
+        const { ethers, deployments } = hre;
+
+        const resolveAddress = async (value) => {
+            if (ethers.utils.isAddress(value)) {
+                return ethers.utils.getAddress(value);
+            }
+            const deployment = await deployments.get(value);
+            return deployment.address;
+        };
+
+        const loanTokenAddress = await resolveAddress(loanToken);
+        const collateralAddress = ethers.utils.getAddress(collateral);
+
+        const loan = await ethers.getContractAt("LoanTokenLogicStandard", loanTokenAddress);
+        const key = ethers.utils.solidityKeccak256(
+            ["address", "bool"],
+            [collateralAddress, isTorque]
+        );
+
+        const loanParamsId = await loan.loanParamsIds(key);
+        console.log("loanToken:", loanTokenAddress);
+        console.log("collateral:", collateralAddress);
+        console.log("isTorque:", isTorque);
+        console.log("loanParamsId:", loanParamsId);
+
+        if (loanParamsId === ethers.constants.HashZero) {
+            console.log("Result: collateral is NOT enabled for this loan token and mode.");
+            return;
+        }
+
+        const sovrynAddress = sovryn
+            ? await resolveAddress(sovryn)
+            : await loan.sovrynContractAddress();
+        const sovrynProtocol = await ethers.getContractAt("ISovryn", sovrynAddress);
+        const params = await sovrynProtocol.getLoanParams([loanParamsId]);
+        const p = params[0];
+
+        console.log("Result: collateral is ENABLED. LoanParams:");
+        console.log({
+            id: p.id,
+            active: p.active,
+            owner: p.owner,
+            loanToken: p.loanToken,
+            collateralToken: p.collateralToken,
+            minInitialMargin: p.minInitialMargin.toString(),
+            maintenanceMargin: p.maintenanceMargin.toString(),
+            maxLoanTerm: p.maxLoanTerm.toString(),
+        });
+    });
+
+// Usage:
+// hh misc:loan:check-collateral-all --collateral <tokenAddress> --network rskSovrynMainnet
+// Loops through iXUSD, iRBTC, iBPro, iDOC and prints if the collateral is enabled for Torque and margin.
+task(
+    "misc:loan:check-collateral-all",
+    "Checks if a collateral token is enabled on all mainnet loan tokens (Torque and margin)"
+)
+    .addParam("collateral", "Collateral token address")
+    .setAction(async ({ collateral }, hre) => {
+        const { ethers, deployments } = hre;
+
+        const loanTokenDeployments = [
+            "LoanToken_iXUSD",
+            "LoanToken_iRBTC",
+            "LoanToken_iBPRO",
+            "LoanToken_iDOC",
+        ];
+
+        const collateralAddress = ethers.utils.getAddress(collateral);
+
+        const resolveAddress = async (nameOrAddress) => {
+            if (ethers.utils.isAddress(nameOrAddress)) {
+                return ethers.utils.getAddress(nameOrAddress);
+            }
+            const deployment = await deployments.get(nameOrAddress);
+            return deployment.address;
+        };
+
+        for (const depName of loanTokenDeployments) {
+            const loanTokenAddress = await resolveAddress(depName);
+            const loan = await ethers.getContractAt("LoanTokenLogicStandard", loanTokenAddress);
+            const sovryn = await ethers.getContractAt(
+                "ISovryn",
+                await loan.sovrynContractAddress()
+            );
+
+            console.log(`\nLoan token: ${depName} (${loanTokenAddress})`);
+            for (const isTorque of [true, false]) {
+                const key = ethers.utils.solidityKeccak256(
+                    ["address", "bool"],
+                    [collateralAddress, isTorque]
+                );
+                const loanParamsId = await loan.loanParamsIds(key);
+
+                const modeLabel = isTorque ? "Torque (borrow)" : "Margin";
+                if (loanParamsId === ethers.constants.HashZero) {
+                    console.log(`- ${modeLabel}: NOT enabled`);
+                    continue;
+                }
+
+                const params = await sovryn.getLoanParams([loanParamsId]);
+                const p = params[0];
+                console.log(`- ${modeLabel}: ENABLED ->`, {
+                    id: p.id,
+                    active: p.active,
+                    loanToken: p.loanToken,
+                    collateralToken: p.collateralToken,
+                    minInitialMargin: p.minInitialMargin.toString(),
+                    maintenanceMargin: p.maintenanceMargin.toString(),
+                    maxLoanTerm: p.maxLoanTerm.toString(),
+                });
+            }
+        }
+    });
+
 task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or address")
     .addPositionalParam(
         "accounts",
