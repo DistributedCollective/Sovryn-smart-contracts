@@ -295,6 +295,7 @@ task(
             "LoanToken_iRBTC",
             "LoanToken_iBPRO",
             "LoanToken_iDOC",
+            "LoanToken_iDLLR",
         ];
 
         const collateralAddress = ethers.utils.getAddress(collateral);
