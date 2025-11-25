@@ -176,3 +176,82 @@ task("multisig:redeem-zero-collateral", "Redeem ZUSD from MultiSigWallet")
 
         logger.info("Task completed: redeemCollateral multisig transaction ready.");
     });
+
+// Redeem ZUSD from DLL to multisig wallet
+// Usage: npx hardhat multisig:redeem-zero-collateral --multisig <MULTISIG_ADDRESS> --amount <AMOUNT> --network <NETWORK>
+task("multisig:redeem-zusd-from-dllr", "Redeem ZUSD from DLLR to MultiSigWallet")
+    .addPositionalParam("amount", "Amount of ZUSD to redeem (human units, e.g. '100000')")
+    .addOptionalParam("multisig", "Multisig wallet address", "MultiSigWallet")
+    .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
+    .addFlag(
+        "submitTx",
+        "Submit the multisig transaction if signer is owner. If not set, only print tx data."
+    )
+    .setAction(async ({ multisig, amount, signer, submitTx }, hre) => {
+        const {
+            deployments: { get },
+            ethers,
+        } = hre;
+        const ZUSD_AMOUNT = ethers.utils.parseEther(amount);
+        const signerAcc = ethers.utils.isAddress(signer)
+            ? signer
+            : (await hre.getNamedAccounts())[signer];
+
+        // 1. Get contract instances
+        const zusdToken = await ethers.getContract("ZUSDToken");
+        const multisigWallet = await getMultisigWallet(hre, multisig);
+        multisig = multisigWallet.address;
+
+        const owners = await multisigWallet.getOwners();
+        const isOwner = owners.map((a) => a.toLowerCase()).includes(signerAcc.toLowerCase());
+
+        // 2. Get redeemer balance (ZUSD)
+        // Check DLLR balance
+        let dllrBalance;
+        try {
+            const dllrToken = await ethers.getContract("DLLR");
+            dllrBalance = await dllrToken.balanceOf(multisig);
+        } catch (e) {
+            dllrBalance = null;
+        }
+        if (dllrBalance && dllrBalance.lt(ZUSD_AMOUNT)) {
+            throw new Error(
+                `Multisig does not have enough DLLR to redeem. Requested: ${ethers.utils.formatEther(ZUSD_AMOUNT)}, Available: ${ethers.utils.formatEther(dllrBalance)}. `
+            );
+        } else {
+            // Prepare DLLR->ZUSD redemption tx using MassetManager.redeem(ZUSD, amount)
+            const massetManager = await ethers.getContract("MassetManager");
+            const zusdAddress = zusdToken.address;
+            const calldata = massetManager.interface.encodeFunctionData("redeem", [
+                zusdAddress,
+                ZUSD_AMOUNT,
+            ]);
+            if (isOwner && submitTx) {
+                const txId = await sendWithMultisig(
+                    multisig,
+                    massetManager.address,
+                    calldata,
+                    signerAcc,
+                    0
+                );
+                logger.info(`Multisig transaction submitted. Tx ID: ${txId}`);
+            } else {
+                logger.info("Transaction data for multisig submission or offline signing:");
+                logger.info({
+                    to: massetManager.address,
+                    value: "0",
+                    data: calldata,
+                });
+                // Print serialized tx for offline signing
+                const serializeTx = await multisigWallet.populateTransaction.submitTransaction(
+                    massetManager.address,
+                    0,
+                    calldata
+                );
+                delete serializeTx.from;
+                const serializedTx = ethers.utils.serializeTransaction(serializeTx);
+                logger.info("Serialized transaction for offline signing:");
+                logger.info(serializedTx);
+            }
+        }
+    });
