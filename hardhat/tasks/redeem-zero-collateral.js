@@ -7,7 +7,7 @@ const { sendWithMultisig, getMultisigWallet } = require("../../deployment/helper
 // Redeem ZUSD from MultiSigWallet
 // Usage: npx hardhat multisig:redeem-zero-collateral --multisig <MULTISIG_ADDRESS> --amount <AMOUNT> --network <NETWORK>
 task("multisig:redeem-zero-collateral", "Redeem ZUSD from MultiSigWallet")
-    .addParam("amount", "Amount of ZUSD to redeem (human units, e.g. '100000')")
+    .addPositionalParam("amount", "Amount of ZUSD to redeem (human units, e.g. '100000')")
     .addOptionalParam(
         "maxIterations",
         "Max iterations for redemption (default 0 = unlimited)",
@@ -19,7 +19,7 @@ task("multisig:redeem-zero-collateral", "Redeem ZUSD from MultiSigWallet")
         "submitTx",
         "Submit the multisig transaction if signer is owner. If not set, only print tx data."
     )
-    .setAction(async ({ multisig, amount, signer, maxIterations }, hre) => {
+    .setAction(async ({ multisig, amount, signer, maxIterations, submitTx }, hre) => {
         const {
             deployments: { get },
             ethers,
@@ -145,7 +145,7 @@ task("multisig:redeem-zero-collateral", "Redeem ZUSD from MultiSigWallet")
         // 7. Create multisig transaction
         // If the signer is an owner, submit the transaction, else print tx data
         // Check if signer is owner
-        logger.info("Creating multisig transaction to redeem zero-collateral troves:");
+        logger.info("Creating multisig transaction to redeem from Zero troves:");
         if (isOwner && submitTx) {
             const txId = await sendWithMultisig(
                 multisig,
