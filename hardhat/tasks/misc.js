@@ -146,6 +146,74 @@ task("misc:forkedchain:fundAccount", "Fund an account for a forked chain")
         }
     });
 
+task(
+    "misc:roles:check-authorities",
+    "Reports owner/admin roles for Sovryn, PriceFeeds and the configured loan tokens"
+)
+    .addOptionalParam("sovryn", "Sovryn protocol address or deployment name", "SovrynProtocol")
+    .addOptionalParam("priceFeeds", "PriceFeeds address or deployment name", "PriceFeeds")
+    .addOptionalParam(
+        "loanTokens",
+        "Comma-separated loan token deployment names or addresses",
+        "LoanToken_iXUSD,LoanToken_iRBTC,LoanToken_iBPRO,LoanToken_iDOC,LoanToken_iDLLR,LoanToken_iUSDT"
+    )
+    .setAction(async ({ sovryn, priceFeeds, loanTokens }, hre) => {
+        const { ethers, deployments } = hre;
+
+        const resolveAddress = async (value) => {
+            if (ethers.utils.isAddress(value)) {
+                return ethers.utils.getAddress(value);
+            }
+            const deployment = await deployments.get(value);
+            return deployment.address;
+        };
+
+        const prettyLog = (label, entries) => {
+            console.log(`\n${label}`);
+            for (const [k, v] of Object.entries(entries)) {
+                console.log(`- ${k}: ${v}`);
+            }
+        };
+
+        const sovrynAddress = await resolveAddress(sovryn);
+        const sovrynContract = await ethers.getContractAt("ISovryn", sovrynAddress);
+        const sovrynOwner = await sovrynContract.owner();
+        let sovrynAdmin = "<unavailable>";
+        try {
+            sovrynAdmin = await sovrynContract.getAdmin();
+        } catch (e) {
+            logger &&
+                logger.warn &&
+                logger.warn("getAdmin() call failed on Sovryn, leaving admin as unavailable");
+        }
+        prettyLog("Sovryn protocol", {
+            address: sovrynAddress,
+            owner: sovrynOwner,
+            admin: sovrynAdmin,
+        });
+
+        const priceFeedsAddress = await resolveAddress(priceFeeds);
+        const priceFeedsContract = await ethers.getContractAt("PriceFeeds", priceFeedsAddress);
+        const priceFeedsOwner = await priceFeedsContract.owner();
+        prettyLog("PriceFeeds", {
+            address: priceFeedsAddress,
+            owner: priceFeedsOwner,
+        });
+
+        const loanTokenEntries = loanTokens.split(",");
+        for (const entry of loanTokenEntries) {
+            const loanTokenAddress = await resolveAddress(entry.trim());
+            const loan = await ethers.getContractAt("LoanTokenLogicStandard", loanTokenAddress);
+            const owner = await loan.owner();
+            const admin = await loan.admin();
+            prettyLog(`Loan token ${entry.trim()}`, {
+                address: loanTokenAddress,
+                owner,
+                admin,
+            });
+        }
+    });
+
 task("misc:forkedchain:addVestingRegistryAdmin", "Adds VR admin")
     .addParam("account", "account to fund")
     .setAction(async ({ account }, hre) => {
@@ -210,6 +278,198 @@ task("misc:forkedchain:vestingStake", "Stakes from vesting contract")
             "0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e"
         );
         logger.warning(await staking.getStakes(vesting));
+    });
+
+task(
+    "misc:pricefeed:get-oracle",
+    "Prints the feed address registered for a token in PriceFeeds and tries to read its underlying oracle"
+)
+    .addParam("token", "Token address or deployment name")
+    .addOptionalParam("priceFeeds", "PriceFeeds address or deployment name", "PriceFeeds")
+    .setAction(async ({ token, priceFeeds }, hre) => {
+        const { ethers, deployments } = hre;
+
+        const resolveAddress = async (value) => {
+            if (ethers.utils.isAddress(value)) {
+                return ethers.utils.getAddress(value);
+            }
+            const deployment = await deployments.get(value);
+            return deployment.address;
+        };
+
+        const tokenAddress = await resolveAddress(token);
+        const priceFeedsAddress = await resolveAddress(priceFeeds);
+        const pf = await ethers.getContractAt("PriceFeeds", priceFeedsAddress);
+        const feed = await pf.pricesFeeds(tokenAddress);
+
+        console.log("PriceFeeds:", priceFeedsAddress);
+        console.log("Token:", tokenAddress);
+        console.log("Feed:", feed);
+
+        if (feed === ethers.constants.AddressZero) {
+            console.log("Result: no feed set for this token.");
+            return;
+        }
+
+        const tryRead = async (label, getter) => {
+            try {
+                const v = await getter();
+                console.log(`- ${label}: ${v}`);
+            } catch (e) {
+                // ignore failures for non-matching ABIs
+            }
+        };
+
+        await tryRead("rskOracleAddress", async () =>
+            (await ethers.getContractAt("PriceFeedRSKOracle", feed)).rskOracleAddress()
+        );
+        await tryRead("mocOracleAddress", async () =>
+            (await ethers.getContractAt("PriceFeedsMoC", feed)).mocOracleAddress()
+        );
+        await tryRead("v1PoolOracleAddress", async () =>
+            (await ethers.getContractAt("PriceFeedV1PoolOracle", feed)).v1PoolOracleAddress()
+        );
+        await tryRead("oracle", async () => (await ethers.getContractAt("Oracle", feed)).oracle());
+        await tryRead("priceProvider", async () =>
+            (await ethers.getContractAt("Medianizer", feed)).priceProvider()
+        );
+        await tryRead("aggregator", async () =>
+            (await ethers.getContractAt("AggregatorV3Interface", feed)).aggregator()
+        );
+    });
+
+task(
+    "misc:loan:check-collateral",
+    "Checks if a collateral token is enabled on a loan token (Torque or margin) and prints the loan params"
+)
+    .addParam("loanToken", "Loan token address or deployment name")
+    .addParam("collateral", "Collateral token address")
+    .addOptionalParam(
+        "sovryn",
+        "Sovryn protocol address (defaults to loanToken.sovrynContractAddress())"
+    )
+    .addOptionalParam(
+        "isTorque",
+        "true to check borrow/Torque params, false to check margin params",
+        true,
+        boolean
+    )
+    .setAction(async ({ loanToken, collateral, sovryn, isTorque }, hre) => {
+        const { ethers, deployments } = hre;
+
+        const resolveAddress = async (value) => {
+            if (ethers.utils.isAddress(value)) {
+                return ethers.utils.getAddress(value);
+            }
+            const deployment = await deployments.get(value);
+            return deployment.address;
+        };
+
+        const loanTokenAddress = await resolveAddress(loanToken);
+        const collateralAddress = ethers.utils.getAddress(collateral);
+
+        const loan = await ethers.getContractAt("LoanTokenLogicStandard", loanTokenAddress);
+        const key = ethers.utils.solidityKeccak256(
+            ["address", "bool"],
+            [collateralAddress, isTorque]
+        );
+
+        const loanParamsId = await loan.loanParamsIds(key);
+        console.log("loanToken:", loanTokenAddress);
+        console.log("collateral:", collateralAddress);
+        console.log("isTorque:", isTorque);
+        console.log("loanParamsId:", loanParamsId);
+
+        if (loanParamsId === ethers.constants.HashZero) {
+            console.log("Result: collateral is NOT enabled for this loan token and mode.");
+            return;
+        }
+
+        const sovrynAddress = sovryn
+            ? await resolveAddress(sovryn)
+            : await loan.sovrynContractAddress();
+        const sovrynProtocol = await ethers.getContractAt("ISovryn", sovrynAddress);
+        const params = await sovrynProtocol.getLoanParams([loanParamsId]);
+        const p = params[0];
+
+        console.log("Result: collateral is ENABLED. LoanParams:");
+        console.log({
+            id: p.id,
+            active: p.active,
+            owner: p.owner,
+            loanToken: p.loanToken,
+            collateralToken: p.collateralToken,
+            minInitialMargin: p.minInitialMargin.toString(),
+            maintenanceMargin: p.maintenanceMargin.toString(),
+            maxLoanTerm: p.maxLoanTerm.toString(),
+        });
+    });
+
+// Usage:
+// hh misc:loan:check-collateral-all --collateral <tokenAddress> --network rskSovrynMainnet
+// Loops through iXUSD, iRBTC, iBPro, iDOC and prints if the collateral is enabled for Torque and margin.
+task(
+    "misc:loan:check-collateral-all",
+    "Checks if a collateral token is enabled on all mainnet loan tokens (Torque and margin)"
+)
+    .addParam("collateral", "Collateral token address")
+    .setAction(async ({ collateral }, hre) => {
+        const { ethers, deployments } = hre;
+
+        const loanTokenDeployments = [
+            "LoanToken_iXUSD",
+            "LoanToken_iRBTC",
+            "LoanToken_iBPRO",
+            "LoanToken_iDOC",
+            "LoanToken_iDLLR",
+        ];
+
+        const collateralAddress = ethers.utils.getAddress(collateral);
+
+        const resolveAddress = async (nameOrAddress) => {
+            if (ethers.utils.isAddress(nameOrAddress)) {
+                return ethers.utils.getAddress(nameOrAddress);
+            }
+            const deployment = await deployments.get(nameOrAddress);
+            return deployment.address;
+        };
+
+        for (const depName of loanTokenDeployments) {
+            const loanTokenAddress = await resolveAddress(depName);
+            const loan = await ethers.getContractAt("LoanTokenLogicStandard", loanTokenAddress);
+            const sovryn = await ethers.getContractAt(
+                "ISovryn",
+                await loan.sovrynContractAddress()
+            );
+
+            console.log(`\nLoan token: ${depName} (${loanTokenAddress})`);
+            for (const isTorque of [true, false]) {
+                const key = ethers.utils.solidityKeccak256(
+                    ["address", "bool"],
+                    [collateralAddress, isTorque]
+                );
+                const loanParamsId = await loan.loanParamsIds(key);
+
+                const modeLabel = isTorque ? "Torque (borrow)" : "Margin";
+                if (loanParamsId === ethers.constants.HashZero) {
+                    console.log(`- ${modeLabel}: NOT enabled`);
+                    continue;
+                }
+
+                const params = await sovryn.getLoanParams([loanParamsId]);
+                const p = params[0];
+                console.log(`- ${modeLabel}: ENABLED ->`, {
+                    id: p.id,
+                    active: p.active,
+                    owner: p.owner,
+                    loanToken: p.loanToken,
+                    collateralToken: p.collateralToken,
+                    minInitialMargin: p.minInitialMargin.toString(),
+                    maintenanceMargin: p.maintenanceMargin.toString(),
+                    maxLoanTerm: p.maxLoanTerm.toString(),
+                });
+            }
+        }
     });
 
 task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or address")
