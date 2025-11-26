@@ -7,14 +7,14 @@ import "@openzeppelin/contracts/interfaces/IERC777Recipient.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract UsdtSwap is IERC777Recipient, ReentrancyGuard {
+contract RootstockUsdtSwap is IERC777Recipient, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     address public immutable rusdtReceiver;
     address public immutable usdt0Provider;
     address public immutable rescuer;
-    IERC20 public constant RUSDT = IERC20(0xEf213441a85DF4d7acBdAe0Cf78004E1e486BB96);
-    IERC20 public constant USDT0 = IERC20(0x779dED0C9e1022225F8e0630b35A9B54Be713736);
+    IERC20 public constant RUSDT = IERC20(0xef213441A85dF4d7ACbDaE0Cf78004e1E486bB96);
+    IERC20 public constant USDT0 = IERC20(0x779Ded0c9e1022225f8E0630b35a9b54bE713736);
     IERC1820Registry private constant _ERC1820_REGISTRY =
         IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
     // keccak256("ERC777TokensRecipient") = 0xb281fc8c12954d22544db45de3159a39272895b169a852b314f9cc762e44c53b
