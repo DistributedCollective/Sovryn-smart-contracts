@@ -1,8 +1,8 @@
+// SPDX-License-Identifier: MIT
 // Minimal mock for ERC1820Registry
 contract MockERC1820Registry {
     function setInterfaceImplementer(address, bytes32, address) external {}
 }
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
@@ -72,13 +72,13 @@ contract RootstockUsdtSwapTest is Test {
     address otherToken = address(0x555);
     address RUSDT_ADDR = 0xef213441A85dF4d7ACbDaE0Cf78004e1E486bB96;
     address USDT0_ADDR = 0x779Ded0c9e1022225f8E0630b35a9b54bE713736;
-    address registryAddr = 0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24;
+    address erc1820RegistryAddr = 0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24;
 
     function setUp() public {
         // Deploy mock ERC1820Registry at the required address
         MockERC1820Registry mockRegistry = new MockERC1820Registry();
         bytes memory registryCode = address(mockRegistry).code;
-        vm.etch(registryAddr, registryCode);
+        vm.etch(erc1820RegistryAddr, registryCode);
 
         // Deploy mock RUSDT at the required address
         MockERC20 mockRusdt = new MockERC20("RUSDT", "RUSDT", 18);
@@ -88,7 +88,7 @@ contract RootstockUsdtSwapTest is Test {
 
         // Deploy mock USDT0 at the required address
 
-        MockERC20 mockUsdt0 = new MockERC20("USDT0", "USDT0", 18);
+        MockERC20 mockUsdt0 = new MockERC20("USDT0", "USDT0", 6);
         bytes memory usdt0Code = address(mockUsdt0).code;
         vm.etch(USDT0_ADDR, usdt0Code);
         usdt0 = MockERC20(USDT0_ADDR);
@@ -104,7 +104,6 @@ contract RootstockUsdtSwapTest is Test {
 
     function testSwapSuccess() public {
         // Simulate ERC777 tokensReceived call
-        //vm.prank(RUSDT_ADDR);
         // Give swap contract RUSDT for transfer
         vm.prank(user);
         rusdt.transfer(address(swap), 100e18);
