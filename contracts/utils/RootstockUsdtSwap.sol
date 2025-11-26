@@ -68,12 +68,15 @@ contract RootstockUsdtSwap is IERC777Recipient, ReentrancyGuard {
         require(msg.sender == address(RUSDT), "Only RUSDT accepted");
         require(to == address(this), "Tokens not sent to contract");
         require(amount > 0, "Amount must be > 0");
+        // Convert RUSDT (18 decimals) to USDT0 (6 decimals), rounding down
+        uint256 usdt0Amount = amount / 1e12;
+        require(usdt0Amount > 0, "Amount too small for USDT0");
         // Transfer USDT0 from provider to sender
         uint256 allowance = USDT0.allowance(usdt0Provider, address(this));
-        require(allowance >= amount, "USDT0 allowance too low");
+        require(allowance >= usdt0Amount, "USDT0 allowance too low");
         uint256 providerBalance = USDT0.balanceOf(usdt0Provider);
-        require(providerBalance >= amount, "USDT0 provider balance too low");
-        bool success = USDT0.transferFrom(usdt0Provider, from, amount);
+        require(providerBalance >= usdt0Amount, "USDT0 provider balance too low");
+        bool success = USDT0.transferFrom(usdt0Provider, from, usdt0Amount);
         require(success, "USDT0 transferFrom failed");
         // Transfer RUSDT to receiver
         RUSDT.safeTransfer(rusdtReceiver, amount);
