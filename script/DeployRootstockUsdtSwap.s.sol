@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Script.sol";
-import { RootstockUsdtSwap } from "../contracts/token/RootstockUsdtSwap.sol";
+import { RootstockUsdtSwap } from "../contracts/utils/RootstockUsdtSwap.sol";
 
 contract DeployRootstockUsdtSwap is Script {
     function run() external {

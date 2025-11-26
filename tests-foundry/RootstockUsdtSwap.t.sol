@@ -6,7 +6,7 @@ contract MockERC1820Registry {
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import "../contracts/token/RootstockUsdtSwap.sol";
+import "../contracts/utils/RootstockUsdtSwap.sol";
 
 contract MockERC20 is IERC20 {
     string public name;
