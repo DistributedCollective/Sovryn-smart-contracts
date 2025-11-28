@@ -472,6 +472,48 @@ task(
         }
     });
 
+// Usage:
+// hh misc:loan:limits-on-collateral-all --collateral <tokenAddress> --network rskSovrynMainnet
+// Prints transactionLimit for the collateral on each mainnet loan token.
+task(
+    "misc:loan:limits-on-collateral-all",
+    "Shows transactionLimit for a collateral across all mainnet loan tokens"
+)
+    .addParam("collateral", "Collateral token address")
+    .setAction(async ({ collateral }, hre) => {
+        const { ethers, deployments } = hre;
+
+        const loanTokenDeployments = [
+            "LoanToken_iXUSD",
+            "LoanToken_iRBTC",
+            "LoanToken_iBPRO",
+            "LoanToken_iDOC",
+            "LoanToken_iDLLR",
+            "LoanToken_iUSDT",
+        ];
+
+        const collateralAddress = ethers.utils.getAddress(collateral);
+
+        const resolveAddress = async (nameOrAddress) => {
+            if (ethers.utils.isAddress(nameOrAddress)) {
+                return ethers.utils.getAddress(nameOrAddress);
+            }
+            const deployment = await deployments.get(nameOrAddress);
+            return deployment.address;
+        };
+
+        console.log(`Collateral: ${collateralAddress}`);
+        for (const depName of loanTokenDeployments) {
+            const loanTokenAddress = await resolveAddress(depName);
+            const loan = await ethers.getContractAt("LoanTokenLogicStandard", loanTokenAddress);
+            const limit = await loan.transactionLimit(collateralAddress);
+            console.log(
+                `${depName} (${loanTokenAddress}) -> transactionLimit = ${limit.toString()}`
+            );
+        }
+        console.log("Note: 0 means no cap set for this collateral.");
+    });
+
 task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or address")
     .addPositionalParam(
         "accounts",
