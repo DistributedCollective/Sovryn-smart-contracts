@@ -1,3 +1,5 @@
+const OUTPUT_FILE = "bridgeMultisigWithdrawCommands.txt";
+const fs = require("fs");
 // Usage: node scripts/generate_multisig_withdrawals.js
 // This script fetches all non-zero token balances for specified multisig addresses on Ethereum, BSC, and Rootstock,
 // filters tokens with value > $50, and outputs Hardhat multisig:send-tokens commands to withdraw all funds to a target address.
@@ -28,6 +30,8 @@ const MULTISIGS = [
             "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
             "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // USDC
             "0xdac17f958d2ee523a2206206994597c13d831ec7", // USDT
+            "0x13239c268beddd88ad0cb02050d3ff6a9d00de6d", // BitcoinOS
+            "0xbdbb63f938c8961af31ead3deba5c96e6a323dd1", // eDLLR
         ],
     },
     {
@@ -81,6 +85,7 @@ const MULTISIGS = [
 const ERC20_ABI = [
     "function balanceOf(address) view returns (uint256)",
     "function decimals() view returns (uint8)",
+    "function symbol() view returns (string)",
 ];
 
 async function getTokenList(chainConfig) {
@@ -91,16 +96,17 @@ async function getTokenList(chainConfig) {
 async function getTokenBalanceAndDecimals(provider, token, multisig) {
     try {
         const contract = new ethers.Contract(token, ERC20_ABI, provider);
-        const [balance, decimals] = await Promise.all([
+        const [balance, decimals, symbol] = await Promise.all([
             contract.balanceOf(multisig),
             contract.decimals(),
+            contract.symbol().catch(() => token),
         ]);
-        return { balance, decimals };
+        return { balance, decimals, symbol };
     } catch (e) {
         console.warn(
-            `Error fetching balance/decimals for token ${token} on ${multisig}: ${e.message}`
+            `Error fetching balance/decimals/symbol for token ${token} on ${multisig}: ${e.message}`
         );
-        return { balance: ethers.BigNumber.from(0), decimals: 18 };
+        return { balance: ethers.BigNumber.from(0), decimals: 18, symbol: token };
     }
 }
 
@@ -148,6 +154,7 @@ async function processMultisig(chainConfig) {
                 token: "GasToken",
                 to: targetAddress,
                 amount: nativeBalance.toString(), // in wei
+                symbol: nativeSymbol,
             });
         }
     } catch (err) {
@@ -160,7 +167,7 @@ async function processMultisig(chainConfig) {
     // 2. Check ERC20 tokens
     for (const token of tokens) {
         if (token === "GasToken") continue;
-        const { balance, decimals } = await getTokenBalanceAndDecimals(
+        const { balance, decimals, symbol } = await getTokenBalanceAndDecimals(
             provider,
             token,
             chainConfig.multisig
@@ -170,6 +177,7 @@ async function processMultisig(chainConfig) {
                 token,
                 to: targetAddress,
                 amount: balance.toString(), // Use raw value for Hardhat task
+                symbol,
             });
         }
     }
@@ -177,23 +185,25 @@ async function processMultisig(chainConfig) {
 }
 
 async function main() {
+    let output = "";
     for (const chainConfig of MULTISIGS) {
-        console.log(
-            `\n--- ${chainConfig.chain.toUpperCase()} multisig: ${chainConfig.multisig} ---`
-        );
+        output += `\n--- ${chainConfig.chain.toUpperCase()} multisig: ${chainConfig.multisig} ---\n`;
         const transfers = await processMultisig(chainConfig);
         if (transfers.length === 0) {
-            console.log("No non-zero token balances found.");
+            output += "No non-zero token balances found.\n";
             continue;
         }
         const transfersForTask = transfers.map(({ token, to, amount }) => ({ token, to, amount }));
-        console.log(`npx hardhat multisig:send-tokens \\`);
-        console.log(`  --transfers '${JSON.stringify(transfersForTask)}' \\`);
-        console.log(`  --multisig ${chainConfig.multisig}`);
+        output += `npx hardhat multisig:send-tokens \\\n`;
+        output += `  --transfers '${JSON.stringify(transfersForTask)}' \\\n`;
+        output += `  --multisig ${chainConfig.multisig}\n`;
+        output += `# Token symbols: ${transfers.map((t) => t.symbol || t.token).join(", ")}\n`;
         transfers.forEach((t) => {
-            console.log(`# ${t.token}: ${t.amount} (~ $${t.usdValue})`);
+            output += `# ${t.token}: ${t.amount} (~ $${t.usdValue})\n`;
         });
     }
+    fs.writeFileSync(OUTPUT_FILE, output);
+    console.log(`Output written to ${OUTPUT_FILE}`);
 }
 
 main().catch(console.error);
