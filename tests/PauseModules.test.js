@@ -62,7 +62,6 @@ contract("Pause Modules", (accounts) => {
     async function fixtureInitialize(_wallets, _provider) {
         // Deploy mutex for loan & shared global reentrant guard
         await mutexUtils.getOrDeployMutex();
-        await mutexUtils.getOrDeployLoanIdMutex();
 
         SUSD = await getSUSD(); // Underlying Token
         RBTC = await getRBTC();

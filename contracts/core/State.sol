@@ -13,7 +13,6 @@ import "../openzeppelin/Ownable.sol";
 import "../openzeppelin/SafeMath.sol";
 import "../interfaces/IWrbtcERC20.sol";
 import "../reentrancy/SharedReentrancyGuard.sol";
-import "../reentrancy/LoanIdGuard.sol";
 
 /**
  * @title State contract.
@@ -22,7 +21,7 @@ import "../reentrancy/LoanIdGuard.sol";
  *
  * This contract contains the storage values of the Protocol.
  * */
-contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, LoanIdGuard, Ownable {
+contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, Ownable {
     using SafeMath for uint256;
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet; // enumerable map of addresses
     using EnumerableBytes32Set for EnumerableBytes32Set.Bytes32Set; // enumerable map of bytes32 or addresses
@@ -216,6 +215,8 @@ contract State is Objects, ReentrancyGuard, SharedReentrancyGuard, LoanIdGuard, 
     mapping(address => mapping(address => IERC20[])) internal defaultPathConversion;
 
     address internal pauser;
+
+    mapping(bytes32 => uint256) internal loanIdToBlockNumber;
 
     /**
      * @notice Add signature and target to storage.

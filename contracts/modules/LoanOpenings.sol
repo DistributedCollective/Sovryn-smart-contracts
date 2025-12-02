@@ -13,7 +13,7 @@ import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 import "../mixins/ModuleCommonFunctionalities.sol";
 import "../connectors/loantoken/lib/MarginTradeStructHelpers.sol";
-
+import "../reentrancy/LoanIdGuard.sol";
 /**
  * @title Loan Openings contract.
  *
@@ -27,7 +27,8 @@ contract LoanOpenings is
     VaultController,
     InterestUser,
     SwapsUser,
-    ModuleCommonFunctionalities
+    ModuleCommonFunctionalities,
+    LoanIdGuard
 {
     constructor() public {}
 
@@ -365,7 +366,7 @@ contract LoanOpenings is
         ];
 
         // Lock the loan ID to prevent multiple operations in the same block
-        LOAN_ID_MUTEX.checkAndToggle(loanLocal.id);
+        checkAndToggle(loanLocal.id);
 
         // Get required interest.
         uint256 amount = _initializeInterest(

@@ -56,7 +56,7 @@ contract("LoanTokenTrading", (accounts) => {
     async function deploymentAndInitFixture(_wallets, _provider) {
         // Deploy mutex for loan & shared global reentrant guard
         await mutexUtils.getOrDeployMutex();
-        await mutexUtils.getOrDeployLoanIdMutex();
+        
 
         SUSD = await getSUSD();
         RBTC = await getRBTC();

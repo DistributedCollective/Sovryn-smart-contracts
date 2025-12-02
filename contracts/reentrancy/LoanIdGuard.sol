@@ -1,6 +1,6 @@
 pragma solidity ^0.5.17;
 
-import "./LoanIdMutex.sol";
+import "../core/State.sol";
 
 /**
  * @title Abstract contract for loan ID-specific reentrancy guards
@@ -16,19 +16,16 @@ import "./LoanIdMutex.sol";
  * The LoanIdMutex contract address is hardcoded to a deterministically deployed address.
  * This contract has no state and is safe to add to the inheritance chain of upgradeable contracts.
  */
-contract LoanIdGuard {
-    /**
-     * @notice The address of the LoanIdMutex contract.
-     *
-     * @dev Hardcoded to avoid changing the memory layout of derived contracts.
-     * The LoanIdMutex is deployed to the same address on all networks using
-     * deterministic deployment (similar to ERC1820Registry).
-     *
-     * @dev Internal visibility allows derived contracts to access it directly when needed
-     * (e.g., in LoanOpenings.sol where the loanId is created dynamically).
-     */
-    LoanIdMutex internal constant LOAN_ID_MUTEX =
-        LoanIdMutex(0x6B8F44710CdCC7D5A5F60a3665F7B181Cda7ED27);
+contract LoanIdGuard is State {
+    function checkAndToggle(bytes32 loanId) internal {
+        uint256 lastBlock = loanIdToBlockNumber[loanId];
+
+        // Revert if loan was operated on in the current block
+        require(lastBlock != block.number, "loan ID already used in this block");
+
+        // Mark the loan as operated on in this block
+        loanIdToBlockNumber[loanId] = block.number;
+    }
 
     /**
      * @notice This modifier protects functions from being called multiple times on
@@ -46,7 +43,7 @@ contract LoanIdGuard {
     modifier loanIdNonReentrant(bytes32 loanId) {
         // Check and mark that this loan is being operated on in this block
         // Reverts if already operated on in this block
-        LOAN_ID_MUTEX.checkAndToggle(loanId);
+        checkAndToggle(loanId);
 
         // Execute the function
         _;

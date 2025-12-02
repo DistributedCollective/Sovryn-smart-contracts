@@ -973,4 +973,15 @@ contract ProtocolSettings is
             defaultPathValue
         );
     }
+
+    /**
+     * @notice Get the block number when a loan ID was last operated on.
+     * This is used to prevent the same loan ID from being operated on multiple times in the same block.
+     *
+     * @param loanId The ID of the loan.
+     * @return The block number (0 if never operated on).
+     */
+    function getLoanIdLastBlockNumber(bytes32 loanId) external view returns (uint256) {
+        return loanIdToBlockNumber[loanId];
+    }
 }

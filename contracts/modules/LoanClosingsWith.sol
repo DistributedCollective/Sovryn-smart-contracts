@@ -8,6 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "../interfaces/ILoanPool.sol";
 import "./LoanClosingsShared.sol";
+import "../reentrancy/LoanIdGuard.sol";
 
 /**
  * @title LoanClosingsWith contract.
@@ -17,7 +18,7 @@ import "./LoanClosingsShared.sol";
  *
  * Loans are liquidated if the position goes below margin maintenance.
  * */
-contract LoanClosingsWith is LoanClosingsShared {
+contract LoanClosingsWith is LoanClosingsShared, LoanIdGuard {
     constructor() public {}
 
     function() external {
