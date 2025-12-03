@@ -1,3 +1,6 @@
+require("dotenv").config();
+require("@secrez/cryptoenv").parse();
+
 const { task } = require("hardhat/config");
 const { extendEnvironment } = require("hardhat/config");
 
@@ -13,11 +16,9 @@ require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("@nomicfoundation/hardhat-foundry");
+// require("@tenderly/hardhat-tenderly"); // tenderly console integration
 
 require("./hardhat/tasks");
-
-require("dotenv").config();
-require("@secrez/cryptoenv").parse();
 
 const mnemonic = { mnemonic: "test test test test test test test test test test test junk" };
 const testnetPKs = [
@@ -33,6 +34,17 @@ const mainnetPKs = [
     process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "", //mainnet signer2
 ].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
 const mainnetAccounts = mainnetPKs.length > 0 ? mainnetPKs : mnemonic;
+const tenderlyUserName = process.env.TENDERLY_USERNAME ?? "";
+const tenderlyProjectName = process.env.TENDERLY_PROJECT ?? "";
+const tenderlyAccessKey = process.env.TENDERLY_ACCESS_KEY ?? "";
+const tenderly = {
+    username: tenderlyUserName,
+    project: tenderlyProjectName,
+    accessKey: tenderlyAccessKey,
+    privateVerification: false, // true if we want it protected
+};
+const bosOnboardTenderlyRpcUrl = process.env.TENDERLY_BOS_ONBOARD_RPC_URL ?? "";
+const bosOnboardTenderlyChainId = parseInt(process.env.TENDERLY_BOS_ONBOARD_CHAIN_ID ?? "30");
 
 /*
  * Test hardhat forking with patched hardhat
@@ -272,7 +284,6 @@ module.exports = {
             blockGasLimit: 30000000,
             tags: ["mainnet"],
         },
-
         bobTestnet: {
             url: "https://bob-sepolia.rpc.gobob.xyz/",
             chainId: 808813,
@@ -280,7 +291,6 @@ module.exports = {
             //gasPrice: 50000000,
             tags: ["testnet"],
         },
-
         bobMainnet: {
             url: "https://rpc.gobob.xyz/",
             chainId: 60808,
@@ -288,7 +298,6 @@ module.exports = {
             //gasPrice: 50000000,
             tags: ["mainnet"],
         },
-
         bobForkedTestnet: {
             chainId: 31337,
             accounts: mainnetAccounts,
@@ -299,7 +308,6 @@ module.exports = {
             tags: ["mainnet", "forked"],
             timeout: 1000000,
         },
-
         bobForkedTestnet: {
             chainId: 31337,
             accounts: testnetAccounts,
@@ -308,6 +316,16 @@ module.exports = {
             live: true,
             tags: ["testnet", "forked"],
             timeout: 100000,
+        },
+        rskTenderlyVirtualMainnet: {
+            url: bosOnboardTenderlyRpcUrl, // Tenderly VT RPC URL
+            chainId: bosOnboardTenderlyChainId, // from VT details
+            // accounts: mainnetAccounts, // or a specific PK; Tenderly lets you fund arbitrary accounts
+            accounts: mnemonic,
+            tags: ["mainnet", "forked", "tenderly"],
+            httpHeaders: {
+                "X-Access-Key": process.env.TENDERLY_SOVRYN_ACCESS_KEY ?? "",
+            },
         },
     },
     paths: {
@@ -340,6 +358,10 @@ module.exports = {
             rskForkedTestnetFlashback: ["external/deployments/rskForkedTestnetFlashback"],
             rskForkedMainnetFlashback: ["external/deployments/rskForkedMainnetFlashback"],
             rskSovrynMainnet: ["external/deployments/rskMainnet"],
+            rskTenderlyVirtualMainnet: [
+                "external/deployments/rskMainnet",
+                "deployment/deployments/rskSovrynMainnet",
+            ],
             rskMainnet: [
                 "external/deployments/rskMainnet",
                 "deployment/deployments/rskSovrynMainnet",
@@ -373,4 +395,5 @@ module.exports = {
     mocha: {
         timeout: 800000,
     },
+    tenderly,
 };

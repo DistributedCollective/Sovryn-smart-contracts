@@ -19,10 +19,10 @@ This manual is intended to explain how to onboard a new asset as collateral acro
 
    - Deploy `PriceFeedV1PoolOracle` with constructor `(v1PoolOracle, wRBTC, DOC, baseCurrency)` where `baseCurrency` is the new asset and the V1 pool includes WRBTC. Keep the deployed address for step 5.  
 
-3) **Add collateral params on each loan token** (anyone)  
+3) **Add collateral params on each loan token** (loan token owner/admin only)  
 
-   - The function signature is `setupLoanParams(LoanParamsStruct.LoanParams[] loanParamsList, bool areTorqueLoans)`. Anyone can execute it.  
-     Each `LoanParamsStruct.LoanParams` element is `[id, active, owner, loanToken, collateralToken, minInitialMargin, maintenanceMargin, maxLoanTerm]`.  
+   - **Call through the iToken address**: Invoke `setupLoanParams(LoanParamsStruct.LoanParams[] loanParamsList, bool areTorqueLoans)` on each iToken proxy (e.g., iXUSD/iRBTC/iBPRO/iDOC/iUSDT/iDLLR). The call is routed via beacon/proxy and enforced by `onlyAdmin`, which allows only the iToken `owner` or its configured `admin`. Use the `LoanTokenSettingsLowerAdmin` ABI, but the target address must be the iToken proxy address.
+   - Each `LoanParamsStruct.LoanParams` element is `[id, active, owner, loanToken, collateralToken, minInitialMargin, maintenanceMargin, maxLoanTerm]`.  
      You only need to set `collateralToken`, `minInitialMargin`, and `maintenanceMargin`; the wrapper overwrites `loanToken` and `maxLoanTerm`, and assigns `owner`/`id`/`active`. The unused inputs (`id`, `active`, `owner`, `loanToken`, `maxLoanTerm`) can be zero/false/empty.  
    - SOV example (1e18 precision):  
      - Torque (borrowing): `areTorqueLoans=true`, `minInitialMargin=50 ether` (50%), `maintenanceMargin=15 ether` (15%).  
@@ -44,9 +44,9 @@ This manual is intended to explain how to onboard a new asset as collateral acro
        ]
        ```  
 
-   - For Torque (borrowing): `LoanTokenSettingsLowerAdmin.setupLoanParams(..., true)` (**public**).  
+   - For Torque (borrowing): call `iToken.setupLoanParams(..., true)` (**only owner/admin**; contract enforces `onlyAdmin` which allows `isOwner()` or `admin`).  
      Helper: `scripts/contractInteraction/loan_tokens.py:setupTorqueLoanParams`.  
-   - For margin trading: `setupLoanParams(..., false)` (**public**).  
+   - For margin trading: call `iToken.setupLoanParams(..., false)` (**only owner/admin**; same `onlyAdmin` modifier).  
      Helpers: `setupMarginLoanParams` or `setupMarginLoanParamsMinInitialMargin`.  
    - Batch helper for both modes: `setupLoanParamsForCollaterals`.  
    - Run for every loan token (iXUSD, iRBTC, iBPro, iDOC, iUSDT, iDLLR, etc.).  
@@ -118,7 +118,28 @@ This manual is intended to explain how to onboard a new asset as collateral acro
 
 # Adding a New Collateral: Case for BOS Token  
 
-The following roles are required to perform each action:
+Next we describe the exact steps to add the [BOS side token](https://rootstock.blockscout.com/address/0x3E3006896458F0ACfE79b57A1A0fe067B3a1ce6f?tab=contract) - RSK network side - as collateral in the Sovryn lending protocol.  
+
+## Step 1 - Already done -  
+
+We can validate this step by querying the Sovryn Swap Network - `0x98aCE08D2b759a265ae326F010496bcD63C15afc` to the function `conversionPath` with arguments BOS address and WRBTC address:  
+
+-  `SovrynSwapNetwork.conversionPath([BOSAddrerss, WRBTCAddress])` retunrs:  
+
+  ```log
+  [
+    '0x3E3006896458f0ACfE79B57a1A0FE067B3a1CE6f',  // BOS side token address
+    '0xfD834BbcDe8C3Ac4766Bf5C1f5D861400103087B',  // BOS-rBTC smart token
+    '0x542fDA317318eBF1d3DEAf76E0b632741A7e677d'   // WRBTC address
+  ]
+  ```
+
+And the BOS AMM converter, is the owner of the smart token: `0xF1DeE3175593f4e13a2b9e09a5FaafC513c9A27F`.  
+
+## Step 2 - Deploying "PriceFeedV1PoolOracle" for BOS token  
+
+
+
 
 | Action | Contract/Function | Required role |
 | --- | --- | --- |
