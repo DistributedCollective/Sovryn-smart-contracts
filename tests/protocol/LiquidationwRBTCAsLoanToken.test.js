@@ -45,7 +45,6 @@ contract("ProtocolLiquidationTestToken", (accounts) => {
     async function deploymentAndInitFixture(_wallets, _provider) {
         // Deploy mutex for loan & shared global reentrant guard
         await mutexUtils.getOrDeployMutex();
-        
 
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();

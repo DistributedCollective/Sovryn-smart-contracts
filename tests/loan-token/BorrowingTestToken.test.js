@@ -64,7 +64,6 @@ contract("LoanTokenBorrowing", (accounts) => {
     async function deploymentAndInitFixture(_wallets, _provider) {
         // Deploy mutex for loan & shared global reentrant guard
         await mutexUtils.getOrDeployMutex();
-        
 
         SUSD = await getSUSD();
         TestERC777 = await getERC777(owner);
