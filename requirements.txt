@@ -1,3 +1,4 @@
 eth-brownie==1.21.0
+py-solc-x>=2.0.0
 munch==2.5.0
 slither-analyzer==0.7.0
