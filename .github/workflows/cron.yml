@@ -69,16 +69,16 @@ jobs:
 
       - name: Pre-install Solidity compilers from GitHub
         run: |
-          if [ ! -f ~/.solcx/solc-v0.5.17/solc-v0.5.17 ]; then
-            mkdir -p ~/.solcx/solc-v0.5.17 || true
-            curl -L -o ~/.solcx/solc-v0.5.17/solc-v0.5.17 https://github.com/ethereum/solidity/releases/download/v0.5.17/solc-static-linux
-            chmod +x ~/.solcx/solc-v0.5.17/solc-v0.5.17
-          fi
-          if [ ! -f ~/.solcx/solc-v0.8.17/solc-v0.8.17 ]; then
-            mkdir -p ~/.solcx/solc-v0.8.17 || true
-            curl -L -o ~/.solcx/solc-v0.8.17/solc-v0.8.17 https://github.com/ethereum/solidity/releases/download/v0.8.17/solc-static-linux
-            chmod +x ~/.solcx/solc-v0.8.17/solc-v0.8.17
-          fi
+          # Clean up any corrupted cache entries and ensure proper directory structure
+          rm -rf ~/.solcx/solc-v0.5.17 ~/.solcx/solc-v0.8.17
+          mkdir -p ~/.solcx/solc-v0.5.17 ~/.solcx/solc-v0.8.17
+          
+          # Download compilers from GitHub releases
+          curl -L -o ~/.solcx/solc-v0.5.17/solc-v0.5.17 https://github.com/ethereum/solidity/releases/download/v0.5.17/solc-static-linux
+          curl -L -o ~/.solcx/solc-v0.8.17/solc-v0.8.17 https://github.com/ethereum/solidity/releases/download/v0.8.17/solc-static-linux
+          
+          # Make them executable
+          chmod +x ~/.solcx/solc-v0.5.17/solc-v0.5.17 ~/.solcx/solc-v0.8.17/solc-v0.8.17
 
       - name: Withdraw Fees
         run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron.py --network=rsk-mainnet
