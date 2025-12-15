@@ -69,26 +69,8 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt && brownie pm install OpenZeppelin/openzeppelin-contracts@4.9.5
 
-      - name: Pre-install Solidity compilers from GitHub
-        run: |
-          # Clean up any corrupted cache entries and ensure proper directory structure
-          rm -rf ~/.solcx/solc-v0.5.17 ~/.solcx/solc-v0.8.17
-          mkdir -p ~/.solcx/solc-v0.5.17 ~/.solcx/solc-v0.8.17
-          
-          # Download compilers from GitHub releases
-          curl -L -o ~/.solcx/solc-v0.5.17/solc-v0.5.17 https://github.com/ethereum/solidity/releases/download/v0.5.17/solc-static-linux
-          curl -L -o ~/.solcx/solc-v0.8.17/solc-v0.8.17 https://github.com/ethereum/solidity/releases/download/v0.8.17/solc-static-linux
-          
-          # Make them executable
-          chmod +x ~/.solcx/solc-v0.5.17/solc-v0.5.17 ~/.solcx/solc-v0.8.17/solc-v0.8.17
-          
-          # Create a minimal version list to prevent online lookups
-          echo '{"builds":[{"version":"0.5.17","path":"solc-v0.5.17"},{"version":"0.8.17","path":"solc-v0.8.17"}]}' > ~/.solcx/solc-bin.json
-
       - name: Withdraw Fees
         run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron_amm.py --network=rsk-mainnet
         env:
           REWARDS_CRON: 1
           FEE_CLAIMER: ${{secrets.FEE_CLAIMER}}
-          SOLCX_BINARY_PATH: /home/runner/.solcx
-          SOLC_VERSION: 0.5.17
