@@ -32,6 +32,24 @@ networks:
     gas_price: 66000010 # 25000000000 25 GWEI
     reverting_tx_gas_limit: false
     default_contract_owner: false
+  rsk-testnet:
+    host: https://testnet.sovryn.app/rpc
+    chainid: 31
+    gas_limit: 6800000
+    gas_price: 60000000  # 0.06 gwei - RSK minimum
+    reverting_tx_gas_limit: false
+    default_contract_owner: false
+    base_fee: 0
+    priority_fee: 0
+  rsk-mainnet:
+    host: https://mainnet-dev.sovryn.app/rpc
+    chainid: 30
+    gas_limit: 6800000
+    gas_price: 26000000  # 0.026 gwei
+    reverting_tx_gas_limit: false
+    default_contract_owner: false
+    base_fee: 0
+    priority_fee: 0
 
 compiler:
   evm_version: null
