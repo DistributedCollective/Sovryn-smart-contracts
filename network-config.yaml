@@ -5,8 +5,16 @@ live:
         chainid: 30
         id: rsk-mainnet
         host: https://mainnet-dev.sovryn.app/rpc
+        gas_limit: 6800000
+        gas_price: 26000000
+        base_fee: 0
+        priority_fee: 0
 
       - name: Testnet
         chainid: 31
         id: rsk-testnet
         host: https://testnet.sovryn.app/rpc
+        gas_limit: 6800000
+        gas_price: 60000000
+        base_fee: 0
+        priority_fee: 0
