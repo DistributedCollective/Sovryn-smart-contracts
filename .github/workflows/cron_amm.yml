@@ -69,10 +69,16 @@ jobs:
 
       - name: Pre-install Solidity compilers from GitHub
         run: |
-          mkdir -p ~/.solcx/solc-v0.5.17 ~/.solcx/solc-v0.8.17
-          curl -L -o ~/.solcx/solc-v0.5.17/solc-v0.5.17 https://github.com/ethereum/solidity/releases/download/v0.5.17/solc-static-linux
-          curl -L -o ~/.solcx/solc-v0.8.17/solc-v0.8.17 https://github.com/ethereum/solidity/releases/download/v0.8.17/solc-static-linux
-          chmod +x ~/.solcx/solc-v0.5.17/solc-v0.5.17 ~/.solcx/solc-v0.8.17/solc-v0.8.17
+          if [ ! -f ~/.solcx/solc-v0.5.17/solc-v0.5.17 ]; then
+            mkdir -p ~/.solcx/solc-v0.5.17
+            curl -L -o ~/.solcx/solc-v0.5.17/solc-v0.5.17 https://github.com/ethereum/solidity/releases/download/v0.5.17/solc-static-linux
+            chmod +x ~/.solcx/solc-v0.5.17/solc-v0.5.17
+          fi
+          if [ ! -f ~/.solcx/solc-v0.8.17/solc-v0.8.17 ]; then
+            mkdir -p ~/.solcx/solc-v0.8.17
+            curl -L -o ~/.solcx/solc-v0.8.17/solc-v0.8.17 https://github.com/ethereum/solidity/releases/download/v0.8.17/solc-static-linux
+            chmod +x ~/.solcx/solc-v0.8.17/solc-v0.8.17
+          fi
 
       - name: Withdraw Fees
         run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron_amm.py --network=rsk-mainnet
