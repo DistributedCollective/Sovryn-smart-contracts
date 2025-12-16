@@ -438,7 +438,7 @@ def withdrawFees():
         conf.contracts['SOV'],
         conf.contracts['WRBTC'],
         conf.contracts['DLLR'],
-    ])
+    ], {'gas_price': '26000000'})
 
 def withdrawFeesAMM():
     # Withdraw fees from protocol
@@ -459,7 +459,7 @@ def withdrawFeesAMM():
         conf.contracts["ConverterDLLR"],
         conf.contracts["ConverterPOWA"],
         conf.contracts["ConverterBOS"],
-    ])
+    ], {'gas_price': '26000000'})
 
 def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi(
