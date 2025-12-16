@@ -74,15 +74,15 @@ jobs:
           python3 << 'EOF'
           import os
           import site
-          
+
           # Find py-solc-x install location
           site_packages = site.getsitepackages()[0]
           install_file = os.path.join(site_packages, "solcx", "install.py")
-          
+
           # Read the file
           with open(install_file, 'r') as f:
               content = f.read()
-          
+
           # Replace the blocked URL with GitHub releases
           # Old py-solc-x 1.1.1 uses solc-bin.ethereum.org
           content = content.replace(
@@ -97,20 +97,16 @@ jobs:
               'solc-bin.ethereum.org',
               'binaries.soliditylang.org'
           )
-          
+
           # Write back
           with open(install_file, 'w') as f:
               f.write(content)
-          
+
           print("✓ Patched py-solc-x to use binaries.soliditylang.org")
           EOF
 
-      - name: Configure RSK Mainnet network
-        run: |
-          brownie networks add rsk rsk-mainnet host=https://mainnet-dev.sovryn.app/rpc chainid=30 gas_limit=6800000 gas_price=26000000 priority_fee=0 base_fee=0 || echo "Network already exists"
-
       - name: Withdraw Fees
-        run: echo $REWARDS_CRON && brownie run scripts/contractInteraction/rewards_cron_amm.py --network=rsk-mainnet
+        run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron_amm.py --network=rsk-mainnet
         env:
           REWARDS_CRON: 1
           FEE_CLAIMER: ${{secrets.FEE_CLAIMER}}
