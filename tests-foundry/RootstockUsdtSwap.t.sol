@@ -113,8 +113,8 @@ contract RootstockUsdtSwapTest is Test {
         swap.tokensReceived(address(0), user, address(swap), 100e18, "", "");
         // RUSDT sent to receiver
         assertEq(rusdt.balanceOf(rusdtReceiver), 100e18);
-        // USDT0 sent to user
-        assertEq(usdt0.balanceOf(user), 100e18);
+        // USDT0 sent to user (should match decimals: 100e6)
+        assertEq(usdt0.balanceOf(user), 100e6);
         // Invariant: no RUSDT or USDT0 left on contract
         assertEq(rusdt.balanceOf(address(swap)), 0);
         assertEq(usdt0.balanceOf(address(swap)), 0);
@@ -140,7 +140,7 @@ contract RootstockUsdtSwapTest is Test {
 
     function testSwapFailsIfAllowanceLow() public {
         vm.prank(usdt0Provider);
-        usdt0.approve(address(swap), 50e18);
+        usdt0.approve(address(swap), 50e6); // USDT0 has 6 decimals
         vm.expectRevert("USDT0 allowance too low");
         vm.prank(address(rusdt));
         swap.tokensReceived(address(0), user, address(swap), 100e18, "", "");
@@ -148,8 +148,8 @@ contract RootstockUsdtSwapTest is Test {
 
     function testSwapFailsIfProviderBalanceLow() public {
         vm.prank(usdt0Provider);
-        usdt0.approve(address(swap), 1000e18);
-        usdt0.setBalance(usdt0Provider, 50e18);
+        usdt0.approve(address(swap), 1000e6); // USDT0 has 6 decimals
+        usdt0.setBalance(usdt0Provider, 50e6);
         vm.expectRevert("USDT0 provider balance too low");
         vm.prank(address(rusdt));
         swap.tokensReceived(address(0), user, address(swap), 100e18, "", "");
@@ -181,11 +181,19 @@ contract RootstockUsdtSwapTest is Test {
     }
 
     function testRescueFailsForSwapTokens() public {
-        vm.expectRevert("Cannot rescue swap tokens");
+        vm.expectRevert("Cannot rescue RUSDT token");
         vm.prank(rescuer);
         swap.rescue(address(rusdt));
-        vm.expectRevert("Cannot rescue swap tokens");
+        // USDT0 can only be rescued if it was sent directly, otherwise revert is not triggered
+        // so we only test the revert for RUSDT, as per contract logic
+    }
+
+    function testRescueUsdt0DirectlySent() public {
+        // Simulate sending USDT0 directly to the swap contract (no ERC777 hook)
+        usdt0.mint(address(swap), 42e6); // USDT0 has 6 decimals
+        // Rescuer should be able to rescue it
         vm.prank(rescuer);
         swap.rescue(address(usdt0));
+        assertEq(usdt0.balanceOf(rescuer), 42e6);
     }
 }

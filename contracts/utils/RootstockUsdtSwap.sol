@@ -82,7 +82,8 @@ contract RootstockUsdtSwap is IERC777Recipient, ReentrancyGuard {
         RUSDT.safeTransfer(rusdtReceiver, amount);
         // Invariant: contract should not hold RUSDT or USDT0
         require(RUSDT.balanceOf(address(this)) == 0, "RUSDT left on contract");
-        require(USDT0.balanceOf(address(this)) == 0, "USDT0 left on contract");
+        // USDT0 doesn't implement ERC777 recipient hook,
+        // can be sent to the contract directly and then rescued
     }
 
     /**
@@ -92,7 +93,7 @@ contract RootstockUsdtSwap is IERC777Recipient, ReentrancyGuard {
      */
     function rescue(address token) external nonReentrant {
         require(msg.sender == rescuer, "Not rescuer");
-        require(token != address(RUSDT) && token != address(USDT0), "Cannot rescue swap tokens");
+        require(token != address(RUSDT), "Cannot rescue RUSDT token");
         uint256 bal = IERC20(token).balanceOf(address(this));
         if (bal > 0) {
             IERC20(token).safeTransfer(rescuer, bal);
