@@ -122,7 +122,7 @@ async function createVestings(hre, dryRun, path, multiplier, signerAcc) {
             vestingCreationType = 3;
         } else if (teamVesting[3] === 26) {
             vestingCreationType = 1;
-        } else if ([39, 22, 17, 34, 19].includes(teamVesting[3])) {
+        } else if ([39, 22, 17, 34, 19, 7, 24].includes(teamVesting[3])) {
             vestingCreationType = 5;
             console.log("Make sure 3 year team 2 vesting split is really expected!");
         } else {

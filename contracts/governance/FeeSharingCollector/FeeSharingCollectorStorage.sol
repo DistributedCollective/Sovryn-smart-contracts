@@ -6,7 +6,7 @@ import "../../interfaces/IERC20.sol";
 import "../IFeeSharingCollector.sol";
 import "../Staking/interfaces/IStaking.sol";
 import "../../mixins/EnumerableAddressSet.sol";
-import "../../interfaces/IWrbtcERC20.sol";
+import "../../interfaces/IWrappedNativeTokenERC20.sol";
 
 /**
  * @title FeeSharingCollectorStorage contact
@@ -16,6 +16,7 @@ import "../../interfaces/IWrbtcERC20.sol";
 contract FeeSharingCollectorStorage is Ownable {
     using EnumerableAddressSet for EnumerableAddressSet.AddressSet;
     uint256 constant FEE_WITHDRAWAL_INTERVAL = 172800;
+    uint32 constant MAX_CHECKPOINTS = 100;
 
     IProtocol public protocol;
     IStaking public staking;
@@ -79,12 +80,17 @@ contract FeeSharingCollectorStorage is Ownable {
     /**
      * @dev Wrapped native token address
      */
-    address public wrbtcTokenAddress;
+    address public wrappedNativeTokenAddress;
 
     /**
      * @dev Wrapped native token loan token address
      */
-    address public loanTokenWrbtcAddress;
+    address public loanWrappedNativeTokenAddress;
+
+    /**
+     * @dev sovryn lb dex factory address
+     */
+    address public sovrynLBDexFactoryAddress;
 
     /**
      * @dev Prevents a contract from calling itself, directly or indirectly.
@@ -100,6 +106,16 @@ contract FeeSharingCollectorStorage is Ownable {
         _;
         reentrancyLock = REENTRANCY_GUARD_FREE;
     }
+
+    /* Modifier */
+    modifier oneTimeExecution(bytes4 _funcSig) {
+        require(
+            !isFunctionExecuted[_funcSig],
+            "FeeSharingCollector: function can only be called once"
+        );
+        _;
+        isFunctionExecuted[_funcSig] = true;
+    }
 }
 
 /* Interfaces */
@@ -110,16 +126,16 @@ interface IProtocol {
      * @param tokens The array address of the token instance.
      * @param receiver The address of the withdrawal recipient.
      *
-     * @return The withdrawn total amount in wRBTC
+     * @return The withdrawn total amount in wrappedNativeToken
      * */
     function withdrawFees(
         address[] calldata tokens,
         address receiver
-    ) external returns (uint256 totalWRBTCWithdrawn);
+    ) external returns (uint256 totalWrappedNativeTokenWithdrawn);
 
     function underlyingToLoanPool(address token) external view returns (address);
 
-    function wrbtcToken() external view returns (IWrbtcERC20);
+    function wrappedNativeToken() external view returns (IWrappedNativeTokenERC20);
 
     function getSovTokenAddress() external view returns (address);
 }
