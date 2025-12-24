@@ -1249,6 +1249,92 @@ const getArgsSip0087 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0088 = async (hre) => {
+    // Enable BOS Token as collateral
+    /**
+     * 1. Register BOS PriceFeedV1PoolOracle to the Sovryn Price Feeds
+     * 2. Setting up the collateral params for the loan tokens
+     * setSupportedToken(conf.contracts['SOV'])
+     * setupTorqueLoanParams(conf.contracts['iXUSD'], conf.contracts['XUSD'], conf.contracts['SOV'], Wei("200 ether"))
+     * setupTorqueLoanParams(conf.contracts['iRBTC'], conf.contracts['WRBTC'], conf.contracts['SOV'], Wei("200 ether"))
+     * setupTorqueLoanParams(conf.contracts['iBPro'], conf.contracts['BPro'], conf.contracts['SOV'], Wei("200 ether"))
+     * setupTorqueLoanParams(conf.contracts['iDOC'], conf.contracts['DoC'], conf.contracts['SOV'], Wei("200 ether"))
+     */
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const protocol = await ethers.getContract("ISovryn");
+    const priceFeeds = await ethers.getContract("PriceFeeds");
+    const bosToken = await get("BOS");
+    const bosPriceFeedV1PoolOracle = await get("BOSPriceFeedV1PoolOracle"); // @todo update the address in the deployment file once deployed to the mainnet
+    const priceFeedsOwner = await priceFeeds.owner();
+    const protocolAdmin = await protocol.getAdmin();
+
+    const loanTokensToEnable = [
+        await ethers.getContract("iXUSD"),
+        await ethers.getContract("iRBTC"),
+        await ethers.getContract("iBPro"),
+        await ethers.getContract("iDOC"),
+    ];
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    const args = {
+        targets: [priceFeeds.address, protocol.address],
+        targetOwnerValidationAddresses: [priceFeedsOwner, protocolAdmin],
+        values: [0, 0],
+        signatures: [
+            "setPriceFeed(address[],address[])",
+            "setSupportedTokens(address[],bool[])",
+        ],
+        data: [
+            abiCoder.encode(["address[]", "address[]"], [[bosToken.address], [bosPriceFeedV1PoolOracle.address]]),
+            abiCoder.encode(["address[]", "bool[]"], [[bosToken.address], [true]]),
+        ],
+        description:
+            "SIP-0088 : Enable BOS Token as collateral, Details: https://github.com/DistributedCollective/SIPS/blob/04ad90b/SIP-0088.md, sha256:", // @todo update the description
+    };
+
+    // Setup loan params for both Torque and Margin trading modes
+    // Note: In Sovryn, 1 ether unit = 1% (so 50 ether = 50%, not 0.50 ether)
+    const torqueMinInitialMargin = ethers.utils.parseEther("50"); // 50%
+    const maintenanceMargin = ethers.utils.parseEther("15"); // 15%
+    
+    for (const loanToken of loanTokensToEnable) {
+        // Torque (borrowing) params: areTorqueLoans = true
+        args.targets.push(loanToken.address);
+        args.targetOwnerValidationAddresses.push(await loanToken.admin());
+        args.values.push(0);
+        args.signatures.push("setupLoanParams(LoanParamsStruct.LoanParams[],bool)");
+        args.data.push(
+            abiCoder.encode(
+                ["tuple(bytes32,bool,address,address,address,uint256,uint256,uint256)[]", "bool"],
+                [
+                    [[
+                        ethers.constants.HashZero,        // id (ignored, auto-assigned)
+                        false,                            // active (ignored, set to true internally https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/bfc9a0a8266395be994aaf6de582fdc7ef802811/contracts/modules/LoanSettings.sol#L202)
+                        ethers.constants.AddressZero,     // owner (ignored, set internally https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/bfc9a0a8266395be994aaf6de582fdc7ef802811/contracts/modules/LoanSettings.sol#L203)
+                        ethers.constants.AddressZero,     // loanToken (ignored, overwritten internally https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/bfc9a0a8266395be994aaf6de582fdc7ef802811/contracts/connectors/loantoken/modules/shared/LoanTokenSettingsLowerAdmin.sol#L100-L103)
+                        bosToken.address,                 // collateralToken (BOS)
+                        torqueMinInitialMargin,           // minInitialMargin (50% for Torque)
+                        maintenanceMargin,                // maintenanceMargin (15%)
+                        0                                 // maxLoanTerm (ignored, overwritten to 0 for Torque)
+                    ]],
+                    true  // areTorqueLoans = true
+                ]
+            )
+        );
+    }
+    return { args, governor: "GovernorAdmin" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1272,4 +1358,5 @@ module.exports = {
     getArgsSip0084Part1,
     getArgsSip0084Part2,
     getArgsSip0087,
+    getArgsSip0088,
 };
