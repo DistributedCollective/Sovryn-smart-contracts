@@ -1274,10 +1274,11 @@ const getArgsSip0088 = async (hre) => {
     const protocolAdmin = await protocol.getAdmin();
 
     const loanTokensToEnable = [
-        await ethers.getContract("iXUSD"),
-        await ethers.getContract("iRBTC"),
-        await ethers.getContract("iBPro"),
-        await ethers.getContract("iDOC"),
+        await ethers.getContract("LoanToken_iXUSD"),
+        await ethers.getContract("LoanToken_iRBTC"),
+        await ethers.getContract("LoanToken_iBPRO"),
+        await ethers.getContract("LoanToken_iDOC"),
+        await ethers.getContract("LoanToken_iDLLR"),
     ];
 
     //validate
