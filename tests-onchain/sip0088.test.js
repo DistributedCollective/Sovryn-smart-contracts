@@ -175,16 +175,22 @@ describe("Enable BOS Token as collateral", () => {
                     [bosToken.address, true]
                 );
                 const torqueLoanParamId = await loanToken.loanParamsIds(torqueKey);
-                expect(torqueLoanParamId).to.not.equal(ethers.constants.HashZero, 
-                    `Torque loan params not set for ${loanToken.address}`);
+                expect(torqueLoanParamId).to.not.equal(
+                    ethers.constants.HashZero,
+                    `Torque loan params not set for ${loanToken.address}`
+                );
 
                 // Get the actual loan params from the protocol
                 const torqueLoanParams = await sovrynProtocol.getLoanParams([torqueLoanParamId]);
                 expect(torqueLoanParams.length).to.equal(1);
                 expect(torqueLoanParams[0].active).to.be.true;
                 expect(torqueLoanParams[0].collateralToken).to.equal(bosToken.address);
-                expect(torqueLoanParams[0].minInitialMargin).to.equal(ethers.utils.parseEther("50")); // 50%
-                expect(torqueLoanParams[0].maintenanceMargin).to.equal(ethers.utils.parseEther("15")); // 15%
+                expect(torqueLoanParams[0].minInitialMargin).to.equal(
+                    ethers.utils.parseEther("50")
+                ); // 50%
+                expect(torqueLoanParams[0].maintenanceMargin).to.equal(
+                    ethers.utils.parseEther("15")
+                ); // 15%
                 expect(torqueLoanParams[0].maxLoanTerm).to.equal(0); // coz the torque = 0
 
                 console.log(`Torque params validated for ${loanToken.address}`);

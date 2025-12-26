@@ -1291,12 +1291,12 @@ const getArgsSip0088 = async (hre) => {
         targets: [priceFeeds.address, protocol.address],
         targetOwnerValidationAddresses: [priceFeedsOwner, protocolAdmin],
         values: [0, 0],
-        signatures: [
-            "setPriceFeed(address[],address[])",
-            "setSupportedTokens(address[],bool[])",
-        ],
+        signatures: ["setPriceFeed(address[],address[])", "setSupportedTokens(address[],bool[])"],
         data: [
-            abiCoder.encode(["address[]", "address[]"], [[bosToken.address], [bosPriceFeedV1PoolOracle.address]]),
+            abiCoder.encode(
+                ["address[]", "address[]"],
+                [[bosToken.address], [bosPriceFeedV1PoolOracle.address]]
+            ),
             abiCoder.encode(["address[]", "bool[]"], [[bosToken.address], [true]]),
         ],
         description:
@@ -1307,7 +1307,7 @@ const getArgsSip0088 = async (hre) => {
     // Note: In Sovryn, 1 ether unit = 1% (so 50 ether = 50%, not 0.50 ether)
     const torqueMinInitialMargin = ethers.utils.parseEther("50"); // 50%
     const maintenanceMargin = ethers.utils.parseEther("15"); // 15%
-    
+
     for (const loanToken of loanTokensToEnable) {
         // Torque (borrowing) params: areTorqueLoans = true
         args.targets.push(loanToken.address);
@@ -1318,17 +1318,19 @@ const getArgsSip0088 = async (hre) => {
             abiCoder.encode(
                 ["tuple(bytes32,bool,address,address,address,uint256,uint256,uint256)[]", "bool"],
                 [
-                    [[
-                        ethers.constants.HashZero,        // id (ignored, auto-assigned)
-                        false,                            // active (ignored, set to true internally https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/bfc9a0a8266395be994aaf6de582fdc7ef802811/contracts/modules/LoanSettings.sol#L202)
-                        ethers.constants.AddressZero,     // owner (ignored, set internally https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/bfc9a0a8266395be994aaf6de582fdc7ef802811/contracts/modules/LoanSettings.sol#L203)
-                        ethers.constants.AddressZero,     // loanToken (ignored, overwritten internally https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/bfc9a0a8266395be994aaf6de582fdc7ef802811/contracts/connectors/loantoken/modules/shared/LoanTokenSettingsLowerAdmin.sol#L100-L103)
-                        bosToken.address,                 // collateralToken (BOS)
-                        torqueMinInitialMargin,           // minInitialMargin (50% for Torque)
-                        maintenanceMargin,                // maintenanceMargin (15%)
-                        0                                 // maxLoanTerm (ignored, overwritten to 0 for Torque)
-                    ]],
-                    true  // areTorqueLoans = true
+                    [
+                        [
+                            ethers.constants.HashZero, // id (ignored, auto-assigned)
+                            false, // active (ignored, set to true internally https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/bfc9a0a8266395be994aaf6de582fdc7ef802811/contracts/modules/LoanSettings.sol#L202)
+                            ethers.constants.AddressZero, // owner (ignored, set internally https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/bfc9a0a8266395be994aaf6de582fdc7ef802811/contracts/modules/LoanSettings.sol#L203)
+                            ethers.constants.AddressZero, // loanToken (ignored, overwritten internally https://github.com/DistributedCollective/Sovryn-smart-contracts/blob/bfc9a0a8266395be994aaf6de582fdc7ef802811/contracts/connectors/loantoken/modules/shared/LoanTokenSettingsLowerAdmin.sol#L100-L103)
+                            bosToken.address, // collateralToken (BOS)
+                            torqueMinInitialMargin, // minInitialMargin (50% for Torque)
+                            maintenanceMargin, // maintenanceMargin (15%)
+                            0, // maxLoanTerm (ignored, overwritten to 0 for Torque)
+                        ],
+                    ],
+                    true, // areTorqueLoans = true
                 ]
             )
         );
