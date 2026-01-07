@@ -1269,7 +1269,7 @@ const getArgsSip0088 = async (hre) => {
     const protocol = await ethers.getContract("ISovryn");
     const priceFeeds = await ethers.getContract("PriceFeeds");
     const bosToken = await get("BOS");
-    const bosPriceFeedV1PoolOracle = await get("BOSPriceFeedV1PoolOracle"); // @todo update the address in the deployment file once deployed to the mainnet
+    const bosPriceFeeds = await get("BOSPriceFeeds");
     const priceFeedsOwner = await priceFeeds.owner();
     const protocolAdmin = await protocol.getAdmin();
 
@@ -1295,7 +1295,7 @@ const getArgsSip0088 = async (hre) => {
         data: [
             abiCoder.encode(
                 ["address[]", "address[]"],
-                [[bosToken.address], [bosPriceFeedV1PoolOracle.address]]
+                [[bosToken.address], [bosPriceFeeds.address]]
             ),
             abiCoder.encode(["address[]", "bool[]"], [[bosToken.address], [true]]),
         ],
@@ -1313,7 +1313,7 @@ const getArgsSip0088 = async (hre) => {
         args.targets.push(loanToken.address);
         args.targetOwnerValidationAddresses.push(await loanToken.admin());
         args.values.push(0);
-        args.signatures.push("setupLoanParams(LoanParamsStruct.LoanParams[],bool)");
+        args.signatures.push("setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[],bool)");
         args.data.push(
             abiCoder.encode(
                 ["tuple(bytes32,bool,address,address,address,uint256,uint256,uint256)[]", "bool"],
