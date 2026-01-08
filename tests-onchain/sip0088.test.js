@@ -2,6 +2,7 @@
 //     npx hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy
 // now run the test:
 //     npx hardhat test tests-onchain/sip0088.test.js --network rskForkedMainnet
+// add "tenderly" tags to the hardhat.config.js file to run simulation on tenderly
 
 const {
     impersonateAccount,
@@ -28,7 +29,7 @@ const getImpersonatedSigner = async (addressToImpersonate) => {
 
 describe("Enable BOS Token as collateral", () => {
     const getImpersonatedSignerFromJsonRpcProvider = async (addressToImpersonate) => {
-        const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
+        const provider = new ethers.providers.JsonRpcProvider(hre.network.config.url);
         await provider.send("hardhat_impersonateAccount", [addressToImpersonate]);
         return provider.getSigner(addressToImpersonate);
     };
@@ -85,17 +86,21 @@ describe("Enable BOS Token as collateral", () => {
                 console.error("ERROR: Must run on a forked net");
                 return;
             }
-            await hre.network.provider.request({
-                method: "hardhat_reset",
-                params: [
-                    {
-                        forking: {
-                            jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
-                            blockNumber: 8044172,
+
+            // Skip hardhat_reset for Tenderly (not supported)
+            if (!hre.network.tags["tenderly"]) {
+                await hre.network.provider.request({
+                    method: "hardhat_reset",
+                    params: [
+                        {
+                            forking: {
+                                jsonRpcUrl: "https://mainnet-dev.sovryn.app/rpc",
+                                blockNumber: 8044172,
+                            },
                         },
-                    },
-                ],
-            });
+                    ],
+                });
+            }
 
             const {
                 deployer,
@@ -109,9 +114,24 @@ describe("Enable BOS Token as collateral", () => {
             } = await setupTest();
 
             // CREATE PROPOSAL
-            const sov = await ethers.getContract("SOV", timelockOwnerSigner);
-            const whaleAmount = (await sov.totalSupply()).mul(ethers.BigNumber.from(5));
-            await sov.mint(deployer, whaleAmount);
+            const sov = await ethers.getContract("SOV");
+
+            // Get the SOV contract owner (who can mint)
+            const sovOwner = await sov.owner();
+            console.log(`SOV Owner: ${sovOwner}`);
+            const sovOwnerSigner = await getImpersonatedSigner(sovOwner);
+            await setBalance(sovOwner, ONE_RBTC.mul(10));
+
+            let whaleAmount;
+            if (hre.network.tags["tenderly"]) {
+                // Mint from the actual SOV owner
+                whaleAmount = (await sov.totalSupply()).mul(ethers.BigNumber.from(5));
+                console.log(`Minting ${ethers.utils.formatEther(whaleAmount)} SOV to deployer`);
+                await sov.connect(sovOwnerSigner).mint(deployer, whaleAmount);
+            } else {
+                whaleAmount = (await sov.totalSupply()).mul(ethers.BigNumber.from(5));
+                await sov.connect(sovOwnerSigner).mint(deployer, whaleAmount);
+            }
 
             await sov.connect(deployerSigner).approve(staking.address, whaleAmount);
 
@@ -154,7 +174,7 @@ describe("Enable BOS Token as collateral", () => {
             // VERIFY execution
             expect((await governorOwner.proposals(proposalId)).executed).to.be.true;
 
-            // Validate the supported tokens have been added
+            // // Validate the supported tokens have been added
             const bosToken = await ethers.getContract("BOS");
             const supportedTokens = await sovrynProtocol.supportedTokens(bosToken.address);
             expect(supportedTokens).to.be.true;
@@ -181,10 +201,13 @@ describe("Enable BOS Token as collateral", () => {
                 );
 
                 // Get the actual loan params from the protocol
-                const torqueLoanParams = await sovrynProtocol.getLoanParams([torqueLoanParamId]);
+                const ISovryn = await ethers.getContract("ISovryn");
+                const torqueLoanParams = await ISovryn.getLoanParams([torqueLoanParamId]);
                 expect(torqueLoanParams.length).to.equal(1);
                 expect(torqueLoanParams[0].active).to.be.true;
-                expect(torqueLoanParams[0].collateralToken).to.equal(bosToken.address);
+                expect(torqueLoanParams[0].collateralToken.toLowerCase()).to.equal(
+                    bosToken.address.toLowerCase()
+                );
                 expect(torqueLoanParams[0].minInitialMargin).to.equal(
                     ethers.utils.parseEther("50")
                 ); // 50%

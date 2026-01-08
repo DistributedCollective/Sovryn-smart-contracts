@@ -1313,7 +1313,9 @@ const getArgsSip0088 = async (hre) => {
         args.targets.push(loanToken.address);
         args.targetOwnerValidationAddresses.push(await loanToken.admin());
         args.values.push(0);
-        args.signatures.push("setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[],bool)");
+        args.signatures.push(
+            "setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[],bool)"
+        );
         args.data.push(
             abiCoder.encode(
                 ["tuple(bytes32,bool,address,address,address,uint256,uint256,uint256)[]", "bool"],
