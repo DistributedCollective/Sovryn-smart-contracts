@@ -217,12 +217,12 @@ def setAverageBlockTime(blockTime):
 def setBlockForStakingRewards():
     # Get the staking rewards proxy contract instance
     stakingRewardsProxy = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
-    stakingRewardsProxy.setBlock({'gas_price': '26000000'})
+    stakingRewardsProxy.setBlock()
 
 def setBlockForStakingRewardsOs():
     if conf.contracts['StakingRewardsOsProxy']:
         stakingRewardsProxy = Contract.from_abi("StakingRewardsOs", address=conf.contracts['StakingRewardsOsProxy'], abi=StakingRewardsOs.abi, owner=conf.acct)
-        stakingRewardsProxy.setBlock({'gas_price': '26000000'})
+        stakingRewardsProxy.setBlock()
 
 # Set Historical Block
 

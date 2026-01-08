@@ -54,3 +54,4 @@ venv/
 !/external/artifacts/
 cache_hardhat/
 secrets/
+tenderly.yaml

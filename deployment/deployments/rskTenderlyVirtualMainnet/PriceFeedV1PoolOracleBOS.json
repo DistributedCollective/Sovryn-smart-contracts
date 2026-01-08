@@ -1,0 +1,469 @@
+{
+  "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_v1PoolOracleAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_wRBTCAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_docAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_baseCurrency",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "baseCurrency",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "changerAddress",
+          "type": "address"
+        }
+      ],
+      "name": "SetBaseCurrency",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "docAddress",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "changerAddress",
+          "type": "address"
+        }
+      ],
+      "name": "SetDOCAddress",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "v1PoolOracleAddress",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "changerAddress",
+          "type": "address"
+        }
+      ],
+      "name": "SetV1PoolOracleAddress",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "wRBTCAddress",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "changerAddress",
+          "type": "address"
+        }
+      ],
+      "name": "SetWRBTCAddress",
+      "type": "event"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "baseCurrency",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "docAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "latestAnswer",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_baseCurrency",
+          "type": "address"
+        }
+      ],
+      "name": "setBaseCurrency",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_docAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setDOCAddress",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_wRBTCAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setRBTCAddress",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_v1PoolOracleAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setV1PoolOracleAddress",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "v1PoolOracleAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "wRBTCAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xd85d3a574ef627e2440886b995512316d85b8bd504bbb09446f8a40ca444f4a3",
+  "receipt": {
+    "to": null,
+    "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "contractAddress": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+    "transactionIndex": 0,
+    "gasUsed": "968948",
+    "logsBloom": "0x00000000000000000000000000000000011000000000000000800000000000010000000040000000000010000000000000000000000000000000000000000004000000000010000000000000000000000001008014000000010000004040040000000000220000480400000100000800000000000000000800000000000000400000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000008000000000000000000000800000200000000800000000100000002000000000000000000020000000000000000000000000000000000000000010000000000000000000000000",
+    "blockHash": "0x18ec555c32e7438dcd36605f893619189d80d29c66b8d3ddb219da801dbb94b3",
+    "transactionHash": "0xd85d3a574ef627e2440886b995512316d85b8bd504bbb09446f8a40ca444f4a3",
+    "logs": [
+      {
+        "transactionIndex": 0,
+        "blockNumber": 8263650,
+        "transactionHash": "0xd85d3a574ef627e2440886b995512316d85b8bd504bbb09446f8a40ca444f4a3",
+        "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+        ],
+        "data": "0x",
+        "logIndex": 0,
+        "blockHash": "0x18ec555c32e7438dcd36605f893619189d80d29c66b8d3ddb219da801dbb94b3"
+      },
+      {
+        "transactionIndex": 0,
+        "blockNumber": 8263650,
+        "transactionHash": "0xd85d3a574ef627e2440886b995512316d85b8bd504bbb09446f8a40ca444f4a3",
+        "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "topics": [
+          "0x2f21604f728cee3b038451139b7962e5720960fe821c609ca83e38be2cd0f6be",
+          "0x000000000000000000000000542fda317318ebf1d3deaf76e0b632741a7e677d"
+        ],
+        "data": "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        "logIndex": 1,
+        "blockHash": "0x18ec555c32e7438dcd36605f893619189d80d29c66b8d3ddb219da801dbb94b3"
+      },
+      {
+        "transactionIndex": 0,
+        "blockNumber": 8263650,
+        "transactionHash": "0xd85d3a574ef627e2440886b995512316d85b8bd504bbb09446f8a40ca444f4a3",
+        "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "topics": [
+          "0xa5fa52ac5539bdf7f8bd9d02d0e2d4d7840c7dc0ff1fa8d9bcab2ffb765f3713",
+          "0x000000000000000000000000e700691da7b9851f2f35f8b8182c69c53ccad9db"
+        ],
+        "data": "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        "logIndex": 2,
+        "blockHash": "0x18ec555c32e7438dcd36605f893619189d80d29c66b8d3ddb219da801dbb94b3"
+      },
+      {
+        "transactionIndex": 0,
+        "blockNumber": 8263650,
+        "transactionHash": "0xd85d3a574ef627e2440886b995512316d85b8bd504bbb09446f8a40ca444f4a3",
+        "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "topics": [
+          "0x1cece9fe0966bcae1bc320922e8e73fe56effacab5cc158e7d97cd77cea66e86",
+          "0x0000000000000000000000007899206a3d55688dafee9e42768ec582bf701050"
+        ],
+        "data": "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        "logIndex": 3,
+        "blockHash": "0x18ec555c32e7438dcd36605f893619189d80d29c66b8d3ddb219da801dbb94b3"
+      },
+      {
+        "transactionIndex": 0,
+        "blockNumber": 8263650,
+        "transactionHash": "0xd85d3a574ef627e2440886b995512316d85b8bd504bbb09446f8a40ca444f4a3",
+        "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "topics": [
+          "0x6dde2141be69fabcd84e3864d206ba0f3f2d507125fb2703899c87de4c585d5f",
+          "0x0000000000000000000000003e3006896458f0acfe79b57a1a0fe067b3a1ce6f"
+        ],
+        "data": "0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        "logIndex": 4,
+        "blockHash": "0x18ec555c32e7438dcd36605f893619189d80d29c66b8d3ddb219da801dbb94b3"
+      }
+    ],
+    "blockNumber": 8263650,
+    "cumulativeGasUsed": "968948",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x7899206a3d55688dafee9e42768ec582bf701050",
+    "0x542fda317318ebf1d3deaf76e0b632741a7e677d",
+    "0xe700691da7b9851f2f35f8b8182c69c53ccad9db",
+    "0x3E3006896458f0ACfE79B57a1A0FE067B3a1CE6f"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "cc316e12031b1e068288aa9c0d5c3696",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_v1PoolOracleAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_wRBTCAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_docAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_baseCurrency\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"baseCurrency\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"changerAddress\",\"type\":\"address\"}],\"name\":\"SetBaseCurrency\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"docAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"changerAddress\",\"type\":\"address\"}],\"name\":\"SetDOCAddress\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"v1PoolOracleAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"changerAddress\",\"type\":\"address\"}],\"name\":\"SetV1PoolOracleAddress\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"wRBTCAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"changerAddress\",\"type\":\"address\"}],\"name\":\"SetWRBTCAddress\",\"type\":\"event\"},{\"constant\":true,\"inputs\":[],\"name\":\"baseCurrency\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"docAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"isOwner\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"latestAnswer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_baseCurrency\",\"type\":\"address\"}],\"name\":\"setBaseCurrency\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_docAddress\",\"type\":\"address\"}],\"name\":\"setDOCAddress\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_wRBTCAddress\",\"type\":\"address\"}],\"name\":\"setRBTCAddress\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"_v1PoolOracleAddress\",\"type\":\"address\"}],\"name\":\"setV1PoolOracleAddress\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"v1PoolOracleAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"wRBTCAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{\"isOwner()\":{\"details\":\"Returns true if the caller is the current owner.\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}}},\"userdoc\":{\"methods\":{},\"notice\":\"The BOS-specific Price Feed V1 Pool Oracle contract.        Clone of PriceFeedV1PoolOracle with a distinct contract name for BOS deployment.\"}},\"settings\":{\"compilationTarget\":{\"contracts/feeds/PriceFeedV1PoolOracleBOS.sol\":\"PriceFeedV1PoolOracleBOS\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":ds-test/=foundry/lib/forge-std/lib/ds-test/src/\",\":forge-std/=foundry/lib/forge-std/src/\"]},\"sources\":{\"contracts/feeds/IPriceFeeds.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\ninterface IPriceFeeds {\\n    function queryRate(\\n        address sourceToken,\\n        address destToken\\n    ) external view returns (uint256 rate, uint256 precision);\\n\\n    function queryPrecision(\\n        address sourceToken,\\n        address destToken\\n    ) external view returns (uint256 precision);\\n\\n    function queryReturn(\\n        address sourceToken,\\n        address destToken,\\n        uint256 sourceAmount\\n    ) external view returns (uint256 destAmount);\\n\\n    function checkPriceDisagreement(\\n        address sourceToken,\\n        address destToken,\\n        uint256 sourceAmount,\\n        uint256 destAmount,\\n        uint256 maxSlippage\\n    ) external view returns (uint256 sourceToDestSwapRate);\\n\\n    function amountInEth(address Token, uint256 amount) external view returns (uint256 ethAmount);\\n\\n    function getMaxDrawdown(\\n        address loanToken,\\n        address collateralToken,\\n        uint256 loanAmount,\\n        uint256 collateralAmount,\\n        uint256 maintenanceMargin\\n    ) external view returns (uint256);\\n\\n    function getCurrentMarginAndCollateralSize(\\n        address loanToken,\\n        address collateralToken,\\n        uint256 loanAmount,\\n        uint256 collateralAmount\\n    ) external view returns (uint256 currentMargin, uint256 collateralInEthAmount);\\n\\n    function getCurrentMargin(\\n        address loanToken,\\n        address collateralToken,\\n        uint256 loanAmount,\\n        uint256 collateralAmount\\n    ) external view returns (uint256 currentMargin, uint256 collateralToLoanRate);\\n\\n    function shouldLiquidate(\\n        address loanToken,\\n        address collateralToken,\\n        uint256 loanAmount,\\n        uint256 collateralAmount,\\n        uint256 maintenanceMargin\\n    ) external view returns (bool);\\n\\n    function getFastGasPrice(address payToken) external view returns (uint256);\\n}\\n\",\"keccak256\":\"0xcfd8053343c6c4be125415022ac0b8dfe403d348ef24d823cb26600d290fd05c\"},\"contracts/feeds/IV1PoolOracle.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\ninterface IV1PoolOracle {\\n    function read(\\n        uint256 price,\\n        uint256 timestamp\\n    ) external view returns (uint256, uint256, uint256, uint256, uint256, uint256);\\n\\n    function latestAnswer() external view returns (uint256);\\n\\n    function liquidityPool() external view returns (address);\\n\\n    function latestPrice(address _baseToken) external view returns (uint256 answer);\\n}\\n\\ninterface ILiquidityPoolV1Converter {\\n    function reserveTokens(uint256 index) external view returns (address);\\n}\\n\",\"keccak256\":\"0x6abfb4d75a72f80870da07d7e6d29ce6bce4ef021a5bcca86bcd278694a8ebad\"},\"contracts/feeds/PriceFeedV1PoolOracleBOS.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./PriceFeeds.sol\\\";\\nimport \\\"./IV1PoolOracle.sol\\\";\\nimport \\\"../openzeppelin/Ownable.sol\\\";\\nimport \\\"../openzeppelin/Address.sol\\\";\\nimport \\\"../openzeppelin/SafeMath.sol\\\";\\nimport \\\"./IPriceFeeds.sol\\\";\\n\\n/**\\n * @notice The BOS-specific Price Feed V1 Pool Oracle contract.\\n *         Clone of PriceFeedV1PoolOracle with a distinct contract name for BOS deployment.\\n */\\ncontract PriceFeedV1PoolOracleBOS is IPriceFeedsExt, Ownable {\\n    using SafeMath for uint256;\\n\\n    address public v1PoolOracleAddress;\\n    address public wRBTCAddress;\\n    address public docAddress;\\n    address public baseCurrency;\\n\\n    event SetV1PoolOracleAddress(address indexed v1PoolOracleAddress, address changerAddress);\\n    event SetWRBTCAddress(address indexed wRBTCAddress, address changerAddress);\\n    event SetDOCAddress(address indexed docAddress, address changerAddress);\\n    event SetBaseCurrency(address indexed baseCurrency, address changerAddress);\\n\\n    constructor(\\n        address _v1PoolOracleAddress,\\n        address _wRBTCAddress,\\n        address _docAddress,\\n        address _baseCurrency\\n    ) public {\\n        setRBTCAddress(_wRBTCAddress);\\n        setDOCAddress(_docAddress);\\n        setV1PoolOracleAddress(_v1PoolOracleAddress);\\n        setBaseCurrency(_baseCurrency);\\n    }\\n\\n    function latestAnswer() external view returns (uint256) {\\n        IV1PoolOracle _v1PoolOracle = IV1PoolOracle(v1PoolOracleAddress);\\n\\n        uint256 _price = _v1PoolOracle.latestPrice(baseCurrency);\\n        uint256 priceInUSD = _convertAnswerToUsd(_price);\\n        require(priceInUSD != 0, \\\"price error\\\");\\n\\n        return priceInUSD;\\n    }\\n\\n    function _convertAnswerToUsd(uint256 _valueInBTC) private view returns (uint256) {\\n        address _priceFeeds = msg.sender;\\n\\n        uint256 precision = IPriceFeeds(_priceFeeds).queryPrecision(wRBTCAddress, docAddress);\\n        uint256 valueInUSD =\\n            IPriceFeeds(_priceFeeds).queryReturn(wRBTCAddress, docAddress, _valueInBTC);\\n\\n        return valueInUSD.mul(precision).div(1e18);\\n    }\\n\\n    function setV1PoolOracleAddress(address _v1PoolOracleAddress) public onlyOwner {\\n        require(Address.isContract(_v1PoolOracleAddress), \\\"_v1PoolOracleAddress not a contract\\\");\\n        IV1PoolOracle _v1PoolOracle = IV1PoolOracle(_v1PoolOracleAddress);\\n        address liquidityPool = _v1PoolOracle.liquidityPool();\\n        require(\\n            ILiquidityPoolV1Converter(liquidityPool).reserveTokens(0) == wRBTCAddress ||\\n                ILiquidityPoolV1Converter(liquidityPool).reserveTokens(1) == wRBTCAddress,\\n            \\\"one of the two reserves needs to be wrbtc\\\"\\n        );\\n        v1PoolOracleAddress = _v1PoolOracleAddress;\\n        emit SetV1PoolOracleAddress(v1PoolOracleAddress, msg.sender);\\n    }\\n\\n    function setRBTCAddress(address _wRBTCAddress) public onlyOwner {\\n        require(_wRBTCAddress != address(0), \\\"wRBTC address cannot be zero address\\\");\\n        wRBTCAddress = _wRBTCAddress;\\n        emit SetWRBTCAddress(wRBTCAddress, msg.sender);\\n    }\\n\\n    function setDOCAddress(address _docAddress) public onlyOwner {\\n        require(_docAddress != address(0), \\\"DOC address cannot be zero address\\\");\\n        docAddress = _docAddress;\\n        emit SetDOCAddress(_docAddress, msg.sender);\\n    }\\n\\n    function setBaseCurrency(address _baseCurrency) public onlyOwner {\\n        require(_baseCurrency != address(0), \\\"Base currency address cannot be zero address\\\");\\n        baseCurrency = _baseCurrency;\\n        emit SetBaseCurrency(_baseCurrency, msg.sender);\\n    }\\n}\\n\",\"keccak256\":\"0xee2d71137e1b5327c55ad76be31d8b90a171c12dfc74a8def28cb239c814e0fb\"},\"contracts/feeds/PriceFeeds.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\nimport \\\"../openzeppelin/SafeMath.sol\\\";\\nimport \\\"../openzeppelin/Ownable.sol\\\";\\nimport \\\"../interfaces/IERC20.sol\\\";\\nimport \\\"./PriceFeedsConstants.sol\\\";\\n\\ninterface IPriceFeedsExt {\\n    function latestAnswer() external view returns (uint256);\\n}\\n\\n/**\\n * @title The Price Feeds contract.\\n *\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract queries the price feeds contracts where\\n * oracles updates token prices computing relative token prices.\\n * And besides it includes some calculations about loans such as\\n * drawdown, margin and collateral.\\n * */\\ncontract PriceFeeds is Constants, Ownable {\\n    using SafeMath for uint256;\\n\\n    /* Events */\\n\\n    event GlobalPricingPaused(address indexed sender, bool indexed isPaused);\\n\\n    /* Storage */\\n\\n    /// Mapping of PriceFeedsExt instances.\\n    /// token => pricefeed\\n    mapping(address => IPriceFeedsExt) public pricesFeeds;\\n\\n    /// Decimals of supported tokens.\\n    mapping(address => uint256) public decimals;\\n\\n    /// Value on rBTC weis for the protocol token.\\n    uint256 public protocolTokenEthPrice = 0.0002 ether;\\n\\n    /// Flag to pause pricings.\\n    bool public globalPricingPaused = false;\\n\\n    /* Functions */\\n\\n    /**\\n     * @notice Contract deployment requires 3 parameters.\\n     *\\n     * @param _wrbtcTokenAddress The address of the wrapped wrBTC token.\\n     * @param _protocolTokenAddress The address of the protocol token.\\n     * @param _baseTokenAddress The address of the base token.\\n     * */\\n    constructor(\\n        address _wrbtcTokenAddress,\\n        address _protocolTokenAddress,\\n        address _baseTokenAddress\\n    ) public {\\n        /// Set decimals for this token.\\n        decimals[address(0)] = 18;\\n        decimals[_wrbtcTokenAddress] = 18;\\n        _setWrbtcToken(_wrbtcTokenAddress);\\n        _setProtocolTokenAddress(_protocolTokenAddress);\\n        _setBaseToken(_baseTokenAddress);\\n    }\\n\\n    /**\\n     * @notice Calculate the price ratio between two tokens.\\n     *\\n     * @dev Public wrapper for _queryRate internal function.\\n     *\\n     * @param sourceToken The address of the source tokens.\\n     * @param destToken The address of the destiny tokens.\\n     *\\n     * @return rate The price ratio source/dest.\\n     * @return precision The ratio precision.\\n     * */\\n    function queryRate(\\n        address sourceToken,\\n        address destToken\\n    ) public view returns (uint256 rate, uint256 precision) {\\n        return _queryRate(sourceToken, destToken);\\n    }\\n\\n    /**\\n     * @notice Calculate the relative precision between two tokens.\\n     *\\n     * @dev Public wrapper for _getDecimalPrecision internal function.\\n     *\\n     * @param sourceToken The address of the source tokens.\\n     * @param destToken The address of the destiny tokens.\\n     *\\n     * @return The precision ratio source/dest.\\n     * */\\n    function queryPrecision(address sourceToken, address destToken) public view returns (uint256) {\\n        return sourceToken != destToken ? _getDecimalPrecision(sourceToken, destToken) : 10 ** 18;\\n    }\\n\\n    /**\\n     * @notice Price conversor: Calculate the price of an amount of source\\n     * tokens in destiny token units.\\n     *\\n     * @dev NOTE: This function returns 0 during a pause, rather than a revert.\\n     * Ensure calling contracts handle correctly.\\n     *\\n     * @param sourceToken The address of the source tokens.\\n     * @param destToken The address of the destiny tokens.\\n     * @param sourceAmount The amount of the source tokens.\\n     *\\n     * @return destAmount The amount of destiny tokens equivalent in price\\n     *   to the amount of source tokens.\\n     * */\\n    function queryReturn(\\n        address sourceToken,\\n        address destToken,\\n        uint256 sourceAmount\\n    ) public view returns (uint256 destAmount) {\\n        if (globalPricingPaused) {\\n            return 0;\\n        }\\n\\n        (uint256 rate, uint256 precision) = _queryRate(sourceToken, destToken);\\n\\n        destAmount = sourceAmount.mul(rate).div(precision);\\n    }\\n\\n    /**\\n     * @notice Calculate the swap rate between two tokens.\\n     *\\n     * Regarding slippage, there is a hardcoded slippage limit of 5%, enforced\\n     * by this function for all borrowing, lending and margin trading\\n     * originated swaps performed in the Sovryn exchange.\\n     *\\n     * This means all operations in the Sovryn exchange are subject to losing\\n     * up to 5% from the internal swap performed.\\n     *\\n     * @param sourceToken The address of the source tokens.\\n     * @param destToken The address of the destiny tokens.\\n     * @param sourceAmount The amount of source tokens.\\n     * @param destAmount The amount of destiny tokens.\\n     * @param maxSlippage The maximum slippage limit.\\n     *\\n     * @return sourceToDestSwapRate The swap rate between tokens.\\n     * */\\n    function checkPriceDisagreement(\\n        address sourceToken,\\n        address destToken,\\n        uint256 sourceAmount,\\n        uint256 destAmount,\\n        uint256 maxSlippage\\n    ) public view returns (uint256 sourceToDestSwapRate) {\\n        require(!globalPricingPaused, \\\"pricing is paused\\\");\\n        (uint256 rate, uint256 precision) = _queryRate(sourceToken, destToken);\\n\\n        sourceToDestSwapRate = destAmount.mul(precision).div(sourceAmount);\\n\\n        if (rate > sourceToDestSwapRate) {\\n            uint256 spreadValue = rate - sourceToDestSwapRate;\\n            spreadValue = spreadValue.mul(10 ** 20).div(sourceToDestSwapRate);\\n            require(spreadValue <= maxSlippage, \\\"price disagreement\\\");\\n        }\\n    }\\n\\n    /**\\n     * @notice Calculate the rBTC amount equivalent to a given token amount.\\n     * Native coin on RSK is rBTC. This code comes from Ethereum applications,\\n     * so Eth refers to 10**18 weis of native coin, i.e.: 1 rBTC.\\n     *\\n     * @param tokenAddress The address of the token to calculate price.\\n     * @param amount The amount of tokens to calculate price.\\n     *\\n     * @return ethAmount The amount of rBTC equivalent.\\n     * */\\n    function amountInEth(\\n        address tokenAddress,\\n        uint256 amount\\n    ) public view returns (uint256 ethAmount) {\\n        /// Token is wrBTC, amount in rBTC is the same.\\n        if (tokenAddress == address(wrbtcToken)) {\\n            ethAmount = amount;\\n        } else {\\n            (uint256 toEthRate, uint256 toEthPrecision) = queryRate(\\n                tokenAddress,\\n                address(wrbtcToken)\\n            );\\n            ethAmount = amount.mul(toEthRate).div(toEthPrecision);\\n        }\\n    }\\n\\n    /**\\n     * @notice Calculate the maximum drawdown of a loan.\\n     *\\n     * A drawdown is commonly defined as the decline from a high peak to a\\n     * pullback low of a specific investment or equity in an account.\\n     *\\n     * Drawdown magnitude refers to the amount of value that a user loses\\n     * during the drawdown period.\\n     *\\n     * @param loanToken The address of the loan token.\\n     * @param collateralToken The address of the collateral token.\\n     * @param loanAmount The amount of the loan.\\n     * @param collateralAmount The amount of the collateral.\\n     * @param margin The relation between the position size and the loan.\\n     *   margin = (total position size - loan) / loan\\n     *\\n     * @return maxDrawdown The maximum drawdown.\\n     * */\\n    function getMaxDrawdown(\\n        address loanToken,\\n        address collateralToken,\\n        uint256 loanAmount,\\n        uint256 collateralAmount,\\n        uint256 margin\\n    ) public view returns (uint256 maxDrawdown) {\\n        uint256 loanToCollateralAmount;\\n        if (collateralToken == loanToken) {\\n            loanToCollateralAmount = loanAmount;\\n        } else {\\n            (uint256 rate, uint256 precision) = queryRate(loanToken, collateralToken);\\n            loanToCollateralAmount = loanAmount.mul(rate).div(precision);\\n        }\\n\\n        uint256 combined = loanToCollateralAmount.add(\\n            loanToCollateralAmount.mul(margin).div(10 ** 20)\\n        );\\n\\n        maxDrawdown = collateralAmount > combined ? collateralAmount - combined : 0;\\n    }\\n\\n    /**\\n     * @notice Calculate the margin and the collateral on rBTC.\\n     *\\n     * @param loanToken The address of the loan token.\\n     * @param collateralToken The address of the collateral token.\\n     * @param loanAmount The amount of the loan.\\n     * @param collateralAmount The amount of the collateral.\\n     *\\n     * @return currentMargin The margin of the loan.\\n     * @return collateralInEthAmount The amount of collateral on rBTC.\\n     * */\\n    function getCurrentMarginAndCollateralSize(\\n        address loanToken,\\n        address collateralToken,\\n        uint256 loanAmount,\\n        uint256 collateralAmount\\n    ) public view returns (uint256 currentMargin, uint256 collateralInEthAmount) {\\n        (currentMargin, ) = getCurrentMargin(\\n            loanToken,\\n            collateralToken,\\n            loanAmount,\\n            collateralAmount\\n        );\\n\\n        collateralInEthAmount = amountInEth(collateralToken, collateralAmount);\\n    }\\n\\n    /**\\n     * @notice Calculate the margin of a loan.\\n     *\\n     * @dev current margin = (total position size - loan) / loan\\n     * The collateral amount passed as parameter equals the total position size.\\n     *\\n     * @param loanToken The address of the loan token.\\n     * @param collateralToken The address of the collateral token.\\n     * @param loanAmount The amount of the loan.\\n     * @param collateralAmount The amount of the collateral.\\n     *\\n     * @return currentMargin The margin of the loan.\\n     * @return collateralToLoanRate The price ratio between collateral and\\n     *   loan tokens.\\n     * */\\n    function getCurrentMargin(\\n        address loanToken,\\n        address collateralToken,\\n        uint256 loanAmount,\\n        uint256 collateralAmount\\n    ) public view returns (uint256 currentMargin, uint256 collateralToLoanRate) {\\n        uint256 collateralToLoanAmount;\\n        if (collateralToken == loanToken) {\\n            collateralToLoanAmount = collateralAmount;\\n            collateralToLoanRate = 10 ** 18;\\n        } else {\\n            uint256 collateralToLoanPrecision;\\n            (collateralToLoanRate, collateralToLoanPrecision) = queryRate(\\n                collateralToken,\\n                loanToken\\n            );\\n\\n            collateralToLoanRate = collateralToLoanRate.mul(10 ** 18).div(\\n                collateralToLoanPrecision\\n            );\\n\\n            collateralToLoanAmount = collateralAmount.mul(collateralToLoanRate).div(10 ** 18);\\n        }\\n\\n        if (loanAmount != 0 && collateralToLoanAmount >= loanAmount) {\\n            return (\\n                collateralToLoanAmount.sub(loanAmount).mul(10 ** 20).div(loanAmount),\\n                collateralToLoanRate\\n            );\\n        } else {\\n            return (0, collateralToLoanRate);\\n        }\\n    }\\n\\n    /**\\n     * @notice Get assessment about liquidating a loan.\\n     *\\n     * @param loanToken The address of the loan token.\\n     * @param collateralToken The address of the collateral token.\\n     * @param loanAmount The amount of the loan.\\n     * @param collateralAmount The amount of the collateral.\\n     * @param maintenanceMargin The minimum margin before liquidation.\\n     *\\n     * @return True/false to liquidate the loan.\\n     * */\\n    function shouldLiquidate(\\n        address loanToken,\\n        address collateralToken,\\n        uint256 loanAmount,\\n        uint256 collateralAmount,\\n        uint256 maintenanceMargin\\n    ) public view returns (bool) {\\n        (uint256 currentMargin, ) = getCurrentMargin(\\n            loanToken,\\n            collateralToken,\\n            loanAmount,\\n            collateralAmount\\n        );\\n\\n        return currentMargin <= maintenanceMargin;\\n    }\\n\\n    /*\\n     * Owner functions\\n     */\\n\\n    /**\\n     * @notice Set new value for protocolTokenEthPrice\\n     *\\n     * @param newPrice The new value for protocolTokenEthPrice\\n     * */\\n    function setProtocolTokenEthPrice(uint256 newPrice) external onlyOwner {\\n        require(newPrice != 0, \\\"invalid price\\\");\\n        protocolTokenEthPrice = newPrice;\\n    }\\n\\n    /**\\n     * @notice Populate pricesFeeds mapping w/ values from feeds[]\\n     *\\n     * @param tokens The array of tokens to loop and get addresses.\\n     * @param feeds The array of contract instances for every token.\\n     * */\\n    function setPriceFeed(\\n        address[] calldata tokens,\\n        IPriceFeedsExt[] calldata feeds\\n    ) external onlyOwner {\\n        require(tokens.length == feeds.length, \\\"count mismatch\\\");\\n\\n        for (uint256 i = 0; i < tokens.length; i++) {\\n            pricesFeeds[tokens[i]] = feeds[i];\\n        }\\n    }\\n\\n    /**\\n     * @notice Populate decimals mapping w/ values from tokens[].decimals\\n     *\\n     * @param tokens The array of tokens to loop and get values from.\\n     * */\\n    function setDecimals(IERC20[] calldata tokens) external onlyOwner {\\n        for (uint256 i = 0; i < tokens.length; i++) {\\n            decimals[address(tokens[i])] = tokens[i].decimals();\\n        }\\n    }\\n\\n    /**\\n     * @notice Set flag globalPricingPaused\\n     *\\n     * @param isPaused The new status of pause (true/false).\\n     * */\\n    function setGlobalPricingPaused(bool isPaused) external onlyOwner {\\n        if (globalPricingPaused != isPaused) {\\n            globalPricingPaused = isPaused;\\n\\n            emit GlobalPricingPaused(msg.sender, isPaused);\\n        }\\n    }\\n\\n    /*\\n     * Internal functions\\n     */\\n\\n    /**\\n     * @notice Calculate the price ratio between two tokens.\\n     *\\n     * @param sourceToken The address of the source tokens.\\n     * @param destToken The address of the destiny tokens.\\n     *\\n     * @return rate The price ratio source/dest.\\n     * @return precision The ratio precision.\\n     * */\\n    function _queryRate(\\n        address sourceToken,\\n        address destToken\\n    ) internal view returns (uint256 rate, uint256 precision) {\\n        require(!globalPricingPaused, \\\"pricing is paused\\\");\\n\\n        /// Different tokens, query prices and perform division.\\n        if (sourceToken != destToken) {\\n            uint256 sourceRate;\\n            if (sourceToken != address(baseToken) && sourceToken != protocolTokenAddress) {\\n                IPriceFeedsExt _sourceFeed = pricesFeeds[sourceToken];\\n                require(address(_sourceFeed) != address(0), \\\"unsupported src feed\\\");\\n\\n                /// Query token price on priceFeedsExt instance.\\n                sourceRate = _sourceFeed.latestAnswer();\\n                require(sourceRate != 0 && (sourceRate >> 128) == 0, \\\"price error\\\");\\n            } else {\\n                sourceRate = sourceToken == protocolTokenAddress\\n                    ? protocolTokenEthPrice\\n                    : 10 ** 18;\\n            }\\n\\n            uint256 destRate;\\n            if (destToken != address(baseToken) && destToken != protocolTokenAddress) {\\n                IPriceFeedsExt _destFeed = pricesFeeds[destToken];\\n                require(address(_destFeed) != address(0), \\\"unsupported dst feed\\\");\\n\\n                /// Query token price on priceFeedsExt instance.\\n                destRate = _destFeed.latestAnswer();\\n                require(destRate != 0 && (destRate >> 128) == 0, \\\"price error\\\");\\n            } else {\\n                destRate = destToken == protocolTokenAddress ? protocolTokenEthPrice : 10 ** 18;\\n            }\\n\\n            rate = sourceRate.mul(10 ** 18).div(destRate);\\n\\n            precision = _getDecimalPrecision(sourceToken, destToken);\\n\\n            /// Same tokens, return 1 with decimals.\\n        } else {\\n            rate = 10 ** 18;\\n            precision = 10 ** 18;\\n        }\\n    }\\n\\n    /**\\n     * @notice Calculate the relative precision between two tokens.\\n     *\\n     * @param sourceToken The address of the source tokens.\\n     * @param destToken The address of the destiny tokens.\\n     *\\n     * @return The precision ratio source/dest.\\n     * */\\n    function _getDecimalPrecision(\\n        address sourceToken,\\n        address destToken\\n    ) internal view returns (uint256) {\\n        /// Same tokens, return 1 with decimals.\\n        if (sourceToken == destToken) {\\n            return 10 ** 18;\\n\\n            /// Different tokens, query ERC20 precisions and return 18 +- diff.\\n        } else {\\n            uint256 sourceTokenDecimals = decimals[sourceToken];\\n            if (sourceTokenDecimals == 0) sourceTokenDecimals = IERC20(sourceToken).decimals();\\n\\n            uint256 destTokenDecimals = decimals[destToken];\\n            if (destTokenDecimals == 0) destTokenDecimals = IERC20(destToken).decimals();\\n\\n            if (destTokenDecimals >= sourceTokenDecimals)\\n                return 10 ** (SafeMath.sub(18, destTokenDecimals - sourceTokenDecimals));\\n            else return 10 ** (SafeMath.add(18, sourceTokenDecimals - destTokenDecimals));\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xa6b390f5dc2187f50e5481c1141e7f7ba63c92e942d819495b5662687625e2d0\"},\"contracts/feeds/PriceFeedsConstants.sol\":{\"content\":\"/**\\n * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity 0.5.17;\\n\\nimport \\\"../interfaces/IWrbtcERC20.sol\\\";\\nimport \\\"../openzeppelin/Address.sol\\\";\\n\\n/**\\n * @title The Price Feeds Constants contract.\\n *\\n * @notice This contract code comes from bZx. bZx is a protocol for tokenized\\n * margin trading and lending https://bzx.network similar to the dYdX protocol.\\n *\\n * This contract keep the addresses of token instances for wrBTC, base token\\n * and protocol token.\\n * */\\ncontract Constants {\\n    IWrbtcERC20 public wrbtcToken;\\n    IWrbtcERC20 public baseToken;\\n    address internal protocolTokenAddress;\\n\\n    /**\\n     * @notice Set wrBTC token address.\\n     *\\n     * @param _wrbtcTokenAddress The address of the wrapped wrBTC token.\\n     * */\\n    function _setWrbtcToken(address _wrbtcTokenAddress) internal {\\n        require(Address.isContract(_wrbtcTokenAddress), \\\"_wrbtcTokenAddress not a contract\\\");\\n        wrbtcToken = IWrbtcERC20(_wrbtcTokenAddress);\\n    }\\n\\n    /**\\n     * @notice Set protocol token address.\\n     *\\n     * @param _protocolTokenAddress The address of the protocol token.\\n     * */\\n    function _setProtocolTokenAddress(address _protocolTokenAddress) internal {\\n        require(Address.isContract(_protocolTokenAddress), \\\"_protocolTokenAddress not a contract\\\");\\n        protocolTokenAddress = _protocolTokenAddress;\\n    }\\n\\n    /**\\n     * @notice Set base token address.\\n     *\\n     * @param _baseTokenAddress The address of the base token.\\n     * */\\n    function _setBaseToken(address _baseTokenAddress) internal {\\n        require(Address.isContract(_baseTokenAddress), \\\"_baseTokenAddress not a contract\\\");\\n        baseToken = IWrbtcERC20(_baseTokenAddress);\\n    }\\n}\\n\",\"keccak256\":\"0x0fa85c00dd41dff315be51bc3220bd8826430bd1388424eb969fb188e203f0af\"},\"contracts/interfaces/IERC20.sol\":{\"content\":\"/**\\n * Copyright 2017-2021, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ncontract IERC20 {\\n    string public name;\\n    uint8 public decimals;\\n    string public symbol;\\n\\n    function totalSupply() external view returns (uint256);\\n\\n    function balanceOf(address _who) external view returns (uint256);\\n\\n    function allowance(address _owner, address _spender) external view returns (uint256);\\n\\n    function approve(address _spender, uint256 _value) external returns (bool);\\n\\n    function transfer(address _to, uint256 _value) external returns (bool);\\n\\n    function transferFrom(address _from, address _to, uint256 _value) external returns (bool);\\n\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0xac035e47e8a8f7e694cc6a90790bbfcaa8ae90d072d30832fc851ab6f1b19145\"},\"contracts/interfaces/IWrbtc.sol\":{\"content\":\"/**\\n * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\ninterface IWrbtc {\\n    function deposit() external payable;\\n\\n    function withdraw(uint256 wad) external;\\n}\\n\",\"keccak256\":\"0x20fdfe4b5e32fd7f863b3fa128e3c80bd4ccf090a4ffba56186ef3b7f2a80492\"},\"contracts/interfaces/IWrbtcERC20.sol\":{\"content\":\"/**\\n * Copyright 2017-2020, bZeroX, LLC. All Rights Reserved.\\n * Licensed under the Apache License, Version 2.0.\\n */\\n\\npragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./IWrbtc.sol\\\";\\nimport \\\"./IERC20.sol\\\";\\n\\ncontract IWrbtcERC20 is IWrbtc, IERC20 {}\\n\",\"keccak256\":\"0x7301a8c8ca7aa016ec94268a16d07366875f2e406442e929968dd745b1ee5be5\"},\"contracts/openzeppelin/Address.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev Collection of functions related to the address type\\n */\\nlibrary Address {\\n    /**\\n     * @dev Returns true if `account` is a contract.\\n     *\\n     * [IMPORTANT]\\n     * ====\\n     * It is unsafe to assume that an address for which this function returns\\n     * false is an externally-owned account (EOA) and not a contract.\\n     *\\n     * Among others, `isContract` will return false for the following\\n     * types of addresses:\\n     *\\n     *  - an externally-owned account\\n     *  - a contract in construction\\n     *  - an address where a contract will be created\\n     *  - an address where a contract lived, but was destroyed\\n     * ====\\n     */\\n    function isContract(address account) internal view returns (bool) {\\n        // According to EIP-1052, 0x0 is the value returned for not-yet created accounts\\n        // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned\\n        // for accounts without code, i.e. `keccak256('')`\\n        bytes32 codehash;\\n        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;\\n        // solhint-disable-next-line no-inline-assembly\\n        assembly {\\n            codehash := extcodehash(account)\\n        }\\n        return (codehash != accountHash && codehash != 0x0);\\n    }\\n\\n    /**\\n     * @dev Converts an `address` into `address payable`. Note that this is\\n     * simply a type cast: the actual underlying value is not changed.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function toPayable(address account) internal pure returns (address payable) {\\n        return address(uint160(account));\\n    }\\n\\n    /**\\n     * @dev Replacement for Solidity's `transfer`: sends `amount` wei to\\n     * `recipient`, forwarding all available gas and reverting on errors.\\n     *\\n     * https://eips.ethereum.org/EIPS/eip-1884[EIP1884] increases the gas cost\\n     * of certain opcodes, possibly making contracts go over the 2300 gas limit\\n     * imposed by `transfer`, making them unable to receive funds via\\n     * `transfer`. {sendValue} removes this limitation.\\n     *\\n     * https://diligence.consensys.net/posts/2019/09/stop-using-soliditys-transfer-now/[Learn more].\\n     *\\n     * IMPORTANT: because control is transferred to `recipient`, care must be\\n     * taken to not create reentrancy vulnerabilities. Consider using\\n     * {ReentrancyGuard} or the\\n     * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html\\n     *   #use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function sendValue(address recipient, uint256 amount) internal {\\n        require(address(this).balance >= amount, \\\"Address: insufficient balance\\\");\\n\\n        // solhint-disable-next-line avoid-call-value\\n        (bool success, ) = recipient.call.value(amount)(\\\"\\\");\\n        require(success, \\\"Address: unable to send value, recipient may have reverted\\\");\\n    }\\n}\\n\",\"keccak256\":\"0x23df48a01dbac9b25e86c9131174fb7752bbc7e741e63f1aa982de22e055ad54\"},\"contracts/openzeppelin/Context.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\ncontract Context {\\n    // Empty internal constructor, to prevent people from mistakenly deploying\\n    // an instance of this contract, which should be used via inheritance.\\n    constructor() internal {}\\n\\n    // solhint-disable-previous-line no-empty-blocks\\n\\n    function _msgSender() internal view returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x7860cb1591dbd66bb497c60c46866d9fcdb56c73306ed86b25801000af1c7b2b\"},\"contracts/openzeppelin/Ownable.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\nimport \\\"./Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\ncontract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor() internal {\\n        address msgSender = _msgSender();\\n        _owner = msgSender;\\n        emit OwnershipTransferred(address(0), msgSender);\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(isOwner(), \\\"unauthorized\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns true if the caller is the current owner.\\n     */\\n    function isOwner() public view returns (bool) {\\n        return _msgSender() == _owner;\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public onlyOwner {\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     */\\n    function _transferOwnership(address newOwner) internal {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        emit OwnershipTransferred(_owner, newOwner);\\n        _owner = newOwner;\\n    }\\n}\\n\",\"keccak256\":\"0x94496c375b3e82d87d7f01ce1577f008fab374312cf93012a0eca716e6aadb3a\"},\"contracts/openzeppelin/SafeMath.sol\":{\"content\":\"pragma solidity >=0.5.0 <0.6.0;\\n\\n/**\\n * @dev Wrappers over Solidity's arithmetic operations with added overflow\\n * checks.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * `SafeMath` restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this library instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n */\\nlibrary SafeMath {\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\\n        uint256 c = a + b;\\n        require(c >= a, \\\"SafeMath: addition overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return sub(a, b, \\\"SafeMath: subtraction overflow\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     * - Subtraction cannot overflow.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function sub(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        require(b <= a, errorMessage);\\n        uint256 c = a - b;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint256 c = a * b;\\n        require(c / a == b, \\\"SafeMath: multiplication overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return div(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function div(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b != 0, errorMessage);\\n        uint256 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Integer division of two numbers, rounding up and truncating the quotient\\n     */\\n    function divCeil(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return divCeil(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Integer division of two numbers, rounding up and truncating the quotient\\n     */\\n    function divCeil(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        // Solidity only automatically asserts when dividing by 0\\n        require(b != 0, errorMessage);\\n\\n        if (a == 0) {\\n            return 0;\\n        }\\n        uint256 c = ((a - 1) / b) + 1;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return mod(a, b, \\\"SafeMath: modulo by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts with custom message when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     * - The divisor cannot be zero.\\n     *\\n     * _Available since v2.4.0._\\n     */\\n    function mod(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        require(b != 0, errorMessage);\\n        return a % b;\\n    }\\n\\n    function min256(uint256 _a, uint256 _b) internal pure returns (uint256) {\\n        return _a < _b ? _a : _b;\\n    }\\n}\\n\",\"keccak256\":\"0xbff8d6273e1a6870d1a142c0c23acd63a4dd47760f250390f49ee56333bcb6e8\"}},\"version\":1}",
+  "bytecode": "0x60806040523480156200001157600080fd5b506040516200157638038062001576833981810160405260808110156200003757600080fd5b50805160208201516040830151606090930151919290916000620000636001600160e01b036200010716565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a350620000c1836001600160e01b036200010b16565b620000d5826001600160e01b036200020316565b620000e9846001600160e01b03620002f316565b620000fd816001600160e01b03620005c016565b505050506200071c565b3390565b6200011e6001600160e01b03620006b016565b6200015f576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b038116620001a65760405162461bcd60e51b8152600401808060200182810382526024815260200180620015306024913960400191505060405180910390fd5b600280546001600160a01b0319166001600160a01b03838116919091179182905560408051338152905192909116917f2f21604f728cee3b038451139b7962e5720960fe821c609ca83e38be2cd0f6be916020908290030190a250565b620002166001600160e01b03620006b016565b62000257576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b0381166200029e5760405162461bcd60e51b8152600401808060200182810382526022815260200180620015546022913960400191505060405180910390fd5b600380546001600160a01b0383166001600160a01b031990911681179091556040805133815290517fa5fa52ac5539bdf7f8bd9d02d0e2d4d7840c7dc0ff1fa8d9bcab2ffb765f37139181900360200190a250565b620003066001600160e01b03620006b016565b62000347576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6200035d81620006df60201b62000a351760201c565b6200039a5760405162461bcd60e51b8152600401808060200182810382526023815260200180620014e16023913960400191505060405180910390fd5b60008190506000816001600160a01b031663665a11ca6040518163ffffffff1660e01b815260040160206040518083038186803b158015620003db57600080fd5b505afa158015620003f0573d6000803e3d6000fd5b505050506040513d60208110156200040757600080fd5b50516002546040805163d031370b60e01b81526000600482015290519293506001600160a01b03918216929184169163d031370b91602480820192602092909190829003018186803b1580156200045d57600080fd5b505afa15801562000472573d6000803e3d6000fd5b505050506040513d60208110156200048957600080fd5b50516001600160a01b031614806200052457506002546040805163d031370b60e01b81526001600482015290516001600160a01b039283169284169163d031370b916024808301926020929190829003018186803b158015620004eb57600080fd5b505afa15801562000500573d6000803e3d6000fd5b505050506040513d60208110156200051757600080fd5b50516001600160a01b0316145b620005615760405162461bcd60e51b8152600401808060200182810382526029815260200180620014b86029913960400191505060405180910390fd5b600180546001600160a01b0319166001600160a01b03858116919091179182905560408051338152905192909116917f1cece9fe0966bcae1bc320922e8e73fe56effacab5cc158e7d97cd77cea66e86916020908290030190a2505050565b620005d36001600160e01b03620006b016565b62000614576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b0381166200065b5760405162461bcd60e51b815260040180806020018281038252602c81526020018062001504602c913960400191505060405180910390fd5b600480546001600160a01b0383166001600160a01b031990911681179091556040805133815290517f6dde2141be69fabcd84e3864d206ba0f3f2d507125fb2703899c87de4c585d5f9181900360200190a250565b600080546001600160a01b0316620006d06001600160e01b036200010716565b6001600160a01b031614905090565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4708181148015906200071457508115155b949350505050565b610d8c806200072c6000396000f3fe608060405234801561001057600080fd5b50600436106100b45760003560e01c80639f63140b116100715780639f63140b1461014b578063b15403da14610171578063b478f41614610179578063c083be5f1461019f578063c63ec525146101a7578063f2fde38b146101cd576100b4565b806350d25bcd146100b95780638a47b34a146100d35780638c0d8c23146100fb5780638da5cb5b1461011f5780638f32d59b1461012757806392a85fde14610143575b600080fd5b6100c16101f3565b60408051918252519081900360200190f35b6100f9600480360360208110156100e957600080fd5b50356001600160a01b03166102ce565b005b6101036103b8565b604080516001600160a01b039092168252519081900360200190f35b6101036103c7565b61012f6103d6565b604080519115158252519081900360200190f35b6101036103fa565b6100f96004803603602081101561016157600080fd5b50356001600160a01b0316610409565b6101036106af565b6100f96004803603602081101561018f57600080fd5b50356001600160a01b03166106be565b6101036107a0565b6100f9600480360360208110156101bd57600080fd5b50356001600160a01b03166107af565b6100f9600480360360208110156101e357600080fd5b50356001600160a01b0316610891565b60015460048054604080516353084eff60e01b81526001600160a01b0392831693810193909352516000939190911691839183916353084eff916024808301926020929190829003018186803b15801561024c57600080fd5b505afa158015610260573d6000803e3d6000fd5b505050506040513d602081101561027657600080fd5b505190506000610285826108e5565b9050806102c7576040805162461bcd60e51b815260206004820152600b60248201526a383934b1b29032b93937b960a91b604482015290519081900360640190fd5b9250505090565b6102d66103d6565b610316576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b03811661035b5760405162461bcd60e51b8152600401808060200182810382526024815260200180610d126024913960400191505060405180910390fd5b600280546001600160a01b0319166001600160a01b03838116919091179182905560408051338152905192909116917f2f21604f728cee3b038451139b7962e5720960fe821c609ca83e38be2cd0f6be916020908290030190a250565b6001546001600160a01b031681565b6000546001600160a01b031690565b600080546001600160a01b03166103eb610a31565b6001600160a01b031614905090565b6004546001600160a01b031681565b6104116103d6565b610451576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61045a81610a35565b6104955760405162461bcd60e51b8152600401808060200182810382526023815260200180610ca26023913960400191505060405180910390fd5b60008190506000816001600160a01b031663665a11ca6040518163ffffffff1660e01b815260040160206040518083038186803b1580156104d557600080fd5b505afa1580156104e9573d6000803e3d6000fd5b505050506040513d60208110156104ff57600080fd5b50516002546040805163d031370b60e01b81526000600482015290519293506001600160a01b03918216929184169163d031370b91602480820192602092909190829003018186803b15801561055457600080fd5b505afa158015610568573d6000803e3d6000fd5b505050506040513d602081101561057e57600080fd5b50516001600160a01b0316148061061557506002546040805163d031370b60e01b81526001600482015290516001600160a01b039283169284169163d031370b916024808301926020929190829003018186803b1580156105de57600080fd5b505afa1580156105f2573d6000803e3d6000fd5b505050506040513d602081101561060857600080fd5b50516001600160a01b0316145b6106505760405162461bcd60e51b8152600401808060200182810382526029815260200180610c536029913960400191505060405180910390fd5b600180546001600160a01b0319166001600160a01b03858116919091179182905560408051338152905192909116917f1cece9fe0966bcae1bc320922e8e73fe56effacab5cc158e7d97cd77cea66e86916020908290030190a2505050565b6002546001600160a01b031681565b6106c66103d6565b610706576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b03811661074b5760405162461bcd60e51b815260040180806020018281038252602c815260200180610ce6602c913960400191505060405180910390fd5b600480546001600160a01b0383166001600160a01b031990911681179091556040805133815290517f6dde2141be69fabcd84e3864d206ba0f3f2d507125fb2703899c87de4c585d5f9181900360200190a250565b6003546001600160a01b031681565b6107b76103d6565b6107f7576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b03811661083c5760405162461bcd60e51b8152600401808060200182810382526022815260200180610d366022913960400191505060405180910390fd5b600380546001600160a01b0383166001600160a01b031990911681179091556040805133815290517fa5fa52ac5539bdf7f8bd9d02d0e2d4d7840c7dc0ff1fa8d9bcab2ffb765f37139181900360200190a250565b6108996103d6565b6108d9576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6108e281610a71565b50565b6002546003546040805163524efd4b60e01b81526001600160a01b0393841660048201529290911660248301525160009133918391839163524efd4b91604480820192602092909190829003018186803b15801561094257600080fd5b505afa158015610956573d6000803e3d6000fd5b505050506040513d602081101561096c57600080fd5b50516002546003546040805163d138f9a160e01b81526001600160a01b039384166004820152918316602483015260448201889052519293506000929185169163d138f9a191606480820192602092909190829003018186803b1580156109d257600080fd5b505afa1580156109e6573d6000803e3d6000fd5b505050506040513d60208110156109fc57600080fd5b50519050610a28670de0b6b3a7640000610a1c838563ffffffff610b1116565b9063ffffffff610b7316565b95945050505050565b3390565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470818114801590610a6957508115155b949350505050565b6001600160a01b038116610ab65760405162461bcd60e51b8152600401808060200182810382526026815260200180610c7c6026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b600082610b2057506000610b6d565b82820282848281610b2d57fe5b0414610b6a5760405162461bcd60e51b8152600401808060200182810382526021815260200180610cc56021913960400191505060405180910390fd5b90505b92915050565b6000610b6a83836040518060400160405280601a81526020017f536166654d6174683a206469766973696f6e206279207a65726f00000000000081525060008183610c3c5760405162461bcd60e51b81526004018080602001828103825283818151815260200191508051906020019080838360005b83811015610c01578181015183820152602001610be9565b50505050905090810190601f168015610c2e5780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b506000838581610c4857fe5b049594505050505056fe6f6e65206f66207468652074776f207265736572766573206e6565647320746f2062652077726274634f776e61626c653a206e6577206f776e657220697320746865207a65726f20616464726573735f7631506f6f6c4f7261636c6541646472657373206e6f74206120636f6e7472616374536166654d6174683a206d756c7469706c69636174696f6e206f766572666c6f77426173652063757272656e637920616464726573732063616e6e6f74206265207a65726f2061646472657373775242544320616464726573732063616e6e6f74206265207a65726f2061646472657373444f4320616464726573732063616e6e6f74206265207a65726f2061646472657373a265627a7a723158209ababc4df2a2269f76aad4ddd3b103dd383d1ea330043b014f88e21b3ee7eb5f64736f6c634300051100326f6e65206f66207468652074776f207265736572766573206e6565647320746f2062652077726274635f7631506f6f6c4f7261636c6541646472657373206e6f74206120636f6e7472616374426173652063757272656e637920616464726573732063616e6e6f74206265207a65726f2061646472657373775242544320616464726573732063616e6e6f74206265207a65726f2061646472657373444f4320616464726573732063616e6e6f74206265207a65726f2061646472657373",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100b45760003560e01c80639f63140b116100715780639f63140b1461014b578063b15403da14610171578063b478f41614610179578063c083be5f1461019f578063c63ec525146101a7578063f2fde38b146101cd576100b4565b806350d25bcd146100b95780638a47b34a146100d35780638c0d8c23146100fb5780638da5cb5b1461011f5780638f32d59b1461012757806392a85fde14610143575b600080fd5b6100c16101f3565b60408051918252519081900360200190f35b6100f9600480360360208110156100e957600080fd5b50356001600160a01b03166102ce565b005b6101036103b8565b604080516001600160a01b039092168252519081900360200190f35b6101036103c7565b61012f6103d6565b604080519115158252519081900360200190f35b6101036103fa565b6100f96004803603602081101561016157600080fd5b50356001600160a01b0316610409565b6101036106af565b6100f96004803603602081101561018f57600080fd5b50356001600160a01b03166106be565b6101036107a0565b6100f9600480360360208110156101bd57600080fd5b50356001600160a01b03166107af565b6100f9600480360360208110156101e357600080fd5b50356001600160a01b0316610891565b60015460048054604080516353084eff60e01b81526001600160a01b0392831693810193909352516000939190911691839183916353084eff916024808301926020929190829003018186803b15801561024c57600080fd5b505afa158015610260573d6000803e3d6000fd5b505050506040513d602081101561027657600080fd5b505190506000610285826108e5565b9050806102c7576040805162461bcd60e51b815260206004820152600b60248201526a383934b1b29032b93937b960a91b604482015290519081900360640190fd5b9250505090565b6102d66103d6565b610316576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b03811661035b5760405162461bcd60e51b8152600401808060200182810382526024815260200180610d126024913960400191505060405180910390fd5b600280546001600160a01b0319166001600160a01b03838116919091179182905560408051338152905192909116917f2f21604f728cee3b038451139b7962e5720960fe821c609ca83e38be2cd0f6be916020908290030190a250565b6001546001600160a01b031681565b6000546001600160a01b031690565b600080546001600160a01b03166103eb610a31565b6001600160a01b031614905090565b6004546001600160a01b031681565b6104116103d6565b610451576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b61045a81610a35565b6104955760405162461bcd60e51b8152600401808060200182810382526023815260200180610ca26023913960400191505060405180910390fd5b60008190506000816001600160a01b031663665a11ca6040518163ffffffff1660e01b815260040160206040518083038186803b1580156104d557600080fd5b505afa1580156104e9573d6000803e3d6000fd5b505050506040513d60208110156104ff57600080fd5b50516002546040805163d031370b60e01b81526000600482015290519293506001600160a01b03918216929184169163d031370b91602480820192602092909190829003018186803b15801561055457600080fd5b505afa158015610568573d6000803e3d6000fd5b505050506040513d602081101561057e57600080fd5b50516001600160a01b0316148061061557506002546040805163d031370b60e01b81526001600482015290516001600160a01b039283169284169163d031370b916024808301926020929190829003018186803b1580156105de57600080fd5b505afa1580156105f2573d6000803e3d6000fd5b505050506040513d602081101561060857600080fd5b50516001600160a01b0316145b6106505760405162461bcd60e51b8152600401808060200182810382526029815260200180610c536029913960400191505060405180910390fd5b600180546001600160a01b0319166001600160a01b03858116919091179182905560408051338152905192909116917f1cece9fe0966bcae1bc320922e8e73fe56effacab5cc158e7d97cd77cea66e86916020908290030190a2505050565b6002546001600160a01b031681565b6106c66103d6565b610706576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b03811661074b5760405162461bcd60e51b815260040180806020018281038252602c815260200180610ce6602c913960400191505060405180910390fd5b600480546001600160a01b0383166001600160a01b031990911681179091556040805133815290517f6dde2141be69fabcd84e3864d206ba0f3f2d507125fb2703899c87de4c585d5f9181900360200190a250565b6003546001600160a01b031681565b6107b76103d6565b6107f7576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6001600160a01b03811661083c5760405162461bcd60e51b8152600401808060200182810382526022815260200180610d366022913960400191505060405180910390fd5b600380546001600160a01b0383166001600160a01b031990911681179091556040805133815290517fa5fa52ac5539bdf7f8bd9d02d0e2d4d7840c7dc0ff1fa8d9bcab2ffb765f37139181900360200190a250565b6108996103d6565b6108d9576040805162461bcd60e51b815260206004820152600c60248201526b1d5b985d5d1a1bdc9a5e995960a21b604482015290519081900360640190fd5b6108e281610a71565b50565b6002546003546040805163524efd4b60e01b81526001600160a01b0393841660048201529290911660248301525160009133918391839163524efd4b91604480820192602092909190829003018186803b15801561094257600080fd5b505afa158015610956573d6000803e3d6000fd5b505050506040513d602081101561096c57600080fd5b50516002546003546040805163d138f9a160e01b81526001600160a01b039384166004820152918316602483015260448201889052519293506000929185169163d138f9a191606480820192602092909190829003018186803b1580156109d257600080fd5b505afa1580156109e6573d6000803e3d6000fd5b505050506040513d60208110156109fc57600080fd5b50519050610a28670de0b6b3a7640000610a1c838563ffffffff610b1116565b9063ffffffff610b7316565b95945050505050565b3390565b6000813f7fc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470818114801590610a6957508115155b949350505050565b6001600160a01b038116610ab65760405162461bcd60e51b8152600401808060200182810382526026815260200180610c7c6026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b600082610b2057506000610b6d565b82820282848281610b2d57fe5b0414610b6a5760405162461bcd60e51b8152600401808060200182810382526021815260200180610cc56021913960400191505060405180910390fd5b90505b92915050565b6000610b6a83836040518060400160405280601a81526020017f536166654d6174683a206469766973696f6e206279207a65726f00000000000081525060008183610c3c5760405162461bcd60e51b81526004018080602001828103825283818151815260200191508051906020019080838360005b83811015610c01578181015183820152602001610be9565b50505050905090810190601f168015610c2e5780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b506000838581610c4857fe5b049594505050505056fe6f6e65206f66207468652074776f207265736572766573206e6565647320746f2062652077726274634f776e61626c653a206e6577206f776e657220697320746865207a65726f20616464726573735f7631506f6f6c4f7261636c6541646472657373206e6f74206120636f6e7472616374536166654d6174683a206d756c7469706c69636174696f6e206f766572666c6f77426173652063757272656e637920616464726573732063616e6e6f74206265207a65726f2061646472657373775242544320616464726573732063616e6e6f74206265207a65726f2061646472657373444f4320616464726573732063616e6e6f74206265207a65726f2061646472657373a265627a7a723158209ababc4df2a2269f76aad4ddd3b103dd383d1ea330043b014f88e21b3ee7eb5f64736f6c63430005110032",
+  "devdoc": {
+    "methods": {
+      "isOwner()": {
+        "details": "Returns true if the caller is the current owner."
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      }
+    }
+  },
+  "userdoc": {
+    "methods": {},
+    "notice": "The BOS-specific Price Feed V1 Pool Oracle contract.        Clone of PriceFeedV1PoolOracle with a distinct contract name for BOS deployment."
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 56559,
+        "contract": "contracts/feeds/PriceFeedV1PoolOracleBOS.sol:PriceFeedV1PoolOracleBOS",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 11114,
+        "contract": "contracts/feeds/PriceFeedV1PoolOracleBOS.sol:PriceFeedV1PoolOracleBOS",
+        "label": "v1PoolOracleAddress",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 11116,
+        "contract": "contracts/feeds/PriceFeedV1PoolOracleBOS.sol:PriceFeedV1PoolOracleBOS",
+        "label": "wRBTCAddress",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_address"
+      },
+      {
+        "astId": 11118,
+        "contract": "contracts/feeds/PriceFeedV1PoolOracleBOS.sol:PriceFeedV1PoolOracleBOS",
+        "label": "docAddress",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_address"
+      },
+      {
+        "astId": 11120,
+        "contract": "contracts/feeds/PriceFeedV1PoolOracleBOS.sol:PriceFeedV1PoolOracleBOS",
+        "label": "baseCurrency",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_address"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      }
+    }
+  }
+}

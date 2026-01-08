@@ -155,14 +155,25 @@ task(
     .addOptionalParam(
         "loanTokens",
         "Comma-separated loan token deployment names or addresses",
-        "LoanToken_iXUSD,LoanToken_iRBTC,LoanToken_iBPRO,LoanToken_iDOC,LoanToken_iDLLR,LoanToken_iUSDT"
+        "LoanToken_iXUSD,LoanToken_iRBTC,LoanToken_iBPRO,LoanToken_iDOC,LoanToken_iDLLR,LoanToken_iUSDT,LoanTokenSettingsLowerAdmin,LoanTokenLogicBeaconLM,LoanTokenLogicBeaconWrbtc,LoanTokenLogic,LoanTokenLogicLM,LoanTokenLogicWrbtc,LoanTokenLogicWrbtcLM"
     )
     .setAction(async ({ sovryn, priceFeeds, loanTokens }, hre) => {
         const { ethers, deployments } = hre;
 
+        const safeCall = async (label, fn) => {
+            try {
+                return await fn();
+            } catch (e) {
+                logger && logger.warn && logger.warn(`${label} failed: ${e.message || e}`);
+                return "<unavailable>";
+            }
+        };
+
         const resolveAddress = async (value) => {
-            if (ethers.utils.isAddress(value)) {
-                return ethers.utils.getAddress(value);
+            const isAddress = ethers.utils?.isAddress ?? ethers.isAddress;
+            const getAddress = ethers.utils?.getAddress ?? ethers.getAddress;
+            if (isAddress(value)) {
+                return getAddress(value);
             }
             const deployment = await deployments.get(value);
             return deployment.address;
@@ -177,15 +188,8 @@ task(
 
         const sovrynAddress = await resolveAddress(sovryn);
         const sovrynContract = await ethers.getContractAt("ISovryn", sovrynAddress);
-        const sovrynOwner = await sovrynContract.owner();
-        let sovrynAdmin = "<unavailable>";
-        try {
-            sovrynAdmin = await sovrynContract.getAdmin();
-        } catch (e) {
-            logger &&
-                logger.warn &&
-                logger.warn("getAdmin() call failed on Sovryn, leaving admin as unavailable");
-        }
+        const sovrynOwner = await safeCall("Sovryn.owner()", () => sovrynContract.owner());
+        const sovrynAdmin = await safeCall("Sovryn.getAdmin()", () => sovrynContract.getAdmin());
         prettyLog("Sovryn protocol", {
             address: sovrynAddress,
             owner: sovrynOwner,
@@ -194,7 +198,9 @@ task(
 
         const priceFeedsAddress = await resolveAddress(priceFeeds);
         const priceFeedsContract = await ethers.getContractAt("PriceFeeds", priceFeedsAddress);
-        const priceFeedsOwner = await priceFeedsContract.owner();
+        const priceFeedsOwner = await safeCall("PriceFeeds.owner()", () =>
+            priceFeedsContract.owner()
+        );
         prettyLog("PriceFeeds", {
             address: priceFeedsAddress,
             owner: priceFeedsOwner,
@@ -204,8 +210,8 @@ task(
         for (const entry of loanTokenEntries) {
             const loanTokenAddress = await resolveAddress(entry.trim());
             const loan = await ethers.getContractAt("LoanTokenLogicStandard", loanTokenAddress);
-            const owner = await loan.owner();
-            const admin = await loan.admin();
+            const owner = await safeCall(`${entry.trim()}.owner()`, () => loan.owner());
+            const admin = await safeCall(`${entry.trim()}.admin()`, () => loan.admin());
             prettyLog(`Loan token ${entry.trim()}`, {
                 address: loanTokenAddress,
                 owner,
@@ -470,6 +476,48 @@ task(
                 });
             }
         }
+    });
+
+// Usage:
+// hh misc:loan:limits-on-collateral-all --collateral <tokenAddress> --network rskSovrynMainnet
+// Prints transactionLimit for the collateral on each mainnet loan token.
+task(
+    "misc:loan:limits-on-collateral-all",
+    "Shows transactionLimit for a collateral across all mainnet loan tokens"
+)
+    .addParam("collateral", "Collateral token address")
+    .setAction(async ({ collateral }, hre) => {
+        const { ethers, deployments } = hre;
+
+        const loanTokenDeployments = [
+            "LoanToken_iXUSD",
+            "LoanToken_iRBTC",
+            "LoanToken_iBPRO",
+            "LoanToken_iDOC",
+            "LoanToken_iDLLR",
+            "LoanToken_iUSDT",
+        ];
+
+        const collateralAddress = ethers.utils.getAddress(collateral);
+
+        const resolveAddress = async (nameOrAddress) => {
+            if (ethers.utils.isAddress(nameOrAddress)) {
+                return ethers.utils.getAddress(nameOrAddress);
+            }
+            const deployment = await deployments.get(nameOrAddress);
+            return deployment.address;
+        };
+
+        console.log(`Collateral: ${collateralAddress}`);
+        for (const depName of loanTokenDeployments) {
+            const loanTokenAddress = await resolveAddress(depName);
+            const loan = await ethers.getContractAt("LoanTokenLogicStandard", loanTokenAddress);
+            const limit = await loan.transactionLimit(collateralAddress);
+            console.log(
+                `${depName} (${loanTokenAddress}) -> transactionLimit = ${limit.toString()}`
+            );
+        }
+        console.log("Note: 0 means no cap set for this collateral.");
     });
 
 task("getBalanceOfAccounts", "Get ERC20 or native token balance of account or address")

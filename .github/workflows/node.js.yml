@@ -50,6 +50,10 @@ jobs:
 
       - name: Installing Packages
         run: npm ci --parallel=1
+      - name: Clear hardhat compiler cache
+        run: rm -rf ~/.cache/hardhat-nodejs/compilers-v2 || true
+      - name: Fix solc permissions
+        run: find ~/.cache/hardhat-nodejs/compilers-v2 -type f -name 'solc-linux-*' -exec chmod +x {} + || true
       - name: Checking Formatting
         run: npm run lint &&  npm run prettier && npm run prettier-check
       - name: Running Test

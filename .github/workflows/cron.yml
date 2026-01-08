@@ -62,48 +62,10 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.10"
+          python-version: "3.9"
 
       - name: Install python dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt && brownie pm install OpenZeppelin/openzeppelin-contracts@4.9.5
-
-      - name: Patch py-solc-x to use GitHub releases
-        run: |
-          python3 << 'EOF'
-          import os
-          import site
-          
-          # Find py-solc-x install location
-          site_packages = site.getsitepackages()[0]
-          install_file = os.path.join(site_packages, "solcx", "install.py")
-          
-          # Read the file
-          with open(install_file, 'r') as f:
-              content = f.read()
-          
-          # Replace the blocked URL with GitHub releases
-          # Old py-solc-x 1.1.1 uses solc-bin.ethereum.org
-          content = content.replace(
-              'SOLC_BASE_URL = "https://solc-bin.ethereum.org/"',
-              'SOLC_BASE_URL = "https://binaries.soliditylang.org/"'
-          )
-          content = content.replace(
-              '"https://solc-bin.ethereum.org/"',
-              '"https://binaries.soliditylang.org/"'
-          )
-          content = content.replace(
-              'solc-bin.ethereum.org',
-              'binaries.soliditylang.org'
-          )
-          
-          # Write back
-          with open(install_file, 'w') as f:
-              f.write(content)
-          
-          print("✓ Patched py-solc-x to use binaries.soliditylang.org")
-          EOF
+        run: pip install -r requirements.txt && brownie pm install OpenZeppelin/openzeppelin-contracts@4.9.5
 
       - name: Withdraw Fees
         run: echo $REWARDS_CRON && brownie networks import network-config.yaml true && brownie run scripts/contractInteraction/rewards_cron.py --network=rsk-mainnet
