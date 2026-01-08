@@ -1,36 +1,93 @@
 const fs = require("fs");
 const csv = require("csv-parser");
-const { task } = require("hardhat/config");
 const Logs = require("node-logs");
-/*const {
-    signWithMultisig,
-    multisigCheckTx,
-    multisigRevokeConfirmation,
-    multisigExecuteTx,
-    multisigAddOwner,
-    multisigRemoveOwner,
-} = require("../../deployment/helpers/helpers");*/
+const logger = new Logs().showInConsole(true);
+const { task } = require("hardhat/config");
+const { getSignerFromAccount } = require("../../deployment/helpers/helpers");
 
-const currencies = {
-    eth: "0x0000000000000000000000000000000000000000",
-    usdc: "0xe75d0fb2c24a55ca1e3f96781a2bcc7bdba058f0",
-    usdt: "0x05d032ac25d322df992303dca074ee7392c117b9",
-    dai: "0x6c851f501a3f24e29a8e39a29591cddf09369080",
-    wbtc: "0x03c7054bcb39f7b2e5b2c7acb37583e32d70cfa3",
-    weth: "0x4200000000000000000000000000000000000006", // or... may be: 0x148964f7E4f96d347528467BFe8Bff36a953ba60 (ERC20) or 0x140c1A044D7d6650b73D4045b5ea1D2AD4666c2B (ERC-721)
-    sov: "0xba20a5e63eeEFfFA6fD365E7e540628F8fC61474",
-    // xusd: "0x", // not found in BOB mainnet
-    powa: "0xd0c2f08a873186db5cfb7b767db62bef9e495bff",
-    sat: "0x78fea795cbfcc5ffd6fb5b845a4f53d25c283bdb",
-    tbtc: "0xbba2ef945d523c4e2608c9e1214c2cc64d4fc2e2",
-    reth: "0xb5686c4f60904ec2bda6277d6fe1f7caa8d1b41a",
-    alex: "0xa669e059fdcbdfc532a2edd658eb2922799eedb8",
-    dllr: "0xf3107eec1e6f067552c035fd87199e1a5169cb20",
-    wsteth: "0x85008ae6198bc91ac0735cb5497cf125ddaac528",
-    // stone: "0x",
+const assetNamesByNetwork = {
+    1: "ETH",
+    30: "RBTC",
+    56: "BNB",
+    60808: "ETH",
 };
 
-const logger = new Logs().showInConsole(true);
+// functions to parse .csv files on asset distribution
+async function parseFileForSendDirect(fileName, decimals) {
+    const { BigNumber } = require("ethers");
+    logger.info(fileName);
+    let totalAmount = BigNumber.from("0");
+    let receivers = [];
+    let amounts = [];
+    let errorMsg = "";
+    const DECIMALS = decimals;
+
+    return new Promise((resolve, reject) => {
+        fs.createReadStream(fileName)
+            .pipe(csv())
+            .on("data", (row) => {
+                const tokenOwner = row.tokenOwner.trim();
+                const rawAmount = row.amount.trim();
+
+                const parts = rawAmount.split(".");
+                if (parts.length !== 2) {
+                    errorMsg += `\n${tokenOwner} amount: ${rawAmount} (invalid decimal format)`;
+                    return;
+                }
+
+                let [integerPart, decimalPart] = parts;
+
+                // If integerPart is empty (like ".00123"), treat it as "0"
+                if (!integerPart) {
+                    integerPart = "0";
+                }
+
+                // Ensure the decimal part has exactly DECIMALS digits
+                if (decimalPart.length < DECIMALS) {
+                    decimalPart = decimalPart.padEnd(DECIMALS, "0");
+                } else if (decimalPart.length > DECIMALS) {
+                    errorMsg += `\n${tokenOwner} amount: ${rawAmount} (more than ${DECIMALS} decimal places)`;
+                    return;
+                }
+
+                const fullIntegerStr = integerPart + decimalPart;
+                if (!/^\d+$/.test(fullIntegerStr)) {
+                    errorMsg += `\n${tokenOwner} amount: ${rawAmount} (invalid characters)`;
+                    return;
+                }
+
+                // Convert to BigNumber and back to string to remove leading zeros
+                const amountBN = BigNumber.from(fullIntegerStr);
+                const normalizedAmountStr = amountBN.toString();
+
+                totalAmount = totalAmount.add(amountBN);
+
+                receivers.push(tokenOwner.toLowerCase());
+                amounts.push(normalizedAmountStr);
+
+                logger.info("=======================================");
+                logger.info(`'${tokenOwner}',`);
+                logger.info(normalizedAmountStr);
+            })
+            .on("end", () => {
+                logger.info(receivers);
+                logger.info(amounts);
+
+                if (errorMsg !== "") {
+                    reject(new Error(`Formatting error: ${errorMsg}`));
+                } else {
+                    resolve({
+                        totalAmount: totalAmount.toString(),
+                        receivers,
+                        amounts,
+                    });
+                }
+            })
+            .on("error", (err) => {
+                reject(err);
+            });
+    });
+}
 
 task(
     "utils:compare-bytecode",
@@ -90,9 +147,6 @@ task(
             ? address
             : deployment.implementation ?? deployment.address;
         const onchainBytecode = await provider.getCode(contractAddress);
-        // console.log("onchain bytecode: ", await provider.getCode(contractAddress));
-        // console.log();
-        // console.log("expected deployedBytecode: ", deploymentObject.deployedBytecode);
         const sameLength = onchainBytecode.length === expectedBytecode.length;
         if (!sameLength) {
             logger.error(
@@ -167,8 +221,8 @@ task("utils:replace-tx", "Replace tx in mempool")
                 newTo,
                 newGasPrice,
                 newGasLimit,
-                newMaxFee,
                 newMaxPriorityFee,
+                newMaxFee,
                 newData,
                 newValue,
                 signer,
@@ -205,176 +259,327 @@ task("utils:replace-tx", "Replace tx in mempool")
             }
         }
     );
+// canceltx actually is a replacer of a transaction that we don't want to be confirmed
+// when something goes wrong and we want to prevent the confirmation and we need to proceed fast.
+// the prupose of this task is actually to replace with a dummy tx with higher gas price offering
+// it is a special case of the utils:replace-tx task
+task("canceltx", "Cancel tx in mempool")
+    .addParam("signer", "Signer name: 'signer' or 'deployer", "deployer")
+    .addOptionalParam("hash", "Transaction hash to cancel")
+    // WARN: have at hand this number by making: const N = await provider.getTransactionCount(signer);
+    // "N" will match the next nonce to be used
+    .addOptionalParam("n", "Nonce of the transaction to cancel")
+    .setAction(async ({ signer, hash, n }, hre) => {
+        const {
+            ethers: { provider },
+            ethers,
+        } = hre;
+        const { AddressZero } = hre.ethers.constants;
 
-// functions to parse distribution .csv files on NATIVE coin
-async function parseFileNATIVE(fileName) {
-    console.log(fileName);
-    let totalAmount = 0;
-    let receivers = [];
-    let amounts = [];
-    let errorMsg = "";
+        const signerAcc = (await hre.getNamedAccounts())[signer].toLowerCase();
+        const deployerSigner = await ethers.getSigner(signerAcc);
 
-    return new Promise((resolve, reject) => {
-        fs.createReadStream(fileName)
-            .pipe(csv())
-            .on("data", (row) => {
-                const tokenOwner = row[0].trim();
-                let rawAmount = row[1].trim();
-                let amountStr = rawAmount.replace(",", "").replace(".", "").replace(" ", "");
+        let nonce;
+        if (!n) {
+            logger.error("THERE IS A GREAT CHANCE YOUR TRANSACTION IS ALREADY MINED");
+            logger.error("A DUMMY TX WITH THE EXPECTED NEXT NONCE WILL BE SENT");
+            nonce = await provider.getTransactionCount(signerAcc);
+        } else {
+            nonce = n;
+        }
 
-                if (parseInt(amountStr, 10) !== parseInt(rawAmount, 10)) {
-                    errorMsg += `\n${tokenOwner} amount: ${rawAmount}`;
+        let newGasPrice;
+        let newMaxFee;
+        if (hash) {
+            // Fetch the transaction details
+            const tx = await provider.getTransaction(hash);
+            if (tx) {
+                if (tx.blockNumber) {
+                    logger.error(`Transaction with hash ${hash} has already been mined.`);
+                    return;
                 }
+                // Calculate new gas price (or max fee per gas for EIP-1559)
+                const newGasPrice = tx.gasPrice ? tx.gasPrice.mul(3).div(2) : null;
+                const newMaxFee = tx.maxFeePerGas ? tx.maxFeePerGas.mul(3).div(2) : null;
+            }
+        }
 
-                const amount = parseInt(amountStr, 10);
-                totalAmount += amount;
+        if (!newGasPrice) {
+            newGasPrice = (await provider.getFeeData()).gasPrice.mul(3).div(2);
+        }
 
-                receivers.push(tokenOwner);
-                amounts.push(amount);
+        if (!newMaxFee) {
+            currentMaxFee = (await provider.getFeeData()).maxFeePerGas;
+            newMaxFee = currentMaxFee ? currentMaxFee.mul(3).div(2) : null;
+        }
 
-                console.log("=======================================");
-                console.log(`'${tokenOwner}',`);
-                console.log(amount);
-            })
-            .on("end", () => {
-                console.log(receivers);
-                console.log(amounts);
+        const replacementTx = {
+            nonce: nonce,
+            from: signerAcc,
+            to: AddressZero,
+            data: "0x",
+            value: 0,
+            gasLimit: 100000,
+            gasPrice: newGasPrice,
+        };
+        if (newMaxFee) {
+            replacementTx.maxFeePerGas = newMaxFee;
+        }
+        const dummyTx = await deployerSigner.sendTransaction(replacementTx);
+        logger.info(`Dummy transaction hash successfully broadcated at: `);
+        logger.info(dummyTx.hash);
+        const dummyReceipt = await dummyTx.wait();
 
-                if (errorMsg !== "") {
-                    reject(new Error(`Formatting error: ${errorMsg}`));
-                } else {
-                    resolve({
-                        totalAmount,
-                        receivers,
-                        amounts,
-                    });
-                }
-            })
-            .on("error", (err) => {
-                reject(err);
-            });
+        logger.success(`Target transaction has been successfully cancelled.`);
     });
-}
+// droptx actually is a replacer of a transaction that we don't want to be confirmed
+// when something goes wrong and we want to prevent the confirmation and we need to proceed fast.
+// the prupose of this task is actually to replace with a dummy tx with higher gas price offering
+// it is a special case of the utils:replace-tx task
+// fastest, safest way of use:               $ hh droptx --n <Current-Tx-Count> --network <network>
+task("droptx", "Cancel tx in mempool")
+    .addParam("signer", "Signer name: 'signer' or 'deployer", "deployer")
+    .addOptionalParam("hash", "Transaction hash to cancel")
+    // WARN: have at hand this number by making: const N = await provider.getTransactionCount(signer);
+    // "N" will match the next nonce to be used
+    .addOptionalParam("n", "Nonce of the transaction to cancel")
+    .setAction(async ({ signer, hash, n }, hre) => {
+        const {
+            ethers: { provider },
+            ethers,
+        } = hre;
+        const { AddressZero } = hre.ethers.constants;
 
-// functions to parse distribution .csv files on ERC20 token
-async function parseFile(fileName, multiplier) {
-    console.log(fileName);
-    let totalAmount = 0;
-    let receivers = [];
-    let amounts = [];
-    let errorMsg = "";
+        const signerAcc = (await hre.getNamedAccounts())[signer].toLowerCase();
+        const deployerSigner = await ethers.getSigner(signerAcc);
 
-    return new Promise((resolve, reject) => {
-        fs.createReadStream(fileName)
-            .pipe(csv())
-            .on("data", (row) => {
-                const tokenOwner = row[0].trim();
-                const amountStr = row[1].trim();
-                const decimals = amountStr.split(".");
+        let nonce;
+        if (!n) {
+            logger.error("THERE IS A GREAT CHANCE YOUR TRANSACTION IS ALREADY MINED");
+            logger.error("A DUMMY TX WITH THE EXPECTED NEXT NONCE WILL BE SENT");
+            nonce = await provider.getTransactionCount(signerAcc);
+        } else {
+            nonce = n;
+        }
 
-                if (decimals.length !== 2 || decimals[1].length !== 2) {
-                    errorMsg += `\n${tokenOwner} amount: ${amountStr}`;
+        let newGasPrice;
+        let newMaxFee;
+        if (hash) {
+            // Fetch the transaction details
+            const tx = await provider.getTransaction(hash);
+            if (tx) {
+                if (tx.blockNumber) {
+                    logger.error(`Transaction with hash ${hash} has already been mined.`);
+                    return;
                 }
+                // Calculate new gas price (or max fee per gas for EIP-1559)
+                const newGasPrice = tx.gasPrice ? tx.gasPrice.mul(3).div(2) : null;
+                const newMaxFee = tx.maxFeePerGas ? tx.maxFeePerGas.mul(3).div(2) : null;
+            }
+        }
 
-                let amount = amountStr.replace(",", "").replace(".", "");
-                amount = parseInt(amount, 10) * multiplier;
-                totalAmount += amount;
+        if (!newGasPrice) {
+            newGasPrice = (await provider.getFeeData()).gasPrice.mul(3).div(2);
+        }
 
-                receivers.push(tokenOwner);
-                amounts.push(amount);
+        if (!newMaxFee) {
+            currentMaxFee = (await provider.getFeeData()).maxFeePerGas;
+            newMaxFee = currentMaxFee ? currentMaxFee.mul(3).div(2) : null;
+        }
 
-                console.log("=======================================");
-                console.log(`'${tokenOwner}',`);
-                console.log(amount);
-            })
-            .on("end", () => {
-                console.log(receivers);
-                console.log(amounts);
+        const replacementTx = {
+            nonce: nonce,
+            from: signerAcc,
+            to: AddressZero,
+            data: "0x",
+            value: 0,
+            gasLimit: 100000,
+            gasPrice: newGasPrice,
+        };
+        if (newMaxFee) {
+            replacementTx.maxFeePerGas = newMaxFee;
+        }
+        const dummyTx = await deployerSigner.sendTransaction(replacementTx);
+        logger.info(`Dummy transaction hash successfully broadcated at: `);
+        logger.info(dummyTx.hash);
+        const dummyReceipt = await dummyTx.wait();
 
-                if (errorMsg !== "") {
-                    reject(new Error(`Formatting error: ${errorMsg}`));
-                } else {
-                    resolve({
-                        totalAmount,
-                        receivers,
-                        amounts,
-                    });
-                }
-            })
-            .on("error", (err) => {
-                reject(err);
-            });
+        logger.success(`Target transaction has been successfully cancelled.`);
     });
-}
-
 // a task to use the GenericTokenSender.transferTokensUsingList function to distribute tokens
-// way of use: $ hh sendDirect --currency=USDC --path=./scripts/externalData/dist.csv --dryrun=false --multiplier=10*16 --network bobMainnet
-task("sendDirect", "Direct token sender script")
-    .addParam(
-        "currency",
-        "The currency type (e.g., NATIVE, USDC, USDT, DAI, WBTC, WETH, SOV, XUSD, POWA, SAT)"
-    )
+// way of use: $ hh utils:send-direct --currency USDC --path "./scripts/externalData/dist.csv" --network bobMainnet
+// example of dryRun: while running in another terminal: $ npm run fork:rsk-mainnet-chained
+// we do: $ export NETWORK_ID=30 && hh utils:send-direct --currency BPro --path ./scripts/externalData/example_native.csv --dry-run --network rskForkedMainnet --account 0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711
+task("utils:send-direct", "Direct token sender script")
+    .addOptionalParam("currency", "The currency type (e.g., WBTC, XUSD, POWA, SAT...)")
     .addParam("path", "The file path for addresses")
-    .addParam("dryrun", "Whether to do a SIMULATION or not")
-    .addParam("multiplier", "The multiplier for token amounts", 10 * 16, types.int)
-    .setAction(async ({ currency, path, dryrun, multiplier }, hre) => {
+    .addParam("account", "The address of the account to use for signing the transaction")
+    .addFlag("dryRun", "When present, the flag instructs the script to simulate the transaction")
+    .addFlag(
+        "native",
+        "When present, the flag instructs the script to use the native currency and ignore the currency parameter"
+    )
+    .setAction(async ({ currency, path, account, dryRun, native }, hre) => {
+        const { BigNumber } = require("ethers");
+        // if native flag is not present, the currency parameter is required
+        if (!native && !currency) {
+            logger.error(
+                "If the native asset is not distirbuted, the currency parameter is required"
+            );
+            return;
+        }
         const { ethers } = hre;
+        const { constants } = require("ethers");
 
-        const acct = (await ethers.getSigners())[0]; // Use the first signer from ethers
+        const testBlock = await ethers.provider.getBlock("latest");
 
-        const GenericTokenSender = await ethers.getContract("GenericTokenSender");
+        if (dryRun && (!hre.network.tags.forked || testBlock.number === 0)) {
+            logger.error("Dry run is only available on live forked networks");
+            logger.info("Please run in a separate terminal: $ npm run fork:xxx-mainnet-chained");
+            logger.info("Where 'xxx' is the network name: bob, eth, bnb or rsk");
+            return;
+        }
 
-        const balanceBefore = await acct.getBalance();
+        let signer = await getSignerFromAccount(hre, account);
+        let signerAddress = signer._address;
+        logger.info("Signer address: ", signerAddress);
+
+        // this action is only valid in RSK or BOB networks.
+        // We will update on future deployments on Eth and Bnb networks.
+        const netId = await ethers.provider.getNetwork().then((n) => n.chainId);
+        logger.info("Network ID: ", netId);
+        if (netId === 1 || netId === 56) {
+            logger.error("This action is only valid in RSK or BOB networks");
+            return;
+        }
+
+        // GenericTokenSender contract address in BoB: 0x08429a6E565d7D3C15C40da30f1401b8985d71e3
+        // GenericTokenSender contract address in RSK: 0x10DE444DE46E106eEF67f3793EE08cFf5297B0AA
+        const GenericTokenSender = await ethers.getContract("GenericTokenSender", signer);
+        const token = native ? constants.AddressZero : await ethers.getContract(currency, signer);
+        const decimals = native ? 18 : await token.decimals();
+        if (native) {
+            currency = assetNamesByNetwork[netId.toString()];
+        }
+        logger.info(`Decimals of ${currency} is: `, decimals);
+
+        const balanceBefore = await signer.getBalance();
         let totalAmount = 0;
 
         // Data parsing
-        const data =
-            currency === "NATIVE"
-                ? await parseFileNATIVE(path)
-                : await parseFile(path, multiplier);
+        const data = native
+            ? await parseFileForSendDirect(path, 18)
+            : await parseFileForSendDirect(path, decimals);
         totalAmount += data.totalAmount;
+        logger.success("Data successfully parsed");
 
-        // Check if the currency exists in the currencies object
-        if (currency !== "NATIVE" && !currencies.hasOwnProperty(currency)) {
-            throw new Error(
-                `Currency "${currency}" not found in the supported currencies list. Please check for typos or add the currency.`
-            );
-        }
-
-        // Dry run check
-        if (!dryrun) {
-            const tx = await GenericTokenSender.transferTokensUsingList(
-                currency !== "NATIVE"
-                    ? currencies[currency.toLowerCase()]
-                    : ethers.constants.AddressZero,
-                data.receivers,
-                data.amounts
-            );
-            const receiptTx = await tx.wait();
-            console.log("Transaction hash:");
-            console.log(tx.hash);
-            console.log("Transaction gas used:");
-            console.log(tx.gasUsed);
+        if (!native) {
+            // check if signer hold enough assets and if so, send it to GenericTokenSender
+            const balance = await token.balanceOf(signerAddress);
+            const contractBalance = await token.balanceOf(GenericTokenSender.address);
+            logger.info("Sender's balance of token: ", balance.toString());
+            logger.info("GenericTokenSender's balance of token: ", contractBalance.toString());
+            if (balance.add(contractBalance).lt(totalAmount)) {
+                logger.error("Insufficient funds to distribute");
+                return;
+            }
+            const amountToTransfer = BigNumber.from(totalAmount).sub(contractBalance);
+            const transfer_tx = await token.transfer(GenericTokenSender.address, amountToTransfer);
+            const transfer_receipt = await transfer_tx.wait();
+            logger.success("Token transferred");
             fs.writeFileSync(
-                `./scripts/externalData/${currency}_distribution_tx_receipt.json`,
-                JSON.stringify(receiptTx, null, 2),
+                `./scripts/externalData/${currency}_distribution_initial_transfer.json`,
+                JSON.stringify(transfer_receipt, null, 2),
                 { flags: "w" }
             );
         } else {
-            // MISSING SCRIPT TO SIMULATE TRANSACTION
+            // check if signer hold enough assets and if so, send it to GenericTokenSender
+            const balance = await signer.getBalance();
+            const contractBalance = await ethers.provider.getBalance(GenericTokenSender.address);
+            logger.info("sender's balance of token: ", balance.toString());
+            logger.info("GenericTokenSender's balance of token: ", contractBalance.toString());
+            if (balance.add(contractBalance).lt(totalAmount)) {
+                logger.error("Insufficient funds to distribute");
+                return;
+            }
+            const amountToTransfer = BigNumber.from(totalAmount).sub(contractBalance);
+            const transfer_tx = await signer.sendTransaction({
+                to: GenericTokenSender.address,
+                value: amountToTransfer,
+            });
+            const transfer_receipt = await transfer_tx.wait();
+            logger.success("Native Asset transferred");
+            fs.writeFileSync(
+                `./scripts/externalData/${currency}_distribution_initial_transfer.json`,
+                JSON.stringify(transfer_receipt, null, 2),
+                { flags: "w" }
+            );
         }
 
-        console.log("=======================================");
-        console.log(`${currency} amount:`);
-        console.log(totalAmount / 10 ** 18);
+        const usersBalancesBefore = [];
 
-        const balanceAfter = await conf.acct.getBalance();
-        console.log("Execution cost:");
-        console.log((balanceBefore - balanceAfter) / 10 ** 18);
+        // Get the balances of the users before the distribution
+        for (let i = 0; i < data.receivers.length; i++) {
+            const balance = native
+                ? await ethers.provider.getBalance(data.receivers[i])
+                : await token.balanceOf(data.receivers[i]);
+            usersBalancesBefore.push(balance);
+        }
+
+        const tx = await GenericTokenSender.transferTokensUsingList(
+            !native ? token.address.toLowerCase() : token,
+            data.receivers,
+            data.amounts
+        );
+        const receiptTx = await tx.wait();
+        logger.info("Transaction hash:");
+        logger.info(tx.hash);
+        logger.info("Transaction gas used:");
+        logger.info(tx.gasUsed);
+        fs.writeFileSync(
+            `./scripts/externalData/${currency}_distribution_tx_receipt.json`,
+            JSON.stringify(receiptTx, null, 2),
+            { flags: "w" }
+        );
+
+        const usersBalancesAfter = [];
+
+        // Get the balances of the users after the distribution
+        for (let i = 0; i < data.receivers.length; i++) {
+            const balance = native
+                ? await ethers.provider.getBalance(data.receivers[i])
+                : await token.balanceOf(data.receivers[i]);
+            usersBalancesAfter.push(balance);
+        }
+
+        logger.info("=======================================");
+        logger.info(`${currency} amount:`);
+        logger.info(ethers.utils.formatUnits(totalAmount, decimals).toString() * 1);
+
+        const balanceAfter = await signer.getBalance();
+        logger.info("Execution cost:");
+        logger.info(
+            ethers.utils.formatUnits(balanceBefore.sub(balanceAfter), "ether").toString() * 1
+        );
+
+        for (let i = 0; i < data.receivers.length; i++) {
+            const diff = usersBalancesAfter[i] - usersBalancesBefore[i];
+            const expectedDiff = data.amounts[i].toString();
+            const matchDiff = diff == expectedDiff.toString();
+            logger.info("=======================================");
+            logger.info(`amount received by '${data.receivers[i]}',`);
+            logger.info(diff / 10 ** decimals);
+            logger.info("while the expected amount was:");
+            logger.info(data.amounts[i].toString() / 10 ** decimals);
+            if (matchDiff) {
+                logger.success(`The expected amount matches for ${data.receivers[i]}`);
+            } else {
+                console.error(`The amounts DO NOT match for ${data.receivers[i]}`);
+            }
+        }
     });
-
 // way of use: $ hh simulate-tx --tx-to <address> --tx-value <value> --tx-data <data> --tx-from <address> --tx-gas-limit <gas-limit> --tx-gas-price <gas-price> --tx-nonce <nonce> --url <url>
-task("simulate-tx", "Simulates a transaction on forked network")
+task("utils:simulate-tx", "Simulates a transaction on forked network")
     .addParam("txTo", "The address to send the transaction to")
     .addParam("txValue", "The value to send in the transaction")
     .addParam("txFrom", "The account to use to sign the transaction")
@@ -422,18 +627,17 @@ task("simulate-tx", "Simulates a transaction on forked network")
         signer = await getImpersonatedSigner(taskArgs.txFrom);
         const balance = await ethers.provider.getBalance(signer.address);
         if (balance.eq(0)) {
-            console.log(`Setting balance for address ${signer.address}...`);
+            logger.info(`Setting balance for address ${signer.address}...`);
             await setBalance(signer.address, ethers.utils.parseEther("1.0"));
         }
-        // const signedTx = await signer.signTransaction(tx);
         const txResponse = await signer.sendTransaction(tx);
         const txReceipt = await txResponse.wait();
-        console.log("Simulated Transaction hash: ", txResponse.hash);
+        logger.info("Simulated Transaction hash: ", txResponse.hash);
         fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), { flag: "w+" });
         fs.writeFileSync("./txReceipt.json", JSON.stringify(txReceipt, null, 2), { flag: "w+" });
     });
-// way of use: $ hh send-tx --network <network-according-hh-config> --tx-to <address> --tx-value <value> --tx-data <data> --tx-from <address> --tx-gas-limit <gas-limit> --tx-gas-price <gas-price> --tx-nonce <nonce> --simulate
-task("send-tx", "Creates and sends a raw transaction")
+// way of use: $ hh utils:send-tx --network <network-according-hh-config> --tx-to <address> --tx-value <value> --tx-data <data> --tx-from <address> --tx-gas-limit <gas-limit> --tx-gas-price <gas-price> --tx-nonce <nonce> --simulate
+task("utils:send-tx", "Creates and sends a raw transaction")
     .addParam("txTo", "address: The address to send the transaction to")
     .addParam("txValue", "number: The value to send in the transaction")
     .addParam("txData", "byte-string: The data to include in the transaction")
@@ -446,7 +650,7 @@ task("send-tx", "Creates and sends a raw transaction")
         const { ethers } = hre;
         if (!taskArgs.txGasPrice) {
             taskArgs.txGasPrice = await ethers.provider.getGasPrice();
-            console.log(
+            logger.info(
                 `Current gas price: ${ethers.utils.formatUnits(taskArgs.txGasPrice, "gwei")} gwei`
             );
         }
@@ -465,7 +669,7 @@ task("send-tx", "Creates and sends a raw transaction")
                 (account) => account.address.toLowerCase() === taskArgs.txFrom.toLowerCase()
             );
             if (!signer || taskArgs.simulate) {
-                console.log(`simulating on forked network...`);
+                logger.info(`simulating on forked network...`);
                 const command =
                     "hh simulate-tx " +
                     `--tx-to ${tx.to} ` +
@@ -476,23 +680,22 @@ task("send-tx", "Creates and sends a raw transaction")
                     `${taskArgs.txGasLimit ? `--tx-gas-limit ${tx.gasLimit}` : ""} ` +
                     `${taskArgs.txGasPrice ? `--tx-gas-price ${tx.gasPrice}` : ""} ` +
                     `${taskArgs.txNonce ? `--tx-nonce ${tx.nonce}` : ""}`;
-                console.log(`Running command: ${command}`);
+                logger.info(`Running command: ${command}`);
                 try {
                     // Run the child task synchronously
                     const output = execSync(command, { stdio: "inherit" });
-                    console.log(`Child task completed successfully.`);
+                    logger.success(`Child task completed successfully.`);
                 } catch (error) {
                     console.error(`Error executing child task: ${error.message}`);
                 }
                 return;
-            } else if (signer && !simulate) {
-                console.log(
+            } else if (signer && !taskArgs.simulate) {
+                logger.warning(
                     `WARINIG: REAL TRANSACTION;\n Address ${taskArgs.txFrom} found in wallet, sending transaction...`
                 );
-                const signedTx = await ethers.provider.getSigner().signTransaction(tx);
-                const txResponse = await ethers.provider.sendTransaction(signedTx);
+                const txResponse = await signer.sendTransaction(tx);
+                logger.info("Transaction hash: ", txResponse.hash);
                 const txReceipt = await txResponse.wait();
-                console.log("Transaction hash: ", txResponse.hash);
                 fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), {
                     flag: "w+",
                 });
@@ -504,7 +707,7 @@ task("send-tx", "Creates and sends a raw transaction")
         } else {
             signer = await ethers.provider.getSigner();
             if (taskArgs.simulate) {
-                console.log("simulating on forked network...");
+                logger.info("simulating on forked network...");
                 const command =
                     "hh simulate-tx " +
                     `--tx-to ${tx.to} ` +
@@ -518,19 +721,19 @@ task("send-tx", "Creates and sends a raw transaction")
                 try {
                     // Run the child task synchronously
                     const output = execSync(command, { stdio: "inherit" });
-                    console.log(`Child task completed successfully.`);
+                    logger.success(`Child task completed successfully.`);
                 } catch (error) {
                     console.error(`Error executing child task: ${error.message}`);
                 }
                 return;
             } else {
-                console.log(
+                logger.warning(
                     "WARINIG: REAL TRANSACTION;\n No address provided, sending transaction from account[0]..."
                 );
                 const signedTx = await signer.signTransaction(tx);
                 const txResponse = await ethers.provider.sendTransaction(signedTx);
                 const txReceipt = await txResponse.wait();
-                console.log("Transaction hash: ", txResponse.hash);
+                logger.info("Transaction hash: ", txResponse.hash);
                 fs.writeFileSync("./txResponse.json", JSON.stringify(txResponse, null, 2), {
                     flag: "w+",
                 });
@@ -542,7 +745,7 @@ task("send-tx", "Creates and sends a raw transaction")
         }
     });
 // way of use: $ hh data-parser --abi <abi> --params <params>
-task("data-parser", "Encode data into abi format")
+task("utils:data-parser", "Encode data into abi format")
     .addParam("abi", "must follow the following syntax: 'function functionName(type1,type2,...)'")
     .addParam("params", "A single string wit comma separated values")
     .setAction(async (taskArgs, hre) => {
@@ -557,24 +760,21 @@ task("data-parser", "Encode data into abi format")
         params.forEach((param, index) => {
             try {
                 const x = JSON.parse(param);
-                // if JSON parse is successful, convert param into ethers BigNumber
                 params[index] = ethers.BigNumber.from(x);
-                // console.log(`Parsed parameter for index ${index}: `, params[index]);
             } catch (e) {
                 params[index] = param.toLowerCase();
-                // console.log(`Parsed parameter for index ${index}: `, params[index]);
             }
         });
         if (match && match[1]) {
             fName = match[1];
             const data = iface.encodeFunctionData(fName, params);
-            console.log("\n\nEncoded data: \n\n", data, "\n\n");
+            logger.success("\n\nEncoded data: \n\n", data, "\n\n");
         } else {
-            console.log("Invalid ABI syntax");
+            logger.error("Invalid ABI syntax");
         }
     });
 // way of use: $ hh unit-parser --unit <unit> --decimals <decimals>
-task("unit-parser", "Parse unit from string")
+task("utils:unit-parser", "Parse unit from string")
     .addParam("unit", "The unit to parse")
     .addParam("decimals", "The number of decimals")
     .setAction(async (taskArgs, hre) => {
@@ -582,10 +782,10 @@ task("unit-parser", "Parse unit from string")
         const unit = taskArgs.unit;
         const decimals = taskArgs.decimals;
         const unitParsed = ethers.utils.parseUnits(unit, decimals);
-        console.log("Unit parsed: ", unitParsed.toString());
+        logger.info("Unit parsed: ", unitParsed.toString());
     });
 // way of use: $ hh zero-padder --arg <arg> --bytes <number-of-bytes>
-task("zero-padder", "Pad an argument with zeros")
+task("utils:zero-padder", "Pad an argument with zeros")
     .addParam("arg", "The argument to pad")
     .addParam("bytes", "The length of the argument after padding")
     .setAction(async (taskArgs, hre) => {
@@ -593,5 +793,5 @@ task("zero-padder", "Pad an argument with zeros")
         const arg = taskArgs.arg.toLowerCase();
         const bytesLength = taskArgs.bytes;
         const paddedArg = ethers.utils.hexZeroPad(arg, bytesLength);
-        console.log("Padded argument: ", paddedArg);
+        logger.info("Padded argument: ", paddedArg);
     });

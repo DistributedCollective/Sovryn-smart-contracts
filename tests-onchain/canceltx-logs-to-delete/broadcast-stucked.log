@@ -1,0 +1,96 @@
+// we aim to send a tx to be stucked due low gas price levels:
+// tx data: 
+// function selector: transfer(address,uint256) = 0xa9059cbb
+// Alice's address = 0xa64a9275b64676466bb76fa51e3f1ab276535d19
+// payload: 0xa9059cbb000000000000000000000000a64a9275b64676466bb76fa51e3f1ab276535d190000000000000000000000000000000000000000000000000de0b6b3a7640000
+// hh utils:send-tx --network rskSovrynTestnet --tx-to 0x6a9a07972d07e58f0daf5122d11e069288a375fb --tx-value 0 --tx-data 0xa9059cbb000000000000000000000000a64a9275b64676466bb76fa51e3f1ab276535d190000000000000000000000000000000000000000000000000de0b6b3a7640000 --tx-from 0xcab74e724b0bc1e7eb05449073b87f6ce7fa8919 --tx-gas-limit 100000 --tx-gas-price 5042793 --tx-nonce 393
+
+
+
+ubuntu@ip-10-0-12-30:~/SOVRYN/CORE$ hh utils:send-tx --network rskSovrynTestnet --tx-to 0x6a9a07972d07e58f0daf5122d11e069288a375fb --tx-value 0 --tx-data 0xa9059cbb000000000000000000000000a64a9275b64676466bb76fa51e3f1ab276535d190000000000000000000000000000000000000000000000000de0b6b3a7640000 --tx-from 0xcab74e724b0bc1e7eb05449073b87f6ce7fa8919 --tx-gas-limit 100000 --tx-gas-price 5042793 --tx-nonce 393
+You have both ethereum-waffle and @nomicfoundation/hardhat-chai-matchers installed. They don't work correctly together, so please make sure you only use one.
+
+We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://hardhat.org/migrate-from-waffle
+CryptoEnv > Type your password to decrypt the env, or press enter to skip it
+
+CryptoEnv > 3 keys decrypted
+WARINIG: REAL TRANSACTION;
+ Address 0xcab74e724b0bc1e7eb05449073b87f6ce7fa8919 found in wallet, sending transaction...
+Transaction hash:  0x570542fe66b8b09daf823eb412d9c93479ffa4f39199d991036c05aa322380ff
+ubuntu@ip-10-0-12-30:~/SOVRYN/CORE$ 
+
+
+
+An unexpected error occurred:
+
+Error: nonce has already been used
+
+// we need to repeat with lower gas price
+// hh utils:send-tx --network rskSovrynTestnet --tx-to 0x6a9a07972d07e58f0daf5122d11e069288a375fb --tx-value 0 --tx-data 0xa9059cbb000000000000000000000000a64a9275b64676466bb76fa51e3f1ab276535d190000000000000000000000000000000000000000000000000de0b6b3a7640000 --tx-from 0xcab74e724b0bc1e7eb05449073b87f6ce7fa8919 --tx-gas-limit 100000 --tx-gas-price 5000000 --tx-nonce 394
+
+
+
+
+ubuntu@ip-10-0-12-30:~/SOVRYN/CORE$ hh utils:send-tx --network rskSovrynTestnet --tx-to 0x6a9a07972d07e58f0daf5122d11e069288a375fb --tx-value 0 --tx-data 0xa9059cbb000000000000000000000000a64a9275b64676466bb76fa51e3f1ab276535d190000000000000000000000000000000000000000000000000de0b6b3a7640000 --tx-from 0xcab74e724b0bc1e7eb05449073b87f6ce7fa8919 --tx-gas-limit 100000 --tx-gas-price 5000000 --tx-nonce 394
+You have both ethereum-waffle and @nomicfoundation/hardhat-chai-matchers installed. They don't work correctly together, so please make sure you only use one.
+
+We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://hardhat.org/migrate-from-waffle
+CryptoEnv > Type your password to decrypt the env, or press enter to skip it
+
+CryptoEnv > 3 keys decrypted
+WARINIG: REAL TRANSACTION;
+ Address 0xcab74e724b0bc1e7eb05449073b87f6ce7fa8919 found in wallet, sending transaction...
+An unexpected error occurred:
+
+Error: transaction was replaced [ See: https://links.ethers.org/v5-errors-TRANSACTION_REPLACED ] (cancelled=true, reason="replaced", replacement={"hash":"0x197d1d737b0b0c1059693edf4bf1a70c3762024b5715e8e64f6a42ecfcd7d971","type":0,"accessList":null,"blockHash":"0xb70c3d3ecc886b40e8585ab80eda3ef8295ee55b9c29c12f20f6003cb2917859","blockNumber":5852548,"transactionIndex":2,"confirmations":1,"from":"0xcaB74E724B0Bc1e7Eb05449073B87f6cE7FA8919","gasPrice":{"type":"BigNumber","hex":"0x7ce916"},"gasLimit":{"type":"BigNumber","hex":"0x0186a0"},"to":"0x0000000000000000000000000000000000000000","value":{"type":"BigNumber","hex":"0x00"},"nonce":394,"data":"0x","r":"0xbfb79a4212a45c2b5b3f357ae2f6a37e6ddd891990e3f665dc9a7cdb4784be68","s":"0x32228951b4b959b36492ce7ced08de1d9f0ab84f20ec2a0182ec1b9039c567d2","v":97,"creates":null,"chainId":31}, hash="0xe393b82d5954ed0d50ec6d50ca5492e62c3f955f438d3042dd128fd12a2a8108", receipt={"to":"0x0000000000000000000000000000000000000000","from":"0xcaB74E724B0Bc1e7Eb05449073B87f6cE7FA8919","contractAddress":null,"transactionIndex":2,"gasUsed":{"type":"BigNumber","hex":"0x5208"},"logsBloom":"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","blockHash":"0xb70c3d3ecc886b40e8585ab80eda3ef8295ee55b9c29c12f20f6003cb2917859","transactionHash":"0x197d1d737b0b0c1059693edf4bf1a70c3762024b5715e8e64f6a42ecfcd7d971","logs":[],"blockNumber":5852548,"confirmations":1,"cumulativeGasUsed":{"type":"BigNumber","hex":"0x02a6c6"},"status":1,"type":0,"byzantium":true}, code=TRANSACTION_REPLACED, version=providers/5.7.2)
+    at Logger.makeError (/home/ubuntu/SOVRYN/CORE/node_modules/@ethersproject/logger/src.ts/index.ts:269:28)
+    at EthersProviderWrapper.<anonymous> (/home/ubuntu/SOVRYN/CORE/node_modules/@ethersproject/providers/src.ts/base-provider.ts:1380:55)
+    at step (/home/ubuntu/SOVRYN/CORE/node_modules/@ethersproject/providers/lib/base-provider.js:48:23)
+    at Object.next (/home/ubuntu/SOVRYN/CORE/node_modules/@ethersproject/providers/lib/base-provider.js:29:53)
+    at fulfilled (/home/ubuntu/SOVRYN/CORE/node_modules/@ethersproject/providers/lib/base-provider.js:20:58)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5) {
+  reason: 'replaced',
+  code: 'TRANSACTION_REPLACED',
+  cancelled: true,
+  replacement: {
+    hash: '0x197d1d737b0b0c1059693edf4bf1a70c3762024b5715e8e64f6a42ecfcd7d971',
+    type: 0,
+    accessList: null,
+    blockHash: '0xb70c3d3ecc886b40e8585ab80eda3ef8295ee55b9c29c12f20f6003cb2917859',
+    blockNumber: 5852548,
+    transactionIndex: 2,
+    confirmations: 1,
+    from: '0xcaB74E724B0Bc1e7Eb05449073B87f6cE7FA8919',
+    gasPrice: BigNumber { _hex: '0x7ce916', _isBigNumber: true },
+    gasLimit: BigNumber { _hex: '0x0186a0', _isBigNumber: true },
+    to: '0x0000000000000000000000000000000000000000',
+    value: BigNumber { _hex: '0x00', _isBigNumber: true },
+    nonce: 394,
+    data: '0x',
+    r: '0xbfb79a4212a45c2b5b3f357ae2f6a37e6ddd891990e3f665dc9a7cdb4784be68',
+    s: '0x32228951b4b959b36492ce7ced08de1d9f0ab84f20ec2a0182ec1b9039c567d2',
+    v: 97,
+    creates: null,
+    chainId: 31,
+    wait: [Function (anonymous)]
+  },
+  hash: '0xe393b82d5954ed0d50ec6d50ca5492e62c3f955f438d3042dd128fd12a2a8108',
+  receipt: {
+    to: '0x0000000000000000000000000000000000000000',
+    from: '0xcaB74E724B0Bc1e7Eb05449073B87f6cE7FA8919',
+    contractAddress: null,
+    transactionIndex: 2,
+    gasUsed: BigNumber { _hex: '0x5208', _isBigNumber: true },
+    logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+    blockHash: '0xb70c3d3ecc886b40e8585ab80eda3ef8295ee55b9c29c12f20f6003cb2917859',
+    transactionHash: '0x197d1d737b0b0c1059693edf4bf1a70c3762024b5715e8e64f6a42ecfcd7d971',
+    logs: [],
+    blockNumber: 5852548,
+    confirmations: 1,
+    cumulativeGasUsed: BigNumber { _hex: '0x02a6c6', _isBigNumber: true },
+    status: 1,
+    type: 0,
+    byzantium: true
+  }
+}
+ubuntu@ip-10-0-12-30:~/SOVRYN/CORE$ 

@@ -811,6 +811,18 @@ const upgradeWithTransparentUpgradableProxy = async (
     }
 };
 
+const getImpersonatedSignerFromJsonRpcProvider = async (addressToImpersonate) => {
+    //await impersonateAccount(addressToImpersonate);
+    //return await ethers.getSigner(addressToImpersonate);
+    const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
+    await provider.send("hardhat_impersonateAccount", [addressToImpersonate]);
+    console.log(
+        "provider.getSigner(addressToImpersonate):",
+        provider.getSigner(addressToImpersonate).address
+    );
+    return provider.getSigner(addressToImpersonate);
+};
+
 module.exports = {
     getStakingModulesNames,
     getLoanTokenModulesNames,
@@ -839,4 +851,5 @@ module.exports = {
     logTimer,
     upgradeWithTransparentUpgradableProxy,
     getSignerFromAccount,
+    getImpersonatedSignerFromJsonRpcProvider,
 };

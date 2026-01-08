@@ -54,3 +54,6 @@ venv/
 !/external/artifacts/
 cache_hardhat/
 foundry/
+!/tests-onchain/canceltx-logs-to-delete/broadcast-stucked.log
+!/tests-onchain/canceltx-logs-to-delete/calcel-test.log
+!/tests-onchain/canceltx-logs-to-delete/console-rsk-testnet.log

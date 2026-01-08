@@ -1,0 +1,125 @@
+ubuntu@ip-10-0-12-30:~/SOVRYN/CORE$ hh console --network rskovrynTestnet
+You have both ethereum-waffle and @nomicfoundation/hardhat-chai-matchers installed. They don't work correctly together, so please make sure you only use one.
+
+We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://hardhat.org/migrate-from-waffle
+CryptoEnv > Type your password to decrypt the env, or press enter to skip it
+
+CryptoEnv > 3 keys decrypted
+You have both ethereum-waffle and @nomicfoundation/hardhat-chai-matchers installed. They don't work correctly together, so please make sure you only use one.
+
+We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://hardhat.org/migrate-from-waffle
+Welcome to Node.js v16.20.0.
+Type ".help" for more information.
+> var txpoolContent = await hre.ethers.provider.send("txpool_content", []);
+undefined
+> Object.keys(txpoolContent.pending).length
+3
+> Object.keys(txpoolContent.pending)
+[
+  '1e6721e0a50dd312d3381f75640ff453df385690',
+  'c67d9ee30d2119a384e02de568be80fe785074ba',
+  'f813c5dfe9602fb4b76ad71305788e9ca1649f31'
+]
+> Object.values(txpoolContent.pending)
+[
+  { '430208': [ [Object] ] },
+  { '994199': [ [Object] ] },
+  { '418834': [ [Object] ] }
+]
+> var alpha = (await hre.getNamedAccounts())["deployer"];
+undefined
+> var token = await ethers.getContract("SOV");
+undefined
+> var alphaSOVBalance = await token.balanceOf(alpha);
+undefined
+> alphaSOVBalance.toString()
+'769132035924188321941'
+> var alphaRBTCBalance = await ethers.provider.getBalance(alpha);
+undefined
+> alphaRBTCBalance.toString()
+'2004085854910958704'
+> alphaRBTCBalance.toString()/10**18
+2.004085854910959
+> alphaSOVBalance.toString()/10**18
+769.1320359241884
+> alpha
+'0xcaB74E724B0Bc1e7Eb05449073B87f6cE7FA8919'
+> token.address
+'0x6a9A07972D07e58F0daf5122d11E069288A375fb'
+> var Alice = "0xA64A9275b64676466bb76fa51E3f1ab276535D19".toLowerCase()
+undefined
+> Alice
+'0xa64a9275b64676466bb76fa51e3f1ab276535d19'
+> Alpha
+Uncaught ReferenceError: Alpha is not defined
+> alpha.toLowerCase()
+'0xcab74e724b0bc1e7eb05449073b87f6ce7fa8919'
+> token.address.toLowerCase()
+'0x6a9a07972d07e58f0daf5122d11e069288a375fb'
+> var fees = await ethers.provider.getFeeData();
+undefined
+> fees
+{
+  lastBaseFeePerGas: null,
+  maxFeePerGas: null,
+  maxPriorityFeePerGas: null,
+  gasPrice: BigNumber { _hex: '0x530ce9', _isBigNumber: true }
+}
+> fees.gasPrice.toString()
+'5442793'
+> var N = await ethers.provider.getTransactionCount(alpha);
+undefined
+> N
+393
+> 
+/// weird the testnet's gas price, so mainnet was queried:
+ubuntu@ip-10-0-12-30:~/SOVRYN/CORE$ hh console --network rskSovrynMainnet
+You have both ethereum-waffle and @nomicfoundation/hardhat-chai-matchers installed. They don't work correctly together, so please make sure you only use one.
+
+We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://hardhat.org/migrate-from-waffle
+CryptoEnv > Type your password to decrypt the env, or press enter to skip it
+
+CryptoEnv > 3 keys decrypted
+You have both ethereum-waffle and @nomicfoundation/hardhat-chai-matchers installed. They don't work correctly together, so please make sure you only use one.
+
+We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://hardhat.org/migrate-from-waffle
+Welcome to Node.js v16.20.0.
+Type ".help" for more information.
+> var fees = await ethers.provider.getFeeData();
+undefined
+> fees
+{
+  lastBaseFeePerGas: null,
+  maxFeePerGas: null,
+  maxPriorityFeePerGas: null,
+  gasPrice: BigNumber { _hex: '0x03e252e0', _isBigNumber: true }
+}
+> fees.gasPrice.toString()
+'65164000'
+> 
+/// number is right
+
+
+
+
+// after running the stuck tx send, we should have this console open to query mempool:
+
+
+
+ubuntu@ip-10-0-12-30:~/SOVRYN/CORE$ hh console --network rskSovrynTestnet
+You have both ethereum-waffle and @nomicfoundation/hardhat-chai-matchers installed. They don't work correctly together, so please make sure you only use one.
+
+We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://hardhat.org/migrate-from-waffle
+CryptoEnv > Type your password to decrypt the env, or press enter to skip it
+
+CryptoEnv > 3 keys decrypted
+You have both ethereum-waffle and @nomicfoundation/hardhat-chai-matchers installed. They don't work correctly together, so please make sure you only use one.
+
+We recommend you migrate to @nomicfoundation/hardhat-chai-matchers. Learn how to do it here: https://hardhat.org/migrate-from-waffle
+Welcome to Node.js v16.20.0.
+Type ".help" for more information.
+> var txpoolContent = await hre.ethers.provider.send("txpool_content", []);
+undefined
+> Object.keys(txpoolContent.pending).length
+3
+> 

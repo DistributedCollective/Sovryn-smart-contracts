@@ -1,0 +1,90 @@
+{
+    "WBTC": [
+        "0x03c7054bcb39f7b2e5b2c7acb37583e32d70cfa3",
+        "1",
+        "wrapped-bitcoin",
+        8,
+        "https://coinmarketcap.com/dexscan/ethereum/0x4585fe77225b41b697c938b018e2ac67ac5a20c0/",
+        ".sc-f70bb44c-0.ckOAPt.base-text",
+        "out_btc.csv"
+    ],
+    "tBTC": [
+        "0xBBa2eF945D523C4e2608C9E1214C2Cc64D4fc2e2",
+        "1",
+        "tbtc",
+        18,
+        "https://coinmarketcap.com/dexscan/ethereum/0xdbac78be00503d10ae0074e5e5873a61fc56647c/",
+        ".sc-f70bb44c-0.ckOAPt.base-text",
+        "out_btc.csv"
+    ],
+    "rETH": [
+        "0xb5686c4f60904ec2bda6277d6fe1f7caa8d1b41a",
+        "1",
+        "rocket-pool-eth",
+        18,
+        "https://coinmarketcap.com/dexscan/ethereum/0x553e9c493678d8606d6a5ba284643db2110df823/",
+        ".sc-f70bb44c-0.ckOAPt.base-text",
+        "out_eth.csv"
+    ],
+    "wstETH": [
+        "0x85008aE6198BC91aC0735CB5497CF125ddAAc528",
+        "1",
+        "wrapped-steth",
+        18,
+        "https://coinmarketcap.com/dexscan/ethereum/0x109830a1aaad605bbf02a9dfa7b0b92ec2fb7daa/",
+        ".sc-f70bb44c-0.ckOAPt.base-text",
+        "out_eth.csv"
+    ],
+    "USDT": [
+        "0x05d032ac25d322df992303dca074ee7392c117b9",
+        "1",
+        "tether",
+        6,
+        "https://coinmarketcap.com/currencies/tether/",
+        ".sc-f70bb44c-0.jxpCgO.base-text",
+        ""
+    ],
+    "USDC": [
+        "0xe75D0fB2C24A55cA1e3F96781a2bCC7bdba058F0",
+        "1",
+        "usd-coin",
+        6,
+        "https://coinmarketcap.com/currencies/usd-coin/",
+        ".sc-f70bb44c-0.jxpCgO.base-text",
+        ""
+    ],
+    "DAI": [
+        "0x6c851f501a3f24e29a8e39a29591cddf09369080",
+        "1",
+        "dai",
+        18,
+        "https://coinmarketcap.com/currencies/multi-collateral-dai/",
+        ".sc-f70bb44c-0.jxpCgO.base-text",
+        ""
+    ],
+    "DLLR": ["0xf3107eEC1e6F067552C035FD87199e1A5169CB20", "1", "eDLLR", 18, "", "", ""],
+    "SOV": [
+        "0xba20a5e63eeEFfFA6fD365E7e540628F8fC61474",
+        "1",
+        "sovryn",
+        18,
+        "https://coinmarketcap.com/currencies/sovryn/",
+        ".sc-f70bb44c-0.jxpCgO.base-text",
+        "out_sov.csv"
+    ],
+    "POWA": ["0xd0C2f08a873186db5cFB7b767dB62BEF9e495BFF", "1", "POWA", 18, "", "", ""],
+    "SAT": ["0x78fea795cbfcc5ffd6fb5b845a4f53d25c283bdb", "1", "SAT", 18, "", "", ""],
+    "DOG": ["0xcE528Db0d9126FE940dcB9876E8C295df670D7c4", "1", "DOG", 18, "", "", ""],
+    "PUPS": ["0x5E36c0C344A29DE1DE2517845Fe2289B18Feea25", "1", "PUPS", 18, "", "", ""],
+    "SolvBTC": ["0x541FD749419CA806a8bc7da8ac23D346f2dF8B77", "1", "SolvBTC", 18, "", "", ""],
+    "UniBTC": ["0x236f8c0a61dA474dB21B693fB2ea7AAB0c803894", "2.8571", "UniBTC", 8, "", "", ""],
+    "SolvBTC_BBN": [
+        "0xCC0966D8418d412c599A6421b760a847eB169A8c",
+        "2.8571",
+        "SolvBTC_BBN",
+        18,
+        "",
+        "",
+        ""
+    ]
+}
