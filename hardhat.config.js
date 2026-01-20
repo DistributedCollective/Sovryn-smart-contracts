@@ -237,6 +237,14 @@ module.exports = {
             //timeout: 20000, // increase if needed; 20000 is the default value
             timeout: 100000,
         },
+        rskMainnetTenderly: {
+            url: "https://virtual.rsk.eu.rpc.tenderly.co/53afd183-7fa5-4f9a-9344-af72e3ce2195",
+            chainId: 30,
+            accounts: mainnetAccounts,
+            tags: ["mainnet"],
+            //timeout: 20000, // increase if needed; 20000 is the default value
+            timeout: 100000,
+        },
         rskSovrynTestnet: {
             chainId: 31,
             url: "https://testnet.sovryn.app/rpc",
@@ -341,6 +349,10 @@ module.exports = {
             rskForkedMainnetFlashback: ["external/deployments/rskForkedMainnetFlashback"],
             rskSovrynMainnet: ["external/deployments/rskMainnet"],
             rskMainnet: [
+                "external/deployments/rskMainnet",
+                "deployment/deployments/rskSovrynMainnet",
+            ],
+            rskMainnetTenderly: [
                 "external/deployments/rskMainnet",
                 "deployment/deployments/rskSovrynMainnet",
             ],

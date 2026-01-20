@@ -32,6 +32,21 @@ def main():
 
     ##################################
 
+    #sendFromMultisig('0xd9ecb390a6a32ae651d5c614974c5570c50a5d89', 12e18)
+    #sendTokensFromMultisig(conf.contracts['ETHs'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', 0.05*10**18)
+    #bal = getBalanceOf(conf.contracts['USDT'], conf.contracts['multisig'])
+    #sendTokensFromMultisig(conf.contracts['USDT'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', bal) 
+   
+    # bal = getBalanceOf(conf.contracts['USDCes'], conf.contracts['multisig'])
+    # sendTokensFromMultisig(conf.contracts['USDCes'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', bal)
+    # bal = getBalanceOf(conf.contracts['USDCbs'], conf.contracts['multisig'])
+    # sendTokensFromMultisig(conf.contracts['USDCbs'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', bal)
+    bal = getBalanceOf(conf.contracts['USDTes'], conf.contracts['multisig'])
+    sendTokensFromMultisig(conf.contracts['USDTes'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', bal)
+    bal = getBalanceOf(conf.contracts['USDTbs'], conf.contracts['multisig'])
+    sendTokensFromMultisig(conf.contracts['USDTbs'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', bal)
+    #sendTokensFromMultisig(conf.contracts['DLLR'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', 169214338262406014287924)
+    #sendTokensFromMultisig(conf.contracts['MOC'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', 363500894698968598118881)
     # TODO Adjust amounts to deposit/withdraw
     #addLiquidityV1FromMultisigUsingWrapper(conf.contracts['RBTCWrapperProxyWithoutLM'], conf.contracts['ConverterBOS'], [conf.contracts['WRBTC'], conf.contracts['BOS']], [10**18,18793886*10**18], 1)
         

@@ -13,6 +13,36 @@ def main():
     loadConfig()
 
     #call the function you want here
+    #all remainders to BSC
+    #sendAggregatedTokensFromExchequer(contracts['ETHbs'], contracts['Aggregator-ETH-RSK'], '0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b', 10.95 * 10 ** 18) #the remainder 10.95 to ETH - pending signature 
+    #sendAggregatedTokensFromExchequer(contracts['ETHbs'], contracts['Aggregator-ETH-RSK'], '0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b', 29 * 10 ** 18) #the remainder 29 to BSC - done
+    #sendTokensToBSCFromMultisig(contracts['ETHbs'], '0x8C9143221F2b72Fcef391893c3a02Cf0fE84f50b', 2.8 * 10 ** 18) #the remainder ETHbs 2.8 to BSC - done
+    #sendTokensToBSCFromMultisig(contracts['BNBbs'], '0xdd2311eceb6ec8a83c027fde4aa04ea455ee3fc4', 2.089 * 10 ** 18) #test 0.089 to BSC
+    #sendAggregatedTokensFromExchequer(contracts['BNBbs'], contracts['Aggregator-BNB-RSK'], '0xdd2311eceb6ec8a83c027fde4aa04ea455ee3fc4', 776639178690725711) #the remainder BNBs 0.7766391786907257 to BSC - done 
+
+    #sendTokensToBSCFromMultisig(contracts['BNBbs'], '0xdd2311eceb6ec8a83c027fde4aa04ea455ee3fc4', 50 * 10 ** 18) #the remainder 50 BNB to BSC - pending signatures
+
+
+
+    #total 40077275650313137836 (40.0772...) ETHes to be sent over the bridge to ETH multisig
+    #sendAggregatedTokensFromExchequer(contracts['ETHes'], contracts['Aggregator-ETH-RSK'], '0xdd2311eceb6ec8a83c027fde4aa04ea455ee3fc4', 77275650313137836) #12 left after this - done
+    #sendAggregatedTokensFromExchequer(contracts['ETHes'], contracts['Aggregator-ETH-RSK'], '0xdd2311eceb6ec8a83c027fde4aa04ea455ee3fc4', 12*10**18) #12 ETHes to Ethereum - done
+    
+    #sendAggregatedTokensFromExchequer(contracts['ETHes'], contracts['Aggregator-ETH-RSK'], '0xdd2311eceb6ec8a83c027fde4aa04ea455ee3fc4', 12077275650313137836)
+   
+
+    #sendTokensToETHFromMultisig(contracts['ETHes'], '0xdd2311eceb6ec8a83c027fde4aa04ea455ee3fc4', 12 * 10 ** 18) #the remainder - done
+    #sendTokensToETHFromMultisig(contracts['ETHes'], '0xdd2311eceb6ec8a83c027fde4aa04ea455ee3fc4', 46010000000000000020) #stuck on the bridge
+
+    # bal = getBalanceOf(contracts['USDCes'], acct2)
+    # sendTokensFromWalletToETH(contracts['USDCes'], '0xdd2311eceb6ec8a83c027fde4aa04ea455ee3fc4', bal, acct2)
+    # bal = getBalanceOf(contracts['USDTes'], acct2)
+    # sendTokensFromWalletToETH(contracts['USDTes'], '0xdd2311eceb6ec8a83c027fde4aa04ea455ee3fc4', bal, acct2)
+    # bal = getBalanceOf(contracts['USDCbs'], acct2)
+    # sendTokensFromWalletToBSC(contracts['USDCbs'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', bal, acct2)
+    # bal = getBalanceOf(contracts['USDTbs'], acct2)
+    # sendTokensFromWalletToBSC(contracts['USDTbs'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', bal, acct2)
+    
 
     # RSK-USDTes 0.01
     #sendTokensToETHFromMultisig(contracts['RSK-USDTes'], 'receiver', 10**16)
@@ -37,7 +67,7 @@ def main():
     #sendTokensFromWalletFromSepolia(contracts['SEPUSD'], acct, 1000e18)
 
 def loadConfig():
-    global contracts, acct
+    global contracts, acct, acct2
     thisNetwork = network.show_active()
     if thisNetwork == "development":
         acct = accounts[0]
@@ -50,6 +80,7 @@ def loadConfig():
         configFile =  open('./scripts/contractInteraction/testnet_contracts.json')
     elif thisNetwork == "rsk-mainnet":
         acct = accounts.load("rskdeployer")
+        acct2 = accounts.load("rskdeployerdev")
         configFile =  open('./scripts/contractInteraction/mainnet_contracts.json')
     elif thisNetwork == "sepolia":
         acct = accounts.load("rskdeployer")
@@ -128,12 +159,41 @@ def sendTokensToETHFromMultisig(token, receiver, amount):
     txId = tx.events["Submission"]["transactionId"]
     print(txId)
 
-def sendTokensFromWallet(token, receiver, amount):
+def sendTokensToBSCFromMultisig(token, receiver, amount):
     abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
     abi = json.load(abiFile)
     tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=acct)
 
-    BridgeRSK = Contract.from_abi("BridgeRSK", address=contracts['BridgeRSK'], abi=abi, owner=acct)
+    multisig = Contract.from_abi("MultiSig", address=contracts['multisig'], abi=MultiSigWallet.abi, owner=acct)
+    bscBridgeRSK = Contract.from_abi("BSCBridgeRSK", address=contracts['BSCBridgeRSK'], abi=abi, owner=acct)
+    
+    data = tokenContract.approve.encode_input(bscBridgeRSK.address, amount)
+    print(data)
+    tx = multisig.submitTransaction(token,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+    
+    data = bscBridgeRSK.receiveTokensAt.encode_input(token, amount, receiver, b'')
+    print(data)
+    tx = multisig.submitTransaction(bscBridgeRSK.address,0,data)
+    txId = tx.events["Submission"]["transactionId"]
+    print(txId)
+
+def sendTokensFromWalletToETH(token, receiver, amount, owner):
+    abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
+    abi = json.load(abiFile)
+    tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=owner)
+
+    BridgeRSK = Contract.from_abi("BridgeRSK", address=contracts['BridgeRSK'], abi=abi, owner=owner)
+    tokenContract.approve(BridgeRSK.address, amount)
+    BridgeRSK.receiveTokensAt(token, amount, receiver, b'')
+
+def sendTokensFromWalletToBSC(token, receiver, amount, owner):
+    abiFile =  open('./scripts/contractInteraction/bridge-multisig/Bridge.json')
+    abi = json.load(abiFile)
+    tokenContract = Contract.from_abi("Token", address=token, abi=TestToken.abi, owner=owner)
+
+    BridgeRSK = Contract.from_abi("BridgeRSK", address=contracts['BSCBridgeRSK'], abi=abi, owner=owner)
     tokenContract.approve(BridgeRSK.address, amount)
     BridgeRSK.receiveTokensAt(token, amount, receiver, b'')
 
@@ -193,3 +253,13 @@ def sendTokensFromWalletFromSepolia(token, receiver, amount):
     Bridge = Contract.from_abi("bridge", address=contracts['bridge'], abi=abi, owner=acct)
     tokenContract.approve(Bridge.address, amount)
     Bridge.receiveTokensAt(token, amount, receiver, b'')
+
+def getBalanceOf(contractAddress, acct_of):
+    balance = getBalanceNoPrintOf(contractAddress, acct_of)
+    print(balance)
+    return balance
+
+def getBalanceNoPrintOf(contractAddress, acct_of):
+    contract = Contract.from_abi("Token", address=contractAddress, abi=TestToken.abi, owner=acct_of)
+    balance = contract.balanceOf(acct_of)
+    return balance
