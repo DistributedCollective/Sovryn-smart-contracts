@@ -74,15 +74,15 @@ jobs:
           python3 << 'EOF'
           import os
           import site
-          
+
           # Find py-solc-x install location
           site_packages = site.getsitepackages()[0]
           install_file = os.path.join(site_packages, "solcx", "install.py")
-          
+
           # Read the file
           with open(install_file, 'r') as f:
               content = f.read()
-          
+
           # Replace the blocked URL with GitHub releases
           # Old py-solc-x 1.1.1 uses solc-bin.ethereum.org
           content = content.replace(
@@ -97,11 +97,11 @@ jobs:
               'solc-bin.ethereum.org',
               'binaries.soliditylang.org'
           )
-          
+
           # Write back
           with open(install_file, 'w') as f:
               f.write(content)
-          
+
           print("✓ Patched py-solc-x to use binaries.soliditylang.org")
           EOF
 
