@@ -87,6 +87,11 @@ contract FeeSharingCollectorStorage is Ownable {
     address public loanTokenWrbtcAddress;
 
     /**
+     * @dev Contract frozen state
+     */
+    bool public frozen;
+
+    /**
      * @dev Prevents a contract from calling itself, directly or indirectly.
      * If you mark a function `nonReentrant`, you should also
      * mark it `external`. Calling one `nonReentrant` function from

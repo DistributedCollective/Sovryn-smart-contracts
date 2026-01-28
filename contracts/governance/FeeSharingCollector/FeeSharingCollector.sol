@@ -116,6 +116,12 @@ contract FeeSharingCollector is
         address indexed newLoanTokenWrbtc
     );
 
+    /// @notice An event emitted when contract is frozen
+    event Frozen(address indexed sender);
+
+    /// @notice An event emitted when contract is unfrozen
+    event Unfrozen(address indexed sender);
+
     /* Modifier */
     modifier oneTimeExecution(bytes4 _funcSig) {
         require(
@@ -124,6 +130,16 @@ contract FeeSharingCollector is
         );
         _;
         isFunctionExecuted[_funcSig] = true;
+    }
+
+    modifier whenNotFrozen() {
+        require(!frozen, "FeeSharingCollector: contract is frozen");
+        _;
+    }
+
+    modifier whenFrozen() {
+        require(frozen, "FeeSharingCollector: contract is not frozen");
+        _;
     }
 
     /* Functions */
@@ -175,6 +191,26 @@ contract FeeSharingCollector is
         );
         emit SetLoanTokenWrbtc(msg.sender, loanTokenWrbtcAddress, newLoanTokenWrbtcAddress);
         loanTokenWrbtcAddress = newLoanTokenWrbtcAddress;
+    }
+
+    /**
+     * @notice Freeze the contract to prevent withdrawals.
+     *
+     * Only owner can perform this action.
+     * */
+    function freeze() external onlyOwner whenNotFrozen {
+        frozen = true;
+        emit Frozen(msg.sender);
+    }
+
+    /**
+     * @notice Unfreeze the contract to allow withdrawals.
+     *
+     * Only owner can perform this action.
+     * */
+    function unfreeze() external onlyOwner whenFrozen {
+        frozen = false;
+        emit Unfrozen(msg.sender);
     }
 
     /**
@@ -398,7 +434,7 @@ contract FeeSharingCollector is
         address _token,
         uint32 _maxCheckpoints,
         address _receiver
-    ) public nonReentrant {
+    ) public nonReentrant whenNotFrozen {
         _withdraw(_token, _maxCheckpoints, _receiver);
     }
 
@@ -561,7 +597,7 @@ contract FeeSharingCollector is
         TokenWithSkippedCheckpointsWithdraw[] calldata _tokensWithSkippedCheckpoints,
         uint32 _maxCheckpoints,
         address _receiver
-    ) external nonReentrant {
+    ) external nonReentrant whenNotFrozen {
         uint256 totalProcessedCheckpoints;
 
         /** Process normal multiple withdrawal for RBTC based tokens */
