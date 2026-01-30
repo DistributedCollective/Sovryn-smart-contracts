@@ -460,7 +460,7 @@ contract("FeeSharingCollector:", (accounts) => {
         });
 
         // If calling withdrawStartingFromCheckpoint or withdrawRBTCStartingFromCheckpoint  with _fromCheckpoint > processedCheckpoints[user][_loanPoolToken] it starts calculating the fees from _fromCheckpoint
-        it.skip("withdrawStartingFromCheckpoint using claimAllCollectedFees() calculates fees correctly", async () => {
+        it("withdrawStartingFromCheckpoint using claimAllCollectedFees() calculates fees correctly", async () => {
             // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
@@ -522,7 +522,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpoints.toNumber()).to.equal(10);
         });
 
-        it.skip("withdrawStartingFromCheckpoint using claimAllCollectedFees() calculates fees correctly for rbtc & non-rbtc based tokens", async () => {
+        it("withdrawStartingFromCheckpoint using claimAllCollectedFees() calculates fees correctly for rbtc & non-rbtc based tokens", async () => {
             // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
@@ -608,7 +608,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpointsSOV.toNumber()).to.equal(10);
         });
 
-        it.skip("withdrawStartingFromCheckpoint using claimAllCollectedFees() calculates fees correctly for rbtc & non-rbtc based tokens (withdraw partially)", async () => {
+        it("withdrawStartingFromCheckpoint using claimAllCollectedFees() calculates fees correctly for rbtc & non-rbtc based tokens (withdraw partially)", async () => {
             // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
@@ -684,7 +684,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpointsSOV.toNumber()).to.equal(0);
         });
 
-        it.skip("withdrawStartingFromCheckpoint using claimAllCollectedFees() works with large number of unprocessed token checkpoints", async () => {
+        it("withdrawStartingFromCheckpoint using claimAllCollectedFees() works with large number of unprocessed token checkpoints", async () => {
             // To test this, create 250 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
@@ -731,7 +731,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpoints.toNumber()).to.equal(10);
         });
 
-        it.skip("should be able to withdraw rbtc that has skipped checkpoints using claimAllCollectedFees calculates fees correctly (using zero addreses as reciever)", async () => {
+        it("should be able to withdraw rbtc that has skipped checkpoints using claimAllCollectedFees calculates fees correctly (using zero addreses as reciever)", async () => {
             // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRbtcTokenStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
@@ -777,7 +777,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpoints.toNumber()).to.equal(10);
         });
 
-        it.skip("withraw rbtc token that has skipped checkpoints using claimAllCollectedFees() should calculates fees correctly (using actual address as receiver)", async () => {
+        it("withraw rbtc token that has skipped checkpoints using claimAllCollectedFees() should calculates fees correctly (using actual address as receiver)", async () => {
             // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRbtcTokenStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
@@ -823,7 +823,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpoints.toNumber()).to.equal(10);
         });
 
-        it.skip("withdraw rbtc tokens that has skipped checkpoints using claimAllCollectedFees() won't be processed if passed maxCheckpoints is 0", async () => {
+        it("withdraw rbtc tokens that has skipped checkpoints using claimAllCollectedFees() won't be processed if passed maxCheckpoints is 0", async () => {
             // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRbtcTokenStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
@@ -865,7 +865,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpoints.toNumber()).to.equal(0);
         });
 
-        it.skip("withdraw rbtc tokens that has skipped checkpoints using claimAllCollectedFees() should revert if non-rbtc token is passed", async () => {
+        it("withdraw rbtc tokens that has skipped checkpoints using claimAllCollectedFees() should revert if non-rbtc token is passed", async () => {
             // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRbtcTokenStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
@@ -898,7 +898,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("should not be able to pass non-rbtc based token as _rbtcTokensRegularWithdraw using claimAllCollectedFees() function", async () => {
+        it("should not be able to pass non-rbtc based token as _rbtcTokensRegularWithdraw using claimAllCollectedFees() function", async () => {
             // To test this, create 9 checkpoints while the user has no stake, then stake with the user, create another checkpoint and call withdrawRbtcTokenStartingFromCheckpoint with _fromCheckpoint = 10  and _maxCheckpoints = 3
 
             /// RBTC
@@ -1100,7 +1100,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(nextCheckpoint.hasSkippedCheckpoints);
         });
 
-        it.skip("claimAllCollectedFees revert if _fromCheckpoint == 0", async () => {
+        it("claimAllCollectedFees revert if _fromCheckpoint == 0", async () => {
             feeSharingCollector = await FeeSharingCollectorMockup.new(
                 sovryn.address,
                 staking.address
@@ -1145,7 +1145,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("claimAllCollectedFees() revert if _fromCheckpoint < processedCheckpoints[user][_token]", async () => {
+        it("claimAllCollectedFees() revert if _fromCheckpoint < processedCheckpoints[user][_token]", async () => {
             feeSharingCollector = await FeeSharingCollectorMockup.new(
                 sovryn.address,
                 staking.address
@@ -1243,7 +1243,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("claimAllCollectedFees() revert if the user had a stake > 0 at _fromCheckpoint - 1", async () => {
+        it("claimAllCollectedFees() revert if the user had a stake > 0 at _fromCheckpoint - 1", async () => {
             feeSharingCollector = await FeeSharingCollectorMockup.new(
                 sovryn.address,
                 staking.address
@@ -1319,7 +1319,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("withdrawStartingFromCheckpoint using claimAllCollectedFees() revert if _fromCheckpoint <= totalTokenCheckpoints[_token]", async () => {
+        it("withdrawStartingFromCheckpoint using claimAllCollectedFees() revert if _fromCheckpoint <= totalTokenCheckpoints[_token]", async () => {
             feeSharingCollector = await FeeSharingCollectorMockup.new(
                 sovryn.address,
                 staking.address
@@ -2267,7 +2267,7 @@ contract("FeeSharingCollector:", (accounts) => {
     });
 
     describe("withdraw", () => {
-        it.skip("Shouldn't be able to withdraw without checkpoints (for token pool)", async () => {
+        it("Shouldn't be able to withdraw without checkpoints (for token pool)", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollector.withdraw(loanToken.address, 0, account2, {
@@ -2277,7 +2277,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("Shouldn't be able to withdraw without checkpoints (for wRBTC pool)", async () => {
+        it("Shouldn't be able to withdraw without checkpoints (for wRBTC pool)", async () => {
             await protocolDeploymentFixture();
             await expectRevert(
                 feeSharingCollector.withdraw(loanTokenWrbtc.address, 0, account2, {
@@ -2348,7 +2348,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(allUserFees[0]).to.eq(0);
         });
 
-        it.skip("getAllUserFees should return correct fees after withdrawal", async () => {
+        it("getAllUserFees should return correct fees after withdrawal", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -2435,7 +2435,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(allUserFees[0]).to.equal(0);
         });
 
-        it.skip("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with 1 iteration", async () => {
+        it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with 1 iteration", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -2497,7 +2497,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(allUserFees.length).to.equal(0);
         });
 
-        it.skip("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (1 maxCheckpoint)", async () => {
+        it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (1 maxCheckpoint)", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -2577,7 +2577,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(allUserFees.length).to.equal(0);
         });
 
-        it.skip("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (2 maxCheckpoint)", async () => {
+        it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (2 maxCheckpoint)", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -2657,7 +2657,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(allUserFees.length).to.equal(0);
         });
 
-        it.skip("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (3 maxCheckpoint)", async () => {
+        it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - with multiple iterations (3 maxCheckpoint)", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -2737,7 +2737,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(allUserFees.length).to.equal(0);
         });
 
-        it.skip("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - starting from > 0 checkpoints", async () => {
+        it("getAllUserFees should return correct fees after withdrawal (RBTC Tokens) - starting from > 0 checkpoints", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -2845,7 +2845,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(allUserFees.length).to.equal(expectedIteration);
         });
 
-        it.skip("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints", async () => {
+        it("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints", async () => {
             await protocolDeploymentFixture();
             await stake(900, root);
             await createCheckpointsSOV(10);
@@ -2871,7 +2871,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints - using claimAllCollectedFees()", async () => {
+        it("Shifts user's processed checkpoints to max checkpoints if no fees due within max checkpoints and no previous checkpoints - using claimAllCollectedFees()", async () => {
             await protocolDeploymentFixture();
             await stake(900, root);
             await createCheckpointsSOV(10);
@@ -2904,7 +2904,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Shifts user's processed checkpoints to max if no fees due within max checkpoints and exist user's  previous checkpoints", async () => {
+        it("Shifts user's processed checkpoints to max if no fees due within max checkpoints and exist user's  previous checkpoints", async () => {
             await protocolDeploymentFixture();
             feeSharingCollector = await FeeSharingCollectorMockup.new(
                 sovryn.address,
@@ -2964,7 +2964,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Shouldn't be able to withdraw zero amount (for token pool)", async () => {
+        it("Shouldn't be able to withdraw zero amount (for token pool)", async () => {
             await protocolDeploymentFixture();
             let fees = await feeSharingCollector.getAccumulatedFees(account1, loanToken.address);
             expect(fees).to.be.bignumber.equal("0");
@@ -2977,7 +2977,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("Shouldn't be able to withdraw zero amount (for token pool) - using claimAllCollectedFees()", async () => {
+        it("Shouldn't be able to withdraw zero amount (for token pool) - using claimAllCollectedFees()", async () => {
             await protocolDeploymentFixture();
             let fees = await feeSharingCollector.getAccumulatedFees(account1, loanToken.address);
             expect(fees).to.be.bignumber.equal("0");
@@ -2997,7 +2997,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("Shouldn't be able to withdraw zero amount (for wRBTC pool)", async () => {
+        it("Shouldn't be able to withdraw zero amount (for wRBTC pool)", async () => {
             await protocolDeploymentFixture();
             let fees = await feeSharingCollector.getAccumulatedFees(
                 account1,
@@ -3013,7 +3013,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("Shouldn't be able to withdraw zero amount (for wRBTC pool) - using claimAllCollectedFees()", async () => {
+        it("Shouldn't be able to withdraw zero amount (for wRBTC pool) - using claimAllCollectedFees()", async () => {
             await protocolDeploymentFixture();
             let fees = await feeSharingCollector.getAccumulatedFees(
                 account1,
@@ -3036,7 +3036,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("Should not be able to pass non-rbtc based token as _rbtcTokensRegularWithdraw in claimAllCollectedFees() function", async () => {
+        it("Should not be able to pass non-rbtc based token as _rbtcTokensRegularWithdraw in claimAllCollectedFees() function", async () => {
             await protocolDeploymentFixture();
             // stake - getPriorTotalVotingPower
             let rootStake = 700;
@@ -3085,7 +3085,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("Should be able to withdraw to another account using claimAllCollectedFees()", async () => {
+        it("Should be able to withdraw to another account using claimAllCollectedFees()", async () => {
             await protocolDeploymentFixture();
             // stake - getPriorTotalVotingPower
             let rootStake = 700;
@@ -3155,7 +3155,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw (token pool)", async () => {
+        it("Should be able to withdraw (token pool)", async () => {
             await protocolDeploymentFixture();
             // FeeSharingCollectorProxy
             feeSharingCollector = await FeeSharingCollectorMockup.new(
@@ -3216,7 +3216,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw reegular rbtc token to another account using claimAllCollectedFees()", async () => {
+        it("Should be able to withdraw reegular rbtc token to another account using claimAllCollectedFees()", async () => {
             await protocolDeploymentFixture();
             // stake - getPriorTotalVotingPower
             let rootStake = 700;
@@ -3286,7 +3286,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw to another account (WRBTC) - using claimAllCollectedFees()", async () => {
+        it("Should be able to withdraw to another account (WRBTC) - using claimAllCollectedFees()", async () => {
             await protocolDeploymentFixture();
 
             // FeeSharingCollectorProxy
@@ -3442,7 +3442,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw to another account (WRBTC) - using claimAllCollectedFees() - Within 1 transaction", async () => {
+        it("Should be able to withdraw to another account (WRBTC) - using claimAllCollectedFees() - Within 1 transaction", async () => {
             await protocolDeploymentFixture();
 
             // FeeSharingCollectorProxy
@@ -3559,7 +3559,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw rbtc token related - using withdraw() function", async () => {
+        it("Should be able to withdraw rbtc token related - using withdraw() function", async () => {
             await protocolDeploymentFixture();
 
             // FeeSharingCollectorProxy
@@ -3680,7 +3680,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw to another account (WRBTC) - using withdrawRbtcToken() - Within 1 transaction partially", async () => {
+        it("Should be able to withdraw to another account (WRBTC) - using withdrawRbtcToken() - Within 1 transaction partially", async () => {
             await protocolDeploymentFixture();
 
             // FeeSharingCollectorProxy
@@ -3819,7 +3819,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw (WRBTC pool) using claimAllCollectedFees()", async () => {
+        it("Should be able to withdraw (WRBTC pool) using claimAllCollectedFees()", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -3925,7 +3925,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw (sov pool)", async () => {
+        it("Should be able to withdraw (sov pool)", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -3991,7 +3991,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw (sov pool) - using claimAllCollectedFees()", async () => {
+        it("Should be able to withdraw (sov pool) - using claimAllCollectedFees()", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -4064,7 +4064,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw (sov pool) to another account", async () => {
+        it("Should be able to withdraw (sov pool) to another account", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -4130,7 +4130,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw (sov pool) to another account - using claimAllCollectedFees()", async () => {
+        it("Should be able to withdraw (sov pool) to another account - using claimAllCollectedFees()", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -4203,7 +4203,7 @@ contract("FeeSharingCollector:", (accounts) => {
             });
         });
 
-        it.skip("Should be able to withdraw using 3 checkpoints", async () => {
+        it("Should be able to withdraw using 3 checkpoints", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -4359,7 +4359,7 @@ contract("FeeSharingCollector:", (accounts) => {
             );
         });
 
-        it.skip("Should be able to process 10 checkpoints", async () => {
+        it("Should be able to process 10 checkpoints", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -4394,7 +4394,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(processedCheckpoints.toNumber()).to.be.equal(10);
         });
 
-        it.skip("Should be able to process 10 checkpoints and 3 withdrawals", async () => {
+        it("Should be able to process 10 checkpoints and 3 withdrawals", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -4533,7 +4533,7 @@ contract("FeeSharingCollector:", (accounts) => {
         //     console.log("\ncalculatePriorWeightedStake(checkpoints = " + checkpointCount + ").gasUsed: " + tx.receipt.gasUsed);
         // });
 
-        it.skip("Should be able to withdraw with staking for 78 dates", async () => {
+        it("Should be able to withdraw with staking for 78 dates", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
@@ -4611,7 +4611,7 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(fees).to.be.bignumber.equal("0");
         });
 
-        it.skip("vesting contract should not be able to withdraw fees", async () => {
+        it("vesting contract should not be able to withdraw fees", async () => {
             /// @dev This test requires redeploying the protocol
             await protocolDeploymentFixture();
 
