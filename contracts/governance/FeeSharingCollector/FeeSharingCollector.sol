@@ -399,7 +399,6 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints,
         address _receiver
     ) public nonReentrant {
-        revert("Fees claiming per token is temporary disabled");
         _withdraw(_token, _maxCheckpoints, _receiver);
     }
 
@@ -563,7 +562,6 @@ contract FeeSharingCollector is
         uint32 _maxCheckpoints,
         address _receiver
     ) external nonReentrant {
-        revert("Fees claiming is temporary disabled");
         uint256 totalProcessedCheckpoints;
 
         /** Process normal multiple withdrawal for RBTC based tokens */
