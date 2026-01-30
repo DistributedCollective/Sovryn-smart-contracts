@@ -85,11 +85,17 @@ def depositToLockedSOV(amount, recipient):
     print(data)
     sendWithMultisig(conf.contracts['multisig'], lockedSOV.address, data, conf.acct)
     
-def deployFeeSharingCollector():
+def upgradeFeeSharingCollector(implementationAddress=None):
     # Redeploy feeSharingCollector
-    feeSharingCollector = conf.acct.deploy(FeeSharingCollector)
-    print("Fee sharing collector redeployed at: ", feeSharingCollector.address)
-    print("Setting implementation for FeeSharingCollectorProxy")
+    if implementationAddress:
+        print("Using provided implementation address: ", implementationAddress)
+        feeSharingCollector = Contract.from_abi("FeeSharingCollector", address=implementationAddress, abi=FeeSharingCollector.abi, owner=conf.acct)
+    else:
+        print("Deploying new FeeSharingCollector implementation")   
+        feeSharingCollector = conf.acct.deploy(FeeSharingCollector)
+        print("Fee sharing collector redeployed at: ", feeSharingCollector.address)
+    
+    print(f"Setting implementation {feeSharingCollector.address} for FeeSharingCollectorProxy")
     feeSharingCollectorProxy = Contract.from_abi("FeeSharingCollectorProxy", address=conf.contracts['FeeSharingCollectorProxy'], abi=FeeSharingCollectorProxy.abi, owner=conf.acct)
     data = feeSharingCollectorProxy.setImplementation.encode_input(feeSharingCollector.address)
     sendWithMultisig(conf.contracts['multisig'], feeSharingCollectorProxy.address, data, conf.acct)

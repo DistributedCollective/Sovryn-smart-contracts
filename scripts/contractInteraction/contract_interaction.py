@@ -29,9 +29,9 @@ def main():
     '''
 
     # call the function you want here
-   
     ##################################
 
+    #upgradeFeeSharingCollector("0x32f8e5529d90bab47DA2062630DCec3B0b60F8C8")
     #sendTokensFromMultisig(conf.contracts['ETHs'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', 0.05*10**18)
    
     # bal = getBalanceOf(conf.contracts['USDCes'], conf.contracts['multisig'])
