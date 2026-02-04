@@ -1249,6 +1249,173 @@ const getArgsSip0087 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSipStakingFreeze = async (hre) => {
+    // Freeze Staking contract before Sovryn Layer migration
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const stakingProxy = await get("StakingProxy");
+    const staking = await ethers.getContractAt("IStaking", stakingProxy.address);
+    const stakingOwner = await staking.owner();
+
+    // Validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    // Check if already frozen
+    const isFrozen = await staking.frozen();
+    if (isFrozen) {
+        logger.error("Staking contract is already frozen");
+        process.exit(1);
+    }
+
+    logger.log(
+        col.bgYellow(
+            `Preparing SIP to freeze Staking contract at ${stakingProxy.address} for Sovryn Layer migration`
+        )
+    );
+    logger.log(col.bgBlue(`Current Staking owner: ${stakingOwner}`));
+    logger.log(col.bgBlue(`Current frozen state: ${isFrozen}`));
+
+    const args = {
+        targets: [stakingProxy.address],
+        targetOwnerValidationAddresses: [stakingOwner],
+        values: [0],
+        signatures: ["freezeUnfreeze(bool)"],
+        data: [abiCoder.encode(["bool"], [true])],
+        description:
+            "SIP-00XX: Freeze Staking Contract for Sovryn Layer Migration, Details: https://github.com/DistributedCollective/SIPS/blob/XXXXXX/SIP-00XX.md, sha256: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSipStakingUnfreeze = async (hre) => {
+    // Unfreeze Staking contract (emergency rollback or post-migration)
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const stakingProxy = await get("StakingProxy");
+    const staking = await ethers.getContractAt("IStaking", stakingProxy.address);
+    const stakingOwner = await staking.owner();
+
+    // Validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    // Check if frozen
+    const isFrozen = await staking.frozen();
+    if (!isFrozen) {
+        logger.error("Staking contract is not frozen");
+        process.exit(1);
+    }
+
+    logger.log(
+        col.bgYellow(`Preparing SIP to unfreeze Staking contract at ${stakingProxy.address}`)
+    );
+    logger.log(col.bgBlue(`Current Staking owner: ${stakingOwner}`));
+    logger.log(col.bgBlue(`Current frozen state: ${isFrozen}`));
+
+    const args = {
+        targets: [stakingProxy.address],
+        targetOwnerValidationAddresses: [stakingOwner],
+        values: [0],
+        signatures: ["freezeUnfreeze(bool)"],
+        data: [abiCoder.encode(["bool"], [false])],
+        description:
+            "SIP-00XX: Unfreeze Staking Contract, Details: https://github.com/DistributedCollective/SIPS/blob/XXXXXX/SIP-00XX.md, sha256: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
+const getArgsSipReplaceLockedSOV = async (hre) => {
+    // Replace LockedSOV with migration contract in Protocol, LM, and other contracts
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const lockedSOVMigration = await get("LockedSOVMigration");
+    const protocol = await ethers.getContract("ISovryn");
+    const protocolOwner = await protocol.owner();
+
+    // Validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    // Get current LockedSOV address from protocol
+    const currentLockedSOV = await protocol.getLockedSOVAddress();
+    if (currentLockedSOV.toLowerCase() === lockedSOVMigration.address.toLowerCase()) {
+        logger.error("LockedSOVMigration already set in protocol");
+        process.exit(1);
+    }
+
+    logger.log(
+        col.bgYellow(
+            `Preparing SIP to replace LockedSOV with migration contract ${lockedSOVMigration.address}`
+        )
+    );
+    logger.log(col.bgBlue(`Current LockedSOV: ${currentLockedSOV}`));
+    logger.log(col.bgBlue(`New LockedSOV Migration: ${lockedSOVMigration.address}`));
+    logger.log(col.bgBlue(`Protocol owner: ${protocolOwner}`));
+
+    // Get Liquidity Mining contracts
+    const liquidityMiningContracts = [];
+    try {
+        // Add all deployed LM contracts here
+        const lmV1 = await get("LiquidityMining");
+        const lmV2 = await get("LiquidityMiningV2");
+        liquidityMiningContracts.push(lmV1.address, lmV2.address);
+    } catch (error) {
+        logger.warn("Some LiquidityMining contracts not found in deployments");
+    }
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+
+    // 1. Update Protocol
+    targets.push(protocol.address);
+    values.push(0);
+    signatures.push("setLockedSOVAddress(address)");
+    datas.push(abiCoder.encode(["address"], [lockedSOVMigration.address]));
+
+    // 2. Update all Liquidity Mining contracts
+    for (const lmAddress of liquidityMiningContracts) {
+        targets.push(lmAddress);
+        values.push(0);
+        signatures.push("setLockedSOV(address)");
+        datas.push(abiCoder.encode(["address"], [lockedSOVMigration.address]));
+    }
+
+    const args = {
+        targets: targets,
+        targetOwnerValidationAddresses: Array(targets.length).fill(protocolOwner),
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-00XX: Replace LockedSOV with Migration Contract for Sovryn Layer Migration, Details: https://github.com/DistributedCollective/SIPS/blob/XXXXXX/SIP-00XX.md, sha256: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", // @todo update description
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1272,4 +1439,7 @@ module.exports = {
     getArgsSip0084Part1,
     getArgsSip0084Part2,
     getArgsSip0087,
+    getArgsSipStakingFreeze,
+    getArgsSipStakingUnfreeze,
+    getArgsSipReplaceLockedSOV,
 };
