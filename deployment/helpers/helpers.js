@@ -737,6 +737,11 @@ const getLoanTokensData = async () => {
             deployment: await get("LoanToken_iRBTC"),
             beaconAddress: loanTokenLogicBeaconWrbtcDeployment.address,
         },
+        {
+            name: "iUSDT0",
+            deployment: await get("LoanToken_iUSDT0"),
+            beaconAddress: loanTokenLogicBeaconLMDeployment.address,
+        },
     ];
     return loanTokens;
 };

@@ -1340,6 +1340,126 @@ const getArgsSip0088 = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
+const getArgsSip0089 = async (hre) => {
+    // Complete iUSDT0 and USDT0 activation via Governance
+    /**
+     * Prerequisites:
+     * - iUSDT0 must be deployed first (run: brownie run scripts/addLoanToken/add_usdt0.py)
+     * - iUSDT0 address must be added to deployment configs
+     *
+     * This SIP handles complete activation:
+     * 1. Register iUSDT0 loan pool: setLoanPool(iUSDT0, USDT0)
+     * 2. Register USDT0 PriceFeed: setPriceFeed(USDT0, priceFeed)
+     * 3. Set USDT0 as supported token: setSupportedToken(USDT0)
+     * 4. Setup loan params for iXUSD, iRBTC, iBPRO, iDOC, iDLLR with USDT0 as collateral
+     */
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const protocol = await ethers.getContract("ISovryn");
+    const priceFeeds = await ethers.getContract("PriceFeeds");
+    const usdt0Token = await get("USDT0");
+    const iUSDT0LoanToken = await ethers.getContract("LoanToken_iUSDT0");
+    const priceFeedsOwner = await priceFeeds.owner();
+    const protocolAdmin = await protocol.getAdmin();
+
+    const loanTokensToEnable = [
+        await ethers.getContract("LoanToken_iXUSD"),
+        await ethers.getContract("LoanToken_iRBTC"),
+        await ethers.getContract("LoanToken_iBPRO"),
+        await ethers.getContract("LoanToken_iDOC"),
+        await ethers.getContract("LoanToken_iDLLR"),
+    ];
+
+    //validate
+    if (!network.tags.mainnet) {
+        logger.error("Unknown network");
+        process.exit(1);
+    }
+
+    // USDT0 uses Redstone price feed wrapper
+    // Redstone USDT feed on RSK: 0x09639692ce6Ff12a06cA3AE9a24B3aAE4cD80dc8 (8 decimals)
+    // We need USDT0PriceFeed wrapper that scales 8 decimals -> 18 decimals
+    let usdt0PriceFeeds;
+    try {
+        usdt0PriceFeeds = await get("USDT0PriceFeeds");
+        logger.info(`Using existing USDT0PriceFeeds at ${usdt0PriceFeeds.address}`);
+    } catch (error) {
+        // Deploy USDT0PriceFeed wrapper if not exists
+        logger.warn("USDT0PriceFeeds not found. It must be deployed first.");
+        logger.warn("Deploy with: npx hardhat deploy --tags USDT0PriceFeed --network rskMainnet");
+        logger.warn(
+            "Or deploy manually: USDT0PriceFeed(0x09639692ce6Ff12a06cA3AE9a24B3aAE4cD80dc8)"
+        );
+        throw new Error(
+            `USDT0PriceFeeds deployment not found. Please deploy USDT0PriceFeed wrapper first. This wrapper scales Redstone's 8-decimal feed to 18 decimals for Sovryn compatibility.`
+        );
+    }
+
+    const args = {
+        targets: [protocol.address, priceFeeds.address, protocol.address],
+        targetOwnerValidationAddresses: [protocolAdmin, priceFeedsOwner, protocolAdmin],
+        values: [0, 0, 0],
+        signatures: [
+            "setLoanPool(address[],address[])",
+            "setPriceFeed(address[],address[])",
+            "setSupportedTokens(address[],bool[])",
+        ],
+        data: [
+            abiCoder.encode(
+                ["address[]", "address[]"],
+                [[iUSDT0LoanToken.address], [usdt0Token.address]]
+            ),
+            abiCoder.encode(
+                ["address[]", "address[]"],
+                [[usdt0Token.address], [usdt0PriceFeeds.address]]
+            ),
+            abiCoder.encode(["address[]", "bool[]"], [[usdt0Token.address], [true]]),
+        ],
+        description:
+            "SIP-0089: Complete iUSDT0 and USDT0 activation - register loan pool and enable as collateral, Details: TBD, sha256:", // @todo update with actual SIP details
+    };
+
+    // Setup loan params for both Torque and Margin trading modes
+    // Note: In Sovryn, 1 ether unit = 1% (so 50 ether = 50%, not 0.50 ether)
+    const torqueMinInitialMargin = ethers.utils.parseEther("50"); // 50%
+    const maintenanceMargin = ethers.utils.parseEther("15"); // 15%
+
+    for (const loanToken of loanTokensToEnable) {
+        // Torque (borrowing) params: areTorqueLoans = true
+        args.targets.push(loanToken.address);
+        args.targetOwnerValidationAddresses.push(await loanToken.admin());
+        args.values.push(0);
+        args.signatures.push(
+            "setupLoanParams((bytes32,bool,address,address,address,uint256,uint256,uint256)[],bool)"
+        );
+        args.data.push(
+            abiCoder.encode(
+                ["tuple(bytes32,bool,address,address,address,uint256,uint256,uint256)[]", "bool"],
+                [
+                    [
+                        [
+                            ethers.constants.HashZero, // id (ignored, auto-assigned)
+                            false, // active (ignored, set to true internally)
+                            ethers.constants.AddressZero, // owner (ignored, set internally)
+                            ethers.constants.AddressZero, // loanToken (ignored, overwritten internally)
+                            usdt0Token.address, // collateralToken (USDT0)
+                            torqueMinInitialMargin, // minInitialMargin (50% for Torque)
+                            maintenanceMargin, // maintenanceMargin (15%)
+                            0, // maxLoanTerm (ignored, overwritten to 0 for Torque)
+                        ],
+                    ],
+                    true, // areTorqueLoans = true
+                ]
+            )
+        );
+    }
+    return { args, governor: "GovernorAdmin" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1364,4 +1484,5 @@ module.exports = {
     getArgsSip0084Part2,
     getArgsSip0087,
     getArgsSip0088,
+    getArgsSip0089,
 };

@@ -1105,9 +1105,21 @@ def deployLoanToken(loanTokenAddress, loanTokenSymbol, loanTokenName, baseRate,r
         "sovryn", address=conf.contracts['sovrynProtocol'], abi=interface.ISovrynBrownie.abi, owner=conf.acct)
 
     
-    data = sovryn.setLoanPool.encode_input(
-        [loanToken.address],
-        [loanTokenAddress]
-    )
-    sendWithMultisig(conf.contracts['multisig'], sovryn.address,data, conf.acct)
+    # Note: setLoanPool call is commented out because Sovryn Protocol owner is now Governance (TimelockOwner/TimelockAdmin)
+    
+    
+    # data = sovryn.setLoanPool.encode_input(
+    #     [loanToken.address],
+    #     [loanTokenAddress]
+    # )
+    # sendWithMultisig(conf.contracts['multisig'], sovryn.address, data, conf.acct)
+    
+    print("\n" + "="*60)
+    print("IMPORTANT: setLoanPool() via Governance SIP required!")
+    print("="*60)
+    print(f"Loan Token (iToken): {loanToken.address}")
+    print(f"Underlying Token:    {loanTokenAddress}")
+    print("\nAdd this call to a governance SIP:")
+    print(f"  protocol.setLoanPool(['{loanToken.address}'], ['{loanTokenAddress}'])")
+    print("="*60 + "\n")
  
