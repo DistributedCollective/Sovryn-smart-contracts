@@ -1,10 +1,23 @@
 import { ethers } from "ethers";
 import { createObjectCsvWriter } from "csv-writer";
-import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 
-dotenv.config();
+interface NetworkConfig {
+  name: string;
+  rpcUrl: string;
+  rewardsAddress: string;
+  startBlock: number;
+  chunkSize?: number;
+}
+
+interface Config {
+  networks: {
+    rsk?: NetworkConfig;
+    bob?: NetworkConfig;
+  };
+  addresses?: string[];
+}
 
 interface StakingData {
   address: string;
@@ -21,6 +34,14 @@ interface TokensStakedEvent {
   };
 }
 
+interface TokenTransferEvent {
+  args: [string, string, bigint] & {
+    from: string;
+    to: string;
+    value: bigint;
+  };
+}
+
 const STAKING_ABI = [
   "event TokensStaked(address indexed staker, uint256 amount, uint256 lockedUntil, uint256 totalStaked)",
 ];
@@ -33,33 +54,160 @@ const REWARDS_ABI = [
 
 const ERC20_ABI = [
   "function balanceOf(address account) view returns (uint256)",
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
 ];
 
-const ADDRESSES = {
-  REWARDS: "0xFdC57Cb52264209afd1559E7E3Db0F28351E9422",
-} as const;
+// Default network configurations
+const DEFAULT_NETWORKS: Config["networks"] = {
+  bob: {
+    name: "BOB",
+    rpcUrl: "https://rpc.gobob.xyz",
+    rewardsAddress: "0xFdC57Cb52264209afd1559E7E3Db0F28351E9422",
+    startBlock: 26296185,
+    chunkSize: 5000,
+  },
+};
 
-const CHUNK_SIZE = 10000000;
+async function getAllAddressesFromEvents(params: {
+  startBlock: number;
+  endBlock: number;
+  provider: ethers.providers.JsonRpcProvider;
+  stakingContract: ethers.Contract;
+  osSOVContract: ethers.Contract;
+  chunkSize: number;
+}) {
+  const {
+    startBlock,
+    endBlock,
+    provider,
+    stakingContract,
+    osSOVContract,
+    chunkSize,
+  } = params;
+
+  console.log("\n=== AUTO-DISCOVERY MODE ===");
+  console.log(`Scanning blocks ${startBlock} to ${endBlock}`);
+
+  const allAddresses = new Set<string>();
+
+  // 1. Get stakers from TokensStaked events
+  console.log("\n1. Fetching stakers from TokensStaked events...");
+  const stakingFilter = stakingContract.filters.TokensStaked();
+
+  for (
+    let fromBlock = startBlock;
+    fromBlock <= endBlock;
+    fromBlock += chunkSize
+  ) {
+    const toBlock = Math.min(fromBlock + chunkSize - 1, endBlock);
+    console.log(`   Querying blocks ${fromBlock} to ${toBlock}...`);
+
+    try {
+      const events = await stakingContract.queryFilter(
+        stakingFilter,
+        fromBlock,
+        toBlock,
+      );
+      for (const event of events) {
+        const staker = (event as any).args?.staker;
+        if (staker) {
+          allAddresses.add(staker.toLowerCase());
+        }
+      }
+      console.log(
+        `   Found ${events.length} staking events. Total unique addresses: ${allAddresses.size}`,
+      );
+
+      await sleep(500);
+    } catch (error) {
+      console.error(`   Error querying blocks ${fromBlock}-${toBlock}:`, error);
+    }
+  }
+
+  // 2. Get osSOV token holders from Transfer events
+  console.log("\n2. Fetching osSOV holders from Transfer events...");
+  const transferFilter = osSOVContract.filters.Transfer();
+
+  for (
+    let fromBlock = startBlock;
+    fromBlock <= endBlock;
+    fromBlock += chunkSize
+  ) {
+    const toBlock = Math.min(fromBlock + chunkSize - 1, endBlock);
+    console.log(`   Querying blocks ${fromBlock} to ${toBlock}...`);
+
+    try {
+      const events = await osSOVContract.queryFilter(
+        transferFilter,
+        fromBlock,
+        toBlock,
+      );
+      for (const event of events) {
+        const from = (event as any).args?.from;
+        const to = (event as any).args?.to;
+
+        if (from && from !== ethers.constants.AddressZero) {
+          allAddresses.add(from.toLowerCase());
+        }
+        if (to && to !== ethers.constants.AddressZero) {
+          allAddresses.add(to.toLowerCase());
+        }
+      }
+      console.log(
+        `   Found ${events.length} transfer events. Total unique addresses: ${allAddresses.size}`,
+      );
+
+      await sleep(500);
+    } catch (error) {
+      console.error(`   Error querying blocks ${fromBlock}-${toBlock}:`, error);
+    }
+  }
+
+  console.log(`\n✅ Total unique addresses discovered: ${allAddresses.size}`);
+  return Array.from(allAddresses);
+}
 
 async function getStakingData(params: {
+  network: NetworkConfig;
   startFromBlock?: number;
   endBlock?: number;
   specificAddresses?: string[];
+  autoDiscover?: boolean;
 }) {
+  const { network, autoDiscover } = params;
+
+  console.log("\n" + "=".repeat(60));
+  console.log("OSSOV SNAPSHOT TOOL");
+  console.log("=".repeat(60));
+  console.log(`Network: ${network.name}`);
+  console.log(`RPC: ${network.rpcUrl}`);
+  console.log("=".repeat(60) + "\n");
+
   console.log("Starting snapshot process...");
 
-  const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
+  const provider = new ethers.providers.JsonRpcProvider(network.rpcUrl);
   if (!provider) throw new Error("Failed to initialize provider");
 
-  // define target block
+  // Verify network connection
+  const networkInfo = await provider.getNetwork();
+  console.log(`Connected to chainId: ${networkInfo.chainId}`);
+
+  // Define target block
   let { startFromBlock, endBlock, specificAddresses } = params;
-  if (!startFromBlock) startFromBlock = 0;
+  if (!startFromBlock) startFromBlock = network.startBlock;
   const targetBlock = endBlock || (await provider.getBlockNumber());
-  console.log(`Using block number: ${targetBlock}`);
-  console.log(`Starting from block: ${startFromBlock}`);
+  console.log(`Target block: ${targetBlock}`);
+  console.log(`Scanning from block: ${startFromBlock}`);
+
+  // Validate rewards address
+  if (!network.rewardsAddress) {
+    throw new Error(
+      `Rewards address not configured for ${network.name}. Please update config.json.`,
+    );
+  }
 
   const rewardsContract = new ethers.Contract(
-    ADDRESSES.REWARDS,
+    network.rewardsAddress,
     REWARDS_ABI,
     provider,
   );
@@ -74,29 +222,37 @@ async function getStakingData(params: {
   const osSOVAddress = await rewardsContract.getOsSOV();
   const osSOVContract = new ethers.Contract(osSOVAddress, ERC20_ABI, provider);
   console.log(`osSOV token address: ${osSOVAddress}`);
+  console.log(`Staking contract: ${stakingContractAddress}`);
 
-  let stakers: string[] = [];
+  let addressesToProcess: string[] = [];
 
-  // If specific addresses are provided, use them directly
-  if (specificAddresses && specificAddresses.length > 0) {
-    console.log(
-      `Using ${specificAddresses.length} provided addresses instead of querying events`,
-    );
-    stakers = specificAddresses;
+  // Determine which addresses to process
+  if (autoDiscover) {
+    console.log("\n🔍 AUTO-DISCOVERY MODE ENABLED");
+    addressesToProcess = await getAllAddressesFromEvents({
+      startBlock: startFromBlock,
+      endBlock: targetBlock,
+      provider,
+      stakingContract,
+      osSOVContract,
+      chunkSize: network.chunkSize || 10000,
+    });
+  } else if (specificAddresses && specificAddresses.length > 0) {
+    console.log(`\n📋 Using ${specificAddresses.length} provided addresses`);
+    addressesToProcess = specificAddresses;
   } else {
-    // Otherwise fetch all staking events in chunks
-    console.log("Fetching staking events...");
+    // Fallback: fetch from TokensStaked events only (legacy behavior)
+    console.log("\n📋 Fetching addresses from TokensStaked events...");
     const filter = stakingContract.filters.TokensStaked();
-
-    // Process in chunks of 10,000 blocks
     let allEvents: TokensStakedEvent[] = [];
+    const chunkSize = network.chunkSize || 10000;
 
     for (
       let fromBlock = startFromBlock;
       fromBlock <= targetBlock;
-      fromBlock += CHUNK_SIZE
+      fromBlock += chunkSize
     ) {
-      const toBlock = Math.min(fromBlock + CHUNK_SIZE - 1, targetBlock);
+      const toBlock = Math.min(fromBlock + chunkSize - 1, targetBlock);
       console.log(`Querying blocks ${fromBlock} to ${toBlock}...`);
 
       try {
@@ -118,20 +274,16 @@ async function getStakingData(params: {
           `Found ${chunkEvents.length} events in this chunk. Total: ${allEvents.length}`,
         );
 
-        // Add delay between chunks to avoid rate limiting
-        if (fromBlock + CHUNK_SIZE <= targetBlock) {
-          console.log("Waiting before next chunk...");
-          await sleep(1000);
-        }
+        await sleep(1000);
       } catch (error) {
         console.error(`Error querying blocks ${fromBlock}-${toBlock}:`, error);
-        // Continue to next chunk
       }
     }
 
-    // Get unique stakers
-    stakers = [...new Set(allEvents.map((event) => event.args.staker))];
-    console.log(`Found ${stakers.length} unique stakers`);
+    addressesToProcess = [
+      ...new Set(allEvents.map((event) => event.args.staker)),
+    ];
+    console.log(`Found ${addressesToProcess.length} unique stakers`);
   }
 
   // Create results directory if it doesn't exist
@@ -140,10 +292,11 @@ async function getStakingData(params: {
     fs.mkdirSync(resultsDir, { recursive: true });
   }
 
-  // Define CSV file path
+  // Define CSV file path with network name
+  const networkSlug = network.name.toLowerCase().replace(/\s+/g, "_");
   const csvFilePath = path.join(
     resultsDir,
-    `staking_rewards_snapshot_block.csv`,
+    `${networkSlug}_snapshot_block_${targetBlock}.csv`,
   );
 
   // Check if file exists and load existing data
@@ -167,25 +320,30 @@ async function getStakingData(params: {
     console.log(`Loaded ${Object.keys(existingData).length} existing records`);
 
     // Filter out already processed addresses
-    stakers = stakers.filter(
-      (staker) =>
-        !existingData[staker.toLowerCase()] ||
-        specificAddresses?.includes(staker),
+    addressesToProcess = addressesToProcess.filter(
+      (addr) =>
+        !existingData[addr.toLowerCase()] || specificAddresses?.includes(addr),
     );
-    console.log(`Remaining addresses to process: ${stakers.length}`);
+    console.log(`Remaining addresses to process: ${addressesToProcess.length}`);
   }
 
-  // Process all of the unique stakers
+  // Process all addresses
+  console.log("\n=== PROCESSING ADDRESSES ===");
   const results: StakingData[] = [];
   let successCount = 0;
   let errorCount = 0;
   const failedAddresses: string[] = [];
 
   // Create progress log file
-  const progressLogPath = path.join(resultsDir, `progress_log.json`);
+  const progressLogPath = path.join(
+    resultsDir,
+    `${networkSlug}_progress_block_${targetBlock}.json`,
+  );
   let progressData = {
+    network: network.name,
     targetBlock,
-    totalStakers: stakers.length,
+    startFromBlock,
+    totalAddresses: addressesToProcess.length,
     processedCount: 0,
     lastProcessedIndex: -1,
     lastUpdateTime: new Date().toISOString(),
@@ -204,23 +362,27 @@ async function getStakingData(params: {
   // Process in smaller chunks and save progress regularly
   const PROCESS_CHUNK_SIZE = 20; // Process 20 addresses at a time
 
-  for (let i = progressData.lastProcessedIndex + 1; i < stakers.length; i++) {
-    const staker = stakers[i];
-    if (!staker) continue;
+  for (
+    let i = progressData.lastProcessedIndex + 1;
+    i < addressesToProcess.length;
+    i++
+  ) {
+    const address = addressesToProcess[i];
+    if (!address) continue;
 
     try {
       // Add delay to avoid rate limiting
       await sleep(100);
 
       const [balance, [, unclaimed]] = await Promise.all([
-        osSOVContract.balanceOf(staker, { blockTag: targetBlock }),
-        rewardsContract.getArbitraryStakerCurrentReward(false, 0, staker, {
+        osSOVContract.balanceOf(address, { blockTag: targetBlock }),
+        rewardsContract.getArbitraryStakerCurrentReward(false, 0, address, {
           blockTag: targetBlock,
         }),
       ]);
 
       results.push({
-        address: staker,
+        address,
         osSOV_balance: balance.toString(),
         osSOV_unclaimed: unclaimed.toString(),
       });
@@ -231,17 +393,20 @@ async function getStakingData(params: {
 
       if (successCount % 10 === 0) {
         console.log(
-          `Processed ${successCount}/${stakers.length} stakers successfully`,
+          `Processed ${successCount}/${addressesToProcess.length} addresses successfully`,
         );
       }
     } catch (error) {
-      console.error(`Error processing staker ${staker}:`, error);
+      console.error(`Error processing address ${address}:`, error);
       errorCount++;
-      failedAddresses.push(staker);
+      failedAddresses.push(address);
     }
 
     // Save progress and results every PROCESS_CHUNK_SIZE addresses
-    if ((i + 1) % PROCESS_CHUNK_SIZE === 0 || i === stakers.length - 1) {
+    if (
+      (i + 1) % PROCESS_CHUNK_SIZE === 0 ||
+      i === addressesToProcess.length - 1
+    ) {
       // Update progress log
       progressData.lastUpdateTime = new Date().toISOString();
       fs.writeFileSync(progressLogPath, JSON.stringify(progressData, null, 2));
@@ -266,7 +431,7 @@ async function getStakingData(params: {
 
         await csvWriter.writeRecords(allResults);
         console.log(
-          `Saved progress: ${progressData.processedCount}/${stakers.length} addresses processed`,
+          `Saved progress: ${progressData.processedCount}/${addressesToProcess.length} addresses processed`,
         );
 
         // Update existing data with new results to avoid duplicates in next chunk
@@ -280,139 +445,146 @@ async function getStakingData(params: {
     }
   }
 
-  console.log("\nSnapshot completed!");
+  console.log("\n=== SNAPSHOT COMPLETED ===");
+  console.log(`Network: ${network.name}`);
+  console.log(`Block: ${targetBlock}`);
   console.log(
-    `Successfully processed: ${successCount}/${stakers.length} stakers`,
+    `Successfully processed: ${successCount}/${addressesToProcess.length}`,
   );
-  console.log(`Errors encountered: ${errorCount} stakers`);
+  console.log(`Errors: ${errorCount}`);
   console.log(`Total records in CSV: ${Object.keys(existingData).length}`);
   console.log(`Results saved to: ${csvFilePath}`);
 
-  // If there are failed addresses, try to process them again
+  // Handle failed addresses
   if (failedAddresses.length > 0) {
-    console.log(
-      `\nAttempting to process ${failedAddresses.length} failed addresses again...`,
-    );
-
-    // Save failed addresses to a file for future reference
-    const failedAddressesPath = path.join(
+    const failedPath = path.join(
       resultsDir,
-      `failed_addresses_${targetBlock}.json`,
+      `${networkSlug}_failed_addresses_${targetBlock}.json`,
     );
-    fs.writeFileSync(
-      failedAddressesPath,
-      JSON.stringify(failedAddresses, null, 2),
+    fs.writeFileSync(failedPath, JSON.stringify(failedAddresses, null, 2));
+    console.log(
+      `\n⚠️  ${failedAddresses.length} failed addresses saved to: ${failedPath}`,
     );
-    console.log(`Failed addresses saved to: ${failedAddressesPath}`);
-
-    // Wait a bit longer before retrying
-    await sleep(5000);
-
-    // Retry with increased delay
-    const retryResults: StakingData[] = [];
-    let retrySuccessCount = 0;
-    const stillFailedAddresses: string[] = [];
-
-    for (const staker of failedAddresses) {
-      try {
-        // Longer delay for retries
-        await sleep(500);
-
-        const [balance, [, unclaimed]] = await Promise.all([
-          osSOVContract.balanceOf(staker, { blockTag: targetBlock }),
-          rewardsContract.getArbitraryStakerCurrentReward(false, 0, staker, {
-            blockTag: targetBlock,
-          }),
-        ]);
-
-        retryResults.push({
-          address: staker,
-          osSOV_balance: balance.toString(),
-          osSOV_unclaimed: unclaimed.toString(),
-        });
-
-        retrySuccessCount++;
-        console.log(`Retry successful for ${staker}`);
-      } catch (error) {
-        console.error(`Retry failed for staker ${staker}:`, error);
-        stillFailedAddresses.push(staker);
-      }
-    }
-
-    // If we recovered some addresses, update the CSV
-    if (retrySuccessCount > 0) {
-      const finalResults = [...Object.values(existingData), ...retryResults];
-
-      const csvWriter = createObjectCsvWriter({
-        path: csvFilePath,
-        header: [
-          { id: "address", title: "address" },
-          { id: "osSOV_balance", title: "osSOV_balance" },
-          { id: "osSOV_unclaimed", title: "osSOV_unclaimed" },
-        ],
-      });
-
-      await csvWriter.writeRecords(finalResults);
-
-      console.log(`\nRetry completed!`);
-      console.log(
-        `Successfully recovered: ${retrySuccessCount}/${failedAddresses.length} stakers`,
-      );
-      console.log(`Total records in CSV: ${finalResults.length}`);
-    }
-
-    // If there are still failed addresses, save them and notify
-    if (stillFailedAddresses.length > 0) {
-      const stillFailedPath = path.join(
-        resultsDir,
-        `still_failed_addresses_${targetBlock}.json`,
-      );
-      fs.writeFileSync(
-        stillFailedPath,
-        JSON.stringify(stillFailedAddresses, null, 2),
-      );
-      console.log(
-        `\n⚠️ WARNING: ${stillFailedAddresses.length} addresses still failed processing`,
-      );
-      console.log(`These addresses saved to: ${stillFailedPath}`);
-      console.log(`You can process them manually by running:`);
-      console.log(
-        `node scripts/ossov/snapshot-ossov.js --block ${targetBlock} --addresses ${stillFailedPath}`,
-      );
-
-      // Return the list of still failed addresses
-      return stillFailedAddresses;
-    }
   }
 
-  return [];
+  return {
+    totalAddresses: addressesToProcess.length,
+    successCount,
+    errorCount,
+    csvPath: csvFilePath,
+  };
 }
 
-let specificAddresses: string[] | undefined;
+// Helper function
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Parse command line arguments
+const args = process.argv.slice(2);
+const cliArgs: {
+  network?: string;
+  block?: number;
+  startBlock?: number;
+  autoDiscover?: boolean;
+  addresses?: string[];
+} = {};
+
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === "--network" && args[i + 1]) {
+    cliArgs.network = args[i + 1].toLowerCase();
+    i++;
+  } else if (args[i] === "--block" && args[i + 1]) {
+    cliArgs.block = parseInt(args[i + 1]);
+    i++;
+  } else if (args[i] === "--start-block" && args[i + 1]) {
+    cliArgs.startBlock = parseInt(args[i + 1]);
+    i++;
+  } else if (args[i] === "--auto-discover") {
+    cliArgs.autoDiscover = true;
+  } else if (args[i] === "--addresses" && args[i + 1]) {
+    try {
+      const addressData = JSON.parse(fs.readFileSync(args[i + 1], "utf8"));
+      cliArgs.addresses = Array.isArray(addressData)
+        ? addressData
+        : addressData.addresses;
+    } catch (error) {
+      console.error(`Error loading addresses from file:`, error);
+    }
+    i++;
+  }
+}
+
+// Load config.json
+let config: Config = { networks: {} };
 const configPath = path.resolve(__dirname, "./config.json");
 if (fs.existsSync(configPath)) {
   try {
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-    specificAddresses = config.addresses;
-    console.log(
-      `Loaded ${specificAddresses?.length} addresses from config.json`,
-    );
+    config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    console.log(`✅ Loaded configuration from config.json`);
   } catch (error) {
-    console.error("Error reading config file:", error);
+    console.error("❌ Error reading config file:", error);
   }
+} else {
+  console.log("⚠️  config.json not found. Using default configurations.");
+  console.log(
+    "   Create config.json from config.json.example for custom settings.\n",
+  );
 }
 
+// Merge config with defaults
+const networks = {
+  rsk: {
+    ...DEFAULT_NETWORKS.rsk!,
+    ...(config.networks?.rsk || {}),
+  } as NetworkConfig,
+  bob: {
+    ...DEFAULT_NETWORKS.bob!,
+    ...(config.networks?.bob || {}),
+  } as NetworkConfig,
+};
+
+// Determine which network to use
+const selectedNetwork = cliArgs.network || "rsk";
+const networkConfig = networks[selectedNetwork as keyof typeof networks];
+
+if (!networkConfig) {
+  console.error(`❌ Unknown network: ${selectedNetwork}`);
+  console.error(`   Available networks: rsk, bob`);
+  process.exit(1);
+}
+
+// Determine addresses
+const specificAddresses =
+  cliArgs.addresses ||
+  (config.addresses && config.addresses.length > 0
+    ? config.addresses
+    : undefined);
+
+// Execute snapshot
+console.log("\n" + "=".repeat(70));
+console.log("OSSOV SNAPSHOT TOOL");
+console.log("=".repeat(70));
+console.log(`Network: ${networkConfig.name}`);
+console.log(`Target Block: ${cliArgs.block || "latest"}`);
+console.log(`Start Block: ${cliArgs.startBlock || networkConfig.startBlock}`);
+console.log(`Auto-discover: ${cliArgs.autoDiscover || false}`);
+if (specificAddresses) {
+  console.log(`Specific addresses: ${specificAddresses.length}`);
+}
+console.log("=".repeat(70) + "\n");
+
 getStakingData({
-  startFromBlock: 900618, // block where the staking contract have stake txs
-  specificAddresses:
-    specificAddresses && specificAddresses.length > 0
-      ? specificAddresses
-      : undefined,
+  network: networkConfig,
+  startFromBlock: cliArgs.startBlock,
+  endBlock: cliArgs.block,
+  specificAddresses: specificAddresses,
+  autoDiscover: cliArgs.autoDiscover || false,
 })
-  .then(() => process.exit(0))
+  .then((result) => {
+    console.log("\n✅ Snapshot completed successfully!");
+    console.log(`📄 CSV file: ${result.csvPath}`);
+    process.exit(0);
+  })
   .catch((error) => {
-    console.error("Fatal error:", error);
+    console.error("\n❌ Fatal error:", error);
     process.exit(1);
   });
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

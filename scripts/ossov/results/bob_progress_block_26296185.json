@@ -1,0 +1,9 @@
+{
+    "network": "BOB",
+    "targetBlock": 26296185,
+    "startFromBlock": 797159,
+    "totalAddresses": 1162,
+    "processedCount": 1162,
+    "lastProcessedIndex": 1161,
+    "lastUpdateTime": "2026-02-13T11:05:48.923Z"
+}

@@ -1,3 +1,11 @@
 {
+    "networks": {
+        "bob": {
+            "name": "BOB",
+            "rpcUrl": "https://rpc.gobob.xyz",
+            "rewardsAddress": "0xFdC57Cb52264209afd1559E7E3Db0F28351E9422",
+            "startBlock": 797159
+        }
+    },
     "addresses": []
 }
