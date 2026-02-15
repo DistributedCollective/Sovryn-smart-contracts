@@ -31,7 +31,8 @@ def main():
     # call the function you want here
     ##################################
 
-    #upgradeFeeSharingCollector("0x32f8e5529d90bab47DA2062630DCec3B0b60F8C8")
+    #upgradeFeeSharingCollector("0x32f8e5529d90bab47DA2062630DCec3B0b60F8C8") # regular implementation 
+    #upgradeFeeSharingCollector("0x2bd0b0ee7189f471e9d6befd69104debeb6b7568") # pause fee withdraw in case of emergency
     #sendTokensFromMultisig(conf.contracts['ETHs'], '0x8c9143221f2b72fcef391893c3a02cf0fe84f50b', 0.05*10**18)
    
     # bal = getBalanceOf(conf.contracts['USDCes'], conf.contracts['multisig'])
