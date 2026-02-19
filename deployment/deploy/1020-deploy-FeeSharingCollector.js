@@ -44,7 +44,6 @@ const func = async function (hre) {
     const withholdTokens = [
         { name: "RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT", address: rbtcDummyAddress },
         { name: "ZUSD", address: zusdToken },
-        { name: "WRBTC", address: wrbtcToken },
     ];
 
     for (const token of withholdTokens) {

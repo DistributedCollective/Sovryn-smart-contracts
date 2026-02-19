@@ -252,7 +252,6 @@ contract FeeSharingCollector is
      * @notice Add checkpoint with accumulated amount by function invocation.
      * @dev If token is in protocol withhold list, accumulates fees for protocol (no checkpoint for stakers).
      * @dev If token is not in withhold list, creates checkpoint for stakers (100% distribution).
-     * @dev Does not create zero-value checkpoints to save gas.
      * @param _token Address of the token.
      * @param _amount Amount of tokens to process.
      * */
@@ -1056,6 +1055,7 @@ contract FeeSharingCollector is
      * @dev Only callable by owner.
      * @dev Fees from tokens in this list are withheld 100% by protocol (no staker distribution).
      * @dev If there are unprocessed fees accumulated before adding to list, they are moved to protocolWithheldFees.
+     * @dev Resets lastFeeWithdrawalTime to avoid stale interval behavior if token is later removed from list.
      * @param token The token address to add.
      */
     function addProtocolWithholdToken(address token) external onlyOwner {
@@ -1077,12 +1077,15 @@ contract FeeSharingCollector is
             unprocessedAmount[token] = 0;
         }
 
+        /// @notice Reset withdrawal interval baseline while token is in withhold mode.
+        lastFeeWithdrawalTime[token] = 0;
+
         protocolWithheldTokensList.add(token);
         emit TokenAddedToProtocolWithholdList(msg.sender, token);
     }
 
     /**
-     * @notice Remove a token from the protocol withhold list.
+     * @notice Remove a token from the protocol withhold list. Accumulated protocol fees can still be withdrawn by owner, but new fees will be distributed to stakers.
      * @dev Only callable by owner.
      * @dev Fees from tokens removed from this list will be distributed to stakers.
      * @param token The token address to remove.

@@ -27,6 +27,7 @@ const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const FeeSharingCollector = artifacts.require("FeeSharingCollector");
 const FeeSharingCollectorProxy = artifacts.require("FeeSharingCollectorProxy");
+const LiquidityPoolV1Converter = artifacts.require("LiquidityPoolV1ConverterMockup");
 
 const mutexUtils = require("../deployment/helpers/reentrancy/utils");
 
@@ -321,10 +322,6 @@ contract("FeeSharingCollector - Token-Specific Withholding", (accounts) => {
                 "0",
                 "Should not create checkpoint without transfers"
             );
-
-            // The actual zero-value protection is in _addCheckpoint:
-            // if (amount > 0) { _writeTokenCheckpoint(_token, amount); }
-            // This prevents creating a checkpoint when accumulated amount is 0
         });
 
         it("should handle RBTC withholding", async () => {
@@ -454,6 +451,173 @@ contract("FeeSharingCollector - Token-Specific Withholding", (accounts) => {
             totalCheckpoints = await feeSharingCollector.totalTokenCheckpoints(SOVToken.address);
             assert.equal(totalCheckpoints.toString(), "1", "Should not create new checkpoint");
         });
+
+        it("should reset fee interval baseline when token is added to withhold list", async () => {
+            const firstAmount = new BN(1);
+            const secondAmount = new BN(2);
+
+            // Initial transfer creates first checkpoint and sets lastFeeWithdrawalTime.
+            await SOVToken.approve(feeSharingCollector.address, firstAmount, { from: root });
+            await feeSharingCollector.transferTokens(SOVToken.address, firstAmount, {
+                from: root,
+            });
+
+            let totalCheckpoints = await feeSharingCollector.totalTokenCheckpoints(
+                SOVToken.address
+            );
+            assert.equal(totalCheckpoints.toString(), "1", "Initial checkpoint should be created");
+
+            await feeSharingCollector.addProtocolWithholdToken(SOVToken.address, { from: root });
+
+            const lastFeeWithdrawalTime = await feeSharingCollector.lastFeeWithdrawalTime(
+                SOVToken.address
+            );
+            assert.equal(
+                lastFeeWithdrawalTime.toString(),
+                "0",
+                "lastFeeWithdrawalTime should be reset while token is withheld"
+            );
+
+            // Remove from withhold list before interval passes and transfer again.
+            await feeSharingCollector.removeProtocolWithholdToken(SOVToken.address, {
+                from: root,
+            });
+            await SOVToken.approve(feeSharingCollector.address, secondAmount, { from: root });
+            await feeSharingCollector.transferTokens(SOVToken.address, secondAmount, {
+                from: root,
+            });
+
+            // Because the baseline was reset, transfer creates checkpoint immediately.
+            totalCheckpoints = await feeSharingCollector.totalTokenCheckpoints(SOVToken.address);
+            assert.equal(
+                totalCheckpoints.toString(),
+                "2",
+                "Should create checkpoint immediately after token is removed from withhold list"
+            );
+
+            const unprocessedAfter = await feeSharingCollector.unprocessedAmount(SOVToken.address);
+            assert.equal(unprocessedAfter.toString(), "0", "No unprocessed amount should remain");
+        });
+
+        it("should withhold RBTC from withdrawFees() when RBTC dummy token is withheld", async () => {
+            const feeAmount = new BN(wei("1", "ether"));
+
+            await feeSharingCollector.addProtocolWithholdToken(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, {
+                from: root,
+            });
+
+            // Seed protocol fee accounting and token balance so protocol.withdrawFees can transfer WRBTC.
+            await sovryn.setLendingFeeTokensHeld(WRBTC.address, feeAmount);
+            await WRBTC.deposit({ from: root, value: feeAmount });
+            await WRBTC.transfer(sovryn.address, feeAmount, { from: root });
+
+            const tx = await feeSharingCollector.withdrawFees([WRBTC.address], { from: root });
+
+            expectEvent(tx, "FeeWithdrawnInRBTC", {
+                sender: root,
+                amount: feeAmount,
+            });
+            expectEvent(tx, "ProtocolRevenueAccumulated", {
+                token: RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                amount: feeAmount,
+            });
+
+            const withheldFees = await feeSharingCollector.getProtocolWithheldFees(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            assert.equal(
+                withheldFees.toString(),
+                feeAmount.toString(),
+                "RBTC should be accumulated as withheld protocol fees"
+            );
+
+            const totalCheckpoints = await feeSharingCollector.totalTokenCheckpoints(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            assert.equal(
+                totalCheckpoints.toString(),
+                "0",
+                "No staker checkpoint should be created"
+            );
+
+            const unprocessed = await feeSharingCollector.unprocessedAmount(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            assert.equal(
+                unprocessed.toString(),
+                "0",
+                "No unprocessed amount should be accumulated"
+            );
+        });
+
+        it("should withhold RBTC from withdrawFeesAMM() when RBTC dummy token is withheld", async () => {
+            const feeAmount = new BN(wei("1", "ether"));
+            const liquidityPoolV1Converter = await LiquidityPoolV1Converter.new(
+                SOVToken.address,
+                SUSD.address
+            );
+
+            await liquidityPoolV1Converter.setTotalFeeMockupValue(feeAmount.toString());
+            await liquidityPoolV1Converter.setFeesController(feeSharingCollector.address);
+            await liquidityPoolV1Converter.setWrbtcToken(WRBTC.address);
+            await WRBTC.deposit({ from: root, value: feeAmount });
+            await WRBTC.transfer(liquidityPoolV1Converter.address, feeAmount, { from: root });
+
+            await feeSharingCollector.addWhitelistedConverterAddress(
+                liquidityPoolV1Converter.address,
+                {
+                    from: root,
+                }
+            );
+            await feeSharingCollector.addProtocolWithholdToken(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, {
+                from: root,
+            });
+
+            const tx = await feeSharingCollector.withdrawFeesAMM(
+                [liquidityPoolV1Converter.address],
+                {
+                    from: root,
+                }
+            );
+
+            expectEvent(tx, "FeeAMMWithdrawn", {
+                sender: root,
+                converter: liquidityPoolV1Converter.address,
+                amount: feeAmount,
+            });
+
+            expectEvent(tx, "ProtocolRevenueAccumulated", {
+                token: RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
+                amount: feeAmount,
+            });
+
+            const withheldFees = await feeSharingCollector.getProtocolWithheldFees(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            assert.equal(
+                withheldFees.toString(),
+                feeAmount.toString(),
+                "AMM RBTC should be accumulated as withheld protocol fees"
+            );
+
+            const totalCheckpoints = await feeSharingCollector.totalTokenCheckpoints(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            assert.equal(
+                totalCheckpoints.toString(),
+                "0",
+                "No staker checkpoint should be created"
+            );
+
+            const unprocessed = await feeSharingCollector.unprocessedAmount(
+                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT
+            );
+            assert.equal(
+                unprocessed.toString(),
+                "0",
+                "No unprocessed amount should be accumulated"
+            );
+        });
     });
 
     describe("Withdraw Protocol Withheld Fees", () => {
@@ -569,17 +733,7 @@ contract("FeeSharingCollector - Token-Specific Withholding", (accounts) => {
 
     describe("Gas Optimization - Zero-Value Checkpoint Prevention", () => {
         it("verifies _addCheckpoint logic prevents zero-value checkpoints", async () => {
-            // The zero-value checkpoint prevention is implemented in _addCheckpoint:
-            //
-            // if (protocolWithheldTokensList.contains(_token)) {
-            //     protocolWithheldFees[_token] += amount;  // No checkpoint
-            // } else {
-            //     if (amount > 0) {                        // Only create if amount > 0
-            //         _writeTokenCheckpoint(_token, amount);
-            //     }
-            // }
-            //
-            // This prevents creating checkpoints when unprocessedAmount + _amount = 0
+            //The actual protection comes from the fact that transferTokens and transferRBTC require _amount > 0
 
             // Verify initial state has no checkpoints
             await increaseTime(FEE_WITHDRAWAL_INTERVAL + 1);
