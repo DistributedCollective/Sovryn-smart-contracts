@@ -150,7 +150,7 @@ contract FeeSharingCollector is
                 "FeeSharingCollector::withdrawFees: wrbtc token amount exceeds 96 bits"
             );
 
-            _addCheckpointOrWithholdProtocolFee(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
+            _processFee(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, amount96);
         }
 
         // note deprecated event since we unify the wrbtc & rbtc
@@ -200,10 +200,7 @@ contract FeeSharingCollector is
         }
 
         if (totalPoolTokenAmount > 0) {
-            _addCheckpointOrWithholdProtocolFee(
-                RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT,
-                totalPoolTokenAmount
-            );
+            _processFee(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, totalPoolTokenAmount);
         }
     }
 
@@ -229,7 +226,7 @@ contract FeeSharingCollector is
             _token = RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT;
         }
 
-        _addCheckpointOrWithholdProtocolFee(_token, _amount);
+        _processFee(_token, _amount);
 
         emit TokensTransferred(msg.sender, _token, _amount);
     }
@@ -243,7 +240,7 @@ contract FeeSharingCollector is
         uint96 _amount = uint96(msg.value);
         require(_amount > 0, "FeeSharingCollector::transferRBTC: invalid value");
 
-        _addCheckpointOrWithholdProtocolFee(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, _amount);
+        _processFee(RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT, _amount);
 
         emit TokensTransferred(msg.sender, ZERO_ADDRESS, _amount);
     }
@@ -255,7 +252,7 @@ contract FeeSharingCollector is
      * @param _token Address of the token.
      * @param _amount Amount of tokens to process.
      * */
-    function _addCheckpointOrWithholdProtocolFee(address _token, uint96 _amount) internal {
+    function _processFee(address _token, uint96 _amount) internal {
         /// @notice Check if token is in protocol withhold list
         if (protocolWithheldTokensList.contains(_token)) {
             /// @notice Token is withheld by protocol - directly add to withheld fees (no unprocessedAmount accumulation)
@@ -268,7 +265,7 @@ contract FeeSharingCollector is
                 uint96 amount = add96(
                     unprocessedAmount[_token],
                     _amount,
-                    "FeeSharingCollector::_addCheckpointOrWithholdProtocolFee: amount exceeds 96 bits"
+                    "FeeSharingCollector::_processFee: amount exceeds 96 bits"
                 );
                 /// @notice Reset unprocessed amount of tokens to zero.
                 unprocessedAmount[_token] = 0;
@@ -278,7 +275,7 @@ contract FeeSharingCollector is
                 unprocessedAmount[_token] = add96(
                     unprocessedAmount[_token],
                     _amount,
-                    "FeeSharingCollector::_addCheckpointOrWithholdProtocolFee: unprocessedAmount exceeds 96 bits"
+                    "FeeSharingCollector::_processFee: unprocessedAmount exceeds 96 bits"
                 );
             }
         }
@@ -1059,13 +1056,10 @@ contract FeeSharingCollector is
      * @param token The token address to add.
      */
     function addProtocolWithholdToken(address token) external onlyOwner {
-        require(
-            token != ZERO_ADDRESS,
-            "FeeSharingCollector::addProtocolWithholdToken: invalid token"
-        );
+        require(token != ZERO_ADDRESS, "addProtocolWithholdToken: invalid token");
         require(
             !protocolWithheldTokensList.contains(token),
-            "FeeSharingCollector::addProtocolWithholdToken: token already in list"
+            "addProtocolWithholdToken: token already in list"
         );
 
         /// @notice Move any existing unprocessed amount to protocol withheld fees
@@ -1093,7 +1087,7 @@ contract FeeSharingCollector is
     function removeProtocolWithholdToken(address token) external onlyOwner {
         require(
             protocolWithheldTokensList.contains(token),
-            "FeeSharingCollector::removeProtocolWithholdToken: token not in list"
+            "removeProtocolWithholdToken: token not in list"
         );
 
         protocolWithheldTokensList.remove(token);
@@ -1133,16 +1127,10 @@ contract FeeSharingCollector is
         address _token,
         address _receiver
     ) external onlyOwner nonReentrant {
-        require(
-            _receiver != ZERO_ADDRESS,
-            "FeeSharingCollector::withdrawProtocolWithheldFees: invalid receiver"
-        );
+        require(_receiver != ZERO_ADDRESS, "withdrawProtocolWithheldFees: invalid receiver");
 
         uint256 amount = protocolWithheldFees[_token];
-        require(
-            amount > 0,
-            "FeeSharingCollector::withdrawProtocolWithheldFees: no fees to withdraw"
-        );
+        require(amount > 0, "withdrawProtocolWithheldFees: no fees to withdraw");
 
         protocolWithheldFees[_token] = 0;
 
@@ -1150,10 +1138,7 @@ contract FeeSharingCollector is
         if (_token == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT) {
             // Transfer RBTC
             (bool success, ) = _receiver.call.value(amount)("");
-            require(
-                success,
-                "FeeSharingCollector::withdrawProtocolWithheldFees: RBTC transfer failed"
-            );
+            require(success, "withdrawProtocolWithheldFees: RBTC transfer failed");
         } else {
             // Transfer ERC20 token
             IERC20(_token).safeTransfer(_receiver, amount);
@@ -1172,14 +1157,8 @@ contract FeeSharingCollector is
         address[] calldata _tokens,
         address _receiver
     ) external onlyOwner nonReentrant {
-        require(
-            _receiver != ZERO_ADDRESS,
-            "FeeSharingCollector::withdrawProtocolWithheldFeesBatch: invalid receiver"
-        );
-        require(
-            _tokens.length > 0,
-            "FeeSharingCollector::withdrawProtocolWithheldFeesBatch: empty array"
-        );
+        require(_receiver != ZERO_ADDRESS, "withdrawProtocolWithheldFeesBatch: invalid receiver");
+        require(_tokens.length > 0, "withdrawProtocolWithheldFeesBatch: empty array");
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             address token = _tokens[i];
@@ -1195,10 +1174,7 @@ contract FeeSharingCollector is
             if (token == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT) {
                 // Transfer RBTC
                 (bool success, ) = _receiver.call.value(amount)("");
-                require(
-                    success,
-                    "FeeSharingCollector::withdrawProtocolWithheldFeesBatch: RBTC transfer failed"
-                );
+                require(success, "withdrawProtocolWithheldFeesBatch: RBTC transfer failed");
             } else {
                 // Transfer ERC20 token
                 IERC20(token).safeTransfer(_receiver, amount);
