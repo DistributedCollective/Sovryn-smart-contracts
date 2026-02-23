@@ -195,7 +195,7 @@ contract("FeeSharingCollector - Token-Specific Withholding", (accounts) => {
         it("should revert if adding zero address", async () => {
             await expectRevert(
                 feeSharingCollector.addProtocolWithholdToken(ZERO_ADDRESS, { from: root }),
-                "FeeSharingCollector::addProtocolWithholdToken: invalid token"
+                "addProtocolWithholdToken: invalid token"
             );
         });
 
@@ -204,7 +204,7 @@ contract("FeeSharingCollector - Token-Specific Withholding", (accounts) => {
 
             await expectRevert(
                 feeSharingCollector.addProtocolWithholdToken(SOVToken.address, { from: root }),
-                "FeeSharingCollector::addProtocolWithholdToken: token already in list"
+                "addProtocolWithholdToken: token already in list"
             );
         });
 
@@ -213,7 +213,7 @@ contract("FeeSharingCollector - Token-Specific Withholding", (accounts) => {
                 feeSharingCollector.removeProtocolWithholdToken(SOVToken.address, {
                     from: root,
                 }),
-                "FeeSharingCollector::removeProtocolWithholdToken: token not in list"
+                "removeProtocolWithholdToken: token not in list"
             );
         });
 
@@ -681,7 +681,7 @@ contract("FeeSharingCollector - Token-Specific Withholding", (accounts) => {
                 feeSharingCollector.withdrawProtocolWithheldFees(SOVToken.address, ZERO_ADDRESS, {
                     from: root,
                 }),
-                "FeeSharingCollector::withdrawProtocolWithheldFees: invalid receiver"
+                "withdrawProtocolWithheldFees: invalid receiver"
             );
         });
 
@@ -696,7 +696,7 @@ contract("FeeSharingCollector - Token-Specific Withholding", (accounts) => {
                 feeSharingCollector.withdrawProtocolWithheldFees(SOVToken.address, account2, {
                     from: root,
                 }),
-                "FeeSharingCollector::withdrawProtocolWithheldFees: no fees to withdraw"
+                "withdrawProtocolWithheldFees: no fees to withdraw"
             );
         });
 
@@ -824,7 +824,7 @@ contract("FeeSharingCollector - Token-Specific Withholding", (accounts) => {
                 feeSharingCollector.withdrawProtocolWithheldFeesBatch([], account2, {
                     from: root,
                 }),
-                "FeeSharingCollector::withdrawProtocolWithheldFeesBatch: empty array"
+                "withdrawProtocolWithheldFeesBatch: empty array"
             );
         });
 
@@ -846,7 +846,7 @@ contract("FeeSharingCollector - Token-Specific Withholding", (accounts) => {
                 feeSharingCollector.withdrawProtocolWithheldFeesBatch(tokens, ZERO_ADDRESS, {
                     from: root,
                 }),
-                "FeeSharingCollector::withdrawProtocolWithheldFeesBatch: invalid receiver"
+                "withdrawProtocolWithheldFeesBatch: invalid receiver"
             );
         });
 
