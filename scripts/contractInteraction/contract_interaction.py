@@ -342,6 +342,57 @@ def main():
     # setupTorqueLoanParams(conf.contracts['iXUSD'], "0x0000000000000000000000000000000000000000", conf.contracts['SOV'], Wei("20 ether"), )
     # checkTx(1344)
 
+    # -----------------------------------------------------------------------
+    # Revert AMM ownership from Governance (Timelock) back to Exchequer (Multisig)
+    # Step 2 of 2: multisig calls acceptOwnership() after the SIP has been executed
+    # and the Timelock has already called transferOwnership(multisig) on each contract.
+    # Run each block only after its corresponding SIP part has been fully executed.
+    # -----------------------------------------------------------------------
+
+    # --- Part 1 (inverse of SIP-0046 Part 1, GovernorAdmin) ---
+    # SovrynSwapNetwork, SwapSettings, and AMM pool oracles:
+    # Moc, Sov, Eth, Bnb, Xusd, Fish, Rif
+    #acceptOwnershipWithMultisig(conf.contracts['swapNetwork'])
+    #acceptOwnershipWithMultisig(conf.contracts['ammSwapSettings'])
+    #acceptOwnershipWithMultisig(conf.contracts['MOCPoolOracle'])
+    #acceptOwnershipWithMultisig(conf.contracts['SOVPoolOracle'])
+    #acceptOwnershipWithMultisig(conf.contracts['ETHPoolOracle'])
+    #acceptOwnershipWithMultisig(conf.contracts['BNBPoolOracle'])
+    #acceptOwnershipWithMultisig(conf.contracts['XUSDPoolOracle'])
+    #acceptOwnershipWithMultisig(conf.contracts['FishPoolOracle'])
+    #acceptOwnershipWithMultisig(conf.contracts['RIFPoolOracle'])
+
+    # --- Part 2 (inverse of SIP-0046 Part 2, GovernorAdmin) ---
+    # Mynt & Dllr oracles, ConversionPathFinder, ConverterUpgrader,
+    # ConverterRegistryData, OracleWhitelist, RBTCWrapperProxy
+    #acceptOwnershipWithMultisig(conf.contracts['MYNTPoolOracle'])
+    #acceptOwnershipWithMultisig(conf.contracts['DLLRPoolOracle'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConversionPathFinder'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterUpgrader'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterRegistryData'])
+    #acceptOwnershipWithMultisig(conf.contracts['ammOracleWhitelist'])
+    #acceptOwnershipWithMultisig(conf.contracts['RBTCWrapperProxy'])
+
+    # --- Part 3 (inverse of SIP-0046 Part 3, GovernorOwner) ---
+    # Converters: DOC, USDT, BPRO, BNBs, MOC, XUSD, SOV, ETHs, FISH, MYNT
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterDOC'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterUSDT'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterBPRO'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterBNBs'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterMOC'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterXUSD'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterSOV'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterETHs'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterFISH'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterMYNT'])
+
+    # --- Part 4 (inverse of SIP-0046 Part 4, GovernorOwner) ---
+    # Converters: RIF, DLLR, ContractRegistry, ConverterFactory
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterRIF'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterDLLR'])
+    #acceptOwnershipWithMultisig(conf.contracts['ammContractRegistry'])
+    #acceptOwnershipWithMultisig(conf.contracts['ConverterFactory'])
+
 def guardiansTransfer():
     ####################################################################
     ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE SIP-0047 EXECUTION ###
