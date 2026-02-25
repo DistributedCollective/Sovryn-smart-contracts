@@ -33,6 +33,7 @@ cache
 .idea/
 *.code-workspace
 .env
+!.env.example
 node_modules
 artifacts/
 cache/

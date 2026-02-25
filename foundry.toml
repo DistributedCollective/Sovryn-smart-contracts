@@ -6,6 +6,8 @@ test = 'tests-foundry'
 match_path = 'tests-foundry/*'
 cache_path  = 'cache_forge'
 fs_permissions = [{ access = "read-write", path = "./"}, { access = "read-write", path = "foundry/out/"}]
+optimizer = true
+optimizer_runs = 200
 # gas_limit = "Max"
 # gas_price = 66000010
 # block_base_fee_per_gas = 0
