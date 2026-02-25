@@ -80,4 +80,4 @@ def main():
         print('timediff:', timediff)
         print('-----------------------------------------------------')
         if ((result == 0) and (math.floor(newResult) >= 1) and (math.floor(newResult) <= maxIterations) and (timediff < 86400) ):
-            fourYearVestingLogic.extendStaking()
+            fourYearVestingLogic.extendStaking({'gas_price': '26000000'})

@@ -124,7 +124,14 @@ async function createVestings(hre, dryRun, path, multiplier, signerAcc, reissue 
             console.log("Make sure you are re-issuing team vesting contracts!");
         } else if (teamVesting[3] === 10) {
             vestingCreationType = 3;
-        } else if (teamVesting[3] === 26) {
+        } else if (
+            teamVesting[3] === 26 ||
+            teamVesting[3] === 4 ||
+            teamVesting[3] === 13 ||
+            teamVesting[3] === 18 ||
+            teamVesting[3] === 21 ||
+            teamVesting[3] === 22
+        ) {
             vestingCreationType = 1;
         } else if ([39, 22, 17, 34, 19].includes(teamVesting[3])) {
             vestingCreationType = 5;
@@ -273,11 +280,20 @@ task("governance:cancelTeamVesting", "Cancel team vesting contract")
         "deployer",
         types.string
     )
-    .setAction(async ({ address: vestingAddress, signer: signerAcc, startFrom }, hre) => {
-        await cancelTeamVesting(hre, vestingAddress, startFrom, signerAcc);
-    });
+    .addOptionalParam("recipient", "Recipient address for cancelled tokens", "", types.string)
+    .setAction(
+        async ({ address: vestingAddress, signer: signerAcc, startFrom, recipient }, hre) => {
+            await cancelTeamVesting(hre, vestingAddress, startFrom, signerAcc, recipient);
+        }
+    );
 
-async function cancelTeamVesting(hre, vestingAddress, startFrom, signerAcc) {
+async function cancelTeamVesting(
+    hre,
+    vestingAddress,
+    startFrom,
+    signerAcc,
+    recipientAddress = null
+) {
     const {
         ethers,
         deployments: { get },
@@ -289,7 +305,7 @@ async function cancelTeamVesting(hre, vestingAddress, startFrom, signerAcc) {
         console.log(`Cancelling team vesting: ${vestingContract.address}`);
         const data = staking.interface.encodeFunctionData("cancelTeamVesting", [
             vestingContract.address,
-            multisigDeployment.address,
+            recipientAddress ? recipientAddress : multisigDeployment.address,
             startFrom,
         ]);
         console.log(`Creating multisig tx cancel team vesting ${vestingContract.address}...`);

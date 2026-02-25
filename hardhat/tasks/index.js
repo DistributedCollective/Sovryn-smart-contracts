@@ -10,3 +10,4 @@ require("./uniswap");
 require("./bridge");
 require("./fastBTC");
 require("./redeem-zero-collateral");
+require("./data-queries");

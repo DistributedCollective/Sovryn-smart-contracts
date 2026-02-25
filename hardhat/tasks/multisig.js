@@ -269,7 +269,15 @@ task("multisig:get-owners", "Print multisig owners")
                 ? await ethers.getContract("MultiSigWallet")
                 : await ethers.getContractAt("MultiSigWallet", multisig);
         //const multisigContract = await ethers.getContract(multisig);
-        logger.info("Owners: ", await ms.getOwners());
+        let owners = [];
+        try {
+            owners = await ms.getOwners();
+        } catch (error) {
+            logger.error(`Error getting owners: ${error.message}`);
+            owners = await ms.owners();
+        }
+        //logger.info("Owners:");
+        owners.forEach((owner, idx) => logger.info(`  [${idx}] ${owner}`));
     });
 
 task("multisig:remove-owner", "Remove multisig owner")
@@ -296,7 +304,7 @@ task("multisig:replace-owner", "Replace multisig owner")
     });
 
 task("multisig:send-tokens", "Send ERC20 tokens or gas tokens via multisig")
-    .addParam(
+    .addPositionalParam(
         "transfers",
         "JSON array of transfers: [{token, to, amount}]. Token can be an address, deployment name (SOV, DLLR, etc.), or 'GasToken' for native token",
         undefined,
