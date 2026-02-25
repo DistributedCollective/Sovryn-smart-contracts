@@ -695,11 +695,12 @@ task("data:getPendingFees", "Get pending fees from protocol, AMM, and fee sharin
             contracts.ConverterMYNT,
             contracts.ConverterDLLR,
         ];
-        // V2 Converter addresses (DoC, USDT, BPRO). Used only for protocol fee token->WRBTC conversion (see get_pending_fees.py).
+        // V2 Converter addresses. Used only for protocol fee token->WRBTC conversion (see get_pending_fees.py).
         const v2Converters = [
             contracts.ConverterDOC,
             contracts.ConverterUSDT,
             contracts.ConverterBPRO,
+            contracts.ConverterXUSD,
         ];
 
         let totalWRBTC = ethers.BigNumber.from(0);
