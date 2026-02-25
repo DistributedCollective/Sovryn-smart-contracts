@@ -5369,6 +5369,284 @@ contract("FeeSharingCollector:", (accounts) => {
         });
     });
 
+    describe("freeze and unfreeze", async () => {
+        it("Should allow owner to freeze the contract", async () => {
+            await protocolDeploymentFixture();
+            expect(await feeSharingCollector.frozen()).to.equal(false);
+
+            const tx = await feeSharingCollector.freeze();
+
+            expect(await feeSharingCollector.frozen()).to.equal(true);
+            expectEvent(tx, "Frozen", {
+                sender: root,
+            });
+        });
+
+        it("Should revert if non-owner tries to freeze", async () => {
+            await protocolDeploymentFixture();
+            await expectRevert(feeSharingCollector.freeze({ from: account1 }), "unauthorized");
+        });
+
+        it("Should revert if contract is already frozen", async () => {
+            await protocolDeploymentFixture();
+            await feeSharingCollector.freeze();
+
+            await expectRevert(
+                feeSharingCollector.freeze(),
+                "FeeSharingCollector: contract is frozen"
+            );
+        });
+
+        it("Should allow owner to unfreeze the contract", async () => {
+            await protocolDeploymentFixture();
+            await feeSharingCollector.freeze();
+            expect(await feeSharingCollector.frozen()).to.equal(true);
+
+            const tx = await feeSharingCollector.unfreeze();
+
+            expect(await feeSharingCollector.frozen()).to.equal(false);
+            expectEvent(tx, "Unfrozen", {
+                sender: root,
+            });
+        });
+
+        it("Should revert if non-owner tries to unfreeze", async () => {
+            await protocolDeploymentFixture();
+            await feeSharingCollector.freeze();
+
+            await expectRevert(feeSharingCollector.unfreeze({ from: account1 }), "unauthorized");
+        });
+
+        it("Should revert if contract is not frozen when trying to unfreeze", async () => {
+            await protocolDeploymentFixture();
+
+            await expectRevert(
+                feeSharingCollector.unfreeze(),
+                "FeeSharingCollector: contract is not frozen"
+            );
+        });
+
+        it("Should block withdraw when contract is frozen", async () => {
+            await protocolDeploymentFixture();
+
+            // Setup: stake and create fees
+            let rootStake = 700;
+            await stake(rootStake, root);
+            let userStake = 300;
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            await setFeeTokensHeld(
+                new BN(wei("1", "gwei")),
+                new BN(wei("2", "gwei")),
+                new BN(wei("3", "gwei")),
+                false,
+                true
+            );
+            await feeSharingCollector.withdrawFees([SOVToken.address]);
+
+            // Freeze the contract
+            await feeSharingCollector.freeze();
+
+            // Try to withdraw - should fail
+            await expectRevert(
+                feeSharingCollector.withdraw(SOVToken.address, 10, ZERO_ADDRESS, {
+                    from: account1,
+                }),
+                "FeeSharingCollector: contract is frozen"
+            );
+        });
+
+        it("Should block claimAllCollectedFees when contract is frozen", async () => {
+            await protocolDeploymentFixture();
+
+            // Setup: stake and create fees
+            let rootStake = 700;
+            await stake(rootStake, root);
+            let userStake = 300;
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            await setFeeTokensHeld(
+                new BN(wei("1", "ether")),
+                new BN(wei("2", "ether")),
+                new BN(wei("3", "ether"))
+            );
+            await feeSharingCollector.withdrawFees([SUSD.address]);
+
+            // Freeze the contract
+            await feeSharingCollector.freeze();
+
+            // Try to claim - should fail
+            await expectRevert(
+                feeSharingCollector.claimAllCollectedFees(
+                    [],
+                    [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                    [],
+                    1000,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "FeeSharingCollector: contract is frozen"
+            );
+        });
+
+        it("Should allow withdraw after unfreezing", async () => {
+            await protocolDeploymentFixture();
+
+            // Setup: stake and create fees
+            let rootStake = 700;
+            await stake(rootStake, root);
+            let userStake = 300;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            let feeAmount = await setFeeTokensHeld(
+                new BN(wei("1", "gwei")),
+                new BN(wei("2", "gwei")),
+                new BN(wei("3", "gwei")),
+                false,
+                true
+            );
+            await feeSharingCollector.withdrawFees([SOVToken.address]);
+
+            // Freeze the contract
+            await feeSharingCollector.freeze();
+
+            // Verify withdraw fails when frozen
+            await expectRevert(
+                feeSharingCollector.withdraw(SOVToken.address, 10, ZERO_ADDRESS, {
+                    from: account1,
+                }),
+                "FeeSharingCollector: contract is frozen"
+            );
+
+            // Unfreeze the contract
+            await feeSharingCollector.unfreeze();
+
+            // Now withdraw should succeed
+            let userInitialBalance = await SOVToken.balanceOf(account1);
+            await feeSharingCollector.withdraw(SOVToken.address, 10, ZERO_ADDRESS, {
+                from: account1,
+            });
+
+            let userFinalBalance = await SOVToken.balanceOf(account1);
+            expect(userFinalBalance.sub(userInitialBalance).toNumber()).to.be.equal(
+                (feeAmount * 3) / 10
+            );
+        });
+
+        it("Should allow claimAllCollectedFees after unfreezing", async () => {
+            await protocolDeploymentFixture();
+
+            // Setup: stake and create fees
+            let rootStake = 700;
+            await stake(rootStake, root);
+            let userStake = 300;
+            if (MOCK_PRIOR_WEIGHTED_STAKE) {
+                await staking.MOCK_priorWeightedStake(userStake * 10);
+            }
+            await SOVToken.transfer(account1, userStake);
+            await stake(userStake, account1);
+
+            let feeAmount = await setFeeTokensHeld(
+                new BN(wei("1", "ether")),
+                new BN(wei("2", "ether")),
+                new BN(wei("3", "ether"))
+            );
+            await feeSharingCollector.withdrawFees([SUSD.address]);
+
+            // Freeze the contract
+            await feeSharingCollector.freeze();
+
+            // Verify claim fails when frozen
+            await expectRevert(
+                feeSharingCollector.claimAllCollectedFees(
+                    [],
+                    [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                    [],
+                    1000,
+                    ZERO_ADDRESS,
+                    {
+                        from: account1,
+                    }
+                ),
+                "FeeSharingCollector: contract is frozen"
+            );
+
+            // Unfreeze the contract
+            await feeSharingCollector.unfreeze();
+
+            // Now claim should succeed
+            let tx = await feeSharingCollector.claimAllCollectedFees(
+                [],
+                [RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT],
+                [],
+                1000,
+                ZERO_ADDRESS,
+                {
+                    from: account1,
+                }
+            );
+
+            expectEvent(tx, "RBTCWithdrawn", {
+                sender: account1,
+                receiver: account1,
+                amount: feeAmount.mul(new BN(3)).div(new BN(10)),
+            });
+        });
+
+        it("Should still allow withdrawFees when frozen (only user withdrawals are blocked)", async () => {
+            await protocolDeploymentFixture();
+
+            let totalStake = 1000;
+            await stake(totalStake, root);
+
+            await setFeeTokensHeld(
+                new BN(wei("1", "ether")),
+                new BN(wei("2", "ether")),
+                new BN(wei("3", "ether"))
+            );
+
+            // Freeze the contract
+            await feeSharingCollector.freeze();
+
+            // withdrawFees should still work (protocol collecting fees)
+            let tx = await feeSharingCollector.withdrawFees([SUSD.address]);
+
+            expectEvent(tx, "FeeWithdrawnInRBTC", {
+                sender: root,
+            });
+        });
+
+        it("Should still allow transferTokens when frozen", async () => {
+            await protocolDeploymentFixture();
+
+            let totalStake = 1000;
+            await stake(totalStake, root);
+
+            let amount = 1000;
+            await SOVToken.approve(feeSharingCollector.address, amount);
+
+            // Freeze the contract
+            await feeSharingCollector.freeze();
+
+            // transferTokens should still work
+            let tx = await feeSharingCollector.transferTokens(SOVToken.address, amount);
+
+            expectEvent(tx, "TokensTransferred", {
+                sender: root,
+                token: SOVToken.address,
+                amount: new BN(amount),
+            });
+        });
+    });
+
     describe("test coverage", async () => {
         it("Token transfer failed", async () => {
             await protocolDeploymentFixture();
