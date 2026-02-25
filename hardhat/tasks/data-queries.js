@@ -44,8 +44,8 @@ task("data:getBorrowData", "Get borrowing data for loans")
             [contracts.BPro.toLowerCase()]: "BPro",
             [contracts.SOV.toLowerCase()]: "SOV",
             [contracts.XUSD.toLowerCase()]: "XUSD",
-            [contracts.ETH.toLowerCase()]: "ETHs",
-            [contracts.BNB.toLowerCase()]: "BNBs",
+            [contracts.ETHs.toLowerCase()]: "ETHs",
+            [contracts.BNBs.toLowerCase()]: "BNBs",
             [contracts.MOC.toLowerCase()]: "MOC",
             [contracts.FISH.toLowerCase()]: "FISH",
             [contracts.RIF.toLowerCase()]: "RIF",
@@ -644,8 +644,8 @@ task("data:getPendingFees", "Get pending fees from protocol, AMM, and fee sharin
         // Load contracts
         const contracts = require("../../scripts/contractInteraction/mainnet_contracts.json");
         const ISovrynDeployment = await get("ISovryn");
-        const LiquidityPoolV1ConverterABI =
-            require("../../artifacts/contracts/feeds/IV1PoolOracle.sol/ILiquidityPoolV1Converter.json").abi;
+        const LiquidityPoolV1ConverterABI = require("../../scripts/contractInteraction/ABIs/LiquidityPoolV1Converter.json");
+        const LiquidityPoolV2ConverterABI = require("../../scripts/contractInteraction/ABIs/LiquidityPoolV2Converter.json");
         const FeeSharingDeployment = await get("FeeSharingCollector");
         const ERC20Deployment = await get("SOV"); // Using SOV as generic ERC20 ABI
 
@@ -667,7 +667,7 @@ task("data:getPendingFees", "Get pending fees from protocol, AMM, and fee sharin
             "0x115cAF168c51eD15ec535727F64684D33B7b08D1" // FeeSharingCollector address
         );
 
-        // Token mapping
+        // Token mapping (keys must match mainnet_contracts.json: DoC, ETHs, BNBs, etc.)
         const tokens = {
             [contracts.WRBTC.toLowerCase()]: "WRBTC",
             [contracts.DoC.toLowerCase()]: "DoC",
@@ -675,8 +675,8 @@ task("data:getPendingFees", "Get pending fees from protocol, AMM, and fee sharin
             [contracts.BPro.toLowerCase()]: "BPro",
             [contracts.SOV.toLowerCase()]: "SOV",
             [contracts.XUSD.toLowerCase()]: "XUSD",
-            [contracts.ETH.toLowerCase()]: "ETHs",
-            [contracts.BNB.toLowerCase()]: "BNBs",
+            [contracts.ETHs.toLowerCase()]: "ETHs",
+            [contracts.BNBs.toLowerCase()]: "BNBs",
             [contracts.MOC.toLowerCase()]: "MOC",
             [contracts.FISH.toLowerCase()]: "FISH",
             [contracts.RIF.toLowerCase()]: "RIF",
@@ -684,11 +684,8 @@ task("data:getPendingFees", "Get pending fees from protocol, AMM, and fee sharin
             [contracts.DLLR.toLowerCase()]: "DLLR",
         };
 
-        // V1 Converter addresses (from mainnet_contracts.json)
+        // V1 Converter addresses only (from mainnet_contracts.json). Used for AMM fees and protocol fee conversion.
         const v1Converters = [
-            contracts.ConverterDOC,
-            contracts.ConverterUSDT,
-            contracts.ConverterBPRO,
             contracts.ConverterBNBs,
             contracts.ConverterMOC,
             contracts.ConverterSOV,
@@ -697,6 +694,12 @@ task("data:getPendingFees", "Get pending fees from protocol, AMM, and fee sharin
             contracts.ConverterRIF,
             contracts.ConverterMYNT,
             contracts.ConverterDLLR,
+        ];
+        // V2 Converter addresses (DoC, USDT, BPRO). Used only for protocol fee token->WRBTC conversion (see get_pending_fees.py).
+        const v2Converters = [
+            contracts.ConverterDOC,
+            contracts.ConverterUSDT,
+            contracts.ConverterBPRO,
         ];
 
         let totalWRBTC = ethers.BigNumber.from(0);
@@ -809,7 +812,8 @@ task("data:getPendingFees", "Get pending fees from protocol, AMM, and fee sharin
                     continue;
                 }
 
-                // Convert other tokens to WRBTC
+                // Convert other tokens to WRBTC: try V1 converters first, then V2 (matches get_pending_fees.py all_converters).
+                let converted = false;
                 for (const converterAddr of v1Converters) {
                     try {
                         const Converter = await ethers.getContractAt(
@@ -817,7 +821,6 @@ task("data:getPendingFees", "Get pending fees from protocol, AMM, and fee sharin
                             converterAddr
                         );
                         const reserve1 = await Converter.reserveTokens(1);
-
                         if (checksumAddr.toLowerCase() === reserve1.toLowerCase()) {
                             const [wrbtcReturn] = await Converter.getReturn(
                                 checksumAddr,
@@ -831,12 +834,46 @@ task("data:getPendingFees", "Get pending fees from protocol, AMM, and fee sharin
                                     totalFees
                                 )} = ${ethers.utils.formatEther(wrbtcReturn)} WRBTC`
                             );
+                            converted = true;
                             break;
                         }
                     } catch (error) {
-                        // Skip if converter doesn't support this token
                         continue;
                     }
+                }
+                if (!converted) {
+                    for (const converterAddr of v2Converters) {
+                        try {
+                            const Converter = await ethers.getContractAt(
+                                LiquidityPoolV2ConverterABI,
+                                converterAddr
+                            );
+                            const reserve1 = await Converter.reserveTokens(1);
+                            if (checksumAddr.toLowerCase() === reserve1.toLowerCase()) {
+                                const [wrbtcReturn] = await Converter.getReturn(
+                                    checksumAddr,
+                                    WRBTC.address,
+                                    totalFees,
+                                    { blockTag: refBlock }
+                                );
+                                protocolWRBTC = protocolWRBTC.add(wrbtcReturn);
+                                logger.info(
+                                    `${tokenName}: ${ethers.utils.formatEther(
+                                        totalFees
+                                    )} = ${ethers.utils.formatEther(wrbtcReturn)} WRBTC (V2)`
+                                );
+                                converted = true;
+                                break;
+                            }
+                        } catch (error) {
+                            continue;
+                        }
+                    }
+                }
+                if (!converted) {
+                    logger.warn(
+                        `No converter (V1 or V2) found for ${tokenName}; protocol fees not converted to WRBTC`
+                    );
                 }
             } catch (error) {
                 logger.warn(`Error processing token ${tokenName}: ${error.message}`);
