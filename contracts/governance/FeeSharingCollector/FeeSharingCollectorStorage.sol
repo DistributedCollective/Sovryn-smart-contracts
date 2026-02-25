@@ -87,6 +87,18 @@ contract FeeSharingCollectorStorage is Ownable {
     address public loanTokenWrbtcAddress;
 
     /**
+     * @dev Enumerable set of tokens for which protocol withholds 100% of fees
+     * @notice These tokens will NOT create checkpoints for stakers
+     */
+    EnumerableAddressSet.AddressSet internal protocolWithheldTokensList;
+
+    /**
+     * @dev Accumulated protocol fees per token (for tokens in protocolWithheldTokensList)
+     * @notice token => accumulated amount
+     */
+    mapping(address => uint256) public protocolWithheldFees;
+
+    /**
      * @dev Prevents a contract from calling itself, directly or indirectly.
      * If you mark a function `nonReentrant`, you should also
      * mark it `external`. Calling one `nonReentrant` function from
