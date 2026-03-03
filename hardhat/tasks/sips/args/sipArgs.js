@@ -1180,6 +1180,395 @@ const getArgsSip0084Part2 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+// ---------------------------------------------------------------------------
+// Revert AMM contract ownership from governance (Timelock) back to Exchequer (MultiSig).
+// Inverse of SIP-0046 parts 1–4.
+//
+// Each part mirrors the original SIP-0046 contract grouping exactly.
+// Two-step process:
+//   Step 1 (on-chain, via SIP): Timelock calls transferOwnership(multisig) on each contract.
+//   Step 2 (off-chain, after SIP passes): Multisig calls acceptOwnership() on each contract.
+// ---------------------------------------------------------------------------
+
+// Shared helper to build the targets/values/signatures/datas arrays for a set of
+// AMM contracts that should have their ownership reverted to the multisig.
+// `expectedOwner`  – the timelock address that must currently own each contract.
+// `deploymentTargets` – same shape as SIP-0046 (deployment, contractName, optional validation).
+const _buildRevertOwnershipArgs = async (
+    hre,
+    deploymentTargets,
+    expectedOwner,
+    expectedOwnerLabel
+) => {
+    const { ethers } = hre;
+    const { deployments } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+    const ownershipABI = [
+        "function owner() view returns(address)",
+        "function newOwner() view returns(address)",
+    ];
+    const ownershipInterface = new ethers.utils.Interface(ownershipABI);
+    const multisigDeployment = await deployments.get("MultiSigWallet");
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+
+    for (let i = 0; i < deploymentTargets.length; i++) {
+        let deploymentTarget = deploymentTargets[i];
+
+        if (deploymentTarget.deployment === "oracle") {
+            const oracleAddress = await getAmmOracleAddress(
+                deploymentTarget.sourceContractNameToValidate,
+                deploymentTarget.sourceContractTypeToValidate
+            );
+            if (oracleAddress === ethers.constants.AddressZero) {
+                logger.error(`Zero address for oracle converter ${deploymentTarget.contractName}`);
+                return process.exit;
+            }
+            const oracleArtifact = await deployments.getArtifact("Oracle");
+            deploymentTarget.deployment = await ethers.getContractAt(
+                oracleArtifact.abi,
+                oracleAddress
+            );
+        } else if (deploymentTarget.sourceContractNameToValidate) {
+            const isValid = await validateAmmOnchainAddresses(deploymentTarget);
+            if (!isValid) {
+                logger.error(
+                    `Validation of AMM on-chain address failed for ${deploymentTarget.contractName}`
+                );
+                return process.exit;
+            }
+        }
+
+        const ammContract = await ethers.getContractAt(
+            ownershipInterface,
+            deploymentTarget.deployment.address
+        );
+        const currentOwner = await ammContract.owner();
+        const pendingOwner = await ammContract.newOwner();
+
+        if (currentOwner.toLowerCase() !== expectedOwner.toLowerCase()) {
+            logger.error(
+                `${deploymentTarget.contractName} - Current owner (${currentOwner}) is not ${expectedOwnerLabel} (${expectedOwner}). ` +
+                    `Ownership may not have been transferred to governance yet, or has already been reverted.`
+            );
+            return process.exit;
+        }
+
+        if (
+            pendingOwner !== ethers.constants.AddressZero &&
+            pendingOwner.toLowerCase() !== multisigDeployment.address.toLowerCase()
+        ) {
+            logger.warn(
+                `${deploymentTarget.contractName} - Pending new owner (${pendingOwner}) is not the multisig (${multisigDeployment.address}). ` +
+                    `transferOwnership() will overwrite it.`
+            );
+        }
+
+        targets.push(deploymentTarget.deployment.address);
+        values.push(0);
+        signatures.push("transferOwnership(address)");
+        datas.push(abiCoder.encode(["address"], [multisigDeployment.address]));
+    }
+
+    return { targets, values, signatures, datas };
+};
+
+// Inverse of SIP-0046 Part 1 (GovernorAdmin):
+//   SovrynSwapNetwork, SwapSettings, MocOracle, SovOracle, EthOracle, BnbOracle,
+//   XusdOracle, FishOracle, RifOracle
+const getArgsSipRevertAmmOwnershipPart1 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+    const timeLockAdminDeployment = await get("TimelockAdmin");
+
+    const deploymentTargets = [
+        {
+            deployment: await get("AmmSovrynSwapNetwork"),
+            contractName: "SovrynSwapNetwork",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+        {
+            deployment: await get("AmmSwapSettings"),
+            contractName: "SwapSettings",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+        {
+            deployment: "oracle",
+            contractName: "MocOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterMoc",
+        },
+        {
+            deployment: "oracle",
+            contractName: "SovOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterSov",
+        },
+        {
+            deployment: "oracle",
+            contractName: "EthOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterEth",
+        },
+        {
+            deployment: "oracle",
+            contractName: "BnbOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterBnb",
+        },
+        {
+            deployment: "oracle",
+            contractName: "XusdOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterXusd",
+        },
+        {
+            deployment: "oracle",
+            contractName: "FishOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterFish",
+        },
+        {
+            deployment: "oracle",
+            contractName: "RifOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterRif",
+        },
+    ];
+
+    const { targets, values, signatures, datas } = await _buildRevertOwnershipArgs(
+        hre,
+        deploymentTargets,
+        timeLockAdminDeployment.address,
+        "TimelockAdmin"
+    );
+
+    const args = {
+        targets,
+        values,
+        signatures,
+        data: datas,
+        description:
+            "SIP-XXXX: Revert AMM Contract Ownership to Exchequer (Part 1), Details: https://github.com/DistributedCollective/SIPS/blob/XXXXXXX/SIP-XXXX_part-1.md, sha256: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
+// Inverse of SIP-0046 Part 2 (GovernorAdmin):
+//   MyntOracle, DllrOracle, ConversionPathFinder, ConverterUpgrader,
+//   ConverterRegistryData, OracleWhitelist, RbtcWrapperProxy
+const getArgsSipRevertAmmOwnershipPart2 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+    const timeLockAdminDeployment = await get("TimelockAdmin");
+
+    const deploymentTargets = [
+        {
+            deployment: "oracle",
+            contractName: "MyntOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterMynt",
+        },
+        {
+            deployment: "oracle",
+            contractName: "DllrOracle",
+            sourceContractTypeToValidate: "ConverterV1",
+            sourceContractNameToValidate: "AmmConverterDllr",
+        },
+        {
+            deployment: await get("AmmConversionPathFinder"),
+            contractName: "ConversionPathFinder",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+        {
+            deployment: await get("AmmConverterUpgrader"),
+            contractName: "ConverterUpgrader",
+        },
+        {
+            deployment: await get("AmmConverterRegistryData"),
+            contractName: "ConverterRegistryData",
+        },
+        {
+            deployment: await get("AmmOracleWhitelist"),
+            contractName: "OracleWhitelist",
+        },
+        {
+            deployment: await get("AmmRbtcWrapperProxy"),
+            contractName: "RbtcWrapperProxy",
+        },
+    ];
+
+    const { targets, values, signatures, datas } = await _buildRevertOwnershipArgs(
+        hre,
+        deploymentTargets,
+        timeLockAdminDeployment.address,
+        "TimelockAdmin"
+    );
+
+    const args = {
+        targets,
+        values,
+        signatures,
+        data: datas,
+        description:
+            "SIP-XXXX: Revert AMM Contract Ownership to Exchequer (Part 2), Details: https://github.com/DistributedCollective/SIPS/blob/XXXXXXX/SIP-XXXX_part-2.md, sha256: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
+// Inverse of SIP-0046 Part 3 (GovernorOwner):
+//   ConverterDoc, ConverterUsdt, ConverterBpro, ConverterBnb, ConverterMoc,
+//   ConverterXusd, ConverterSov, ConverterEth, ConverterFish, ConverterMynt
+const getArgsSipRevertAmmOwnershipPart3 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+    const timeLockOwnerDeployment = await get("TimelockOwner");
+
+    const deploymentTargets = [
+        {
+            deployment: await get("AmmConverterDoc"),
+            contractName: "ConverterDoc",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterUsdt"),
+            contractName: "ConverterUsdt",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterBpro"),
+            contractName: "ConverterBpro",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterBnb"),
+            contractName: "ConverterBnb",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterMoc"),
+            contractName: "ConverterMoc",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterXusd"),
+            contractName: "ConverterXusd",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterSov"),
+            contractName: "ConverterSov",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterEth"),
+            contractName: "ConverterEth",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterFish"),
+            contractName: "ConverterFish",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterMynt"),
+            contractName: "ConverterMynt",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+    ];
+
+    const { targets, values, signatures, datas } = await _buildRevertOwnershipArgs(
+        hre,
+        deploymentTargets,
+        timeLockOwnerDeployment.address,
+        "TimelockOwner"
+    );
+
+    const args = {
+        targets,
+        values,
+        signatures,
+        data: datas,
+        description:
+            "SIP-XXXX: Revert AMM Contract Ownership to Exchequer (Part 3), Details: https://github.com/DistributedCollective/SIPS/blob/XXXXXXX/SIP-XXXX_part-3.md, sha256: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
+// Inverse of SIP-0046 Part 4 (GovernorOwner):
+//   ConverterRif, ConverterDllr, ContractRegistry, ConverterFactory
+const getArgsSipRevertAmmOwnershipPart4 = async (hre) => {
+    const {
+        deployments: { get },
+    } = hre;
+    const timeLockOwnerDeployment = await get("TimelockOwner");
+
+    const deploymentTargets = [
+        {
+            deployment: await get("AmmConverterRif"),
+            contractName: "ConverterRif",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmConverterDllr"),
+            contractName: "ConverterDllr",
+            sourceContractTypeToValidate: "ConverterRegistry",
+            sourceContractNameToValidate: "AmmConverterRegistry",
+        },
+        {
+            deployment: await get("AmmContractRegistry"),
+            contractName: "ContractRegistry",
+        },
+        {
+            deployment: await get("AmmConverterFactory"),
+            contractName: "ConverterFactory",
+            sourceContractTypeToValidate: "ContractRegistry",
+            sourceContractNameToValidate: "AmmContractRegistry",
+        },
+    ];
+
+    const { targets, values, signatures, datas } = await _buildRevertOwnershipArgs(
+        hre,
+        deploymentTargets,
+        timeLockOwnerDeployment.address,
+        "TimelockOwner"
+    );
+
+    const args = {
+        targets,
+        values,
+        signatures,
+        data: datas,
+        description:
+            "SIP-XXXX: Revert AMM Contract Ownership to Exchequer (Part 4), Details: https://github.com/DistributedCollective/SIPS/blob/XXXXXXX/SIP-XXXX_part-4.md, sha256: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    };
+
+    return { args, governor: "GovernorOwner" };
+};
+
 const getArgsSip0087 = async (hre) => {
     // SOV-5158 Fix Liquidation Blocking Vulnerability
     const {
@@ -1272,4 +1661,8 @@ module.exports = {
     getArgsSip0084Part1,
     getArgsSip0084Part2,
     getArgsSip0087,
+    getArgsSipRevertAmmOwnershipPart1,
+    getArgsSipRevertAmmOwnershipPart2,
+    getArgsSipRevertAmmOwnershipPart3,
+    getArgsSipRevertAmmOwnershipPart4,
 };
