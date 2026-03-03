@@ -13,6 +13,7 @@ require("hardhat-abi-exporter");
 require("hardhat-deploy");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("@nomicfoundation/hardhat-foundry");
+require("@nomicfoundation/hardhat-verify");
 
 require("./hardhat/tasks");
 
@@ -317,6 +318,29 @@ module.exports = {
             tags: ["testnet", "forked"],
             timeout: 100000,
         },
+
+        rskMainnetBlockscout: {
+            chainId: 30,
+            url: "https://mainnet-dev.sovryn.app/rpc",
+            accounts: mainnetAccounts,
+            gasPrice: 66000010,
+            blockGasLimit: 6800000,
+            tags: ["mainnet"],
+            timeout: 100000,
+            //timeout: 20000, // increase if needed; 20000 is the default value
+        },
+        rskTestnetBlockscout: {
+            chainId: 31,
+            url: "https://testnet.sovryn.app/rpc",
+            accounts: testnetAccounts,
+            gasPrice: 66000010,
+            blockGasLimit: 6800000,
+            confirmations: 4,
+            gasMultiplier: 1.25,
+            tags: ["testnet"],
+            //timeout: 20000, // increase if needed; 20000 is the default value
+            //allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
+        },
     },
     paths: {
         sources: "./contracts",
@@ -384,5 +408,56 @@ module.exports = {
     },
     mocha: {
         timeout: 800000,
+    },
+    etherscan: {
+        apiKey: {
+            // Rootstock explorer (no key required, but must be non-empty)
+            rskSovrynMainnet: "rootstock",
+            rskSovrynTestnet: "rootstock",
+
+            // Blockscout (also no key required, but must be non-empty)
+            rskMainnetBlockscout: "rootstock",
+            rskTestnetBlockscout: "rootstock",
+        },
+        customChains: [
+            // Rootstock Explorer (mainnet/testnet)
+            {
+                network: "rskSovrynMainnet",
+                chainId: 30,
+                urls: {
+                    apiURL: "https://be.explorer.rootstock.io/api/v3/",
+                    browserURL: "https://explorer.rootstock.io/",
+                },
+            },
+            {
+                network: "rskSovrynTestnet",
+                chainId: 31,
+                urls: {
+                    apiURL: "https://be.explorer.testnet.rootstock.io/api/v3/",
+                    browserURL: "https://explorer.testnet.rootstock.io/",
+                },
+            },
+
+            // Rootstock Blockscout (mainnet/testnet)
+            {
+                network: "rskMainnetBlockscout",
+                chainId: 30,
+                urls: {
+                    apiURL: "https://rootstock.blockscout.com/api/",
+                    browserURL: "https://rootstock.blockscout.com/",
+                },
+            },
+            {
+                network: "rskTestnetBlockscout",
+                chainId: 31,
+                urls: {
+                    apiURL: "https://rootstock-testnet.blockscout.com/api/",
+                    browserURL: "https://rootstock-testnet.blockscout.com/",
+                },
+            },
+        ],
+    },
+    sourcify: {
+        enabled: false,
     },
 };
