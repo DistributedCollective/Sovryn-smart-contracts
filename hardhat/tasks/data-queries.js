@@ -1,10 +1,142 @@
 /* eslint-disable no-console */
 const { task } = require("hardhat/config");
+const { providers } = require("ethers");
 const Logs = require("node-logs");
 const fs = require("fs");
+const path = require("path");
 const { createObjectCsvWriter } = require("csv-writer");
 
 const logger = new Logs().showInConsole(true);
+const MAX_QUERY_FILTER_BLOCK_RANGE = 10000;
+const DEFAULT_CONCURRENCY = 20;
+
+const runWithConcurrency = async (items, limit, worker) => {
+    const results = new Array(items.length);
+    let nextIndex = 0;
+
+    const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+        while (true) {
+            const currentIndex = nextIndex++;
+            if (currentIndex >= items.length) break;
+            results[currentIndex] = await worker(items[currentIndex], currentIndex);
+        }
+    });
+
+    await Promise.all(runners);
+    return results;
+};
+
+const queryFilterByChunks = async (
+    contract,
+    filter,
+    fromBlock,
+    toBlock,
+    label = "events",
+    chunkSize = MAX_QUERY_FILTER_BLOCK_RANGE,
+    options = {}
+) => {
+    const { onChunk, collectEvents = true } = options;
+    const events = [];
+    let activeContract = contract;
+    let activeChunkSize = chunkSize;
+    const minChunkSize = 25;
+
+    const getFallbackRpcUrl = async (provider) => {
+        const candidates = [
+            provider && provider.connection && provider.connection.url,
+            provider &&
+                provider._wrapped &&
+                provider._wrapped.connection &&
+                provider._wrapped.connection.url,
+            provider &&
+                provider._provider &&
+                provider._provider.connection &&
+                provider._provider.connection.url,
+        ].filter((url) => typeof url === "string" && url.length > 0);
+
+        for (const url of candidates) {
+            if (url.includes("public-node.rsk.co")) return "https://mainnet-dev.sovryn.app/rpc";
+            if (url.includes("public-node.testnet.rsk.co"))
+                return "https://testnet.sovryn.app/rpc";
+            if (url.includes("mainnet-dev.sovryn.app/rpc")) return url;
+            if (url.includes("testnet.sovryn.app/rpc")) return url;
+        }
+
+        if (provider && provider.getNetwork) {
+            const network = await provider.getNetwork();
+            if (network && Number(network.chainId) === 30) {
+                return "https://mainnet-dev.sovryn.app/rpc";
+            }
+            if (network && Number(network.chainId) === 31) {
+                return "https://testnet.sovryn.app/rpc";
+            }
+        }
+
+        return null;
+    };
+
+    for (let chunkStart = fromBlock; chunkStart <= toBlock; ) {
+        const chunkEnd = Math.min(chunkStart + activeChunkSize - 1, toBlock);
+        logger.info(`Querying ${label}: blocks ${chunkStart} -> ${chunkEnd}`);
+        let chunkEvents;
+        try {
+            chunkEvents = await activeContract.queryFilter(filter, chunkStart, chunkEnd);
+        } catch (e) {
+            const message = String(e && e.message ? e.message : e).toLowerCase();
+            const needsLogCapableRpc =
+                message.includes("eth_getlogs does not exist") ||
+                message.includes("eth_getlogs is not available") ||
+                message.includes("403 forbidden");
+            const tooManyLogs =
+                message.includes("filter returned more than 10000 logs") ||
+                message.includes("returned more than 10000 logs");
+
+            if (needsLogCapableRpc) {
+                const fallbackRpcUrl = await getFallbackRpcUrl(activeContract.provider);
+                if (!fallbackRpcUrl) {
+                    throw e;
+                }
+
+                logger.warn(
+                    `Current RPC does not support logs for ${label}. Switching to ${fallbackRpcUrl}`
+                );
+                const fallbackProvider = new providers.JsonRpcProvider(fallbackRpcUrl);
+                activeContract = activeContract.connect(fallbackProvider);
+                continue;
+            }
+
+            if (tooManyLogs) {
+                if (activeChunkSize <= minChunkSize) {
+                    throw new Error(
+                        `${label}: log density is too high even at ${activeChunkSize} blocks. Narrow the block range further.`
+                    );
+                }
+
+                activeChunkSize = Math.max(minChunkSize, Math.floor(activeChunkSize / 2));
+                logger.warn(
+                    `${label}: chunk ${chunkStart}-${chunkEnd} returned too many logs. Reducing chunk size to ${activeChunkSize} blocks and retrying.`
+                );
+                continue;
+            }
+
+            throw e;
+        }
+        if (onChunk) {
+            await onChunk(chunkEvents, {
+                chunkStart,
+                chunkEnd,
+                contract: activeContract,
+                chunkSize: activeChunkSize,
+            });
+        }
+        if (collectEvents) {
+            events.push(...chunkEvents);
+        }
+        chunkStart = chunkEnd + 1;
+    }
+
+    return events;
+};
 
 /**
  * Get borrowing data for a specific loan or user
@@ -155,7 +287,13 @@ task("data:getBorrowData", "Get borrowing data for loans")
             // Get liquidations
             logger.info("\n=== Liquidations ===");
             const liqFilter = Protocol.filters.Liquidate(null, borrowLoanId);
-            const liquidations = await Protocol.queryFilter(liqFilter, borrowBlock, latestBlock);
+            const liquidations = await queryFilterByChunks(
+                Protocol,
+                liqFilter,
+                borrowBlock,
+                latestBlock,
+                "Liquidate"
+            );
 
             if (liquidations.length === 0) {
                 logger.info("No liquidations");
@@ -178,7 +316,13 @@ task("data:getBorrowData", "Get borrowing data for loans")
             // Get deposit collateral events
             logger.info("\n=== Deposit Collateral ===");
             const depFilter = Protocol.filters.DepositCollateral(null, borrowLoanId);
-            const deposits = await Protocol.queryFilter(depFilter, borrowBlock, latestBlock);
+            const deposits = await queryFilterByChunks(
+                Protocol,
+                depFilter,
+                borrowBlock,
+                latestBlock,
+                "DepositCollateral"
+            );
 
             if (deposits.length === 0) {
                 logger.info("No deposits");
@@ -197,7 +341,13 @@ task("data:getBorrowData", "Get borrowing data for loans")
             // Get rollovers
             logger.info("\n=== Rollovers ===");
             const rolloverFilter = Protocol.filters.Rollover(null, borrowLoanId);
-            const rollovers = await Protocol.queryFilter(rolloverFilter, borrowBlock, latestBlock);
+            const rollovers = await queryFilterByChunks(
+                Protocol,
+                rolloverFilter,
+                borrowBlock,
+                latestBlock,
+                "Rollover"
+            );
 
             if (rollovers.length === 0) {
                 logger.info("No rollovers");
@@ -317,7 +467,13 @@ task("data:getLPTokenBalances", "Get LP token balances and liquidity mining info
         // Get all Transfer events to find token holders
         logger.info("\nScanning for LP token holders...");
         const transferFilter = PoolToken.filters.Transfer();
-        const transfers = await PoolToken.queryFilter(transferFilter, 0, refBlock);
+        const transfers = await queryFilterByChunks(
+            PoolToken,
+            transferFilter,
+            0,
+            refBlock,
+            "Transfer"
+        );
 
         // Build set of unique addresses
         const addresses = new Set();
@@ -414,92 +570,241 @@ task("data:getStakerStats", "Get staker statistics for a given block range")
     .addOptionalParam("fromBlock", "Start block (defaults to staking genesis)")
     .addOptionalParam("toBlock", "End block (defaults to latest)")
     .addOptionalParam("output", "Output file path for CSV export")
-    .setAction(async ({ fromBlock, toBlock, output }, hre) => {
-        const {
-            ethers,
-            deployments: { get },
-        } = hre;
+    .addOptionalParam("resumeFile", "Progress file for resumable scanning")
+    .setAction(async ({ fromBlock, toBlock, output, resumeFile }, hre) => {
+        const { ethers } = hre;
         const provider = ethers.provider;
 
         // Load contracts
         const contracts = require("../../scripts/contractInteraction/mainnet_contracts.json");
-        const StakingDeployment = await get("Staking");
 
         const stakingGenesisBlock = 3100263; // Staking deployment block
         const startBlock = fromBlock ? parseInt(fromBlock) : stakingGenesisBlock;
         const endBlock = toBlock ? parseInt(toBlock) : await provider.getBlockNumber();
+        const network = await provider.getNetwork();
+        const stakingAddress = ethers.utils.getAddress(contracts.Staking);
+        const progressFile =
+            resumeFile ||
+            path.join(
+                "temp",
+                `data-getStakerStats-${network.chainId}-${startBlock}-${stakingAddress.toLowerCase()}.json`
+            );
 
         logger.info(`Scanning staking events from block ${startBlock} to ${endBlock}`);
+        logger.info(`Progress file: ${progressFile}`);
 
-        const Staking = await ethers.getContractAt(StakingDeployment.abi, contracts.Staking);
+        const Staking = await ethers.getContractAt("IStaking", contracts.Staking);
 
-        // Get TokensStaked events
-        const stakeFilter = Staking.filters.TokensStaked();
-        const stakes = await Staking.queryFilter(stakeFilter, startBlock, endBlock);
+        let progress = {
+            version: 2,
+            chainId: Number(network.chainId),
+            stakingAddress,
+            startBlock,
+            lastProcessedBlock: startBlock - 1,
+            targetEndBlock: endBlock,
+            scanCompleted: false,
+            contractEvents: 0,
+            eoaEvents: 0,
+            stakers: {},
+            classifications: {},
+            activeStakersSnapshotBlock: null,
+            activeStakers: {},
+            activeStakersCount: 0,
+            totalCurrentStaked: "0",
+        };
 
-        logger.info(`Found ${stakes.length} TokensStaked events`);
+        if (fs.existsSync(progressFile)) {
+            const rawProgress = JSON.parse(fs.readFileSync(progressFile, "utf8"));
+            const sameScan =
+                Number(rawProgress.chainId) === Number(network.chainId) &&
+                rawProgress.stakingAddress &&
+                rawProgress.stakingAddress.toLowerCase() === stakingAddress.toLowerCase() &&
+                Number(rawProgress.startBlock) === startBlock;
 
-        const stakers = {};
-        let contractEvents = 0;
-        let eoaEvents = 0;
-
-        for (const stake of stakes) {
-            const staker = stake.args.staker;
-            const amount = stake.args.amount;
-
-            // Check if vesting contract
-            const isVesting = await Staking.isVestingContract(staker);
-            if (isVesting) {
-                contractEvents++;
-                continue;
+            if (sameScan) {
+                progress = {
+                    ...progress,
+                    ...rawProgress,
+                    targetEndBlock: endBlock,
+                };
+                if (Number(progress.lastProcessedBlock) < endBlock) {
+                    progress.scanCompleted = false;
+                }
+                logger.info(
+                    `Resuming from block ${Number(progress.lastProcessedBlock) + 1} (last processed: ${progress.lastProcessedBlock})`
+                );
+            } else {
+                logger.warn(
+                    `Ignoring incompatible progress file at ${progressFile} and starting from scratch`
+                );
             }
-
-            // Check if contract
-            const code = await provider.getCode(staker);
-            const isContract = code !== "0x";
-
-            if (isContract) {
-                contractEvents++;
-                continue;
-            }
-
-            // Track EOA stakers
-            if (!stakers[staker]) {
-                stakers[staker] = ethers.BigNumber.from(0);
-            }
-            stakers[staker] = stakers[staker].add(amount);
-            eoaEvents++;
         }
+
+        const writeProgress = () => {
+            fs.mkdirSync(path.dirname(progressFile), { recursive: true });
+            fs.writeFileSync(progressFile, JSON.stringify(progress, null, 2));
+        };
+
+        const stakeFilter = Staking.filters.TokensStaked();
+        const resumeFromBlock = Math.max(startBlock, Number(progress.lastProcessedBlock) + 1);
+
+        if (!progress.scanCompleted && resumeFromBlock <= endBlock) {
+            await queryFilterByChunks(
+                Staking,
+                stakeFilter,
+                resumeFromBlock,
+                endBlock,
+                "TokensStaked",
+                MAX_QUERY_FILTER_BLOCK_RANGE,
+                {
+                    collectEvents: false,
+                    onChunk: async (stakes, { chunkStart, chunkEnd }) => {
+                        logger.info(
+                            `Processing TokensStaked chunk ${chunkStart} -> ${chunkEnd}: ${stakes.length} events`
+                        );
+
+                        const chunkTotalsByStaker = {};
+                        const chunkEventsByStaker = {};
+
+                        for (const stake of stakes) {
+                            const staker = ethers.utils.getAddress(stake.args.staker);
+                            const amount = stake.args.amount;
+                            if (!chunkTotalsByStaker[staker]) {
+                                chunkTotalsByStaker[staker] = ethers.BigNumber.from(0);
+                                chunkEventsByStaker[staker] = 0;
+                            }
+                            chunkTotalsByStaker[staker] = chunkTotalsByStaker[staker].add(amount);
+                            chunkEventsByStaker[staker] += 1;
+                        }
+
+                        const uniqueStakers = Object.keys(chunkTotalsByStaker);
+                        const uncachedStakers = uniqueStakers.filter(
+                            (staker) => !progress.classifications[staker]
+                        );
+
+                        logger.info(
+                            `Chunk ${chunkStart} -> ${chunkEnd}: ${uniqueStakers.length} unique stakers, ${uncachedStakers.length} uncached`
+                        );
+
+                        if (uncachedStakers.length > 0) {
+                            await runWithConcurrency(
+                                uncachedStakers,
+                                DEFAULT_CONCURRENCY,
+                                async (staker) => {
+                                    const isVesting = await Staking.isVestingContract(staker);
+                                    if (isVesting) {
+                                        progress.classifications[staker] = "excluded";
+                                        return;
+                                    }
+
+                                    const code = await provider.getCode(staker);
+                                    progress.classifications[staker] =
+                                        code !== "0x" ? "excluded" : "eoa";
+                                }
+                            );
+                        }
+
+                        let chunkContractEvents = 0;
+                        let chunkEoaEvents = 0;
+                        for (const staker of uniqueStakers) {
+                            const classification = progress.classifications[staker];
+                            const eventCount = chunkEventsByStaker[staker];
+
+                            if (classification === "excluded") {
+                                chunkContractEvents += eventCount;
+                                continue;
+                            }
+
+                            if (!progress.stakers[staker]) {
+                                progress.stakers[staker] = "0";
+                            }
+                            progress.stakers[staker] = ethers.BigNumber.from(
+                                progress.stakers[staker]
+                            )
+                                .add(chunkTotalsByStaker[staker])
+                                .toString();
+                            chunkEoaEvents += eventCount;
+                        }
+
+                        progress.contractEvents += chunkContractEvents;
+                        progress.eoaEvents += chunkEoaEvents;
+                        progress.lastProcessedBlock = chunkEnd;
+                        writeProgress();
+                        logger.info(
+                            `Finished chunk ${chunkStart} -> ${chunkEnd}: +${chunkEoaEvents} EOA events, +${chunkContractEvents} excluded events`
+                        );
+                    },
+                }
+            );
+            progress.scanCompleted = true;
+            writeProgress();
+        } else {
+            logger.info("Using cached staking scan results from progress file");
+        }
+
+        const stakers = Object.fromEntries(
+            Object.entries(progress.stakers).map(([staker, amount]) => [
+                staker,
+                ethers.BigNumber.from(amount),
+            ])
+        );
+        const contractEvents = Number(progress.contractEvents);
+        const eoaEvents = Number(progress.eoaEvents);
 
         logger.info(`\nContract events (excluded): ${contractEvents}`);
         logger.info(`EOA events: ${eoaEvents}`);
         logger.info(`Unique stakers: ${Object.keys(stakers).length}`);
 
         // Get current balances
-        logger.info("\nFetching current balances...");
-        const results = [];
+        let results = [];
         let totalStaked = ethers.BigNumber.from(0);
         let activeStakers = 0;
 
-        for (const [staker, stakedAmount] of Object.entries(stakers)) {
-            const balance = await Staking.balanceOf(staker, { blockTag: endBlock });
+        if (Number(progress.activeStakersSnapshotBlock) === endBlock && progress.activeStakers) {
+            logger.info(`\nUsing cached active staker balances for block ${endBlock}...`);
+            results = Object.entries(progress.activeStakers).map(([address, data]) => ({
+                address,
+                totalStaked: data.totalStaked,
+                currentBalance: data.currentBalance,
+            }));
+            activeStakers = Number(progress.activeStakersCount || results.length);
+            totalStaked = ethers.BigNumber.from(progress.totalCurrentStaked || "0");
+        } else {
+            logger.info("\nFetching current balances...");
+            const activeStakersMap = {};
 
-            if (balance.gt(0)) {
-                activeStakers++;
-                totalStaked = totalStaked.add(balance);
+            for (const [staker, stakedAmount] of Object.entries(stakers)) {
+                const balance = await Staking.balanceOf(staker, { blockTag: endBlock });
 
-                results.push({
-                    address: staker,
-                    totalStaked: ethers.utils.formatEther(stakedAmount),
-                    currentBalance: ethers.utils.formatEther(balance),
-                });
+                if (balance.gt(0)) {
+                    activeStakers++;
+                    totalStaked = totalStaked.add(balance);
 
-                logger.info(
-                    `${staker}: Staked ${ethers.utils.formatEther(
-                        stakedAmount
-                    )} SOV, Balance ${ethers.utils.formatEther(balance)} SOV`
-                );
+                    const row = {
+                        address: staker,
+                        totalStaked: ethers.utils.formatEther(stakedAmount),
+                        currentBalance: ethers.utils.formatEther(balance),
+                    };
+
+                    results.push(row);
+                    activeStakersMap[staker] = {
+                        totalStaked: row.totalStaked,
+                        currentBalance: row.currentBalance,
+                    };
+
+                    logger.info(
+                        `${staker}: Staked ${ethers.utils.formatEther(
+                            stakedAmount
+                        )} SOV, Balance ${ethers.utils.formatEther(balance)} SOV`
+                    );
+                }
             }
+
+            progress.activeStakersSnapshotBlock = endBlock;
+            progress.activeStakers = activeStakersMap;
+            progress.activeStakersCount = activeStakers;
+            progress.totalCurrentStaked = totalStaked.toString();
+            writeProgress();
         }
 
         logger.info("\n=========================================");
@@ -567,7 +872,13 @@ task("data:getMarginData", "Get margin trading position data")
             null,
             filter.loanId || null
         );
-        const trades = await Protocol.queryFilter(tradeFilter, fromBlock, latestBlock);
+        const trades = await queryFilterByChunks(
+            Protocol,
+            tradeFilter,
+            fromBlock,
+            latestBlock,
+            "Trade"
+        );
 
         if (trades.length === 0) {
             logger.warn("No margin trade events found");
@@ -979,7 +1290,6 @@ task("data:getStakingRewards", "Get staking rewards (osSOV) for voluntary staker
         const contracts = require("../../scripts/contractInteraction/mainnet_contracts.json");
         const ERC20Deployment = await get("SOV"); // Using SOV as generic ERC20 ABI
         const StakingRewardsOSDeployment = await get("StakingRewardsOS");
-        const StakingDeployment = await get("Staking");
 
         const refBlock = block ? parseInt(block) : await provider.getBlockNumber();
         const blockData = await provider.getBlock(refBlock);
@@ -993,14 +1303,20 @@ task("data:getStakingRewards", "Get staking rewards (osSOV) for voluntary staker
             StakingRewardsOSDeployment.abi,
             contracts.StakingRewardsOs
         );
-        const Staking = await ethers.getContractAt(StakingDeployment.abi, contracts.Staking);
+        const Staking = await ethers.getContractAt("IStaking", contracts.Staking);
 
         logger.info("\nFetching voluntary stakers...");
 
         // Get all TokensStaked events from genesis to get unique stakers
         const stakingGenesisBlock = 3100263;
         const stakeFilter = Staking.filters.TokensStaked();
-        const stakes = await Staking.queryFilter(stakeFilter, stakingGenesisBlock, refBlock);
+        const stakes = await queryFilterByChunks(
+            Staking,
+            stakeFilter,
+            stakingGenesisBlock,
+            refBlock,
+            "TokensStaked"
+        );
 
         logger.info(`Found ${stakes.length} staking events`);
 
@@ -1130,7 +1446,13 @@ task("data:getDLLRHolders", "Get DLLR token holder balances")
         logger.info("Scanning Transfer events...");
         const fromBlock = 5072468; // DLLR creation block
         const transferFilter = DLLR.filters.Transfer();
-        const transfers = await DLLR.queryFilter(transferFilter, fromBlock, refBlock);
+        const transfers = await queryFilterByChunks(
+            DLLR,
+            transferFilter,
+            fromBlock,
+            refBlock,
+            "Transfer"
+        );
 
         // Build set of receiving addresses
         const receivers = new Set();
@@ -1230,7 +1552,13 @@ task("data:getBridgeEvents", "Get bridge Cross events")
 
         // Get Cross events
         const crossFilter = Bridge.filters.Cross();
-        const crosses = await Bridge.queryFilter(crossFilter, startBlock, endBlock);
+        const crosses = await queryFilterByChunks(
+            Bridge,
+            crossFilter,
+            startBlock,
+            endBlock,
+            "Cross"
+        );
 
         logger.info(`Found ${crosses.length} bridge Cross events\n`);
 
@@ -1303,16 +1631,12 @@ task("data:getBridgeEvents", "Get bridge Cross events")
 task("data:getCheckpoints", "Get staking checkpoints and voting power")
     .addOptionalParam("output", "Output file path for CSV export")
     .setAction(async ({ output }, hre) => {
-        const {
-            ethers,
-            deployments: { get },
-        } = hre;
+        const { ethers } = hre;
         const provider = ethers.provider;
 
         const contracts = require("../../scripts/contractInteraction/mainnet_contracts.json");
-        const StakingDeployment = await get("Staking");
 
-        const Staking = await ethers.getContractAt(StakingDeployment.abi, contracts.Staking);
+        const Staking = await ethers.getContractAt("IStaking", contracts.Staking);
 
         const TWO_WEEKS = 2 * 7 * 24 * 60 * 60;
         const MAX_STAKING_PERIODS = 78;
@@ -1394,7 +1718,6 @@ task("data:getFeeCollectorRevenue", "Get fee collector revenue for all stakers")
 
         const contracts = require("../../scripts/contractInteraction/mainnet_contracts.json");
         const FeeSharingDeployment = await get("FeeSharingCollector");
-        const StakingDeployment = await get("Staking");
 
         const refBlock = block ? parseInt(block) : await provider.getBlockNumber();
         const blockData = await provider.getBlock(refBlock);
@@ -1410,7 +1733,6 @@ task("data:getFeeCollectorRevenue", "Get fee collector revenue for all stakers")
             FeeSharingDeployment.abi,
             "0x115cAF168c51eD15ec535727F64684D33B7b08D1"
         );
-        const Staking = await ethers.getContractAt(StakingDeployment.abi, contracts.Staking);
 
         // Fee tokens to track
         const feeTokens = [
@@ -1481,6 +1803,360 @@ task("data:getFeeCollectorRevenue", "Get fee collector revenue for all stakers")
     });
 
 /**
+ * Get fee collector fees aggregated by month
+ */
+task("data:getMonthlyFees", "Get fee collector fees aggregated by month")
+    .addOptionalParam("block", "Reference block number")
+    .addOptionalParam("months", "Number of past months to scan (default: 1)", "1")
+    .addOptionalParam("from", "Start date (YYYY-MM or ISO), inclusive")
+    .addOptionalParam("to", "End date (YYYY-MM or ISO), inclusive")
+    .addOptionalParam("output", "Output file path for CSV export")
+    .addOptionalParam("collector", "FeeSharingCollector proxy address override")
+    .addOptionalParam(
+        "chunkSize",
+        "Number of checkpoints to fetch per chunk (default: 200)",
+        "200"
+    )
+    .addOptionalParam("concurrency", "Max concurrent RPC calls per chunk (default: 5)", "5")
+    .addOptionalParam("state", "State file path for resume (default: .monthly-fees-state.json)")
+    .addOptionalParam("resume", "Resume from state file if present (default: true)", "true")
+    .setAction(
+        async (
+            { block, months, from, to, output, collector, chunkSize, concurrency, state, resume },
+            hre
+        ) => {
+            const {
+                ethers,
+                deployments: { get },
+            } = hre;
+            const provider = ethers.provider;
+
+            const contracts = require("../../scripts/contractInteraction/mainnet_contracts.json");
+            const FeeSharingDeployment = await get("FeeSharingCollector");
+
+            const parseDateInput = (value, endOfMonth = false) => {
+                if (!value) return null;
+                const trimmed = String(value).trim();
+                if (/^\d{4}-\d{2}$/.test(trimmed)) {
+                    const [yearStr, monthStr] = trimmed.split("-");
+                    const year = Number(yearStr);
+                    const month = Number(monthStr);
+                    if (endOfMonth) {
+                        return new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+                    }
+                    return new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+                }
+                const parsed = new Date(trimmed);
+                if (Number.isNaN(parsed.getTime())) {
+                    throw new Error(`Invalid date: ${value}`);
+                }
+                return parsed;
+            };
+
+            const refBlock = block ? parseInt(block) : await provider.getBlockNumber();
+            const blockData = await provider.getBlock(refBlock);
+            const refBlockDate = new Date(blockData.timestamp * 1000);
+
+            let endDate = parseDateInput(to, true) || refBlockDate;
+            if (endDate > refBlockDate) {
+                endDate = refBlockDate;
+            }
+
+            let startDate = parseDateInput(from, false);
+            if (!startDate) {
+                const monthsBack = Math.max(1, parseInt(months) || 1);
+                startDate = new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), 1));
+                startDate.setUTCMonth(startDate.getUTCMonth() - (monthsBack - 1));
+            }
+
+            logger.info(`Reference block: ${refBlock} (${refBlockDate.toISOString()})`);
+            logger.info(`Scanning from ${startDate.toISOString()} to ${endDate.toISOString()}`);
+
+            const feeCollectorAddress =
+                collector ||
+                contracts.FeeSharingCollectorProxy ||
+                "0x115cAF168c51eD15ec535727F64684D33B7b08D1";
+
+            const FeeCollector = await ethers.getContractAt(
+                FeeSharingDeployment.abi,
+                feeCollectorAddress
+            );
+
+            const feeTokens = [
+                { address: "0xa9DcDC63eaBb8a2b6f39D7fF9429d88340044a7A", name: "iWRBTC" },
+                { address: contracts.SOV, name: "SOV" },
+                { address: "0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d", name: "ZUSD" },
+                { address: contracts.WRBTC, name: "WRBTC" },
+                { address: "0xEaBD29bE3C3187500DF86a2613C6470E12F2D77d", name: "RBTC_DUMMY" },
+                { address: "0x2e6B1d146064613E8f521Eb3c6e65070af964EbB", name: "MYNT" },
+            ];
+
+            const startTs = Math.floor(startDate.getTime() / 1000);
+            const endTs = Math.floor(endDate.getTime() / 1000);
+
+            const statePath = state || path.join(process.cwd(), ".monthly-fees-state.json");
+            const shouldResume = String(resume).toLowerCase() !== "false";
+            const maxConcurrency = Math.max(1, parseInt(concurrency) || 1);
+            const maxChunkSize = Math.max(1, parseInt(chunkSize) || 1);
+
+            const serializeMonthlyTotals = (totalsMap) => {
+                const result = {};
+                for (const [monthKey, tokenMap] of totalsMap.entries()) {
+                    result[monthKey] = {};
+                    for (const [tokenName, amount] of tokenMap.entries()) {
+                        result[monthKey][tokenName] = amount.toString();
+                    }
+                }
+                return result;
+            };
+
+            const deserializeMonthlyTotals = (totalsObj) => {
+                const result = new Map();
+                if (!totalsObj) return result;
+                for (const [monthKey, tokenTotals] of Object.entries(totalsObj)) {
+                    const tokenMap = new Map();
+                    for (const [tokenName, amountStr] of Object.entries(tokenTotals)) {
+                        tokenMap.set(tokenName, ethers.BigNumber.from(amountStr));
+                    }
+                    result.set(monthKey, tokenMap);
+                }
+                return result;
+            };
+
+            let stateData = null;
+            if (shouldResume && fs.existsSync(statePath)) {
+                const raw = fs.readFileSync(statePath, "utf8");
+                const parsed = JSON.parse(raw);
+                if (
+                    parsed &&
+                    parsed.startTs === startTs &&
+                    parsed.endTs === endTs &&
+                    parsed.feeCollectorAddress === feeCollectorAddress
+                ) {
+                    stateData = parsed;
+                    logger.info(`Resuming from state file: ${statePath}`);
+                } else {
+                    logger.info("State file does not match current range; starting fresh.");
+                }
+            }
+
+            const monthlyTotals = stateData
+                ? deserializeMonthlyTotals(stateData.monthlyTotals)
+                : new Map();
+            let checkpointsScanned = stateData ? stateData.checkpointsScanned || 0 : 0;
+            const tokenStates = stateData ? stateData.tokens || {} : {};
+
+            const writeState = () => {
+                const payload = {
+                    version: 1,
+                    refBlock,
+                    startTs,
+                    endTs,
+                    feeCollectorAddress,
+                    checkpointsScanned,
+                    monthlyTotals: serializeMonthlyTotals(monthlyTotals),
+                    tokens: tokenStates,
+                    updatedAt: new Date().toISOString(),
+                };
+                fs.writeFileSync(statePath, JSON.stringify(payload, null, 2));
+            };
+
+            const addMonthlyTotal = (monthKey, tokenName, amount) => {
+                if (!monthlyTotals.has(monthKey)) {
+                    monthlyTotals.set(monthKey, new Map());
+                }
+                const monthEntry = monthlyTotals.get(monthKey);
+                const current = monthEntry.get(tokenName) || ethers.BigNumber.from(0);
+                monthEntry.set(tokenName, current.add(amount));
+            };
+
+            const toNumberSafe = (value) => {
+                if (value == null) return 0;
+                if (typeof value === "number") return value;
+                if (typeof value === "string") return Number(value);
+                if (typeof value.toNumber === "function") return value.toNumber();
+                return Number(value);
+            };
+
+            const getCheckpointTimestamp = async (tokenAddress, index) => {
+                const checkpoint = await FeeCollector.tokenCheckpoints(tokenAddress, index, {
+                    blockTag: refBlock,
+                });
+                return toNumberSafe(checkpoint[1]);
+            };
+
+            const findFirstIndexAtOrAfter = async (tokenAddress, numCheckpoints, targetTs) => {
+                if (numCheckpoints === 0) return 0;
+                let lo = 0;
+                let hi = numCheckpoints - 1;
+                let result = numCheckpoints;
+                while (lo <= hi) {
+                    const mid = Math.floor((lo + hi) / 2);
+                    const ts = await getCheckpointTimestamp(tokenAddress, mid);
+                    if (ts >= targetTs) {
+                        result = mid;
+                        hi = mid - 1;
+                    } else {
+                        lo = mid + 1;
+                    }
+                }
+                return result;
+            };
+
+            const findLastIndexAtOrBefore = async (tokenAddress, numCheckpoints, targetTs) => {
+                if (numCheckpoints === 0) return -1;
+                let lo = 0;
+                let hi = numCheckpoints - 1;
+                let result = -1;
+                while (lo <= hi) {
+                    const mid = Math.floor((lo + hi) / 2);
+                    const ts = await getCheckpointTimestamp(tokenAddress, mid);
+                    if (ts <= targetTs) {
+                        result = mid;
+                        lo = mid + 1;
+                    } else {
+                        hi = mid - 1;
+                    }
+                }
+                return result;
+            };
+
+            const fetchCheckpointsChunk = async (tokenAddress, indices) => {
+                return runWithConcurrency(indices, maxConcurrency, async (idx) => {
+                    const checkpoint = await FeeCollector.tokenCheckpoints(tokenAddress, idx, {
+                        blockTag: refBlock,
+                    });
+                    return {
+                        index: idx,
+                        ts: toNumberSafe(checkpoint[1]),
+                        numTokens: checkpoint[3],
+                    };
+                });
+            };
+
+            for (const token of feeTokens) {
+                const numCheckpointsBn = await FeeCollector.numTokenCheckpoints(token.address, {
+                    blockTag: refBlock,
+                });
+                const numCheckpoints = numCheckpointsBn.toNumber();
+
+                logger.info(`\nScanning ${token.name} checkpoints... (${numCheckpoints} total)`);
+
+                if (numCheckpoints === 0) {
+                    continue;
+                }
+
+                if (
+                    !tokenStates[token.name] ||
+                    tokenStates[token.name].address !== token.address ||
+                    !shouldResume
+                ) {
+                    const startIndex = await findFirstIndexAtOrAfter(
+                        token.address,
+                        numCheckpoints,
+                        startTs
+                    );
+                    const endIndex = await findLastIndexAtOrBefore(
+                        token.address,
+                        numCheckpoints,
+                        endTs
+                    );
+
+                    tokenStates[token.name] = {
+                        address: token.address,
+                        startIndex,
+                        endIndex,
+                        nextIndex: startIndex,
+                        done: endIndex < startIndex,
+                    };
+                    writeState();
+                }
+
+                const tokenState = tokenStates[token.name];
+                if (tokenState.done) {
+                    logger.info(`${token.name}: no checkpoints in range.`);
+                    continue;
+                }
+
+                for (
+                    let chunkStart = tokenState.nextIndex;
+                    chunkStart <= tokenState.endIndex;
+                    chunkStart += maxChunkSize
+                ) {
+                    const chunkEnd = Math.min(chunkStart + maxChunkSize - 1, tokenState.endIndex);
+                    const indices = [];
+                    for (let i = chunkStart; i <= chunkEnd; i++) {
+                        indices.push(i);
+                    }
+
+                    const checkpoints = await fetchCheckpointsChunk(token.address, indices);
+                    for (const entry of checkpoints) {
+                        if (!entry) continue;
+                        if (entry.ts < startTs || entry.ts > endTs) continue;
+                        const checkpointDate = new Date(entry.ts * 1000);
+                        const monthKey = `${checkpointDate.getUTCFullYear()}-${String(
+                            checkpointDate.getUTCMonth() + 1
+                        ).padStart(2, "0")}`;
+                        addMonthlyTotal(monthKey, token.name, entry.numTokens);
+                        checkpointsScanned += 1;
+                    }
+
+                    tokenState.nextIndex = chunkEnd + 1;
+                    writeState();
+                }
+
+                tokenState.done = true;
+                writeState();
+            }
+
+            const monthsSorted = Array.from(monthlyTotals.keys()).sort();
+
+            logger.info("\n======================================");
+            logger.info("====== Monthly Fee Totals ==========");
+            logger.info("======================================");
+            logger.info(`Months found: ${monthsSorted.length}`);
+            logger.info(`Checkpoints counted: ${checkpointsScanned}`);
+
+            for (const monthKey of monthsSorted) {
+                logger.info(`\n${monthKey}`);
+                const monthEntry = monthlyTotals.get(monthKey);
+                for (const token of feeTokens) {
+                    const amount = monthEntry.get(token.name) || ethers.BigNumber.from(0);
+                    if (amount.isZero()) continue;
+                    logger.info(`${token.name}: ${ethers.utils.formatEther(amount)}`);
+                }
+            }
+
+            if (output && monthsSorted.length > 0) {
+                const rows = [];
+                for (const monthKey of monthsSorted) {
+                    const monthEntry = monthlyTotals.get(monthKey);
+                    for (const token of feeTokens) {
+                        const amount = monthEntry.get(token.name) || ethers.BigNumber.from(0);
+                        if (amount.isZero()) continue;
+                        rows.push({
+                            month: monthKey,
+                            token: token.name,
+                            amount: ethers.utils.formatEther(amount),
+                        });
+                    }
+                }
+
+                const csvWriter = createObjectCsvWriter({
+                    path: output,
+                    header: [
+                        { id: "month", title: "Month" },
+                        { id: "token", title: "Token" },
+                        { id: "amount", title: "Amount" },
+                    ],
+                });
+                await csvWriter.writeRecords(rows);
+                logger.success(`Results exported to: ${output}`);
+            }
+        }
+    );
+
+/**
  * Get borrows with SOV collateral
  * Equivalent to: SOV_borrow.py
  */
@@ -1512,7 +2188,13 @@ task("data:getSOVBorrows", "Get all borrows using SOV as collateral")
 
         // Get Borrow events filtered by SOV collateral
         const borrowFilter = Protocol.filters.Borrow(null, null, null, null, SOV);
-        const borrows = await Protocol.queryFilter(borrowFilter, startBlock, endBlock);
+        const borrows = await queryFilterByChunks(
+            Protocol,
+            borrowFilter,
+            startBlock,
+            endBlock,
+            "Borrow"
+        );
 
         logger.info(`Found ${borrows.length} borrows with SOV collateral\n`);
 
@@ -1614,7 +2296,13 @@ task("data:getSOVMargins", "Get all margin trades using SOV as collateral")
 
         // Get Trade events filtered by SOV collateral
         const tradeFilter = Protocol.filters.Trade(null, null, null, SOV);
-        const trades = await Protocol.queryFilter(tradeFilter, startBlock, endBlock);
+        const trades = await queryFilterByChunks(
+            Protocol,
+            tradeFilter,
+            startBlock,
+            endBlock,
+            "Trade"
+        );
 
         logger.info(`Found ${trades.length} margin trades with SOV collateral\n`);
 
@@ -1717,11 +2405,23 @@ task("data:getDLLRArbitrage", "Get DLLR arbitrage events from watcher")
 
         // Get arbitrage events DLLR -> WRBTC
         const arbDLLRFilter = Watcher.filters.Arbitrage(DLLR, WRBTC);
-        const arbsDLLR = await Watcher.queryFilter(arbDLLRFilter, startBlock, endBlock);
+        const arbsDLLR = await queryFilterByChunks(
+            Watcher,
+            arbDLLRFilter,
+            startBlock,
+            endBlock,
+            "Arbitrage DLLR/WRBTC"
+        );
 
         // Get arbitrage events WRBTC -> DLLR
         const arbWRBTCFilter = Watcher.filters.Arbitrage(WRBTC, DLLR);
-        const arbsWRBTC = await Watcher.queryFilter(arbWRBTCFilter, startBlock, endBlock);
+        const arbsWRBTC = await queryFilterByChunks(
+            Watcher,
+            arbWRBTCFilter,
+            startBlock,
+            endBlock,
+            "Arbitrage WRBTC/DLLR"
+        );
 
         logger.info(`Found ${arbsDLLR.length} DLLR->WRBTC arbitrages`);
         logger.info(`Found ${arbsWRBTC.length} WRBTC->DLLR arbitrages\n`);
@@ -1850,18 +2550,29 @@ task("data:getAllVestings", "Get all vesting contracts and their details")
 
         // Get FourYearVestingCreated events
         const factoryFilter = FourYearFactory.filters.FourYearVestingCreated();
-        const factoryEvents = await FourYearFactory.queryFilter(factoryFilter, 4378315, refBlock);
+        const factoryEvents = await queryFilterByChunks(
+            FourYearFactory,
+            factoryFilter,
+            4378315,
+            refBlock,
+            "FourYearVestingCreated"
+        );
 
         const fourYearOwners = factoryEvents.map((event) => event.args.tokenOwner);
         logger.info(`Found ${fourYearOwners.length} 4-year vesting contracts`);
 
         // Get TokensStaked events to find all stakers
         logger.info("\nGetting all token owners from staking events...");
-        const StakingDeployment = await get("Staking");
-        const Staking = await ethers.getContractAt(StakingDeployment.abi, contracts.Staking);
+        const Staking = await ethers.getContractAt("IStaking", contracts.Staking);
 
         const stakeFilter = Staking.filters.TokensStaked();
-        const stakes = await Staking.queryFilter(stakeFilter, 3100263, refBlock);
+        const stakes = await queryFilterByChunks(
+            Staking,
+            stakeFilter,
+            3100263,
+            refBlock,
+            "TokensStaked"
+        );
 
         const tokenOwners = new Set();
         for (const stake of stakes) {
@@ -1994,7 +2705,13 @@ task("data:getTokenHolders", "Get holders of any ERC20 token")
 
         // Get all Transfer events
         const transferFilter = Token.filters.Transfer();
-        const transfers = await Token.queryFilter(transferFilter, 0, refBlock);
+        const transfers = await queryFilterByChunks(
+            Token,
+            transferFilter,
+            0,
+            refBlock,
+            "Transfer"
+        );
 
         // Build set of addresses that ever received tokens
         const addresses = new Set();
@@ -2185,7 +2902,13 @@ task("data:getActiveLoans", "Get summary of all active loans")
 
         // Get all Borrow events from genesis
         const borrowFilter = Protocol.filters.Borrow();
-        const borrows = await Protocol.queryFilter(borrowFilter, 0, latestBlock);
+        const borrows = await queryFilterByChunks(
+            Protocol,
+            borrowFilter,
+            0,
+            latestBlock,
+            "Borrow"
+        );
 
         logger.info(`Found ${borrows.length} total borrow events`);
         logger.info("Checking active status...\n");
@@ -2394,11 +3117,23 @@ task("data:getXUSDActivity", "Get XUSD aggregator mints and redemptions")
 
         // Get Minted events
         const mintedFilter = XUSDAggregator.filters.Minted();
-        const mints = await XUSDAggregator.queryFilter(mintedFilter, startBlock, endBlock);
+        const mints = await queryFilterByChunks(
+            XUSDAggregator,
+            mintedFilter,
+            startBlock,
+            endBlock,
+            "Minted"
+        );
 
         // Get Redeemed events
         const redeemedFilter = XUSDAggregator.filters.Redeemed();
-        const redemptions = await XUSDAggregator.queryFilter(redeemedFilter, startBlock, endBlock);
+        const redemptions = await queryFilterByChunks(
+            XUSDAggregator,
+            redeemedFilter,
+            startBlock,
+            endBlock,
+            "Redeemed"
+        );
 
         logger.info(`Found ${mints.length} mint events`);
         logger.info(`Found ${redemptions.length} redemption events\n`);
@@ -2499,14 +3234,13 @@ task("data:getVestingBlockLimits", "Analyze vesting contracts for potential bloc
         const provider = ethers.provider;
 
         const contracts = require("../../scripts/contractInteraction/mainnet_contracts.json");
-        const StakingDeployment = await get("Staking");
         const LockedSOVDeployment = await get("LockedSOV");
         const VestingRegistryDeployment = await get("VestingRegistry");
 
         const refBlock = block ? parseInt(block) : await provider.getBlockNumber();
         logger.info(`Analyzing vesting contracts at block ${refBlock}\n`);
 
-        const Staking = await ethers.getContractAt(StakingDeployment.abi, contracts.Staking);
+        const Staking = await ethers.getContractAt("IStaking", contracts.Staking);
         const LockedSOV = await ethers.getContractAt(LockedSOVDeployment.abi, contracts.LockedSOV);
         const VestingRegistry = await ethers.getContractAt(
             VestingRegistryDeployment.abi,
@@ -2519,7 +3253,13 @@ task("data:getVestingBlockLimits", "Analyze vesting contracts for potential bloc
 
         // Get all TokensStaked events to find stakers
         const stakeFilter = Staking.filters.TokensStaked();
-        const stakes = await Staking.queryFilter(stakeFilter, 3100263, refBlock);
+        const stakes = await queryFilterByChunks(
+            Staking,
+            stakeFilter,
+            3100263,
+            refBlock,
+            "TokensStaked"
+        );
 
         const tokenOwners = new Set();
         stakes.forEach((stake) => tokenOwners.add(stake.args.staker));
@@ -2626,5 +3366,35 @@ task("data:getVestingBlockLimits", "Analyze vesting contracts for potential bloc
             logger.success(`Results exported to: ${output}`);
         }
     });
+
+task(
+    "staking:totalStaked",
+    "Print total actively staked SOV (excluding unlocked-but-not-withdrawn)"
+).setAction(async (_, hre) => {
+    const { ethers } = hre;
+    const contracts = require("../../scripts/contractInteraction/mainnet_contracts.json");
+    const Staking = await ethers.getContractAt("IStaking", contracts.Staking);
+
+    const kickoffTS = (await Staking.kickoffTS()).toNumber();
+    const now = Math.floor(Date.now() / 1000);
+    const TWO_WEEKS = 2 * 7 * 24 * 60 * 60;
+    const MAX_DURATION = 1092 * 24 * 60 * 60;
+
+    const dates = [];
+    for (let ts = kickoffTS + TWO_WEEKS; ts <= now + MAX_DURATION; ts += TWO_WEEKS) {
+        if (ts > now) dates.push(ts);
+    }
+
+    let total = ethers.BigNumber.from(0);
+    for (const date of dates) {
+        const staked = await Staking.getCurrentStakedUntil(date);
+        if (staked.gt(0)) {
+            total = total.add(staked);
+        }
+    }
+
+    console.log(`\nTotal actively staked: ${ethers.utils.formatEther(total)} SOV`);
+    console.log(`Future lock dates checked: ${dates.length}`);
+});
 
 module.exports = {};
