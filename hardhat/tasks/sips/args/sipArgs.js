@@ -1249,6 +1249,27 @@ const getArgsSip0087 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0089 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![30, 31, 31337].includes(chainId)) {
+        throw new Error(`sampleGovernorOwnerSIP cannot run on the network ID == ${chainId}`);
+    }
+    const args = {
+        targets: [(await hre.deployments.get("SOV")).address],
+        values: [0],
+        signatures: ["name()"],
+        data: ["0x"],
+        description:
+            "SIP-0089: Ratification of Temporary Revenue Redirection to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/e595d37/SIP-0089.md, sha256: 486a09c19296dd82b120993c8eca952b5b499808715133c889d96af7d612997b",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1272,4 +1293,5 @@ module.exports = {
     getArgsSip0084Part1,
     getArgsSip0084Part2,
     getArgsSip0087,
+    getArgsSip0089,
 };
