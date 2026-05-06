@@ -25,7 +25,7 @@ fail_on_revert = true
 
 [rpc_endpoints]
 localhost = "http://127.0.0.1:8545/"
-rskSovrynMainnet = "https://mainnet4.sovryn.app/rpc"
+rskSovrynMainnet = "https://mainnet-dev.sovryn.app/rpc "
 rskSovrynTestnet = "https://testnet.sovryn.app/rpc"
 rskTestnet = "https://public-node.testnet.rsk.co/"
 rskMainnet = "https://public-node.rsk.co/"

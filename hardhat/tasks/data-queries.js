@@ -2157,6 +2157,450 @@ task("data:getMonthlyFees", "Get fee collector fees aggregated by month")
     );
 
 /**
+ * Get current active debt backed by SOV collateral, grouped by lending pool.
+ */
+task("data:getSOVBackedDebtByPool", "Get active debt backed by SOV collateral, grouped by pool")
+    .addOptionalParam("block", "Reference block number (defaults to latest)")
+    .addOptionalParam("pageSize", "Active-loan page size (default: 100)", "100")
+    .addOptionalParam("output", "Output file path for pool summary CSV export")
+    .addOptionalParam("detailsOutput", "Output file path for per-loan CSV export")
+    .setAction(async ({ block, pageSize, output, detailsOutput }, hre) => {
+        const {
+            ethers,
+            deployments: { get },
+        } = hre;
+        const provider = ethers.provider;
+        const contracts = require("../../scripts/contractInteraction/mainnet_contracts.json");
+        const ISovrynDeployment = await get("ISovryn");
+        const ERC20Deployment = await get("SOV");
+
+        const refBlockArg = block;
+        const refBlock = refBlockArg ? parseInt(refBlockArg) : await provider.getBlockNumber();
+        if (!Number.isInteger(refBlock) || refBlock < 0) {
+            throw new Error(`Invalid reference block: ${refBlockArg}`);
+        }
+        const blockData = await provider.getBlock(refBlock);
+        const queryOverrides = { blockTag: refBlock };
+        const requestedPageSize = Math.max(1, parseInt(pageSize) || 100);
+
+        const Protocol = await ethers.getContractAt(
+            ISovrynDeployment.abi,
+            contracts.sovrynProtocol
+        );
+        const PriceFeeds = await ethers.getContractAt("IPriceFeeds", contracts.PriceFeeds);
+
+        const normalizeAddress = (address) =>
+            ethers.utils.getAddress(String(address).toLowerCase());
+        const ONE_HUNDRED_PERCENT = ethers.utils.parseEther("100");
+        const PERCENT_PRECISION = ethers.BigNumber.from(10).pow(20);
+        const formatSignedPercent = (isNegative, value) =>
+            `${isNegative ? "-" : ""}${ethers.utils.formatEther(value)}`;
+        const getPriceDropScenario = (collateralRatio, maintenanceMargin, remainingPercent) => {
+            const scenarioRatio = collateralRatio.mul(remainingPercent).div(100);
+            const isNegativeMargin = scenarioRatio.lt(ONE_HUNDRED_PERCENT);
+            const marginAbs = isNegativeMargin
+                ? ONE_HUNDRED_PERCENT.sub(scenarioRatio)
+                : scenarioRatio.sub(ONE_HUNDRED_PERCENT);
+            const isBelowMaintenance = isNegativeMargin || marginAbs.lte(maintenanceMargin);
+
+            return {
+                collateralRatio: scenarioRatio,
+                marginAbs,
+                isNegativeMargin,
+                isBelowMaintenance,
+            };
+        };
+        const getMarginFromCollateralValue = (principal, collateralValue) => {
+            if (principal.isZero()) {
+                return {
+                    collateralRatio: ethers.BigNumber.from(0),
+                    marginAbs: ethers.BigNumber.from(0),
+                    isNegativeMargin: false,
+                };
+            }
+
+            const collateralRatio = collateralValue.mul(PERCENT_PRECISION).div(principal);
+            const isNegativeMargin = collateralValue.lt(principal);
+            const marginAbs = isNegativeMargin
+                ? principal.sub(collateralValue).mul(PERCENT_PRECISION).div(principal)
+                : collateralValue.sub(principal).mul(PERCENT_PRECISION).div(principal);
+
+            return { collateralRatio, marginAbs, isNegativeMargin };
+        };
+
+        const SOV = normalizeAddress(contracts.SOV);
+        const TokenMetadataABI = [
+            "function symbol() view returns (string)",
+            "function decimals() view returns (uint8)",
+            "function loanTokenAddress() view returns (address)",
+        ];
+
+        const configuredPools = [
+            { poolName: "iDOC", poolAddress: contracts.iDOC, tokenAddress: contracts.DoC },
+            { poolName: "iRBTC", poolAddress: contracts.iRBTC, tokenAddress: contracts.WRBTC },
+            { poolName: "iXUSD", poolAddress: contracts.iXUSD, tokenAddress: contracts.XUSD },
+            { poolName: "iUSDT", poolAddress: contracts.iUSDT, tokenAddress: contracts.USDT },
+            { poolName: "iBPRO", poolAddress: contracts.iBPro, tokenAddress: contracts.BPro },
+            { poolName: "iDLLR", poolAddress: contracts.iDLLR, tokenAddress: contracts.DLLR },
+        ].filter((entry) => entry.poolAddress && entry.tokenAddress);
+
+        const tokenMetadata = new Map();
+        const collateralToLoanRateCache = new Map();
+        const poolByLoanToken = new Map();
+
+        const getTokenMetadata = async (tokenAddress) => {
+            const normalized = normalizeAddress(tokenAddress);
+            const key = normalized.toLowerCase();
+            if (tokenMetadata.has(key)) return tokenMetadata.get(key);
+
+            const token = await ethers.getContractAt(ERC20Deployment.abi, normalized);
+            let symbol = normalized;
+            let decimals = 18;
+
+            try {
+                symbol = await token.symbol(queryOverrides);
+            } catch (e) {
+                logger.warn(`Could not read symbol for ${normalized}: ${e.message}`);
+            }
+
+            try {
+                decimals = await token.decimals(queryOverrides);
+            } catch (e) {
+                logger.warn(`Could not read decimals for ${normalized}; assuming 18`);
+            }
+
+            const metadata = { address: normalized, symbol, decimals };
+            tokenMetadata.set(key, metadata);
+            return metadata;
+        };
+
+        const rememberPool = async (poolAddress, poolName) => {
+            if (!poolAddress) return;
+            const normalizedPool = normalizeAddress(poolAddress);
+            const loanPool = await ethers.getContractAt(TokenMetadataABI, normalizedPool);
+            let loanTokenAddress;
+            try {
+                loanTokenAddress = await loanPool.loanTokenAddress(queryOverrides);
+            } catch (e) {
+                return;
+            }
+
+            const loanTokenMetadata = await getTokenMetadata(loanTokenAddress);
+            let resolvedPoolName = poolName;
+            if (!resolvedPoolName) {
+                try {
+                    resolvedPoolName = await loanPool.symbol(queryOverrides);
+                } catch (e) {
+                    resolvedPoolName = normalizedPool;
+                }
+            }
+
+            poolByLoanToken.set(normalizeAddress(loanTokenAddress).toLowerCase(), {
+                poolName: resolvedPoolName,
+                poolAddress: normalizedPool,
+                loanTokenAddress: loanTokenMetadata.address,
+                loanTokenSymbol: loanTokenMetadata.symbol,
+                loanTokenDecimals: loanTokenMetadata.decimals,
+            });
+        };
+
+        const getCollateralToLoanRate = async (loanTokenAddress) => {
+            const normalizedLoanToken = normalizeAddress(loanTokenAddress);
+            const key = normalizedLoanToken.toLowerCase();
+            if (collateralToLoanRateCache.has(key)) return collateralToLoanRateCache.get(key);
+
+            const [rate, precision] = await PriceFeeds.queryRate(
+                SOV,
+                normalizedLoanToken,
+                queryOverrides
+            );
+            const normalizedRate = rate.mul(ethers.constants.WeiPerEther).div(precision);
+            collateralToLoanRateCache.set(key, normalizedRate);
+            return normalizedRate;
+        };
+
+        for (const pool of configuredPools) {
+            poolByLoanToken.set(normalizeAddress(pool.tokenAddress).toLowerCase(), {
+                poolName: pool.poolName,
+                poolAddress: normalizeAddress(pool.poolAddress),
+                loanTokenAddress: normalizeAddress(pool.tokenAddress),
+                loanTokenSymbol: (await getTokenMetadata(pool.tokenAddress)).symbol,
+                loanTokenDecimals: (await getTokenMetadata(pool.tokenAddress)).decimals,
+            });
+        }
+
+        for (let start = 0; ; start += 50) {
+            const poolBytes = await Protocol.getLoanPoolsList(start, 50, queryOverrides);
+            if (poolBytes.length === 0) break;
+            for (const poolBytes32 of poolBytes) {
+                const poolAddress = normalizeAddress(`0x${poolBytes32.slice(26)}`);
+                await rememberPool(poolAddress);
+            }
+            if (poolBytes.length < 50) break;
+        }
+
+        const sovMetadata = await getTokenMetadata(SOV);
+        const poolRows = new Map();
+        const loanRows = [];
+        let totalDebtLoans = 0;
+        let totalActiveLoansScanned = 0;
+        let start = 0;
+        let currentPageSize = requestedPageSize;
+
+        logger.info(
+            `Reference block: ${refBlock} (${new Date(blockData.timestamp * 1000).toISOString()})`
+        );
+        logger.info(`Scanning active loans in pages of up to ${requestedPageSize}`);
+
+        while (true) {
+            let loans;
+            try {
+                loans = await Protocol.getActiveLoansV2(
+                    start,
+                    currentPageSize,
+                    false,
+                    queryOverrides
+                );
+            } catch (e) {
+                const message = String(e && e.message ? e.message : e).toLowerCase();
+                const isRpcTimeout =
+                    message.includes("timeout") ||
+                    message.includes("timed out") ||
+                    message.includes("execution has got timeout");
+                if (isRpcTimeout && currentPageSize > 1) {
+                    currentPageSize = Math.max(1, Math.floor(currentPageSize / 2));
+                    logger.warn(
+                        `RPC timed out at active-loan index ${start}. Retrying with page size ${currentPageSize}`
+                    );
+                    continue;
+                }
+                throw e;
+            }
+            if (loans.length === 0) break;
+
+            totalActiveLoansScanned += loans.length;
+
+            for (const loan of loans) {
+                if (normalizeAddress(loan.collateralToken) !== SOV) continue;
+
+                const loanTokenAddress = normalizeAddress(loan.loanToken);
+                const loanTokenKey = loanTokenAddress.toLowerCase();
+                const metadata = await getTokenMetadata(loanTokenAddress);
+                const pool = poolByLoanToken.get(loanTokenKey) || {
+                    poolName: metadata.symbol,
+                    poolAddress: "",
+                    loanTokenAddress,
+                    loanTokenSymbol: metadata.symbol,
+                    loanTokenDecimals: metadata.decimals,
+                };
+
+                if (!poolRows.has(loanTokenKey)) {
+                    poolRows.set(loanTokenKey, {
+                        poolName: pool.poolName,
+                        poolAddress: pool.poolAddress,
+                        loanToken: pool.loanTokenSymbol,
+                        loanTokenAddress,
+                        activeLoans: 0,
+                        debtRaw: ethers.BigNumber.from(0),
+                        collateralRaw: ethers.BigNumber.from(0),
+                        debtDecimals: pool.loanTokenDecimals,
+                        collateralDecimals: sovMetadata.decimals,
+                        drop50BelowMaintenance: 0,
+                        drop90BelowMaintenance: 0,
+                    });
+                }
+
+                const row = poolRows.get(loanTokenKey);
+                const collateralToLoanRate = await getCollateralToLoanRate(loanTokenAddress);
+                const collateralValue = loan.collateral
+                    .mul(collateralToLoanRate)
+                    .div(ethers.constants.WeiPerEther);
+                const current = getMarginFromCollateralValue(loan.principal, collateralValue);
+                const drop50 = getPriceDropScenario(
+                    current.collateralRatio,
+                    loan.maintenanceMargin,
+                    50
+                );
+                const drop90 = getPriceDropScenario(
+                    current.collateralRatio,
+                    loan.maintenanceMargin,
+                    10
+                );
+
+                row.activeLoans += 1;
+                row.debtRaw = row.debtRaw.add(loan.principal);
+                row.collateralRaw = row.collateralRaw.add(loan.collateral);
+                if (drop50.isBelowMaintenance) row.drop50BelowMaintenance += 1;
+                if (drop90.isBelowMaintenance) row.drop90BelowMaintenance += 1;
+                totalDebtLoans += 1;
+
+                loanRows.push({
+                    poolName: row.poolName,
+                    poolAddress: row.poolAddress,
+                    loanId: loan.loanId,
+                    borrower: loan.borrower,
+                    loanToken: row.loanToken,
+                    loanTokenAddress,
+                    principal: ethers.utils.formatUnits(loan.principal, row.debtDecimals),
+                    sovCollateral: ethers.utils.formatUnits(
+                        loan.collateral,
+                        row.collateralDecimals
+                    ),
+                    currentCollateralValue: ethers.utils.formatUnits(
+                        collateralValue,
+                        row.debtDecimals
+                    ),
+                    currentCollateralRatio: ethers.utils.formatEther(current.collateralRatio),
+                    computedCurrentMargin: formatSignedPercent(
+                        current.isNegativeMargin,
+                        current.marginAbs
+                    ),
+                    currentMargin: ethers.utils.formatEther(loan.currentMargin),
+                    maintenanceMargin: ethers.utils.formatEther(loan.maintenanceMargin),
+                    collateralRatioAfter50Drop: ethers.utils.formatEther(drop50.collateralRatio),
+                    marginAfter50Drop: formatSignedPercent(
+                        drop50.isNegativeMargin,
+                        drop50.marginAbs
+                    ),
+                    belowMaintenanceAfter50Drop: drop50.isBelowMaintenance,
+                    collateralRatioAfter90Drop: ethers.utils.formatEther(drop90.collateralRatio),
+                    marginAfter90Drop: formatSignedPercent(
+                        drop90.isNegativeMargin,
+                        drop90.marginAbs
+                    ),
+                    belowMaintenanceAfter90Drop: drop90.isBelowMaintenance,
+                    endTimestamp: loan.endTimestamp.toString(),
+                    creationTimestamp: loan.creationTimestamp.toString(),
+                });
+            }
+
+            logger.info(`Scanned ${totalActiveLoansScanned} active loans...`);
+            if (loans.length < currentPageSize) break;
+            start += currentPageSize;
+        }
+
+        const summaryRows = Array.from(poolRows.values())
+            .sort((a, b) => a.poolName.localeCompare(b.poolName))
+            .map((row) => ({
+                poolName: row.poolName,
+                poolAddress: row.poolAddress,
+                loanToken: row.loanToken,
+                loanTokenAddress: row.loanTokenAddress,
+                activeLoans: row.activeLoans,
+                debt: ethers.utils.formatUnits(row.debtRaw, row.debtDecimals),
+                sovCollateral: ethers.utils.formatUnits(row.collateralRaw, row.collateralDecimals),
+                drop50BelowMaintenance: row.drop50BelowMaintenance,
+                drop90BelowMaintenance: row.drop90BelowMaintenance,
+                debtRaw: row.debtRaw.toString(),
+                sovCollateralRaw: row.collateralRaw.toString(),
+            }));
+
+        const totals = summaryRows.reduce(
+            (acc, row) => {
+                acc.drop50BelowMaintenance += row.drop50BelowMaintenance;
+                acc.drop90BelowMaintenance += row.drop90BelowMaintenance;
+                return acc;
+            },
+            { drop50BelowMaintenance: 0, drop90BelowMaintenance: 0 }
+        );
+
+        logger.info("\n======================================");
+        logger.info("== Active SOV-backed debt by pool ====");
+        logger.info("======================================");
+        for (const row of summaryRows) {
+            logger.info(
+                `${row.poolName}: ${row.debt} ${row.loanToken} debt backed by ${row.sovCollateral} SOV (${row.activeLoans} active loans)`
+            );
+            logger.info(
+                `  50% SOV drop: ${row.drop50BelowMaintenance}/${row.activeLoans} at/below maintenance margin`
+            );
+            logger.info(
+                `  90% SOV drop: ${row.drop90BelowMaintenance}/${row.activeLoans} at/below maintenance margin`
+            );
+        }
+        logger.info("--------------------------------------");
+        logger.info(`Active loans scanned: ${totalActiveLoansScanned}`);
+        logger.info(`SOV-backed active loans: ${totalDebtLoans}`);
+        logger.info(
+            `50% SOV drop: ${totals.drop50BelowMaintenance}/${totalDebtLoans} SOV-backed loans at/below maintenance margin`
+        );
+        logger.info(
+            `90% SOV drop: ${totals.drop90BelowMaintenance}/${totalDebtLoans} SOV-backed loans at/below maintenance margin`
+        );
+        logger.info("======================================");
+
+        if (output && summaryRows.length > 0) {
+            const csvWriter = createObjectCsvWriter({
+                path: output,
+                header: [
+                    { id: "poolName", title: "Pool" },
+                    { id: "poolAddress", title: "Pool Address" },
+                    { id: "loanToken", title: "Debt Token" },
+                    { id: "loanTokenAddress", title: "Debt Token Address" },
+                    { id: "activeLoans", title: "Active Loans" },
+                    { id: "debt", title: "Debt" },
+                    { id: "sovCollateral", title: "SOV Collateral" },
+                    {
+                        id: "drop50BelowMaintenance",
+                        title: "Loans At/Below Maintenance After 50% SOV Drop",
+                    },
+                    {
+                        id: "drop90BelowMaintenance",
+                        title: "Loans At/Below Maintenance After 90% SOV Drop",
+                    },
+                    { id: "debtRaw", title: "Debt Raw" },
+                    { id: "sovCollateralRaw", title: "SOV Collateral Raw" },
+                ],
+            });
+            await csvWriter.writeRecords(summaryRows);
+            logger.success(`Pool summary exported to: ${output}`);
+        }
+
+        if (detailsOutput && loanRows.length > 0) {
+            const csvWriter = createObjectCsvWriter({
+                path: detailsOutput,
+                header: [
+                    { id: "poolName", title: "Pool" },
+                    { id: "poolAddress", title: "Pool Address" },
+                    { id: "loanId", title: "Loan ID" },
+                    { id: "borrower", title: "Borrower" },
+                    { id: "loanToken", title: "Debt Token" },
+                    { id: "loanTokenAddress", title: "Debt Token Address" },
+                    { id: "principal", title: "Principal" },
+                    { id: "sovCollateral", title: "SOV Collateral" },
+                    { id: "currentCollateralValue", title: "Current Collateral Value" },
+                    { id: "currentCollateralRatio", title: "Current Collateral Ratio %" },
+                    { id: "computedCurrentMargin", title: "Computed Current Margin %" },
+                    { id: "currentMargin", title: "Current Margin %" },
+                    { id: "maintenanceMargin", title: "Maintenance Margin %" },
+                    {
+                        id: "collateralRatioAfter50Drop",
+                        title: "Collateral Ratio After 50% SOV Drop %",
+                    },
+                    { id: "marginAfter50Drop", title: "Margin After 50% SOV Drop %" },
+                    {
+                        id: "belowMaintenanceAfter50Drop",
+                        title: "At/Below Maintenance After 50% SOV Drop",
+                    },
+                    {
+                        id: "collateralRatioAfter90Drop",
+                        title: "Collateral Ratio After 90% SOV Drop %",
+                    },
+                    { id: "marginAfter90Drop", title: "Margin After 90% SOV Drop %" },
+                    {
+                        id: "belowMaintenanceAfter90Drop",
+                        title: "At/Below Maintenance After 90% SOV Drop",
+                    },
+                    { id: "endTimestamp", title: "End Timestamp" },
+                    { id: "creationTimestamp", title: "Creation Timestamp" },
+                ],
+            });
+            await csvWriter.writeRecords(loanRows);
+            logger.success(`Loan details exported to: ${detailsOutput}`);
+        }
+    });
+
+/**
  * Get borrows with SOV collateral
  * Equivalent to: SOV_borrow.py
  */
