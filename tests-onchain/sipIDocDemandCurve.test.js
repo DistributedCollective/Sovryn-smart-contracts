@@ -292,9 +292,13 @@ describe("SIP iDOC Demand-Curve adjustment (forked mainnet)", function () {
             if (await staking.paused()) {
                 await staking.connect(multisigSigner).pauseUnpause(false);
             }
+            // Date.now() returns ms; Staking.stake's `until` expects seconds.
+            // The contract appears to clamp internally so the test passes either
+            // way, but use the correct unit for correctness.
+            const nowSec = Math.floor(Date.now() / 1000);
             await staking.stake(
                 whaleAmount,
-                ethers.BigNumber.from(Date.now()).add(MAX_DURATION),
+                ethers.BigNumber.from(nowSec).add(MAX_DURATION),
                 deployer,
                 deployer
             );
