@@ -1270,6 +1270,158 @@ const getArgsSip0089 = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
+/**
+ * iDOC demand-curve adjustment.
+ *
+ * Calls setDemandCurve on the iDOC LoanToken proxy with the proposed values:
+ *   baseRate              6e18  -> 2e18    ( 6% ->  2% APR floor)
+ *   rateMultiplier       15e18  -> 10e18   (15% -> 10% slope below kink)
+ *   lowUtilBaseRate       6e18  -> 2e18    (mirror)
+ *   lowUtilRateMultiplier 15e18 -> 10e18   (mirror)
+ *   targetLevel               0 ->     0   (unchanged; low-util branch disabled)
+ *   kinkLevel            75e18  -> 90e18   (75% -> 90% utilisation)
+ *   maxScaleRate        150e18  -> 30e18   (150% -> 30% APR cap @ 100% util)
+ *
+ * Goal: bring mid-range borrow APR closer to Tropykus's cDOC pool while
+ * retaining a real high-utilisation deterrent and reducing margin-position
+ * upfront interest reservation from ~11.5% to ~2.3% of principal.
+ *
+ * Governor: GovernorAdmin — setDemandCurve is gated by onlyAdmin
+ * (isOwner() || msg.sender == admin); iDOC.admin() == TimelockAdmin which is
+ * the timelock backing GovernorAdmin. GovernorOwner would also be viable via
+ * the isOwner() branch but the admin route matches the operational nature of
+ * a parameter tweak.
+ */
+const getArgsSipIDocDemandCurve = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![30, 31, 31337].includes(chainId)) {
+        throw new Error(`getArgsSipIDocDemandCurve cannot run on network ID ${chainId}`);
+    }
+
+    const iDOCDeployment = await get("LoanToken_iDOC");
+    const iDOCAddress = iDOCDeployment.address;
+
+    const iDOC = await ethers.getContractAt(
+        [
+            "function admin() view returns (address)",
+            "function baseRate() view returns (uint256)",
+            "function rateMultiplier() view returns (uint256)",
+            "function lowUtilBaseRate() view returns (uint256)",
+            "function lowUtilRateMultiplier() view returns (uint256)",
+            "function targetLevel() view returns (uint256)",
+            "function kinkLevel() view returns (uint256)",
+            "function maxScaleRate() view returns (uint256)",
+        ],
+        iDOCAddress
+    );
+    const iDOCAdmin = await iDOC.admin();
+
+    const fmt = (x) => `${ethers.utils.formatEther(x)} (raw ${x.toString()})`;
+    logger.info(`iDOC address:               ${iDOCAddress}`);
+    logger.info(`iDOC admin (= timelock):    ${iDOCAdmin}`);
+
+    const observed = {
+        baseRate: await iDOC.baseRate(),
+        rateMultiplier: await iDOC.rateMultiplier(),
+        lowUtilBaseRate: await iDOC.lowUtilBaseRate(),
+        lowUtilRateMultiplier: await iDOC.lowUtilRateMultiplier(),
+        targetLevel: await iDOC.targetLevel(),
+        kinkLevel: await iDOC.kinkLevel(),
+        maxScaleRate: await iDOC.maxScaleRate(),
+    };
+    for (const [k, v] of Object.entries(observed)) {
+        logger.info(`current ${k.padEnd(22)}${fmt(v)}`);
+    }
+
+    // Baseline guard: the proposal description claims a specific before/after
+    // delta (baseRate 6 -> 2, kinkLevel 75 -> 90, etc.). setDemandCurve
+    // overwrites all 7 params, so if mainnet has drifted from the documented
+    // baseline (e.g. an interim SIP has already moved the curve), submitting
+    // this proposal would silently clobber unexpected values while the
+    // description remains misleading. Hard-fail on mainnet to force a
+    // re-review of the description and CURRENT_AT_DRAFT before resubmission.
+    // On testnet/fork (chainId 31 or 31337) the curve can legitimately
+    // diverge — just log and continue.
+    const CURRENT_AT_DRAFT = {
+        baseRate: ethers.utils.parseEther("6"),
+        rateMultiplier: ethers.utils.parseEther("15"),
+        lowUtilBaseRate: ethers.utils.parseEther("6"),
+        lowUtilRateMultiplier: ethers.utils.parseEther("15"),
+        targetLevel: ethers.BigNumber.from(0),
+        kinkLevel: ethers.utils.parseEther("75"),
+        maxScaleRate: ethers.utils.parseEther("150"),
+    };
+    if (chainId === 30) {
+        for (const [k, expected] of Object.entries(CURRENT_AT_DRAFT)) {
+            if (!observed[k].eq(expected)) {
+                throw new Error(
+                    `iDOC ${k} baseline drift: observed ${observed[k].toString()}, ` +
+                        `expected ${expected.toString()}. Aborting to prevent silently ` +
+                        `overwriting unexpected mainnet state. If an interim SIP has ` +
+                        `moved the curve, update CURRENT_AT_DRAFT here AND the before/` +
+                        `after tables in SIP-0092.md before resubmitting.`
+                );
+            }
+        }
+        logger.info(`baseline check OK — all 7 params match CURRENT_AT_DRAFT`);
+    } else {
+        for (const [k, expected] of Object.entries(CURRENT_AT_DRAFT)) {
+            if (!observed[k].eq(expected)) {
+                logger.warn(
+                    `[non-mainnet] iDOC ${k} differs from mainnet draft baseline ` +
+                        `(observed ${observed[k].toString()}, baseline ${expected.toString()})`
+                );
+            }
+        }
+    }
+
+    // Proposed values. Storage convention: 100% == 10^20, so e.g. 2e18 == 2%.
+    const baseRate = ethers.utils.parseEther("2"); //               2 %
+    const rateMultiplier = ethers.utils.parseEther("10"); //       10 %
+    const lowUtilBaseRate = ethers.utils.parseEther("2"); //        2 % (mirror)
+    const lowUtilRateMultiplier = ethers.utils.parseEther("10"); // 10 % (mirror)
+    const targetLevel = ethers.BigNumber.from(0); //                unchanged
+    const kinkLevel = ethers.utils.parseEther("90"); //            90 % util
+    const maxScaleRate = ethers.utils.parseEther("30"); //         30 % APR cap
+
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const args = {
+        targets: [iDOCAddress],
+        targetOwnerValidationAddresses: [iDOCAdmin],
+        values: [0],
+        signatures: ["setDemandCurve(uint256,uint256,uint256,uint256,uint256,uint256,uint256)"],
+        data: [
+            abiCoder.encode(
+                ["uint256", "uint256", "uint256", "uint256", "uint256", "uint256", "uint256"],
+                [
+                    baseRate,
+                    rateMultiplier,
+                    lowUtilBaseRate,
+                    lowUtilRateMultiplier,
+                    targetLevel,
+                    kinkLevel,
+                    maxScaleRate,
+                ]
+            ),
+        ],
+        description:
+            "SIP-0092: iDOC Demand-Curve Adjustment. " +
+            "baseRate 6%->2%, rateMultiplier 15%->10%, lowUtil mirrors, " +
+            "kinkLevel 75%->90%, maxScaleRate 150%->30%. " +
+            "Goal: reduce mid-range borrow APR to be competitive with Tropykus " +
+            "while retaining a meaningful high-utilisation deterrent. " +
+            "Details: https://github.com/DistributedCollective/SIPS/blob/ae0846b/SIP-0092.md, " +
+            "sha256: 55a7c17e506a6bc178a7de07e8c1851ecfd2944b3f70ac2a20a5df7d79be6c9b",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1294,4 +1446,5 @@ module.exports = {
     getArgsSip0084Part2,
     getArgsSip0087,
     getArgsSip0089,
+    getArgsSipIDocDemandCurve,
 };
