@@ -4,6 +4,12 @@ const {
     getProtocolModules,
 } = require("../../../../deployment/helpers/helpers");
 const { validateAmmOnchainAddresses, getAmmOracleAddress } = require("../../../helpers");
+const {
+    CURRENT_AT_DRAFT: IDOC_CURVE_CURRENT_AT_DRAFT,
+    PROPOSED: IDOC_CURVE_PROPOSED,
+    CURVE_KEYS: IDOC_CURVE_KEYS,
+    SET_DEMAND_CURVE_SIGNATURE,
+} = require("./idocCurveParams");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 const col = require("cli-color");
@@ -1343,70 +1349,49 @@ const getArgsSipIDocDemandCurve = async (hre) => {
     // baseline (e.g. an interim SIP has already moved the curve), submitting
     // this proposal would silently clobber unexpected values while the
     // description remains misleading. Hard-fail on mainnet to force a
-    // re-review of the description and CURRENT_AT_DRAFT before resubmission.
+    // re-review of the description and ./idocCurveParams.js before resubmission.
     // On testnet/fork (chainId 31 or 31337) the curve can legitimately
     // diverge — just log and continue.
-    const CURRENT_AT_DRAFT = {
-        baseRate: ethers.utils.parseEther("6"),
-        rateMultiplier: ethers.utils.parseEther("15"),
-        lowUtilBaseRate: ethers.utils.parseEther("6"),
-        lowUtilRateMultiplier: ethers.utils.parseEther("15"),
-        targetLevel: ethers.BigNumber.from(0),
-        kinkLevel: ethers.utils.parseEther("75"),
-        maxScaleRate: ethers.utils.parseEther("150"),
-    };
     if (chainId === 30) {
-        for (const [k, expected] of Object.entries(CURRENT_AT_DRAFT)) {
-            if (!observed[k].eq(expected)) {
+        for (const k of IDOC_CURVE_KEYS) {
+            if (!observed[k].eq(IDOC_CURVE_CURRENT_AT_DRAFT[k])) {
                 throw new Error(
                     `iDOC ${k} baseline drift: observed ${observed[k].toString()}, ` +
-                        `expected ${expected.toString()}. Aborting to prevent silently ` +
-                        `overwriting unexpected mainnet state. If an interim SIP has ` +
-                        `moved the curve, update CURRENT_AT_DRAFT here AND the before/` +
+                        `expected ${IDOC_CURVE_CURRENT_AT_DRAFT[k].toString()}. Aborting to ` +
+                        `prevent silently overwriting unexpected mainnet state. If an interim ` +
+                        `SIP has moved the curve, update ./idocCurveParams.js AND the before/` +
                         `after tables in SIP-0092.md before resubmitting.`
                 );
             }
         }
         logger.info(`baseline check OK — all 7 params match CURRENT_AT_DRAFT`);
     } else {
-        for (const [k, expected] of Object.entries(CURRENT_AT_DRAFT)) {
-            if (!observed[k].eq(expected)) {
+        for (const k of IDOC_CURVE_KEYS) {
+            if (!observed[k].eq(IDOC_CURVE_CURRENT_AT_DRAFT[k])) {
                 logger.warn(
                     `[non-mainnet] iDOC ${k} differs from mainnet draft baseline ` +
-                        `(observed ${observed[k].toString()}, baseline ${expected.toString()})`
+                        `(observed ${observed[k].toString()}, baseline ${IDOC_CURVE_CURRENT_AT_DRAFT[
+                            k
+                        ].toString()})`
                 );
             }
         }
     }
 
-    // Proposed values. Storage convention: 100% == 10^20, so e.g. 2e18 == 2%.
-    const baseRate = ethers.utils.parseEther("2"); //               2 %
-    const rateMultiplier = ethers.utils.parseEther("10"); //       10 %
-    const lowUtilBaseRate = ethers.utils.parseEther("2"); //        2 % (mirror)
-    const lowUtilRateMultiplier = ethers.utils.parseEther("10"); // 10 % (mirror)
-    const targetLevel = ethers.BigNumber.from(0); //                unchanged
-    const kinkLevel = ethers.utils.parseEther("90"); //            90 % util
-    const maxScaleRate = ethers.utils.parseEther("30"); //         30 % APR cap
-
+    // Proposed values come from the shared single-source module so they cannot
+    // drift from the on-chain test's expectations. Storage convention: 100% ==
+    // 10^20, so e.g. 2e18 == 2%.
     const abiCoder = new ethers.utils.AbiCoder();
 
     const args = {
         targets: [iDOCAddress],
         targetOwnerValidationAddresses: [iDOCAdmin],
         values: [0],
-        signatures: ["setDemandCurve(uint256,uint256,uint256,uint256,uint256,uint256,uint256)"],
+        signatures: [SET_DEMAND_CURVE_SIGNATURE],
         data: [
             abiCoder.encode(
-                ["uint256", "uint256", "uint256", "uint256", "uint256", "uint256", "uint256"],
-                [
-                    baseRate,
-                    rateMultiplier,
-                    lowUtilBaseRate,
-                    lowUtilRateMultiplier,
-                    targetLevel,
-                    kinkLevel,
-                    maxScaleRate,
-                ]
+                IDOC_CURVE_KEYS.map(() => "uint256"),
+                IDOC_CURVE_KEYS.map((k) => IDOC_CURVE_PROPOSED[k])
             ),
         ],
         description:
