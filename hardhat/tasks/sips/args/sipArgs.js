@@ -1400,8 +1400,8 @@ const getArgsSipIDocDemandCurve = async (hre) => {
             "kinkLevel 75%->90%, maxScaleRate 150%->30%. " +
             "Goal: reduce mid-range borrow APR to be competitive with Tropykus " +
             "while retaining a meaningful high-utilisation deterrent. " +
-            "Details: https://github.com/DistributedCollective/SIPS/blob/ae0846b/SIP-0092.md, " +
-            "sha256: 55a7c17e506a6bc178a7de07e8c1851ecfd2944b3f70ac2a20a5df7d79be6c9b",
+            "Details: https://github.com/DistributedCollective/SIPS/blob/10166c2/SIP-0092.md, " +
+            "sha256: add9aa009b53eedb05deb61c886ca220c0daa48f8b6be26e743f5aa7e9969540",
     };
 
     return { args, governor: "GovernorAdmin" };
