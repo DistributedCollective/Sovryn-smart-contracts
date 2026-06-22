@@ -1552,7 +1552,7 @@ const getArgsSip0093 = async (hre) => {
         data,
         description:
             "SIP-0093: Disable SOV and BPro as Lending-Pool Collateral. " +
-            "Disables active SOV and BPro loan params for Torque borrowing and " +
+            "Disables active SOV and BPro loan params for borrowing and " +
             "margin trading while leaving existing positions, repayment, " +
             "liquidation, collateral maintenance, price feeds, and swap support intact. " +
             "Details: https://github.com/DistributedCollective/SIPS/blob/0d82c3a/SIP-0093.md, " +
