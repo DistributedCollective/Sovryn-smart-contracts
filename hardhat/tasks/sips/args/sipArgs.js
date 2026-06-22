@@ -8,6 +8,8 @@ const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 const col = require("cli-color");
 
+const BPRO_MAINNET_ADDRESS = "0x440cd83c160de5c96ddb20246815ea44c7abbca8";
+
 const sampleGovernorOwnerSIP = async (hre) => {
     /*
         target = [contracts['SOV']]
@@ -1422,6 +1424,144 @@ const getArgsSipIDocDemandCurve = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
+/**
+ * Disable SOV and BPro as collateral for active Torque and margin loan params.
+ *
+ * The loan-token settings wrapper reverts if it receives an absent local
+ * loanParamsIds entry. Build every action from live state so already-disabled
+ * pools/modes, such as iUSDT or iBPRO/BPro, are skipped instead of making the
+ * proposal unexecutable.
+ */
+const getArgsSip0093 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![30, 31337].includes(chainId)) {
+        throw new Error(`getArgsSip0093 cannot run on network ID ${chainId}`);
+    }
+
+    const abiCoder = new ethers.utils.AbiCoder();
+    const sovAddress = (await get("SOV")).address;
+    const bproAddress = ethers.utils.getAddress(BPRO_MAINNET_ADDRESS);
+    const collaterals = [
+        { symbol: "SOV", address: sovAddress },
+        { symbol: "BPro", address: bproAddress },
+    ];
+    const loanTokenDeploymentNames = [
+        "LoanToken_iXUSD",
+        "LoanToken_iRBTC",
+        "LoanToken_iBPRO",
+        "LoanToken_iDOC",
+        "LoanToken_iDLLR",
+        "LoanToken_iUSDT",
+    ];
+
+    const targets = [];
+    const targetOwnerValidationAddresses = [];
+    const values = [];
+    const signatures = [];
+    const data = [];
+
+    for (const deploymentName of loanTokenDeploymentNames) {
+        const loanTokenAddress = (await get(deploymentName)).address;
+        const loanToken = await ethers.getContractAt(
+            [
+                "function admin() view returns (address)",
+                "function loanParamsIds(uint256) view returns (bytes32)",
+                "function sovrynContractAddress() view returns (address)",
+            ],
+            loanTokenAddress
+        );
+        const sovryn = await ethers.getContractAt(
+            [
+                "function getLoanParams(bytes32[]) view returns (tuple(bytes32 id,bool active,address owner,address loanToken,address collateralToken,uint256 minInitialMargin,uint256 maintenanceMargin,uint256 maxLoanTerm)[])",
+            ],
+            await loanToken.sovrynContractAddress()
+        );
+
+        const collateralTokensToDisable = [];
+        const torqueFlagsToDisable = [];
+        const activePairs = [];
+
+        for (const collateral of collaterals) {
+            for (const isTorqueLoan of [true, false]) {
+                const key = ethers.utils.solidityKeccak256(
+                    ["address", "bool"],
+                    [collateral.address, isTorqueLoan]
+                );
+                const loanParamsId = await loanToken.loanParamsIds(key);
+                if (loanParamsId === ethers.constants.HashZero) {
+                    logger.info(
+                        `${deploymentName}: ${collateral.symbol} ${
+                            isTorqueLoan ? "Torque" : "Margin"
+                        } already disabled`
+                    );
+                    continue;
+                }
+
+                const [loanParams] = await sovryn.getLoanParams([loanParamsId]);
+                if (
+                    !loanParams ||
+                    loanParams.id === ethers.constants.HashZero ||
+                    !loanParams.active
+                ) {
+                    logger.info(
+                        `${deploymentName}: ${collateral.symbol} ${
+                            isTorqueLoan ? "Torque" : "Margin"
+                        } inactive on protocol`
+                    );
+                    continue;
+                }
+
+                collateralTokensToDisable.push(collateral.address);
+                torqueFlagsToDisable.push(isTorqueLoan);
+                activePairs.push(`${collateral.symbol}:${isTorqueLoan ? "Torque" : "Margin"}`);
+            }
+        }
+
+        if (collateralTokensToDisable.length === 0) {
+            continue;
+        }
+
+        const loanTokenAdmin = await loanToken.admin();
+        targets.push(loanTokenAddress);
+        targetOwnerValidationAddresses.push(loanTokenAdmin);
+        values.push(0);
+        signatures.push("disableLoanParams(address[],bool[])");
+        data.push(
+            abiCoder.encode(
+                ["address[]", "bool[]"],
+                [collateralTokensToDisable, torqueFlagsToDisable]
+            )
+        );
+
+        logger.info(`${deploymentName}: disabling ${activePairs.join(", ")}`);
+    }
+
+    if (targets.length === 0) {
+        throw new Error("getArgsSip0093 found no active SOV/BPro collateral loan params");
+    }
+
+    const args = {
+        targets,
+        targetOwnerValidationAddresses,
+        values,
+        signatures,
+        data,
+        description:
+            "SIP-0093: Disable SOV and BPro as Lending-Pool Collateral. " +
+            "Disables active SOV and BPro loan params for Torque borrowing and " +
+            "margin trading while leaving existing positions, repayment, " +
+            "liquidation, collateral maintenance, price feeds, and swap support intact. " +
+            "Details: https://github.com/DistributedCollective/SIPS/blob/sip-0093-disable-sov-bpro-collateral/SIP-0093.md, " +
+            "sha256: 8055c37ed8eb65fd91a337b26e141a8ec7757c18a1f0ab9c9e1c6de12597d2fd",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1447,4 +1587,5 @@ module.exports = {
     getArgsSip0087,
     getArgsSip0089,
     getArgsSipIDocDemandCurve,
+    getArgsSip0093,
 };
