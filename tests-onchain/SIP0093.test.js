@@ -1,6 +1,11 @@
+// first run a local forked mainnet node in a separate terminal window:
+//     npx hardhat node --fork https://mainnet-dev.sovryn.app/rpc --no-deploy --fork-block-number 8972322
+// now run the test:
+//     npx hardhat test tests-onchain/SIP0093.test.js --network rskForkedMainnet
+
 const { expect } = require("chai");
 const hre = require("hardhat");
-const sipArgs = require("../../hardhat/tasks/sips/args/sipArgs");
+const sipArgs = require("../hardhat/tasks/sips/args/sipArgs");
 
 const SOV = "0xEFc78fc7d48b64958315949279Ba181c2114ABBd";
 const BPRO = "0x440cd83c160de5c96ddb20246815ea44c7abbca8";
