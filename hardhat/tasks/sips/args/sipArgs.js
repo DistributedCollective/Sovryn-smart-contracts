@@ -1555,8 +1555,8 @@ const getArgsSip0093 = async (hre) => {
             "Disables active SOV and BPro loan params for Torque borrowing and " +
             "margin trading while leaving existing positions, repayment, " +
             "liquidation, collateral maintenance, price feeds, and swap support intact. " +
-            "Details: https://github.com/DistributedCollective/SIPS/blob/sip-0093-disable-sov-bpro-collateral/SIP-0093.md, " +
-            "sha256: 8055c37ed8eb65fd91a337b26e141a8ec7757c18a1f0ab9c9e1c6de12597d2fd",
+            "Details: https://github.com/DistributedCollective/SIPS/blob/0d82c3a/SIP-0093.md, " +
+            "sha256: 359b8978cb3b1a8a16041aac989e7f38518327a121ea7bc7f8f6ea8c022241fb",
     };
 
     return { args, governor: "GovernorAdmin" };
