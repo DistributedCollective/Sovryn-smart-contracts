@@ -50,6 +50,8 @@ jobs:
 
       - name: Installing Packages
         run: npm ci --parallel=1
+      - name: Fix Hardhat solc permissions
+        run: find ~/.cache/hardhat-nodejs/compilers-v2/linux-amd64 -type f -name "solc-linux-amd64-*" -exec chmod +x {} + || true
       - name: Checking Formatting
         run: npm run lint &&  npm run prettier && npm run prettier-check
       - name: Running Test
