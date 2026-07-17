@@ -18,8 +18,8 @@ def main():
     #call the function you want here
     # addTestETHPoolToken()
     # addETHPoolToken()
-    updateLMConfig()
-    #addNewPoolTokenNoAllocation(contracts['(WR)BTC/POWA'])
+    #updateLMConfig()
+    #addNewPoolTokenNoAllocation(contracts['(WR)BTC/USDT0'])
     # addFISHtoken()
     # addBRZtoken()
 
@@ -137,9 +137,9 @@ def updateLMConfig():
     # DLLR/rBTC - 7.5k SOV - cancelled 14.10.2025
     ALLOCATION_POINT_BTC_DLLR = 1 # (WR)BTC/DLLR
 
-    ALLOCATION_POINT_DEFAULT = 1 # 14 tokens with 1 alloc point to account: (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF | (WR)BTC/MYNT | (WR)BTC/BNB | (WR)BTC/ETH | iXUSD | (WR)BTC/XUSD | (WR)BTC/POWA
+    ALLOCATION_POINT_DEFAULT = 1 # 17 tokens with 1 alloc point to account: (WR)BTC/USDT1 | (WR)BTC/USDT2 | (WR)BTC/DOC1 | (WR)BTC/DOC2 | (WR)BTC/BPRO1 | (WR)BTC/BPRO2 | (WR)BTC/MOC | (WR)BTC/FISH | (WR)BTC/RIF | (WR)BTC/MYNT | (WR)BTC/BNB | (WR)BTC/ETH | iXUSD | (WR)BTC/XUSD | (WR)BTC/POWA | (WR)BTC/BOS | (WR)BTC/USDT0
     ALLOCATION_POINT_CONFIG_TOKEN = MAX_ALLOCATION_POINT - ALLOCATION_POINT_BTC_SOV \
-    - ALLOCATION_POINT_BTC_DLLR  - (ALLOCATION_POINT_DEFAULT * 15)
+    - ALLOCATION_POINT_BTC_DLLR  - (ALLOCATION_POINT_DEFAULT * 17)
 
     print("ALLOCATION_POINT_CONFIG_TOKEN: ", ALLOCATION_POINT_CONFIG_TOKEN)
 
@@ -160,6 +160,8 @@ def updateLMConfig():
         'iXUSD',
         '(WR)BTC/XUSD',
         '(WR)BTC/POWA',
+        '(WR)BTC/BOS',
+        '(WR)BTC/USDT0',
         '(WR)BTC/SOV',
         '(WR)BTC/DLLR'
     ]
@@ -187,6 +189,8 @@ def updateLMConfig():
     print('iXUSD:', lm.getPoolInfo(contracts['iXUSD']))
     print('WRBTC/XUSD:', lm.getPoolInfo(contracts['(WR)BTC/XUSD']))
     print('WRBTC/POWA:', lm.getPoolInfo(contracts['(WR)BTC/POWA']))
+    print('WRBTC/BOS:', lm.getPoolInfo(contracts['(WR)BTC/BOS']))
+    print('WRBTC/USDT0:', lm.getPoolInfo(contracts['(WR)BTC/USDT0']))
     print('WBTC/SOV:', lm.getPoolInfo(contracts['(WR)BTC/SOV']))
     print('WBTC/DLLR:', lm.getPoolInfo(contracts['(WR)BTC/DLLR']))
 

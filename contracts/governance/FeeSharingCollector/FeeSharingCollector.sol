@@ -1003,6 +1003,7 @@ contract FeeSharingCollector is
      * @param converterAddress converter address to be whitelisted.
      */
     function addWhitelistedConverterAddress(address converterAddress) external onlyOwner {
+        // @todo onlyOwnerOrAdmin, otherwise added new AMM converter will be reverting until whitelisted here which should be available to an Admin
         require(Address.isContract(converterAddress), "Non contract address given");
         whitelistedConverterList.add(converterAddress);
         emit WhitelistedConverter(msg.sender, converterAddress);
