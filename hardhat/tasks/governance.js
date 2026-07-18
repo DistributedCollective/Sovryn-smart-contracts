@@ -1,5 +1,7 @@
 const csv = require("csv-parser");
 const fs = require("fs");
+const path = require("path");
+const { createObjectCsvWriter } = require("csv-writer");
 
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
@@ -58,20 +60,89 @@ async function getStakesOf(hre, address) {
 
 async function getVotingPower(hre, stakerAddress, governorDeploymentName, blockNumber) {
     const { ethers } = hre;
-    const staking = await ethers.getContract("Staking");
+    const stakingDeployment = await ethers.getContract("Staking");
+    const staking = await ethers.getContractAt("IStaking", stakingDeployment.address);
     const governor = await ethers.getContract(governorDeploymentName);
     const sov = await ethers.getContract("SOV");
-    let balance;
-    let votingPower;
-    let proposalThreshold;
+    const provider = ethers.provider;
 
-    blockNumber = blockNumber ? blockNumber : (await ethers.provider.getBlock()).number;
-    balance = await sov.balanceOf(stakerAddress, { blockTag: blockNumber });
-    votingPower = await staking.getCurrentVotes(stakerAddress, { blockTag: blockNumber });
-    proposalThreshold = await governor.proposalThreshold({ blockTag: blockNumber });
+    blockNumber = blockNumber ? blockNumber : (await provider.getBlock()).number;
+    const block = await provider.getBlock(blockNumber);
+    const referenceTimestamp = block.timestamp;
+    const finalizedVotingBlock = Math.max(blockNumber - 1, 0);
 
-    return { blockNumber, stakerAddress, balance, votingPower, proposalThreshold };
+    const [stakeData, balance, votingPower, proposalThreshold] = await Promise.all([
+        staking.getStakes(stakerAddress, { blockTag: blockNumber }),
+        sov.balanceOf(stakerAddress, { blockTag: blockNumber }),
+        staking.getCurrentVotes(stakerAddress, { blockTag: blockNumber }),
+        governor.proposalThreshold({ blockTag: blockNumber }),
+    ]);
+
+    const [dates, stakes] = stakeData;
+    let lockedAmount = ethers.BigNumber.from(0);
+    let selfStakedVotingPower = ethers.BigNumber.from(0);
+    let delegatedAwayVotingPower = ethers.BigNumber.from(0);
+
+    for (let i = 0; i < dates.length; i++) {
+        const lockDate = dates[i];
+        if (!lockDate.gt(referenceTimestamp)) continue;
+
+        lockedAmount = lockedAmount.add(stakes[i]);
+
+        const [delegatee, weightedStake] = await Promise.all([
+            staking.delegates(stakerAddress, lockDate, { blockTag: blockNumber }),
+            staking.weightedStakeByDate(
+                stakerAddress,
+                lockDate,
+                referenceTimestamp,
+                finalizedVotingBlock,
+                { blockTag: blockNumber }
+            ),
+        ]);
+
+        if (delegatee.toLowerCase() === stakerAddress.toLowerCase()) {
+            selfStakedVotingPower = selfStakedVotingPower.add(weightedStake);
+        } else {
+            delegatedAwayVotingPower = delegatedAwayVotingPower.add(weightedStake);
+        }
+    }
+
+    const receivedDelegatedVotingPower = votingPower.gte(selfStakedVotingPower)
+        ? votingPower.sub(selfStakedVotingPower)
+        : ethers.BigNumber.from(0);
+    const ownStakeVotingPower = selfStakedVotingPower.add(delegatedAwayVotingPower);
+
+    return {
+        blockNumber,
+        blockTimestamp: referenceTimestamp,
+        finalizedVotingBlock,
+        stakerAddress,
+        balance,
+        lockedAmount,
+        votingPower,
+        selfStakedVotingPower,
+        delegatedAwayVotingPower,
+        receivedDelegatedVotingPower,
+        ownStakeVotingPower,
+        proposalThreshold,
+    };
 }
+
+const runWithConcurrency = async (items, limit, worker) => {
+    const results = new Array(items.length);
+    let nextIndex = 0;
+
+    const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+        while (true) {
+            const currentIndex = nextIndex++;
+            if (currentIndex >= items.length) break;
+            results[currentIndex] = await worker(items[currentIndex], currentIndex);
+        }
+    });
+
+    await Promise.all(runners);
+    return results;
+};
 
 async function createVestings(hre, dryRun, path, multiplier, signerAcc, reissue = false) {
     /*
@@ -640,10 +711,17 @@ task("governance:getVotingPower", "Get a staker's voting power current or at a b
         logger.warn(
             `
             ${atBlock ? "At" : "Current"} block: ${data.blockNumber}
+            Block timestamp: ${new Date(data.blockTimestamp * 1000).toISOString()}
+            Finalized voting checkpoint block: ${data.finalizedVotingBlock}
             Staker address: ${data.stakerAddress} 
             Staker SOV balance: ${data.balance / 1e18}
+            Locked staked amount: ${data.lockedAmount / 1e18}
             Governor: ${governorDeploymentName}
             Voting power:       ${data.votingPower / 1e18}
+            Own stake VP:       ${data.ownStakeVotingPower / 1e18}
+            Self-staked VP:     ${data.selfStakedVotingPower / 1e18}
+            Delegated away VP:  ${data.delegatedAwayVotingPower / 1e18}
+            Received delegated: ${data.receivedDelegatedVotingPower / 1e18}
             Proposal threshold: ${data.proposalThreshold / 1e18}
             VP/threshold:       ${data.votingPower
                 .mul(ethers.utils.parseEther("1"))
@@ -658,4 +736,362 @@ task("governance:getVotingPower", "Get a staker's voting power current or at a b
             } in ${governorDeploymentName}
             `
         );
+    });
+
+task(
+    "governance:getVotingPowerAllCurrentStakers",
+    "Get voting power for all current stakers with locked stake > 0"
+)
+    .addOptionalParam("governor", "GovernorOwner or GovernorAdmin", "GovernorOwner", types.string)
+    .addOptionalParam("atBlock", "Get VP at this block", undefined, types.int)
+    .addOptionalParam("statsFile", "Progress file from data:getStakerStats")
+    .addOptionalParam("output", "Output CSV file path")
+    .addOptionalParam("concurrency", "Concurrent RPC calls", "10")
+    .setAction(
+        async (
+            { governor: governorDeploymentName, atBlock, statsFile, output, concurrency },
+            hre
+        ) => {
+            const { ethers } = hre;
+            const contracts = require("../../scripts/contractInteraction/mainnet_contracts.json");
+            const network = await ethers.provider.getNetwork();
+            const blockNumber = atBlock
+                ? parseInt(atBlock)
+                : (await ethers.provider.getBlock()).number;
+            const block = await ethers.provider.getBlock(blockNumber);
+            const stakingAddress = ethers.utils.getAddress(contracts.Staking);
+            const progressFile =
+                statsFile ||
+                path.join(
+                    "temp",
+                    `data-getStakerStats-${network.chainId}-3100263-${stakingAddress.toLowerCase()}.json`
+                );
+            const parallelism = Math.max(1, parseInt(concurrency));
+
+            if (!fs.existsSync(progressFile)) {
+                throw new Error(
+                    `Staker stats progress file not found: ${progressFile}. Run data:getStakerStats first or pass --statsFile.`
+                );
+            }
+
+            const progress = JSON.parse(fs.readFileSync(progressFile, "utf8"));
+            const activeStakerAddresses = Object.keys(progress.activeStakers || {});
+            const stakerAddresses =
+                activeStakerAddresses.length > 0
+                    ? activeStakerAddresses
+                    : Object.keys(progress.stakers || {});
+            const staking = await ethers.getContractAt("IStaking", contracts.Staking);
+            const governor = await ethers.getContract(governorDeploymentName);
+            const sov = await ethers.getContract("SOV");
+            const proposalThreshold = await governor.proposalThreshold({ blockTag: blockNumber });
+            const referenceTimestamp = block.timestamp;
+            const finalizedVotingBlock = Math.max(blockNumber - 1, 0);
+
+            logger.info(`Using staker stats file: ${progressFile}`);
+            logger.info(
+                `Reference block: ${blockNumber} (${new Date(block.timestamp * 1000).toISOString()})`
+            );
+            logger.info(
+                `Finalized voting checkpoint block for stake-weight split: ${finalizedVotingBlock}`
+            );
+            if (activeStakerAddresses.length > 0) {
+                logger.info(
+                    `Loaded ${stakerAddresses.length} active stakers from stats snapshot at block ${progress.activeStakersSnapshotBlock}`
+                );
+            } else {
+                logger.warn(
+                    `No active staker snapshot in ${progressFile}; falling back to ${stakerAddresses.length} historical candidate stakers`
+                );
+            }
+
+            const formatAmount = (value) => ethers.utils.formatEther(value);
+
+            const processedRows = await runWithConcurrency(
+                stakerAddresses,
+                parallelism,
+                async (stakerAddress, index) => {
+                    const normalizedAddress = ethers.utils.getAddress(stakerAddress);
+                    const [stakeData, votingPower, balance] = await Promise.all([
+                        staking.getStakes(normalizedAddress, { blockTag: blockNumber }),
+                        staking.getCurrentVotes(normalizedAddress, { blockTag: blockNumber }),
+                        sov.balanceOf(normalizedAddress, { blockTag: blockNumber }),
+                    ]);
+                    const [dates, stakes] = stakeData;
+
+                    let lockedAmount = ethers.BigNumber.from(0);
+                    let selfStakedVotingPower = ethers.BigNumber.from(0);
+                    let delegatedAwayVotingPower = ethers.BigNumber.from(0);
+                    for (let i = 0; i < dates.length; i++) {
+                        const lockDate = dates[i];
+                        if (!lockDate.gt(referenceTimestamp)) continue;
+
+                        lockedAmount = lockedAmount.add(stakes[i]);
+
+                        const [delegatee, weightedStake] = await Promise.all([
+                            staking.delegates(normalizedAddress, lockDate, {
+                                blockTag: blockNumber,
+                            }),
+                            staking.weightedStakeByDate(
+                                normalizedAddress,
+                                lockDate,
+                                referenceTimestamp,
+                                finalizedVotingBlock,
+                                { blockTag: blockNumber }
+                            ),
+                        ]);
+
+                        if (delegatee.toLowerCase() === normalizedAddress.toLowerCase()) {
+                            selfStakedVotingPower = selfStakedVotingPower.add(weightedStake);
+                        } else {
+                            delegatedAwayVotingPower = delegatedAwayVotingPower.add(weightedStake);
+                        }
+                    }
+
+                    if (lockedAmount.isZero()) {
+                        if ((index + 1) % 100 === 0 || index === stakerAddresses.length - 1) {
+                            logger.info(
+                                `Processed ${index + 1}/${stakerAddresses.length} stakers`
+                            );
+                        }
+                        return null;
+                    }
+
+                    const receivedDelegatedVotingPower = votingPower.gte(selfStakedVotingPower)
+                        ? votingPower.sub(selfStakedVotingPower)
+                        : ethers.BigNumber.from(0);
+                    const ownStakeVotingPower =
+                        selfStakedVotingPower.add(delegatedAwayVotingPower);
+
+                    const row = {
+                        address: normalizedAddress,
+                        lockedStake: formatAmount(lockedAmount),
+                        votingPower: formatAmount(votingPower),
+                        selfStakedVotingPower: formatAmount(selfStakedVotingPower),
+                        receivedDelegatedVotingPower: formatAmount(receivedDelegatedVotingPower),
+                        delegatedAwayVotingPower: formatAmount(delegatedAwayVotingPower),
+                        ownStakeVotingPower: formatAmount(ownStakeVotingPower),
+                        sovBalance: formatAmount(balance),
+                        proposalThreshold: formatAmount(proposalThreshold),
+                        thresholdPct: proposalThreshold.isZero()
+                            ? "0"
+                            : votingPower
+                                  .mul(ethers.BigNumber.from(10000))
+                                  .div(proposalThreshold)
+                                  .toString(),
+                        lockedStakeBn: lockedAmount.toString(),
+                        votingPowerBn: votingPower.toString(),
+                        selfStakedVotingPowerBn: selfStakedVotingPower.toString(),
+                        receivedDelegatedVotingPowerBn: receivedDelegatedVotingPower.toString(),
+                        delegatedAwayVotingPowerBn: delegatedAwayVotingPower.toString(),
+                        ownStakeVotingPowerBn: ownStakeVotingPower.toString(),
+                    };
+
+                    if ((index + 1) % 100 === 0 || index === stakerAddresses.length - 1) {
+                        logger.info(`Processed ${index + 1}/${stakerAddresses.length} stakers`);
+                    }
+                    return row;
+                }
+            );
+
+            const rows = processedRows.filter(Boolean);
+            let totalLocked = ethers.BigNumber.from(0);
+            let totalVotingPower = ethers.BigNumber.from(0);
+            let totalSelfStakedVotingPower = ethers.BigNumber.from(0);
+            let totalReceivedDelegatedVotingPower = ethers.BigNumber.from(0);
+            let totalDelegatedAwayVotingPower = ethers.BigNumber.from(0);
+            let totalOwnStakeVotingPower = ethers.BigNumber.from(0);
+            rows.forEach((row) => {
+                totalLocked = totalLocked.add(row.lockedStakeBn);
+                totalVotingPower = totalVotingPower.add(row.votingPowerBn);
+                totalSelfStakedVotingPower = totalSelfStakedVotingPower.add(
+                    row.selfStakedVotingPowerBn
+                );
+                totalReceivedDelegatedVotingPower = totalReceivedDelegatedVotingPower.add(
+                    row.receivedDelegatedVotingPowerBn
+                );
+                totalDelegatedAwayVotingPower = totalDelegatedAwayVotingPower.add(
+                    row.delegatedAwayVotingPowerBn
+                );
+                totalOwnStakeVotingPower = totalOwnStakeVotingPower.add(row.ownStakeVotingPowerBn);
+            });
+
+            const normalizedRows = rows
+                .sort((a, b) => {
+                    const aVotingPower = ethers.BigNumber.from(a.votingPowerBn);
+                    const bVotingPower = ethers.BigNumber.from(b.votingPowerBn);
+                    const aLockedStake = ethers.BigNumber.from(a.lockedStakeBn);
+                    const bLockedStake = ethers.BigNumber.from(b.lockedStakeBn);
+
+                    if (aVotingPower.eq(bVotingPower)) {
+                        if (aLockedStake.eq(bLockedStake)) {
+                            return a.address.localeCompare(b.address);
+                        }
+                        return aLockedStake.gt(bLockedStake) ? -1 : 1;
+                    }
+                    return aVotingPower.gt(bVotingPower) ? -1 : 1;
+                })
+                .map(
+                    ({
+                        votingPowerBn,
+                        lockedStakeBn,
+                        selfStakedVotingPowerBn,
+                        receivedDelegatedVotingPowerBn,
+                        delegatedAwayVotingPowerBn,
+                        ownStakeVotingPowerBn,
+                        ...row
+                    }) => row
+                );
+
+            logger.info("=======================================");
+            logger.info(`Current stakers with locked stake > 0: ${normalizedRows.length}`);
+            logger.info(`Total locked stake: ${formatAmount(totalLocked)} SOV`);
+            logger.info(`Total voting power: ${formatAmount(totalVotingPower)}`);
+            logger.info(`Self-staked voting power: ${formatAmount(totalSelfStakedVotingPower)}`);
+            logger.info(
+                `Received delegated voting power: ${formatAmount(totalReceivedDelegatedVotingPower)}`
+            );
+            logger.info(
+                `Delegated away voting power: ${formatAmount(totalDelegatedAwayVotingPower)}`
+            );
+            logger.info(`Own stake voting power: ${formatAmount(totalOwnStakeVotingPower)}`);
+            logger.info(
+                `Proposal threshold (${governorDeploymentName}): ${formatAmount(proposalThreshold)}`
+            );
+            logger.info("=======================================");
+
+            normalizedRows.slice(0, 20).forEach((row, idx) => {
+                logger.info(
+                    `${String(idx + 1).padStart(2, " ")}. ${row.address} | locked ${row.lockedStake} | VP ${row.votingPower} | self ${row.selfStakedVotingPower} | recv ${row.receivedDelegatedVotingPower} | away ${row.delegatedAwayVotingPower}`
+                );
+            });
+
+            if (output && normalizedRows.length > 0) {
+                const csvWriter = createObjectCsvWriter({
+                    path: output,
+                    header: [
+                        { id: "address", title: "Address" },
+                        { id: "lockedStake", title: "Locked Stake" },
+                        { id: "votingPower", title: "Voting Power" },
+                        { id: "selfStakedVotingPower", title: "Self Staked Voting Power" },
+                        {
+                            id: "receivedDelegatedVotingPower",
+                            title: "Received Delegated Voting Power",
+                        },
+                        { id: "delegatedAwayVotingPower", title: "Delegated Away Voting Power" },
+                        { id: "ownStakeVotingPower", title: "Own Stake Voting Power" },
+                        { id: "sovBalance", title: "SOV Balance" },
+                        { id: "proposalThreshold", title: "Proposal Threshold" },
+                        { id: "thresholdPct", title: "VP Bps Of Threshold" },
+                    ],
+                });
+                await csvWriter.writeRecords(normalizedRows);
+                logger.success(`Results exported to: ${output}`);
+            }
+        }
+    );
+
+task(
+    "governance:getGovernanceConfig",
+    "Print GovernorOwner and GovernorAdmin settings with their timelock properties"
+)
+    .addOptionalParam("atBlock", "Read dynamic values at this block", undefined, types.int)
+    .setAction(async ({ atBlock }, hre) => {
+        const { ethers } = hre;
+        const governorNames = ["GovernorOwner", "GovernorAdmin"];
+        const blockNumber = atBlock
+            ? parseInt(atBlock)
+            : (await ethers.provider.getBlock()).number;
+        const block = await ethers.provider.getBlock(blockNumber);
+
+        const formatDuration = (secondsBn) => {
+            const totalSeconds = ethers.BigNumber.from(secondsBn).toNumber();
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            const parts = [];
+
+            if (days) parts.push(`${days}d`);
+            if (hours) parts.push(`${hours}h`);
+            if (minutes) parts.push(`${minutes}m`);
+            if (seconds || parts.length === 0) parts.push(`${seconds}s`);
+
+            return `${totalSeconds}s (${parts.join(" ")})`;
+        };
+
+        const formatBlocks = (blocksBn, secondsPerBlock = 30) => {
+            const blocks = ethers.BigNumber.from(blocksBn).toNumber();
+            const approxSeconds = blocks * secondsPerBlock;
+            return `${blocks} blocks (~${formatDuration(approxSeconds)})`;
+        };
+
+        logger.info(
+            `Reference block: ${blockNumber} (${new Date(block.timestamp * 1000).toISOString()})`
+        );
+        logger.info("=======================================");
+
+        for (const governorName of governorNames) {
+            const governor = await ethers.getContract(governorName);
+            const timelockAddress = await governor.timelock({ blockTag: blockNumber });
+            const timelock = await ethers.getContractAt("Timelock", timelockAddress);
+
+            const [
+                guardian,
+                staking,
+                quorumPercentageVotes,
+                majorityPercentageVotes,
+                votingDelay,
+                votingPeriod,
+                proposalMaxOperations,
+                proposalThreshold,
+                quorumVotes,
+                proposalCount,
+                timelockAdmin,
+                timelockPendingAdmin,
+                timelockDelay,
+                timelockGracePeriod,
+                timelockMinimumDelay,
+                timelockMaximumDelay,
+            ] = await Promise.all([
+                governor.guardian({ blockTag: blockNumber }),
+                governor.staking({ blockTag: blockNumber }),
+                governor.quorumPercentageVotes({ blockTag: blockNumber }),
+                governor.majorityPercentageVotes({ blockTag: blockNumber }),
+                governor.votingDelay({ blockTag: blockNumber }),
+                governor.votingPeriod({ blockTag: blockNumber }),
+                governor.proposalMaxOperations({ blockTag: blockNumber }),
+                governor.proposalThreshold({ blockTag: blockNumber }),
+                governor.quorumVotes({ blockTag: blockNumber }),
+                governor.proposalCount({ blockTag: blockNumber }),
+                timelock.admin({ blockTag: blockNumber }),
+                timelock.pendingAdmin({ blockTag: blockNumber }),
+                timelock.delay({ blockTag: blockNumber }),
+                timelock.GRACE_PERIOD({ blockTag: blockNumber }),
+                timelock.MINIMUM_DELAY({ blockTag: blockNumber }),
+                timelock.MAXIMUM_DELAY({ blockTag: blockNumber }),
+            ]);
+
+            logger.info(`${governorName}`);
+            logger.info(`Governor address: ${governor.address}`);
+            logger.info(`Guardian: ${guardian}`);
+            logger.info(`Staking: ${staking}`);
+            logger.info(`Proposal count: ${proposalCount.toString()}`);
+            logger.info(`Voting delay: ${formatBlocks(votingDelay)}`);
+            logger.info(`Voting period: ${formatBlocks(votingPeriod)}`);
+            logger.info(`Proposal max operations: ${proposalMaxOperations.toString()}`);
+            logger.info(`Quorum percentage votes: ${quorumPercentageVotes.toString()}%`);
+            logger.info(`Majority percentage votes: ${majorityPercentageVotes.toString()}%`);
+            logger.info(
+                `Current proposal threshold: ${ethers.utils.formatEther(proposalThreshold)} VP`
+            );
+            logger.info(`Current quorum votes: ${ethers.utils.formatEther(quorumVotes)} VP`);
+            logger.info(`Timelock address: ${timelock.address}`);
+            logger.info(`Timelock admin: ${timelockAdmin}`);
+            logger.info(`Timelock pending admin: ${timelockPendingAdmin}`);
+            logger.info(`Timelock delay: ${formatDuration(timelockDelay)}`);
+            logger.info(`Timelock grace period: ${formatDuration(timelockGracePeriod)}`);
+            logger.info(`Timelock minimum delay: ${formatDuration(timelockMinimumDelay)}`);
+            logger.info(`Timelock maximum delay: ${formatDuration(timelockMaximumDelay)}`);
+            logger.info("---------------------------------------");
+        }
     });

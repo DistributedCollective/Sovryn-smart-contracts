@@ -1,0 +1,58 @@
+{
+  "address": "0x00ef3bB4C0cBDf01c0AFbEda6dC3C5067cABE459",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "peek",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x746d2ae94110c5da2c5ed0d0ec7806dcb61f5fa294c1fce39649324fa75770bd",
+  "receipt": {
+    "to": null,
+    "from": "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E",
+    "contractAddress": "0x00ef3bB4C0cBDf01c0AFbEda6dC3C5067cABE459",
+    "transactionIndex": 0,
+    "gasUsed": "82817",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xde49e8876ee472ddbae19148396d8f268f7aa52f0e2c8944bc566a5b7d0ea67f",
+    "transactionHash": "0x746d2ae94110c5da2c5ed0d0ec7806dcb61f5fa294c1fce39649324fa75770bd",
+    "logs": [],
+    "blockNumber": 8746640,
+    "cumulativeGasUsed": "82817",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "1365c4213169d88f172079272081d3e5",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[],\"name\":\"peek\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{},\"title\":\"MoC-Medianizer-shaped dummy that always reports \\\"no value\\\".  /// Intended to be installed as `mocOracleAddress` on an MoC-wrapper adapter (e.g. the shared RBTC sub-oracle at 0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789) as a break-glass lever: the wrapping adapter's `latestAnswer()` reverts (or returns 0 depending on implementation) because `peek()` reports the feed as unavailable. Downstream V2 pool oracles then revert on rate queries, halting all swaps on the pools that consume that adapter. LP deposits/withdrawals are unaffected \\u2014 they use staked-balance math.\"},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/feeds/DummyMoCMedianizer.sol\":\"DummyMoCMedianizer\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":forge-std/=foundry/lib/forge-std/src/\"]},\"sources\":{\"contracts/feeds/DummyMoCMedianizer.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.5.17;\\n\\n/// @title MoC-Medianizer-shaped dummy that always reports \\\"no value\\\".\\n///\\n/// Intended to be installed as `mocOracleAddress` on an MoC-wrapper adapter\\n/// (e.g. the shared RBTC sub-oracle at 0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789)\\n/// as a break-glass lever: the wrapping adapter's `latestAnswer()` reverts\\n/// (or returns 0 depending on implementation) because `peek()` reports the\\n/// feed as unavailable. Downstream V2 pool oracles then revert on rate\\n/// queries, halting all swaps on the pools that consume that adapter.\\n/// LP deposits/withdrawals are unaffected \\u2014 they use staked-balance math.\\ncontract DummyMoCMedianizer {\\n    function peek() external pure returns (bytes32, bool) {\\n        return (bytes32(0), false);\\n    }\\n}\\n\",\"keccak256\":\"0xdb5e8137909b22162dc84435c3250bd5844aea73858d1e42933d28bb5dc47f7e\"}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b5060888061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c806359e02dd714602d575b600080fd5b6033604c565b6040805192835290151560208301528051918290030190f35b600080909156fea265627a7a723158206300b2ef958a459bdcbb411902fa17f9b40b775be7240be8b96bd7edca30c9e364736f6c63430005110032",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060285760003560e01c806359e02dd714602d575b600080fd5b6033604c565b6040805192835290151560208301528051918290030190f35b600080909156fea265627a7a723158206300b2ef958a459bdcbb411902fa17f9b40b775be7240be8b96bd7edca30c9e364736f6c63430005110032",
+  "devdoc": {
+    "methods": {},
+    "title": "MoC-Medianizer-shaped dummy that always reports \"no value\".  /// Intended to be installed as `mocOracleAddress` on an MoC-wrapper adapter (e.g. the shared RBTC sub-oracle at 0x4106e4Bb0C339cf7e8adc64Cf889F261Fef1e789) as a break-glass lever: the wrapping adapter's `latestAnswer()` reverts (or returns 0 depending on implementation) because `peek()` reports the feed as unavailable. Downstream V2 pool oracles then revert on rate queries, halting all swaps on the pools that consume that adapter. LP deposits/withdrawals are unaffected — they use staked-balance math."
+  },
+  "userdoc": {
+    "methods": {}
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

@@ -4,9 +4,17 @@ const {
     getProtocolModules,
 } = require("../../../../deployment/helpers/helpers");
 const { validateAmmOnchainAddresses, getAmmOracleAddress } = require("../../../helpers");
+const {
+    CURRENT_AT_DRAFT: IDOC_CURVE_CURRENT_AT_DRAFT,
+    PROPOSED: IDOC_CURVE_PROPOSED,
+    CURVE_KEYS: IDOC_CURVE_KEYS,
+    SET_DEMAND_CURVE_SIGNATURE,
+} = require("./idocCurveParams");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 const col = require("cli-color");
+
+const BPRO_MAINNET_ADDRESS = "0x440cd83c160de5c96ddb20246815ea44c7abbca8";
 
 const sampleGovernorOwnerSIP = async (hre) => {
     /*
@@ -1249,6 +1257,296 @@ const getArgsSip0087 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const getArgsSip0089 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![30, 31, 31337].includes(chainId)) {
+        throw new Error(`sampleGovernorOwnerSIP cannot run on the network ID == ${chainId}`);
+    }
+    const args = {
+        targets: [(await hre.deployments.get("SOV")).address],
+        values: [0],
+        signatures: ["name()"],
+        data: ["0x"],
+        description:
+            "SIP-0089: Ratification of Temporary Revenue Redirection to Exchequer, Details: https://github.com/DistributedCollective/SIPS/blob/e595d37/SIP-0089.md, sha256: 486a09c19296dd82b120993c8eca952b5b499808715133c889d96af7d612997b",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
+/**
+ * iDOC demand-curve adjustment.
+ *
+ * Calls setDemandCurve on the iDOC LoanToken proxy with the proposed values:
+ *   baseRate              6e18  -> 2e18    ( 6% ->  2% APR floor)
+ *   rateMultiplier       15e18  -> 10e18   (15% -> 10% slope below kink)
+ *   lowUtilBaseRate       6e18  -> 2e18    (mirror)
+ *   lowUtilRateMultiplier 15e18 -> 10e18   (mirror)
+ *   targetLevel               0 ->     0   (unchanged; low-util branch disabled)
+ *   kinkLevel            75e18  -> 90e18   (75% -> 90% utilisation)
+ *   maxScaleRate        150e18  -> 30e18   (150% -> 30% APR cap @ 100% util)
+ *
+ * Goal: bring mid-range borrow APR closer to Tropykus's cDOC pool while
+ * retaining a real high-utilisation deterrent and reducing margin-position
+ * upfront interest reservation from ~11.5% to ~2.3% of principal.
+ *
+ * Governor: GovernorAdmin — setDemandCurve is gated by onlyAdmin
+ * (isOwner() || msg.sender == admin); iDOC.admin() == TimelockAdmin which is
+ * the timelock backing GovernorAdmin. GovernorOwner would also be viable via
+ * the isOwner() branch but the admin route matches the operational nature of
+ * a parameter tweak.
+ */
+const getArgsSipIDocDemandCurve = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![30, 31, 31337].includes(chainId)) {
+        throw new Error(`getArgsSipIDocDemandCurve cannot run on network ID ${chainId}`);
+    }
+
+    const iDOCDeployment = await get("LoanToken_iDOC");
+    const iDOCAddress = iDOCDeployment.address;
+
+    const iDOC = await ethers.getContractAt(
+        [
+            "function admin() view returns (address)",
+            "function baseRate() view returns (uint256)",
+            "function rateMultiplier() view returns (uint256)",
+            "function lowUtilBaseRate() view returns (uint256)",
+            "function lowUtilRateMultiplier() view returns (uint256)",
+            "function targetLevel() view returns (uint256)",
+            "function kinkLevel() view returns (uint256)",
+            "function maxScaleRate() view returns (uint256)",
+        ],
+        iDOCAddress
+    );
+    const iDOCAdmin = await iDOC.admin();
+
+    const fmt = (x) => `${ethers.utils.formatEther(x)} (raw ${x.toString()})`;
+    logger.info(`iDOC address:               ${iDOCAddress}`);
+    logger.info(`iDOC admin (= timelock):    ${iDOCAdmin}`);
+
+    const observed = {
+        baseRate: await iDOC.baseRate(),
+        rateMultiplier: await iDOC.rateMultiplier(),
+        lowUtilBaseRate: await iDOC.lowUtilBaseRate(),
+        lowUtilRateMultiplier: await iDOC.lowUtilRateMultiplier(),
+        targetLevel: await iDOC.targetLevel(),
+        kinkLevel: await iDOC.kinkLevel(),
+        maxScaleRate: await iDOC.maxScaleRate(),
+    };
+    for (const [k, v] of Object.entries(observed)) {
+        logger.info(`current ${k.padEnd(22)}${fmt(v)}`);
+    }
+
+    // Baseline guard: the proposal description claims a specific before/after
+    // delta (baseRate 6 -> 2, kinkLevel 75 -> 90, etc.). setDemandCurve
+    // overwrites all 7 params, so if mainnet has drifted from the documented
+    // baseline (e.g. an interim SIP has already moved the curve), submitting
+    // this proposal would silently clobber unexpected values while the
+    // description remains misleading. Hard-fail on mainnet to force a
+    // re-review of the description and ./idocCurveParams.js before resubmission.
+    // On testnet/fork (chainId 31 or 31337) the curve can legitimately
+    // diverge — just log and continue.
+    if (chainId === 30) {
+        for (const k of IDOC_CURVE_KEYS) {
+            if (!observed[k].eq(IDOC_CURVE_CURRENT_AT_DRAFT[k])) {
+                throw new Error(
+                    `iDOC ${k} baseline drift: observed ${observed[k].toString()}, ` +
+                        `expected ${IDOC_CURVE_CURRENT_AT_DRAFT[k].toString()}. Aborting to ` +
+                        `prevent silently overwriting unexpected mainnet state. If an interim ` +
+                        `SIP has moved the curve, update ./idocCurveParams.js AND the before/` +
+                        `after tables in SIP-0092.md before resubmitting.`
+                );
+            }
+        }
+        logger.info(`baseline check OK — all 7 params match CURRENT_AT_DRAFT`);
+    } else {
+        for (const k of IDOC_CURVE_KEYS) {
+            if (!observed[k].eq(IDOC_CURVE_CURRENT_AT_DRAFT[k])) {
+                logger.warn(
+                    `[non-mainnet] iDOC ${k} differs from mainnet draft baseline ` +
+                        `(observed ${observed[k].toString()}, baseline ${IDOC_CURVE_CURRENT_AT_DRAFT[
+                            k
+                        ].toString()})`
+                );
+            }
+        }
+    }
+
+    // Proposed values come from the shared single-source module so they cannot
+    // drift from the on-chain test's expectations. Storage convention: 100% ==
+    // 10^20, so e.g. 2e18 == 2%.
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    const args = {
+        targets: [iDOCAddress],
+        targetOwnerValidationAddresses: [iDOCAdmin],
+        values: [0],
+        signatures: [SET_DEMAND_CURVE_SIGNATURE],
+        data: [
+            abiCoder.encode(
+                IDOC_CURVE_KEYS.map(() => "uint256"),
+                IDOC_CURVE_KEYS.map((k) => IDOC_CURVE_PROPOSED[k])
+            ),
+        ],
+        description:
+            "SIP-0092: iDOC Demand-Curve Adjustment. " +
+            "baseRate 6%->2%, rateMultiplier 15%->10%, lowUtil mirrors, " +
+            "kinkLevel 75%->90%, maxScaleRate 150%->30%. " +
+            "Goal: reduce mid-range borrow APR to be competitive with Tropykus " +
+            "while retaining a meaningful high-utilisation deterrent. " +
+            "Details: https://github.com/DistributedCollective/SIPS/blob/10166c2/SIP-0092.md, " +
+            "sha256: add9aa009b53eedb05deb61c886ca220c0daa48f8b6be26e743f5aa7e9969540",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
+/**
+ * Disable SOV and BPro as collateral for active Torque and margin loan params.
+ *
+ * The loan-token settings wrapper reverts if it receives an absent local
+ * loanParamsIds entry. Build every action from live state so already-disabled
+ * pools/modes, such as iUSDT or iBPRO/BPro, are skipped instead of making the
+ * proposal unexecutable.
+ */
+const getArgsSip0093 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (![30, 31337].includes(chainId)) {
+        throw new Error(`getArgsSip0093 cannot run on network ID ${chainId}`);
+    }
+
+    const abiCoder = new ethers.utils.AbiCoder();
+    const sovAddress = (await get("SOV")).address;
+    const bproAddress = ethers.utils.getAddress(BPRO_MAINNET_ADDRESS);
+    const collaterals = [
+        { symbol: "SOV", address: sovAddress },
+        { symbol: "BPro", address: bproAddress },
+    ];
+    const loanTokenDeploymentNames = [
+        "LoanToken_iXUSD",
+        "LoanToken_iRBTC",
+        "LoanToken_iBPRO",
+        "LoanToken_iDOC",
+        "LoanToken_iDLLR",
+        "LoanToken_iUSDT",
+    ];
+
+    const targets = [];
+    const targetOwnerValidationAddresses = [];
+    const values = [];
+    const signatures = [];
+    const data = [];
+
+    for (const deploymentName of loanTokenDeploymentNames) {
+        const loanTokenAddress = (await get(deploymentName)).address;
+        const loanToken = await ethers.getContractAt(
+            [
+                "function admin() view returns (address)",
+                "function loanParamsIds(uint256) view returns (bytes32)",
+                "function sovrynContractAddress() view returns (address)",
+            ],
+            loanTokenAddress
+        );
+        const sovryn = await ethers.getContractAt(
+            [
+                "function getLoanParams(bytes32[]) view returns (tuple(bytes32 id,bool active,address owner,address loanToken,address collateralToken,uint256 minInitialMargin,uint256 maintenanceMargin,uint256 maxLoanTerm)[])",
+            ],
+            await loanToken.sovrynContractAddress()
+        );
+
+        const collateralTokensToDisable = [];
+        const torqueFlagsToDisable = [];
+        const activePairs = [];
+
+        for (const collateral of collaterals) {
+            for (const isTorqueLoan of [true, false]) {
+                const key = ethers.utils.solidityKeccak256(
+                    ["address", "bool"],
+                    [collateral.address, isTorqueLoan]
+                );
+                const loanParamsId = await loanToken.loanParamsIds(key);
+                if (loanParamsId === ethers.constants.HashZero) {
+                    logger.info(
+                        `${deploymentName}: ${collateral.symbol} ${
+                            isTorqueLoan ? "Torque" : "Margin"
+                        } already disabled`
+                    );
+                    continue;
+                }
+
+                const [loanParams] = await sovryn.getLoanParams([loanParamsId]);
+                if (
+                    !loanParams ||
+                    loanParams.id === ethers.constants.HashZero ||
+                    !loanParams.active
+                ) {
+                    logger.info(
+                        `${deploymentName}: ${collateral.symbol} ${
+                            isTorqueLoan ? "Torque" : "Margin"
+                        } inactive on protocol`
+                    );
+                    continue;
+                }
+
+                collateralTokensToDisable.push(collateral.address);
+                torqueFlagsToDisable.push(isTorqueLoan);
+                activePairs.push(`${collateral.symbol}:${isTorqueLoan ? "Torque" : "Margin"}`);
+            }
+        }
+
+        if (collateralTokensToDisable.length === 0) {
+            continue;
+        }
+
+        const loanTokenAdmin = await loanToken.admin();
+        targets.push(loanTokenAddress);
+        targetOwnerValidationAddresses.push(loanTokenAdmin);
+        values.push(0);
+        signatures.push("disableLoanParams(address[],bool[])");
+        data.push(
+            abiCoder.encode(
+                ["address[]", "bool[]"],
+                [collateralTokensToDisable, torqueFlagsToDisable]
+            )
+        );
+
+        logger.info(`${deploymentName}: disabling ${activePairs.join(", ")}`);
+    }
+
+    if (targets.length === 0) {
+        throw new Error("getArgsSip0093 found no active SOV/BPro collateral loan params");
+    }
+
+    const args = {
+        targets,
+        targetOwnerValidationAddresses,
+        values,
+        signatures,
+        data,
+        description:
+            "SIP-0093: Disable SOV and BPro as Lending-Pool Collateral. " +
+            "Disables active SOV and BPro loan params for borrowing and " +
+            "margin trading while leaving existing positions, repayment, " +
+            "liquidation, collateral maintenance, price feeds, and swap support intact. " +
+            "Details: https://github.com/DistributedCollective/SIPS/blob/0d82c3a/SIP-0093.md, " +
+            "sha256: 359b8978cb3b1a8a16041aac989e7f38518327a121ea7bc7f8f6ea8c022241fb",
+    };
+
+    return { args, governor: "GovernorAdmin" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1272,4 +1570,7 @@ module.exports = {
     getArgsSip0084Part1,
     getArgsSip0084Part2,
     getArgsSip0087,
+    getArgsSip0089,
+    getArgsSipIDocDemandCurve,
+    getArgsSip0093,
 };
