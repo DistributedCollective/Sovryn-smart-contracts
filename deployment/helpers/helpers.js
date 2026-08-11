@@ -69,6 +69,10 @@ const getProtocolModules = () => {
             moduleName: "LoanClosingsWith",
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
         },
+        ExitFeeModule: {
+            moduleName: "ExitFeeModule",
+            sampleFunction: "setExitFeeController(address)",
+        },
         LoanOpenings: {
             moduleName: "LoanOpenings",
             sampleFunction: "setDelegatedManager(bytes32,address,bool)",

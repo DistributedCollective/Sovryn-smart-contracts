@@ -14,14 +14,19 @@ const func = async function (hre) {
     // @dev use to narrow down module contracts to redeploy
     // e.g. you have three contracts modified but want to deploy only one
     // then add the modules not ready for deployment to `dontDeployModules`
+    //
+    // Only the two LM modules own a burn route, so only they carry the
+    // lender exit-fee hook and only they are re-registered on the beacons.
+    // The three below are not registered by this release: deploying them
+    // would put unused code at fresh addresses and inflate the post-deploy
+    // "code at every new address" check with addresses nothing routes to.
+    // LoanTokenLogic / LoanTokenLogicWrbtc gain only an inherited
+    // exitFeeController() view that their published selector list omits;
+    // LoanTokenSettingsLowerAdmin does not inherit the changed parent at all.
     const dontDeployModules = {
-        /*
         LoanTokenLogic: "LoanTokenLogic",
         LoanTokenLogicWrbtc: "LoanTokenLogicWrbtc",
-        LoanTokenLogicLM: "LoanTokenLogicLM",
-        LoanTokenLogicWrbtcLM: "LoanTokenLogicWrbtcLM",
         LoanTokenSettingsLowerAdmin: "LoanTokenSettingsLowerAdmin",
-        */
     };
     log(col.bgYellow("Deploying LoanTokenModules..."));
     const modulesList = getLoanTokenModulesNames();

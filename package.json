@@ -92,6 +92,7 @@
 		"prettier": "prettier --write .",
 		"prettier-check": "prettier --check .",
 		"test": "npx hardhat test",
+		"test:colfee": "npx hardhat test tests/colfee/*.test.js",
 		"uml": "npx sol2uml ./contracts -o UML.svg",
 		"generate-types": "hardhat export-abi",
 		"prepare": "npx patch-package",

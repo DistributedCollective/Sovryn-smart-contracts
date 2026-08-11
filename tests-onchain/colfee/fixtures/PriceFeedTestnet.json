@@ -1,0 +1,71 @@
+{
+    "_provenance": {
+        "repo": "zero-contracts",
+        "branch": "sovryn-perimeter-fee",
+        "commit": "8bd7d1b",
+        "compiler": "solc 0.6.11 via hardhat",
+        "note": "Liquity/Zero settable price feed stub. Test-only fixture: the fork tests swap it in for ZeroPriceFeed because the production feed's staleness gate trips after governance time-jumps on a fork."
+    },
+    "contractName": "PriceFeedTestnet",
+    "abi": [
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "_lastGoodPrice",
+                    "type": "uint256"
+                }
+            ],
+            "name": "LastGoodPriceUpdated",
+            "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "fetchPrice",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getPrice",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "price",
+                    "type": "uint256"
+                }
+            ],
+            "name": "setPrice",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ],
+    "bytecode": "0x6080604052680ad78ebc5ac620000060005534801561001d57600080fd5b5061010e8061002d6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c80630fdb11cf14604157806391b7f5ed14605957806398d5fdca146087575b600080fd5b6047608d565b60408051918252519081900360200190f35b607360048036036020811015606d57600080fd5b503560ca565b604080519115158252519081900360200190f35b604760d2565b6000805460408051918252517f4d29de21de555af78a62fc82dd4bc05e9ae5b0660a37f04729527e0f22780cd39181900360200190a15060005490565b600055600190565b6000549056fea2646970667358221220164ba700becaab6addb0063cb07fd2e3060ebb0990f72b63246d2dc261ecdc9364736f6c634300060b0033"
+}

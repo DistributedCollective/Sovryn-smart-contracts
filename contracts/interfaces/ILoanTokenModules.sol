@@ -1,7 +1,15 @@
 pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-interface ILoanTokenModules {
+import "./colfee/IColFeeEvents.sol";
+
+/// @dev Declared as a `contract` (implicitly abstract — all functions are
+///      unimplemented) rather than an `interface` ONLY so it can inherit
+///      IColFeeEvents: a Solidity 0.5.17 `interface` can't inherit (added in
+///      0.6.0). It is never deployed — used purely as an ABI handle (`.at`,
+///      casts) — so abstractness is harmless and the generated ABI is identical
+///      to the former interface.
+contract ILoanTokenModules is IColFeeEvents {
     /** EVENT */
     /// topic: 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
     event Transfer(address indexed from, address indexed to, uint256 value);
@@ -33,7 +41,12 @@ interface ILoanTokenModules {
 
     event ToggledFunctionPaused(string functionId, bool prevFlag, bool newFlag);
 
+    /// ColFee events are inherited from IColFeeEvents.
+
     /** INTERFACE */
+
+    /** COLFEE — controller view */
+    function exitFeeController() external view returns (address);
 
     /** START LOAN TOKEN SETTINGS LOWER ADMIN */
     struct LoanParams {

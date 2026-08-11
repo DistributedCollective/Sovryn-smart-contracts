@@ -9,15 +9,154 @@ import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 import "../../farm/ILiquidityMining.sol";
 import "../../governance/Staking/interfaces/IStaking.sol";
 import "../../governance/Vesting/IVesting.sol";
+import "../../interfaces/colfee/IExitFeeController.sol";
+import "../../interfaces/colfee/IColFeeEvents.sol";
+import "../../utils/ColFeeLib.sol";
 
 /**
  * @dev This contract shares functions used by both LoanTokenLogicSplit and LoanTokenLogicStandard
  */
-contract LoanTokenLogicShared is LoanTokenLogicStorage {
+contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
     using SafeMath for uint256;
     using SignedSafeMath for int256;
 
     /// DON'T ADD VARIABLES HERE, PLEASE
+    /// ColFee keeps no state on the iToken; the controller is read from the
+    /// protocol below.
+
+    /// keccak256("COLFEE:SURFACE_LENDING_LENDER_WITHDRAW")
+    bytes32 internal constant SURFACE_LENDING_LENDER_WITHDRAW =
+        keccak256("COLFEE:SURFACE_LENDING_LENDER_WITHDRAW");
+
+    /// @notice The ExitFeeController, read from the protocol via a fail-open
+    ///         staticcall (zero until pinned — the burn then skips the fee).
+    /// @return ctrl ExitFeeController address, or address(0).
+    function exitFeeController() public view returns (address ctrl) {
+        return ColFeeLib.safeControllerLookup(sovrynContractAddress);
+    }
+
+    /// @notice Quote the lender-exit fee from this iToken's controller
+    ///         (fail-open).
+    function _safeQuoteExitFee(
+        bytes32 surfaceId,
+        address subProduct,
+        address actor,
+        uint256 gross
+    ) internal view returns (IExitFeeController.ExitFeeQuote memory q) {
+        return ColFeeLib.safeQuote(exitFeeController(), surfaceId, subProduct, actor, gross);
+    }
+
+    /// @dev Defensive sanity-check on a quote returned by the (upgradable,
+    ///      external) controller. Delegates to the shared invariant set in
+    ///      `ColFeeLib.quoteIsValid`; failure routes to INVALID_QUOTE.
+    function _exitFeeQuoteIsValid(
+        IExitFeeController.ExitFeeQuote memory q,
+        uint256 gross
+    ) internal pure returns (bool) {
+        return ColFeeLib.quoteIsValid(q, gross);
+    }
+
+    /// @notice Single ColFee-aware payout entry point for lender burn variants.
+    ///         Charges (when policy active + non-zero fee AND the quote passes
+    ///         defensive invariants) by transferring the fee leg to
+    ///         `q.feeReceiver` (fail-open via nonBlocking=true) and the user
+    ///         leg to `receiver` (fail-closed via nonBlocking=false).
+    ///         On any non-charging path, pays the full `gross` to `receiver`.
+    function _chargeExitFeeAndPay(
+        address receiver,
+        uint256 gross,
+        string memory errorMsg
+    ) internal {
+        if (gross == 0) return;
+
+        IExitFeeController.ExitFeeQuote memory q = _safeQuoteExitFee(
+            SURFACE_LENDING_LENDER_WITHDRAW,
+            address(this),
+            msg.sender,
+            gross
+        );
+
+        if (q.active && q.feeAmount > 0) {
+            if (!_exitFeeQuoteIsValid(q, gross)) {
+                // Trust-but-verify: controller said charge but quote is bogus.
+                // Skip the fee leg, pay full gross, advertise the reason.
+                emit ExitFeeSkipped(
+                    SURFACE_LENDING_LENDER_WITHDRAW,
+                    msg.sender,
+                    loanTokenAddress,
+                    gross,
+                    q.rateBps,
+                    uint8(IExitFeeController.SkipReason.INVALID_QUOTE)
+                );
+            } else {
+                bool feeOk = _transferUnderlyingToken(q.feeReceiver, q.feeAmount, true, "");
+                if (feeOk) {
+                    emit ExitFeeApplied(
+                        SURFACE_LENDING_LENDER_WITHDRAW,
+                        msg.sender,
+                        loanTokenAddress,
+                        address(this),
+                        receiver,
+                        gross,
+                        q.feeAmount,
+                        q.netAmount,
+                        q.feeReceiver
+                    );
+                    _transferUnderlyingToken(receiver, q.netAmount, false, errorMsg);
+                    return;
+                }
+                emit ExitFeeSkipped(
+                    SURFACE_LENDING_LENDER_WITHDRAW,
+                    msg.sender,
+                    loanTokenAddress,
+                    gross,
+                    q.rateBps,
+                    uint8(IExitFeeController.SkipReason.VAULT_REVERT)
+                );
+            }
+        } else {
+            emit ExitFeeSkipped(
+                SURFACE_LENDING_LENDER_WITHDRAW,
+                msg.sender,
+                loanTokenAddress,
+                gross,
+                q.rateBps,
+                q.reason
+            );
+        }
+        // Fallback to full-gross to user (covers !active, INVALID_QUOTE,
+        // and fee-leg failure).
+        _transferUnderlyingToken(receiver, gross, false, errorMsg);
+    }
+
+    /// @notice ERC20 transfer of `loanTokenAddress` shared by both ColFee legs.
+    ///         nonBlocking=true  → returns false on any failure (fee leg).
+    ///         nonBlocking=false → reverts via `_safeTransfer` with `errorMsg`
+    ///                              (user leg); `errorMsg` is the caller's own
+    ///                              revert reason.
+    function _transferUnderlyingToken(
+        address to,
+        uint256 amount,
+        bool nonBlocking,
+        string memory errorMsg
+    ) internal returns (bool) {
+        if (amount == 0) return true;
+        if (nonBlocking) {
+            (bool ok, bytes memory ret) = loanTokenAddress.call(
+                abi.encodeWithSelector(IERC20(loanTokenAddress).transfer.selector, to, amount)
+            );
+            if (!ok) return false;
+            // USDT-style ERC20s return no value on success; treat as ok.
+            // Anything other than a 32-byte canonical bool is non-standard
+            // for our vetted underlyings — fail the fee leg open rather
+            // than risk decoding into a surprising shape.
+            if (ret.length == 0) return true;
+            if (ret.length != 32) return false;
+            return abi.decode(ret, (bool));
+        }
+        _safeTransfer(loanTokenAddress, to, amount, errorMsg);
+        return true;
+    }
 
     /**
      * @notice Update the user's checkpoint price and profit so far.

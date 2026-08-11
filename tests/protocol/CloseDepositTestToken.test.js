@@ -38,6 +38,11 @@ const {
     verify_sov_reward_payment,
 } = require("../Utils/initializer.js");
 
+// The global reentrancy Mutex (SharedReentrancyGuard) is a singleton at a
+// fixed address; deploy it in this fixture so the suite is self-sufficient
+// regardless of run order (the iToken mint path uses globallyNonReentrant).
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+
 const wei = web3.utils.toWei;
 
 const oneEth = new BN(wei("1", "ether"));
@@ -59,6 +64,11 @@ contract("ProtocolCloseDeposit", (accounts) => {
     let borrower, receiver;
 
     async function deploymentAndInitFixture(_wallets, _provider) {
+        // Deploy the shared reentrancy Mutex first; the iToken mint path below
+        // calls globallyNonReentrant, which reverts if the Mutex singleton is
+        // absent (e.g. when this file runs first/in isolation).
+        await mutexUtils.getOrDeployMutex();
+
         // Deploying sovrynProtocol w/ generic function from initializer.js
         SUSD = await getSUSD();
         RBTC = await getRBTC();

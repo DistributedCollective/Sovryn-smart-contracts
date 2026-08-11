@@ -45,7 +45,8 @@ contract LoanClosingsWith is LoanClosingsShared {
      *     else deposit amount (partial closure).
      *
      * @return loanCloseAmount The amount of the collateral token of the loan.
-     * @return withdrawAmount The withdraw amount in the collateral token.
+     * @return withdrawAmount The GROSS withdraw amount; an active exit fee is
+     *         deducted before the receiver is paid.
      * @return withdrawToken The loan token address.
      * */
     function closeWithDeposit(
@@ -62,7 +63,8 @@ contract LoanClosingsWith is LoanClosingsShared {
         returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken)
     {
         _checkAuthorized(loanId);
-        return _closeWithDeposit(loanId, receiver, depositAmount, false);
+        return
+            _closeWithDeposit(loanId, receiver, depositAmount, false, CloseOrigin.VoluntaryClose);
     }
 
     /**
@@ -82,7 +84,8 @@ contract LoanClosingsWith is LoanClosingsShared {
      *   in collateral tokens or underlying loan tokens.
      *
      * @return loanCloseAmount The amount of the collateral token of the loan.
-     * @return withdrawAmount The withdraw amount in the collateral token.
+     * @return withdrawAmount The GROSS withdraw amount; an active exit fee is
+     *         deducted before the receiver is paid.
      * @return withdrawToken The loan token address.
      * */
     function closeWithSwap(
@@ -107,7 +110,8 @@ contract LoanClosingsWith is LoanClosingsShared {
                 swapAmount,
                 returnTokenIsCollateral,
                 "", /// loanDataBytes
-                false
+                false,
+                CloseOrigin.VoluntaryClose
             );
     }
 
@@ -129,7 +133,8 @@ contract LoanClosingsWith is LoanClosingsShared {
         bytes32 loanId,
         address receiver,
         uint256 depositAmount, /// Denominated in loanToken.
-        bool allowDonationOnFailure
+        bool allowDonationOnFailure,
+        CloseOrigin origin
     ) internal returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) {
         require(depositAmount != 0, "depositAmount == 0");
 
@@ -177,8 +182,16 @@ contract LoanClosingsWith is LoanClosingsShared {
 
         if (withdrawAmount != 0) {
             loanLocal.collateral = loanLocal.collateral.sub(withdrawAmount);
-            // allowDonationOnFailure is always false because we don't want to donate on failure for normal closures
-            _withdrawAsset(withdrawToken, receiver, withdrawAmount, allowDonationOnFailure);
+
+            // ColFee: charge the borrower-exit fee on the residual.
+            _withdrawAssetChargingExitFee(
+                origin,
+                loanLocal,
+                withdrawToken,
+                receiver,
+                withdrawAmount,
+                allowDonationOnFailure
+            );
         }
 
         _finalizeClose(
@@ -204,20 +217,18 @@ contract LoanClosingsWith is LoanClosingsShared {
         bytes32 loanId,
         uint256 depositAmount
     ) external view returns (bool isTinyPosition, uint256 tinyPositionAmount) {
-        (Loan memory loanLocal, LoanParams memory loanParamsLocal) = _checkLoan(loanId);
+        (Loan storage loanLocal, LoanParams storage loanParamsLocal) = _checkLoan(loanId);
 
         if (depositAmount < loanLocal.principal) {
-            uint256 remainingAmount = loanLocal.principal - depositAmount;
-            uint256 remainingRBTCAmount = _getAmountInRbtc(
+            tinyPositionAmount = _getAmountInRbtc(
                 loanParamsLocal.loanToken,
-                remainingAmount
+                loanLocal.principal - depositAmount
             );
-            if (remainingRBTCAmount < TINY_AMOUNT) {
+            if (tinyPositionAmount < TINY_AMOUNT) {
                 isTinyPosition = true;
-                tinyPositionAmount = remainingRBTCAmount;
+            } else {
+                tinyPositionAmount = 0;
             }
         }
-
-        return (isTinyPosition, tinyPositionAmount);
     }
 }

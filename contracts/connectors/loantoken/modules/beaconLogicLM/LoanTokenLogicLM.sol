@@ -23,18 +23,23 @@ contract LoanTokenLogicLM is LoanTokenLogicSplit {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](4);
+        bytes4[] memory res = new bytes4[](5);
 
         // Loan Token LM & OVERLOADING function
         /**
          * @notice BE CAREFUL,
-         * LoanTokenLogicStandard also has mint & burn function (overloading).
-         * You need to compute the function signature manually --> bytes4(keccak256("mint(address,uint256,bool)"))
+         * the 2-param mint & burn are overloads inherited from
+         * LoanTokenLogicSplit (this contract `is LoanTokenLogicSplit`). With
+         * overloaded names `this.mint.selector` is ambiguous, so the selectors
+         * are computed manually --> bytes4(keccak256("mint(address,uint256,bool)")).
          */
-        res[0] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicStandard
+        res[0] = bytes4(keccak256("mint(address,uint256)")); /// LoanTokenLogicSplit
         res[1] = bytes4(keccak256("mint(address,uint256,bool)")); /// LoanTokenLogicLM
-        res[2] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicStandard
+        res[2] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicSplit
         res[3] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
+
+        // ColFee controller view.
+        res[4] = bytes4(keccak256("exitFeeController()"));
 
         return (res, stringToBytes32("LoanTokenLogicLM"));
     }
@@ -61,6 +66,10 @@ contract LoanTokenLogicLM is LoanTokenLogicSplit {
      * @param receiver the receiver of the underlying tokens. note: potetial LM rewards are always sent to the msg.sender
      * @param burnAmount The amount of pool tokens to redeem.
      * @param useLM if true -> deposit the pool tokens into the Liquidity Mining contract
+     * @return redeemed The GROSS amount of underlying tokens redeemed. When a
+     *         ColFee exit-fee policy is active the receiver is paid this amount
+     *         minus the fee (split published in `ExitFeeApplied`) — do not
+     *         treat the return value as the amount received.
      */
     function burn(
         address receiver,
@@ -69,9 +78,8 @@ contract LoanTokenLogicLM is LoanTokenLogicSplit {
     ) external nonReentrant globallyNonReentrant returns (uint256 redeemed) {
         if (useLM) redeemed = _burnFromLM(burnAmount);
         else redeemed = _burnToken(burnAmount);
-        //this needs to be here and not in _burnTokens because of the WRBTC implementation
-        if (redeemed != 0) {
-            _safeTransfer(loanTokenAddress, receiver, redeemed, "asset transfer failed");
-        }
+        // ColFee: charge the fee and pay the user. "asset transfer failed" is
+        // the user-leg revert reason.
+        _chargeExitFeeAndPay(receiver, redeemed, "asset transfer failed");
     }
 }

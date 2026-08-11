@@ -51,6 +51,7 @@ const {
     decodeLogs,
     getSOV,
 } = require("../Utils/initializer.js");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 contract("LoanTokenLogicLM", (accounts) => {
     const name = "Test token";
@@ -65,6 +66,10 @@ contract("LoanTokenLogicLM", (accounts) => {
 
     before(async () => {
         [lender, account1, account2, ...accounts] = accounts;
+        // Self-sufficient run: the iToken mint/burn paths are
+        // `globallyNonReentrant` and need the global Mutex singleton, which
+        // this suite previously inherited from whichever suite ran before it.
+        await mutexUtils.getOrDeployMutex();
         await deployProtocol();
         await deployLoanTokens();
         await deployLiquidityMining();

@@ -1547,6 +1547,729 @@ const getArgsSip0093 = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
+/**
+ * Perimeter Fee — optional runtime-bytecode identity pin (review finding F-9). When the
+ * operator exports `<envVar>_CODEHASH`, assert keccak256(code at address) equals
+ * it, so a wrong/stale address that merely HAS code (isAddress + getCode both
+ * pass) is still rejected before it enters the proposal. When unset this is a
+ * no-op and the CP-C calldata decode + human diff remains the authentication
+ * gate. Fork rehearsals deploy fresh fixtures with unknown hashes and never set
+ * the env, so they are unaffected.
+ */
+const assertColFeeCodehash = async (hre, address, envVar, label) => {
+    const expected = process.env[`${envVar}_CODEHASH`];
+    if (!expected) return;
+    const actual = hre.ethers.utils.keccak256(await hre.ethers.provider.getCode(address));
+    if (actual.toLowerCase() !== expected.toLowerCase()) {
+        throw new Error(
+            `Perimeter Fee: ${label} at ${address} has runtime codehash ${actual}, expected ` +
+                `${expected} (${envVar}_CODEHASH) — the resolved contract is not the audited build.`
+        );
+    }
+};
+
+/**
+ * Perimeter Fee — refuse to build a proposal whose description still carries placeholder
+ * SIP metadata (review finding F-10). On real mainnet the SIP number, SIPS-repo
+ * link and sha256 (prerequisite P5) must be filled before creation, else voters
+ * cannot bind the calldata to an approved document. Fork rehearsals carry the
+ * `forked` tag and keep the placeholders — they are exempt.
+ */
+const assertDescriptionFinalized = (description) => {
+    if (network.tags.mainnet && !network.tags.forked && /SIP-XXXX|_{4,}/.test(description)) {
+        throw new Error(
+            "Perimeter Fee: SIP description still contains placeholder metadata (SIP-XXXX / SIPS " +
+                "link / sha256). Fill prerequisite P5 before creating the proposal on mainnet."
+        );
+    }
+};
+
+/**
+ * ColFee Phase 1 — shared input resolution.
+ *
+ * The ExitFeeController (and ExitFeeVault behind it) are deployed from the
+ * `colfee` repo (Foundry, 0.8.20, ColFee-Safe-owned) — their addresses are
+ * INPUTS to these SIPs, not deployments of this repo. Resolution order:
+ *   1. a hardhat-deploy record named "ExitFeeController" (the fork tests save
+ *      one after deploying the stack in their setup);
+ *   2. the COLFEE_EXIT_FEE_CONTROLLER env var (mainnet SIP creation).
+ * Anything else throws — a SIP must never be proposed with a zero/garbage
+ * controller pointer.
+ */
+const resolveExitFeeControllerAddress = async (hre) => {
+    const { ethers, deployments } = hre;
+    const record = await deployments.getOrNull("ExitFeeController");
+    const envAddress = process.env.COLFEE_EXIT_FEE_CONTROLLER;
+    // F-8c: a stale record must never silently shadow the address the operator
+    // exported. If both exist and disagree, fail — do not pick one silently.
+    if (record && envAddress && record.address.toLowerCase() !== envAddress.toLowerCase()) {
+        throw new Error(
+            `Perimeter Fee: ExitFeeController record (${record.address}) and ` +
+                `COLFEE_EXIT_FEE_CONTROLLER (${envAddress}) disagree. Remove one — a stale ` +
+                "'ExitFeeController' record must not override the address you exported."
+        );
+    }
+    const address = record ? record.address : envAddress;
+    if (!address || !ethers.utils.isAddress(address)) {
+        throw new Error(
+            "Perimeter Fee: ExitFeeController address unresolved. Save an 'ExitFeeController' " +
+                "deployment record or set COLFEE_EXIT_FEE_CONTROLLER=<address>. The controller " +
+                "is deployed from the colfee repo (see its UPGRADEABILITY.md §A) — it is an " +
+                "input to this SIP, not a deployment of this repo."
+        );
+    }
+    if ((await ethers.provider.getCode(address)) === "0x") {
+        throw new Error(`Perimeter Fee: no contract code at ExitFeeController address ${address}`);
+    }
+    await assertColFeeCodehash(hre, address, "COLFEE_EXIT_FEE_CONTROLLER", "ExitFeeController");
+    return address;
+};
+
+/**
+ * SIP-0094 — Perimeter Fee activation (phase 1 of the Sovryn security perimeter) — aggregated BY OWNERSHIP, not by
+ * product: every target of the activation (both LoanTokenLogicBeacons, the
+ * sovrynProtocol proxy AND Zero's BorrowerOperations UpgradableProxy) is
+ * live-owned by TimelockOwner, so the whole activation is ONE GovernorOwner
+ * bucket. The activation alone holds 11 mainnet actions — over GovernorAlpha's
+ * proposalMaxOperations() == 10 — so it ships as Part 1/Part 2 on the SAME
+ * governor (precedent: SIP-0046 Part1–4, SIP-0084 Part1–2). SIP-0094's treasury
+ * leg (2 more actions, see the Part 2 header) rides in Part 2's spare capacity,
+ * making the TimelockOwner bundle 13 actions across the two owner-governor
+ * parts. The cut
+ * keeps the invariants:
+ *   - the §8 HARD precondition stays atomic in Part 1: CollSurplusPool's
+ *     first-ever setImplementation lands in the SAME tx as the BO swap,
+ *     ordered first, strictly before any Safe surface activation;
+ *   - the Zero swap+wire pair is atomic: BO's setImplementation and its
+ *     setExitFeeController are actions 9 and 10 of the SAME Part-1 tx, so
+ *     the hooked implementation is never live with an unset controller;
+ *   - CF-1 holds across the parts: the borrower-exit charge hook is pinned in
+ *     Part 1, and the protocol controller pointer — the last switch that lets
+ *     any lending surface quote a fee — is the FINAL governance action
+ *     (Part 2, last index). No ordering can produce a live controller with an
+ *     unset hook. Part 2 also carries the SIP's treasury leg (the two fund
+ *     sweeps), placed BEFORE the pin so the pin keeps that final position.
+ *
+ * Part 1 (GovernorOwner / TimelockOwner, 10 actions — at the cap — atomic):
+ *   1.  LoanTokenLogicBeaconLM.registerLoanTokenModule(new LoanTokenLogicLM)
+ *   2.  LoanTokenLogicBeaconWrbtc.registerLoanTokenModule(new LoanTokenLogicWrbtcLM)
+ *   3.  sovrynProtocol.replaceContract(new LoanClosingsRollover)
+ *   4.  sovrynProtocol.replaceContract(new LoanClosingsWith)
+ *   5.  sovrynProtocol.replaceContract(new LoanMaintenance)
+ *   6.  sovrynProtocol.replaceContract(ExitFeeModule) — must precede 7: its
+ *       initialize() registers the exitFeeController/colFeeBorrowerExitOps
+ *       selectors on the protocol proxy
+ *   7.  sovrynProtocol.setColFeeBorrowerExitOps(ColFeeBorrowerExitOps)
+ *   8.  CollSurplusPool_Proxy.setImplementation(new CollSurplusPool) — the
+ *       FIRST-EVER upgrade of that proxy (surplus-claim fee leg, runbook §8);
+ *       deliberately BEFORE 9, and there is NO in-code fallback around the
+ *       pool call — pool-side failures stay loud
+ *   9.  BorrowerOperations_Proxy.setImplementation(new hooked BorrowerOperations)
+ *   10. BorrowerOperations(proxy).setExitFeeController(<ExitFeeController>) —
+ *       MUST follow 9: the setter exists only on the implementation 9 installs
+ *
+ * LoanClosingsLiquidation is NOT replaced. Its source is unchanged in this
+ * release and it calls no changed shared function, so its runtime bytecode
+ * (metadata trailer stripped) is byte-identical to the module already
+ * registered on mainnet — replacing it would burn a scarce action slot to
+ * install the same code at a new address. Only modules whose observable
+ * behavior changes are re-registered; inherited-bytecode drift is not a
+ * reason. LoanClosingsShared is an inherited base, not a registered module —
+ * its changes ship inside the two closings modules that actually call the
+ * changed code. Module deployments come from
+ * deployment/deploy/2070 (protocol modules) and 2061 (ColFeeBorrowerExitOps);
+ * beacon module deployments from 2000; the hooked BorrowerOperations and the
+ * new CollSurplusPool are built in zero-contracts (branch
+ * sovryn-perimeter-fee) and resolve from "BorrowerOperationsColFee" /
+ * "CollSurplusPoolColFee" records or COLFEE_ZERO_BORROWER_OPERATIONS /
+ * COLFEE_ZERO_COLL_SURPLUS_POOL. The existing
+ * "BorrowerOperations_Implementation" record deliberately stays untouched —
+ * it pins the pre-ColFee implementation, i.e. the rollback target (the pool
+ * proxy has NO prior implementation record at all — first-ever upgrade;
+ * rollback corollary: deactivate the surplus surface before any pool
+ * rollback).
+ * Enablement (setExitFeeEnabled(true)) is NOT an action in either part: the
+ * controller is ColFee-Safe-owned, so governance cannot call it — the
+ * ship-disabled build is enabled by a Safe transaction after both parts.
+ */
+const getArgsSip0094Part1 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get, getOrNull },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    if (!network.tags.mainnet) {
+        throw new Error("getArgsSip0094Part1: run on mainnet or a mainnet fork only");
+    }
+
+    const protocol = await ethers.getContract("ISovryn");
+    const protocolOwner = await protocol.owner();
+
+    // The controller must resolve at Part-1 creation time: it is both an input
+    // sanity check (fail fast on a missing/garbage input) and the argument of
+    // action 10, the Zero BO controller pin.
+    const exitFeeControllerAddress = await resolveExitFeeControllerAddress(hre);
+    const opsDeployment = await get("ColFeeBorrowerExitOps");
+    if ((await ethers.provider.getCode(opsDeployment.address)) === "0x") {
+        throw new Error(
+            `Perimeter Fee: no contract code at ColFeeBorrowerExitOps ${opsDeployment.address}`
+        );
+    }
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    const targetOwnerValidationAddresses = [];
+
+    /** 1+2. iToken beacon logic re-registration (burn hooks changed).
+     *  Only the two LM modules carry the mint/burn selectors — the non-LM
+     *  LoanTokenLogic / LoanTokenLogicWrbtc own no burn routes and are not
+     *  re-registered. registerLoanTokenModule() reads the module's
+     *  getListFunctionSignatures() and de-registers dropped selectors itself. */
+    const beaconRegistrations = [
+        { beaconName: "LoanTokenLogicBeaconLM", moduleName: "LoanTokenLogicLM" },
+        { beaconName: "LoanTokenLogicBeaconWrbtc", moduleName: "LoanTokenLogicWrbtcLM" },
+    ];
+    for (const { beaconName, moduleName } of beaconRegistrations) {
+        const beacon = await ethers.getContract(beaconName);
+        const moduleDeployment = await get(moduleName);
+        if ((await ethers.provider.getCode(moduleDeployment.address)) === "0x") {
+            throw new Error(
+                `Perimeter Fee: no contract code at ${moduleName} ${moduleDeployment.address}`
+            );
+        }
+        const moduleNameBytes32 = ethers.utils.formatBytes32String(moduleName);
+        const activeIndex = await beacon.activeModuleIndex(moduleNameBytes32);
+        const activeModule = await beacon.moduleUpgradeLog(moduleNameBytes32, activeIndex);
+        if (activeModule.implementation.toLowerCase() === moduleDeployment.address.toLowerCase()) {
+            throw new Error(
+                `Perimeter Fee: ${moduleName} deployment already registered in ${beaconName}`
+            );
+        }
+        targets.push(beacon.address);
+        values.push(0);
+        signatures.push("registerLoanTokenModule(address)");
+        datas.push(abiCoder.encode(["address"], [moduleDeployment.address]));
+        targetOwnerValidationAddresses.push(await beacon.owner());
+    }
+
+    /** 3–6. Protocol module replacement (ExitFeeModule LAST — see header).
+     *  LoanClosingsLiquidation is deliberately absent: unchanged source, no
+     *  changed shared function on its call paths, and runtime bytecode
+     *  (metadata stripped) identical to the registered module — so there is
+     *  nothing to replace. */
+    const modulesList = getProtocolModules();
+    const replacedModules = [
+        modulesList.LoanClosingsRollover,
+        modulesList.LoanClosingsWith,
+        modulesList.LoanMaintenance,
+        modulesList.ExitFeeModule,
+    ];
+    for (const module of replacedModules) {
+        const moduleDeployment = await get(module.moduleName);
+        // F-5: replaceContract is a raw delegatecall; a delegatecall to a
+        // codeless address SUCCEEDS silently, so a stale/mistyped module record
+        // would no-op inside an otherwise "successful" SIP. Fail at creation.
+        if ((await ethers.provider.getCode(moduleDeployment.address)) === "0x") {
+            throw new Error(
+                `Perimeter Fee: no contract code at ${module.moduleName} ${moduleDeployment.address}`
+            );
+        }
+        if (
+            (await protocol.getTarget(module.sampleFunction)).toLowerCase() ===
+            moduleDeployment.address.toLowerCase()
+        ) {
+            throw new Error(
+                `Perimeter Fee: ${module.moduleName} deployment already registered in the protocol`
+            );
+        }
+        targets.push(protocol.address);
+        values.push(0);
+        signatures.push("replaceContract(address)");
+        datas.push(abiCoder.encode(["address"], [moduleDeployment.address]));
+        targetOwnerValidationAddresses.push(protocolOwner);
+    }
+
+    /** 7. Pin the borrower-exit charge hook (CF-1: pinned here, one whole SIP
+     *  before the protocol controller pointer goes live in Part 2). */
+    targets.push(protocol.address);
+    values.push(0);
+    signatures.push("setColFeeBorrowerExitOps(address)");
+    datas.push(abiCoder.encode(["address"], [opsDeployment.address]));
+    targetOwnerValidationAddresses.push(protocolOwner);
+
+    /** 8. Zero CollSurplusPool: FIRST-EVER implementation upgrade of that proxy
+     *  (surplus-claim fee leg, runbook §8). Deliberately ordered BEFORE the
+     *  BO swap in the same atomic tx — HARD precondition (decided 2026-07-21):
+     *  there is NO in-code fallback around the pool call, so the fee-active
+     *  claimCollateral path needs the pool's claimCollWithFee selector live
+     *  strictly before any Safe activation of SURFACE_ZERO_CLAIM_SURPLUS;
+     *  pool-side failures stay loud. */
+    const poolImplRecord = await getOrNull("CollSurplusPoolColFee");
+    const poolImplEnv = process.env.COLFEE_ZERO_COLL_SURPLUS_POOL;
+    // F-8c: same record-vs-env divergence guard as the controller resolver.
+    if (
+        poolImplRecord &&
+        poolImplEnv &&
+        poolImplRecord.address.toLowerCase() !== poolImplEnv.toLowerCase()
+    ) {
+        throw new Error(
+            `Perimeter Fee: CollSurplusPoolColFee record (${poolImplRecord.address}) and ` +
+                `COLFEE_ZERO_COLL_SURPLUS_POOL (${poolImplEnv}) disagree. Remove one — a stale ` +
+                "record must not override the exported implementation address."
+        );
+    }
+    const poolImplAddress = poolImplRecord ? poolImplRecord.address : poolImplEnv;
+    if (!poolImplAddress || !ethers.utils.isAddress(poolImplAddress)) {
+        throw new Error(
+            "Perimeter Fee: new CollSurplusPool implementation unresolved. Save a " +
+                "'CollSurplusPoolColFee' deployment record or set " +
+                "COLFEE_ZERO_COLL_SURPLUS_POOL=<address> (built from zero-contracts " +
+                "branch sovryn-perimeter-fee)."
+        );
+    }
+    if ((await ethers.provider.getCode(poolImplAddress)) === "0x") {
+        throw new Error(
+            `Perimeter Fee: no contract code at CollSurplusPool implementation ${poolImplAddress}`
+        );
+    }
+    await assertColFeeCodehash(
+        hre,
+        poolImplAddress,
+        "COLFEE_ZERO_COLL_SURPLUS_POOL",
+        "CollSurplusPool implementation"
+    );
+    const collSurplusPoolProxy = await ethers.getContract("CollSurplusPool_Proxy");
+    const poolProxyOwner = await collSurplusPoolProxy.getOwner();
+    const poolCurrentImpl = await collSurplusPoolProxy.getImplementation();
+    if (poolCurrentImpl.toLowerCase() === poolImplAddress.toLowerCase()) {
+        throw new Error(
+            `Perimeter Fee: CollSurplusPool proxy already points at ${poolImplAddress}`
+        );
+    }
+    targets.push(collSurplusPoolProxy.address);
+    values.push(0);
+    signatures.push("setImplementation(address)");
+    datas.push(abiCoder.encode(["address"], [poolImplAddress]));
+    targetOwnerValidationAddresses.push(poolProxyOwner);
+
+    /** 9. Zero BorrowerOperations implementation swap, immediately followed by
+     *  its controller pin (action 10) in this same atomic tx — the setter
+     *  exists only on this new implementation, so the two MUST stay in this
+     *  order. Keeping them paired means the hooked BO is never live with an
+     *  unset controller. */
+    const newImplRecord = await getOrNull("BorrowerOperationsColFee");
+    const newImplEnv = process.env.COLFEE_ZERO_BORROWER_OPERATIONS;
+    // F-8c: same record-vs-env divergence guard as the controller resolver.
+    if (
+        newImplRecord &&
+        newImplEnv &&
+        newImplRecord.address.toLowerCase() !== newImplEnv.toLowerCase()
+    ) {
+        throw new Error(
+            `Perimeter Fee: BorrowerOperationsColFee record (${newImplRecord.address}) and ` +
+                `COLFEE_ZERO_BORROWER_OPERATIONS (${newImplEnv}) disagree. Remove one — a stale ` +
+                "record must not override the exported implementation address."
+        );
+    }
+    const newImplAddress = newImplRecord ? newImplRecord.address : newImplEnv;
+    if (!newImplAddress || !ethers.utils.isAddress(newImplAddress)) {
+        throw new Error(
+            "Perimeter Fee: hooked BorrowerOperations implementation unresolved. Save a " +
+                "'BorrowerOperationsColFee' deployment record or set " +
+                "COLFEE_ZERO_BORROWER_OPERATIONS=<address> (built from zero-contracts " +
+                "branch sovryn-perimeter-fee)."
+        );
+    }
+    if ((await ethers.provider.getCode(newImplAddress)) === "0x") {
+        throw new Error(
+            `Perimeter Fee: no contract code at BorrowerOperations implementation ${newImplAddress}`
+        );
+    }
+    await assertColFeeCodehash(
+        hre,
+        newImplAddress,
+        "COLFEE_ZERO_BORROWER_OPERATIONS",
+        "BorrowerOperations implementation"
+    );
+    const borrowerOperationsProxy = await ethers.getContract("BorrowerOperations_Proxy");
+    const proxyOwner = await borrowerOperationsProxy.getOwner();
+    const currentImpl = await borrowerOperationsProxy.getImplementation();
+    if (currentImpl.toLowerCase() === newImplAddress.toLowerCase()) {
+        throw new Error(
+            `Perimeter Fee: BorrowerOperations proxy already points at ${newImplAddress}`
+        );
+    }
+    targets.push(borrowerOperationsProxy.address);
+    values.push(0);
+    signatures.push("setImplementation(address)");
+    datas.push(abiCoder.encode(["address"], [newImplAddress]));
+    targetOwnerValidationAddresses.push(proxyOwner);
+
+    /** 10. Zero BorrowerOperations controller pin — the other half of the swap.
+     *  Ordering is load-bearing: setExitFeeController exists ONLY on the
+     *  implementation action 9 installs, so this must be the action right
+     *  after it. Asserted below rather than left to reading order. */
+    targets.push(borrowerOperationsProxy.address);
+    values.push(0);
+    signatures.push("setExitFeeController(address)");
+    datas.push(abiCoder.encode(["address"], [exitFeeControllerAddress]));
+    targetOwnerValidationAddresses.push(proxyOwner);
+
+    const boSwapIndex = signatures.lastIndexOf("setImplementation(address)");
+    const boPinIndex = signatures.lastIndexOf("setExitFeeController(address)");
+    if (
+        targets[boSwapIndex].toLowerCase() !== borrowerOperationsProxy.address.toLowerCase() ||
+        boPinIndex !== boSwapIndex + 1
+    ) {
+        throw new Error(
+            "Perimeter Fee: BorrowerOperations setExitFeeController must be the action immediately " +
+                "after its setImplementation — the setter only exists on the new implementation."
+        );
+    }
+    if (targets.length !== 10) {
+        throw new Error(
+            `Perimeter Fee: Part 1 must hold exactly 10 actions, built ${targets.length}`
+        );
+    }
+
+    const args = {
+        targets: targets,
+        targetOwnerValidationAddresses: targetOwnerValidationAddresses,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-0094 (Part 1): Perimeter Fee Activation and Adoption Fund Transfer — 1 of 3 executable parts (GovernorOwner). Executes the 10 Perimeter Fee installation actions: registers the exit-fee-hooked LM and WrbtcLM iToken beacon modules (2), replaces the LoanClosingsRollover, LoanClosingsWith and LoanMaintenance protocol modules (3), registers the ExitFeeModule admin module (1), sets ColFeeBorrowerExitOps (1), upgrades the Zero CollSurplusPool implementation (1), then upgrades the Zero BorrowerOperations implementation and wires its exit-fee controller in the same atomic transaction (2). Fee charging stays globally disabled throughout. Details: https://github.com/DistributedCollective/SIPS/blob/_______/SIP-0094.md, sha256: ____________",
+    };
+    assertDescriptionFinalized(args.description);
+    return { args, governor: "GovernorOwner" };
+};
+
+/**
+ * SIP-0094 treasury leg — resolve ONE holding fund's fully-matured unlocked
+ * balance and prove, at creation time, that the Timelock can actually withdraw
+ * it in one call.
+ *
+ * The holding funds are `DevelopmentFund` instances. The only entry point
+ * their unlocked-token owner has is `withdrawTokensByUnlockedTokenOwner(uint256)`,
+ * which (a) takes an EXPLICIT amount — the contract exposes no "withdraw all"
+ * variant — and (b) pays the tokens to `msg.sender`, i.e. to the Timelock, not
+ * to a receiver of our choosing. That is why the sweep takes a withdrawal leg
+ * plus a forwarding leg; see the Part 2 header.
+ *
+ * Because the amount has to be baked into the proposal calldata, it is read
+ * LIVE here rather than typed as a constant, and every assumption behind it is
+ * asserted instead of trusted:
+ *   - the fund is Active (an Expired fund reverts on withdrawal);
+ *   - it pays out the SOV token this repo deploys;
+ *   - the Timelock really is its `unlockedTokenOwner` (also the address handed
+ *     to the sips:create owner check);
+ *   - EVERY remaining release tranche has already matured, so the whole
+ *     schedule is withdrawable in a single call. Maturity is monotone in time
+ *     and the Timelock delay only pushes execution later, so true-at-creation
+ *     implies true-at-execution;
+ *   - the schedule total equals the fund's live SOV balance, so "the remaining
+ *     unlocked balance" and "the amount we withdraw" are the same number. A
+ *     surplus deposit (only the locked-token owner can sweep it) or a shortfall
+ *     both stop the proposal here rather than silently stranding value.
+ */
+const resolveMaturedFundWithdrawal = async (hre, fundName) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+
+    const fundDeployment = await get(fundName);
+    if ((await ethers.provider.getCode(fundDeployment.address)) === "0x") {
+        throw new Error(`SIP-0094: no contract code at ${fundName} ${fundDeployment.address}`);
+    }
+    const fund = await ethers.getContract(fundName);
+    const sovDeployment = await get("SOV");
+    const sov = await ethers.getContract("SOV");
+
+    const fundSov = await fund.SOV();
+    if (fundSov.toLowerCase() !== sovDeployment.address.toLowerCase()) {
+        throw new Error(
+            `SIP-0094: ${fundName} pays out ${fundSov}, not the SOV deployment ` +
+                `${sovDeployment.address} — the forwarding transfer would move the wrong token.`
+        );
+    }
+
+    const STATUS_ACTIVE = 1;
+    const status = await fund.status();
+    if (status !== STATUS_ACTIVE) {
+        throw new Error(
+            `SIP-0094: ${fundName} status is ${status}, expected Active (${STATUS_ACTIVE}) — ` +
+                "withdrawTokensByUnlockedTokenOwner reverts in any other state."
+        );
+    }
+
+    const unlockedTokenOwner = await fund.unlockedTokenOwner();
+    const releaseDuration = await fund.getReleaseDuration();
+    const releaseTokenAmount = await fund.getReleaseTokenAmount();
+    if (releaseDuration.length === 0 || releaseDuration.length !== releaseTokenAmount.length) {
+        throw new Error(
+            `SIP-0094: ${fundName} release schedule is empty or malformed ` +
+                `(${releaseDuration.length} durations, ${releaseTokenAmount.length} amounts) — ` +
+                "there is nothing this proposal can withdraw."
+        );
+    }
+
+    const zero = ethers.BigNumber.from(0);
+    const totalDuration = releaseDuration.reduce((acc, d) => acc.add(d), zero);
+    const amount = releaseTokenAmount.reduce((acc, a) => acc.add(a), zero);
+    const lastReleaseTime = await fund.lastReleaseTime();
+    const now = ethers.BigNumber.from((await ethers.provider.getBlock("latest")).timestamp);
+    if (!lastReleaseTime.add(totalDuration).lt(now)) {
+        throw new Error(
+            `SIP-0094: ${fundName} still has unmatured release tranches ` +
+                `(last release ${lastReleaseTime}, remaining duration ${totalDuration}, now ` +
+                `${now}) — a full-schedule withdrawal would revert with "No release schedule ` +
+                'reached". Reduce the amount to the matured part or wait.'
+        );
+    }
+
+    const balance = await sov.balanceOf(fundDeployment.address);
+    if (!balance.eq(amount)) {
+        throw new Error(
+            `SIP-0094: ${fundName} holds ${balance.toString()} SOV but its release schedule ` +
+                `totals ${amount.toString()} — refusing to build a proposal that would leave a ` +
+                "residue (only the locked-token owner can move it) or overdraw the schedule."
+        );
+    }
+    if (amount.lte(0)) {
+        throw new Error(`SIP-0094: ${fundName} has no unlocked SOV left to transfer.`);
+    }
+
+    return { address: fundDeployment.address, amount, unlockedTokenOwner };
+};
+
+/**
+ * SIP-0094 executable part 2 of 3 (GovernorOwner / TimelockOwner) — the
+ * overflow of the single TimelockOwner bucket over GovernorAlpha's 10-action
+ * cap (see the Part 1 header for the aggregation rationale), plus the SIP's
+ * treasury leg.
+ *
+ * Actions (3):
+ *   1. AdoptionFund.withdrawTokensByUnlockedTokenOwner(<remaining>)
+ *   2. SOV.transfer(<Exchequer Multisig>, <exactly 1>)
+ *   3. sovrynProtocol.setExitFeeController(<ExitFeeController>) — the protocol
+ *      singleton (iTokens read through sovrynContractAddress; there are NO
+ *      per-iToken setter calls). Deliberately the LAST governance action of
+ *      the whole activation: the charge hook and every fee-aware module
+ *      (Part 1) are always in place before any lending surface can resolve a
+ *      controller (CF-1). Zero's own BO controller pin is NOT here — it stays
+ *      paired with the BO implementation swap in Part 1's atomic tx.
+ *
+ * Why the Adoption Fund sweep costs TWO actions, and why the Development Fund
+ * is NOT here. Both funds are `DevelopmentFund` instances, but the live
+ * mainnet ownership is asymmetric:
+ *   - AdoptionFund: locked AND unlocked owner are TimelockOwner;
+ *   - DevelopmentFund: unlocked owner is TimelockOwner, locked owner is the
+ *     Exchequer Multisig.
+ * For the Adoption Fund the Timelock's only usable entry point is
+ * `withdrawTokensByUnlockedTokenOwner(amount)`, which pays `msg.sender` — so
+ * the sweep is withdraw-to-ITSELF then forward, the exact shape SIP-0065 and
+ * SIP-0076 used. (`transferTokensByUnlockedTokenOwner()` is a trap: it pays the
+ * fund's `safeVault`, which on BOTH funds is the GovernorVaultOwner and NOT the
+ * Exchequer, and it expires the contract.) The amount is read live at creation
+ * (see resolveMaturedFundWithdrawal) and the forwarding transfer moves exactly
+ * it, so the Timelock is left holding nothing.
+ *
+ * The DEVELOPMENT Fund needs no governance action at all: the Exchequer
+ * Multisig IS its locked-token owner, so it can call
+ * `transferTokensByLockedTokenOwner(receiver)` directly — one multisig
+ * transaction that pays an arbitrary receiver, needs no amount, and expires
+ * (retires) the fund contract. That is the companion action disclosed in the
+ * SIP-0094 post, deliberately kept off this ballot.
+ *
+ * The Perimeter Fee controller pin stays at the LAST index. "The final governance
+ * action of the whole activation" is an invariant this file states and asserts
+ * (CF-1), so the treasury leg is placed ahead of it rather than after; the two
+ * legs share only atomicity, and nothing in the sweep can affect the pin.
+ * Both properties are asserted below, not left to reading order.
+ *
+ * Execution ordering: action 3 routes through the setExitFeeController
+ * selector that ExitFeeModule's initialize() registers in Part 1 — so
+ * executing Part 2 before Part 1 simply reverts in the Timelock (fail-closed,
+ * F-2) and can be retried after Part 1 lands (both proposals can still be
+ * CREATED/voted in the same cycle; creation only warns). Because a
+ * GovernorAlpha execution is one transaction, that revert is wholesale: the
+ * treasury actions in front of it do NOT settle on their own.
+ */
+const getArgsSip0094Part2 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    if (!network.tags.mainnet) {
+        throw new Error("getArgsSip0094Part2: run on mainnet or a mainnet fork only");
+    }
+
+    const protocol = await ethers.getContract("ISovryn");
+    const protocolOwner = await protocol.owner();
+    const exitFeeControllerAddress = await resolveExitFeeControllerAddress(hre);
+
+    if (
+        (await protocol.getTarget("setExitFeeController(address)")) ===
+        ethers.constants.AddressZero
+    ) {
+        logger.warn(
+            "Perimeter Fee: setExitFeeController selector not registered on the protocol yet — " +
+                "Part 1 (ExitFeeModule registration) must EXECUTE before this proposal executes."
+        );
+    }
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    const targetOwnerValidationAddresses = [];
+
+    /** 1. Drain the Adoption Fund's remaining unlocked SOV to the Timelock.
+     *  The amount is the live schedule total, re-read and cross-checked
+     *  against the fund's balance at creation time.
+     *
+     *  The DEVELOPMENT Fund is deliberately NOT in this proposal (SIP-0094
+     *  text, 2026-08-11): its lockedTokenOwner is the Exchequer Multisig,
+     *  which can sweep-and-retire the fund directly via
+     *  transferTokensByLockedTokenOwner(receiver) — a companion multisig
+     *  transaction disclosed in the SIP, needing no governance action. */
+    const adoptionFund = await resolveMaturedFundWithdrawal(hre, "AdoptionFund");
+    targets.push(adoptionFund.address);
+    values.push(0);
+    signatures.push("withdrawTokensByUnlockedTokenOwner(uint256)");
+    datas.push(abiCoder.encode(["uint256"], [adoptionFund.amount]));
+    // The gate on this call is the UNLOCKED token owner (the Timelock), not
+    // the locked one — validating the locked owner here would authenticate
+    // the wrong role.
+    targetOwnerValidationAddresses.push(adoptionFund.unlockedTokenOwner);
+
+    /** 2. Forward the whole withdrawn amount to the Exchequer Multisig. The
+     *  Timelock holds the tokens only for the duration of this one
+     *  transaction; transferring exactly (1) leaves no dust behind. */
+    const sov = await ethers.getContract("SOV");
+    const sovOwner = await sov.owner();
+    const exchequerDeployment = await get("MultiSigWallet");
+    if ((await ethers.provider.getCode(exchequerDeployment.address)) === "0x") {
+        throw new Error(
+            `SIP-0094: no contract code at the Exchequer Multisig ${exchequerDeployment.address} — ` +
+                "refusing to send the treasury sweep to a codeless address."
+        );
+    }
+    const sweptTotal = adoptionFund.amount;
+    targets.push(sov.address);
+    values.push(0);
+    signatures.push("transfer(address,uint256)");
+    datas.push(abiCoder.encode(["address", "uint256"], [exchequerDeployment.address, sweptTotal]));
+    // SOV.transfer needs no ownership — the Timelock only needs the balance the
+    // two preceding actions give it. The token's owner IS the Timelock, so
+    // passing it satisfies the sips:create authentication check without
+    // asserting a permission this action does not use (precedent: SIP-0079).
+    targetOwnerValidationAddresses.push(sovOwner);
+
+    /** 3. Protocol controller pointer — the final governance action of the
+     *  whole activation. */
+    targets.push(protocol.address);
+    values.push(0);
+    signatures.push("setExitFeeController(address)");
+    datas.push(abiCoder.encode(["address"], [exitFeeControllerAddress]));
+    targetOwnerValidationAddresses.push(protocolOwner);
+
+    if (targets.length !== 3) {
+        throw new Error(`SIP-0094: Part 2 must hold exactly 3 actions, built ${targets.length}`);
+    }
+    if (
+        signatures[targets.length - 1] !== "setExitFeeController(address)" ||
+        targets[targets.length - 1].toLowerCase() !== protocol.address.toLowerCase()
+    ) {
+        throw new Error(
+            "Perimeter Fee: the protocol setExitFeeController pin must be the LAST action of Part 2 — " +
+                "it is the final governance switch of the whole activation (CF-1)."
+        );
+    }
+
+    const args = {
+        targets: targets,
+        targetOwnerValidationAddresses: targetOwnerValidationAddresses,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-0094 (Part 2): Perimeter Fee Activation and Adoption Fund Transfer — 2 of 3 executable parts (GovernorOwner). Executes 3 actions: withdraws the Adoption Fund's fully-vested SOV to the timelock (1), forwards exactly that amount onward to the Exchequer Multisig (1), and pins the ExitFeeController on the Sovryn protocol as the final Perimeter Fee activation pointer (1). The Development Fund residue moves by a companion Exchequer multisig transaction, not by this proposal. Details: https://github.com/DistributedCollective/SIPS/blob/_______/SIP-0094.md, sha256: ____________",
+    };
+    assertDescriptionFinalized(args.description);
+    return { args, governor: "GovernorOwner" };
+};
+
+/**
+ * SIP-0094 Part 3 (GovernorAdmin / TimelockAdmin) — switch off the Zero
+ * Stability Pool's SOV subsidy by zeroing the issuance rate.
+ *
+ * One action:
+ *   1. ZeroCommunityIssuance.setAPR(0)
+ *
+ * Governor choice is NOT the usual owner check. `ZeroCommunityIssuance` is an
+ * UpgradableProxy whose `getOwner()` is TimelockOwner, but `setAPR` is gated by
+ * `onlyRewardManager`, and the live `rewardManager()` is TimelockAdmin — so
+ * this proposal has to run through GovernorAdmin, and the owner-validation
+ * address handed to `sips:create` is the reward manager, not the proxy owner.
+ * A GovernorOwner version of this proposal would revert on execution with
+ * "Permission::rewardManager: access denied".
+ *
+ * Reversible by design: `setAPR` stays on the contract and only its parameter
+ * is zeroed. Re-enabling the subsidy later needs nothing more than another
+ * short GovernorAdmin proposal calling `setAPR(<bps>)` — no redeploy, no
+ * upgrade, no owner action.
+ *
+ * Side effect worth knowing at execution time: `setAPR` first calls
+ * `_issueSOV(...)` so the subsidy accrued since the last issuance is settled at
+ * the OLD rate rather than retroactively repriced. That settlement prices ZUSD
+ * in SOV through the CommunityIssuance's own Sovryn PriceFeeds pointer, so the
+ * feed has to be healthy when the timelock executes.
+ */
+const getArgsSip0094Part3 = async (hre) => {
+    const { ethers } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    if (!network.tags.mainnet) {
+        throw new Error("getArgsSip0094Part3: run on mainnet or a mainnet fork only");
+    }
+
+    const communityIssuance = await ethers.getContract("ZeroCommunityIssuance");
+    if ((await ethers.provider.getCode(communityIssuance.address)) === "0x") {
+        throw new Error(
+            `SIP-0094 Part 3: no contract code at ZeroCommunityIssuance ${communityIssuance.address}`
+        );
+    }
+
+    const currentAPR = await communityIssuance.APR();
+    if (currentAPR.eq(0)) {
+        throw new Error(
+            "SIP-0094 Part 3: the Zero Stability Pool subsidy APR is already 0 — this proposal would " +
+                "be a no-op. Nothing to disable."
+        );
+    }
+    const rewardManager = await communityIssuance.rewardManager();
+
+    const args = {
+        targets: [communityIssuance.address],
+        targetOwnerValidationAddresses: [rewardManager],
+        values: [0],
+        signatures: ["setAPR(uint256)"],
+        data: [abiCoder.encode(["uint256"], [0])],
+        description:
+            "SIP-0094 (Part 3): Perimeter Fee Activation and Adoption Fund Transfer — 3 of 3 executable parts (GovernorAdmin): retires the Zero Stability Pool SOV subsidy by setting the CommunityIssuance APR from 500 (5%) to 0. Existing accrued gains are unaffected; re-enabling is a later one-action proposal. Details: https://github.com/DistributedCollective/SIPS/blob/_______/SIP-0094.md, sha256: ____________",
+    };
+    assertDescriptionFinalized(args.description);
+    return { args, governor: "GovernorAdmin" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -1573,4 +2296,7 @@ module.exports = {
     getArgsSip0089,
     getArgsSipIDocDemandCurve,
     getArgsSip0093,
+    getArgsSip0094Part1,
+    getArgsSip0094Part2,
+    getArgsSip0094Part3,
 };

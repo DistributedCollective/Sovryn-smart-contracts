@@ -62,12 +62,12 @@ function _settleInterestToPrincipal(
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`loanLocal`|`Loan`|the loan|
-|`loanParamsLocal`|`LoanParams`|the loan params|
-|`loanCloseAmount`|`uint256`|the amount to be closed (base for the computation)|
-|`receiver`|`address`|the address of the receiver (usually the borrower)|
+| Name              | Type         | Description                                        |
+| ----------------- | ------------ | -------------------------------------------------- |
+| `loanLocal`       | `Loan`       | the loan                                           |
+| `loanParamsLocal` | `LoanParams` | the loan params                                    |
+| `loanCloseAmount` | `uint256`    | the amount to be closed (base for the computation) |
+| `receiver`        | `address`    | the address of the receiver (usually the borrower) |
 
 
 ### _returnPrincipalWithDeposit
@@ -77,26 +77,26 @@ function _settleInterestToPrincipal(
 function _returnPrincipalWithDeposit(address loanToken, address receiver, uint256 principalNeeded) internal;
 ```
 
-### worthTheTransfer
+### _worthTheTransfer
 
 *checks if the amount of the asset to be transfered is worth the transfer fee*
 
 
 ```solidity
-function worthTheTransfer(address asset, uint256 amount) internal returns (bool);
+function _worthTheTransfer(address asset, uint256 amount) internal returns (bool);
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`asset`|`address`|the asset to be transfered|
-|`amount`|`uint256`|the amount to be transfered|
+| Name     | Type      | Description                 |
+| -------- | --------- | --------------------------- |
+| `asset`  | `address` | the asset to be transfered  |
+| `amount` | `uint256` | the amount to be transfered |
 
 **Returns**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`bool`|True if the amount is bigger than the threshold|
+| Name     | Type   | Description                                     |
+| -------- | ------ | ----------------------------------------------- |
+| `<none>` | `bool` | True if the amount is bigger than the threshold |
 
 
 ### _doCollateralSwap
@@ -116,14 +116,14 @@ function _doCollateralSwap(
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`loanLocal`|`Loan`|the loan object|
-|`loanParamsLocal`|`LoanParams`|the loan parameters|
-|`swapAmount`|`uint256`|the amount to be swapped|
-|`principalNeeded`|`uint256`|the required destination token amount|
-|`returnTokenIsCollateral`|`bool`|if true -> required destination token amount will be passed on, else not note: quite dirty. should be refactored.|
-|`loanDataBytes`|`bytes`|additional loan data (not in use for token swaps)|
+| Name                      | Type         | Description                                                                                                       |
+| ------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `loanLocal`               | `Loan`       | the loan object                                                                                                   |
+| `loanParamsLocal`         | `LoanParams` | the loan parameters                                                                                               |
+| `swapAmount`              | `uint256`    | the amount to be swapped                                                                                          |
+| `principalNeeded`         | `uint256`    | the required destination token amount                                                                             |
+| `returnTokenIsCollateral` | `bool`       | if true -> required destination token amount will be passed on, else not note: quite dirty. should be refactored. |
+| `loanDataBytes`           | `bytes`      | additional loan data (not in use for token swaps)                                                                 |
 
 
 ### _withdrawAsset
@@ -136,11 +136,11 @@ function _withdrawAsset(address assetToken, address receiver, uint256 assetAmoun
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`assetToken`|`address`|The loan token.|
-|`receiver`|`address`|The address of the receiver.|
-|`assetAmount`|`uint256`|The loan token amount.|
+| Name          | Type      | Description                  |
+| ------------- | --------- | ---------------------------- |
+| `assetToken`  | `address` | The loan token.              |
+| `receiver`    | `address` | The address of the receiver. |
+| `assetAmount` | `uint256` | The loan token amount.       |
 
 
 ### _closeLoan
@@ -153,10 +153,10 @@ function _closeLoan(Loan storage loanLocal, uint256 loanCloseAmount) internal;
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`loanLocal`|`Loan`|The loan object.|
-|`loanCloseAmount`|`uint256`|The amount to close: principal or lower.|
+| Name              | Type      | Description                              |
+| ----------------- | --------- | ---------------------------------------- |
+| `loanLocal`       | `Loan`    | The loan object.                         |
+| `loanCloseAmount` | `uint256` | The amount to close: principal or lower. |
 
 
 ### _settleInterest
@@ -181,9 +181,9 @@ function _checkAuthorized(bytes32 loanId) internal view;
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`loanId`|`bytes32`|byte32 of the loan id.|
+| Name     | Type      | Description            |
+| -------- | --------- | ---------------------- |
+| `loanId` | `bytes32` | byte32 of the loan id. |
 
 
 ### _closeWithSwap
@@ -204,21 +204,21 @@ function _closeWithSwap(
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`loanId`|`bytes32`|The id of the loan.|
-|`receiver`|`address`|The receiver of the remainder (unused collatral + profit).|
-|`swapAmount`|`uint256`|Defines how much of the position should be closed and is denominated in collateral tokens. If swapAmount >= collateral, the complete position will be closed. Else if returnTokenIsCollateral, (swapAmount/collateral) * principal will be swapped (partial closure). Else coveredPrincipal|
-|`returnTokenIsCollateral`|`bool`|Defines if the remainder should be paid out in collateral tokens or underlying loan tokens.|
-|`loanDataBytes`|`bytes`||
+| Name                      | Type      | Description                                                                                                                                                                                                                                                                                 |
+| ------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `loanId`                  | `bytes32` | The id of the loan.                                                                                                                                                                                                                                                                         |
+| `receiver`                | `address` | The receiver of the remainder (unused collatral + profit).                                                                                                                                                                                                                                  |
+| `swapAmount`              | `uint256` | Defines how much of the position should be closed and is denominated in collateral tokens. If swapAmount >= collateral, the complete position will be closed. Else if returnTokenIsCollateral, (swapAmount/collateral) * principal will be swapped (partial closure). Else coveredPrincipal |
+| `returnTokenIsCollateral` | `bool`    | Defines if the remainder should be paid out in collateral tokens or underlying loan tokens.                                                                                                                                                                                                 |
+| `loanDataBytes`           | `bytes`   |                                                                                                                                                                                                                                                                                             |
 
 **Returns**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`loanCloseAmount`|`uint256`|The amount of the collateral token of the loan.|
-|`withdrawAmount`|`uint256`|The withdraw amount in the collateral token.|
-|`withdrawToken`|`address`|The loan token address.|
+| Name              | Type      | Description                                     |
+| ----------------- | --------- | ----------------------------------------------- |
+| `loanCloseAmount` | `uint256` | The amount of the collateral token of the loan. |
+| `withdrawAmount`  | `uint256` | The withdraw amount in the collateral token.    |
+| `withdrawToken`   | `address` | The loan token address.                         |
 
 
 ### _finalizeClose
@@ -261,14 +261,14 @@ function _finalizeClose(
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`loanLocal`|`Loan`|The loan object.|
-|`loanParamsLocal`|`LoanParams`|The loan params.|
-|`loanCloseAmount`|`uint256`|The amount to close: principal or lower.|
-|`collateralCloseAmount`|`uint256`|The amount of collateral to close.|
-|`collateralToLoanSwapRate`|`uint256`|The price rate collateral/loan token.|
-|`closeType`|`CloseTypes`|The type of loan close.|
+| Name                       | Type         | Description                              |
+| -------------------------- | ------------ | ---------------------------------------- |
+| `loanLocal`                | `Loan`       | The loan object.                         |
+| `loanParamsLocal`          | `LoanParams` | The loan params.                         |
+| `loanCloseAmount`          | `uint256`    | The amount to close: principal or lower. |
+| `collateralCloseAmount`    | `uint256`    | The amount of collateral to close.       |
+| `collateralToLoanSwapRate` | `uint256`    | The price rate collateral/loan token.    |
+| `closeType`                | `CloseTypes` | The type of loan close.                  |
 
 
 ### _coverPrincipalWithSwap
@@ -297,23 +297,23 @@ function _coverPrincipalWithSwap(
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`loanLocal`|`Loan`|the loan|
-|`loanParamsLocal`|`LoanParams`|the loan parameters|
-|`swapAmount`|`uint256`|in case principalNeeded == 0 or !returnTokenIsCollateral, this is the amount which is going to be swapped. Else, swapAmount doesn't matter, because the amount of source tokens needed for the swap is estimated by the connector.|
-|`principalNeeded`|`uint256`|the required amount of destination tokens in order to cover the principle (only used if returnTokenIsCollateral)|
-|`returnTokenIsCollateral`|`bool`|tells if the user wants to withdraw his remaining collateral + profit in collateral tokens|
-|`loanDataBytes`|`bytes`||
+| Name                      | Type         | Description                                                                                                                                                                                                                        |
+| ------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `loanLocal`               | `Loan`       | the loan                                                                                                                                                                                                                           |
+| `loanParamsLocal`         | `LoanParams` | the loan parameters                                                                                                                                                                                                                |
+| `swapAmount`              | `uint256`    | in case principalNeeded == 0 or !returnTokenIsCollateral, this is the amount which is going to be swapped. Else, swapAmount doesn't matter, because the amount of source tokens needed for the swap is estimated by the connector. |
+| `principalNeeded`         | `uint256`    | the required amount of destination tokens in order to cover the principle (only used if returnTokenIsCollateral)                                                                                                                   |
+| `returnTokenIsCollateral` | `bool`       | tells if the user wants to withdraw his remaining collateral + profit in collateral tokens                                                                                                                                         |
+| `loanDataBytes`           | `bytes`      |                                                                                                                                                                                                                                    |
 
 **Returns**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`coveredPrincipal`|`uint256`|The amount of principal that is covered.|
-|`usedCollateral`|`uint256`|The amount of collateral used.|
-|`withdrawAmount`|`uint256`|The withdraw amount in the collateral token.|
-|`collateralToLoanSwapRate`|`uint256`|The swap rate of collateral.|
+| Name                       | Type      | Description                                  |
+| -------------------------- | --------- | -------------------------------------------- |
+| `coveredPrincipal`         | `uint256` | The amount of principal that is covered.     |
+| `usedCollateral`           | `uint256` | The amount of collateral used.               |
+| `withdrawAmount`           | `uint256` | The withdraw amount in the collateral token. |
+| `collateralToLoanSwapRate` | `uint256` | The swap rate of collateral.                 |
 
 
 ### _emitClosingEvents
@@ -375,16 +375,16 @@ function _getAmountInRbtc(address asset, uint256 amount) internal view returns (
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`asset`|`address`|the asset to be transferred|
-|`amount`|`uint256`|the amount to be transferred|
+| Name     | Type      | Description                  |
+| -------- | --------- | ---------------------------- |
+| `asset`  | `address` | the asset to be transferred  |
+| `amount` | `uint256` | the amount to be transferred |
 
 **Returns**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|amount in RBTC|
+| Name     | Type      | Description    |
+| -------- | --------- | -------------- |
+| `<none>` | `uint256` | amount in RBTC |
 
 
 ### _checkLoan
@@ -397,16 +397,16 @@ function _checkLoan(bytes32 loanId) internal view returns (Loan storage, LoanPar
 ```
 **Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`loanId`|`bytes32`|bytes32 of loanId|
+| Name     | Type      | Description       |
+| -------- | --------- | ----------------- |
+| `loanId` | `bytes32` | bytes32 of loanId |
 
 **Returns**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`Loan`|Loan storage|
-|`<none>`|`LoanParams`|LoanParams storage|
+| Name     | Type         | Description        |
+| -------- | ------------ | ------------------ |
+| `<none>` | `Loan`       | Loan storage       |
+| `<none>` | `LoanParams` | LoanParams storage |
 
 
 ## Enums

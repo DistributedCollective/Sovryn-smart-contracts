@@ -32,6 +32,7 @@ const {
     blockNumber,
     mineBlock,
     advanceBlocks,
+    setNextBlockTimestamp,
 } = require("../../Utils/Ethereum");
 const { deployAndGetIStaking } = require("../../Utils/initializer");
 
@@ -140,7 +141,13 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
         let callData = encodeParameters(["address"], [governorAlpha.address]);
         //let currentBlock = await web3.eth.getBlock(await blockNumber());
         let currentBlock = await ethers.provider.getBlock("latest");
-        let eta = new BN(currentBlock.timestamp).add(new BN(delay + 1));
+        // The Timelock checks eta against the timestamp of the block that mines
+        // queueTransaction. Hardhat stamps that block with wall-clock time, so pin it
+        // explicitly — otherwise real time elapsing between the read above and the tx
+        // below can eat the eta margin and revert the queue call.
+        const queueTimestamp = currentBlock.timestamp + 1;
+        let eta = new BN(queueTimestamp + delay + 1);
+        await setNextBlockTimestamp(queueTimestamp);
 
         // Adding the setPendingAdmin() to the Timelock Queue.
         await timelock.queueTransaction(target, value, signature, callData, eta, {
@@ -261,8 +268,12 @@ contract("GovernorAlpha (Guardian Functions)", (accounts) => {
 
     it("Make a new Governor the admin of current Timelock with being pendingAdmin.", async () => {
         // Transaction details to make the above governor as the pending admin of the Timelock Instance.
+        // Same as the fixture: pin the queue tx's block timestamp so the eta margin
+        // cannot be eroded by wall-clock time before the tx is mined.
         let currentBlock = await web3.eth.getBlock(await blockNumber());
-        let eta = new BN(currentBlock.timestamp).add(new BN(delay + 1));
+        const queueTimestamp = currentBlock.timestamp + 1;
+        let eta = new BN(queueTimestamp + delay + 1);
+        await setNextBlockTimestamp(queueTimestamp);
 
         // Adding the new governor as the Pending Admin to the Timelock Queue.
         await governorAlpha.__queueSetTimelockPendingAdmin(newGovernorAlpha.address, eta, {

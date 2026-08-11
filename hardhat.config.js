@@ -254,6 +254,13 @@ module.exports = {
             confirmations: 4,
             gasMultiplier: 1.25,
             tags: ["testnet"],
+            // Source verification target for `hardhat etherscan-verify` (hardhat-deploy):
+            // Rootstock Blockscout, etherscan-compatible API. The task submits the
+            // standard-JSON input stored in the deployment record; Blockscout accepts
+            // any non-empty --api-key value.
+            verify: {
+                etherscan: { apiUrl: "https://rootstock-testnet.blockscout.com" },
+            },
             //timeout: 20000, // increase if needed; 20000 is the default value
             //allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
         },
@@ -265,6 +272,10 @@ module.exports = {
             blockGasLimit: 6800000,
             tags: ["mainnet"],
             timeout: 100000,
+            // Source verification target for `hardhat etherscan-verify` (see testnet note).
+            verify: {
+                etherscan: { apiUrl: "https://rootstock.blockscout.com" },
+            },
             //timeout: 20000, // increase if needed; 20000 is the default value
         },
         ethMainnet: {
