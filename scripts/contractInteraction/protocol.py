@@ -5,6 +5,12 @@ import time
 import copy
 from scripts.utils import *
 import scripts.contractInteraction.config as conf
+from scripts.contractInteraction.cron_funding import (
+    AMM_FIRST_BATCH_GAS_LIMIT,
+    AMM_SECOND_BATCH_GAS_LIMIT,
+    CRON_GAS_PRICE_WEI,
+    PROTOCOL_WITHDRAWAL_GAS_LIMIT,
+)
 
 
 def isProtocolPaused():
@@ -438,7 +444,10 @@ def withdrawFees():
         conf.contracts['SOV'],
         conf.contracts['WRBTC'],
         conf.contracts['DLLR'],
-    ], {'gas_price': '26000000'})
+    ], {
+        'gas_price': CRON_GAS_PRICE_WEI,
+        'gas_limit': PROTOCOL_WITHDRAWAL_GAS_LIMIT,
+    })
 
 def withdrawFeesAMM():
     # Withdraw fees from protocol
@@ -446,7 +455,8 @@ def withdrawFeesAMM():
     feeSharingCollectorProxy = Contract.from_abi(
         "FeeSharingCollector", address=feesController, abi=FeeSharingCollector.abi, owner=conf.acct)
 
-    # Withdraw fees from AMM
+    # Keep these as separate transactions. Estimating all converters in one call
+    # times out on the current Rootstock mainnet state.
     feeSharingCollectorProxy.withdrawFeesAMM([
         conf.contracts["ConverterSOV"],
         conf.contracts["ConverterXUSD"],
@@ -454,12 +464,21 @@ def withdrawFeesAMM():
         conf.contracts["ConverterMOC"],
         conf.contracts["ConverterBNBs"],
         conf.contracts["ConverterFISH"],
+    ], {
+        'gas_price': CRON_GAS_PRICE_WEI,
+        'gas_limit': AMM_FIRST_BATCH_GAS_LIMIT,
+    })
+
+    feeSharingCollectorProxy.withdrawFeesAMM([
         conf.contracts["ConverterRIF"],
         conf.contracts["ConverterMYNT"],
         conf.contracts["ConverterDLLR"],
         conf.contracts["ConverterPOWA"],
         conf.contracts["ConverterBOS"],
-    ], {'gas_price': '26000000'})
+    ], {
+        'gas_price': CRON_GAS_PRICE_WEI,
+        'gas_limit': AMM_SECOND_BATCH_GAS_LIMIT,
+    })
 
 def setSupportedToken(tokenAddress):
     sovryn = Contract.from_abi(

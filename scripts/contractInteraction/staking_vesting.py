@@ -6,6 +6,10 @@ import copy
 import math
 from scripts.utils import * 
 import scripts.contractInteraction.config as conf
+from scripts.contractInteraction.cron_funding import (
+    CRON_GAS_PRICE_WEI,
+    SET_BLOCK_GAS_LIMIT,
+)
 import eth_abi
 from datetime import datetime, timezone
 
@@ -217,12 +221,18 @@ def setAverageBlockTime(blockTime):
 def setBlockForStakingRewards():
     # Get the staking rewards proxy contract instance
     stakingRewardsProxy = Contract.from_abi("StakingRewards", address=conf.contracts['StakingRewardsProxy'], abi=StakingRewards.abi, owner=conf.acct)
-    stakingRewardsProxy.setBlock({'gas_price': '26000000'})
+    stakingRewardsProxy.setBlock({
+        'gas_price': CRON_GAS_PRICE_WEI,
+        'gas_limit': SET_BLOCK_GAS_LIMIT,
+    })
 
 def setBlockForStakingRewardsOs():
     if conf.contracts['StakingRewardsOsProxy']:
         stakingRewardsProxy = Contract.from_abi("StakingRewardsOs", address=conf.contracts['StakingRewardsOsProxy'], abi=StakingRewardsOs.abi, owner=conf.acct)
-        stakingRewardsProxy.setBlock({'gas_price': '26000000'})
+        stakingRewardsProxy.setBlock({
+            'gas_price': CRON_GAS_PRICE_WEI,
+            'gas_limit': SET_BLOCK_GAS_LIMIT,
+        })
 
 # Set Historical Block
 
@@ -690,5 +700,4 @@ def withdrawAdoptionFundTokensByUnlockedTokenOwner():
     #trying to withdraw 100M SOV -> more than available -> should withdraw the max
     data = adoptionFund.withdrawTokensByUnlockedTokenOwner.encode_input(100000000e18)
     sendWithMultisig(conf.contracts['multisig'], adoptionFund.address, data, conf.acct)
-
 
