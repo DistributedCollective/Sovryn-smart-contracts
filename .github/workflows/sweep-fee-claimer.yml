@@ -1,0 +1,72 @@
+name: Sweep Legacy Fee Claimer
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_destination:
+        description: "Type the destination address to confirm the irreversible sweep"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fee-claimer-operations
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate destination confirmation
+        env:
+          CONFIRM_DESTINATION: ${{ inputs.confirm_destination }}
+        run: test "$CONFIRM_DESTINATION" = "0x1C1eE371D0A9B07272C24EB2B917288922479f8F"
+
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          brownie pm install OpenZeppelin/openzeppelin-contracts@4.9.5
+
+      - name: Patch py-solc-x download host
+        run: |
+          python3 << 'EOF'
+          import os
+          import site
+
+          install_file = os.path.join(site.getsitepackages()[0], "solcx", "install.py")
+          with open(install_file, "r") as source:
+              content = source.read()
+
+          content = content.replace(
+              'SOLC_BASE_URL = "https://solc-bin.ethereum.org/"',
+              'SOLC_BASE_URL = "https://binaries.soliditylang.org/"',
+          )
+          content = content.replace(
+              '"https://solc-bin.ethereum.org/"',
+              '"https://binaries.soliditylang.org/"',
+          )
+          content = content.replace(
+              "solc-bin.ethereum.org",
+              "binaries.soliditylang.org",
+          )
+
+          with open(install_file, "w") as destination:
+              destination.write(content)
+          EOF
+
+      - name: Sweep legacy fee-claimer balance
+        env:
+          FEE_CLAIMER: ${{ secrets.FEE_CLAIMER }}
+        run: |
+          brownie networks import network-config.yaml true
+          brownie run scripts/contractInteraction/sweep_fee_claimer.py --network=rsk-mainnet
