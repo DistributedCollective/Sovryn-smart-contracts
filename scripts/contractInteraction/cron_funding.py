@@ -8,6 +8,8 @@ PROTOCOL_WITHDRAWAL_GAS_LIMIT = 4_000_000
 # Current-state measurements were 1,888,432 and 999,148 gas respectively.
 AMM_FIRST_BATCH_GAS_LIMIT = 2_500_000
 AMM_SECOND_BATCH_GAS_LIMIT = 1_500_000
+# The isolated USDT0 claim estimated at 430,662 gas on 2026-08-13.
+AMM_USDT0_GAS_LIMIT = 750_000
 
 
 def _format_rbtc(value_wei):

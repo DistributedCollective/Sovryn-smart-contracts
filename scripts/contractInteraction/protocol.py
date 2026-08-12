@@ -8,6 +8,7 @@ import scripts.contractInteraction.config as conf
 from scripts.contractInteraction.cron_funding import (
     AMM_FIRST_BATCH_GAS_LIMIT,
     AMM_SECOND_BATCH_GAS_LIMIT,
+    AMM_USDT0_GAS_LIMIT,
     CRON_GAS_PRICE_WEI,
     PROTOCOL_WITHDRAWAL_GAS_LIMIT,
 )
@@ -478,6 +479,15 @@ def withdrawFeesAMM():
     ], {
         'gas_price': CRON_GAS_PRICE_WEI,
         'gas_limit': AMM_SECOND_BATCH_GAS_LIMIT,
+    })
+
+    # Keep the newly deployed USDT0 converter isolated so its gas usage does
+    # not exhaust the safety margin of the existing second batch.
+    feeSharingCollectorProxy.withdrawFeesAMM([
+        conf.contracts["ConverterUSDT0"],
+    ], {
+        'gas_price': CRON_GAS_PRICE_WEI,
+        'gas_limit': AMM_USDT0_GAS_LIMIT,
     })
 
 def setSupportedToken(tokenAddress):
