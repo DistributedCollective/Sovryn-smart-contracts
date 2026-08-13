@@ -31,6 +31,7 @@ const mainnetPKs = [
     process.env.MAINNET_DEPLOYER_PRIVATE_KEY ?? "",
     process.env.PROPOSAL_CREATOR_PRIVATE_KEY ?? "",
     process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "", //mainnet signer2
+    process.env.DEPLOYER ?? "", //mainnet deployer
 ].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
 const mainnetAccounts = mainnetPKs.length > 0 ? mainnetPKs : mnemonic;
 
@@ -143,6 +144,7 @@ module.exports = {
     namedAccounts: {
         deployer: {
             default: 0,
+            rskSovrynMainnet: 3, //deployer is the 4th account in the mainnetAccounts array, which is the 3rd index
         },
         signer: {
             default: 1,
