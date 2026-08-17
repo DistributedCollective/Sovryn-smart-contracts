@@ -52,6 +52,7 @@ const MockMalformedExitFeeController = artifacts.require("MockMalformedExitFeeCo
 const MockArbitraryQuoteExitFeeController = artifacts.require(
     "MockArbitraryQuoteExitFeeController"
 );
+const MockShortReturnExitFeeController = artifacts.require("MockShortReturnExitFeeController");
 const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
 const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 const LockedSOV = artifacts.require("LockedSOV");
@@ -301,10 +302,13 @@ contract("ColFee — lender-exit adversarial (iToken tree)", (accounts) => {
         });
 
         it("controller without the quoteExitFee selector (short return) → same fail-open outcome", async () => {
-            // SUSD is a contract with no quoteExitFee and no data-returning
-            // fallback: the staticcall fails, safeQuote synthesizes the
-            // CONTROLLER_REVERT quote. Mirrors the protocol-side test shape.
-            await sovryn.setExitFeeController(SUSD.address, { from: lender });
+            // A controller whose `quoteExitFee` returns zero-length data
+            // (safeQuote's length-gate branch) synthesizes the CONTROLLER_REVERT
+            // quote and the burn fails open. The double answers the delay quote
+            // cleanly (disabled perimeter) — as any real ExitFeeController does —
+            // so the fail-CLOSED delay leg does not brick this fee-leg test.
+            const shortCtrl = await MockShortReturnExitFeeController.new();
+            await sovryn.setExitFeeController(shortCtrl.address, { from: lender });
 
             const burnAmount = await iSUSD.balanceOf(user);
             const susdBefore = await SUSD.balanceOf(user);

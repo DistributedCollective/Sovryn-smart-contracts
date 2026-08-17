@@ -13,6 +13,11 @@ interface IColFeeEvents {
     ///         rotated.
     event ColFeeBorrowerExitOpsSet(address indexed previous, address indexed current);
 
+    /// @notice Emitted when the ExitDelayQueue pointer is pinned or rotated
+    ///         (security perimeter). Redirects escrow, so it is more
+    ///         sensitive than the controller pointer (Owner/SIP-gated).
+    event ExitDelayQueueSet(address indexed previous, address indexed current);
+
     event ExitFeeApplied(
         bytes32 indexed surfaceId,
         address indexed actor,

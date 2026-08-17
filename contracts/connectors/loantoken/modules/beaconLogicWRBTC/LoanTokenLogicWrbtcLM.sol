@@ -4,6 +4,7 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../LoanTokenLogicSplit.sol";
+import "../../../../interfaces/colfee/IExitDelayQueueHook.sol";
 
 contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
     /**
@@ -23,7 +24,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](5);
+        bytes4[] memory res = new bytes4[](6);
 
         // Loan Token Mint and Burn.
         res[0] = this.mint.selector;
@@ -36,6 +37,9 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         // ColFee controller view. Manual keccak256 for selector stability
         // under overloaded names.
         res[4] = bytes4(keccak256("exitFeeController()"));
+
+        // Security-perimeter delay-queue view.
+        res[5] = bytes4(keccak256("exitDelayQueue()"));
 
         return (res, stringToBytes32("LoanTokenLogicWrbtcLM"));
     }
@@ -99,7 +103,10 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
                         q.netAmount,
                         q.feeReceiver
                     );
-                    _transferNativeRBTC(receiver, q.netAmount, false);
+                    // USER leg (net): reroute WRBTC into the delay queue when
+                    // d > 0 (queue unwraps at delivery), else the existing native
+                    // primitive (WRBTC escrow, deferred unwrap).
+                    _payExitUserLegNative(receiver, q.netAmount);
                     return;
                 }
                 emit ExitFeeSkipped(
@@ -121,7 +128,60 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
                 q.reason
             );
         }
-        _transferNativeRBTC(receiver, gross, false);
+        // Full-gross fallback site: reroute behind the delay too.
+        _payExitUserLegNative(receiver, gross);
+    }
+
+    /// @notice Pay the native (RBTC) user leg of the `burnToBTC` exit, rerouting
+    ///         into the ExitDelayQueue when the perimeter imposes a delay
+    ///         (`d > 0`): the queue escrows WRBTC and unwraps it on delivery.
+    ///         The iToken STILL holds WRBTC at this point (the unwrap is
+    ///         deferred to `executeExit`), so the delayed user leg transfers
+    ///         WRBTC to the queue with `unwrapOnDelivery=true` and
+    ///         `_transferNativeRBTC` is SKIPPED on the delayed leg. The fee leg
+    ///         is unchanged (native, fail-open, re-wrap on failure). When
+    ///         `d == 0` this is the existing native primitive, paid direct.
+    /// @param receiver   Immutable payout destination.
+    /// @param userAmount Net on fee-success, full gross on fee-failure.
+    function _payExitUserLegNative(address receiver, uint256 userAmount) internal {
+        if (userAmount == 0) return;
+
+        // owner == rawOriginator == msg.sender (see `_payExitUserLeg`): the
+        // burner is both the withdrawal originator and the position owner.
+        (uint32 d, address effOrig, address effOwner) = _safeQuoteExitDelay(
+            msg.sender,
+            msg.sender,
+            receiver,
+            SURFACE_LENDING_LENDER_WITHDRAW,
+            address(this)
+        );
+
+        if (d > 0) {
+            require(userAmount <= uint256(uint128(-1)), "COLFEE:amount-too-large");
+            address queue = exitDelayQueue();
+            require(queue != address(0), "COLFEE:queue-unset");
+            // Escrow WRBTC (NOT native): the iToken hands the queue WRBTC + the
+            // unwrap flag; the queue unwraps to native RBTC at executeExit. No
+            // `_transferNativeRBTC` on this delayed user leg. Use the shared
+            // optional-return `_safeApprove`: WRBTC returns a bool today,
+            // but this keeps BOTH exit-leg approve sites on one no-return-safe
+            // primitive. Allowance is provably 0 at entry (queue pulls exactly
+            // `userAmount`), so no zero-first reset is needed.
+            _safeApprove(wrbtcTokenAddress, queue, userAmount);
+            IExitDelayQueueHook(queue).recordERC20Exit(
+                wrbtcTokenAddress,
+                uint128(userAmount),
+                d,
+                SURFACE_LENDING_LENDER_WITHDRAW,
+                address(this),
+                effOrig,
+                effOwner,
+                receiver,
+                true // unwrapOnDelivery: queue holds WRBTC, unwraps at delivery
+            );
+        } else {
+            _transferNativeRBTC(receiver, userAmount, false);
+        }
     }
 
     /// @notice Unwrap WRBTC and send native RBTC.

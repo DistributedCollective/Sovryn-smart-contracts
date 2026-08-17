@@ -70,6 +70,23 @@ library ColFeeLib {
     ///         `host`, unregistered selector, short/long return — yields
     ///         address(0), which `safeQuote` treats as "skip", so the lookup
     ///         can never block an exit.
+    ///
+    /// @dev    POINTER lookup is FAIL-OPEN, QUOTE is FAIL-CLOSED.
+    ///         This is a deliberate, documented split:
+    ///           • A missing/unreachable controller POINTER (address(0) here)
+    ///             skips BOTH the fee and the delay reroute and pays direct —
+    ///             mirroring the fee path. A fail-CLOSED read-through would
+    ///             brick EVERY lender exit on a botched module rotation, so the
+    ///             pointer read must never revert.
+    ///           • Once a controller IS reachable, the delay QUOTE
+    ///             (`safeQuoteDelay` → `quoteExitDelayFor`) stays FAIL-CLOSED
+    ///             a quote that reverts reverts the whole exit, so
+    ///             an active perimeter can never be silently bypassed.
+    ///         Accepted residual: a missing pointer silently disables the
+    ///         perimeter for that host until governance re-pins it. This is NOT
+    ///         attacker-reachable (setting the pointer is an Owner/SIP action)
+    ///         and is covered by the go-live wiring assertion plus
+    ///         off-chain pointer monitoring.
     function safeControllerLookup(address host) internal view returns (address) {
         (bool ok, bytes memory ret) = host.staticcall(
             abi.encodeWithSignature("exitFeeController()")
@@ -78,6 +95,119 @@ library ColFeeLib {
             return abi.decode(ret, (address));
         }
         return address(0);
+    }
+
+    // ─── Exit-delay queue pointer (security perimeter) ──────────────────────
+
+    /// @notice EIP-1967-style unstructured slot where each product storage host
+    ///         pins its ExitDelayQueue. Because the queue pointer redirects
+    ///         ESCROW it is MORE sensitive than the controller pointer — rotation
+    ///         is an Owner/SIP action. Defined once so the
+    ///         getter and setter can never drift onto different slots.
+    /// keccak256("sovryn.exitDelayQueue") - 1
+    bytes32 internal constant EXIT_DELAY_QUEUE_SLOT =
+        bytes32(uint256(keccak256("sovryn.exitDelayQueue")) - 1);
+
+    /// @notice Read the calling contract's pinned queue from the shared slot
+    ///         (address(0) until governance pins one). An unwired queue pays
+    ///         direct ONLY when the perimeter quotes `d == 0`; once `d > 0` the
+    ///         caller must escrow, so an unresolvable queue fails CLOSED (the
+    ///         exit reverts) — a delay can never be silently bypassed by an
+    ///         unwired pointer. Inlined, so the `sload` targets the caller's
+    ///         storage.
+    function getExitDelayQueue() internal view returns (address queue) {
+        bytes32 slot = EXIT_DELAY_QUEUE_SLOT;
+        assembly {
+            queue := sload(slot)
+        }
+    }
+
+    /// @notice Write the calling contract's queue pointer (caller owns auth, the
+    ///         `Address.isContract` guard, and the event). Inlined into the
+    ///         caller's storage.
+    function setExitDelayQueue(address queue) internal {
+        bytes32 slot = EXIT_DELAY_QUEUE_SLOT;
+        assembly {
+            sstore(slot, queue)
+        }
+    }
+
+    /// @notice Fail-open read of `host`'s pinned queue via its public
+    ///         `exitDelayQueue()` view. Any abnormal outcome (no code at `host`,
+    ///         unregistered selector, short/long return) yields address(0). The
+    ///         lookup itself is view-only and never touches the queue, so it
+    ///         cannot brick anything; but note that a resulting address(0) pays
+    ///         direct ONLY when the perimeter quotes `d == 0`. When `d > 0` the
+    ///         caller escrows, so an unresolvable queue then fails CLOSED at the
+    ///         escrow step (the exit reverts until the queue is wired) — an
+    ///         unwired queue cannot silently bypass an active delay.
+    function safeQueueLookup(address host) internal view returns (address) {
+        (bool ok, bytes memory ret) = host.staticcall(abi.encodeWithSignature("exitDelayQueue()"));
+        if (ok && ret.length == 32) {
+            return abi.decode(ret, (address));
+        }
+        return address(0);
+    }
+
+    // ─── Delay quote (per-pragma safe-quote wrapper) ────────────────────────
+
+    /// @notice Fail-CLOSED delay quote: `quoteExitDelayFor` via `staticcall`
+    ///         (0.5.17 has no try/catch). A staticcall FAILURE reverts the exit —
+    ///         it MUST NOT be interpreted as `d = 0`-direct (that would silently
+    ///         disable the perimeter — the hazard this guards against). The
+    ///         `!securityPerimeterEnabled` short-circuit is the FIRST statement
+    ///         inside `quoteExitDelayFor`, so a
+    ///         healthy-but-disabled perimeter returns `(0, raw, owner)` normally
+    ///         (liveness); only a fully-bricked controller (bad upgrade) is
+    ///         unescapable, and the go-live gates cover it.
+    ///
+    ///         The return is decoded word-wise (three static words) and each is
+    ///         bounds-checked, mirroring `safeQuote`'s defensive decode so a
+    ///         malformed controller return reverts loudly (fail-closed) rather than
+    ///         mis-escrowing.
+    /// @param  ctrl The caller's pinned ExitFeeController (address(0) ⇒ perimeter
+    ///              unwired ⇒ direct pay, d = 0).
+    function safeQuoteDelay(
+        address ctrl,
+        address rawOriginator,
+        address owner,
+        address receiver,
+        bytes32 surfaceId,
+        address subProduct
+    ) internal view returns (uint32 d, address effOrig, address effOwner) {
+        // No controller pinned ⇒ perimeter is unwired; pay direct (d = 0). Raw
+        // identities are returned but the hook ignores them when d == 0.
+        if (ctrl == address(0)) {
+            return (0, rawOriginator, owner);
+        }
+        (bool ok, bytes memory ret) = ctrl.staticcall(
+            abi.encodeWithSelector(
+                IExitFeeController(ctrl).quoteExitDelayFor.selector,
+                rawOriginator,
+                owner,
+                receiver,
+                surfaceId,
+                subProduct
+            )
+        );
+        // FAIL-CLOSED: a staticcall failure or a short/malformed return reverts
+        // the exit. 3 static words = 96 bytes (uint32 d, address effOrig,
+        // address effOwner). Decode as RAW WORDS then bounds-check each — a
+        // uint256-tuple decode cannot revert on any >= 96-byte payload, so we
+        // control the revert reason instead of letting the validating decoder
+        // brick the exit with an opaque panic.
+        require(ok && ret.length >= 96, "COLFEE:delay-quote-failed");
+        (uint256 rawD, uint256 rawOrig, uint256 rawOwner) = abi.decode(
+            ret,
+            (uint256, uint256, uint256)
+        );
+        require(
+            rawD <= 0xffffffff && rawOrig >> 160 == 0 && rawOwner >> 160 == 0,
+            "COLFEE:delay-quote-malformed"
+        );
+        d = uint32(rawD);
+        effOrig = address(uint160(rawOrig));
+        effOwner = address(uint160(rawOwner));
     }
 
     // ─── Quote ──────────────────────────────────────────────────────────────

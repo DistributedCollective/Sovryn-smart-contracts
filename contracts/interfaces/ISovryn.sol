@@ -279,6 +279,10 @@ contract ISovryn is
 
     function setColFeeBorrowerExitOps(address ops) external;
 
+    function exitDelayQueue() external view returns (address);
+
+    function setExitDelayQueue(address queue) external;
+
     ////// Loan Maintenance //////
 
     function depositCollateral(

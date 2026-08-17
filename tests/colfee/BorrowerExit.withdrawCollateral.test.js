@@ -40,6 +40,7 @@ const LoanMaintenance = artifacts.require("LoanMaintenance");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const MockExitFeeController = artifacts.require("MockExitFeeController");
 const MockMalformedExitFeeController = artifacts.require("MockMalformedExitFeeController");
+const MockShortReturnExitFeeController = artifacts.require("MockShortReturnExitFeeController");
 const ColFeeBorrowerExitOps = artifacts.require("ColFeeBorrowerExitOps");
 
 const {
@@ -468,15 +469,14 @@ contract("ColFee — borrower-exit withdrawCollateral (Phase 3 / Task 3.1)", (ac
 
     describe("CONTROLLER_REVERT fallback (controller staticcall fails / returns short data)", () => {
         it("when the controller is pinned but the staticcall returns short data, ColFee fails open → full gross to user, ExitFeeSkipped(CONTROLLER_REVERT)", async () => {
-            // The shared parent's setter rejects EOAs (Address.isContract),
-            // so we pin a real *contract* whose `quoteExitFee(...)` returns
-            // a too-short payload. The simplest such contract on hand is
-            // the loanToken itself (it has code but no `quoteExitFee`
-            // selector → the staticcall hits its fallback, which is either
-            // empty or not 192 bytes). _safeQuote's length-gated abi.decode
-            // synthesizes a CONTROLLER_REVERT quote and the hook falls
-            // through to full gross.
-            await sovryn.setExitFeeController(loanToken.address, { from: owner });
+            // Pin a controller whose `quoteExitFee(...)` returns a too-short
+            // payload (empty fallback → 0 bytes < 192): _safeQuote's length-gated
+            // abi.decode synthesizes a CONTROLLER_REVERT quote and the hook falls
+            // through to full gross. The double answers the delay quote cleanly
+            // (disabled perimeter) — as a real ExitFeeController does — so the
+            // fail-CLOSED delay leg does not brick this fee-leg test.
+            const shortCtrl = await MockShortReturnExitFeeController.new();
+            await sovryn.setExitFeeController(shortCtrl.address, { from: owner });
 
             const [loan_id] = await open_margin_trade_position(
                 loanToken,

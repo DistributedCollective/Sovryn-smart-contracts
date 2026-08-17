@@ -68,6 +68,10 @@ contract LoanClosingsShared is
         bool returnTokenIsCollateral;
         bytes loanDataBytes;
         bool allowDonationOnFailure;
+        // Close origin threaded from the public entry point so the caller-
+        // selectable excess-collateral refund leg (fee, then delay)
+        // gates on the same voluntary-only `_exitFeeChargeable` predicate as
+        // the main payout.
         CloseOrigin origin;
     }
 
@@ -303,10 +307,31 @@ contract LoanClosingsShared is
         uint256 assetAmount,
         bool allowDonationOnFailure
     ) internal {
-        uint256 toUser = _exitFeeChargeable(origin, loanLocal)
-            ? _chargeExitFeeReturnNet(receiver, assetToken, loanLocal.lender, assetAmount)
-            : assetAmount;
-        _withdrawAsset(assetToken, receiver, toUser, allowDonationOnFailure);
+        // SCOPE GATE: only a voluntary borrower/delegate close is chargeable
+        // AND delayable. Rollover/liquidation are exempt by origin — they NEVER
+        // reach the charge or the delay reroute (keeper/liquidator payouts must
+        // never be escrowed behind a multi-hour delay). This mirrors the ColFee
+        // fee gate exactly (same `_exitFeeChargeable`).
+        if (!_exitFeeChargeable(origin, loanLocal)) {
+            _withdrawAsset(assetToken, receiver, assetAmount, allowDonationOnFailure);
+            return;
+        }
+
+        // Fee leg (unchanged): returns the net user amount (or full gross).
+        uint256 toUser = _chargeExitFeeReturnNet(
+            receiver,
+            assetToken,
+            loanLocal.lender,
+            assetAmount
+        );
+
+        // Delay leg: reroute into the queue when d > 0 (PUSH-then-record); else
+        // pay direct via the existing `_withdrawAsset` primitive (queue untouched).
+        // `allowDonationOnFailure` is false on this voluntary path anyway,
+        // but is threaded through for exact parity with today's direct payout.
+        if (!_maybeDelayBorrowerExit(loanLocal, assetToken, receiver, toUser)) {
+            _withdrawAsset(assetToken, receiver, toUser, allowDonationOnFailure);
+        }
     }
 
     /**
@@ -1025,9 +1050,16 @@ contract LoanClosingsShared is
 
                 /// Excess collateral refunds to the borrower.
                 uint256 excessCollateral = loanLocal.collateral - sourceTokenAmountUsed;
-                // allowDonationOnFailure here is following the arguments passed from the caller
-                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
-                // ColFee: charge the borrower-exit fee on the excess-collateral refund.
+                // `swapAmount` (hence `sourceTokenAmountUsed`) is
+                // CALLER-selectable, so this refund can carry ~the entire equity
+                // — it must obey the security-perimeter delay, not escape it.
+                // The refund is also a chargeable borrower exit. Composed
+                // semantics: on the voluntary-only gate the
+                // exit fee is charged and the NET is escrowed behind the delay —
+                // the same fee→delay path as the main payout; the swap itself is
+                // never delayed. Rollover/liquidation (non-VoluntaryClose origin)
+                // pay direct and never touch the queue — `allowDonationOnFailure`
+                // still governs the direct-pay native donation fallback there.
                 _withdrawAssetChargingExitFee(
                     params.origin,
                     loanLocal,

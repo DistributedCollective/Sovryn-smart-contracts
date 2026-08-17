@@ -191,7 +191,9 @@ contract LoanMaintenance is
 
         // ColFee: charge the borrower-exit fee. Policy key (`subProduct`) is
         // the iToken pool `loanLocal.lender`; the payout asset is the
-        // collateral token.
+        // collateral token. `withdrawCollateral` is ALWAYS a voluntary borrower
+        // action (the msg.sender invariant above), so it charges/delays
+        // unconditionally under the same voluntary-exit gate.
         uint256 amountToUser = _chargeExitFeeReturnNet(
             receiver,
             loanParamsLocal.collateralToken,
@@ -199,10 +201,21 @@ contract LoanMaintenance is
             actualWithdrawAmount
         );
 
-        if (loanParamsLocal.collateralToken == address(wrbtcToken)) {
-            vaultEtherWithdraw(receiver, amountToUser);
-        } else {
-            vaultWithdraw(loanParamsLocal.collateralToken, receiver, amountToUser);
+        // Delay leg: reroute into the queue when d > 0 (PUSH-then-record); else
+        // pay direct via the existing vault primitive (queue untouched).
+        if (
+            !_maybeDelayBorrowerExit(
+                loanLocal,
+                loanParamsLocal.collateralToken,
+                receiver,
+                amountToUser
+            )
+        ) {
+            if (loanParamsLocal.collateralToken == address(wrbtcToken)) {
+                vaultEtherWithdraw(receiver, amountToUser);
+            } else {
+                vaultWithdraw(loanParamsLocal.collateralToken, receiver, amountToUser);
+            }
         }
     }
 
