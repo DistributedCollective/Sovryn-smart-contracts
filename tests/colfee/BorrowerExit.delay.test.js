@@ -58,10 +58,10 @@ const {
     getSovryn,
     getSOV,
     open_margin_trade_position,
-} = require("../tests/Utils/initializer.js");
+} = require("../Utils/initializer.js");
 
-const { increaseTime } = require("../tests/Utils/Ethereum");
-const mutexUtils = require("../deployment/helpers/reentrancy/utils");
+const { increaseTime } = require("../Utils/Ethereum");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const ZERO = constants.ZERO_ADDRESS;
 const SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(

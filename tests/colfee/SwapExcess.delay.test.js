@@ -56,10 +56,10 @@ const {
     getSOV,
     open_margin_trade_position,
     decodeLogs,
-} = require("../tests/Utils/initializer.js");
+} = require("../Utils/initializer.js");
 
-const { increaseTime, blockNumber } = require("../tests/Utils/Ethereum");
-const mutexUtils = require("../deployment/helpers/reentrancy/utils");
+const { increaseTime, blockNumber } = require("../Utils/Ethereum");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));

@@ -51,9 +51,9 @@ const {
     getPriceFeeds,
     getSovryn,
     getSOV,
-} = require("../tests/Utils/initializer.js");
-const mutexUtils = require("../deployment/helpers/reentrancy/utils");
-const { increaseTime } = require("../tests/Utils/Ethereum");
+} = require("../Utils/initializer.js");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { increaseTime } = require("../Utils/Ethereum");
 
 const wei = web3.utils.toWei;
 const DELAY = 3600;

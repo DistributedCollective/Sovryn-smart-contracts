@@ -27,7 +27,7 @@ const MockExitFeeController = artifacts.require("MockExitFeeController");
 const MockExitDelayQueue = artifacts.require("MockExitDelayQueue");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
 
-const { increaseTime, blockNumber } = require("../tests/Utils/Ethereum");
+const { increaseTime, blockNumber } = require("../Utils/Ethereum");
 const {
     getSUSD,
     getRBTC,
@@ -41,9 +41,9 @@ const {
     getSovryn,
     getSOV,
     decodeLogs,
-} = require("../tests/Utils/initializer.js");
+} = require("../Utils/initializer.js");
 
-const mutexUtils = require("../deployment/helpers/reentrancy/utils");
+const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));

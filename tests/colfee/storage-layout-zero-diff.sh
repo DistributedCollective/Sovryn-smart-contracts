@@ -26,7 +26,7 @@
 #   BASE_REF defaults to the pre-hooks commit.
 set -u
 
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
+REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 BASE_REF="${1:-51052975}"
 WORKTREE="$(mktemp -d)/base-colfee"
 OUT="$(mktemp -d)"
