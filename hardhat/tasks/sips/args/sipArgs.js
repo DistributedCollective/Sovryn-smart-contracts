@@ -1942,7 +1942,7 @@ const getArgsSip0094Part1 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0094 (Part 1): Perimeter Fee Activation and Adoption Fund Transfer — 1 of 3 executable parts (GovernorOwner). Executes the 10 Perimeter Fee installation actions: registers the exit-fee-hooked LM and WrbtcLM iToken beacon modules (2), replaces the LoanClosingsRollover, LoanClosingsWith and LoanMaintenance protocol modules (3), registers the ExitFeeModule admin module (1), sets ColFeeBorrowerExitOps (1), upgrades the Zero CollSurplusPool implementation (1), then upgrades the Zero BorrowerOperations implementation and wires its exit-fee controller in the same atomic transaction (2). Fee charging stays globally disabled throughout. Details: https://github.com/DistributedCollective/SIPS/blob/3fdc85f336359fa6575d8e629514eef0d6ddeec3/SIP-0094.md, sha256: 8a54a1d2ec447e6e609017940742f8a6bedce1ff0f72bb58d024f6c5f42c712d",
+            "SIP-0094 (Part 1): Perimeter Fee Activation and Adoption Fund Transfer — 1 of 3 executable parts (GovernorOwner). Executes the 10 Perimeter Fee installation actions: registers the exit-fee-hooked LM and WrbtcLM iToken beacon modules (2), replaces the LoanClosingsRollover, LoanClosingsWith and LoanMaintenance protocol modules (3), registers the ExitFeeModule admin module (1), sets ColFeeBorrowerExitOps (1), upgrades the Zero CollSurplusPool implementation (1), then upgrades the Zero BorrowerOperations implementation and wires its exit-fee controller in the same atomic transaction (2). Fee charging stays globally disabled throughout. Details: https://github.com/DistributedCollective/SIPS/blob/188fba5decacada75202c078fcf57a1e300fa912/SIP-0094.md, sha256: 3318aea1f50ff1039c612d9ea086e3cf58395eee00edd537a261ada1b063990f",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorOwner" };
@@ -2201,7 +2201,7 @@ const getArgsSip0094Part2 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0094 (Part 2): Perimeter Fee Activation and Adoption Fund Transfer — 2 of 3 executable parts (GovernorOwner). Executes 3 actions: withdraws the Adoption Fund's fully-vested SOV to the timelock (1), forwards exactly that amount onward to the Exchequer Multisig (1), and pins the ExitFeeController on the Sovryn protocol as the final Perimeter Fee activation pointer (1). The Development Fund residue moves by a companion Exchequer multisig transaction, not by this proposal. Details: https://github.com/DistributedCollective/SIPS/blob/3fdc85f336359fa6575d8e629514eef0d6ddeec3/SIP-0094.md, sha256: 8a54a1d2ec447e6e609017940742f8a6bedce1ff0f72bb58d024f6c5f42c712d",
+            "SIP-0094 (Part 2): Perimeter Fee Activation and Adoption Fund Transfer — 2 of 3 executable parts (GovernorOwner). Executes 3 actions: withdraws the Adoption Fund's fully-vested SOV to the timelock (1), forwards exactly that amount onward to the Exchequer Multisig (1), and pins the ExitFeeController on the Sovryn protocol as the final Perimeter Fee activation pointer (1). The Development Fund residue moves by a companion Exchequer multisig transaction, not by this proposal. Details: https://github.com/DistributedCollective/SIPS/blob/188fba5decacada75202c078fcf57a1e300fa912/SIP-0094.md, sha256: 3318aea1f50ff1039c612d9ea086e3cf58395eee00edd537a261ada1b063990f",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorOwner" };
@@ -2264,7 +2264,7 @@ const getArgsSip0094Part3 = async (hre) => {
         signatures: ["setAPR(uint256)"],
         data: [abiCoder.encode(["uint256"], [0])],
         description:
-            "SIP-0094 (Part 3): Perimeter Fee Activation and Adoption Fund Transfer — 3 of 3 executable parts (GovernorAdmin): retires the Zero Stability Pool SOV subsidy by setting the CommunityIssuance APR from 500 (5%) to 0. Existing accrued gains are unaffected; re-enabling is a later one-action proposal. Details: https://github.com/DistributedCollective/SIPS/blob/3fdc85f336359fa6575d8e629514eef0d6ddeec3/SIP-0094.md, sha256: 8a54a1d2ec447e6e609017940742f8a6bedce1ff0f72bb58d024f6c5f42c712d",
+            "SIP-0094 (Part 3): Perimeter Fee Activation and Adoption Fund Transfer — 3 of 3 executable parts (GovernorAdmin): retires the Zero Stability Pool SOV subsidy by setting the CommunityIssuance APR from 500 (5%) to 0. Existing accrued gains are unaffected; re-enabling is a later one-action proposal. Details: https://github.com/DistributedCollective/SIPS/blob/188fba5decacada75202c078fcf57a1e300fa912/SIP-0094.md, sha256: 3318aea1f50ff1039c612d9ea086e3cf58395eee00edd537a261ada1b063990f",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorAdmin" };
