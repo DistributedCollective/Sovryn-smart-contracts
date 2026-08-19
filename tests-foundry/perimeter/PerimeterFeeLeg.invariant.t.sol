@@ -124,7 +124,7 @@ contract OpsHost {
 contract FeeLegHandler {
     Vm internal constant vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
     bytes32 internal constant CTRL_SLOT =
-        bytes32(uint256(keccak256("sovryn.exitFeeController")) - 1);
+        bytes32(uint256(keccak256("sovryn.perimeterExitFeeController")) - 1);
     bytes32 internal constant WRBTC_SLOT = bytes32(uint256(45));
     address internal constant USER = address(0xCAFE);
 

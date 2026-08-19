@@ -15,9 +15,9 @@ library PerimeterLib {
     /// @notice EIP-1967-style unstructured slot where each consumer pins its
     ///         ExitFeeController. Defined once here so the getter and setter
     ///         can never drift onto different slots.
-    /// keccak256("sovryn.exitFeeController") - 1
+    /// keccak256("sovryn.perimeterExitFeeController") - 1
     bytes32 internal constant EXIT_FEE_CONTROLLER_SLOT =
-        bytes32(uint256(keccak256("sovryn.exitFeeController")) - 1);
+        bytes32(uint256(keccak256("sovryn.perimeterExitFeeController")) - 1);
 
     /// @notice Read the calling contract's pinned controller from the shared
     ///         slot (address(0) until the owner pins one). Inlined, so the
@@ -49,9 +49,9 @@ library PerimeterLib {
     ///      by declaration order. Changing the string moves the slot, so the
     ///      pointer must be re-pinned at the new address before the hook is
     ///      reachable.
-    /// keccak256("sovryn.borrowerExitPerimeterOps") - 1
+    /// keccak256("sovryn.perimeterBorrowerExitOps") - 1
     bytes32 internal constant BORROWER_EXIT_PERIMETER_OPS_SLOT =
-        bytes32(uint256(keccak256("sovryn.borrowerExitPerimeterOps")) - 1);
+        bytes32(uint256(keccak256("sovryn.perimeterBorrowerExitOps")) - 1);
 
     /// @notice Read the pinned charge-hook address (address(0) until pinned).
     ///         Inlined `sload` against the caller's storage.
@@ -109,9 +109,9 @@ library PerimeterLib {
     ///         ESCROW it is MORE sensitive than the controller pointer — rotation
     ///         is an Owner/SIP action. Defined once so the
     ///         getter and setter can never drift onto different slots.
-    /// keccak256("sovryn.exitDelayQueue") - 1
+    /// keccak256("sovryn.perimeterExitDelayQueue") - 1
     bytes32 internal constant EXIT_DELAY_QUEUE_SLOT =
-        bytes32(uint256(keccak256("sovryn.exitDelayQueue")) - 1);
+        bytes32(uint256(keccak256("sovryn.perimeterExitDelayQueue")) - 1);
 
     /// @notice Read the calling contract's pinned queue from the shared slot
     ///         (address(0) until governance pins one). An unwired queue pays
