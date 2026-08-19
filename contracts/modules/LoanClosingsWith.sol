@@ -7,7 +7,7 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/ILoanPool.sol";
-import "./LoanClosingsShared.sol";
+import "./LoanClosingsCharged.sol";
 
 /**
  * @title LoanClosingsWith contract.
@@ -17,7 +17,7 @@ import "./LoanClosingsShared.sol";
  *
  * Loans are liquidated if the position goes below margin maintenance.
  * */
-contract LoanClosingsWith is LoanClosingsShared {
+contract LoanClosingsWith is LoanClosingsCharged {
     constructor() public {}
 
     function() external {
@@ -184,7 +184,7 @@ contract LoanClosingsWith is LoanClosingsShared {
             loanLocal.collateral = loanLocal.collateral.sub(withdrawAmount);
 
             // ColFee: charge the borrower-exit fee on the residual.
-            _withdrawAssetChargingExitFee(
+            _payoutBorrowerExit(
                 origin,
                 loanLocal,
                 withdrawToken,

@@ -287,19 +287,29 @@ contract LoanClosingsShared is
     }
 
     /**
-     * @notice Borrower-bound payout with the ColFee gate in front: charges the
-     *         exit fee on a chargeable close, then pays the (net or full-gross)
-     *         residual via `_withdrawAsset`. The policy key (`subProduct`) is
-     *         the iToken pool, `loanLocal.lender`.
+     * @notice Pay a borrower-side close payout to the receiver.
      *
-     * @param origin                 Close origin; `Rollover`/`Liquidation` are exempt.
-     * @param loanLocal              The loan being closed.
-     * @param assetToken             The asset paid to the receiver.
-     * @param receiver               User payout recipient.
-     * @param assetAmount            Pre-fee borrower payout amount.
+     * @dev Overridable settlement point for a close payout. This base
+     *   implementation pays the receiver directly and applies no perimeter
+     *   processing, which is the correct behaviour for a FORCED close
+     *   (rollover, liquidation): those payouts are exempt, and a keeper or
+     *   liquidator must never be escrowed behind a delay.
+     *
+     *   Modules that settle a VOLUNTARY borrower close inherit
+     *   `LoanClosingsCharged`, whose override takes the exit fee and applies
+     *   the security-perimeter delay before paying out. The exemption is
+     *   therefore expressed by which contract a module inherits rather than by
+     *   a runtime check, so a forced-close module has no reachable path to the
+     *   fee or the delay.
+     *
+     * @param origin The close origin, threaded from the public entry point.
+     * @param loanLocal The loan being closed.
+     * @param assetToken The asset to pay out.
+     * @param receiver The payout recipient.
+     * @param assetAmount The gross payout amount.
      * @param allowDonationOnFailure Forwarded to `_withdrawAsset`.
      * */
-    function _withdrawAssetChargingExitFee(
+    function _payoutBorrowerExit(
         CloseOrigin origin,
         Loan storage loanLocal,
         address assetToken,
@@ -307,31 +317,9 @@ contract LoanClosingsShared is
         uint256 assetAmount,
         bool allowDonationOnFailure
     ) internal {
-        // SCOPE GATE: only a voluntary borrower/delegate close is chargeable
-        // AND delayable. Rollover/liquidation are exempt by origin — they NEVER
-        // reach the charge or the delay reroute (keeper/liquidator payouts must
-        // never be escrowed behind a multi-hour delay). This mirrors the ColFee
-        // fee gate exactly (same `_exitFeeChargeable`).
-        if (!_exitFeeChargeable(origin, loanLocal)) {
-            _withdrawAsset(assetToken, receiver, assetAmount, allowDonationOnFailure);
-            return;
-        }
-
-        // Fee leg (unchanged): returns the net user amount (or full gross).
-        uint256 toUser = _chargeExitFeeReturnNet(
-            receiver,
-            assetToken,
-            loanLocal.lender,
-            assetAmount
-        );
-
-        // Delay leg: reroute into the queue when d > 0 (PUSH-then-record); else
-        // pay direct via the existing `_withdrawAsset` primitive (queue untouched).
-        // `allowDonationOnFailure` is false on this voluntary path anyway,
-        // but is threaded through for exact parity with today's direct payout.
-        if (!_maybeDelayBorrowerExit(loanLocal, assetToken, receiver, toUser)) {
-            _withdrawAsset(assetToken, receiver, toUser, allowDonationOnFailure);
-        }
+        origin;
+        loanLocal;
+        _withdrawAsset(assetToken, receiver, assetAmount, allowDonationOnFailure);
     }
 
     /**
@@ -788,7 +776,7 @@ contract LoanClosingsShared is
         // Withdraw to receiver
         if (withdrawAmount != 0) {
             // ColFee: charge the borrower-exit fee on the post-swap residual.
-            _withdrawAssetChargingExitFee(
+            _payoutBorrowerExit(
                 params.origin,
                 loanLocal,
                 withdrawToken,
@@ -1060,7 +1048,7 @@ contract LoanClosingsShared is
                 // never delayed. Rollover/liquidation (non-VoluntaryClose origin)
                 // pay direct and never touch the queue — `allowDonationOnFailure`
                 // still governs the direct-pay native donation fallback there.
-                _withdrawAssetChargingExitFee(
+                _payoutBorrowerExit(
                     params.origin,
                     loanLocal,
                     loanParamsLocal.collateralToken,
