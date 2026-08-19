@@ -44,18 +44,19 @@ library PerimeterLib {
 
     /// @notice EIP-1967-style unstructured slot holding the borrower-exit
     ///         charge-hook (`BorrowerExitPerimeterOps`) address.
-    /// @dev The literal below is a deployed storage slot: the borrower-exit
-    ///      hook pointer already written at this address on mainnet. Its old
-    ///      spelling is load-bearing — rewriting the string moves the slot and
-    ///      orphans the pointer. Do not "finish the rename" here.
-    /// keccak256("sovryn.colFeeBorrowerExitOps") - 1
-    bytes32 internal constant COLFEE_BORROWER_EXIT_OPS_SLOT =
-        bytes32(uint256(keccak256("sovryn.colFeeBorrowerExitOps")) - 1);
+    /// @dev The literal is the slot address: this pointer lives at an
+    ///      unstructured slot derived from the string, not at a position fixed
+    ///      by declaration order. Changing the string moves the slot, so the
+    ///      pointer must be re-pinned at the new address before the hook is
+    ///      reachable.
+    /// keccak256("sovryn.borrowerExitPerimeterOps") - 1
+    bytes32 internal constant BORROWER_EXIT_PERIMETER_OPS_SLOT =
+        bytes32(uint256(keccak256("sovryn.borrowerExitPerimeterOps")) - 1);
 
     /// @notice Read the pinned charge-hook address (address(0) until pinned).
     ///         Inlined `sload` against the caller's storage.
     function getBorrowerExitOps() internal view returns (address ops) {
-        bytes32 slot = COLFEE_BORROWER_EXIT_OPS_SLOT;
+        bytes32 slot = BORROWER_EXIT_PERIMETER_OPS_SLOT;
         assembly {
             ops := sload(slot)
         }
@@ -63,7 +64,7 @@ library PerimeterLib {
 
     /// @notice Write the charge-hook pointer (caller owns auth + the event).
     function setBorrowerExitOps(address ops) internal {
-        bytes32 slot = COLFEE_BORROWER_EXIT_OPS_SLOT;
+        bytes32 slot = BORROWER_EXIT_PERIMETER_OPS_SLOT;
         assembly {
             sstore(slot, ops)
         }

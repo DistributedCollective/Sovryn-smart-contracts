@@ -28,17 +28,17 @@ const FORK_URL = process.env.COLFEE_FORK_RPC || "https://mainnet-dev.sovryn.app/
 const forkBlock = (defaultBlock) =>
     process.env.COLFEE_FORK_BLOCK ? parseInt(process.env.COLFEE_FORK_BLOCK, 10) : defaultBlock;
 
-const SURFACE_LENDING_LENDER_WITHDRAW = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("COLFEE:SURFACE_LENDING_LENDER_WITHDRAW")
+const PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes("PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW")
 );
-const SURFACE_LENDING_BORROWER_WITHDRAW = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("COLFEE:SURFACE_LENDING_BORROWER_WITHDRAW")
+const PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes("PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW")
 );
-const SURFACE_ZERO_WITHDRAW_COLL = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("COLFEE:SURFACE_ZERO_WITHDRAW_COLL")
+const PERIMETER_SURFACE_ZERO_WITHDRAW_COLL = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes("PERIMETER_SURFACE_ZERO_WITHDRAW_COLL")
 );
-const SURFACE_ZERO_CLAIM_SURPLUS = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("COLFEE:SURFACE_ZERO_CLAIM_SURPLUS")
+const PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes("PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS")
 );
 
 const controllerFixture = require("./fixtures/ExitFeeController.json");
@@ -115,10 +115,10 @@ const deployPerimeterStack = async (deployerSigner, rateBps) => {
 
     await (await controller.setFeeReceiver(vault.address)).wait();
     for (const surfaceId of [
-        SURFACE_LENDING_LENDER_WITHDRAW,
-        SURFACE_LENDING_BORROWER_WITHDRAW,
-        SURFACE_ZERO_WITHDRAW_COLL,
-        SURFACE_ZERO_CLAIM_SURPLUS,
+        PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+        PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
+        PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
+        PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
     ]) {
         await (await controller.setSurfacePolicy(surfaceId, { active: true, rateBps })).wait();
     }
@@ -388,10 +388,10 @@ module.exports = {
     MAX_DURATION,
     FORK_URL,
     forkBlock,
-    SURFACE_LENDING_LENDER_WITHDRAW,
-    SURFACE_LENDING_BORROWER_WITHDRAW,
-    SURFACE_ZERO_WITHDRAW_COLL,
-    SURFACE_ZERO_CLAIM_SURPLUS,
+    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+    PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
+    PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
+    PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
     borrowerOperationsFixture,
     collSurplusPoolFixture,
     colFeeEventsInterface,

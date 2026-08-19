@@ -8,7 +8,7 @@
  * remaining collateral (`collateral - sourceTokenAmountUsed`) to the borrower.
  * Pre-fix that payout went through plain `_withdrawAsset` — uncharged — while
  * every equivalent route (`closeWithDeposit`, `returnTokenIsCollateral=true`,
- * `withdrawCollateral`) charges `SURFACE_LENDING_BORROWER_WITHDRAW`, letting a
+ * `withdrawCollateral`) charges `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW`, letting a
  * borrower extract the whole position equity fee-free.
  *
  * Post-fix the payout routes through `_withdrawAssetChargingExitFee` with the
@@ -72,8 +72,8 @@ const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25 * 10**13
 
-const SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
-    "COLFEE:SURFACE_LENDING_BORROWER_WITHDRAW"
+const PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
+    "PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW"
 );
 
 const REASON = { NONE: 0, INACTIVE: 1, DISABLED: 2, INVALID_QUOTE: 3 };
@@ -196,7 +196,9 @@ contract("Perimeter — LC-1 regression: _handleLoanTokenReturn excess collatera
                 (l) => l.args.asset.toLowerCase() === RBTC.address.toLowerCase()
             );
             expect(collateralLeg.length, "exactly one charge on the collateral leg").to.equal(1);
-            expect(collateralLeg[0].args.surfaceId).to.equal(SURFACE_LENDING_BORROWER_WITHDRAW);
+            expect(collateralLeg[0].args.surfaceId).to.equal(
+                PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW
+            );
             expect(collateralLeg[0].args.subProduct.toLowerCase()).to.equal(
                 loanToken.address.toLowerCase()
             );

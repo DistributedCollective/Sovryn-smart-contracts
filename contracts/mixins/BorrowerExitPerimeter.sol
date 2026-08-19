@@ -18,13 +18,13 @@ import "../utils/BorrowerExitPerimeterOps.sol";
 ///         BEFORE `BorrowerExitPerimeter`, so C3 linearization is preserved and no
 ///         storage layout shifts (both derive from the same shared `State`).
 contract BorrowerExitPerimeter is ModuleCommonFunctionalities, VaultController {
-    /// @dev The literal below is a deployed surface id: the controller
-    ///      already holds a rate policy keyed by this exact hash. Its old
-    ///      spelling is load-bearing — rewriting the string changes the id
-    ///      and the configured policy silently stops matching.
-    /// keccak256("COLFEE:SURFACE_LENDING_BORROWER_WITHDRAW")
-    bytes32 internal constant SURFACE_LENDING_BORROWER_WITHDRAW =
-        keccak256("COLFEE:SURFACE_LENDING_BORROWER_WITHDRAW");
+    /// @dev The literal is the surface id: its keccak hash is the key the
+    ///      controller resolves a rate policy under. Changing the string
+    ///      changes the id, so a policy must be configured against the new
+    ///      hash before this surface can charge.
+    /// keccak256("PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW")
+    bytes32 internal constant PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW =
+        keccak256("PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW");
 
     /// @notice Origin of a position close, threaded from the public entry
     ///         points to gate the exit fee. Only `VoluntaryClose` is
@@ -81,7 +81,7 @@ contract BorrowerExitPerimeter is ModuleCommonFunctionalities, VaultController {
             msg.sender,
             loanLocal.borrower,
             receiver,
-            SURFACE_LENDING_BORROWER_WITHDRAW,
+            PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
             loanLocal.lender
         );
         if (d == 0) return false; // queue untouched (liveness)
@@ -149,7 +149,7 @@ contract BorrowerExitPerimeter is ModuleCommonFunctionalities, VaultController {
         (bool ok, bytes memory ret) = PerimeterLib.getBorrowerExitOps().delegatecall(
             abi.encodeWithSelector(
                 BorrowerExitPerimeterOps(address(0)).chargeExitFeeAndPay.selector,
-                SURFACE_LENDING_BORROWER_WITHDRAW,
+                PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
                 subProduct,
                 receiver,
                 payoutAsset,

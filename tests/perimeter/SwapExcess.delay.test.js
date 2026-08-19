@@ -65,8 +65,8 @@ const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const ZERO = constants.ZERO_ADDRESS;
 const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25 * 10**13
-const SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
-    "COLFEE:SURFACE_LENDING_BORROWER_WITHDRAW"
+const PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
+    "PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW"
 );
 
 const MIN_DELAY = 60; // queue per-request floor (seconds)
@@ -197,7 +197,7 @@ contract("Perimeter delay — closeWithSwap excess-collateral refund", (accounts
             expect(excessReq.receiver.toLowerCase()).to.equal(owner.toLowerCase());
             expect(excessReq.owner.toLowerCase()).to.equal(owner.toLowerCase());
             expect(excessReq.originator.toLowerCase()).to.equal(owner.toLowerCase());
-            expect(excessReq.surfaceId).to.equal(SURFACE_LENDING_BORROWER_WITHDRAW);
+            expect(excessReq.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW);
             expect(excessReq.subProduct.toLowerCase()).to.equal(loanToken.address.toLowerCase());
             expect(excessReq.unwrapOnDelivery).to.equal(false);
             expect(excessReq.amount.toString()).to.equal(expectedExcess.toString());

@@ -2,7 +2,7 @@
  * Phase 3 / Task 3.1 — Borrower-exit (`LoanMaintenance.withdrawCollateral`)
  * Perimeter coverage.
  *
- * Surface: `SURFACE_LENDING_BORROWER_WITHDRAW`.
+ * Surface: `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW`.
  *
  * Scenarios (the first three mirror Phase 2 lender shape; the last two are
  * regression tests for Phase 3 review findings):
@@ -64,8 +64,8 @@ const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 const wei = web3.utils.toWei;
 const ZERO = constants.ZERO_ADDRESS;
 
-const SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
-    "COLFEE:SURFACE_LENDING_BORROWER_WITHDRAW"
+const PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
+    "PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW"
 );
 
 // SkipReason enum (from IExitFeeController):
@@ -207,8 +207,10 @@ contract("Perimeter — borrower-exit withdrawCollateral (Phase 3 / Task 3.1)", 
             expect(applied[0].args.feeAmount.toString()).to.equal(expectedFeeAmount.toString());
             expect(applied[0].args.netAmount.toString()).to.equal(expectedNet.toString());
             expect(applied[0].args.grossAmount.toString()).to.equal(withdrawAmount.toString());
-            // surface = SURFACE_LENDING_BORROWER_WITHDRAW
-            expect(applied[0].args.surfaceId).to.equal(SURFACE_LENDING_BORROWER_WITHDRAW);
+            // surface = PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW
+            expect(applied[0].args.surfaceId).to.equal(
+                PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW
+            );
 
             // Borrower received net, fee receiver received fee.
             const rbtcAfter = await RBTC.balanceOf(owner);

@@ -1,7 +1,7 @@
 /**
  * Security-perimeter delay — borrower/margin exit reroute
  * (`LoanMaintenance.withdrawCollateral`, surface
- * `SURFACE_LENDING_BORROWER_WITHDRAW`).
+ * `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW`).
  *
  * Proves the checkpoint's borrower/margin hook: when the perimeter
  * imposes a delay (`d > 0`), the (post-fee) user leg is PUSHED to the
@@ -64,8 +64,8 @@ const { increaseTime } = require("../Utils/Ethereum");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const ZERO = constants.ZERO_ADDRESS;
-const SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
-    "COLFEE:SURFACE_LENDING_BORROWER_WITHDRAW"
+const PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
+    "PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW"
 );
 
 const MIN_DELAY = 60; // queue per-request floor (seconds)
@@ -181,7 +181,7 @@ contract("Perimeter delay — borrower/margin exit reroute", (accounts) => {
             expect(req.receiver.toLowerCase()).to.equal(receiver.toLowerCase());
             expect(req.originator.toLowerCase()).to.equal(owner.toLowerCase());
             expect(req.owner.toLowerCase()).to.equal(owner.toLowerCase());
-            expect(req.surfaceId).to.equal(SURFACE_LENDING_BORROWER_WITHDRAW);
+            expect(req.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW);
             expect(req.subProduct.toLowerCase()).to.equal(loanToken.address.toLowerCase());
             expect(req.unwrapOnDelivery).to.equal(false);
 

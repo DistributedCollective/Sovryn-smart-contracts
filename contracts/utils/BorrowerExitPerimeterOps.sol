@@ -25,13 +25,13 @@ import "./PerimeterLib.sol";
 ///         direct (non-delegatecall) call runs against this contract's own
 ///         empty storage and it holds no funds, so it is an inert no-op.
 contract BorrowerExitPerimeterOps is VaultController, IPerimeterEvents {
-    /// @dev The literal below is a deployed surface id: the controller
-    ///      already holds a rate policy keyed by this exact hash. Its old
-    ///      spelling is load-bearing — rewriting the string changes the id
-    ///      and the configured policy silently stops matching.
-    /// keccak256("COLFEE:SURFACE_LENDING_BORROWER_WITHDRAW")
-    bytes32 internal constant SURFACE_LENDING_BORROWER_WITHDRAW =
-        keccak256("COLFEE:SURFACE_LENDING_BORROWER_WITHDRAW");
+    /// @dev The literal is the surface id: its keccak hash is the key the
+    ///      controller resolves a rate policy under. Changing the string
+    ///      changes the id, so a policy must be configured against the new
+    ///      hash before this surface can charge.
+    /// keccak256("PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW")
+    bytes32 internal constant PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW =
+        keccak256("PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW");
 
     /// @notice A resolved borrower-exit delay leg, bundled to keep the reroute
     ///         off the stack (0.5.17 stack-depth limit). `token == address(0)` is
@@ -185,7 +185,7 @@ contract BorrowerExitPerimeterOps is VaultController, IPerimeterEvents {
             IExitDelayQueueHook(leg.queue).recordReceivedNativeExit(
                 uint128(leg.toUser),
                 leg.d,
-                SURFACE_LENDING_BORROWER_WITHDRAW,
+                PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
                 leg.subProduct,
                 leg.effOrig,
                 leg.effOwner,
@@ -196,7 +196,7 @@ contract BorrowerExitPerimeterOps is VaultController, IPerimeterEvents {
                 leg.token,
                 uint128(leg.toUser),
                 leg.d,
-                SURFACE_LENDING_BORROWER_WITHDRAW,
+                PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
                 leg.subProduct,
                 leg.effOrig,
                 leg.effOwner,

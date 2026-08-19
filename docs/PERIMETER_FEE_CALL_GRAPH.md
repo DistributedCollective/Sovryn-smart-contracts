@@ -24,7 +24,7 @@ address, both pointing at the controller:
 | | iToken (lending pool) | sovrynProtocol (margin / loan) |
 |---|---|---|
 | User action that charges | `burn` / `burnToBTC` (lender redeem) | `closeWithSwap` / `closeWithDeposit` / `withdrawCollateral` (borrower exit) |
-| Surface id | `SURFACE_LENDING_LENDER_WITHDRAW` | `SURFACE_LENDING_BORROWER_WITHDRAW` |
+| Surface id | `PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW` | `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW` |
 | Charge implementation | **inline** in `LoanTokenLogicShared._chargeExitFeeAndPay` | **delegatecall** to `Perimeter FeeBorrowerExitOps` via the `_chargeExitFeeReturnNet` stub |
 | Admin getter/setter | `exitFeeController` view only — read-through to the protocol singleton (no iToken setter) | `exitFeeController` / `setExitFeeController` **and** `borrowerExitPerimeterOps` / `setPerimeter FeeBorrowerExitOps` on `ExitFeeModule`, `onlyOwner` — the single host for both protocol pointers |
 | Why the split | those modules were under 24 KiB | those modules were over EIP-170 → library |

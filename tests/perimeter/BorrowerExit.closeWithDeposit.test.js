@@ -2,7 +2,7 @@
  * Phase 3 / Task 3.2 — Borrower-exit (`LoanClosingsWith.closeWithDeposit`)
  * Perimeter coverage.
  *
- * Surface: `SURFACE_LENDING_BORROWER_WITHDRAW` (same as Task 3.1).
+ * Surface: `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW` (same as Task 3.1).
  *
  * Scenarios:
  *
@@ -56,8 +56,8 @@ const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const wei = web3.utils.toWei;
 
-const SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
-    "COLFEE:SURFACE_LENDING_BORROWER_WITHDRAW"
+const PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
+    "PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW"
 );
 
 const REASON = { NONE: 0, INACTIVE: 1, DISABLED: 2, INVALID_QUOTE: 3 };
@@ -192,7 +192,9 @@ contract("Perimeter — borrower-exit closeWithDeposit (Phase 3 / Task 3.2)", (a
             const skipped = findSkipped(tx.logs);
             expect(applied.length).to.equal(1);
             expect(skipped.length).to.equal(0);
-            expect(applied[0].args.surfaceId).to.equal(SURFACE_LENDING_BORROWER_WITHDRAW);
+            expect(applied[0].args.surfaceId).to.equal(
+                PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW
+            );
 
             const gross = new BN(applied[0].args.grossAmount);
             const fee = new BN(applied[0].args.feeAmount);

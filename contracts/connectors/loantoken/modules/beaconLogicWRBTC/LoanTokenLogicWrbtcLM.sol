@@ -73,7 +73,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         if (gross == 0) return;
 
         IExitFeeController.ExitFeeQuote memory q = _safeQuoteExitFee(
-            SURFACE_LENDING_LENDER_WITHDRAW,
+            PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
             address(this),
             msg.sender,
             gross
@@ -82,7 +82,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         if (q.active && q.feeAmount > 0) {
             if (!_exitFeeQuoteIsValid(q, gross)) {
                 emit ExitFeeSkipped(
-                    SURFACE_LENDING_LENDER_WITHDRAW,
+                    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                     msg.sender,
                     loanTokenAddress,
                     gross,
@@ -93,7 +93,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
                 bool feeOk = _transferNativeRBTC(q.feeReceiver, q.feeAmount, true);
                 if (feeOk) {
                     emit ExitFeeApplied(
-                        SURFACE_LENDING_LENDER_WITHDRAW,
+                        PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                         msg.sender,
                         loanTokenAddress,
                         address(this),
@@ -110,7 +110,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
                     return;
                 }
                 emit ExitFeeSkipped(
-                    SURFACE_LENDING_LENDER_WITHDRAW,
+                    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                     msg.sender,
                     loanTokenAddress,
                     gross,
@@ -120,7 +120,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
             }
         } else {
             emit ExitFeeSkipped(
-                SURFACE_LENDING_LENDER_WITHDRAW,
+                PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                 msg.sender,
                 loanTokenAddress,
                 gross,
@@ -152,7 +152,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
             msg.sender,
             msg.sender,
             receiver,
-            SURFACE_LENDING_LENDER_WITHDRAW,
+            PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
             address(this)
         );
 
@@ -172,7 +172,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
                 wrbtcTokenAddress,
                 uint128(userAmount),
                 d,
-                SURFACE_LENDING_LENDER_WITHDRAW,
+                PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                 address(this),
                 effOrig,
                 effOwner,

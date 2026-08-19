@@ -1,6 +1,6 @@
 /**
  * Security-perimeter delay — lender exit reroute
- * (`iToken.burn` / `iToken.burnToBTC`, surface `SURFACE_LENDING_LENDER_WITHDRAW`).
+ * (`iToken.burn` / `iToken.burnToBTC`, surface `PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW`).
  *
  * Proves the lending hook:
  *   - ERC20 burn, perimeter ON  -> the (post-fee) user leg is escrowed via the
@@ -53,8 +53,8 @@ const { increaseTime } = require("../Utils/Ethereum");
 
 const wei = web3.utils.toWei;
 const ZERO = "0x0000000000000000000000000000000000000000";
-const SURFACE_LENDING_LENDER_WITHDRAW = web3.utils.keccak256(
-    "COLFEE:SURFACE_LENDING_LENDER_WITHDRAW"
+const PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW = web3.utils.keccak256(
+    "PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW"
 );
 
 const MIN_DELAY = 60;

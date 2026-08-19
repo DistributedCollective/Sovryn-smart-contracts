@@ -1805,7 +1805,7 @@ const getArgsSip0094Part1 = async (hre) => {
      *  BO swap in the same atomic tx — HARD precondition (decided 2026-07-21):
      *  there is NO in-code fallback around the pool call, so the fee-active
      *  claimCollateral path needs the pool's claimCollWithFee selector live
-     *  strictly before any Safe activation of SURFACE_ZERO_CLAIM_SURPLUS;
+     *  strictly before any Safe activation of PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS;
      *  pool-side failures stay loud. */
     const poolImplRecord = await getOrNull("CollSurplusPoolPerimeter");
     const poolImplEnv = process.env.COLFEE_ZERO_COLL_SURPLUS_POOL;

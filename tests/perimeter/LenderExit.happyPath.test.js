@@ -51,8 +51,8 @@ const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const wei = web3.utils.toWei;
 
-const SURFACE_LENDING_LENDER_WITHDRAW = web3.utils.keccak256(
-    "COLFEE:SURFACE_LENDING_LENDER_WITHDRAW"
+const PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW = web3.utils.keccak256(
+    "PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW"
 );
 
 contract("Perimeter — lender-exit happy path (Phase 2 / Task 2.2)", (accounts) => {
@@ -231,7 +231,7 @@ contract("Perimeter — lender-exit happy path (Phase 2 / Task 2.2)", (accounts)
             // Event-metadata assertions — guard against selector/surface
             // wiring regressions (not just fee math). Once-per-suite for the
             // ERC20 burn path; the burnToBTC test does the same for native.
-            expect(ev.surfaceId, "surfaceId").to.equal(SURFACE_LENDING_LENDER_WITHDRAW);
+            expect(ev.surfaceId, "surfaceId").to.equal(PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW);
             expect(ev.actor.toLowerCase(), "actor = user EOA on direct call").to.equal(
                 user.toLowerCase()
             );
@@ -328,7 +328,7 @@ contract("Perimeter — lender-exit happy path (Phase 2 / Task 2.2)", (accounts)
             // the iSUSD surface-default test above, ensures the burnToBTC
             // beacon route still carries the right surfaceId / actor / asset
             // shape.
-            expect(ev.surfaceId, "surfaceId").to.equal(SURFACE_LENDING_LENDER_WITHDRAW);
+            expect(ev.surfaceId, "surfaceId").to.equal(PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW);
             expect(ev.actor.toLowerCase(), "actor = user EOA on direct burnToBTC").to.equal(
                 user.toLowerCase()
             );

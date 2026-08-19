@@ -48,10 +48,10 @@ const {
     ONE_RBTC,
     FORK_URL,
     forkBlock,
-    SURFACE_LENDING_LENDER_WITHDRAW,
-    SURFACE_LENDING_BORROWER_WITHDRAW,
-    SURFACE_ZERO_WITHDRAW_COLL,
-    SURFACE_ZERO_CLAIM_SURPLUS,
+    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+    PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
+    PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
+    PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
     borrowerOperationsFixture,
     collSurplusPoolFixture,
     colFeeEventsInterface,
@@ -620,7 +620,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
         receipt = await (await iRBTC.burnToBTC(deployer, burnQuarter, false)).wait();
         let applied = getSingleExitFeeApplied(receipt);
-        expect(applied.surfaceId).to.equal(SURFACE_LENDING_LENDER_WITHDRAW);
+        expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW);
         expect(applied.subProduct).to.equal(iRBTC.address);
         expect(applied.feeAmount).to.equal(applied.grossAmount.mul(RATE_BPS).div(TEN_K));
         expect(applied.grossAmount).to.equal(applied.feeAmount.add(applied.netAmount));
@@ -645,7 +645,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         const lenderXusdBeforeBurn = await xusd.balanceOf(deployer);
         receipt = await (await iXUSD["burn(address,uint256)"](deployer, iXusdBalance)).wait();
         applied = getSingleExitFeeApplied(receipt);
-        expect(applied.surfaceId).to.equal(SURFACE_LENDING_LENDER_WITHDRAW);
+        expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW);
         expect(applied.subProduct).to.equal(iXUSD.address);
         expect(applied.asset).to.equal(xusd.address);
         expect(applied.feeAmount.gt(0), "ERC20 fee leg actually charged").to.be.true;
@@ -668,7 +668,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
             await protocol.withdrawCollateral(loanId, deployer, withdrawProbe.mul(2))
         ).wait();
         applied = getSingleExitFeeApplied(receipt);
-        expect(applied.surfaceId).to.equal(SURFACE_LENDING_BORROWER_WITHDRAW);
+        expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW);
         expect(applied.subProduct).to.equal(iXUSD.address);
         expect(applied.feeAmount).to.equal(applied.grossAmount.mul(RATE_BPS).div(TEN_K));
         expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
@@ -683,7 +683,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
             await protocol.closeWithDeposit(loanId, deployer, borrowAmount.div(2))
         ).wait();
         applied = getSingleExitFeeApplied(receipt);
-        expect(applied.surfaceId).to.equal(SURFACE_LENDING_BORROWER_WITHDRAW);
+        expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW);
         expect(applied.feeAmount).to.equal(applied.grossAmount.mul(RATE_BPS).div(TEN_K));
         expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
             vaultRbtcBefore.add(applied.feeAmount)
@@ -761,7 +761,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
             (a) => a.asset.toLowerCase() === wrbtc.address.toLowerCase()
         );
         expect(excessLeg, "excess-collateral leg present").to.not.be.undefined;
-        expect(excessLeg.surfaceId).to.equal(SURFACE_LENDING_BORROWER_WITHDRAW);
+        expect(excessLeg.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW);
         expect(excessLeg.subProduct).to.equal(iXUSD.address);
         expect(excessLeg.grossAmount).to.equal(loan2.collateral.sub(swapAmount2));
         expect(excessLeg.feeAmount).to.equal(excessLeg.grossAmount.mul(RATE_BPS).div(TEN_K));
@@ -795,7 +795,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         ).wait();
         expect((await protocol.getLoan(loanId3)).principal, "loan 3 fully closed").to.equal(0);
         applied = getSingleExitFeeApplied(receipt);
-        expect(applied.surfaceId).to.equal(SURFACE_LENDING_BORROWER_WITHDRAW);
+        expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW);
         expect(applied.subProduct).to.equal(iXUSD.address);
         expect(applied.asset.toLowerCase(), "residual paid in the COLLATERAL token").to.equal(
             wrbtc.address.toLowerCase()
@@ -817,7 +817,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         ).wait();
         gasCost = receipt.gasUsed.mul(receipt.effectiveGasPrice);
         applied = getSingleExitFeeApplied(receipt);
-        expect(applied.surfaceId).to.equal(SURFACE_ZERO_WITHDRAW_COLL);
+        expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_ZERO_WITHDRAW_COLL);
         expect(applied.actor).to.equal(funder.address);
         expect(applied.grossAmount).to.equal(probe);
         expect(applied.feeAmount).to.equal(probe.mul(RATE_BPS).div(TEN_K));
@@ -853,7 +853,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         receipt = await (await borrowerOperations.connect(closer).closeTrove()).wait();
         gasCost = receipt.gasUsed.mul(receipt.effectiveGasPrice);
         applied = getSingleExitFeeApplied(receipt);
-        expect(applied.surfaceId).to.equal(SURFACE_ZERO_WITHDRAW_COLL);
+        expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_ZERO_WITHDRAW_COLL);
         expect(applied.grossAmount).to.equal(ONE_RBTC.mul(2)); // full trove collateral
         expect(applied.feeAmount).to.equal(applied.grossAmount.mul(RATE_BPS).div(TEN_K));
         expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
@@ -1009,7 +1009,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
         expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(vaultRbtcBefore);
 
-        // ── 2f) Zero surplus claim (SURFACE_ZERO_CLAIM_SURPLUS) — a CHARGED
+        // ── 2f) Zero surplus claim (PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS) — a CHARGED
         //     probe, placed after 3e because it reuses the redemption
         //     plumbing. A FULL redemption of a deterministic probe trove
         //     leaves its owner a collateral surplus in the (part-1-upgraded)
@@ -1113,7 +1113,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         receipt = await (await borrowerOperations.connect(surplusVictim).claimCollateral()).wait();
         gasCost = receipt.gasUsed.mul(receipt.effectiveGasPrice);
         applied = getSingleExitFeeApplied(receipt);
-        expect(applied.surfaceId).to.equal(SURFACE_ZERO_CLAIM_SURPLUS);
+        expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS);
         expect(applied.actor).to.equal(surplusVictim.address);
         expect(applied.grossAmount).to.equal(surplusGross);
         expect(applied.feeAmount).to.equal(surplusGross.mul(RATE_BPS).div(TEN_K));

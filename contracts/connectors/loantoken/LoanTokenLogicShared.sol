@@ -25,13 +25,13 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
     /// Perimeter keeps no state on the iToken; the controller is read from the
     /// protocol below.
 
-    /// @dev The literal below is a deployed surface id: the controller
-    ///      already holds a rate policy keyed by this exact hash. Its old
-    ///      spelling is load-bearing — rewriting the string changes the id
-    ///      and the configured policy silently stops matching.
-    /// keccak256("COLFEE:SURFACE_LENDING_LENDER_WITHDRAW")
-    bytes32 internal constant SURFACE_LENDING_LENDER_WITHDRAW =
-        keccak256("COLFEE:SURFACE_LENDING_LENDER_WITHDRAW");
+    /// @dev The literal is the surface id: its keccak hash is the key the
+    ///      controller resolves a rate policy under. Changing the string
+    ///      changes the id, so a policy must be configured against the new
+    ///      hash before this surface can charge.
+    /// keccak256("PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW")
+    bytes32 internal constant PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW =
+        keccak256("PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW");
 
     /// @notice The ExitFeeController, read from the protocol via a fail-open
     ///         staticcall (zero until pinned — the burn then skips the fee).
@@ -112,7 +112,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
             msg.sender,
             msg.sender,
             receiver,
-            SURFACE_LENDING_LENDER_WITHDRAW,
+            PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
             address(this)
         );
 
@@ -138,7 +138,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
                 loanTokenAddress,
                 uint128(userAmount),
                 d,
-                SURFACE_LENDING_LENDER_WITHDRAW,
+                PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                 address(this),
                 effOrig,
                 effOwner,
@@ -187,7 +187,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
         if (gross == 0) return;
 
         IExitFeeController.ExitFeeQuote memory q = _safeQuoteExitFee(
-            SURFACE_LENDING_LENDER_WITHDRAW,
+            PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
             address(this),
             msg.sender,
             gross
@@ -198,7 +198,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
                 // Trust-but-verify: controller said charge but quote is bogus.
                 // Skip the fee leg, pay full gross, advertise the reason.
                 emit ExitFeeSkipped(
-                    SURFACE_LENDING_LENDER_WITHDRAW,
+                    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                     msg.sender,
                     loanTokenAddress,
                     gross,
@@ -209,7 +209,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
                 bool feeOk = _transferUnderlyingToken(q.feeReceiver, q.feeAmount, true, "");
                 if (feeOk) {
                     emit ExitFeeApplied(
-                        SURFACE_LENDING_LENDER_WITHDRAW,
+                        PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                         msg.sender,
                         loanTokenAddress,
                         address(this),
@@ -225,7 +225,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
                     return;
                 }
                 emit ExitFeeSkipped(
-                    SURFACE_LENDING_LENDER_WITHDRAW,
+                    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                     msg.sender,
                     loanTokenAddress,
                     gross,
@@ -235,7 +235,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
             }
         } else {
             emit ExitFeeSkipped(
-                SURFACE_LENDING_LENDER_WITHDRAW,
+                PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                 msg.sender,
                 loanTokenAddress,
                 gross,

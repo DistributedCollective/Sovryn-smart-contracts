@@ -60,8 +60,8 @@ const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const wei = web3.utils.toWei;
 
-const SURFACE_LENDING_LENDER_WITHDRAW = web3.utils.keccak256(
-    "COLFEE:SURFACE_LENDING_LENDER_WITHDRAW"
+const PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW = web3.utils.keccak256(
+    "PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW"
 );
 
 const APPLIED_TOPIC = web3.utils.keccak256(
@@ -218,7 +218,7 @@ contract("Perimeter — 3rd-party wrapper actor-attribution (Phase 2 / Task 2.3)
             expect(skipped.length, "no skip on the happy path").to.equal(0);
 
             const ev = applied[0].args;
-            expect(ev.surfaceId).to.equal(SURFACE_LENDING_LENDER_WITHDRAW);
+            expect(ev.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW);
             expect(ev.actor.toLowerCase()).to.equal(user.toLowerCase());
             expect(ev.recipient.toLowerCase()).to.equal(user.toLowerCase());
             expect(ev.subProduct.toLowerCase()).to.equal(loanToken.address.toLowerCase());
@@ -252,7 +252,7 @@ contract("Perimeter — 3rd-party wrapper actor-attribution (Phase 2 / Task 2.3)
             expect(applied.length, "exactly one ExitFeeApplied per wrapper call").to.equal(1);
 
             const ev = applied[0];
-            expect(ev.surfaceId).to.equal(SURFACE_LENDING_LENDER_WITHDRAW);
+            expect(ev.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW);
 
             // actor follows msg.sender — that's the wrapper, not the user EOA.
             expect(ev.actor.toLowerCase()).to.equal(wrapper.address.toLowerCase());
