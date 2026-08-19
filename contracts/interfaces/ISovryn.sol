@@ -18,7 +18,7 @@ import "../events/FeesEvents.sol";
 import "../events/SwapsEvents.sol";
 import "../events/AffiliatesEvents.sol";
 import "../connectors/loantoken/lib/MarginTradeStructHelpers.sol";
-import "./colfee/IColFeeEvents.sol";
+import "./perimeter/IPerimeterEvents.sol";
 
 contract ISovryn is
     State,
@@ -30,7 +30,7 @@ contract ISovryn is
     SwapsEvents,
     AffiliatesEvents,
     FeesEvents,
-    IColFeeEvents
+    IPerimeterEvents
 {
     /// Triggered whenever interest is paid to lender.
     event PayInterestTransfer(
@@ -269,15 +269,15 @@ contract ISovryn is
         bytes calldata loanDataBytes
     ) external returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken);
 
-    ////// ColFee — controller + charge-hook pointer admin //////
+    ////// Perimeter — controller + charge-hook pointer admin //////
 
     function exitFeeController() external view returns (address);
 
     function setExitFeeController(address ctrl) external;
 
-    function colFeeBorrowerExitOps() external view returns (address);
+    function borrowerExitPerimeterOps() external view returns (address);
 
-    function setColFeeBorrowerExitOps(address ops) external;
+    function setBorrowerExitPerimeterOps(address ops) external;
 
     function exitDelayQueue() external view returns (address);
 

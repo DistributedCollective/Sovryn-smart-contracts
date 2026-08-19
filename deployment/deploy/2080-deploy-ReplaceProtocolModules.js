@@ -71,16 +71,16 @@ const func = async function (hre) {
         }
     }
 
-    // Pin the borrower-exit charge hook (ColFeeBorrowerExitOps) on the proxy.
+    // Pin the borrower-exit charge hook (BorrowerExitPerimeterOps) on the proxy.
     // onlyOwner — on testnet/mainnet this must be bundled into the same
     // multisig/SIP that registers ExitFeeModule (the setter selector only
     // becomes reachable once ExitFeeModule is registered above); locally we
     // call it directly. Until it is set, borrower exits fail-open to full gross.
-    const opsDeployment = await get("ColFeeBorrowerExitOps");
+    const opsDeployment = await get("BorrowerExitPerimeterOps");
     if (hre.network.tags["testnet"] || hre.network.tags["mainnet"]) {
         log(
             col.bgBlue(
-                `>>> Governance must also call setColFeeBorrowerExitOps(${opsDeployment.address}) <<<`
+                `>>> Governance must also call setBorrowerExitPerimeterOps(${opsDeployment.address}) <<<`
             )
         );
     } else {
@@ -90,12 +90,12 @@ const func = async function (hre) {
             exitFeeModuleDeployment.abi,
             (await ethers.getSigners())[0]
         );
-        if ((await proxyAsExitFee.colFeeBorrowerExitOps()) != opsDeployment.address) {
-            await proxyAsExitFee.setColFeeBorrowerExitOps(opsDeployment.address);
-            log(col.bgYellow(`Pinned ColFeeBorrowerExitOps: ${opsDeployment.address}`));
+        if ((await proxyAsExitFee.borrowerExitPerimeterOps()) != opsDeployment.address) {
+            await proxyAsExitFee.setBorrowerExitPerimeterOps(opsDeployment.address);
+            log(col.bgYellow(`Pinned BorrowerExitPerimeterOps: ${opsDeployment.address}`));
         }
     }
 };
 func.tags = ["ReplaceProtocolModules"]; // getContractNameFromScriptFileName(path.basename(__filename))
-func.dependencies = ["ProtocolModules", "ColFeeBorrowerExitOps"];
+func.dependencies = ["ProtocolModules", "BorrowerExitPerimeterOps"];
 module.exports = func;

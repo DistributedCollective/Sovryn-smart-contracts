@@ -8,7 +8,7 @@ import "../openzeppelin/SafeMath.sol";
  * @notice A deliberately NON-STANDARD ERC20 whose `approve`, `transfer` and
  *         `transferFrom` return NOTHING (no `bool`), mirroring USDT and other
  *         "weird" mainnet tokens. It exists solely to regression-test that the
- *         ColFee delayed-exit path (`_safeApprove` / the queue's safe pull)
+ *         Perimeter delayed-exit path (`_safeApprove` / the queue's safe pull)
  *         tolerates no-return underlyings — a raw high-level `.approve()` /
  *         `.transferFrom()` would revert on decode against these signatures.
  *

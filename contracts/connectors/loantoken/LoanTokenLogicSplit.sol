@@ -16,7 +16,7 @@ import "./LoanTokenLogicShared.sol";
  *         LiquidityMining variants and the internal mint/burn helpers
  *         (`_mintToken`, `_prepareMinting`, `_burnToken`, `_mintWithLM`,
  *         `_burnFromLM`). iTokens represent a share of the lending pool and
- *         accrue interest over time. On burn, the lender-exit ColFee is
+ *         accrue interest over time. On burn, the lender-exit Perimeter is
  *         applied.
  *
  * @dev Carved out from its ERC20/transfer sibling `LoanTokenLogicStandard` so
@@ -65,7 +65,7 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
      * @param receiver The account getting the minted tokens.
      * @param burnAmount The amount of loan tokens to redeem.
      *
-     * @return The GROSS amount of underlying tokens redeemed. When a ColFee
+     * @return The GROSS amount of underlying tokens redeemed. When a Perimeter
      *         exit-fee policy is active the receiver is paid this amount minus
      *         the fee (the split is published in `ExitFeeApplied`) — do not
      *         treat the return value as the amount received.
@@ -76,7 +76,7 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
     ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
         loanAmountPaid = _burnToken(burnAmount);
 
-        // ColFee: charge the fee and pay the user the underlying ERC20.
+        // Perimeter: charge the fee and pay the user the underlying ERC20.
         // "5" is the user-leg revert reason.
         _chargeExitFeeAndPay(receiver, loanAmountPaid, "5");
     }

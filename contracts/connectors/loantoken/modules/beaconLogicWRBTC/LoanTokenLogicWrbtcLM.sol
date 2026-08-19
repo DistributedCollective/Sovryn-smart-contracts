@@ -4,7 +4,7 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../LoanTokenLogicSplit.sol";
-import "../../../../interfaces/colfee/IExitDelayQueueHook.sol";
+import "../../../../interfaces/perimeter/IExitDelayQueueHook.sol";
 
 contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
     /**
@@ -34,7 +34,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         res[2] = this.mintWithBTC.selector;
         res[3] = this.burnToBTC.selector;
 
-        // ColFee controller view. Manual keccak256 for selector stability
+        // Perimeter controller view. Manual keccak256 for selector stability
         // under overloaded names.
         res[4] = bytes4(keccak256("exitFeeController()"));
 
@@ -53,7 +53,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
     }
 
     /// @return loanAmountPaid The GROSS amount of underlying redeemed (paid out
-    ///         as native RBTC). When a ColFee exit-fee policy is active the
+    ///         as native RBTC). When a Perimeter exit-fee policy is active the
     ///         receiver is paid this amount minus the fee (split published in
     ///         `ExitFeeApplied`) — do not treat the return value as the amount
     ///         received.
@@ -63,11 +63,11 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         bool useLM
     ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
         loanAmountPaid = useLM ? _burnFromLM(burnAmount) : _burnToken(burnAmount);
-        // ColFee: native-RBTC payout path (charge + unwrap + send).
+        // Perimeter: native-RBTC payout path (charge + unwrap + send).
         _chargeExitFeeAndPayAsNative(receiver, loanAmountPaid);
     }
 
-    /// @notice ColFee charge for the native-RBTC burn path: every leg pays out
+    /// @notice Perimeter charge for the native-RBTC burn path: every leg pays out
     ///         as native RBTC via `_transferNativeRBTC`.
     function _chargeExitFeeAndPayAsNative(address receiver, uint256 gross) internal {
         if (gross == 0) return;
@@ -157,9 +157,9 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         );
 
         if (d > 0) {
-            require(userAmount <= uint256(uint128(-1)), "COLFEE:amount-too-large");
+            require(userAmount <= uint256(uint128(-1)), "PERIMETER:amount-too-large");
             address queue = exitDelayQueue();
-            require(queue != address(0), "COLFEE:queue-unset");
+            require(queue != address(0), "PERIMETER:queue-unset");
             // Escrow WRBTC (NOT native): the iToken hands the queue WRBTC + the
             // unwrap flag; the queue unwraps to native RBTC at executeExit. No
             // `_transferNativeRBTC` on this delayed user leg. Use the shared

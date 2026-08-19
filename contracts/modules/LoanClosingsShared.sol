@@ -12,7 +12,7 @@ import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 import "../mixins/RewardHelper.sol";
-import "../mixins/ColFeeBorrowerExit.sol";
+import "../mixins/BorrowerExitPerimeter.sol";
 import "../interfaces/ILoanTokenModules.sol";
 
 interface IFeeSharingCollector {
@@ -31,7 +31,7 @@ contract LoanClosingsShared is
     InterestUser,
     SwapsUser,
     RewardHelper,
-    ColFeeBorrowerExit
+    BorrowerExitPerimeter
 {
     uint256 internal constant MONTH = 365 days / 12;
     //0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
@@ -775,7 +775,7 @@ contract LoanClosingsShared is
 
         // Withdraw to receiver
         if (withdrawAmount != 0) {
-            // ColFee: charge the borrower-exit fee on the post-swap residual.
+            // Perimeter: charge the borrower-exit fee on the post-swap residual.
             _payoutBorrowerExit(
                 params.origin,
                 loanLocal,

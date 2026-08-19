@@ -6,10 +6,10 @@ import "./TestToken.sol";
 ///         for blocked recipients, so a single transfer leg can be failed
 ///         while every other transfer in the same flow succeeds.
 ///
-///         Built for the ColFee VAULT_REVERT fee-leg tests: block the
+///         Built for the Perimeter VAULT_REVERT fee-leg tests: block the
 ///         feeReceiver and the fee-leg primitive's length-gated bool decode
 ///         (`LoanTokenLogicShared._transferUnderlyingToken(nonBlocking=true)`
-///         on the iToken side, `ColFeeBorrowerExitOps._payExitFeeLeg` ERC20
+///         on the iToken side, `BorrowerExitPerimeterOps._payExitFeeLeg` ERC20
 ///         branch on the protocol side) must report failure and fall back to a
 ///         full-gross user payout — without reverting the exit.
 contract TestTokenBlockedRecipient is TestToken {

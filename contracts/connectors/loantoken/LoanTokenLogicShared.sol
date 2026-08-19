@@ -9,22 +9,26 @@ import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 import "../../farm/ILiquidityMining.sol";
 import "../../governance/Staking/interfaces/IStaking.sol";
 import "../../governance/Vesting/IVesting.sol";
-import "../../interfaces/colfee/IExitFeeController.sol";
-import "../../interfaces/colfee/IExitDelayQueueHook.sol";
-import "../../interfaces/colfee/IColFeeEvents.sol";
-import "../../utils/ColFeeLib.sol";
+import "../../interfaces/perimeter/IExitFeeController.sol";
+import "../../interfaces/perimeter/IExitDelayQueueHook.sol";
+import "../../interfaces/perimeter/IPerimeterEvents.sol";
+import "../../utils/PerimeterLib.sol";
 
 /**
  * @dev This contract shares functions used by both LoanTokenLogicSplit and LoanTokenLogicStandard
  */
-contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
+contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
     using SafeMath for uint256;
     using SignedSafeMath for int256;
 
     /// DON'T ADD VARIABLES HERE, PLEASE
-    /// ColFee keeps no state on the iToken; the controller is read from the
+    /// Perimeter keeps no state on the iToken; the controller is read from the
     /// protocol below.
 
+    /// @dev The literal below is a deployed surface id: the controller
+    ///      already holds a rate policy keyed by this exact hash. Its old
+    ///      spelling is load-bearing — rewriting the string changes the id
+    ///      and the configured policy silently stops matching.
     /// keccak256("COLFEE:SURFACE_LENDING_LENDER_WITHDRAW")
     bytes32 internal constant SURFACE_LENDING_LENDER_WITHDRAW =
         keccak256("COLFEE:SURFACE_LENDING_LENDER_WITHDRAW");
@@ -33,7 +37,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
     ///         staticcall (zero until pinned — the burn then skips the fee).
     /// @return ctrl ExitFeeController address, or address(0).
     function exitFeeController() public view returns (address ctrl) {
-        return ColFeeLib.safeControllerLookup(sovrynContractAddress);
+        return PerimeterLib.safeControllerLookup(sovrynContractAddress);
     }
 
     /// @notice The ExitDelayQueue, read from the protocol singleton via a
@@ -43,7 +47,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
     ///         every iToken reads through, so rotation is one Owner/SIP action.
     /// @return queue ExitDelayQueue address, or address(0).
     function exitDelayQueue() public view returns (address queue) {
-        return ColFeeLib.safeQueueLookup(sovrynContractAddress);
+        return PerimeterLib.safeQueueLookup(sovrynContractAddress);
     }
 
     /// @notice Fail-CLOSED delay quote for the lender-exit surface. A
@@ -57,7 +61,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
         address subProduct
     ) internal view returns (uint32 d, address effOrig, address effOwner) {
         return
-            ColFeeLib.safeQuoteDelay(
+            PerimeterLib.safeQuoteDelay(
                 exitFeeController(),
                 rawOriginator,
                 owner,
@@ -81,7 +85,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
     ///
     ///         Fail-open POINTER / fail-closed QUOTE split: the
     ///         controller-pointer read behind `_safeQuoteExitDelay`
-    ///         (`exitFeeController()` → `ColFeeLib.safeControllerLookup`) is
+    ///         (`exitFeeController()` → `PerimeterLib.safeControllerLookup`) is
     ///         FAIL-OPEN — an unset/unreachable pointer resolves to address(0),
     ///         yields `d == 0`, and pays direct (a missing pointer silently
     ///         disables the perimeter for this host rather than bricking the
@@ -89,7 +93,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
     ///         reachable the QUOTE stays FAIL-CLOSED: a reverting
     ///         `quoteExitDelayFor` reverts the whole exit, so an active
     ///         perimeter can never be bypassed. Accepted residual + monitoring:
-    ///         see `ColFeeLib.safeControllerLookup`.
+    ///         see `PerimeterLib.safeControllerLookup`.
     /// @param receiver   Immutable payout destination (the burn's `receiver` arg).
     /// @param userAmount Net on fee-success, full gross on fee-failure.
     /// @param errorMsg   Revert reason for the direct fail-closed transfer.
@@ -116,9 +120,9 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
             // fail-CLOSED escrow. Only now — with the delay path active — do we
             // touch the queue. Narrow guard is the caller's responsibility;
             // enforce it here before any escrow accounting.
-            require(userAmount <= uint256(uint128(-1)), "COLFEE:amount-too-large");
+            require(userAmount <= uint256(uint128(-1)), "PERIMETER:amount-too-large");
             address queue = exitDelayQueue();
-            require(queue != address(0), "COLFEE:queue-unset");
+            require(queue != address(0), "PERIMETER:queue-unset");
             // Pull path: approve the queue for exactly `userAmount`, then it
             // `safeTransferFrom`s and proves the received amount == amount.
             // Optional-return approve: `loanTokenAddress` is the iToken
@@ -156,20 +160,20 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
         address actor,
         uint256 gross
     ) internal view returns (IExitFeeController.ExitFeeQuote memory q) {
-        return ColFeeLib.safeQuote(exitFeeController(), surfaceId, subProduct, actor, gross);
+        return PerimeterLib.safeQuote(exitFeeController(), surfaceId, subProduct, actor, gross);
     }
 
     /// @dev Defensive sanity-check on a quote returned by the (upgradable,
     ///      external) controller. Delegates to the shared invariant set in
-    ///      `ColFeeLib.quoteIsValid`; failure routes to INVALID_QUOTE.
+    ///      `PerimeterLib.quoteIsValid`; failure routes to INVALID_QUOTE.
     function _exitFeeQuoteIsValid(
         IExitFeeController.ExitFeeQuote memory q,
         uint256 gross
     ) internal pure returns (bool) {
-        return ColFeeLib.quoteIsValid(q, gross);
+        return PerimeterLib.quoteIsValid(q, gross);
     }
 
-    /// @notice Single ColFee-aware payout entry point for lender burn variants.
+    /// @notice Single Perimeter-aware payout entry point for lender burn variants.
     ///         Charges (when policy active + non-zero fee AND the quote passes
     ///         defensive invariants) by transferring the fee leg to
     ///         `q.feeReceiver` (fail-open via nonBlocking=true) and the user
@@ -245,7 +249,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
         _payExitUserLeg(receiver, gross, errorMsg);
     }
 
-    /// @notice ERC20 transfer of `loanTokenAddress` shared by both ColFee legs.
+    /// @notice ERC20 transfer of `loanTokenAddress` shared by both Perimeter legs.
     ///         nonBlocking=true  → returns false on any failure (fee leg).
     ///         nonBlocking=false → reverts via `_safeTransfer` with `errorMsg`
     ///                              (user leg); `errorMsg` is the caller's own
@@ -613,7 +617,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
      * queue pulls EXACTLY the approved amount, returning the allowance to 0), so
      * the reset is defensive; the `allowance != 0` guard skips the extra SSTORE
      * in the common zero-residual case. Fail-closed is preserved: a returned
-     * `false` from either approve reverts here (COLFEE:approve-failed), and a
+     * `false` from either approve reverts here (PERIMETER:approve-failed), and a
      * silently-failed approve still surfaces as the queue's `safeTransferFrom`
      * revert on the pull.
      *
@@ -626,13 +630,13 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
             _callOptionalReturn(
                 token,
                 abi.encodeWithSelector(IERC20(token).approve.selector, spender, 0),
-                "COLFEE:approve-failed"
+                "PERIMETER:approve-failed"
             );
         }
         _callOptionalReturn(
             token,
             abi.encodeWithSelector(IERC20(token).approve.selector, spender, amount),
-            "COLFEE:approve-failed"
+            "PERIMETER:approve-failed"
         );
     }
 

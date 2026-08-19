@@ -183,7 +183,7 @@ contract LoanClosingsWith is LoanClosingsCharged {
         if (withdrawAmount != 0) {
             loanLocal.collateral = loanLocal.collateral.sub(withdrawAmount);
 
-            // ColFee: charge the borrower-exit fee on the residual.
+            // Perimeter: charge the borrower-exit fee on the residual.
             _payoutBorrowerExit(
                 origin,
                 loanLocal,
