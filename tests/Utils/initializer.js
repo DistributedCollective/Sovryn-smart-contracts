@@ -17,6 +17,8 @@ const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
+const LoanClosingsWithSwap = artifacts.require("LoanClosingsWithSwap");
+const LoanMaintenanceViews = artifacts.require("LoanMaintenanceViews");
 const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
 const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const ExitFeeModule = artifacts.require("ExitFeeModule");
@@ -256,15 +258,24 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
     const sovryn = await ISovryn.at(sovrynproxy.address);
 
     /** Deploy SwapsImplSovrynSwapLib */
-    try {
-        const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await LoanMaintenance.link(swapsImplSovrynSwapLib);
-        await SwapsExternal.link(swapsImplSovrynSwapLib);
-        await LoanClosingsWith.link(swapsImplSovrynSwapLib);
-        await LoanClosingsRollover.link(swapsImplSovrynSwapLib);
-        await SwapsImplSovrynSwapModule.link(swapsImplSovrynSwapLib);
-        await LoanOpenings.link(swapsImplSovrynSwapLib);
-    } catch (err) {}
+    // Each link is guarded separately. A module that does not reference the
+    // library throws here, and a single shared try/catch would swallow that and
+    // silently skip every link after it — leaving a later module unlinked and
+    // failing far from the cause.
+    const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
+    for (const artifact of [
+        LoanMaintenance,
+        SwapsExternal,
+        LoanClosingsWith,
+        LoanClosingsWithSwap,
+        LoanClosingsRollover,
+        SwapsImplSovrynSwapModule,
+        LoanOpenings,
+    ]) {
+        try {
+            await artifact.link(swapsImplSovrynSwapLib);
+        } catch (err) {}
+    }
 
     await sovryn.replaceContract((await ProtocolSettings.new()).address);
     await sovryn.replaceContract((await LoanSettings.new()).address);
@@ -289,6 +300,8 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
 
     // loanClosing
     await sovryn.replaceContract((await LoanClosingsWith.new()).address);
+    await sovryn.replaceContract((await LoanClosingsWithSwap.new()).address);
+    await sovryn.replaceContract((await LoanMaintenanceViews.new()).address);
     await sovryn.replaceContract((await LoanClosingsLiquidation.new()).address);
     await sovryn.replaceContract((await LoanClosingsRollover.new()).address);
     // Perimeter admin module (the protocol-singleton controller + charge-hook pointers)
