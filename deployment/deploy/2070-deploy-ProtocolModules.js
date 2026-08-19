@@ -41,6 +41,11 @@ const func = async function (hre) {
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
             requireSwapsImplSovrynSwapLib: true,
         },
+        LoanClosingsWithSwap: {
+            moduleName: "LoanClosingsWithSwap",
+            sampleFunction: "closeWithSwap(bytes32,address,uint256,bool,bytes)",
+            requireSwapsImplSovrynSwapLib: true,
+        },
         // Perimeter admin module: the protocol-singleton controller pointer
         // (exitFeeController / setExitFeeController). UIs quote fees via
         // eth_call of the live exits — no on-chain previews.
@@ -55,8 +60,14 @@ const func = async function (hre) {
         // there are no on-chain preview selectors anywhere in the release.
         LoanMaintenance: {
             moduleName: "LoanMaintenance",
-            sampleFunction: "getActiveLoans(uint256,uint256,bool)",
+            sampleFunction: "withdrawCollateral(bytes32,address,uint256)",
             requireSwapsImplSovrynSwapLib: true,
+        },
+        LoanMaintenanceViews: {
+            moduleName: "LoanMaintenanceViews",
+            sampleFunction: "getActiveLoans(uint256,uint256,bool)",
+            // read-only: no swap path, so no library to link.
+            requireSwapsImplSovrynSwapLib: false,
         },
         /*LoanOpenings: {
             moduleName: "LoanOpenings",
