@@ -2270,6 +2270,575 @@ const getArgsSip0094Part3 = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
+/**
+ * Perimeter aggregate release — shared input resolution.
+ *
+ * The controller, the vault behind it and the ExitDelayQueue are deployed from
+ * the `Sovryn-perimeter` repo (Foundry, 0.8.20, Exchequer-owned) — their
+ * addresses are INPUTS to these proposals, not deployments of this repo. Same
+ * for the two Zero implementations and the Zero settlement companion, which are
+ * built in `zero-contracts`. Resolution order per input:
+ *   1. a hardhat-deploy record of the given name (the fork tests save one after
+ *      deploying the stack in their setup);
+ *   2. the given env var (mainnet proposal creation).
+ * A record and an env var that disagree is an error, not a silent preference:
+ * a stale record must never shadow the address the operator exported.
+ *
+ * The env vars are deliberately `PERIMETER_*` while the frozen SIP-0094
+ * builders read `COLFEE_*`. The two release shapes are alternatives that are
+ * never run together, and separate names mean a shell still holding one
+ * shape's inputs fails loudly rather than half-resolving the other.
+ */
+const resolvePerimeterInput = async (hre, recordName, envVar, label) => {
+    const {
+        ethers,
+        deployments: { getOrNull },
+    } = hre;
+    const record = await getOrNull(recordName);
+    const envAddress = process.env[envVar];
+    if (record && envAddress && record.address.toLowerCase() !== envAddress.toLowerCase()) {
+        throw new Error(
+            `Perimeter: ${recordName} record (${record.address}) and ${envVar} (${envAddress}) ` +
+                "disagree. Remove one — a stale record must not override the address you exported."
+        );
+    }
+    const address = record ? record.address : envAddress;
+    if (!address || !ethers.utils.isAddress(address)) {
+        throw new Error(
+            `Perimeter: ${label} address unresolved. Save a '${recordName}' deployment record or ` +
+                `set ${envVar}=<address>.`
+        );
+    }
+    if ((await ethers.provider.getCode(address)) === "0x") {
+        throw new Error(`Perimeter: no contract code at ${label} address ${address}`);
+    }
+    await assertPerimeterCodehash(hre, address, envVar, label);
+    return address;
+};
+
+/**
+ * Perimeter aggregate release (shape B) — the whole security perimeter, fee and
+ * delay together, in ONE release instead of Phase 1 followed by Phase 2.
+ *
+ * WHY IT IS CHEAPER THAN IT LOOKS. Sequenced, every protocol module is
+ * deployed and registered twice (the delay changes all of them again), Zero's
+ * BorrowerOperations and CollSurplusPool are each upgraded twice, and the
+ * surface-id rename becomes a live migration. Aggregated, each of those happens
+ * once and the rename is ordinary setup on a controller nothing points at yet.
+ *
+ * WHAT IS AND IS NOT A PROPOSAL ACTION. Only the contracts governance owns need
+ * a proposal — the beacons, the protocol modules and pointers, the two Zero
+ * proxies, and the treasury legs, all TimelockOwner-owned. The controller,
+ * vault and queue are Exchequer-owned, so every rate, delay, bypass, recovery
+ * route and allowed source is a Safe transaction and never touches the
+ * ten-action budget. In particular the queue's `addAllowedSource` for the
+ * protocol and the Zero ActivePool, and `setSecurityPerimeterEnabled(true)`
+ * itself, are Safe actions that follow these proposals.
+ *
+ * ACTION LEDGER — 18 owner-governor actions across two parts, plus one
+ * admin-governor action:
+ *
+ * Part 1 (GovernorOwner, 10 actions — at the cap):
+ *   1.  LoanTokenLogicBeaconLM.registerLoanTokenModule(LoanTokenLogicLM)
+ *   2.  LoanTokenLogicBeaconWrbtc.registerLoanTokenModule(LoanTokenLogicWrbtcLM)
+ *   3.  sovrynProtocol.replaceContract(LoanClosingsRollover)
+ *   4.  sovrynProtocol.replaceContract(LoanClosingsWith)
+ *   5.  sovrynProtocol.replaceContract(LoanClosingsWithSwap)
+ *   6.  sovrynProtocol.replaceContract(LoanMaintenance)
+ *   7.  sovrynProtocol.replaceContract(LoanMaintenanceViews)
+ *   8.  sovrynProtocol.replaceContract(ExitFeeModule) — MUST precede 9/10 and
+ *       Part 2's final pin: its initialize() registers all three pointer
+ *       selectors on the protocol proxy
+ *   9.  sovrynProtocol.setBorrowerExitPerimeterOps(BorrowerExitPerimeterOps)
+ *   10. sovrynProtocol.setExitDelayQueue(ExitDelayQueue)
+ *
+ * Part 2 (GovernorOwner, 8 actions):
+ *   1.  CollSurplusPool_Proxy.setImplementation(new CollSurplusPool) — the
+ *       first-ever upgrade of that proxy; ordered BEFORE the BorrowerOperations
+ *       swap in the same atomic transaction, and there is no in-code fallback
+ *       around the pool call, so pool-side failures stay loud
+ *   2.  BorrowerOperations_Proxy.setImplementation(new BorrowerOperations)
+ *   3.  BorrowerOperations.setPerimeterOps(BorrowerOperationsPerimeterOps)
+ *   4.  BorrowerOperations.setExitFeeController(ExitFeeController)
+ *   5.  BorrowerOperations.setExitDelayQueue(ExitDelayQueue)
+ *   6.  AdoptionFund.withdrawTokensByUnlockedTokenOwner(matured amount)
+ *   7.  SOV.transfer(Exchequer Multisig, that same amount)
+ *   8.  sovrynProtocol.setExitFeeController(ExitFeeController) — the FINAL
+ *       governance action of the whole release
+ *
+ * Part 3 (GovernorAdmin, 1 action): ZeroCommunityIssuance.setAPR(0).
+ *
+ * ORDERING INVARIANTS, each asserted rather than left to reading order:
+ *   - the three Zero pointer setters exist ONLY on the implementation action 2
+ *     installs, so 3/4/5 must immediately follow it in that same transaction —
+ *     the hooked implementation is never live with an unset settlement hook,
+ *     controller or queue;
+ *   - the surplus-claim precondition holds: the pool is upgraded before the
+ *     BorrowerOperations swap, strictly before any Safe activation of the
+ *     surplus surface;
+ *   - the charge hook and the queue pointer are pinned a whole proposal before
+ *     the protocol controller pointer, which is the last switch that lets any
+ *     lending surface quote a fee or a delay. No ordering can produce a live
+ *     controller with an unset hook.
+ *
+ * A queue pinned before the controller is inert by construction: with no
+ * controller the delay quote fails open at d == 0 and the queue is never
+ * touched, so Part 1 leaves the protocol exactly as it found it.
+ *
+ * LoanClosingsLiquidation is NOT replaced. Measured against the module live on
+ * mainnet, its runtime bytecode differs by 149 bytes and by nothing else: the
+ * inheritance split made the shared payout path virtual, and liquidation
+ * resolves it to the same plain `_withdrawAsset` it already calls. No selector
+ * it registers changes and no reachable behaviour changes, so replacing it
+ * would burn an action to install equivalent code at a new address. The same
+ * rule keeps LoanOpenings, SwapsExternal and SwapsImplSovrynSwapModule out —
+ * each is byte-identical once the library link is accounted for.
+ */
+const getArgsSipPerimeterPart1 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    if (!network.tags.mainnet) {
+        throw new Error("getArgsSipPerimeterPart1: run on mainnet or a mainnet fork only");
+    }
+
+    const protocol = await ethers.getContract("ISovryn");
+    const protocolOwner = await protocol.owner();
+
+    // Both pointers resolve at creation time: an input sanity check, and the
+    // arguments of actions 9 and 10.
+    const queueAddress = await resolvePerimeterInput(
+        hre,
+        "ExitDelayQueue",
+        "PERIMETER_EXIT_DELAY_QUEUE",
+        "ExitDelayQueue"
+    );
+    const opsDeployment = await get("BorrowerExitPerimeterOps");
+    if ((await ethers.provider.getCode(opsDeployment.address)) === "0x") {
+        throw new Error(
+            `Perimeter: no contract code at BorrowerExitPerimeterOps ${opsDeployment.address}`
+        );
+    }
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    const targetOwnerValidationAddresses = [];
+
+    /** 1+2. iToken beacon logic re-registration (burn hooks changed). Only the
+     *  two LM modules carry the mint/burn selectors; the non-LM logic owns no
+     *  burn routes. registerLoanTokenModule() reads the module's
+     *  getListFunctionSignatures() and de-registers dropped selectors itself. */
+    const beaconRegistrations = [
+        { beaconName: "LoanTokenLogicBeaconLM", moduleName: "LoanTokenLogicLM" },
+        { beaconName: "LoanTokenLogicBeaconWrbtc", moduleName: "LoanTokenLogicWrbtcLM" },
+    ];
+    for (const { beaconName, moduleName } of beaconRegistrations) {
+        const beacon = await ethers.getContract(beaconName);
+        const moduleDeployment = await get(moduleName);
+        if ((await ethers.provider.getCode(moduleDeployment.address)) === "0x") {
+            throw new Error(
+                `Perimeter: no contract code at ${moduleName} ${moduleDeployment.address}`
+            );
+        }
+        const moduleNameBytes32 = ethers.utils.formatBytes32String(moduleName);
+        const activeIndex = await beacon.activeModuleIndex(moduleNameBytes32);
+        const activeModule = await beacon.moduleUpgradeLog(moduleNameBytes32, activeIndex);
+        if (activeModule.implementation.toLowerCase() === moduleDeployment.address.toLowerCase()) {
+            throw new Error(
+                `Perimeter: ${moduleName} deployment already registered in ${beaconName}`
+            );
+        }
+        targets.push(beacon.address);
+        values.push(0);
+        signatures.push("registerLoanTokenModule(address)");
+        datas.push(abiCoder.encode(["address"], [moduleDeployment.address]));
+        targetOwnerValidationAddresses.push(await beacon.owner());
+    }
+
+    /** 3–8. Protocol module replacement, ExitFeeModule LAST so the pointer
+     *  selectors it registers exist before actions 9 and 10 use them. */
+    const modulesList = getProtocolModules();
+    const replacedModules = [
+        modulesList.LoanClosingsRollover,
+        modulesList.LoanClosingsWith,
+        modulesList.LoanClosingsWithSwap,
+        modulesList.LoanMaintenance,
+        modulesList.LoanMaintenanceViews,
+        modulesList.ExitFeeModule,
+    ];
+    let exitFeeModuleIndex = -1;
+    for (const module of replacedModules) {
+        const moduleDeployment = await get(module.moduleName);
+        // replaceContract is a raw delegatecall, and a delegatecall to a
+        // codeless address SUCCEEDS silently — a stale or mistyped module
+        // record would no-op inside an otherwise successful proposal.
+        if ((await ethers.provider.getCode(moduleDeployment.address)) === "0x") {
+            throw new Error(
+                `Perimeter: no contract code at ${module.moduleName} ${moduleDeployment.address}`
+            );
+        }
+        if (
+            (await protocol.getTarget(module.sampleFunction)).toLowerCase() ===
+            moduleDeployment.address.toLowerCase()
+        ) {
+            throw new Error(
+                `Perimeter: ${module.moduleName} deployment already registered in the protocol`
+            );
+        }
+        if (module.moduleName === "ExitFeeModule") exitFeeModuleIndex = targets.length;
+        targets.push(protocol.address);
+        values.push(0);
+        signatures.push("replaceContract(address)");
+        datas.push(abiCoder.encode(["address"], [moduleDeployment.address]));
+        targetOwnerValidationAddresses.push(protocolOwner);
+    }
+
+    /** 9. Pin the borrower-exit charge hook, a whole proposal before the
+     *  controller pointer goes live in Part 2. */
+    targets.push(protocol.address);
+    values.push(0);
+    signatures.push("setBorrowerExitPerimeterOps(address)");
+    datas.push(abiCoder.encode(["address"], [opsDeployment.address]));
+    targetOwnerValidationAddresses.push(protocolOwner);
+
+    /** 10. Pin the delay queue. Inert until the controller pointer lands: with
+     *  no controller the delay quote fails open at d == 0 and the queue is
+     *  never touched. Every iToken reads this one protocol-side pointer, so
+     *  rotation stays a single action. */
+    targets.push(protocol.address);
+    values.push(0);
+    signatures.push("setExitDelayQueue(address)");
+    datas.push(abiCoder.encode(["address"], [queueAddress]));
+    targetOwnerValidationAddresses.push(protocolOwner);
+
+    const firstPointerIndex = signatures.findIndex((s) => s.startsWith("set"));
+    if (exitFeeModuleIndex === -1 || exitFeeModuleIndex > firstPointerIndex) {
+        throw new Error(
+            "Perimeter: ExitFeeModule must be registered before any protocol pointer action — " +
+                "its initialize() is what registers those selectors on the protocol."
+        );
+    }
+    if (targets.length !== 10) {
+        throw new Error(`Perimeter: Part 1 must hold exactly 10 actions, built ${targets.length}`);
+    }
+
+    const args = {
+        targets: targets,
+        targetOwnerValidationAddresses: targetOwnerValidationAddresses,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-XXXX (Part 1): Sovryn Security Perimeter — 1 of 3 executable parts (GovernorOwner). Installs the perimeter on the lending protocol: registers the two hooked iToken beacon modules (2), replaces the LoanClosingsRollover, LoanClosingsWith, LoanClosingsWithSwap, LoanMaintenance and LoanMaintenanceViews protocol modules (5), registers the ExitFeeModule admin module (1), then pins the borrower-exit settlement hook and the exit delay queue on the protocol (2). Nothing charges and nothing is delayed until Part 2 pins the controller. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-XXXX.md, sha256: ____",
+    };
+    assertDescriptionFinalized(args.description);
+    return { args, governor: "GovernorOwner" };
+};
+
+/**
+ * Perimeter aggregate release — Part 2 (GovernorOwner, 8 actions).
+ *
+ * Carries the whole Zero side, the treasury leg, and the release's final
+ * switch. See the Part 1 header for the full ledger and the ordering
+ * invariants; the ones this part enforces are:
+ *   - CollSurplusPool is upgraded before BorrowerOperations, in the same
+ *     atomic transaction;
+ *   - the three BorrowerOperations pointer setters immediately follow its
+ *     implementation swap, because they exist only on that implementation;
+ *   - the protocol controller pointer is the LAST action, so no ordering can
+ *     produce a live controller with an unset hook or queue.
+ *
+ * The treasury legs sit between the Zero block and the final pin so the pin
+ * keeps that last position. The Development Fund is deliberately absent: its
+ * locked-token owner is the Exchequer, which sweeps it directly by multisig.
+ */
+const getArgsSipPerimeterPart2 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    if (!network.tags.mainnet) {
+        throw new Error("getArgsSipPerimeterPart2: run on mainnet or a mainnet fork only");
+    }
+
+    const protocol = await ethers.getContract("ISovryn");
+    const protocolOwner = await protocol.owner();
+
+    const controllerAddress = await resolvePerimeterInput(
+        hre,
+        "ExitFeeController",
+        "PERIMETER_EXIT_FEE_CONTROLLER",
+        "ExitFeeController"
+    );
+    const queueAddress = await resolvePerimeterInput(
+        hre,
+        "ExitDelayQueue",
+        "PERIMETER_EXIT_DELAY_QUEUE",
+        "ExitDelayQueue"
+    );
+    const poolImplAddress = await resolvePerimeterInput(
+        hre,
+        "CollSurplusPoolPerimeter",
+        "PERIMETER_ZERO_COLL_SURPLUS_POOL",
+        "CollSurplusPool implementation"
+    );
+    const boImplAddress = await resolvePerimeterInput(
+        hre,
+        "BorrowerOperationsPerimeter",
+        "PERIMETER_ZERO_BORROWER_OPERATIONS",
+        "BorrowerOperations implementation"
+    );
+    const boOpsAddress = await resolvePerimeterInput(
+        hre,
+        "BorrowerOperationsPerimeterOps",
+        "PERIMETER_ZERO_BORROWER_OPERATIONS_OPS",
+        "BorrowerOperations settlement companion"
+    );
+
+    if (
+        (await protocol.getTarget("setExitFeeController(address)")) ===
+        ethers.constants.AddressZero
+    ) {
+        logger.warn(
+            "Perimeter: setExitFeeController is not registered on the protocol yet — Part 1 " +
+                "(ExitFeeModule registration) must EXECUTE before this proposal executes."
+        );
+    }
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    const targetOwnerValidationAddresses = [];
+
+    /** 1. Zero CollSurplusPool: first-ever implementation upgrade of that
+     *  proxy (the surplus-claim fee leg and the net-recipient parameter the
+     *  delay needs, in ONE implementation — sequenced, this proxy would be
+     *  upgraded twice). Ordered before the BorrowerOperations swap. */
+    const collSurplusPoolProxy = await ethers.getContract("CollSurplusPool_Proxy");
+    const poolProxyOwner = await collSurplusPoolProxy.getOwner();
+    if (
+        (await collSurplusPoolProxy.getImplementation()).toLowerCase() ===
+        poolImplAddress.toLowerCase()
+    ) {
+        throw new Error(`Perimeter: CollSurplusPool proxy already points at ${poolImplAddress}`);
+    }
+    targets.push(collSurplusPoolProxy.address);
+    values.push(0);
+    signatures.push("setImplementation(address)");
+    datas.push(abiCoder.encode(["address"], [poolImplAddress]));
+    targetOwnerValidationAddresses.push(poolProxyOwner);
+
+    /** 2. Zero BorrowerOperations implementation swap, immediately followed by
+     *  its three pointer setters. */
+    const borrowerOperationsProxy = await ethers.getContract("BorrowerOperations_Proxy");
+    const boProxyOwner = await borrowerOperationsProxy.getOwner();
+    if (
+        (await borrowerOperationsProxy.getImplementation()).toLowerCase() ===
+        boImplAddress.toLowerCase()
+    ) {
+        throw new Error(`Perimeter: BorrowerOperations proxy already points at ${boImplAddress}`);
+    }
+    targets.push(borrowerOperationsProxy.address);
+    values.push(0);
+    signatures.push("setImplementation(address)");
+    datas.push(abiCoder.encode(["address"], [boImplAddress]));
+    targetOwnerValidationAddresses.push(boProxyOwner);
+
+    /** 3. The settlement companion the hooked BorrowerOperations delegatecalls.
+     *  Left unset it is not a silent bypass — the call site requires code and
+     *  reverts — but a reverting exit path is not a state to ship, so it is
+     *  pinned in the same transaction as the implementation that reads it. */
+    targets.push(borrowerOperationsProxy.address);
+    values.push(0);
+    signatures.push("setPerimeterOps(address)");
+    datas.push(abiCoder.encode(["address"], [boOpsAddress]));
+    targetOwnerValidationAddresses.push(boProxyOwner);
+
+    /** 4+5. The Zero-side controller and queue pointers. */
+    targets.push(borrowerOperationsProxy.address);
+    values.push(0);
+    signatures.push("setExitFeeController(address)");
+    datas.push(abiCoder.encode(["address"], [controllerAddress]));
+    targetOwnerValidationAddresses.push(boProxyOwner);
+
+    targets.push(borrowerOperationsProxy.address);
+    values.push(0);
+    signatures.push("setExitDelayQueue(address)");
+    datas.push(abiCoder.encode(["address"], [queueAddress]));
+    targetOwnerValidationAddresses.push(boProxyOwner);
+
+    /** 6. Drain the Adoption Fund's remaining unlocked SOV to the Timelock.
+     *  The amount is the live schedule total, re-read and cross-checked
+     *  against the fund's balance at creation time. */
+    const adoptionFund = await resolveMaturedFundWithdrawal(hre, "AdoptionFund");
+    targets.push(adoptionFund.address);
+    values.push(0);
+    signatures.push("withdrawTokensByUnlockedTokenOwner(uint256)");
+    datas.push(abiCoder.encode(["uint256"], [adoptionFund.amount]));
+    // The gate on this call is the UNLOCKED token owner (the Timelock), not the
+    // locked one — validating the locked owner would authenticate the wrong role.
+    targetOwnerValidationAddresses.push(adoptionFund.unlockedTokenOwner);
+
+    /** 7. Forward exactly that amount to the Exchequer Multisig, leaving no
+     *  dust in the Timelock. */
+    const sov = await ethers.getContract("SOV");
+    const sovOwner = await sov.owner();
+    const exchequerDeployment = await get("MultiSigWallet");
+    if ((await ethers.provider.getCode(exchequerDeployment.address)) === "0x") {
+        throw new Error(
+            `Perimeter: no contract code at the Exchequer Multisig ${exchequerDeployment.address} — ` +
+                "refusing to send the treasury sweep to a codeless address."
+        );
+    }
+    targets.push(sov.address);
+    values.push(0);
+    signatures.push("transfer(address,uint256)");
+    datas.push(
+        abiCoder.encode(["address", "uint256"], [exchequerDeployment.address, adoptionFund.amount])
+    );
+    // SOV.transfer needs no ownership — the Timelock only needs the balance the
+    // preceding action gives it. The token's owner IS the Timelock, so passing
+    // it satisfies the sips:create authentication check without asserting a
+    // permission this action does not use.
+    targetOwnerValidationAddresses.push(sovOwner);
+
+    /** 8. Protocol controller pointer — the final governance action of the
+     *  whole release. */
+    targets.push(protocol.address);
+    values.push(0);
+    signatures.push("setExitFeeController(address)");
+    datas.push(abiCoder.encode(["address"], [controllerAddress]));
+    targetOwnerValidationAddresses.push(protocolOwner);
+
+    if (targets.length !== 8) {
+        throw new Error(`Perimeter: Part 2 must hold exactly 8 actions, built ${targets.length}`);
+    }
+    const poolSwapIndex = 0;
+    const boSwapIndex = 1;
+    if (
+        targets[poolSwapIndex].toLowerCase() !== collSurplusPoolProxy.address.toLowerCase() ||
+        targets[boSwapIndex].toLowerCase() !== borrowerOperationsProxy.address.toLowerCase() ||
+        signatures[poolSwapIndex] !== "setImplementation(address)" ||
+        signatures[boSwapIndex] !== "setImplementation(address)"
+    ) {
+        throw new Error(
+            "Perimeter: the CollSurplusPool upgrade must be the first action and the " +
+                "BorrowerOperations upgrade the second — the pool's claimCollWithFee selector has " +
+                "to exist before the surplus surface can be activated, and there is no in-code " +
+                "fallback around the pool call."
+        );
+    }
+    const boSetters = [
+        "setPerimeterOps(address)",
+        "setExitFeeController(address)",
+        "setExitDelayQueue(address)",
+    ];
+    for (let i = 0; i < boSetters.length; i++) {
+        const at = boSwapIndex + 1 + i;
+        if (
+            signatures[at] !== boSetters[i] ||
+            targets[at].toLowerCase() !== borrowerOperationsProxy.address.toLowerCase()
+        ) {
+            throw new Error(
+                `Perimeter: BorrowerOperations ${boSetters[i]} must be action ${at + 1} — the three ` +
+                    "setters exist only on the implementation installed immediately before them."
+            );
+        }
+    }
+    if (
+        signatures[targets.length - 1] !== "setExitFeeController(address)" ||
+        targets[targets.length - 1].toLowerCase() !== protocol.address.toLowerCase()
+    ) {
+        throw new Error(
+            "Perimeter: the protocol setExitFeeController pin must be the LAST action of Part 2 — " +
+                "it is the final governance switch of the whole release."
+        );
+    }
+
+    const args = {
+        targets: targets,
+        targetOwnerValidationAddresses: targetOwnerValidationAddresses,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-XXXX (Part 2): Sovryn Security Perimeter — 2 of 3 executable parts (GovernorOwner). Upgrades the Zero CollSurplusPool and BorrowerOperations implementations and wires the settlement hook, exit-fee controller and exit delay queue on BorrowerOperations in one atomic transaction (5), withdraws the Adoption Fund's fully-vested SOV to the timelock and forwards exactly that amount to the Exchequer Multisig (2), and pins the ExitFeeController on the Sovryn protocol as the final activation pointer (1). Charging and delays stay globally disabled until the Exchequer enables them. The Development Fund residue moves by a companion Exchequer multisig transaction, not by this proposal. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-XXXX.md, sha256: ____",
+    };
+    assertDescriptionFinalized(args.description);
+    return { args, governor: "GovernorOwner" };
+};
+
+/**
+ * Perimeter aggregate release — Part 3 (GovernorAdmin, 1 action): switch off
+ * the Zero Stability Pool's SOV subsidy by zeroing the issuance rate.
+ *
+ * Governor choice is NOT the usual owner check. `ZeroCommunityIssuance` is an
+ * UpgradableProxy whose `getOwner()` is TimelockOwner, but `setAPR` is gated by
+ * `onlyRewardManager`, and the live `rewardManager()` is TimelockAdmin — so
+ * this proposal runs through GovernorAdmin, and the owner-validation address
+ * handed to `sips:create` is the reward manager, not the proxy owner. A
+ * GovernorOwner version would revert on execution with
+ * "Permission::rewardManager: access denied".
+ *
+ * Reversible by design: `setAPR` stays on the contract and only its parameter
+ * is zeroed. Re-enabling the subsidy later needs another short GovernorAdmin
+ * proposal — no redeploy, no upgrade, no owner action.
+ *
+ * Side effect worth knowing at execution time: `setAPR` first calls
+ * `_issueSOV(...)`, so the subsidy accrued since the last issuance is settled
+ * at the OLD rate rather than retroactively repriced. That settlement prices
+ * ZUSD in SOV through the CommunityIssuance's own PriceFeeds pointer, so the
+ * feed has to be healthy when the timelock executes.
+ *
+ * This duplicates the frozen SIP-0094 Part 3 rather than sharing a body with
+ * it. The two release shapes are alternatives, and the frozen builder's text is
+ * pinned by sha256 to an approved document — refactoring its internals to save
+ * thirty lines would put that pin at risk for no operational gain.
+ */
+const getArgsSipPerimeterPart3 = async (hre) => {
+    const { ethers } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    if (!network.tags.mainnet) {
+        throw new Error("getArgsSipPerimeterPart3: run on mainnet or a mainnet fork only");
+    }
+
+    const communityIssuance = await ethers.getContract("ZeroCommunityIssuance");
+    if ((await ethers.provider.getCode(communityIssuance.address)) === "0x") {
+        throw new Error(
+            `Perimeter Part 3: no contract code at ZeroCommunityIssuance ${communityIssuance.address}`
+        );
+    }
+    const currentAPR = await communityIssuance.APR();
+    if (currentAPR.eq(0)) {
+        throw new Error(
+            "Perimeter Part 3: the Zero Stability Pool subsidy APR is already 0 — this proposal " +
+                "would be a no-op. Nothing to disable."
+        );
+    }
+    const rewardManager = await communityIssuance.rewardManager();
+
+    const args = {
+        targets: [communityIssuance.address],
+        targetOwnerValidationAddresses: [rewardManager],
+        values: [0],
+        signatures: ["setAPR(uint256)"],
+        data: [abiCoder.encode(["uint256"], [0])],
+        description:
+            "SIP-XXXX (Part 3): Sovryn Security Perimeter — 3 of 3 executable parts (GovernorAdmin): retires the Zero Stability Pool SOV subsidy by setting the CommunityIssuance APR from 500 (5%) to 0. Existing accrued gains are unaffected; re-enabling is a later one-action proposal. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-XXXX.md, sha256: ____",
+    };
+    assertDescriptionFinalized(args.description);
+    return { args, governor: "GovernorAdmin" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -2299,4 +2868,7 @@ module.exports = {
     getArgsSip0094Part1,
     getArgsSip0094Part2,
     getArgsSip0094Part3,
+    getArgsSipPerimeterPart1,
+    getArgsSipPerimeterPart2,
+    getArgsSipPerimeterPart3,
 };
