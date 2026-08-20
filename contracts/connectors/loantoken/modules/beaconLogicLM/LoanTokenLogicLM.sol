@@ -38,7 +38,7 @@ contract LoanTokenLogicLM is LoanTokenLogicSplit {
         res[2] = bytes4(keccak256("burn(address,uint256)")); /// LoanTokenLogicSplit
         res[3] = bytes4(keccak256("burn(address,uint256,bool)")); /// LoanTokenLogicLM
 
-        // ColFee controller view.
+        // Perimeter controller view.
         res[4] = bytes4(keccak256("exitFeeController()"));
 
         return (res, stringToBytes32("LoanTokenLogicLM"));
@@ -67,7 +67,7 @@ contract LoanTokenLogicLM is LoanTokenLogicSplit {
      * @param burnAmount The amount of pool tokens to redeem.
      * @param useLM if true -> deposit the pool tokens into the Liquidity Mining contract
      * @return redeemed The GROSS amount of underlying tokens redeemed. When a
-     *         ColFee exit-fee policy is active the receiver is paid this amount
+     *         Perimeter exit-fee policy is active the receiver is paid this amount
      *         minus the fee (split published in `ExitFeeApplied`) — do not
      *         treat the return value as the amount received.
      */
@@ -78,7 +78,7 @@ contract LoanTokenLogicLM is LoanTokenLogicSplit {
     ) external nonReentrant globallyNonReentrant returns (uint256 redeemed) {
         if (useLM) redeemed = _burnFromLM(burnAmount);
         else redeemed = _burnToken(burnAmount);
-        // ColFee: charge the fee and pay the user. "asset transfer failed" is
+        // Perimeter: charge the fee and pay the user. "asset transfer failed" is
         // the user-leg revert reason.
         _chargeExitFeeAndPay(receiver, redeemed, "asset transfer failed");
     }

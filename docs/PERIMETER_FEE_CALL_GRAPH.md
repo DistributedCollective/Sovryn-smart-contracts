@@ -4,19 +4,19 @@ High-level map of the on-chain Perimeter Fee (collateral/exit-fee) machinery in
 `Sovryn-smart-contracts`: the entities, which one runs on which user action, and
 in what execution context.
 
-> Companion to the feature design in `colfee/docs/IMPLEMENTATION_DESIGN.md`.
+> Companion to the feature design in `perimeter/docs/IMPLEMENTATION_DESIGN.md`.
 > This file is the Sovryn-side **call graph**; the design doc is the spec.
 
 ## Entities
 
 | Entity | Kind | Role |
 |---|---|---|
-| **ExitFeeController** | external deployed contract (colfee repo) | Owns the *policy*: per-surface / sub-product / actor rates, the global enable flag, the fee receiver. Products only ever `quoteExitFee(...)` it (staticcall, read-only). |
+| **ExitFeeController** | external deployed contract (perimeter repo) | Owns the *policy*: per-surface / sub-product / actor rates, the global enable flag, the fee receiver. Products only ever `quoteExitFee(...)` it (staticcall, read-only). |
 | **IExitFeeController** | cross-pragma interface | ABI both products use to call the controller. Declares the controller's own *config* events (`ExitFeeEnabledSet`, …) — **not** the product events. |
 | **Perimeter FeeLib** | `internal` library (inlined, not deployed) | Shared primitive: `getController`/`setController` (the EIP-1967 slot), `safeQuote` (staticcall + decode, fail-open), `quoteIsValid` (invariants). Inlined into **both** trees. |
 | **Perimeter FeeBorrowerExitOps** | deployed `contract is State, IPerimeter FeeEvents` (deployed once, reached only by `delegatecall`) | The **protocol-side** charge hook body (quote → validate → fee-leg transfer → events). Kept off-module for EIP-170; a contract (not a library) so it reads `wrbtcToken` by name and inherits the events. Its address is STORED (`Perimeter FeeLib.PERIMETER FEE_BORROWER_EXIT_OPS_SLOT`, pinned via `ExitFeeModule.setPerimeter FeeBorrowerExitOps`), so the hook is patchable without redeploying the close modules. |
 | **IPerimeter FeeEvents** | interface | Canonical declaration of the product events `ExitFeeControllerSet` / `ExitFeeApplied` / `ExitFeeSkipped`, inherited by the emitters and product ABIs so `topic0` can't drift. |
-| **EXIT_FEE_CONTROLLER_SLOT** | unstructured storage slot | `keccak256("sovryn.exitFeeController") - 1` — a **protocol singleton on sovrynProtocol** (written only by `ExitFeeModule.setExitFeeController`). iTokens keep NO copy: they read it through `Perimeter FeeLib.safeControllerLookup(sovrynContractAddress)` (fail-open staticcall), so one pin/rotation covers every pool. |
+| **EXIT_FEE_CONTROLLER_SLOT** | unstructured storage slot | `keccak256("sovryn.perimeterExitFeeController") - 1` — a **protocol singleton on sovrynProtocol** (written only by `ExitFeeModule.setExitFeeController`). iTokens keep NO copy: they read it through `Perimeter FeeLib.safeControllerLookup(sovrynContractAddress)` (fail-open staticcall), so one pin/rotation covers every pool. |
 
 There are **two product trees**, each with its own surface, admin owner, and emit
 address, both pointing at the controller:
@@ -24,9 +24,9 @@ address, both pointing at the controller:
 | | iToken (lending pool) | sovrynProtocol (margin / loan) |
 |---|---|---|
 | User action that charges | `burn` / `burnToBTC` (lender redeem) | `closeWithSwap` / `closeWithDeposit` / `withdrawCollateral` (borrower exit) |
-| Surface id | `SURFACE_LENDING_LENDER_WITHDRAW` | `SURFACE_LENDING_BORROWER_WITHDRAW` |
+| Surface id | `PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW` | `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW` |
 | Charge implementation | **inline** in `LoanTokenLogicShared._chargeExitFeeAndPay` | **delegatecall** to `Perimeter FeeBorrowerExitOps` via the `_chargeExitFeeReturnNet` stub |
-| Admin getter/setter | `exitFeeController` view only — read-through to the protocol singleton (no iToken setter) | `exitFeeController` / `setExitFeeController` **and** `colFeeBorrowerExitOps` / `setPerimeter FeeBorrowerExitOps` on `ExitFeeModule`, `onlyOwner` — the single host for both protocol pointers |
+| Admin getter/setter | `exitFeeController` view only — read-through to the protocol singleton (no iToken setter) | `exitFeeController` / `setExitFeeController` **and** `borrowerExitPerimeterOps` / `setPerimeter FeeBorrowerExitOps` on `ExitFeeModule`, `onlyOwner` — the single host for both protocol pointers |
 | Why the split | those modules were under 24 KiB | those modules were over EIP-170 → library |
 
 ## Flow A — Lender exit (iToken)
@@ -148,5 +148,5 @@ flowchart TD
 | Protocol Perimeter Fee admin pair (singleton pointer host) | `contracts/modules/ExitFeeModule.sol` |
 | iToken inline charge + admin pair | `contracts/connectors/loantoken/LoanTokenLogicShared.sol` |
 | iToken native charge | `contracts/connectors/loantoken/modules/beaconLogicWRBTC/LoanTokenLogicWrbtcLM.sol` |
-| Canonical product events | `contracts/interfaces/colfee/IPerimeter FeeEvents.sol` |
-| Controller ABI | `contracts/interfaces/colfee/IExitFeeController.sol` |
+| Canonical product events | `contracts/interfaces/perimeter/IPerimeter FeeEvents.sol` |
+| Controller ABI | `contracts/interfaces/perimeter/IExitFeeController.sol` |

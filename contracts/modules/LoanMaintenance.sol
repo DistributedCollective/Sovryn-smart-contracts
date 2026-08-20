@@ -13,7 +13,7 @@ import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
-import "../mixins/ColFeeBorrowerExit.sol";
+import "../mixins/BorrowerExitPerimeter.sol";
 
 /**
  * @title Loan Maintenance contract.
@@ -31,7 +31,7 @@ contract LoanMaintenance is
     InterestUser,
     SwapsUser,
     LiquidationHelper,
-    ColFeeBorrowerExit
+    BorrowerExitPerimeter
 {
     // Keep the old LoanReturnData for backward compatibility (especially for the watcher)
     struct LoanReturnData {
@@ -189,7 +189,7 @@ contract LoanMaintenance is
 
         loanLocal.collateral = loanLocal.collateral.sub(actualWithdrawAmount);
 
-        // ColFee: charge the borrower-exit fee. Policy key (`subProduct`) is
+        // Perimeter: charge the borrower-exit fee. Policy key (`subProduct`) is
         // the iToken pool `loanLocal.lender`; the payout asset is the
         // collateral token.
         uint256 amountToUser = _chargeExitFeeReturnNet(

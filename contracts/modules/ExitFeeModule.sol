@@ -8,18 +8,18 @@ pragma experimental ABIEncoderV2;
 
 import "../core/State.sol";
 import "../events/ModulesCommonEvents.sol";
-import "../interfaces/colfee/IColFeeEvents.sol";
-import "../utils/ColFeeLib.sol";
+import "../interfaces/perimeter/IPerimeterEvents.sol";
+import "../utils/PerimeterLib.sol";
 import "../openzeppelin/Address.sol";
 
 /**
- * @title ColFee admin module.
+ * @title Perimeter admin module.
  *
- * @notice Owner-gated admin for the two ColFee protocol pointers on the
+ * @notice Owner-gated admin for the two Perimeter protocol pointers on the
  *         sovrynProtocol proxy: the ExitFeeController and the borrower-exit
- *         charge hook (`ColFeeBorrowerExitOps`).
+ *         charge hook (`BorrowerExitPerimeterOps`).
  */
-contract ExitFeeModule is State, ModulesCommonEvents, IColFeeEvents {
+contract ExitFeeModule is State, ModulesCommonEvents, IPerimeterEvents {
     constructor() public {}
 
     function() external {
@@ -30,36 +30,36 @@ contract ExitFeeModule is State, ModulesCommonEvents, IColFeeEvents {
         address prev = logicTargets[this.exitFeeController.selector];
         _setTarget(this.exitFeeController.selector, target);
         _setTarget(this.setExitFeeController.selector, target);
-        _setTarget(this.colFeeBorrowerExitOps.selector, target);
-        _setTarget(this.setColFeeBorrowerExitOps.selector, target);
+        _setTarget(this.borrowerExitPerimeterOps.selector, target);
+        _setTarget(this.setBorrowerExitPerimeterOps.selector, target);
         emit ProtocolModuleContractReplaced(prev, target, "ExitFeeModule");
     }
 
     /// @return ctrl Pinned ExitFeeController (address(0) until pinned).
     function exitFeeController() public view returns (address ctrl) {
-        return ColFeeLib.getController();
+        return PerimeterLib.getController();
     }
 
     /// @notice Pin/rotate the ExitFeeController. Reverts on a non-contract so a
     ///         typo can't point the quote staticcall at a no-code address.
     function setExitFeeController(address ctrl) external onlyOwner {
         require(Address.isContract(ctrl), "EFC:not-contract");
-        address prev = ColFeeLib.getController();
-        ColFeeLib.setController(ctrl);
+        address prev = PerimeterLib.getController();
+        PerimeterLib.setController(ctrl);
         emit ExitFeeControllerSet(prev, ctrl);
     }
 
     /// @return ops Pinned borrower-exit charge hook (address(0) until pinned).
-    function colFeeBorrowerExitOps() public view returns (address ops) {
-        return ColFeeLib.getBorrowerExitOps();
+    function borrowerExitPerimeterOps() public view returns (address ops) {
+        return PerimeterLib.getBorrowerExitOps();
     }
 
     /// @notice Pin/rotate the borrower-exit charge hook. Reverts on a
     ///         non-contract so disabling charging is a deliberate act.
-    function setColFeeBorrowerExitOps(address ops) external onlyOwner {
+    function setBorrowerExitPerimeterOps(address ops) external onlyOwner {
         require(Address.isContract(ops), "EFC:not-contract");
-        address prev = ColFeeLib.getBorrowerExitOps();
-        ColFeeLib.setBorrowerExitOps(ops);
-        emit ColFeeBorrowerExitOpsSet(prev, ops);
+        address prev = PerimeterLib.getBorrowerExitOps();
+        PerimeterLib.setBorrowerExitOps(ops);
+        emit BorrowerExitPerimeterOpsSet(prev, ops);
     }
 }

@@ -41,7 +41,7 @@ const func = async function (hre) {
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
             requireSwapsImplSovrynSwapLib: true,
         },
-        // ColFee admin module: the protocol-singleton controller pointer
+        // Perimeter admin module: the protocol-singleton controller pointer
         // (exitFeeController / setExitFeeController). UIs quote fees via
         // eth_call of the live exits — no on-chain previews.
         ExitFeeModule: {
@@ -50,8 +50,8 @@ const func = async function (hre) {
             requireSwapsImplSovrynSwapLib: false,
         },
         // Redeployed in this release: withdrawCollateral now charges the
-        // borrower-exit fee through the ColFee hook. initialize() registers no
-        // ColFee selectors — the pointer admin lives in ExitFeeModule and
+        // borrower-exit fee through the Perimeter hook. initialize() registers no
+        // Perimeter selectors — the pointer admin lives in ExitFeeModule and
         // there are no on-chain preview selectors anywhere in the release.
         LoanMaintenance: {
             moduleName: "LoanMaintenance",

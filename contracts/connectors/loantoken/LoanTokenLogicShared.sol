@@ -9,30 +9,30 @@ import "../../modules/interfaces/ProtocolAffiliatesInterface.sol";
 import "../../farm/ILiquidityMining.sol";
 import "../../governance/Staking/interfaces/IStaking.sol";
 import "../../governance/Vesting/IVesting.sol";
-import "../../interfaces/colfee/IExitFeeController.sol";
-import "../../interfaces/colfee/IColFeeEvents.sol";
-import "../../utils/ColFeeLib.sol";
+import "../../interfaces/perimeter/IExitFeeController.sol";
+import "../../interfaces/perimeter/IPerimeterEvents.sol";
+import "../../utils/PerimeterLib.sol";
 
 /**
  * @dev This contract shares functions used by both LoanTokenLogicSplit and LoanTokenLogicStandard
  */
-contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
+contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
     using SafeMath for uint256;
     using SignedSafeMath for int256;
 
     /// DON'T ADD VARIABLES HERE, PLEASE
-    /// ColFee keeps no state on the iToken; the controller is read from the
+    /// Perimeter keeps no state on the iToken; the controller is read from the
     /// protocol below.
 
-    /// keccak256("COLFEE:SURFACE_LENDING_LENDER_WITHDRAW")
-    bytes32 internal constant SURFACE_LENDING_LENDER_WITHDRAW =
-        keccak256("COLFEE:SURFACE_LENDING_LENDER_WITHDRAW");
+    /// keccak256("PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW")
+    bytes32 internal constant PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW =
+        keccak256("PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW");
 
     /// @notice The ExitFeeController, read from the protocol via a fail-open
     ///         staticcall (zero until pinned — the burn then skips the fee).
     /// @return ctrl ExitFeeController address, or address(0).
     function exitFeeController() public view returns (address ctrl) {
-        return ColFeeLib.safeControllerLookup(sovrynContractAddress);
+        return PerimeterLib.safeControllerLookup(sovrynContractAddress);
     }
 
     /// @notice Quote the lender-exit fee from this iToken's controller
@@ -43,20 +43,20 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
         address actor,
         uint256 gross
     ) internal view returns (IExitFeeController.ExitFeeQuote memory q) {
-        return ColFeeLib.safeQuote(exitFeeController(), surfaceId, subProduct, actor, gross);
+        return PerimeterLib.safeQuote(exitFeeController(), surfaceId, subProduct, actor, gross);
     }
 
     /// @dev Defensive sanity-check on a quote returned by the (upgradable,
     ///      external) controller. Delegates to the shared invariant set in
-    ///      `ColFeeLib.quoteIsValid`; failure routes to INVALID_QUOTE.
+    ///      `PerimeterLib.quoteIsValid`; failure routes to INVALID_QUOTE.
     function _exitFeeQuoteIsValid(
         IExitFeeController.ExitFeeQuote memory q,
         uint256 gross
     ) internal pure returns (bool) {
-        return ColFeeLib.quoteIsValid(q, gross);
+        return PerimeterLib.quoteIsValid(q, gross);
     }
 
-    /// @notice Single ColFee-aware payout entry point for lender burn variants.
+    /// @notice Single Perimeter-aware payout entry point for lender burn variants.
     ///         Charges (when policy active + non-zero fee AND the quote passes
     ///         defensive invariants) by transferring the fee leg to
     ///         `q.feeReceiver` (fail-open via nonBlocking=true) and the user
@@ -70,7 +70,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
         if (gross == 0) return;
 
         IExitFeeController.ExitFeeQuote memory q = _safeQuoteExitFee(
-            SURFACE_LENDING_LENDER_WITHDRAW,
+            PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
             address(this),
             msg.sender,
             gross
@@ -81,7 +81,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
                 // Trust-but-verify: controller said charge but quote is bogus.
                 // Skip the fee leg, pay full gross, advertise the reason.
                 emit ExitFeeSkipped(
-                    SURFACE_LENDING_LENDER_WITHDRAW,
+                    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                     msg.sender,
                     loanTokenAddress,
                     gross,
@@ -92,7 +92,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
                 bool feeOk = _transferUnderlyingToken(q.feeReceiver, q.feeAmount, true, "");
                 if (feeOk) {
                     emit ExitFeeApplied(
-                        SURFACE_LENDING_LENDER_WITHDRAW,
+                        PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                         msg.sender,
                         loanTokenAddress,
                         address(this),
@@ -106,7 +106,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
                     return;
                 }
                 emit ExitFeeSkipped(
-                    SURFACE_LENDING_LENDER_WITHDRAW,
+                    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                     msg.sender,
                     loanTokenAddress,
                     gross,
@@ -116,7 +116,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
             }
         } else {
             emit ExitFeeSkipped(
-                SURFACE_LENDING_LENDER_WITHDRAW,
+                PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                 msg.sender,
                 loanTokenAddress,
                 gross,
@@ -129,7 +129,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IColFeeEvents {
         _transferUnderlyingToken(receiver, gross, false, errorMsg);
     }
 
-    /// @notice ERC20 transfer of `loanTokenAddress` shared by both ColFee legs.
+    /// @notice ERC20 transfer of `loanTokenAddress` shared by both Perimeter legs.
     ///         nonBlocking=true  → returns false on any failure (fee leg).
     ///         nonBlocking=false → reverts via `_safeTransfer` with `errorMsg`
     ///                              (user leg); `errorMsg` is the caller's own

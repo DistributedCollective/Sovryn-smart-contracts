@@ -12,7 +12,7 @@ import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 import "../mixins/RewardHelper.sol";
-import "../mixins/ColFeeBorrowerExit.sol";
+import "../mixins/BorrowerExitPerimeter.sol";
 import "../interfaces/ILoanTokenModules.sol";
 
 interface IFeeSharingCollector {
@@ -31,7 +31,7 @@ contract LoanClosingsShared is
     InterestUser,
     SwapsUser,
     RewardHelper,
-    ColFeeBorrowerExit
+    BorrowerExitPerimeter
 {
     uint256 internal constant MONTH = 365 days / 12;
     //0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
@@ -283,7 +283,7 @@ contract LoanClosingsShared is
     }
 
     /**
-     * @notice Borrower-bound payout with the ColFee gate in front: charges the
+     * @notice Borrower-bound payout with the Perimeter gate in front: charges the
      *         exit fee on a chargeable close, then pays the (net or full-gross)
      *         residual via `_withdrawAsset`. The policy key (`subProduct`) is
      *         the iToken pool, `loanLocal.lender`.
@@ -762,7 +762,7 @@ contract LoanClosingsShared is
 
         // Withdraw to receiver
         if (withdrawAmount != 0) {
-            // ColFee: charge the borrower-exit fee on the post-swap residual.
+            // Perimeter: charge the borrower-exit fee on the post-swap residual.
             _withdrawAssetChargingExitFee(
                 params.origin,
                 loanLocal,
@@ -1027,7 +1027,7 @@ contract LoanClosingsShared is
                 uint256 excessCollateral = loanLocal.collateral - sourceTokenAmountUsed;
                 // allowDonationOnFailure here is following the arguments passed from the caller
                 // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
-                // ColFee: charge the borrower-exit fee on the excess-collateral refund.
+                // Perimeter: charge the borrower-exit fee on the excess-collateral refund.
                 _withdrawAssetChargingExitFee(
                     params.origin,
                     loanLocal,

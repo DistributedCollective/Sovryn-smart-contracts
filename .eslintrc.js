@@ -7,7 +7,7 @@ module.exports = {
     },
     extends: "prettier",
     parserOptions: {
-        // 2021 for numeric separators (10_000) used in ColFee tests; the
+        // 2021 for numeric separators (10_000) used in Perimeter tests; the
         // `env.es2021` above already grants the globals.
         ecmaVersion: 2021,
     },

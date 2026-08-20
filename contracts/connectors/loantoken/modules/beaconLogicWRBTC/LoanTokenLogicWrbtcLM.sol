@@ -33,7 +33,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         res[2] = this.mintWithBTC.selector;
         res[3] = this.burnToBTC.selector;
 
-        // ColFee controller view. Manual keccak256 for selector stability
+        // Perimeter controller view. Manual keccak256 for selector stability
         // under overloaded names.
         res[4] = bytes4(keccak256("exitFeeController()"));
 
@@ -49,7 +49,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
     }
 
     /// @return loanAmountPaid The GROSS amount of underlying redeemed (paid out
-    ///         as native RBTC). When a ColFee exit-fee policy is active the
+    ///         as native RBTC). When a Perimeter exit-fee policy is active the
     ///         receiver is paid this amount minus the fee (split published in
     ///         `ExitFeeApplied`) — do not treat the return value as the amount
     ///         received.
@@ -59,17 +59,17 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         bool useLM
     ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
         loanAmountPaid = useLM ? _burnFromLM(burnAmount) : _burnToken(burnAmount);
-        // ColFee: native-RBTC payout path (charge + unwrap + send).
+        // Perimeter: native-RBTC payout path (charge + unwrap + send).
         _chargeExitFeeAndPayAsNative(receiver, loanAmountPaid);
     }
 
-    /// @notice ColFee charge for the native-RBTC burn path: every leg pays out
+    /// @notice Perimeter charge for the native-RBTC burn path: every leg pays out
     ///         as native RBTC via `_transferNativeRBTC`.
     function _chargeExitFeeAndPayAsNative(address receiver, uint256 gross) internal {
         if (gross == 0) return;
 
         IExitFeeController.ExitFeeQuote memory q = _safeQuoteExitFee(
-            SURFACE_LENDING_LENDER_WITHDRAW,
+            PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
             address(this),
             msg.sender,
             gross
@@ -78,7 +78,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         if (q.active && q.feeAmount > 0) {
             if (!_exitFeeQuoteIsValid(q, gross)) {
                 emit ExitFeeSkipped(
-                    SURFACE_LENDING_LENDER_WITHDRAW,
+                    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                     msg.sender,
                     loanTokenAddress,
                     gross,
@@ -89,7 +89,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
                 bool feeOk = _transferNativeRBTC(q.feeReceiver, q.feeAmount, true);
                 if (feeOk) {
                     emit ExitFeeApplied(
-                        SURFACE_LENDING_LENDER_WITHDRAW,
+                        PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                         msg.sender,
                         loanTokenAddress,
                         address(this),
@@ -103,7 +103,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
                     return;
                 }
                 emit ExitFeeSkipped(
-                    SURFACE_LENDING_LENDER_WITHDRAW,
+                    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                     msg.sender,
                     loanTokenAddress,
                     gross,
@@ -113,7 +113,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
             }
         } else {
             emit ExitFeeSkipped(
-                SURFACE_LENDING_LENDER_WITHDRAW,
+                PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
                 msg.sender,
                 loanTokenAddress,
                 gross,
