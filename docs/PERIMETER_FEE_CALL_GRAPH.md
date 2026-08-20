@@ -13,10 +13,10 @@ in what execution context.
 |---|---|---|
 | **ExitFeeController** | external deployed contract (perimeter repo) | Owns the *policy*: per-surface / sub-product / actor rates, the global enable flag, the fee receiver. Products only ever `quoteExitFee(...)` it (staticcall, read-only). |
 | **IExitFeeController** | cross-pragma interface | ABI both products use to call the controller. Declares the controller's own *config* events (`ExitFeeEnabledSet`, …) — **not** the product events. |
-| **Perimeter FeeLib** | `internal` library (inlined, not deployed) | Shared primitive: `getController`/`setController` (the EIP-1967 slot), `safeQuote` (staticcall + decode, fail-open), `quoteIsValid` (invariants). Inlined into **both** trees. |
-| **Perimeter FeeBorrowerExitOps** | deployed `contract is State, IPerimeter FeeEvents` (deployed once, reached only by `delegatecall`) | The **protocol-side** charge hook body (quote → validate → fee-leg transfer → events). Kept off-module for EIP-170; a contract (not a library) so it reads `wrbtcToken` by name and inherits the events. Its address is STORED (`Perimeter FeeLib.PERIMETER FEE_BORROWER_EXIT_OPS_SLOT`, pinned via `ExitFeeModule.setPerimeter FeeBorrowerExitOps`), so the hook is patchable without redeploying the close modules. |
-| **IPerimeter FeeEvents** | interface | Canonical declaration of the product events `ExitFeeControllerSet` / `ExitFeeApplied` / `ExitFeeSkipped`, inherited by the emitters and product ABIs so `topic0` can't drift. |
-| **EXIT_FEE_CONTROLLER_SLOT** | unstructured storage slot | `keccak256("sovryn.perimeterExitFeeController") - 1` — a **protocol singleton on sovrynProtocol** (written only by `ExitFeeModule.setExitFeeController`). iTokens keep NO copy: they read it through `Perimeter FeeLib.safeControllerLookup(sovrynContractAddress)` (fail-open staticcall), so one pin/rotation covers every pool. |
+| **PerimeterLib** | `internal` library (inlined, not deployed) | Shared primitive: `getController`/`setController` (the EIP-1967 slot), `safeQuote` (staticcall + decode, fail-open), `quoteIsValid` (invariants). Inlined into **both** trees. |
+| **BorrowerExitPerimeterOps** | deployed `contract is State, IPerimeterEvents` (deployed once, reached only by `delegatecall`) | The **protocol-side** charge hook body (quote → validate → fee-leg transfer → events). Kept off-module for EIP-170; a contract (not a library) so it reads `wrbtcToken` by name and inherits the events. Its address is STORED (`PerimeterLib.BORROWER_EXIT_PERIMETER_OPS_SLOT`, pinned via `ExitFeeModule.setBorrowerExitPerimeterOps`), so the hook is patchable without redeploying the close modules. |
+| **IPerimeterEvents** | interface | Canonical declaration of the product events `ExitFeeControllerSet` / `ExitFeeApplied` / `ExitFeeSkipped`, inherited by the emitters and product ABIs so `topic0` can't drift. |
+| **EXIT_FEE_CONTROLLER_SLOT** | unstructured storage slot | `keccak256("sovryn.perimeterExitFeeController") - 1` — a **protocol singleton on sovrynProtocol** (written only by `ExitFeeModule.setExitFeeController`). iTokens keep NO copy: they read it through `PerimeterLib.safeControllerLookup(sovrynContractAddress)` (fail-open staticcall), so one pin/rotation covers every pool. |
 
 There are **two product trees**, each with its own surface, admin owner, and emit
 address, both pointing at the controller:
@@ -25,8 +25,8 @@ address, both pointing at the controller:
 |---|---|---|
 | User action that charges | `burn` / `burnToBTC` (lender redeem) | `closeWithSwap` / `closeWithDeposit` / `withdrawCollateral` (borrower exit) |
 | Surface id | `PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW` | `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW` |
-| Charge implementation | **inline** in `LoanTokenLogicShared._chargeExitFeeAndPay` | **delegatecall** to `Perimeter FeeBorrowerExitOps` via the `_chargeExitFeeReturnNet` stub |
-| Admin getter/setter | `exitFeeController` view only — read-through to the protocol singleton (no iToken setter) | `exitFeeController` / `setExitFeeController` **and** `borrowerExitPerimeterOps` / `setPerimeter FeeBorrowerExitOps` on `ExitFeeModule`, `onlyOwner` — the single host for both protocol pointers |
+| Charge implementation | **inline** in `LoanTokenLogicShared._chargeExitFeeAndPay` | **delegatecall** to `BorrowerExitPerimeterOps` via the `_chargeExitFeeReturnNet` stub |
+| Admin getter/setter | `exitFeeController` view only — read-through to the protocol singleton (no iToken setter) | `exitFeeController` / `setExitFeeController` **and** `borrowerExitPerimeterOps` / `setBorrowerExitPerimeterOps` on `ExitFeeModule`, `onlyOwner` — the single host for both protocol pointers |
 | Why the split | those modules were under 24 KiB | those modules were over EIP-170 → library |
 
 ## Flow A — Lender exit (iToken)
@@ -35,17 +35,17 @@ address, both pointing at the controller:
 flowchart TD
     U([user]) -->|burn / burnToBTC| ENTRY[LoanTokenLogicSplit / LM / WrbtcLM]
     ENTRY -->|gross = redeemed underlying| CHG[LoanTokenLogicShared._chargeExitFeeAndPay<br/>inline, iToken ctx]
-    CHG -->|Perimeter FeeLib.safeControllerLookup<br/>fail-open staticcall| PTR[(sovrynProtocol<br/>EXIT_FEE_CONTROLLER_SLOT)]
-    CHG --> Q[_safeQuoteExitFee = Perimeter FeeLib.safeQuote]
+    CHG -->|PerimeterLib.safeControllerLookup<br/>fail-open staticcall| PTR[(sovrynProtocol<br/>EXIT_FEE_CONTROLLER_SLOT)]
+    CHG --> Q[_safeQuoteExitFee = PerimeterLib.safeQuote]
     Q -->|staticcall quoteExitFee<br/>LENDER_WITHDRAW, iToken, msg.sender, gross| CTRL[(ExitFeeController)]
-    CHG --> V[_exitFeeQuoteIsValid = Perimeter FeeLib.quoteIsValid]
+    CHG --> V[_exitFeeQuoteIsValid = PerimeterLib.quoteIsValid]
     CHG --> PAY[_transferUnderlyingToken<br/>fee leg → feeReceiver, user leg → receiver]
     PAY --> EV[[emit ExitFeeApplied / ExitFeeSkipped]]
     CHG -. iWRBTC burnToBTC .-> NAT[_chargeExitFeeAndPayAsNative → _transferNativeRBTC<br/>unwrap WRBTC → Address.sendValue]
 ```
 
-- The iToken side emits its own events (declared via `IPerimeter FeeEvents`) and does
-  **not** use `Perimeter FeeBorrowerExitOps`.
+- The iToken side emits its own events (declared via `IPerimeterEvents`) and does
+  **not** use `BorrowerExitPerimeterOps`.
 
 ## Flow B — Borrower exit (sovrynProtocol)
 
@@ -55,14 +55,14 @@ flowchart TD
     U -->|withdrawCollateral| LM[LoanMaintenance]
     U -->|rollover| RO[LoanClosingsRollover<br/>origin=Rollover → exempt]
     U -->|liquidate| LQ[LoanClosingsLiquidation<br/>separate path → exempt]
-    LCW --> GATE{Perimeter FeeBorrowerExit._exitFeeChargeable<br/>origin==VoluntaryClose && sender∈ borrower/delegate ?}
+    LCW --> GATE{BorrowerExitPerimeter._exitFeeChargeable<br/>origin==VoluntaryClose && sender∈ borrower/delegate ?}
     LM --> GATE
     GATE -->|no| FULL[pay full gross]
     GATE -->|yes| STUB[_chargeExitFeeReturnNet stub]
-    STUB -->|delegatecall, stored slot addr| LIB[Perimeter FeeBorrowerExitOps.chargeExitFeeAndPay<br/>runs in proxy storage ctx]
-    LIB --> Q[Perimeter FeeLib.safeQuote]
+    STUB -->|delegatecall, stored slot addr| LIB[BorrowerExitPerimeterOps.chargeExitFeeAndPay<br/>runs in proxy storage ctx]
+    LIB --> Q[PerimeterLib.safeQuote]
     Q -->|staticcall quoteExitFee<br/>BORROWER_WITHDRAW, iToken, sender, gross| CTRL[(ExitFeeController)]
-    LIB --> V[Perimeter FeeLib.quoteIsValid]
+    LIB --> V[PerimeterLib.quoteIsValid]
     LIB --> FEE[_payExitFeeLeg → feeReceiver, fail-open]
     LIB --> EV[[emit ExitFeeApplied / ExitFeeSkipped<br/>from proxy address]]
     LIB -->|returns net| USER[caller pays user leg<br/>vaultWithdraw / vaultEtherWithdraw, fail-closed]
@@ -77,24 +77,24 @@ flowchart TD
 
 | Trigger | Entry contract | Gate | Charge implementation | Quote source |
 |---|---|---|---|---|
-| iToken `burn` (ERC20) | LoanTokenLogicSplit / LM | `gross ≠ 0` | `_chargeExitFeeAndPay` **inline** | Perimeter FeeLib → controller |
-| iToken `burnToBTC` (native) | LoanTokenLogicWrbtcLM | `gross ≠ 0` | `_chargeExitFeeAndPayAsNative` **inline** | Perimeter FeeLib → controller |
-| `closeWithSwap` / `closeWithDeposit` | LoanClosingsWith | `_exitFeeChargeable` (origin + actor) | stub → **delegatecall** Perimeter FeeBorrowerExitOps | Perimeter FeeLib → controller |
-| `withdrawCollateral` | LoanMaintenance | always (voluntary) | stub → **delegatecall** Perimeter FeeBorrowerExitOps | Perimeter FeeLib → controller |
+| iToken `burn` (ERC20) | LoanTokenLogicSplit / LM | `gross ≠ 0` | `_chargeExitFeeAndPay` **inline** | PerimeterLib → controller |
+| iToken `burnToBTC` (native) | LoanTokenLogicWrbtcLM | `gross ≠ 0` | `_chargeExitFeeAndPayAsNative` **inline** | PerimeterLib → controller |
+| `closeWithSwap` / `closeWithDeposit` | LoanClosingsWith | `_exitFeeChargeable` (origin + actor) | stub → **delegatecall** BorrowerExitPerimeterOps | PerimeterLib → controller |
+| `withdrawCollateral` | LoanMaintenance | always (voluntary) | stub → **delegatecall** BorrowerExitPerimeterOps | PerimeterLib → controller |
 | `rollover` / `liquidate` | Rollover / Liquidation | `origin=Rollover` / separate path | **exempt** | — |
 
 ## Two cross-cutting invariants
 
-- **Fail-open wherever the controller is touched.** `Perimeter FeeLib.safeQuote` uses a
+- **Fail-open wherever the controller is touched.** `PerimeterLib.safeQuote` uses a
   `staticcall` (no `try/catch` in 0.5.17) → a misbehaving / unpinned controller
   yields an inactive quote and never reverts the burn/close. The protocol-side
   delegatecall stub adds a second backstop: a revert inside the hook OR an
-  unset/non-contract/mis-set `Perimeter FeeBorrowerExitOps` pointer (non-32-byte
+  unset/non-contract/mis-set `BorrowerExitPerimeterOps` pointer (non-32-byte
   returndata) → pay full gross, atomically rolled back.
 - **One controller, one pointer, two surfaces.** The pointer lives ONLY on
   sovrynProtocol (`EXIT_FEE_CONTROLLER_SLOT`, admin'd by
   `ExitFeeModule.setExitFeeController`); the iToken tree reads it through a
-  fail-open staticcall (`Perimeter FeeLib.safeControllerLookup`), so one pin/rotation
+  fail-open staticcall (`PerimeterLib.safeControllerLookup`), so one pin/rotation
   covers every pool with no per-pool drift, and a newly listed iToken is
   covered with no init call. The trees distinguish themselves to the
   controller via `surfaceId` (lender vs borrower withdraw) + `subProduct`
@@ -142,11 +142,11 @@ flowchart TD
 
 | Concern | File |
 |---|---|
-| Slot + quote/validate primitive | `contracts/utils/Perimeter FeeLib.sol` |
-| Protocol charge hook (deployed contract, delegatecall-only) | `contracts/utils/Perimeter FeeBorrowerExitOps.sol` |
-| Protocol borrower-exit helpers + gate + `CloseOrigin` | `contracts/mixins/Perimeter FeeBorrowerExit.sol` |
+| Slot + quote/validate primitive | `contracts/utils/PerimeterLib.sol` |
+| Protocol charge hook (deployed contract, delegatecall-only) | `contracts/utils/BorrowerExitPerimeterOps.sol` |
+| Protocol borrower-exit helpers + gate + `CloseOrigin` | `contracts/mixins/BorrowerExitPerimeter.sol` |
 | Protocol Perimeter Fee admin pair (singleton pointer host) | `contracts/modules/ExitFeeModule.sol` |
 | iToken inline charge + admin pair | `contracts/connectors/loantoken/LoanTokenLogicShared.sol` |
 | iToken native charge | `contracts/connectors/loantoken/modules/beaconLogicWRBTC/LoanTokenLogicWrbtcLM.sol` |
-| Canonical product events | `contracts/interfaces/perimeter/IPerimeter FeeEvents.sol` |
+| Canonical product events | `contracts/interfaces/perimeter/IPerimeterEvents.sol` |
 | Controller ABI | `contracts/interfaces/perimeter/IExitFeeController.sol` |
