@@ -77,9 +77,18 @@ contract("Perimeter — pinned identifiers", () => {
         expect(new Set(all).size, "duplicate identifier value").to.equal(all.length);
     });
 
+    /**
+     * Comments are stripped first. Every one of these constants is declared
+     * directly under a comment repeating its own preimage, so a containment
+     * check against the raw file passes on the comment alone -- the executable
+     * derivation could say something else entirely and this test would not
+     * notice.
+     */
+    const stripComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+
     it("the source still declares exactly these names", () => {
         const fs = require("fs");
-        const lib = fs.readFileSync("contracts/utils/PerimeterLib.sol", "utf8");
+        const lib = stripComments(fs.readFileSync("contracts/utils/PerimeterLib.sol", "utf8"));
         SLOTS.forEach(({ name }) => {
             expect(lib, `PerimeterLib must derive ${name}`).to.contain(`keccak256("${name}")`);
         });

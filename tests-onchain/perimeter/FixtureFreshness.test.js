@@ -92,4 +92,54 @@ contract("Perimeter — rehearsal fixtures are current", () => {
             expect(provenance.commit, `${file} has no provenance commit`).to.be.a("string");
         });
     });
+
+    /**
+     * The marker checks above only catch a fixture built before the rename.
+     * They do NOT catch one built after the rename but before a later change --
+     * which is exactly what happened when the controller fixture was pinned to
+     * a commit that was itself reverted an hour later. Nothing in its bytes
+     * looked wrong; it was simply built from source that no longer exists.
+     *
+     * The only honest freshness test is whether the fixture names the commit
+     * its source repo is actually on. That needs the source repo on disk, so
+     * this skips loudly rather than passing quietly when it is absent.
+     */
+    it("every fixture names its source repo's current commit", () => {
+        const roots = {
+            "zero-contracts": path.join(__dirname, "../../../zero-contracts"),
+            perimeter: path.join(__dirname, "../../../Sovryn-perimeter"),
+        };
+
+        const stale = [];
+        const unchecked = [];
+
+        files.forEach((file) => {
+            const { provenance } = bytecodeOf(file);
+            const root = roots[provenance.repo];
+            if (!root || !fs.existsSync(path.join(root, ".git"))) {
+                unchecked.push(`${file} (${provenance.repo} not on disk)`);
+                return;
+            }
+            const head = require("child_process")
+                .execFileSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" })
+                .trim();
+            if (!head.startsWith(provenance.commit)) {
+                stale.push(
+                    `${file}: pinned ${provenance.commit}, ${provenance.repo} is at ${head.slice(0, 7)}`
+                );
+            }
+        });
+
+        if (unchecked.length === files.length) {
+            expect.fail(
+                `no source repo was available, so fixture freshness was not ` +
+                    `verified at all: ${unchecked.join(", ")}`
+            );
+        }
+        expect(
+            stale,
+            `fixtures were built from a commit their source repo has moved past. ` +
+                `Rebuild the source and re-run fixtures/regenerate.js.`
+        ).to.deep.equal([]);
+    });
 });

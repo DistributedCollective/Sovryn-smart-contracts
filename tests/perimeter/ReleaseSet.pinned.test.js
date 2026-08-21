@@ -53,6 +53,15 @@ const MUST_NOT_SHIP = [
 const LINK_PLACEHOLDER = "L".repeat(40);
 
 /**
+ * The only library any of these modules is meant to link. Normalising link
+ * addresses to a placeholder is what lets a fresh build be compared against a
+ * deployed record, but done blindly it would also hide a swap to a different,
+ * ABI-compatible library: same call sites, same normalised body. Asserting the
+ * library's identity separately keeps the normalisation honest.
+ */
+const EXPECTED_LIBRARIES = ["SwapsImplSovrynSwapLib"];
+
+/**
  * Runtime code with the two things that legitimately differ removed:
  * the CBOR metadata tail (covers comments and file paths) and linked library
  * addresses (the deployed record holds a real address where a fresh build holds
@@ -127,8 +136,50 @@ contract("Perimeter — pinned release set", () => {
         });
     });
 
-    it("the two lists do not overlap and cover the perimeter-bearing modules", () => {
+    MUST_NOT_SHIP.concat(MUST_SHIP).forEach((name) => {
+        it(`${name} links only the expected library`, () => {
+            const record = deployedRecord(name);
+            const linked = Object.keys(record.libraries || {});
+            const unexpected = linked.filter((l) => !EXPECTED_LIBRARIES.includes(l));
+            expect(
+                unexpected,
+                `${name} links a library this comparison does not know about, so ` +
+                    `normalising its address away could hide a real change`
+            ).to.deep.equal([]);
+        });
+    });
+
+    it("the two lists do not overlap", () => {
         const overlap = MUST_SHIP.filter((m) => MUST_NOT_SHIP.includes(m));
         expect(overlap, "a module cannot both ship and stay out").to.deep.equal([]);
+    });
+
+    /**
+     * Bound to the deployment's own module list, not to a copy of it.
+     *
+     * Without this the two lists above are just prose: a module could be added
+     * to or removed from `getProtocolModules()` -- which is what the deploy
+     * scripts iterate and what 2080 proposes replacements from -- and this file
+     * would stay green while saying nothing about it.
+     */
+    it("every protocol module the deployment knows about is classified here", () => {
+        const { getProtocolModules } = require("../../deployment/helpers/helpers");
+        const deployed = Object.values(getProtocolModules()).map((m) => m.moduleName);
+        const classified = MUST_SHIP.concat(MUST_NOT_SHIP);
+
+        const unclassified = deployed.filter((m) => !classified.includes(m));
+        expect(
+            unclassified,
+            `these modules are deployed by 2070 and proposed by 2080 but this test ` +
+                `says nothing about whether they belong in the release. Add each to ` +
+                `MUST_SHIP or MUST_NOT_SHIP after checking its body against mainnet.`
+        ).to.deep.equal([]);
+
+        const phantom = classified.filter((m) => !deployed.includes(m));
+        expect(
+            phantom,
+            `these are classified here but are not protocol modules any more, so the ` +
+                `classification is stale`
+        ).to.deep.equal([]);
     });
 });
