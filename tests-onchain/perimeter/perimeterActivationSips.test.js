@@ -1009,6 +1009,32 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
             "NOT BLOCKED: extendLoanDuration actually extended the term"
         ).to.be.true;
 
+        // reduceLoanDuration: the other half of the duration pair, and the one
+        // that pays out. Indefinite-term only, which is what iToken.borrow
+        // opens, so `loanId` qualifies. Deliberately uncharged -- returning
+        // prepaid interest is a position adjustment, not an exit -- and the
+        // withdrawal is sized from what is actually left so the call cannot
+        // trip "withdraw amount too high".
+        const loanBeforeReduce = await protocol.getLoan(loanId);
+        const interestData = await protocol.getLoanInterestData(loanId);
+        const nowTs = (await ethers.provider.getBlock("latest")).timestamp;
+        const secondsLeft = loanBeforeReduce.endTimestamp.sub(nowTs);
+        const remainingDeposit = secondsLeft.mul(interestData.interestOwedPerDay).div(86400);
+        const reduceBy = remainingDeposit.div(4);
+        expect(reduceBy.gt(0), "sanity: something left to withdraw").to.be.true;
+
+        receipt = await (
+            await protocol.reduceLoanDuration(loanId, ctx.deployerSigner.address, reduceBy)
+        ).wait();
+        expect(
+            countPerimeterEvents(receipt, "ExitFeeApplied"),
+            "reduceLoanDuration must not charge -- it returns prepaid interest"
+        ).to.equal(0);
+        expect(
+            (await protocol.getLoan(loanId)).endTimestamp.lt(loanBeforeReduce.endTimestamp),
+            "NOT BLOCKED: reduceLoanDuration actually shortened the term"
+        ).to.be.true;
+
         // 3d) Zero stability pool: deposits/withdrawals move funds with no fee
         //     (they don't route through BorrowerOperations). Its SOV-gain
         //     issuance prices through ZeroCommunityIssuance's OWN Sovryn
@@ -1238,6 +1264,58 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
             await ethers.provider.getBalance(funder.address),
             "Zero withdrawColl pays FULL gross once disabled"
         ).to.equal(funderBefore.add(probe).sub(gasCost));
+
+        // Zero adjustTrove, the INCREASE directions. The decrease branch is a
+        // charged surface and is covered above; adding collateral and drawing
+        // more debt are not exits, so they must move funds INTO the position
+        // and stay silent. Asserted on state, not just on the absence of an
+        // event -- a regression that reverted either would emit nothing at all.
+        const troveCollBefore = await troveManager.getTroveColl(funder.address);
+        receipt = await (
+            await borrowerOperations
+                .connect(funder)
+                .adjustTrove(
+                    MAX_ZERO_FEE_PERCENTAGE,
+                    0,
+                    0,
+                    false,
+                    funder.address,
+                    funder.address,
+                    {
+                        value: ONE_RBTC.div(10),
+                    }
+                )
+        ).wait();
+        expect(
+            countPerimeterEvents(receipt, "ExitFeeApplied"),
+            "adjustTrove adding collateral must not charge"
+        ).to.equal(0);
+        expect(
+            (await troveManager.getTroveColl(funder.address)).gt(troveCollBefore),
+            "NOT BLOCKED: adjustTrove actually added collateral"
+        ).to.be.true;
+
+        const troveDebtBefore = await troveManager.getTroveDebt(funder.address);
+        receipt = await (
+            await borrowerOperations
+                .connect(funder)
+                .adjustTrove(
+                    MAX_ZERO_FEE_PERCENTAGE,
+                    0,
+                    ethers.utils.parseEther("100"),
+                    true,
+                    funder.address,
+                    funder.address
+                )
+        ).wait();
+        expect(
+            countPerimeterEvents(receipt, "ExitFeeApplied"),
+            "adjustTrove drawing more debt must not charge"
+        ).to.equal(0);
+        expect(
+            (await troveManager.getTroveDebt(funder.address)).gt(troveDebtBefore),
+            "NOT BLOCKED: adjustTrove actually increased the debt"
+        ).to.be.true;
 
         // Hygiene: hand the real price feeds back.
         await (

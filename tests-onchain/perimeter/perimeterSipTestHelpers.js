@@ -77,6 +77,26 @@ const getImpersonatedSignerFromJsonRpcProvider = getImpersonatedSigner;
  *  (the ship-disabled model; tests flip it explicitly). Saves the
  *  "ExitFeeController" deployment record consumed by the sipArgs entries. */
 const deployPerimeterStack = async (deployerSigner, rateBps) => {
+    const overrides = deployedAddressOverrides();
+    if (overrides.ExitFeeController && overrides.ExitFeeVault) {
+        // Already on chain and already bootstrapped by whoever deployed it. The
+        // rehearsal attaches and leaves the policy alone -- rewriting it here
+        // would test configuration this run invented rather than the
+        // configuration the release actually carries.
+        const controller = await attachDeployed(
+            "ExitFeeController",
+            overrides.ExitFeeController,
+            controllerFixture.abi,
+            deployerSigner
+        );
+        const vault = await attachDeployed(
+            "ExitFeeVault",
+            overrides.ExitFeeVault,
+            vaultFixture.abi,
+            deployerSigner
+        );
+        return { controller, vault };
+    }
     const proxyFactory = new ethers.ContractFactory(
         erc1967ProxyFixture.abi,
         erc1967ProxyFixture.bytecode,
@@ -141,6 +161,15 @@ const deployPerimeterStack = async (deployerSigner, rateBps) => {
  *  The constructor's permit2 address is read from the live proxy so the new
  *  implementation is constructed exactly like the production one. */
 const deployHookedBorrowerOperationsImpl = async (deployerSigner) => {
+    const _ov = deployedAddressOverrides();
+    if (_ov["BorrowerOperationsPerimeter"]) {
+        return await attachDeployed(
+            "BorrowerOperationsPerimeter",
+            _ov["BorrowerOperationsPerimeter"],
+            borrowerOperationsFixture.abi,
+            deployerSigner
+        );
+    }
     const boProxy = await deployments.get("BorrowerOperations_Proxy");
     const permit2 = await new ethers.Contract(
         boProxy.address,
@@ -165,6 +194,15 @@ const deployHookedBorrowerOperationsImpl = async (deployerSigner) => {
  *  save the "CollSurplusPoolPerimeter" record the sipArgs Part 1 entry resolves —
  *  the FIRST-EVER implementation upgrade of that proxy (runbook §8). */
 const deployCollSurplusPoolImpl = async (deployerSigner) => {
+    const _ov = deployedAddressOverrides();
+    if (_ov["CollSurplusPoolPerimeter"]) {
+        return await attachDeployed(
+            "CollSurplusPoolPerimeter",
+            _ov["CollSurplusPoolPerimeter"],
+            collSurplusPoolFixture.abi,
+            deployerSigner
+        );
+    }
     const impl = await new ethers.ContractFactory(
         collSurplusPoolFixture.abi,
         collSurplusPoolFixture.bytecode,
@@ -400,6 +438,50 @@ const getSingleExitFeeApplied = (receipt) => {
  * borrower-exit charge hook, over a freshly deployed swaps library that the
  * linked ones bind to.
  */
+/**
+ * Addresses to attach to instead of deploying, for re-running the rehearsal
+ * against contracts that are already on chain.
+ *
+ * Point PERIMETER_DEPLOYED_ADDRESSES at a JSON file of `{ "ContractName":
+ * "0x..." }` and every helper below attaches rather than deploys. That is the
+ * mode to use after the release is redeployed: the rehearsal then exercises the
+ * bytecode that actually shipped, not a fresh local copy of it. Names not in the
+ * file are still deployed, so a partial file works.
+ *
+ * Each attached address is checked for code on the fork first. Attaching to an
+ * empty address would otherwise produce a rehearsal that passes by calling
+ * nothing.
+ */
+let _overrides;
+const deployedAddressOverrides = () => {
+    if (_overrides !== undefined) return _overrides;
+    const file = process.env.PERIMETER_DEPLOYED_ADDRESSES;
+    if (!file) {
+        _overrides = {};
+        return _overrides;
+    }
+    const fs = require("fs");
+    if (!fs.existsSync(file)) {
+        throw new Error(`PERIMETER_DEPLOYED_ADDRESSES points at ${file}, which does not exist`);
+    }
+    _overrides = JSON.parse(fs.readFileSync(file, "utf8"));
+    return _overrides;
+};
+
+/** Attach to an already-deployed contract, refusing an address with no code. */
+const attachDeployed = async (name, address, abi, signer) => {
+    const code = await ethers.provider.getCode(address);
+    if (!code || code === "0x") {
+        throw new Error(
+            `PERIMETER_DEPLOYED_ADDRESSES gives ${name} = ${address}, which has no ` +
+                `code on this fork. Wrong address, or a fork block older than the ` +
+                `deployment.`
+        );
+    }
+    await deployments.save(name, { address, abi });
+    return new ethers.Contract(address, abi, signer);
+};
+
 const deployLendingReleaseContracts = async (deployerSigner) => {
     const swapsLib = await (
         await ethers.getContractFactory("SwapsImplSovrynSwapLib", deployerSigner)
@@ -416,8 +498,18 @@ const deployLendingReleaseContracts = async (deployerSigner) => {
         "ExitFeeModule",
         "BorrowerExitPerimeterOps",
     ];
+    const overrides = deployedAddressOverrides();
     for (const name of names) {
         const artifact = await hre.artifacts.readArtifact(name);
+        if (overrides[name]) {
+            deployed[name] = await attachDeployed(
+                name,
+                overrides[name],
+                artifact.abi,
+                deployerSigner
+            );
+            continue;
+        }
         const needsLib = Object.keys(artifact.linkReferences || {}).length > 0;
         const factory = needsLib
             ? await ethers.getContractFactory(name, {
@@ -435,6 +527,8 @@ const deployLendingReleaseContracts = async (deployerSigner) => {
 
 module.exports = {
     deployLendingReleaseContracts,
+    deployedAddressOverrides,
+    attachDeployed,
     ONE_RBTC,
     MAX_DURATION,
     FORK_URL,
