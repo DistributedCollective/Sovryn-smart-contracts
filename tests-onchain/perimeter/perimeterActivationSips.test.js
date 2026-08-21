@@ -60,6 +60,7 @@ const {
     deployHookedBorrowerOperationsImpl,
     deployCollSurplusPoolImpl,
     stubOutZeroPriceFeed,
+    deployLendingReleaseContracts,
     createAndQueueGovernorOwnerSip,
     executeQueuedGovernorOwnerSip,
     setupGovernanceContext,
@@ -95,13 +96,12 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
     const setupTest = createFixture(async ({ deployments }) => {
         const context = await setupGovernanceContext();
 
-        // Fresh deployments of everything Part 1 registers: the two hooked
-        // beacon modules (2000), the four protocol modules (2070) and the
-        // borrower-exit charge hook (2061).
-        await deployments.fixture(
-            ["LoanTokenModules", "ProtocolModules", "BorrowerExitPerimeterOps"],
-            { keepExistingDeployments: true }
-        );
+        // Fresh deployments of everything Part 1 registers, straight from local
+        // artifacts. deployments.fixture() cannot be used here: on a fork,
+        // hardhat-deploy asks the node for each previous deployment's
+        // transaction and a forked node will not serve pre-fork transactions by
+        // hash, so it throws before deploying anything.
+        await deployLendingReleaseContracts(context.deployerSigner);
 
         // The `<TBD>` SIP inputs: the real 0.8.20 controller+vault (record
         // "ExitFeeController") and the hooked Zero BorrowerOperations built at

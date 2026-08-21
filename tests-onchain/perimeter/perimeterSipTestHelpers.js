@@ -383,7 +383,58 @@ const getSingleExitFeeApplied = (receipt) => {
     return events[0];
 };
 
+/**
+ * Deploy the Phase-1 release contracts straight from local artifacts.
+ *
+ * `deployments.fixture()` cannot do this on a fork. hardhat-deploy's
+ * `fetchIfDifferent` asks the node for the previous deployment's transaction to
+ * decide whether the bytecode moved, and a forked node does not serve pre-fork
+ * transactions by hash -- the upstream RPC has them, the fork simply will not
+ * proxy that call. The fixture therefore throws "cannot get the transaction for
+ * <X>'s previous deployment" on any contract with a recorded deploy tx, which
+ * is all of them, and no choice of endpoint fixes it.
+ *
+ * The set below is exactly what SIP-0094 Part 1 registers, so the rehearsal
+ * exercises the release rather than a superset of it: the two hooked beacon
+ * modules, the three replaced protocol modules, the admin module, and the
+ * borrower-exit charge hook, over a freshly deployed swaps library that the
+ * linked ones bind to.
+ */
+const deployLendingReleaseContracts = async (deployerSigner) => {
+    const swapsLib = await (
+        await ethers.getContractFactory("SwapsImplSovrynSwapLib", deployerSigner)
+    ).deploy();
+    await swapsLib.deployed();
+
+    const deployed = {};
+    const names = [
+        "LoanTokenLogicLM",
+        "LoanTokenLogicWrbtcLM",
+        "LoanClosingsRollover",
+        "LoanClosingsWith",
+        "LoanMaintenance",
+        "ExitFeeModule",
+        "BorrowerExitPerimeterOps",
+    ];
+    for (const name of names) {
+        const artifact = await hre.artifacts.readArtifact(name);
+        const needsLib = Object.keys(artifact.linkReferences || {}).length > 0;
+        const factory = needsLib
+            ? await ethers.getContractFactory(name, {
+                  libraries: { SwapsImplSovrynSwapLib: swapsLib.address },
+                  signer: deployerSigner,
+              })
+            : await ethers.getContractFactory(name, deployerSigner);
+        const contract = await factory.deploy();
+        await contract.deployed();
+        await deployments.save(name, { address: contract.address, abi: artifact.abi });
+        deployed[name] = contract;
+    }
+    return { swapsLib, ...deployed };
+};
+
 module.exports = {
+    deployLendingReleaseContracts,
     ONE_RBTC,
     MAX_DURATION,
     FORK_URL,
