@@ -4,7 +4,7 @@ High-level map of the on-chain Perimeter Fee (collateral/exit-fee) machinery in
 `Sovryn-smart-contracts`: the entities, which one runs on which user action, and
 in what execution context.
 
-> Companion to the feature design in `perimeter/docs/IMPLEMENTATION_DESIGN.md`.
+> Companion to the feature design in `sovryn-perimeter/docs/IMPLEMENTATION_DESIGN.md` in sovryn-spec.
 > This file is the Sovryn-side **call graph**; the design doc is the spec.
 
 ## Entities
