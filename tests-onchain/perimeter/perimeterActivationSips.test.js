@@ -968,6 +968,47 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
             )
         ).wait();
 
+        // 3c-bis) LoanMaintenance's OTHER entry points still work.
+        //
+        // The release redeploys LoanMaintenance for the perimeter hook on
+        // withdrawCollateral, which puts its unrelated functions on the same
+        // new bytecode. They are covered by the unit suite, but not against
+        // real forked state until here. Position adjustments are deliberately
+        // OUTSIDE the perimeter, so each must both succeed and stay silent.
+        const loanBeforeAdjust = await protocol.getLoan(loanId);
+
+        // The default signer holds native RBTC on a fork, not WRBTC; wrap what
+        // the top-up needs.
+        const wrbtcWrapper = new ethers.Contract(
+            wrbtc.address,
+            ["function deposit() payable"],
+            wrbtc.signer
+        );
+        await (await wrbtcWrapper.deposit({ value: ONE_RBTC.div(10) })).wait();
+        await (await wrbtc.approve(protocol.address, ONE_RBTC.div(10))).wait();
+        receipt = await (await protocol.depositCollateral(loanId, ONE_RBTC.div(10))).wait();
+        expect(
+            countPerimeterEvents(receipt, "ExitFeeApplied"),
+            "depositCollateral must not charge -- nothing leaves the system"
+        ).to.equal(0);
+        expect(
+            (await protocol.getLoan(loanId)).collateral.gt(loanBeforeAdjust.collateral),
+            "NOT BLOCKED: depositCollateral actually added collateral"
+        ).to.be.true;
+
+        const loanBeforeExtend = await protocol.getLoan(loanId);
+        receipt = await (
+            await protocol.extendLoanDuration(loanId, ONE_RBTC.div(100), true, "0x")
+        ).wait();
+        expect(
+            countPerimeterEvents(receipt, "ExitFeeApplied"),
+            "extendLoanDuration must not charge"
+        ).to.equal(0);
+        expect(
+            (await protocol.getLoan(loanId)).endTimestamp.gt(loanBeforeExtend.endTimestamp),
+            "NOT BLOCKED: extendLoanDuration actually extended the term"
+        ).to.be.true;
+
         // 3d) Zero stability pool: deposits/withdrawals move funds with no fee
         //     (they don't route through BorrowerOperations). Its SOV-gain
         //     issuance prices through ZeroCommunityIssuance's OWN Sovryn
