@@ -8,11 +8,9 @@
  * fail-open perimeter reports that as "no fee". The gate whose whole purpose is
  * to prove the fee is charged would be exercising the wrong contract.
  *
- * That happened twice on this branch — once caught by external review, once by
- * a later commit invalidating a fixture regenerated an hour earlier. This test
- * is the guard, and it reads the identifiers straight out of the bytecode,
- * which is possible because solc 0.5.17 and 0.6.11 do not fold `keccak256` of a
- * string literal: the preimage is stored and hashed at run time.
+ * The identifiers are read straight out of the fixture bytecode, which works
+ * because solc 0.5.17 and 0.6.11 do not fold `keccak256` of a string literal —
+ * the preimage is stored in the contract and hashed at run time.
  *
  * Run:
  *   npx hardhat test tests-onchain/perimeter/FixtureFreshness.test.js

@@ -3,12 +3,13 @@
  * deployed by the REAL deploy pipeline, not fixtures.
  *
  * Prerequisites (all on the same still-running fork node):
- *   Phase A: perimeter repo forge scripts 01→04 (full runbook env, 10 bps,
- *            enable=false), finalize + verify, Exchequer accepted both
- *            Ownable2Step handoffs (impersonated on the fork);
- *   Phase B: lending `hardhat deploy --tags LoanTokenModules,
- *            BorrowerExitPerimeterOps,ProtocolModules` and the two Zero
- *            impl-only deploys, all on --network rskForkedMainnet.
+ *   1. perimeter repo: forge scripts 01→04 with the full deploy env, then
+ *      finalize + verify, with the Exchequer accepting both Ownable2Step
+ *      handoffs (impersonated on the fork);
+ *   2. lending: `hardhat deploy --tags SwapsImplSovrynSwapLib,
+ *      BorrowerExitPerimeterOps,LoanTokenModules,ProtocolModules`
+ *      and the two Zero implementation-only deploys, all on
+ *      `--network rskForkedMainnet`.
  * The spec consumes that state: controller/vault proxies and the two Zero
  * implementations via env (COLFEE_EXIT_FEE_CONTROLLER / EXIT_FEE_VAULT_PROXY /
  * COLFEE_ZERO_BORROWER_OPERATIONS / COLFEE_ZERO_COLL_SURPLUS_POOL, plus the
@@ -50,7 +51,7 @@
  *   - no-touch paths (rollover keeper + borrower-self, liquidation, Zero
  *     stability pool, Zero redemption) charge nothing.
  *
- * Run (after the Phase A/B dress-run deploys, against the SAME node):
+ * Run (after the prerequisite deploys above, against the SAME node):
  *     COLFEE_DRESS_RUN=TRUE __decryptionAlreadyDone__=TRUE \
  *       COLFEE_EXIT_FEE_CONTROLLER=... COLFEE_EXIT_FEE_CONTROLLER_CODEHASH=... \
  *       EXIT_FEE_VAULT_PROXY=... \
@@ -92,7 +93,7 @@ const { get } = deployments;
 // borrower flows therefore run against a PriceFeedsLocal seeded with this
 // pinned real rate (same tolerance note as in perimeterActivationSips.test.js).
 const XUSD_WRBTC_RATE_AT_FORK_BLOCK = ethers.BigNumber.from("15435147683493");
-// The LIVE launch rate: the controller was bootstrapped by the real Phase A
+// The LIVE launch rate: the controller was bootstrapped by the real forge
 // scripts at 10 bps on all four surfaces — nothing here reconfigures it.
 const RATE_BPS = 10;
 const PROPOSAL_STATE_QUEUED = 5; // GovernorAlpha.ProposalState.Queued
@@ -103,14 +104,16 @@ const LOAN_DURATION = 28 * 24 * 60 * 60;
 // balance-based, so the actual rate charged doesn't matter.
 const MAX_ZERO_FEE_PERCENTAGE = ethers.utils.parseEther("0.99");
 // The Exchequer Multisig — owner + operational admin of both Perimeter proxies
-// after the Phase A handoff (questionnaire P6); re-asserted below, and the
+// after the ownership handoff; re-asserted below, and the
 // enable/kill-switch legs sign as it (impersonated on the fork).
 const EXCHEQUER = "0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711";
 
 const requireEnvAddress = (name) => {
     const value = process.env[name];
     if (!value) {
-        throw new Error(`dress run requires the ${name} env var (from the Phase A/B deploys)`);
+        throw new Error(
+            `dress run requires the ${name} env var (set from the prerequisite deploys)`
+        );
     }
     return ethers.utils.getAddress(value);
 };
@@ -126,7 +129,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
         const setupTest = async () => {
             const context = await setupGovernanceContext();
 
-            // The 7 lending artifacts were deployed by the REAL Phase-B CLI run
+            // The lending artifacts come from the real CLI deploy run above,
             // (`hardhat deploy --tags ...`) before this spec started. Load
             // their record FILES into the in-memory deployments store — an
             // explicit deployments.save shadows the external-mainnet records,
@@ -153,21 +156,23 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                 const recordPath = path.join(recordsDir, `${name}.json`);
                 if (!fs.existsSync(recordPath)) {
                     throw new Error(
-                        `dress run requires the Phase-B deploy record ${recordPath} — ` +
-                            "run the Phase-B CLI deploys against this node first"
+                        `dress run requires the deploy record ${recordPath} — run ` +
+                            "`hardhat deploy --tags SwapsImplSovrynSwapLib," +
+                            "BorrowerExitPerimeterOps,LoanTokenModules,ProtocolModules " +
+                            "--network rskForkedMainnet` against this node first"
                     );
                 }
                 const record = JSON.parse(fs.readFileSync(recordPath, "utf8"));
                 const code = await ethers.provider.getCode(record.address);
-                expect(code, `${name} has code at its Phase-B address`).to.not.equal("0x");
+                expect(code, `${name} has code at its deployed address`).to.not.equal("0x");
                 await deployments.save(name, { address: record.address, abi: record.abi });
                 expect(
                     (await deployments.get(name)).address,
-                    `${name} resolves to the Phase-B dress-run deploy`
+                    `${name} resolves to the deploy record for this run`
                 ).to.equal(record.address);
             }
 
-            // The live stack from the Phase A/B deploys — env-supplied addresses,
+            // The live stack from the prerequisite deploys — env-supplied addresses,
             // committed-fixture ABIs; no bytecode deployed here.
             const controller = new ethers.Contract(
                 requireEnvAddress("COLFEE_EXIT_FEE_CONTROLLER"),
@@ -183,7 +188,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             const hookedImpl = { address: requireEnvAddress("COLFEE_ZERO_BORROWER_OPERATIONS") };
             const poolImpl = { address: requireEnvAddress("COLFEE_ZERO_COLL_SURPLUS_POOL") };
 
-            // Parameter pre-checks: the Phase-A bootstrap + Safe handoff must have
+            // Parameter pre-checks: the controller bootstrap + Safe handoff must have
             // left EXACTLY the launch posture (runbook CP-A, re-asserted here the
             // way CP-C re-asserts it against the SIP calldata's controller).
             const safeAddress = ethers.utils.getAddress(EXCHEQUER);
@@ -226,7 +231,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                         "no fork tag on this network"
                 );
             }
-            // Deliberately NO hardhat_reset: the node carries the Phase A/B
+            // Deliberately NO hardhat_reset: the node carries the prerequisite
             // dress-run deploys this spec exists to exercise.
 
             const {
@@ -789,7 +794,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             );
 
             // ── 2) ENABLE — the real operational path: the Exchequer Multisig
-            //    (owner + admin after the Phase-A handoff, impersonated on the
+            //    (owner + admin after the ownership handoff, impersonated on the
             //    fork) flips the switch. Re-run the same flows: they now charge
             //    at the LIVE 10 bps. ──────────────────────────────────────────
             await (

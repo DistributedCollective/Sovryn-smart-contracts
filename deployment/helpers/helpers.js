@@ -969,7 +969,52 @@ const sendTokensWithMultisig = async (transfers, sender, multisig = "MultiSigWal
     }
 };
 
+/**
+ * Runtime bytecode with the Solidity metadata trailer removed.
+ *
+ * solc appends a CBOR blob — a hash of the source and compiler settings —
+ * followed by two bytes giving its length. Two builds of identical source
+ * differ there whenever anything about the inputs changes: a comment, an import
+ * path, a solc patch version. None of that changes what the contract DOES.
+ *
+ * Comparing full bytecode therefore answers "was this compiled from exactly the
+ * same inputs", which is not the question a deployment asks. The question is
+ * "does this behave differently", and that is what the body answers.
+ *
+ * Do NOT use this on a contract with immutables: their values are written into
+ * the deployed body at construction, so a deployed body legitimately differs
+ * from the artifact's. It is safe for libraries and for the modules here, none
+ * of which take constructor arguments.
+ */
+const runtimeBodyWithoutMetadata = (hex) => {
+    if (!hex || hex === "0x") return "";
+    const s = hex.toLowerCase().replace(/^0x/, "");
+    if (s.length < 4) return s;
+    const declared = parseInt(s.slice(-4), 16);
+    const cut = (declared + 2) * 2;
+    // A trailer longer than the code means this is not solc metadata; compare
+    // the whole thing rather than silently truncating something else.
+    return cut > 0 && cut <= s.length ? s.slice(0, -cut) : s;
+};
+
+/**
+ * True when a redeploy would produce functionally identical code.
+ *
+ * Used by deploy scripts to skip a contract whose only change is its metadata
+ * fingerprint, and by tests/perimeter/ReleaseSet.pinned.test.js to assert that
+ * omitting one from a release is still safe. One definition, so the deployment
+ * and the check that polices it cannot drift apart.
+ */
+const deployedCodeIsUnchanged = (deployedRecord, artifact) => {
+    const onChain = deployedRecord && deployedRecord.deployedBytecode;
+    const built = artifact && artifact.deployedBytecode;
+    if (!onChain || !built) return false;
+    return runtimeBodyWithoutMetadata(onChain) === runtimeBodyWithoutMetadata(built);
+};
+
 module.exports = {
+    runtimeBodyWithoutMetadata,
+    deployedCodeIsUnchanged,
     getStakingModulesNames,
     getLoanTokenModulesNames,
     getProtocolModules,

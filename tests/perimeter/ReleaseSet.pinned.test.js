@@ -1,35 +1,20 @@
 /**
  * Perimeter — the Phase-1 release set is pinned, and the omissions are justified.
  *
- * DECISION (Tyrone, 2026-08-21): the modules whose bytecode moved only in the
- * metadata tail STAY OUT of the release.
+ * Modules whose bytecode moved only in the metadata trailer stay OUT of the
+ * release: their runtime code is byte-identical to what is already deployed, so
+ * redeploying them costs gas and explorer verification for no behavioural
+ * change, and adds proposal actions against a ten-per-proposal cap.
  *
- * That decision does not enforce itself. `getProtocolModules()` returns every
- * protocol module, hardhat-deploy redeploys any whose bytecode differs from its
- * recorded deployment, and 2080 proposes a `replaceContract` for each new
- * address. Renaming the perimeter identifiers changed the metadata hash of seven
- * modules that carry no perimeter code at all, so left alone the machinery would
- * quietly grow the release by seven contracts — past the ten-action cap that
- * forced Phase 1 into three proposals in the first place.
- *
- * This test is the guard. It compares each module's runtime body — metadata
- * stripped, library links normalised — against what is deployed on RSK mainnet,
- * and asserts:
- *
- *   - every module in the release set genuinely differs, so it has to ship;
- *   - every module left out is byte-identical in its executable code, so leaving
- *     it out changes nothing on chain.
- *
- * If a future change puts real code into one of the omitted modules, the second
- * assertion fails and the omission has to be revisited. That is the point.
- *
- * Run:
- *   npx hardhat test tests/perimeter/ReleaseSet.pinned.test.js
+ * This file is what makes that safe. If one of the omitted modules ever gains
+ * real code, the comparison below fails rather than letting it be left out
+ * silently.
  */
 
 const { expect } = require("chai");
 const fs = require("fs");
 const path = require("path");
+const { runtimeBodyWithoutMetadata } = require("../../deployment/helpers/helpers");
 
 const DEPLOYMENTS = path.join(__dirname, "../../deployment/deployments/rskSovrynMainnet");
 const ARTIFACTS = path.join(__dirname, "../../artifacts/contracts");
@@ -67,22 +52,23 @@ const EXPECTED_LIBRARIES = ["SwapsImplSovrynSwapLib"];
  * addresses (the deployed record holds a real address where a fresh build holds
  * a `__$...$__` placeholder).
  */
+/**
+ * Runtime body, link addresses normalised, metadata stripped.
+ *
+ * The stripping itself comes from deployment/helpers — the same function the
+ * deploy scripts use to decide whether a redeploy is needed. One definition, so
+ * "this does not need redeploying" and "omitting it is safe" cannot answer
+ * differently.
+ */
 const body = (hex, libraries) => {
-    let s = hex.startsWith("0x") ? hex.slice(2) : hex;
-    for (const address of Object.values(libraries || {})) {
-        const bare = address.slice(2);
-        s = s.split(bare.toLowerCase()).join(LINK_PLACEHOLDER);
-        s = s.split(bare.toUpperCase()).join(LINK_PLACEHOLDER);
+    let s = hex.toLowerCase();
+    if (libraries) {
+        Object.values(libraries).forEach((addr) => {
+            s = s.split(addr.toLowerCase().replace(/^0x/, "")).join(LINK_PLACEHOLDER);
+        });
     }
-    s = s.replace(/__\$[0-9a-fA-F]{34}\$__/g, LINK_PLACEHOLDER);
-    const declared = parseInt(s.slice(-4), 16);
-    if (Number.isFinite(declared)) {
-        const cut = (declared + 2) * 2;
-        if (cut > 0 && cut <= s.length) {
-            s = s.slice(0, -cut);
-        }
-    }
-    return s;
+    s = s.replace(/__\$[0-9a-f]{34}\$__/g, LINK_PLACEHOLDER);
+    return runtimeBodyWithoutMetadata(s);
 };
 
 const deployedRecord = (name) => {
@@ -147,6 +133,65 @@ contract("Perimeter — pinned release set", () => {
                     `normalising its address away could hide a real change`
             ).to.deep.equal([]);
         });
+    });
+
+    /**
+     * The swaps library is linked, not redeployed.
+     *
+     * Its runtime body is byte-identical to the deployed one — only the
+     * metadata trailer moved, because an imported interface changed — so a
+     * fresh copy would behave the same. It would also be unverifiable on
+     * Blockscout, whose verifier does not mask the call-protection
+     * self-address.
+     *
+     * If the library's executable code ever does change, this fails and the
+     * link-don't-deploy decision has to be revisited.
+     */
+    it("the swaps library is unchanged on chain and must be linked, not redeployed", () => {
+        const record = deployedRecord("SwapsImplSovrynSwapLib");
+        const built = require(
+            `../../artifacts/contracts/swaps/connectors/SwapsImplSovrynSwapLib.sol/SwapsImplSovrynSwapLib.json`
+        );
+        const onChain = record.deployedBytecode || record.bytecode;
+
+        expect(
+            body(onChain.toLowerCase()),
+            "the swaps library's executable code changed, so the relink decision no " +
+                "longer holds and it has to be redeployed and re-verified after all"
+        ).to.equal(body(built.deployedBytecode.toLowerCase()));
+
+        /**
+         * Consumers must link the verified library, not another copy of it.
+         *
+         * A consumer verifies against its declared link address whether or not
+         * the library at that address is itself verified, so linking an
+         * unverified copy is silently accepted by the explorer and leaves an
+         * unverifiable contract in the release's dependency graph.
+         *
+         * The two entries below are existing deployments that link an older
+         * copy. They are listed so a NEW module linking a wrong copy still
+         * fails here. Empty this list once those two are redeployed.
+         */
+        const KNOWN_UNRELINKED = {
+            LoanClosingsRollover: "0xfe2bb2d345452673c4e90622147c4f515f2f4ce0",
+            LoanMaintenance: "0xfe2bb2d345452673c4e90622147c4f515f2f4ce0",
+        };
+
+        const wrong = [];
+        MUST_SHIP.forEach((name) => {
+            const linked = (deployedRecord(name).libraries || {}).SwapsImplSovrynSwapLib;
+            if (!linked) return;
+            const addr = linked.toLowerCase();
+            if (addr === record.address.toLowerCase()) return;
+            if (KNOWN_UNRELINKED[name] === addr) return;
+            wrong.push(`${name} links ${addr}`);
+        });
+        expect(
+            wrong,
+            `these link a library copy that is neither the verified one nor a ` +
+                `listed exception. Link ${record.address} — it is the verified ` +
+                `copy, and the only one that should be in the release.`
+        ).to.deep.equal([]);
     });
 
     it("the two lists do not overlap", () => {

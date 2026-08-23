@@ -10,8 +10,8 @@
  * Pinning the preimage alone is not enough — a bulk rename can rewrite the
  * preimage and the assertion together and stay green. So each is pinned twice:
  * to its expected preimage AND to the literal 32 bytes it must hash to. The
- * literals below are the values Phase 1 deploys against and Phase 2 inherits
- * unchanged; a diff here means a redeploy and a re-pin, never a test edit.
+ * A diff here means the deployed identifiers moved, which is a redeploy and a
+ * re-pin — never a test edit.
  *
  * Run:
  *   npx hardhat test tests/perimeter/Identifiers.pinned.test.js
@@ -100,10 +100,9 @@ contract("Perimeter — pinned identifiers", () => {
         });
 
         /// Surfaces are checked against the DERIVATION, not just the name. The
-        /// preimage is the whole name and nothing else: Phase 1 shipped
-        /// `keccak256("COLFEE:" + name)`, and a rename that leaves any prefix
-        /// in place produces a plausible-looking constant that hashes somewhere
-        /// no policy is stored, so the fee silently stops.
+        /// preimage is the whole name and nothing else. A prefix left in
+        /// place produces a plausible-looking constant that hashes to a slot no
+        /// policy is stored under, and the fee silently stops.
         const consumers = [
             "contracts/mixins/BorrowerExitPerimeter.sol",
             "contracts/connectors/loantoken/LoanTokenLogicShared.sol",
