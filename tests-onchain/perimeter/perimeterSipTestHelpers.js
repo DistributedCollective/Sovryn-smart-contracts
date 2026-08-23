@@ -250,8 +250,18 @@ const deployLendingReleaseContracts = async (deployerSigner) => {
         "ExitFeeModule",
         "BorrowerExitPerimeterOps",
     ];
+    const overrides = deployedAddressOverrides();
     for (const name of names) {
         const artifact = await hre.artifacts.readArtifact(name);
+        if (overrides[name]) {
+            deployed[name] = await attachDeployed(
+                name,
+                overrides[name],
+                artifact.abi,
+                deployerSigner
+            );
+            continue;
+        }
         const needsLib = Object.keys(artifact.linkReferences || {}).length > 0;
         const factory = needsLib
             ? await ethers.getContractFactory(name, {
@@ -606,51 +616,7 @@ const attachDeployed = async (name, address, abi, signer) => {
     return new ethers.Contract(address, abi, signer);
 };
 
-const deployLendingReleaseContracts = async (deployerSigner) => {
-    const swapsLib = await (
-        await ethers.getContractFactory("SwapsImplSovrynSwapLib", deployerSigner)
-    ).deploy();
-    await swapsLib.deployed();
-
-    const deployed = {};
-    const names = [
-        "LoanTokenLogicLM",
-        "LoanTokenLogicWrbtcLM",
-        "LoanClosingsRollover",
-        "LoanClosingsWith",
-        "LoanMaintenance",
-        "ExitFeeModule",
-        "BorrowerExitPerimeterOps",
-    ];
-    const overrides = deployedAddressOverrides();
-    for (const name of names) {
-        const artifact = await hre.artifacts.readArtifact(name);
-        if (overrides[name]) {
-            deployed[name] = await attachDeployed(
-                name,
-                overrides[name],
-                artifact.abi,
-                deployerSigner
-            );
-            continue;
-        }
-        const needsLib = Object.keys(artifact.linkReferences || {}).length > 0;
-        const factory = needsLib
-            ? await ethers.getContractFactory(name, {
-                  libraries: { SwapsImplSovrynSwapLib: swapsLib.address },
-                  signer: deployerSigner,
-              })
-            : await ethers.getContractFactory(name, deployerSigner);
-        const contract = await factory.deploy();
-        await contract.deployed();
-        await deployments.save(name, { address: contract.address, abi: artifact.abi });
-        deployed[name] = contract;
-    }
-    return { swapsLib, ...deployed };
-};
-
 module.exports = {
-    deployLendingReleaseContracts,
     deployedAddressOverrides,
     attachDeployed,
     ONE_RBTC,
