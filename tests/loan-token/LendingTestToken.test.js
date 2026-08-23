@@ -53,6 +53,7 @@ const {
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -145,7 +146,7 @@ contract("LoanTokenLending", (accounts) => {
         [lender, account1, account2, account3, account4, ...accounts] = accounts;
 
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

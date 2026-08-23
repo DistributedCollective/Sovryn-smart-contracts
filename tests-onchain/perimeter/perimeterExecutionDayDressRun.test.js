@@ -3,12 +3,13 @@
  * deployed by the REAL deploy pipeline, not fixtures.
  *
  * Prerequisites (all on the same still-running fork node):
- *   Phase A: perimeter repo forge scripts 01→04 (full runbook env, 10 bps,
- *            enable=false), finalize + verify, Exchequer accepted both
- *            Ownable2Step handoffs (impersonated on the fork);
- *   Phase B: lending `hardhat deploy --tags LoanTokenModules,
- *            BorrowerExitPerimeterOps,ProtocolModules` and the two Zero
- *            impl-only deploys, all on --network rskForkedMainnet.
+ *   1. perimeter repo: forge scripts 01→04 with the full deploy env, then
+ *      finalize + verify, with the Exchequer accepting both Ownable2Step
+ *      handoffs (impersonated on the fork);
+ *   2. lending: `hardhat deploy --tags SwapsImplSovrynSwapLib,
+ *      BorrowerExitPerimeterOps,LoanTokenModules,ProtocolModules`
+ *      and the two Zero implementation-only deploys, all on
+ *      `--network rskForkedMainnet`.
  * The spec consumes that state: controller/vault proxies and the two Zero
  * implementations via env (COLFEE_EXIT_FEE_CONTROLLER / EXIT_FEE_VAULT_PROXY /
  * COLFEE_ZERO_BORROWER_OPERATIONS / COLFEE_ZERO_COLL_SURPLUS_POOL, plus the
@@ -50,7 +51,7 @@
  *   - no-touch paths (rollover keeper + borrower-self, liquidation, Zero
  *     stability pool, Zero redemption) charge nothing.
  *
- * Run (after the Phase A/B dress-run deploys, against the SAME node):
+ * Run (after the prerequisite deploys above, against the SAME node):
  *     COLFEE_DRESS_RUN=TRUE __decryptionAlreadyDone__=TRUE \
  *       COLFEE_EXIT_FEE_CONTROLLER=... COLFEE_EXIT_FEE_CONTROLLER_CODEHASH=... \
  *       EXIT_FEE_VAULT_PROXY=... \
@@ -70,7 +71,7 @@ const {
     PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
     borrowerOperationsFixture,
     collSurplusPoolFixture,
-    colFeeEventsInterface,
+    perimeterEventsInterface,
     getImpersonatedSigner,
     createAndQueueSip,
     executeQueuedSip,
@@ -92,7 +93,7 @@ const { get } = deployments;
 // borrower flows therefore run against a PriceFeedsLocal seeded with this
 // pinned real rate (same tolerance note as in perimeterActivationSips.test.js).
 const XUSD_WRBTC_RATE_AT_FORK_BLOCK = ethers.BigNumber.from("15435147683493");
-// The LIVE launch rate: the controller was bootstrapped by the real Phase A
+// The LIVE launch rate: the controller was bootstrapped by the real forge
 // scripts at 10 bps on all four surfaces — nothing here reconfigures it.
 const RATE_BPS = 10;
 const PROPOSAL_STATE_QUEUED = 5; // GovernorAlpha.ProposalState.Queued
@@ -103,14 +104,16 @@ const LOAN_DURATION = 28 * 24 * 60 * 60;
 // balance-based, so the actual rate charged doesn't matter.
 const MAX_ZERO_FEE_PERCENTAGE = ethers.utils.parseEther("0.99");
 // The Exchequer Multisig — owner + operational admin of both Perimeter proxies
-// after the Phase A handoff (questionnaire P6); re-asserted below, and the
+// after the ownership handoff; re-asserted below, and the
 // enable/kill-switch legs sign as it (impersonated on the fork).
 const EXCHEQUER = "0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711";
 
 const requireEnvAddress = (name) => {
     const value = process.env[name];
     if (!value) {
-        throw new Error(`dress run requires the ${name} env var (from the Phase A/B deploys)`);
+        throw new Error(
+            `dress run requires the ${name} env var (set from the prerequisite deploys)`
+        );
     }
     return ethers.utils.getAddress(value);
 };
@@ -126,7 +129,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
         const setupTest = async () => {
             const context = await setupGovernanceContext();
 
-            // The 7 lending artifacts were deployed by the REAL Phase-B CLI run
+            // The lending artifacts come from the real CLI deploy run above,
             // (`hardhat deploy --tags ...`) before this spec started. Load
             // their record FILES into the in-memory deployments store — an
             // explicit deployments.save shadows the external-mainnet records,
@@ -153,21 +156,23 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                 const recordPath = path.join(recordsDir, `${name}.json`);
                 if (!fs.existsSync(recordPath)) {
                     throw new Error(
-                        `dress run requires the Phase-B deploy record ${recordPath} — ` +
-                            "run the Phase-B CLI deploys against this node first"
+                        `dress run requires the deploy record ${recordPath} — run ` +
+                            "`hardhat deploy --tags SwapsImplSovrynSwapLib," +
+                            "BorrowerExitPerimeterOps,LoanTokenModules,ProtocolModules " +
+                            "--network rskForkedMainnet` against this node first"
                     );
                 }
                 const record = JSON.parse(fs.readFileSync(recordPath, "utf8"));
                 const code = await ethers.provider.getCode(record.address);
-                expect(code, `${name} has code at its Phase-B address`).to.not.equal("0x");
+                expect(code, `${name} has code at its deployed address`).to.not.equal("0x");
                 await deployments.save(name, { address: record.address, abi: record.abi });
                 expect(
                     (await deployments.get(name)).address,
-                    `${name} resolves to the Phase-B dress-run deploy`
+                    `${name} resolves to the deploy record for this run`
                 ).to.equal(record.address);
             }
 
-            // The live stack from the Phase A/B deploys — env-supplied addresses,
+            // The live stack from the prerequisite deploys — env-supplied addresses,
             // committed-fixture ABIs; no bytecode deployed here.
             const controller = new ethers.Contract(
                 requireEnvAddress("COLFEE_EXIT_FEE_CONTROLLER"),
@@ -183,7 +188,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             const hookedImpl = { address: requireEnvAddress("COLFEE_ZERO_BORROWER_OPERATIONS") };
             const poolImpl = { address: requireEnvAddress("COLFEE_ZERO_COLL_SURPLUS_POOL") };
 
-            // Parameter pre-checks: the Phase-A bootstrap + Safe handoff must have
+            // Parameter pre-checks: the controller bootstrap + Safe handoff must have
             // left EXACTLY the launch posture (runbook CP-A, re-asserted here the
             // way CP-C re-asserts it against the SIP calldata's controller).
             const safeAddress = ethers.utils.getAddress(EXCHEQUER);
@@ -226,12 +231,12 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                         "no fork tag on this network"
                 );
             }
-            // Deliberately NO hardhat_reset: the node carries the Phase A/B
+            // Deliberately NO hardhat_reset: the node carries the prerequisite
             // dress-run deploys this spec exists to exercise.
 
             const {
                 context: ctx,
-                stack: colFee,
+                stack: perimeterStack,
                 hookedImpl,
                 poolImpl,
                 safeSigner,
@@ -505,7 +510,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             expect(await boProxy.getImplementation()).to.equal(hookedImpl.address);
             expect(await boProxy.getImplementation()).to.not.equal(prePerimeterZeroImpl);
             expect(await borrowerOperations.exitFeeController()).to.equal(
-                colFee.controller.address
+                perimeterStack.controller.address
             );
             // Exactly one ExitFeeControllerSet in Part 1: Zero's. The protocol
             // singleton is Part 2's job (CF-1 — it stays the final pointer).
@@ -544,7 +549,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             expect(await stabilityPoolProxy.getImplementation()).to.equal(stabilityPoolImplBefore);
 
             // Ship-disabled throughout.
-            expect(await colFee.controller.exitFeeEnabled()).to.be.false;
+            expect(await perimeterStack.controller.exitFeeEnabled()).to.be.false;
 
             // Between the parts the LENDING side is provably inert: the protocol
             // controller pointer is still unset, so a live burn pays full gross
@@ -553,10 +558,10 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             await (await iRBTC.mintWithBTC(deployer, false, { value: ONE_RBTC.mul(2) })).wait();
             const iRbtcBalance = await iRBTC.balanceOf(deployer);
             const burnQuarter = iRbtcBalance.div(4);
-            let vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            let vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             let receipt = await (await iRBTC.burnToBTC(deployer, burnQuarter, false)).wait();
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
 
@@ -591,17 +596,17 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
 
             // The last action: the protocol singleton — the final activation
             // pointer. Zero was already wired in Part 1 and is untouched here.
-            expect(await protocol.exitFeeController()).to.equal(colFee.controller.address);
+            expect(await protocol.exitFeeController()).to.equal(perimeterStack.controller.address);
             expect(await borrowerOperations.exitFeeController()).to.equal(
-                colFee.controller.address
+                perimeterStack.controller.address
             );
             expect(countPerimeterEvents(part2Receipt, "ExitFeeControllerSet")).to.equal(1);
             // iToken read-through now resolves the singleton — with NO per-iToken
             // configuration anywhere.
-            expect(await iRBTC.exitFeeController()).to.equal(colFee.controller.address);
-            expect(await iXUSD.exitFeeController()).to.equal(colFee.controller.address);
+            expect(await iRBTC.exitFeeController()).to.equal(perimeterStack.controller.address);
+            expect(await iXUSD.exitFeeController()).to.equal(perimeterStack.controller.address);
             // Still ship-disabled after ALL governance actions.
-            expect(await colFee.controller.exitFeeEnabled()).to.be.false;
+            expect(await perimeterStack.controller.exitFeeEnabled()).to.be.false;
 
             // ── Lending fixtures for the live flows ────────────────────────────
             // Swap the protocol's price feed for a local one seeded with the real
@@ -756,10 +761,10 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             const probe = ethers.utils.parseEther("0.0001");
 
             // ── 1) DISABLED BY DEFAULT (both products) ─────────────────────────
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             receipt = await (await iRBTC.burnToBTC(deployer, burnQuarter, false)).wait();
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
 
@@ -768,11 +773,11 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                 await protocol.withdrawCollateral(loanId, deployer, withdrawProbe)
             ).wait();
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
 
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             let funderBefore = await ethers.provider.getBalance(funder.address);
             receipt = await (
                 await borrowerOperations
@@ -781,7 +786,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             ).wait();
             let gasCost = receipt.gasUsed.mul(receipt.effectiveGasPrice);
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
             expect(await ethers.provider.getBalance(funder.address)).to.equal(
@@ -789,20 +794,22 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             );
 
             // ── 2) ENABLE — the real operational path: the Exchequer Multisig
-            //    (owner + admin after the Phase-A handoff, impersonated on the
+            //    (owner + admin after the ownership handoff, impersonated on the
             //    fork) flips the switch. Re-run the same flows: they now charge
             //    at the LIVE 10 bps. ──────────────────────────────────────────
-            await (await colFee.controller.connect(safeSigner).setExitFeeEnabled(true)).wait();
+            await (
+                await perimeterStack.controller.connect(safeSigner).setExitFeeEnabled(true)
+            ).wait();
 
             // 2a) Lender burn (native path): fee lands in the vault as native RBTC.
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             receipt = await (await iRBTC.burnToBTC(deployer, burnQuarter, false)).wait();
             let applied = getSingleExitFeeApplied(receipt);
             expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW);
             expect(applied.subProduct).to.equal(iRBTC.address);
             expect(applied.feeAmount).to.equal(applied.grossAmount.mul(RATE_BPS).div(TEN_K));
             expect(applied.grossAmount).to.equal(applied.feeAmount.add(applied.netAmount));
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore.add(applied.feeAmount)
             );
 
@@ -818,8 +825,8 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             await (await iXUSD["mint(address,uint256)"](deployer, xusdDeposit)).wait();
             const iXusdBalance = await iXUSD.balanceOf(deployer);
             expect(iXusdBalance.gt(0), "iXUSD position minted").to.be.true;
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
-            const vaultXusdBeforeBurn = await xusd.balanceOf(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
+            const vaultXusdBeforeBurn = await xusd.balanceOf(perimeterStack.vault.address);
             const lenderXusdBeforeBurn = await xusd.balanceOf(deployer);
             receipt = await (await iXUSD["burn(address,uint256)"](deployer, iXusdBalance)).wait();
             applied = getSingleExitFeeApplied(receipt);
@@ -832,18 +839,18 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             // The fee leg is an ERC20 transfer: the vault's XUSD balance grows by
             // exactly the quoted fee, the lender receives exactly net, and the
             // vault's native balance is untouched.
-            expect(await xusd.balanceOf(colFee.vault.address)).to.equal(
+            expect(await xusd.balanceOf(perimeterStack.vault.address)).to.equal(
                 vaultXusdBeforeBurn.add(applied.feeAmount)
             );
             expect(await xusd.balanceOf(deployer)).to.equal(
                 lenderXusdBeforeBurn.add(applied.netAmount)
             );
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
 
             // 2b) Borrower withdrawCollateral (LoanMaintenance).
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             receipt = await (
                 await protocol.withdrawCollateral(loanId, deployer, withdrawProbe.mul(2))
             ).wait();
@@ -851,13 +858,13 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW);
             expect(applied.subProduct).to.equal(iXUSD.address);
             expect(applied.feeAmount).to.equal(applied.grossAmount.mul(RATE_BPS).div(TEN_K));
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore.add(applied.feeAmount)
             );
 
             // 2c) Borrower voluntary close (LoanClosingsWith.closeWithDeposit,
             //     partial): collateral comes back minus the fee.
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             await (
                 await xusd.connect(deployerSigner).approve(protocol.address, borrowAmount)
             ).wait();
@@ -867,7 +874,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             applied = getSingleExitFeeApplied(receipt);
             expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW);
             expect(applied.feeAmount).to.equal(applied.grossAmount.mul(RATE_BPS).div(TEN_K));
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore.add(applied.feeAmount)
             );
 
@@ -915,8 +922,8 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             expect(swapAmount2.lt(loan2.collateral), "LC-1 sizing: swapAmount < collateral").to.be
                 .true;
 
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
-            const vaultXusdBefore = await xusd.balanceOf(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
+            const vaultXusdBefore = await xusd.balanceOf(perimeterStack.vault.address);
             receipt = await (
                 await protocol.closeWithSwap(loanId2, deployer, swapAmount2, false, "0x")
             ).wait();
@@ -928,7 +935,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             const appliedLegs = [];
             for (const log of receipt.logs) {
                 try {
-                    const parsed = colFeeEventsInterface.parseLog(log);
+                    const parsed = perimeterEventsInterface.parseLog(log);
                     if (parsed.name === "ExitFeeApplied") appliedLegs.push(parsed.args);
                 } catch (e) {
                     // not a Perimeter event — ignore
@@ -948,7 +955,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             expect(excessLeg.grossAmount).to.equal(loan2.collateral.sub(swapAmount2));
             expect(excessLeg.feeAmount).to.equal(excessLeg.grossAmount.mul(RATE_BPS).div(TEN_K));
             expect(excessLeg.grossAmount).to.equal(excessLeg.feeAmount.add(excessLeg.netAmount));
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore.add(excessLeg.feeAmount)
             );
 
@@ -961,7 +968,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             expect(residualLeg.feeAmount).to.equal(
                 residualLeg.grossAmount.mul(RATE_BPS).div(TEN_K)
             );
-            expect(await xusd.balanceOf(colFee.vault.address)).to.equal(
+            expect(await xusd.balanceOf(perimeterStack.vault.address)).to.equal(
                 vaultXusdBefore.add(residualLeg.feeAmount)
             );
 
@@ -973,7 +980,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             //     never exercises the collateral-side swap-close payout at all.
             const loanId3 = await openAnotherXusdLoan();
             const loan3 = await protocol.getLoan(loanId3);
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             receipt = await (
                 await protocol.closeWithSwap(loanId3, deployer, loan3.collateral, true, "0x")
             ).wait();
@@ -988,12 +995,12 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                 .true;
             expect(applied.feeAmount).to.equal(applied.grossAmount.mul(RATE_BPS).div(TEN_K));
             expect(applied.grossAmount).to.equal(applied.feeAmount.add(applied.netAmount));
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore.add(applied.feeAmount)
             );
 
             // 2d) Zero withdrawColl: fee lands in the vault as native RBTC.
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             funderBefore = await ethers.provider.getBalance(funder.address);
             receipt = await (
                 await borrowerOperations
@@ -1007,7 +1014,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             expect(applied.grossAmount).to.equal(probe);
             expect(applied.feeAmount).to.equal(probe.mul(RATE_BPS).div(TEN_K));
             expect(applied.grossAmount).to.equal(applied.feeAmount.add(applied.netAmount));
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore.add(applied.feeAmount)
             );
             expect(await ethers.provider.getBalance(funder.address)).to.equal(
@@ -1033,7 +1040,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                     .connect(funder)
                     .transfer(closer.address, await zusd.balanceOf(funder.address))
             ).wait();
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             const closerBefore = await ethers.provider.getBalance(closer.address);
             receipt = await (await borrowerOperations.connect(closer).closeTrove()).wait();
             gasCost = receipt.gasUsed.mul(receipt.effectiveGasPrice);
@@ -1041,7 +1048,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             expect(applied.surfaceId).to.equal(PERIMETER_SURFACE_ZERO_WITHDRAW_COLL);
             expect(applied.grossAmount).to.equal(ONE_RBTC.mul(2)); // full trove collateral
             expect(applied.feeAmount).to.equal(applied.grossAmount.mul(RATE_BPS).div(TEN_K));
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore.add(applied.feeAmount)
             );
             expect(await ethers.provider.getBalance(closer.address)).to.equal(
@@ -1050,7 +1057,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
 
             // ── 3) NO-TOUCH paths ──────────────────────────────────────────────
             // 3a) Rollover, keeper-reward path.
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             // 31 days: past the initial 28-day term now, and past the MONTH
             // (365/12 ≈ 30.42 days) Torque-rollover extension the next time.
             await time.increase(31 * 24 * 3600);
@@ -1062,7 +1069,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             receipt = await (await protocol.connect(keeper).rollover(loanId, "0x")).wait();
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
             expect(countPerimeterEvents(receipt, "ExitFeeSkipped")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
             // NOT BLOCKED: the rollover did its job — the term was extended.
@@ -1078,7 +1085,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             receipt = await (await protocol.rollover(loanId, "0x")).wait();
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
             expect(countPerimeterEvents(receipt, "ExitFeeSkipped")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
             expect(
@@ -1108,7 +1115,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             await (
                 await xusd.connect(liquidator).approve(protocol.address, liquidatorRepay)
             ).wait();
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             const loanBeforeLiquidation = await protocol.getLoan(loanId);
             receipt = await (
                 await protocol
@@ -1117,7 +1124,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             ).wait();
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
             expect(countPerimeterEvents(receipt, "ExitFeeSkipped")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
             // NOT BLOCKED: the liquidation actually executed — collateral seized
@@ -1153,7 +1160,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             //     executed above — nothing to swap here.
             const stabilityPool = await ethers.getContract("StabilityPool");
             const spAmount = ethers.utils.parseEther("50");
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             receipt = await (
                 await stabilityPool
                     .connect(closer)
@@ -1162,7 +1169,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
             receipt = await (await stabilityPool.connect(closer).withdrawFromSP(spAmount)).wait();
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
 
@@ -1182,7 +1189,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                 firstRedemptionHint,
                 firstRedemptionHint
             );
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             receipt = await (
                 await troveManager
                     .connect(closer)
@@ -1197,7 +1204,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                     )
             ).wait();
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
 
@@ -1300,7 +1307,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             const surplusGross = await collSurplusPool.getCollateral(surplusVictim.address);
             expect(surplusGross.gt(0), "full redemption must leave a surplus").to.be.true;
             const poolEthBefore = await collSurplusPool.getETH();
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             const victimBefore = await ethers.provider.getBalance(surplusVictim.address);
             receipt = await (
                 await borrowerOperations.connect(surplusVictim).claimCollateral()
@@ -1312,7 +1319,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             expect(applied.grossAmount).to.equal(surplusGross);
             expect(applied.feeAmount).to.equal(surplusGross.mul(RATE_BPS).div(TEN_K));
             expect(applied.grossAmount).to.equal(applied.feeAmount.add(applied.netAmount));
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore.add(applied.feeAmount)
             );
             expect(await ethers.provider.getBalance(surplusVictim.address)).to.equal(
@@ -1327,31 +1334,33 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             // Re-run one probe per PRODUCT that was charging above — lender exit,
             // borrower exit and Zero — so "stops charging" is proven where the
             // charging was proven, not only on the lending lender surface.
-            await (await colFee.controller.connect(safeSigner).setExitFeeEnabled(false)).wait();
+            await (
+                await perimeterStack.controller.connect(safeSigner).setExitFeeEnabled(false)
+            ).wait();
 
             // 4a) Lending, lender exit (iToken burn).
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             receipt = await (await iRBTC.burnToBTC(deployer, burnQuarter, false)).wait();
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
 
             // 4b) Lending, borrower exit (withdrawCollateral on a fresh loan, so
             //     the probe is independent of the liquidated shared loan's margin).
             const killSwitchLoanId = await openAnotherXusdLoan();
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             receipt = await (
                 await protocol.withdrawCollateral(killSwitchLoanId, deployer, withdrawProbe)
             ).wait();
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
 
             // 4c) Zero, borrower exit (withdrawColl) — and the user now receives
             //     the FULL gross, not a net: the clearest disabled-state proof.
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             funderBefore = await ethers.provider.getBalance(funder.address);
             receipt = await (
                 await borrowerOperations
@@ -1360,7 +1369,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             ).wait();
             gasCost = receipt.gasUsed.mul(receipt.effectiveGasPrice);
             expect(countPerimeterEvents(receipt, "ExitFeeApplied")).to.equal(0);
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore
             );
             expect(
@@ -1371,15 +1380,17 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             // ── 4d) RE-ENABLE: the drill ends armed (runbook Phase E step 6) ───
             // Self-funded: the four earlier quarter-burns consumed the whole
             // original iRBTC position, so this probe mints its own.
-            await (await colFee.controller.connect(safeSigner).setExitFeeEnabled(true)).wait();
+            await (
+                await perimeterStack.controller.connect(safeSigner).setExitFeeEnabled(true)
+            ).wait();
             await (await iRBTC.mintWithBTC(deployer, false, { value: ONE_RBTC })).wait();
-            vaultRbtcBefore = await ethers.provider.getBalance(colFee.vault.address);
+            vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
             receipt = await (await iRBTC.burnToBTC(deployer, burnQuarter, false)).wait();
             applied = getSingleExitFeeApplied(receipt);
             expect(applied.feeAmount, "charging resumes after re-enable").to.equal(
                 applied.grossAmount.mul(RATE_BPS).div(TEN_K)
             );
-            expect(await ethers.provider.getBalance(colFee.vault.address)).to.equal(
+            expect(await ethers.provider.getBalance(perimeterStack.vault.address)).to.equal(
                 vaultRbtcBefore.add(applied.feeAmount)
             );
 

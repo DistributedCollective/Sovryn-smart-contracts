@@ -47,6 +47,7 @@ const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const Affiliates = artifacts.require("Affiliates");
 const IV1PoolOracle = artifacts.require("IV1PoolOracle");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const {
     getSUSD,
@@ -453,7 +454,7 @@ contract("Affiliates", (accounts) => {
         [owner, trader, referrer, account1, account2, ...accounts] = accounts;
 
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

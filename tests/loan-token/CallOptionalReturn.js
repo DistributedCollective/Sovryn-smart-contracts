@@ -1,5 +1,6 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const { lend_to_the_pool } = require("./helpers");
+const { linkIfUsed } = require("../Utils/initializer");
 
 const TestToken = artifacts.require("TestToken");
 const TestWrbtc = artifacts.require("TestWrbtc");
@@ -17,10 +18,12 @@ const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const Affiliates = artifacts.require("Affiliates");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
+const LoanMaintenanceViews = artifacts.require("LoanMaintenanceViews");
 const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
 const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
+const LoanClosingsWithSwap = artifacts.require("LoanClosingsWithSwap");
 const SwapsExternal = artifacts.require("SwapsExternal");
 const PriceFeedsLocal = artifacts.require("PriceFeedsLocal");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
@@ -46,12 +49,14 @@ contract("CallOptionalReturn", (accounts) => {
         try {
             /** Deploy SwapsImplSovrynSwapLib */
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
-            await SwapsExternal.link(swapsImplSovrynSwapLib);
-            await LoanClosingsWith.link(swapsImplSovrynSwapLib);
-            await LoanClosingsRollover.link(swapsImplSovrynSwapLib);
-            await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
-            await LoanOpenings.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenanceViews, swapsImplSovrynSwapLib);
+            await linkIfUsed(SwapsExternal, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanClosingsWith, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanClosingsWithSwap, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanClosingsRollover, swapsImplSovrynSwapLib);
+            await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanOpenings, swapsImplSovrynSwapLib);
         } catch (err) {}
     });
 
@@ -69,9 +74,14 @@ contract("CallOptionalReturn", (accounts) => {
         await sovryn.replaceContract((await LoanClosingsLiquidation.new()).address);
         await sovryn.replaceContract((await LoanClosingsRollover.new()).address);
         await sovryn.replaceContract((await LoanClosingsWith.new()).address);
+        // closeWithSwap split out of LoanClosingsWith.
+        await sovryn.replaceContract((await LoanClosingsWithSwap.new()).address);
         await sovryn.replaceContract((await ProtocolSettings.new()).address);
         await sovryn.replaceContract((await LoanSettings.new()).address);
         await sovryn.replaceContract((await LoanMaintenance.new()).address);
+        // The loan views split out of LoanMaintenance; without this every
+        // view below reads as an inactive target.
+        await sovryn.replaceContract((await LoanMaintenanceViews.new()).address);
         await sovryn.replaceContract((await SwapsExternal.new()).address);
         await sovryn.replaceContract((await LoanOpenings.new()).address);
         await sovryn.replaceContract((await Affiliates.new()).address);

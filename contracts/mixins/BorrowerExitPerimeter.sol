@@ -107,7 +107,13 @@ contract BorrowerExitPerimeter is ModuleCommonFunctionalities, VaultController {
         // An unset or code-less hook returns no data; a delay is established, so
         // this must not fall through to a direct payout.
         require(ret.length == 32, "PERIMETER:exit-ops-unset");
-        return abi.decode(ret, (bool));
+        // FAIL-CLOSED on the value too, not just its shape. The hook escrows and
+        // returns true, or it reverts -- it has no third outcome. Returning the
+        // decoded value instead would let a rotated or upgraded hook answer
+        // `false` and be read by both callers as permission to pay the borrower
+        // directly, silently dropping a hold the perimeter had already resolved.
+        require(abi.decode(ret, (bool)), "PERIMETER:exit-not-escrowed");
+        return true;
     }
 
     /// @notice Whether a borrower-side close should be charged the exit fee:

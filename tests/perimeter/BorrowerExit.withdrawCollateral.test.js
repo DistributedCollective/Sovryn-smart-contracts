@@ -60,6 +60,7 @@ const {
 } = require("../Utils/initializer.js");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const ZERO = constants.ZERO_ADDRESS;
@@ -113,7 +114,7 @@ contract("Perimeter — borrower-exit withdrawCollateral (Phase 3 / Task 3.1)", 
 
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 

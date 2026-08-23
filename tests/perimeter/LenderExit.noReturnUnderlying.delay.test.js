@@ -54,6 +54,7 @@ const {
 } = require("../Utils/initializer.js");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 const { increaseTime } = require("../Utils/Ethereum");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const DELAY = 3600;
@@ -140,7 +141,7 @@ contract("Perimeter delay — lender exit over a no-return (USDT-style) underlyi
     before(async () => {
         [lender, user, feeReceiver, ...accounts] = accounts;
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

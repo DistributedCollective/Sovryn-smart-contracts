@@ -24,6 +24,7 @@ const PriceFeedRSKOracleMockup = artifacts.require("PriceFeedRSKOracleMockup");
 const SwapsImplSovrynSwap = artifacts.require("SwapsImplSovrynSwapModule");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const FallbackOracle = artifacts.require("DummyFallbackOracle");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const {
     getSUSD,
@@ -52,7 +53,7 @@ contract("OracleIntegration", (accounts) => {
 
     before(async () => {
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

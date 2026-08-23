@@ -74,6 +74,7 @@ const {
     getSOV,
 } = require("../Utils/initializer.js");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -195,7 +196,7 @@ contract("Perimeter — lender-exit adversarial (iToken tree)", (accounts) => {
         [lender, user, feeReceiver, stranger, ...accounts] = accounts;
 
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

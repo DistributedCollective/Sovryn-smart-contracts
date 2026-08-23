@@ -11,3 +11,4 @@ require("./bridge");
 require("./fastBTC");
 require("./redeem-zero-collateral");
 require("./data-queries");
+require("./perimeter");

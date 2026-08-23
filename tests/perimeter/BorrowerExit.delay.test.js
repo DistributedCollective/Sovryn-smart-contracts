@@ -62,6 +62,7 @@ const {
 
 const { increaseTime } = require("../Utils/Ethereum");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const ZERO = constants.ZERO_ADDRESS;
 const PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
@@ -116,7 +117,7 @@ contract("Perimeter delay — borrower/margin exit reroute", (accounts) => {
         [owner, account1, feeReceiver, delegate, ...accounts] = accounts;
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 

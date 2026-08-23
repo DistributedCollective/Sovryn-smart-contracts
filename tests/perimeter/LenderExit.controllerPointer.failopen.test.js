@@ -44,6 +44,7 @@ const {
     getSOV,
 } = require("../Utils/initializer.js");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const DELAY = 3600;
@@ -123,7 +124,7 @@ contract("Perimeter delay — controller-pointer fail-open / quote fail-closed",
     before(async () => {
         [lender, user, feeReceiver, ...accounts] = accounts;
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

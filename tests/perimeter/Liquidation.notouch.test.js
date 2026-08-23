@@ -48,6 +48,7 @@ const {
 } = require("../Utils/initializer.js");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -89,7 +90,7 @@ contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (ac
 
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 
@@ -216,5 +217,42 @@ contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (ac
                 "collateral strictly decreased — the liquidation actually executed"
             ).to.equal(true);
         });
+    });
+
+    /**
+     * Pin the mechanism, because the behavioural tests above cannot.
+     *
+     * Mutation testing showed they survive every change to the fee logic --
+     * including deleting both exemption guards in `_exitFeeChargeable` and
+     * making it return true unconditionally. That is not a weak assertion: it
+     * is because liquidation never reaches the charging code at all. It calls
+     * the plain `_withdrawAsset`, while charged exits call
+     * `_withdrawAssetChargingExitFee`.
+     *
+     * So the exemption is structural, not a runtime check, and describing it as
+     * "exempt by CloseOrigin.Liquidation" is misleading -- the origin gate is
+     * not what protects this path. This test fails on the change that would
+     * actually break it: wiring a charging helper into the liquidation module.
+     */
+    it("the liquidation module never calls a charging withdrawal helper", () => {
+        const fs = require("fs");
+        const src = fs
+            .readFileSync("contracts/modules/LoanClosingsLiquidation.sol", "utf8")
+            .replace(/\/\*[\s\S]*?\*\//g, "")
+            .replace(/\/\/.*$/gm, "");
+
+        ["_withdrawAssetChargingExitFee", "_chargeExitFeeReturnNet"].forEach((helper) => {
+            expect(
+                src.includes(helper),
+                `LoanClosingsLiquidation calls ${helper}. Liquidation is a forced ` +
+                    `close and must never charge an exit fee; it is exempt because it ` +
+                    `calls the plain _withdrawAsset, not because of any runtime check.`
+            ).to.be.false;
+        });
+
+        expect(
+            src.includes("_withdrawAsset("),
+            "liquidation should still pay out through the plain withdrawal helper"
+        ).to.be.true;
     });
 });

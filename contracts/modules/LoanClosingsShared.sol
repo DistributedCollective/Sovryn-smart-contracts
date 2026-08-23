@@ -102,11 +102,12 @@ contract LoanClosingsShared is
      * @param receiver the address of the receiver (usually the borrower)
      * */
     function _settleInterestToPrincipal(
-        Loan memory loanLocal,
+        Loan storage loanLocal,
         LoanParams memory loanParamsLocal,
         uint256 loanCloseAmount,
         address receiver,
-        bool allowDonationOnFailure
+        bool allowDonationOnFailure,
+        CloseOrigin origin
     ) internal returns (uint256) {
         uint256 loanCloseAmountLessInterest = loanCloseAmount;
 
@@ -140,10 +141,21 @@ contract LoanClosingsShared is
             loanCloseAmountLessInterest = 0;
 
             if (interestRefundToBorrower != 0) {
-                // refund overage
-                // allowDonationOnFailure here is following the arguments passed from the caller
-                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
-                _withdrawAsset(
+                // Refund overage: prepaid interest that exceeds the principal
+                // being closed goes back to the borrower, and it is a borrower
+                // payout like any other on this path -- so it settles through
+                // `_payoutBorrowerExit` rather than transferring directly. Which
+                // behaviour that resolves to is decided by inheritance: modules
+                // that take the fee and the delay override it, forced-close
+                // modules do not, so liquidation and rollover keep paying
+                // straight out.
+                //
+                // allowDonationOnFailure follows the caller: on liquidation and
+                // rollover we do not want the close to revert because the
+                // borrower's contract rejects the transfer.
+                _payoutBorrowerExit(
+                    origin,
+                    loanLocal,
                     loanParamsLocal.loanToken,
                     receiver,
                     interestRefundToBorrower,
@@ -577,7 +589,8 @@ contract LoanClosingsShared is
                 params.swapAmount,
                 params.returnTokenIsCollateral,
                 params.receiver,
-                params.allowDonationOnFailure
+                params.allowDonationOnFailure,
+                params.origin
             );
 
         return
@@ -636,7 +649,8 @@ contract LoanClosingsShared is
         uint256 swapAmount,
         bool returnTokenIsCollateral,
         address receiver,
-        bool allowDonationOnFailure
+        bool allowDonationOnFailure,
+        CloseOrigin origin
     ) internal returns (uint256 loanCloseAmount, uint256 loanCloseAmountLessInterest) {
         bool isFullCollateralSwap = swapAmount == loanLocal.collateral;
         if (isFullCollateralSwap || returnTokenIsCollateral) {
@@ -654,7 +668,8 @@ contract LoanClosingsShared is
                 loanParamsLocal,
                 loanCloseAmount,
                 receiver,
-                allowDonationOnFailure
+                allowDonationOnFailure,
+                origin
             );
         } else {
             /// loanCloseAmount is calculated after swap; for this case we want to swap the entire source amount
@@ -744,7 +759,8 @@ contract LoanClosingsShared is
                 loanParamsLocal,
                 loanCloseAmount,
                 params.receiver,
-                params.allowDonationOnFailure
+                params.allowDonationOnFailure,
+                params.origin
             );
 
             /// Remaining amount withdrawn to the receiver.
@@ -975,7 +991,7 @@ contract LoanClosingsShared is
     }
 
     function _handleCollateralReturn(
-        Loan memory loanLocal,
+        Loan storage loanLocal,
         LoanParams memory loanParamsLocal,
         CoverPrincipalParams memory params,
         uint256 destTokenAmountReceived,
@@ -989,9 +1005,22 @@ contract LoanClosingsShared is
             /// Send excess to borrower if the amount is big enough to be
             /// worth the gas fees.
             if (_worthTheTransfer(loanParamsLocal.loanToken, excess)) {
-                // allowDonationOnFailure here is following the arguments passed from the caller
-                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
-                _withdrawAsset(
+                // A better-than-expected fill pays its excess to the borrower,
+                // and that is a borrower payout like any other on this path --
+                // so it settles through `_payoutBorrowerExit` rather than
+                // transferring directly. The counterpart branch
+                // (`_handleLoanTokenReturn`) already did; this one did not, and
+                // `returnTokenIsCollateral` is CALLER-SELECTABLE, so the
+                // borrower chose which branch settled them.
+                //
+                // Which behaviour this resolves to is decided by inheritance:
+                // modules that take the fee and the delay override it, forced-
+                // close modules do not, so liquidation and rollover keep paying
+                // straight out -- which is why allowDonationOnFailure still
+                // follows the caller.
+                _payoutBorrowerExit(
+                    params.origin,
+                    loanLocal,
                     loanParamsLocal.loanToken,
                     loanLocal.borrower,
                     excess,

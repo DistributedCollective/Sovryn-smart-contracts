@@ -60,6 +60,7 @@ const {
 
 const { increaseTime, blockNumber } = require("../Utils/Ethereum");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -116,7 +117,7 @@ contract("Perimeter delay — closeWithSwap excess-collateral refund", (accounts
         [owner, borrower, liquidator, feeReceiver, receiver, ...accounts] = accounts;
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 
@@ -224,6 +225,24 @@ contract("Perimeter delay — closeWithSwap excess-collateral refund", (accounts
             expect((await queue.totalEscrowed(RBTC.address)).toString()).to.equal("0");
         });
     });
+
+    // ── The other branch, and why it has no test here ───────────────────────
+    // `returnTokenIsCollateral` is caller-selectable and picks which helper
+    // settles a residual: false -> `_handleLoanTokenReturn` (covered above),
+    // true -> `_handleCollateralReturn`. The second one pays its
+    // better-than-expected fill to the borrower, and it used to do so with a
+    // direct transfer; it now routes through `_payoutBorrowerExit` like every
+    // other borrower payout.
+    //
+    // There is deliberately NO regression for it: that branch fires only when
+    // the swap DELIVERS MORE destination token than the principal needed, and
+    // the exact-output swap this fixture drives never over-delivers — the
+    // residual shows up as unused SOURCE collateral instead, which
+    // `_finalizeSwapClose` already settles through the perimeter and which the
+    // tests above cover. Reaching it needs a swap connector that over-fills.
+    // The routing is fixed either way; the reachability is what is missing, and
+    // pretending otherwise with a test that passes vacuously would be worse
+    // than saying so.
 
     // ── 1b. Fee ON + perimeter ON — composed fee × delay semantics ───────────
     // Pins the composed shape: the chargeable excess-collateral refund

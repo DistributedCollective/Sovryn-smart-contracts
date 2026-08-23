@@ -273,7 +273,7 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
         LoanOpenings,
     ]) {
         try {
-            await artifact.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(artifact, swapsImplSovrynSwapLib);
         } catch (err) {}
     }
 
@@ -739,7 +739,25 @@ const verify_sov_reward_payment = async (
     ).to.be.a.bignumber.equal(sov_initial_balance.add(reward));
 };
 
+/**
+ * Link a library into a Truffle artifact only when that artifact actually
+ * references one.
+ *
+ * Module boundaries move: a contract that used the swap library yesterday may
+ * not today, and `hardhat-truffle5` THROWS when asked to link a library the
+ * artifact does not use. Wrapping a run of links in a single try/catch turns
+ * that throw into a silent skip of every link AFTER it, and the failure then
+ * surfaces far from its cause as "contains unresolved libraries" on some other
+ * contract. Ask the bytecode instead of guessing.
+ */
+const linkIfUsed = async (artifact, library) => {
+    if (typeof artifact.bytecode === "string" && artifact.bytecode.includes("__$")) {
+        await artifact.link(library);
+    }
+};
+
 module.exports = {
+    linkIfUsed,
     getSUSD,
     getRBTC,
     getERC777,

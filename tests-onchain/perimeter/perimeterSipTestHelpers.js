@@ -46,9 +46,11 @@ const vaultFixture = require("./fixtures/ExitFeeVault.json");
 const erc1967ProxyFixture = require("./fixtures/ERC1967Proxy.json");
 const borrowerOperationsFixture = require("./fixtures/BorrowerOperationsPerimeter.json");
 const collSurplusPoolFixture = require("./fixtures/CollSurplusPoolPerimeter.json");
+const queueFixture = require("./fixtures/ExitDelayQueue.json");
+const borrowerOperationsOpsFixture = require("./fixtures/BorrowerOperationsPerimeterOps.json");
 const priceFeedTestnetFixture = require("./fixtures/PriceFeedTestnet.json");
 
-const colFeeEventsInterface = new ethers.utils.Interface([
+const perimeterEventsInterface = new ethers.utils.Interface([
     "event ExitFeeApplied(bytes32 indexed surfaceId, address indexed actor, address indexed asset, address subProduct, address recipient, uint256 grossAmount, uint256 feeAmount, uint256 netAmount, address feeReceiver)",
     "event ExitFeeSkipped(bytes32 indexed surfaceId, address indexed actor, address indexed asset, uint256 grossAmount, uint16 rateBps, uint8 reason)",
     "event ExitFeeControllerSet(address indexed previous, address indexed current)",
@@ -77,6 +79,26 @@ const getImpersonatedSignerFromJsonRpcProvider = getImpersonatedSigner;
  *  (the ship-disabled model; tests flip it explicitly). Saves the
  *  "ExitFeeController" deployment record consumed by the sipArgs entries. */
 const deployPerimeterStack = async (deployerSigner, rateBps) => {
+    const overrides = deployedAddressOverrides();
+    if (overrides.ExitFeeController && overrides.ExitFeeVault) {
+        // Already on chain and already bootstrapped by whoever deployed it. The
+        // rehearsal attaches and leaves the policy alone -- rewriting it here
+        // would test configuration this run invented rather than the
+        // configuration the release actually carries.
+        const controller = await attachDeployed(
+            "ExitFeeController",
+            overrides.ExitFeeController,
+            controllerFixture.abi,
+            deployerSigner
+        );
+        const vault = await attachDeployed(
+            "ExitFeeVault",
+            overrides.ExitFeeVault,
+            vaultFixture.abi,
+            deployerSigner
+        );
+        return { controller, vault };
+    }
     const proxyFactory = new ethers.ContractFactory(
         erc1967ProxyFixture.abi,
         erc1967ProxyFixture.bytecode,
@@ -141,6 +163,15 @@ const deployPerimeterStack = async (deployerSigner, rateBps) => {
  *  The constructor's permit2 address is read from the live proxy so the new
  *  implementation is constructed exactly like the production one. */
 const deployHookedBorrowerOperationsImpl = async (deployerSigner) => {
+    const _ov = deployedAddressOverrides();
+    if (_ov["BorrowerOperationsPerimeter"]) {
+        return await attachDeployed(
+            "BorrowerOperationsPerimeter",
+            _ov["BorrowerOperationsPerimeter"],
+            borrowerOperationsFixture.abi,
+            deployerSigner
+        );
+    }
     const boProxy = await deployments.get("BorrowerOperations_Proxy");
     const permit2 = await new ethers.Contract(
         boProxy.address,
@@ -165,6 +196,15 @@ const deployHookedBorrowerOperationsImpl = async (deployerSigner) => {
  *  save the "CollSurplusPoolPerimeter" record the sipArgs Part 1 entry resolves —
  *  the FIRST-EVER implementation upgrade of that proxy (runbook §8). */
 const deployCollSurplusPoolImpl = async (deployerSigner) => {
+    const _ov = deployedAddressOverrides();
+    if (_ov["CollSurplusPoolPerimeter"]) {
+        return await attachDeployed(
+            "CollSurplusPoolPerimeter",
+            _ov["CollSurplusPoolPerimeter"],
+            collSurplusPoolFixture.abi,
+            deployerSigner
+        );
+    }
     const impl = await new ethers.ContractFactory(
         collSurplusPoolFixture.abi,
         collSurplusPoolFixture.bytecode,
@@ -176,6 +216,128 @@ const deployCollSurplusPoolImpl = async (deployerSigner) => {
         abi: collSurplusPoolFixture.abi,
     });
     return impl;
+};
+
+/** Deploy every lending-side contract the aggregate release registers, and
+ *  save the hardhat-deploy records the proposal builders resolve.
+ *
+ *  Deliberately NOT `deployments.fixture([...tags])`. Those scripts compare
+ *  against the PREVIOUS mainnet deployment, which means fetching its deploy
+ *  transaction — and no public RSK endpoint serves one that old, so the fixture
+ *  dies with "cannot get the transaction for <X>'s previous deployment". A
+ *  rehearsal wants fresh deploys anyway, so it builds them straight from local
+ *  artifacts and records them itself.
+ *
+ *  The modules that use the swap library are linked against a freshly deployed
+ *  copy; the ones that no longer use it are left alone, because linking a
+ *  library into an artifact that does not reference it throws. */
+const deployLendingReleaseContracts = async (deployerSigner) => {
+    const swapsLib = await (
+        await ethers.getContractFactory("SwapsImplSovrynSwapLib", deployerSigner)
+    ).deploy();
+    await swapsLib.deployed();
+
+    const deployed = {};
+    const names = [
+        "LoanTokenLogicLM",
+        "LoanTokenLogicWrbtcLM",
+        "LoanClosingsRollover",
+        "LoanClosingsWith",
+        "LoanClosingsWithSwap",
+        "LoanClosingsLiquidation",
+        "LoanMaintenance",
+        "LoanMaintenanceViews",
+        "ExitFeeModule",
+        "BorrowerExitPerimeterOps",
+    ];
+    for (const name of names) {
+        const artifact = await hre.artifacts.readArtifact(name);
+        const needsLib = Object.keys(artifact.linkReferences || {}).length > 0;
+        const factory = needsLib
+            ? await ethers.getContractFactory(name, {
+                  libraries: { SwapsImplSovrynSwapLib: swapsLib.address },
+                  signer: deployerSigner,
+              })
+            : await ethers.getContractFactory(name, deployerSigner);
+        const contract = await factory.deploy();
+        await contract.deployed();
+        await deployments.save(name, { address: contract.address, abi: artifact.abi });
+        deployed[name] = contract;
+    }
+    return { swapsLib, ...deployed };
+};
+
+/** Deploy the ExitDelayQueue behind its proxy and register the sources that
+ *  record exits into it.
+ *
+ *  The queue is the contract that CUSTODIES delayed withdrawals, so the
+ *  rehearsal deploys the real one rather than a mock. `allowedSources` are the
+ *  contracts permitted to record — the protocol singleton for the lending
+ *  surfaces and Zero's BorrowerOperations for the CDP ones. A source missing
+ *  here is fail-CLOSED: the record reverts with UnregisteredSource, which is
+ *  exactly what the rehearsal should catch rather than discover on mainnet.
+ *
+ *  Saves the "ExitDelayQueue" record the aggregate proposal builders resolve. */
+const deployExitDelayQueue = async (
+    deployerSigner,
+    wrbtcAddress,
+    minDelaySeconds,
+    allowedSources
+) => {
+    const proxyFactory = new ethers.ContractFactory(
+        erc1967ProxyFixture.abi,
+        erc1967ProxyFixture.bytecode,
+        deployerSigner
+    );
+    const impl = await new ethers.ContractFactory(
+        queueFixture.abi,
+        queueFixture.bytecode,
+        deployerSigner
+    ).deploy();
+    await impl.deployed();
+
+    const initData = impl.interface.encodeFunctionData("initialize", [
+        deployerSigner.address, // owner — the Exchequer takes it over at handover
+        deployerSigner.address, // admin  — the incident guardian
+        wrbtcAddress,
+        minDelaySeconds,
+        allowedSources,
+    ]);
+    const proxy = await proxyFactory.deploy(impl.address, initData);
+    await proxy.deployed();
+
+    const queue = new ethers.Contract(proxy.address, queueFixture.abi, deployerSigner);
+    if (await queue.securityPerimeterPaused()) {
+        throw new Error("ExitDelayQueue must deploy unpaused");
+    }
+    for (const src of allowedSources) {
+        if (!(await queue.isAllowedSource(src))) {
+            throw new Error(`ExitDelayQueue did not register source ${src}`);
+        }
+    }
+
+    await deployments.save("ExitDelayQueue", { address: queue.address, abi: queueFixture.abi });
+    return queue;
+};
+
+/** Deploy Zero's delegatecall settlement companion and save the
+ *  "BorrowerOperationsPerimeterOps" record the aggregate Part 2 resolves.
+ *
+ *  Not to be confused with the LENDING companion `BorrowerExitPerimeterOps`,
+ *  which is a deployment of this repo and comes from its own hardhat-deploy
+ *  tag. Same pattern, different product, similar name. */
+const deployBorrowerOperationsPerimeterOps = async (deployerSigner) => {
+    const ops = await new ethers.ContractFactory(
+        borrowerOperationsOpsFixture.abi,
+        borrowerOperationsOpsFixture.bytecode,
+        deployerSigner
+    ).deploy();
+    await ops.deployed();
+    await deployments.save("BorrowerOperationsPerimeterOps", {
+        address: ops.address,
+        abi: borrowerOperationsOpsFixture.abi,
+    });
+    return ops;
 };
 
 /** Swap Zero's price feed proxy to the settable PriceFeedTestnet stub, seeded
@@ -357,7 +519,7 @@ const countPerimeterEvents = (receipt, eventName) => {
     let count = 0;
     for (const log of receipt.logs) {
         try {
-            const parsed = colFeeEventsInterface.parseLog(log);
+            const parsed = perimeterEventsInterface.parseLog(log);
             if (parsed.name === eventName) count += 1;
         } catch (e) {
             // not a Perimeter event — ignore
@@ -371,7 +533,7 @@ const getSingleExitFeeApplied = (receipt) => {
     const events = [];
     for (const log of receipt.logs) {
         try {
-            const parsed = colFeeEventsInterface.parseLog(log);
+            const parsed = perimeterEventsInterface.parseLog(log);
             if (parsed.name === "ExitFeeApplied") events.push(parsed.args);
         } catch (e) {
             // not a Perimeter event — ignore
@@ -383,7 +545,114 @@ const getSingleExitFeeApplied = (receipt) => {
     return events[0];
 };
 
+/**
+ * Deploy the Phase-1 release contracts straight from local artifacts.
+ *
+ * `deployments.fixture()` cannot do this on a fork. hardhat-deploy's
+ * `fetchIfDifferent` asks the node for the previous deployment's transaction to
+ * decide whether the bytecode moved, and a forked node does not serve pre-fork
+ * transactions by hash -- the upstream RPC has them, the fork simply will not
+ * proxy that call. The fixture therefore throws "cannot get the transaction for
+ * <X>'s previous deployment" on any contract with a recorded deploy tx, which
+ * is all of them, and no choice of endpoint fixes it.
+ *
+ * The set below is exactly what SIP-0094 Part 1 registers, so the rehearsal
+ * exercises the release rather than a superset of it: the two hooked beacon
+ * modules, the three replaced protocol modules, the admin module, and the
+ * borrower-exit charge hook, over a freshly deployed swaps library that the
+ * linked ones bind to.
+ */
+/**
+ * Addresses to attach to instead of deploying, for re-running the rehearsal
+ * against contracts that are already on chain.
+ *
+ * Point PERIMETER_DEPLOYED_ADDRESSES at a JSON file of `{ "ContractName":
+ * "0x..." }` and every helper below attaches rather than deploys. That is the
+ * mode to use after the release is redeployed: the rehearsal then exercises the
+ * bytecode that actually shipped, not a fresh local copy of it. Names not in the
+ * file are still deployed, so a partial file works.
+ *
+ * Each attached address is checked for code on the fork first. Attaching to an
+ * empty address would otherwise produce a rehearsal that passes by calling
+ * nothing.
+ */
+let _overrides;
+const deployedAddressOverrides = () => {
+    if (_overrides !== undefined) return _overrides;
+    const file = process.env.PERIMETER_DEPLOYED_ADDRESSES;
+    if (!file) {
+        _overrides = {};
+        return _overrides;
+    }
+    const fs = require("fs");
+    if (!fs.existsSync(file)) {
+        throw new Error(`PERIMETER_DEPLOYED_ADDRESSES points at ${file}, which does not exist`);
+    }
+    _overrides = JSON.parse(fs.readFileSync(file, "utf8"));
+    return _overrides;
+};
+
+/** Attach to an already-deployed contract, refusing an address with no code. */
+const attachDeployed = async (name, address, abi, signer) => {
+    const code = await ethers.provider.getCode(address);
+    if (!code || code === "0x") {
+        throw new Error(
+            `PERIMETER_DEPLOYED_ADDRESSES gives ${name} = ${address}, which has no ` +
+                `code on this fork. Wrong address, or a fork block older than the ` +
+                `deployment.`
+        );
+    }
+    await deployments.save(name, { address, abi });
+    return new ethers.Contract(address, abi, signer);
+};
+
+const deployLendingReleaseContracts = async (deployerSigner) => {
+    const swapsLib = await (
+        await ethers.getContractFactory("SwapsImplSovrynSwapLib", deployerSigner)
+    ).deploy();
+    await swapsLib.deployed();
+
+    const deployed = {};
+    const names = [
+        "LoanTokenLogicLM",
+        "LoanTokenLogicWrbtcLM",
+        "LoanClosingsRollover",
+        "LoanClosingsWith",
+        "LoanMaintenance",
+        "ExitFeeModule",
+        "BorrowerExitPerimeterOps",
+    ];
+    const overrides = deployedAddressOverrides();
+    for (const name of names) {
+        const artifact = await hre.artifacts.readArtifact(name);
+        if (overrides[name]) {
+            deployed[name] = await attachDeployed(
+                name,
+                overrides[name],
+                artifact.abi,
+                deployerSigner
+            );
+            continue;
+        }
+        const needsLib = Object.keys(artifact.linkReferences || {}).length > 0;
+        const factory = needsLib
+            ? await ethers.getContractFactory(name, {
+                  libraries: { SwapsImplSovrynSwapLib: swapsLib.address },
+                  signer: deployerSigner,
+              })
+            : await ethers.getContractFactory(name, deployerSigner);
+        const contract = await factory.deploy();
+        await contract.deployed();
+        await deployments.save(name, { address: contract.address, abi: artifact.abi });
+        deployed[name] = contract;
+    }
+    return { swapsLib, ...deployed };
+};
+
 module.exports = {
+    deployLendingReleaseContracts,
+    deployedAddressOverrides,
+    attachDeployed,
     ONE_RBTC,
     MAX_DURATION,
     FORK_URL,
@@ -394,12 +663,15 @@ module.exports = {
     PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
     borrowerOperationsFixture,
     collSurplusPoolFixture,
-    colFeeEventsInterface,
+    perimeterEventsInterface,
     getImpersonatedSigner,
     getImpersonatedSignerFromJsonRpcProvider,
     deployPerimeterStack,
     deployHookedBorrowerOperationsImpl,
     deployCollSurplusPoolImpl,
+    deployLendingReleaseContracts,
+    deployExitDelayQueue,
+    deployBorrowerOperationsPerimeterOps,
     stubOutZeroPriceFeed,
     createAndQueueSip,
     executeQueuedSip,

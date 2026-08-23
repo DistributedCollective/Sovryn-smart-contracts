@@ -112,7 +112,8 @@ contract LoanClosingsWith is LoanClosingsCharged {
             loanParamsLocal,
             loanCloseAmount,
             receiver,
-            allowDonationOnFailure
+            allowDonationOnFailure,
+            origin
         );
 
         if (loanCloseAmountLessInterest != 0) {

@@ -371,6 +371,11 @@ contract LoanMaintenance is
         require(withdrawAmount < interestDepositRemaining, "withdraw amount too high");
 
         /// Withdraw interest.
+        /// @dev Exempt from the perimeter: this returns prepaid interest, a
+        ///      position adjustment rather than an exit. The collateral it can
+        ///      reach is bounded by the maintenance margin, so it cannot drain a
+        ///      position; the remainder leaves only through the gated withdrawal
+        ///      and close surfaces.
         if (loanParamsLocal.loanToken == address(wrbtcToken)) {
             vaultEtherWithdraw(receiver, withdrawAmount);
         } else {
