@@ -140,9 +140,13 @@ contract("Perimeter — pinned release set", () => {
      *
      * Its runtime body is byte-identical to the deployed one — only the
      * metadata trailer moved, because an imported interface changed — so a
-     * fresh copy would behave the same. It would also be unverifiable on
-     * Blockscout, whose verifier does not mask the call-protection
-     * self-address.
+     * fresh copy would behave the same and buy nothing.
+     *
+     * The linked copy is the one deployed 2026-08-13 and verified on
+     * Blockscout 2026-08-16 as a FULL match. An earlier copy, live since
+     * March, is verified only as a partial match; the release links the fully
+     * verified one deliberately, because a voter rebuilding a module's
+     * bytecode should land on source the explorer vouches for exactly.
      *
      * If the library's executable code ever does change, this fails and the
      * link-don't-deploy decision has to be revisited.
@@ -168,13 +172,18 @@ contract("Perimeter — pinned release set", () => {
          * unverified copy is silently accepted by the explorer and leaves an
          * unverifiable contract in the release's dependency graph.
          *
-         * The two entries below are existing deployments that link an older
-         * copy. They are listed so a NEW module linking a wrong copy still
-         * fails here. Empty this list once those two are redeployed.
+         * The entry below is the CURRENT on-chain deployment, which predates
+         * this release and links the March copy — it was relinked there in the
+         * previous round, when the round-1 copy was believed unverifiable.
+         * This round redeploys it against the fully verified copy, at which
+         * point the record updates and this list empties on its own.
+         *
+         * It is listed so a NEWLY deployed module linking the wrong copy still
+         * fails here. If this list is non-empty after the redeploy, the
+         * redeploy did not do what it claims.
          */
         const KNOWN_UNRELINKED = {
-            LoanClosingsRollover: "0xfe2bb2d345452673c4e90622147c4f515f2f4ce0",
-            LoanMaintenance: "0xfe2bb2d345452673c4e90622147c4f515f2f4ce0",
+            LoanClosingsWith: "0x47dc479ca058b4bb7c4ad9d56ee3a029236b88a8",
         };
 
         const wrong = [];
