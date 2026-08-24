@@ -1,0 +1,44 @@
+{
+    "_note": [
+        "The protocol modules registered on RSK mainnet before the Perimeter release, and the",
+        "rollback anchors SIP-0094 names for them.",
+        "",
+        "ReleaseSet.pinned.test.js proves each shipping module differs from what mainnet runs.",
+        "It cannot read that from deployment/deployments/rskSovrynMainnet: a hardhat-deploy record",
+        "says what was last deployed, not what the protocol has registered, so deploying the",
+        "release overwrites the very baseline the comparison needs and the module ends up",
+        "compared against itself.",
+        "",
+        "Each bodySha256 is sha256 of the runtime body with the CBOR metadata trailer stripped and",
+        "the linked library address normalised -- the same normalisation the test applies to a",
+        "fresh build. Every entry was verified equal to the live code at its address before being",
+        "written here.",
+        "",
+        "ExitFeeModule has no entry: its sampleFunction selector setExitFeeController(address)",
+        "resolves to the zero address on mainnet, so the module is new and has no rollback anchor."
+    ],
+    "protocol": "0x5A0D867e0D70Fcc6Ade25C3F1B89d618b5B4Eaa7",
+    "modules": {
+        "LoanClosingsRollover": {
+            "address": "0xc7AEa780c8b891e2c101a9ED2f9EaCF87FFdc359",
+            "libraries": {
+                "SwapsImplSovrynSwapLib": "0x47Dc479cA058B4BB7C4AD9D56EE3a029236b88A8"
+            },
+            "bodySha256": "ebf05e3611c258717124625540cd7226e8c90df2c4cc0dba0f2aa446a3e097ea"
+        },
+        "LoanClosingsWith": {
+            "address": "0x47eCc9391fd6f5761B8d24139f36Ce61fF6a9819",
+            "libraries": {
+                "SwapsImplSovrynSwapLib": "0x47Dc479cA058B4BB7C4AD9D56EE3a029236b88A8"
+            },
+            "bodySha256": "10f5c6c1970941860143c48c5e5442e480f8890e1d06cffd716741e9b574110e"
+        },
+        "LoanMaintenance": {
+            "address": "0x4BC462e2c8D106511D8e7985b05A52fD8b726464",
+            "libraries": {
+                "SwapsImplSovrynSwapLib": "0xf0F97838B2c80be59118e37436eca8F8edc2d08c"
+            },
+            "bodySha256": "7651d5409d12f25514241e3d1d1c02077eeb5174c801691efdd60c299b1a7a19"
+        }
+    }
+}
