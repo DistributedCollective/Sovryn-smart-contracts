@@ -95,7 +95,12 @@ const deployPerimeterStack = async (deployerSigner, rateBps) => {
             vaultFixture.abi,
             deployerSigner
         );
-        return { controller, vault };
+        return {
+            controller,
+            vault,
+            rateBps: await attachedRateBps(controller),
+            operator: await attachedOperator(controller),
+        };
     }
     const proxyFactory = new ethers.ContractFactory(
         erc1967ProxyFixture.abi,
@@ -152,7 +157,58 @@ const deployPerimeterStack = async (deployerSigner, rateBps) => {
         abi: controllerFixture.abi,
     });
 
-    return { controller, vault };
+    return { controller, vault, rateBps, operator: deployerSigner };
+};
+
+/** The rate the ATTACHED controller actually carries.
+ *
+ *  A rehearsal that attaches must assert against the shipped policy, not a
+ *  number this file chose: charging is what the drill exists to measure, and a
+ *  test rate would make every fee assertion arithmetic about a configuration
+ *  nobody deployed. The four surfaces are required to agree, because the
+ *  assertions downstream apply one rate everywhere — a split policy has to fail
+ *  loudly here rather than pass three surfaces and quietly mismeasure the fourth. */
+const attachedRateBps = async (controller) => {
+    const surfaces = {
+        LENDING_LENDER_WITHDRAW: PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+        LENDING_BORROWER_WITHDRAW: PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
+        ZERO_WITHDRAW_COLL: PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
+        ZERO_CLAIM_SURPLUS: PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
+    };
+    const seen = {};
+    for (const [label, surfaceId] of Object.entries(surfaces)) {
+        const policy = await controller.surfacePolicy(surfaceId);
+        if (!policy.active) {
+            throw new Error(
+                `attached controller has surface ${label} INACTIVE — the rehearsal ` +
+                    `would measure a fee that the deployed policy never charges`
+            );
+        }
+        seen[label] = policy.rateBps;
+    }
+    const rates = [...new Set(Object.values(seen))];
+    if (rates.length !== 1) {
+        throw new Error(
+            `attached controller carries more than one rate (${JSON.stringify(seen)}); ` +
+                `the rehearsal's fee arithmetic assumes a single rate on every surface`
+        );
+    }
+    return rates[0];
+};
+
+/** Who can operate the ATTACHED controller.
+ *
+ *  `setExitFeeEnabled` is onlyAdminOrOwner, and on the real deployment neither
+ *  is a signer this test holds: the deployer EOA owns it until the Exchequer
+ *  accepts, and the Exchequer is the admin. Impersonating the admin is both the
+ *  only way to flip the switch here and the path production takes, so the drill
+ *  gets more faithful rather than less. */
+const attachedOperator = async (controller) => {
+    const admin = await controller.admin();
+    const authority = admin === ethers.constants.AddressZero ? await controller.owner() : admin;
+    const signer = await getImpersonatedSigner(authority);
+    await setBalance(authority, ONE_RBTC);
+    return signer;
 };
 
 /** Deploy the hooked Zero BorrowerOperations implementation (built from
@@ -468,9 +524,15 @@ const deployedAddressOverrides = () => {
     return _overrides;
 };
 
-/** Attach to an already-deployed contract, refusing an address with no code. */
+/** Attach to an already-deployed contract, refusing an address with no code.
+ *
+ *  The address is checksummed first. It arrives as text from an operator-written
+ *  file, and ethers leaves `contract.address` exactly as passed — so a lowercase
+ *  address would flow into the identity comparisons downstream and fail them on
+ *  case alone, against a contract that is in fact the right one. */
 const attachDeployed = async (name, address, abi, signer) => {
-    const code = await ethers.provider.getCode(address);
+    const checksummed = ethers.utils.getAddress(address);
+    const code = await ethers.provider.getCode(checksummed);
     if (!code || code === "0x") {
         throw new Error(
             `PERIMETER_DEPLOYED_ADDRESSES gives ${name} = ${address}, which has no ` +
@@ -478,8 +540,8 @@ const attachDeployed = async (name, address, abi, signer) => {
                 `deployment.`
         );
     }
-    await deployments.save(name, { address, abi });
-    return new ethers.Contract(address, abi, signer);
+    await deployments.save(name, { address: checksummed, abi });
+    return new ethers.Contract(checksummed, abi, signer);
 };
 
 const deployLendingReleaseContracts = async (deployerSigner) => {
