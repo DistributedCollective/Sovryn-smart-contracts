@@ -9,7 +9,12 @@ const hre = require("hardhat");
 
 const { ethers, network } = hre;
 
-const AMM_ARTIFACTS = "/Users/den/sovryn/oracle-based-amm/solidity/build/contracts";
+// Built artifacts of the sibling oracle-based-amm checkout. Defaults to it
+// sitting beside this repo; override when it lives elsewhere. An absolute
+// path here only ever resolves on the machine that wrote it.
+const AMM_ARTIFACTS =
+    process.env.USDT0_AMM_ARTIFACTS ||
+    path.resolve(__dirname, "../../oracle-based-amm/solidity/build/contracts");
 const RSK_MAINNET_RPC = process.env.USDT0_AMM_FORK_URL || "https://mainnet-dev.sovryn.app/rpc";
 const FORK_BLOCK_NUMBER = process.env.USDT0_AMM_FORK_BLOCK
     ? Number(process.env.USDT0_AMM_FORK_BLOCK)
