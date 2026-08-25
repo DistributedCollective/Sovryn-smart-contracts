@@ -347,7 +347,7 @@ def main():
 def setExitFeeEnabled(enabled):
     exitFeeController = Contract.from_abi(
         "ExitFeeController",
-        address="0x99994b4522483de17f31a5bc010c5901add3440e",
+        address=conf.contracts["ExitFeeController"],
         abi=interface.IExitFeeController.abi,
         owner=conf.acct,
     )

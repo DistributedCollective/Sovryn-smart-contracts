@@ -147,6 +147,7 @@
     "FeeSharingCollectorProxyOld": "0x12B1B0C67d9A771EB5Db7726d23fdc6848fd93ef",
     "FeeSharingCollectorProxy": "0x115cAF168c51eD15ec535727F64684D33B7b08D1",
     "FeeSharingCollector": "0x724c40084d88f15166df1502D65C5300ac9f6A1C",
+    "ExitFeeController": "0x99994b4522483de17f31a5bc010c5901add3440e",
     "VestingRegistryProxy": "0xe24ABdB7DcaB57F3cbe4cBDDd850D52F143eE920",
     "VestingRegistryLogic": "0xF329d938801C0A6b7A63C8a02F4DA991b90040d5",
     "VestingCreator": "0xa003D9F781a498D90f489328612E74Af1027417f",
