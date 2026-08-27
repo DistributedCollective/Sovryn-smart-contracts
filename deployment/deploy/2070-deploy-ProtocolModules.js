@@ -19,18 +19,17 @@ const func = async function (hre) {
             sampleFunction: "setAffiliatesReferrer(address,address)",
             requireSwapsImplSovrynSwapLib: false,
         },*/
-        // NOT deployed in this release. LoanClosingsLiquidation has no source
-        // change and calls no changed shared function, so its runtime bytecode
-        // (metadata trailer stripped) is byte-identical to the module already
-        // registered on the protocol. Deploying it would place a duplicate of
-        // live code at a fresh address that the activation never registers —
-        // and would inflate the "code at every new address" deploy check with
-        // an address that is never used.
-        /*LoanClosingsLiquidation: {
+        // Ships this release. The liquidation payout stays direct and uncharged,
+        // but the module now threads a close-origin argument and compiles against
+        // the reshaped shared close base, so its runtime body (metadata trailer
+        // stripped) differs from the registered module — pinned in MUST_SHIP by
+        // tests/perimeter/ReleaseSet.pinned.test.js. Deploy and register it so the
+        // running bytecode matches the audited source.
+        LoanClosingsLiquidation: {
             moduleName: "LoanClosingsLiquidation",
             sampleFunction: "liquidate(bytes32,address,uint256)",
             requireSwapsImplSovrynSwapLib: false,
-        },*/
+        },
         LoanClosingsRollover: {
             moduleName: "LoanClosingsRollover",
             sampleFunction: "rollover(bytes32,bytes)",

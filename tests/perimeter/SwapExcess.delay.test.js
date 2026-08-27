@@ -8,8 +8,7 @@
  * **`swapAmount` is CALLER-selectable**, a stolen-borrower-key / forged-loan
  * exploiter can size the swap so ~the entire equity leaves through this refund,
  * escaping the security-perimeter delay window (the exact theft the perimeter
- * exists to catch). This leg was previously un-hooked ("rare overfill edge") —
- * The refund is rerouted into the ExitDelayQueue when `d > 0`, under the SAME
+ * exists to catch). The refund is rerouted into the ExitDelayQueue when `d > 0`, under the SAME
  * voluntary-only `_exitFeeChargeable` gate (rollover/liquidation stay direct),
  * via `_refundExcessCollateralWithDelay` -> `_maybeDelayBorrowerExit` (PUSH to
  * the queue through the `sovrynProtocol` singleton, then measured-delta record).
@@ -230,9 +229,8 @@ contract("Perimeter delay — closeWithSwap excess-collateral refund", (accounts
     // `returnTokenIsCollateral` is caller-selectable and picks which helper
     // settles a residual: false -> `_handleLoanTokenReturn` (covered above),
     // true -> `_handleCollateralReturn`. The second one pays its
-    // better-than-expected fill to the borrower, and it used to do so with a
-    // direct transfer; it now routes through `_payoutBorrowerExit` like every
-    // other borrower payout.
+    // better-than-expected fill to the borrower and routes it through
+    // `_payoutBorrowerExit` like every other borrower payout.
     //
     // There is deliberately NO regression for it: that branch fires only when
     // the swap DELIVERS MORE destination token than the principal needed, and

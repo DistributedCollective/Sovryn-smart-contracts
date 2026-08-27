@@ -141,7 +141,7 @@ interface IExitFeeController {
     ///         rawOriginator, owner)` (pays direct without touching the queue).
     ///         Otherwise resolves the surface-scoped effective actors, quotes on
     ///         `effOrig`, and returns all three — so the quote and the record use
-    ///         the SAME identity (Finding 2). The hook MUST ignore `effOrig` /
+    ///         the SAME identity. The hook MUST ignore `effOrig` /
     ///         `effOwner` and pay direct whenever `d == 0`.
     /// @return d        Delay seconds to escrow for (0 ⇒ off / inactive / bypassed).
     /// @return effOrig  Effective originator (raw, or passthrough→receiver).
