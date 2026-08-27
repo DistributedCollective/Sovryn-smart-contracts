@@ -1,5 +1,5 @@
 /**
- * Perimeter — the Phase-1 release set is pinned, and the omissions are justified.
+ * Perimeter — the release set is pinned, and the omissions are justified.
  *
  * Modules whose bytecode moved only in the metadata trailer stay OUT of the
  * release: their runtime code is byte-identical to what is already deployed, so
@@ -19,15 +19,30 @@ const { runtimeBodyWithoutMetadata } = require("../../deployment/helpers/helpers
 const DEPLOYMENTS = path.join(__dirname, "../../deployment/deployments/rskSovrynMainnet");
 const ARTIFACTS = path.join(__dirname, "../../artifacts/contracts");
 
-/// Perimeter-bearing protocol modules. These carry the renamed slots, surface
-/// ids or selectors, so their executable code really changed.
-const MUST_SHIP = ["LoanClosingsRollover", "LoanClosingsWith", "LoanMaintenance", "ExitFeeModule"];
+/// Perimeter-bearing protocol modules whose executable code differs from the
+/// deployed record: the charged closes, the split residuals, the perimeter
+/// module itself, and the liquidation module — which keeps its direct,
+/// uncharged payout but compiles against the reshaped shared close base.
+const MUST_SHIP = [
+    "ExitFeeModule",
+    "LoanClosingsLiquidation",
+    "LoanClosingsRollover",
+    "LoanClosingsWith",
+    "LoanMaintenance",
+];
 
-/// Protocol modules the rename touched only through an imported file. Their
-/// runtime code is unchanged; only the metadata fingerprint moved.
+/// Modules with no mainnet record under their own name: their code was carved
+/// out of deployed modules (closeWithSwap out of LoanClosingsWith, the view
+/// surface out of LoanMaintenance), so there is nothing to byte-compare against.
+/// They ship by construction. If a record for one of these ever appears, the
+/// module has been deployed and belongs in MUST_SHIP''s differs-from-record
+/// comparison instead.
+const NEW_MODULES = ["LoanClosingsWithSwap", "LoanMaintenanceViews"];
+
+/// Protocol modules touched only through an imported file. Their runtime code
+/// is unchanged; only the metadata fingerprint moved.
 const MUST_NOT_SHIP = [
     "Affiliates",
-    "LoanClosingsLiquidation",
     "LoanOpenings",
     "LoanSettings",
     "ProtocolSettings",
@@ -105,6 +120,18 @@ contract("Perimeter — pinned release set", () => {
                 body(current.deployedBytecode, null),
                 `${name} matches mainnet — is it still a perimeter consumer?`
             ).to.not.equal(body(record.deployedBytecode, record.libraries));
+        });
+    });
+
+    NEW_MODULES.forEach((name) => {
+        it(`${name} has no mainnet record and ships as a new module`, () => {
+            const p = path.join(DEPLOYMENTS, `${name}.json`);
+            expect(
+                fs.existsSync(p),
+                `${name} now has a mainnet record, so "new, ships by construction" ` +
+                    `no longer describes it. Move it to MUST_SHIP so its body is ` +
+                    `compared against what is deployed.`
+            ).to.be.false;
         });
     });
 
@@ -194,9 +221,10 @@ contract("Perimeter — pinned release set", () => {
         ).to.deep.equal([]);
     });
 
-    it("the two lists do not overlap", () => {
-        const overlap = MUST_SHIP.filter((m) => MUST_NOT_SHIP.includes(m));
-        expect(overlap, "a module cannot both ship and stay out").to.deep.equal([]);
+    it("the lists do not overlap", () => {
+        const all = MUST_SHIP.concat(MUST_NOT_SHIP, NEW_MODULES);
+        const overlap = all.filter((m, i) => all.indexOf(m) !== i);
+        expect(overlap, "a module cannot be classified twice").to.deep.equal([]);
     });
 
     /**
@@ -210,7 +238,7 @@ contract("Perimeter — pinned release set", () => {
     it("every protocol module the deployment knows about is classified here", () => {
         const { getProtocolModules } = require("../../deployment/helpers/helpers");
         const deployed = Object.values(getProtocolModules()).map((m) => m.moduleName);
-        const classified = MUST_SHIP.concat(MUST_NOT_SHIP);
+        const classified = MUST_SHIP.concat(MUST_NOT_SHIP, NEW_MODULES);
 
         const unclassified = deployed.filter((m) => !classified.includes(m));
         expect(
