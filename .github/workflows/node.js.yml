@@ -52,6 +52,11 @@ jobs:
         run: npm ci --parallel=1
       - name: Checking Formatting
         run: npm run lint &&  npm run prettier && npm run prettier-check
+      - name: Fix Hardhat compiler binary permissions
+        run: |
+          if [ -d "$HOME/.cache/hardhat-nodejs/compilers-v2/linux-amd64" ]; then
+            chmod +x "$HOME"/.cache/hardhat-nodejs/compilers-v2/linux-amd64/solc-linux-amd64-v* || true
+          fi
       - name: Running Test
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"

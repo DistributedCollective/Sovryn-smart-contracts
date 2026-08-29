@@ -344,6 +344,19 @@ def main():
     # checkTx(1344)
 
 
+def setExitFeeEnabled(enabled):
+    exitFeeController = Contract.from_abi(
+        "ExitFeeController",
+        address=conf.contracts["ExitFeeController"],
+        abi=interface.IExitFeeController.abi,
+        owner=conf.acct,
+    )
+    data = exitFeeController.setExitFeeEnabled.encode_input(enabled)
+    sendWithMultisig(
+        conf.contracts["multisig"], exitFeeController.address, data, conf.acct
+    )
+
+
 def guardiansTransfer():
     ####################################################################
     ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE SIP-0047 EXECUTION ###

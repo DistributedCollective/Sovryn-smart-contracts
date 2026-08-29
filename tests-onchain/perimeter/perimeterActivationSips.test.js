@@ -83,7 +83,10 @@ const FORK_BLOCK = forkBlock(9056400);
 // market moved a lot: the rate only has to stay within the protocol's swap
 // price-disagreement tolerance of the live AMM rate at the new block.
 const XUSD_WRBTC_RATE_AT_FORK_BLOCK = ethers.BigNumber.from("15435147683493");
-const RATE_BPS = 100; // 1% test policy on every surface
+/// Policy written onto a controller this run deploys itself. When the run
+/// ATTACHES to the deployed release instead, the rate comes off the shipped
+/// controller and this number is not used at all.
+const RATE_BPS_FOR_FRESH_DEPLOY = 100; // 1% test policy on every surface
 const PROPOSAL_STATE_QUEUED = 5; // GovernorAlpha.ProposalState.Queued
 const TEN_K = ethers.BigNumber.from(10000);
 const LOAN_DURATION = 28 * 24 * 60 * 60;
@@ -107,7 +110,10 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         // "ExitFeeController") and the hooked Zero BorrowerOperations built at
         // the audited zero-contracts-perimeter commit (record
         // "BorrowerOperationsPerimeter").
-        const stack = await deployPerimeterStack(context.deployerSigner, RATE_BPS);
+        const stack = await deployPerimeterStack(
+            context.deployerSigner,
+            RATE_BPS_FOR_FRESH_DEPLOY
+        );
         const hookedImpl = await deployHookedBorrowerOperationsImpl(context.deployerSigner);
         const poolImpl = await deployCollSurplusPoolImpl(context.deployerSigner);
 
@@ -130,6 +136,9 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         });
 
         const { context: ctx, stack: perimeterStack, hookedImpl, poolImpl } = await setupTest();
+        // The rate every fee assertion below is measured against: the policy the
+        // attached controller actually carries, or the one this run just wrote.
+        const RATE_BPS = perimeterStack.rateBps;
         const { deployer, deployerSigner, timelockOwner } = ctx;
 
         // ── Contract handles ───────────────────────────────────────────────
@@ -624,9 +633,14 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
             funderBefore.add(probe).sub(gasCost)
         );
 
-        // ── 2) ENABLE (Perimeter Safe action — the test's deployer owns the
-        //    controller) and re-run the same flows: they now charge. ────────
-        await (await perimeterStack.controller.setExitFeeEnabled(true)).wait();
+        // ── 2) ENABLE (Perimeter Safe action, performed by whoever holds the
+        //    controller's authority on this run) and re-run the same flows:
+        //    they now charge. ─────────────────────────────────────────────
+        await (
+            await perimeterStack.controller
+                .connect(perimeterStack.operator)
+                .setExitFeeEnabled(true)
+        ).wait();
 
         // 2a) Lender burn (native path): fee lands in the vault as native RBTC.
         vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);
@@ -1224,7 +1238,11 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         // Re-run one probe per PRODUCT that was charging above — lender exit,
         // borrower exit and Zero — so "stops charging" is proven where the
         // charging was proven, not only on the lending lender surface.
-        await (await perimeterStack.controller.setExitFeeEnabled(false)).wait();
+        await (
+            await perimeterStack.controller
+                .connect(perimeterStack.operator)
+                .setExitFeeEnabled(false)
+        ).wait();
 
         // 4a) Lending, lender exit (iToken burn).
         vaultRbtcBefore = await ethers.provider.getBalance(perimeterStack.vault.address);

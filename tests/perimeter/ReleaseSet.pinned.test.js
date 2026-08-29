@@ -1,5 +1,5 @@
 /**
- * Perimeter — the release set is pinned, and the omissions are justified.
+ * Perimeter — the Phase-1 release set is pinned, and the omissions are justified.
  *
  * Modules whose bytecode moved only in the metadata trailer stay OUT of the
  * release: their runtime code is byte-identical to what is already deployed, so
@@ -12,6 +12,7 @@
  */
 
 const { expect } = require("chai");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const { runtimeBodyWithoutMetadata } = require("../../deployment/helpers/helpers");
@@ -19,28 +20,41 @@ const { runtimeBodyWithoutMetadata } = require("../../deployment/helpers/helpers
 const DEPLOYMENTS = path.join(__dirname, "../../deployment/deployments/rskSovrynMainnet");
 const ARTIFACTS = path.join(__dirname, "../../artifacts/contracts");
 
-/// Perimeter-bearing protocol modules whose executable code differs from the
-/// deployed record: the charged closes, the split residuals, the perimeter
-/// module itself, and the liquidation module — which keeps its direct,
-/// uncharged payout but compiles against the reshaped shared close base.
+/**
+ * What mainnet runs, pinned.
+ *
+ * The comparison below needs the modules the protocol has REGISTERED, which a
+ * deployment record does not give: a record says what was last deployed, so
+ * deploying this release overwrites it and every shipping module then compares
+ * equal to itself. The baseline is frozen instead, and each entry was verified
+ * against the live code at its address. See the file's own note.
+ */
+const PRE_PERIMETER = require("./baselines/release-set.pre-perimeter-modules.json").modules;
+
+/// Perimeter-bearing protocol modules. These carry the renamed slots, surface
+/// ids or selectors, so their executable code really changed.
+// The delay line adds three shipping modules over the fee line: the two split
+// modules carved out of deployed ones (no pre-perimeter counterpart) and the
+// liquidation module, which keeps its direct uncharged payout but compiles
+// against the reshaped shared close base, so its body now differs from what
+// mainnet runs.
 const MUST_SHIP = [
-    "ExitFeeModule",
-    "LoanClosingsLiquidation",
     "LoanClosingsRollover",
     "LoanClosingsWith",
     "LoanMaintenance",
+    "ExitFeeModule",
+    "LoanClosingsLiquidation",
+    "LoanClosingsWithSwap",
+    "LoanMaintenanceViews",
 ];
 
-/// Modules with no mainnet record under their own name: their code was carved
-/// out of deployed modules (closeWithSwap out of LoanClosingsWith, the view
-/// surface out of LoanMaintenance), so there is nothing to byte-compare against.
-/// They ship by construction. If a record for one of these ever appears, the
-/// module has been deployed and belongs in MUST_SHIP''s differs-from-record
-/// comparison instead.
-const NEW_MODULES = ["LoanClosingsWithSwap", "LoanMaintenanceViews"];
+/// Shipping modules with nothing on mainnet to differ from. Derived, never
+/// hand-listed: a module that silently loses its baseline entry would otherwise
+/// move itself out of the comparison and into this exemption.
+const NEW_MODULES = MUST_SHIP.filter((name) => !PRE_PERIMETER[name]);
 
-/// Protocol modules touched only through an imported file. Their runtime code
-/// is unchanged; only the metadata fingerprint moved.
+/// Protocol modules the rename touched only through an imported file. Their
+/// runtime code is unchanged; only the metadata fingerprint moved.
 const MUST_NOT_SHIP = [
     "Affiliates",
     "LoanOpenings",
@@ -111,28 +125,40 @@ const compiled = (name) => {
     return artifact;
 };
 
+const bodyHash = (hex, libraries) =>
+    crypto.createHash("sha256").update(body(hex, libraries)).digest("hex");
+
 contract("Perimeter — pinned release set", () => {
-    MUST_SHIP.forEach((name) => {
-        it(`${name} differs from mainnet and must be in the release`, () => {
-            const record = deployedRecord(name);
+    MUST_SHIP.filter((name) => PRE_PERIMETER[name]).forEach((name) => {
+        it(`${name} differs from what mainnet runs and must be in the release`, () => {
             const current = compiled(name);
             expect(
-                body(current.deployedBytecode, null),
-                `${name} matches mainnet — is it still a perimeter consumer?`
-            ).to.not.equal(body(record.deployedBytecode, record.libraries));
+                bodyHash(current.deployedBytecode, null),
+                `${name} matches the module mainnet has registered ` +
+                    `(${PRE_PERIMETER[name].address}) — is it still a perimeter consumer?`
+            ).to.not.equal(PRE_PERIMETER[name].bodySha256);
         });
     });
 
-    NEW_MODULES.forEach((name) => {
-        it(`${name} has no mainnet record and ships as a new module`, () => {
-            const p = path.join(DEPLOYMENTS, `${name}.json`);
-            expect(
-                fs.existsSync(p),
-                `${name} now has a mainnet record, so "new, ships by construction" ` +
-                    `no longer describes it. Move it to MUST_SHIP so its body is ` +
-                    `compared against what is deployed.`
-            ).to.be.false;
-        });
+    /**
+     * A new module has no rollback anchor, so there is nothing to differ from
+     * and the comparison above cannot speak for it. Naming the exemption is
+     * what keeps it from growing: a module that quietly lost its baseline entry
+     * would fail here rather than exempt itself from the release set.
+     */
+    it("the shipping modules with no mainnet counterpart are the new module and the two splits", () => {
+        // ExitFeeModule is the Phase-1 admin module; the two split modules are
+        // carved out of deployed modules and have no registered predecessor.
+        expect(
+            NEW_MODULES,
+            `a shipping module has no entry in the pre-perimeter baseline, so nothing ` +
+                `checks that it differs from what mainnet runs. Either it is genuinely ` +
+                `new — add it here — or its baseline entry went missing and must be ` +
+                `restored from the registered target on chain.`
+        ).to.deep.equal(["ExitFeeModule", "LoanClosingsWithSwap", "LoanMaintenanceViews"]);
+        expect(deployedRecord("ExitFeeModule").address, "ExitFeeModule is not deployed").to.match(
+            /^0x[0-9a-fA-F]{40}$/
+        );
     });
 
     MUST_NOT_SHIP.forEach((name) => {
@@ -167,9 +193,13 @@ contract("Perimeter — pinned release set", () => {
      *
      * Its runtime body is byte-identical to the deployed one — only the
      * metadata trailer moved, because an imported interface changed — so a
-     * fresh copy would behave the same. It would also be unverifiable on
-     * Blockscout, whose verifier does not mask the call-protection
-     * self-address.
+     * fresh copy would behave the same and buy nothing.
+     *
+     * The linked copy is the one deployed 2026-08-13 and verified on
+     * Blockscout 2026-08-16 as a FULL match. An earlier copy, live since
+     * March, is verified only as a partial match; the release links the fully
+     * verified one deliberately, because a voter rebuilding a module's
+     * bytecode should land on source the explorer vouches for exactly.
      *
      * If the library's executable code ever does change, this fails and the
      * link-don't-deploy decision has to be revisited.
@@ -195,14 +225,12 @@ contract("Perimeter — pinned release set", () => {
          * unverified copy is silently accepted by the explorer and leaves an
          * unverifiable contract in the release's dependency graph.
          *
-         * The two entries below are existing deployments that link an older
-         * copy. They are listed so a NEW module linking a wrong copy still
-         * fails here. Empty this list once those two are redeployed.
+         * The list is empty, and that is the release's position: every shipping
+         * module links the verified copy. It stays here because an exemption
+         * that has to be written down is one a reviewer can argue with, whereas
+         * a missing mechanism is one nobody sees.
          */
-        const KNOWN_UNRELINKED = {
-            LoanClosingsRollover: "0xfe2bb2d345452673c4e90622147c4f515f2f4ce0",
-            LoanMaintenance: "0xfe2bb2d345452673c4e90622147c4f515f2f4ce0",
-        };
+        const KNOWN_UNRELINKED = {};
 
         const wrong = [];
         MUST_SHIP.forEach((name) => {
@@ -221,10 +249,9 @@ contract("Perimeter — pinned release set", () => {
         ).to.deep.equal([]);
     });
 
-    it("the lists do not overlap", () => {
-        const all = MUST_SHIP.concat(MUST_NOT_SHIP, NEW_MODULES);
-        const overlap = all.filter((m, i) => all.indexOf(m) !== i);
-        expect(overlap, "a module cannot be classified twice").to.deep.equal([]);
+    it("the two lists do not overlap", () => {
+        const overlap = MUST_SHIP.filter((m) => MUST_NOT_SHIP.includes(m));
+        expect(overlap, "a module cannot both ship and stay out").to.deep.equal([]);
     });
 
     /**
@@ -238,7 +265,7 @@ contract("Perimeter — pinned release set", () => {
     it("every protocol module the deployment knows about is classified here", () => {
         const { getProtocolModules } = require("../../deployment/helpers/helpers");
         const deployed = Object.values(getProtocolModules()).map((m) => m.moduleName);
-        const classified = MUST_SHIP.concat(MUST_NOT_SHIP, NEW_MODULES);
+        const classified = MUST_SHIP.concat(MUST_NOT_SHIP);
 
         const unclassified = deployed.filter((m) => !classified.includes(m));
         expect(
