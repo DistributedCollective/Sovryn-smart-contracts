@@ -1,6 +1,6 @@
 {
     "address": "0x99994b4522483de17f31a5bc010c5901add3440e",
-    "implementation": "0x50ec5c1c156cFA7E3007A0B0c97298e4f58a552D",
+    "implementation": "0x50EC5c1C156cfA7e3007a0b0C97298E4f58a552d",
     "abi": [
         {
             "type": "constructor",
