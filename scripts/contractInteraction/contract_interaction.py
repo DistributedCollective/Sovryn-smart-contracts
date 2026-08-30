@@ -342,6 +342,26 @@ def main():
     # setupTorqueLoanParams(conf.contracts['iXUSD'], "0x0000000000000000000000000000000000000000", conf.contracts['SOV'], Wei("20 ether"), )
     # checkTx(1344)
 
+
+    # Deploy iUSDT0 lending pool
+    deployLoanToken(
+        conf.contracts['USDT0'], # token address
+        'iUSDT0', # symbol
+        'iUSDT0', # name
+        6000000000000000000, # base rate
+        15000000000000000000, # rate multiplier
+        75000000000000000000, # kink level
+        150000000000000000000, # scale rate
+        [conf.contracts['WRBTC'], conf.contracts['SOV']] # collateral addresses
+    )
+    #setPriceFeed(conf.contracts['USDT0'], conf.contracts['USDTPriceFeed'])
+    #lendToPool(conf.contracts['iUSDT0'], conf.contracts['USDT0'], 5000e18)
+    #testBorrow(conf.contracts['sovrynProtocol'], conf.contracts['iUSDT0'], conf.contracts['USDT0'], conf.contracts['SOV'], 100e18)
+
+    # add liquidity to USDT0 pool
+    # addLiquidityV1( conf.contracts['ConverterUSDT0'], [conf.contracts['WRBTC'], conf.contracts['USDT0']], [0.0002e18,5e18])
+    
+
 def guardiansTransfer():
     ####################################################################
     ### THIS SCRIPT SHOULD RUN STRICTLY AFTER THE SIP-0047 EXECUTION ###

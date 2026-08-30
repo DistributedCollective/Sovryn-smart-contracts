@@ -277,6 +277,7 @@ const loanTokensList = [
     "LoanToken_iUSDT",
     "LoanToken_iBPRO",
     "LoanToken_iDLLR",
+    "LoanToken_iUSDT0",
 ];
 
 task("pausing:is-lending-pool-functions-paused", "Log Lending Pools functions paused/unpaused")
