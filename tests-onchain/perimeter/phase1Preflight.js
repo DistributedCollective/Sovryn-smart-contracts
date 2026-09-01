@@ -77,6 +77,16 @@ const findProposalByActions = async (governor, signatures, targets = [], matches
     return null;
 };
 
+/** True when the action list carries `signature` on `target` — the pair, not
+ *  the two independently. A proposal that touches the same address for another
+ *  reason, or runs the same signature against a different address, does not
+ *  count. */
+const hasAction = (actions, signature, target) =>
+    actions.signatures.some(
+        (candidate, i) =>
+            candidate === signature && actions.targets[i].toLowerCase() === target.toLowerCase()
+    );
+
 /** The Succeeded predicate of GovernorAlpha.state, evaluated off chain: the
  *  proposal carries its own quorum snapshot, while the majority share is a
  *  governor-wide setting. */
@@ -238,34 +248,47 @@ const settlePart = async (ctx, governorKey, proposalId, argsFunc) => {
 const ensurePhase1Executed = async (ctx) => {
     const result = {};
 
-    // Part 1: owner-side wiring, recognisable by the BorrowerOperations
-    // implementation swap. Its own controller pin sits on that same proxy,
-    // which is what separates it from the protocol-side pin of Part 2.
+    // Part 1: owner-side wiring. Neither half identifies it alone — the part
+    // swaps implementations on two different proxies, and re-registering a
+    // beacon module is ordinary maintenance — so it is the beacon
+    // registrations AND the BorrowerOperations swap together, each pinned to
+    // the address it must run against.
+    const beacons = [
+        (await deployments.get("LoanTokenLogicBeaconLM")).address,
+        (await deployments.get("LoanTokenLogicBeaconWrbtc")).address,
+    ];
+    const rewiresBothBeaconsAndTheProxy = (actions) =>
+        hasAction(actions, "setImplementation(address)", BO_PROXY) &&
+        beacons.every((beacon) => hasAction(actions, "registerLoanTokenModule(address)", beacon));
     const part1Id = await findProposalByActions(
         ctx.governorOwner,
-        ["setImplementation(address)"],
-        [BO_PROXY]
+        ["setImplementation(address)", "registerLoanTokenModule(address)"],
+        [BO_PROXY, ...beacons],
+        rewiresBothBeaconsAndTheProxy
     );
     result.part1 = await settlePart(ctx, "governorOwner", part1Id, "getArgsSip0094Part1");
 
     // Part 2: the activation pointer on the protocol. Must follow Part 1 —
     // the selector it routes through is registered by Part 1's execution.
+    // Part 1 runs the same signature against a different proxy and touches the
+    // protocol for other reasons, so the pair is what tells them apart.
     const protocolAddress = (await deployments.get("SovrynProtocol")).address;
     const part2Id = await findProposalByActions(
         ctx.governorOwner,
         ["setExitFeeController(address)"],
-        [protocolAddress]
+        [protocolAddress],
+        (actions) => hasAction(actions, "setExitFeeController(address)", protocolAddress)
     );
     result.part2 = await settlePart(ctx, "governorOwner", part2Id, "getArgsSip0094Part2");
 
     // Part 3: admin-side subsidy rate to zero on the CommunityIssuance.
     const communityIssuanceAddress = (await deployments.get("ZeroCommunityIssuance")).address;
-    const zeroesTheRate = ({ targets, signatures, datas }) =>
-        signatures.some(
+    const zeroesTheRate = (actions) =>
+        hasAction(actions, "setAPR(uint256)", communityIssuanceAddress) &&
+        actions.signatures.some(
             (signature, i) =>
                 signature === "setAPR(uint256)" &&
-                targets[i].toLowerCase() === communityIssuanceAddress.toLowerCase() &&
-                abiCoder.decode(["uint256"], datas[i])[0].isZero()
+                abiCoder.decode(["uint256"], actions.datas[i])[0].isZero()
         );
     const part3Id = await findProposalByActions(
         ctx.governorAdmin,
@@ -284,6 +307,7 @@ const ensurePhase1Executed = async (ctx) => {
 module.exports = {
     ensurePhase1Executed,
     findProposalByActions,
+    hasAction,
     finishProposal,
     collectStakerCandidates,
     winsTheVote,
