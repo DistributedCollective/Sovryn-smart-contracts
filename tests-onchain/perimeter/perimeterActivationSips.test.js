@@ -109,7 +109,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         // The `<TBD>` SIP inputs: the real 0.8.20 controller+vault (record
         // "ExitFeeController") and the hooked Zero BorrowerOperations built at
         // the audited zero-contracts-perimeter commit (record
-        // "BorrowerOperationsPerimeter").
+        // "BorrowerOperations_Implementation").
         const stack = await deployPerimeterStack(
             context.deployerSigner,
             RATE_BPS_FOR_FRESH_DEPLOY
@@ -1152,7 +1152,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
                 expect(
                     gap.gte(ethers.utils.parseEther("0.0004")),
                     "live queue floor ICR grazes the MCR — no room to open the probe " +
-                        "below it; re-pin COLFEE_FORK_BLOCK or fully redeem the floor trove first"
+                        "below it; re-pin PERIMETER_FORK_BLOCK or fully redeem the floor trove first"
                 ).to.be.true;
                 probeIcr = mcr.add(gap.div(2));
             }

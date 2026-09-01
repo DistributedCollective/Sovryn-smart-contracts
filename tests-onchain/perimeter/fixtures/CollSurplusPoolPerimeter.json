@@ -4,7 +4,7 @@
         "branch": "sovryn-perimeter-fee",
         "commit": "35eba1e",
         "compiler": "solc 0.6.11 via hardhat",
-        "note": "Perimeter surplus-claim CollSurplusPool (BO-only claimCollWithFee two-leg split; claimColl byte-untouched). Test-only fixture for the fork-based SIP tests; the production implementation is deployed from zero-contracts and saved as the CollSurplusPoolPerimeter record / COLFEE_ZERO_COLL_SURPLUS_POOL env (runbook §8, first-ever upgrade of the pool proxy)."
+        "note": "Perimeter surplus-claim CollSurplusPool (BO-only claimCollWithFee two-leg split; claimColl byte-untouched). Test-only fixture for the fork-based SIP tests; the production implementation is deployed from zero-contracts and saved as the CollSurplusPoolPerimeter record / PERIMETER_ZERO_COLL_SURPLUS_POOL env (runbook §8, first-ever upgrade of the pool proxy)."
     },
     "contractName": "CollSurplusPool",
     "abi": [

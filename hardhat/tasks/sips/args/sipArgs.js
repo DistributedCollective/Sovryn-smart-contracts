@@ -1592,20 +1592,20 @@ const assertDescriptionFinalized = (description) => {
  * INPUTS to these SIPs, not deployments of this repo. Resolution order:
  *   1. a hardhat-deploy record named "ExitFeeController" (the fork tests save
  *      one after deploying the stack in their setup);
- *   2. the COLFEE_EXIT_FEE_CONTROLLER env var (mainnet SIP creation).
+ *   2. the PERIMETER_EXIT_FEE_CONTROLLER env var (mainnet SIP creation).
  * Anything else throws — a SIP must never be proposed with a zero/garbage
  * controller pointer.
  */
 const resolveExitFeeControllerAddress = async (hre) => {
     const { ethers, deployments } = hre;
     const record = await deployments.getOrNull("ExitFeeController");
-    const envAddress = process.env.COLFEE_EXIT_FEE_CONTROLLER;
+    const envAddress = process.env.PERIMETER_EXIT_FEE_CONTROLLER;
     // F-8c: a stale record must never silently shadow the address the operator
     // exported. If both exist and disagree, fail — do not pick one silently.
     if (record && envAddress && record.address.toLowerCase() !== envAddress.toLowerCase()) {
         throw new Error(
             `Perimeter Fee: ExitFeeController record (${record.address}) and ` +
-                `COLFEE_EXIT_FEE_CONTROLLER (${envAddress}) disagree. Remove one — a stale ` +
+                `PERIMETER_EXIT_FEE_CONTROLLER (${envAddress}) disagree. Remove one — a stale ` +
                 "'ExitFeeController' record must not override the address you exported."
         );
     }
@@ -1613,7 +1613,7 @@ const resolveExitFeeControllerAddress = async (hre) => {
     if (!address || !ethers.utils.isAddress(address)) {
         throw new Error(
             "Perimeter Fee: ExitFeeController address unresolved. Save an 'ExitFeeController' " +
-                "deployment record or set COLFEE_EXIT_FEE_CONTROLLER=<address>. The controller " +
+                "deployment record or set PERIMETER_EXIT_FEE_CONTROLLER=<address>. The controller " +
                 "is deployed from the perimeter repo (see its UPGRADEABILITY.md §A) — it is an " +
                 "input to this SIP, not a deployment of this repo."
         );
@@ -1621,7 +1621,12 @@ const resolveExitFeeControllerAddress = async (hre) => {
     if ((await ethers.provider.getCode(address)) === "0x") {
         throw new Error(`Perimeter Fee: no contract code at ExitFeeController address ${address}`);
     }
-    await assertPerimeterCodehash(hre, address, "COLFEE_EXIT_FEE_CONTROLLER", "ExitFeeController");
+    await assertPerimeterCodehash(
+        hre,
+        address,
+        "PERIMETER_EXIT_FEE_CONTROLLER",
+        "ExitFeeController"
+    );
     return address;
 };
 
@@ -1680,9 +1685,9 @@ const resolveExitFeeControllerAddress = async (hre) => {
  * deployment/deploy/2070 (protocol modules) and 2061 (BorrowerExitPerimeterOps);
  * beacon module deployments from 2000; the hooked BorrowerOperations and the
  * new CollSurplusPool are built in zero-contracts (branch
- * sovryn-perimeter-fee) and resolve from "BorrowerOperationsPerimeter" /
- * "CollSurplusPoolPerimeter" records or COLFEE_ZERO_BORROWER_OPERATIONS /
- * COLFEE_ZERO_COLL_SURPLUS_POOL. The existing
+ * sovryn-perimeter-fee) and resolve from "BorrowerOperations_Implementation" /
+ * "CollSurplusPool_Implementation" records or PERIMETER_ZERO_BORROWER_OPERATIONS /
+ * PERIMETER_ZERO_COLL_SURPLUS_POOL. The existing
  * "BorrowerOperations_Implementation" record deliberately stays untouched —
  * it pins the pre-Perimeter implementation, i.e. the rollback target (the pool
  * proxy has NO prior implementation record at all — first-ever upgrade;
@@ -1807,8 +1812,8 @@ const getArgsSip0094Part1 = async (hre) => {
      *  claimCollateral path needs the pool's claimCollWithFee selector live
      *  strictly before any Safe activation of PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS;
      *  pool-side failures stay loud. */
-    const poolImplRecord = await getOrNull("CollSurplusPoolPerimeter");
-    const poolImplEnv = process.env.COLFEE_ZERO_COLL_SURPLUS_POOL;
+    const poolImplRecord = await getOrNull("CollSurplusPool_Implementation");
+    const poolImplEnv = process.env.PERIMETER_ZERO_COLL_SURPLUS_POOL;
     // F-8c: same record-vs-env divergence guard as the controller resolver.
     if (
         poolImplRecord &&
@@ -1817,7 +1822,7 @@ const getArgsSip0094Part1 = async (hre) => {
     ) {
         throw new Error(
             `Perimeter Fee: CollSurplusPoolPerimeter record (${poolImplRecord.address}) and ` +
-                `COLFEE_ZERO_COLL_SURPLUS_POOL (${poolImplEnv}) disagree. Remove one — a stale ` +
+                `PERIMETER_ZERO_COLL_SURPLUS_POOL (${poolImplEnv}) disagree. Remove one — a stale ` +
                 "record must not override the exported implementation address."
         );
     }
@@ -1826,7 +1831,7 @@ const getArgsSip0094Part1 = async (hre) => {
         throw new Error(
             "Perimeter Fee: new CollSurplusPool implementation unresolved. Save a " +
                 "'CollSurplusPoolPerimeter' deployment record or set " +
-                "COLFEE_ZERO_COLL_SURPLUS_POOL=<address> (built from zero-contracts " +
+                "PERIMETER_ZERO_COLL_SURPLUS_POOL=<address> (built from zero-contracts " +
                 "branch sovryn-perimeter-fee)."
         );
     }
@@ -1838,7 +1843,7 @@ const getArgsSip0094Part1 = async (hre) => {
     await assertPerimeterCodehash(
         hre,
         poolImplAddress,
-        "COLFEE_ZERO_COLL_SURPLUS_POOL",
+        "PERIMETER_ZERO_COLL_SURPLUS_POOL",
         "CollSurplusPool implementation"
     );
     const collSurplusPoolProxy = await ethers.getContract("CollSurplusPool_Proxy");
@@ -1860,8 +1865,8 @@ const getArgsSip0094Part1 = async (hre) => {
      *  exists only on this new implementation, so the two MUST stay in this
      *  order. Keeping them paired means the hooked BO is never live with an
      *  unset controller. */
-    const newImplRecord = await getOrNull("BorrowerOperationsPerimeter");
-    const newImplEnv = process.env.COLFEE_ZERO_BORROWER_OPERATIONS;
+    const newImplRecord = await getOrNull("BorrowerOperations_Implementation");
+    const newImplEnv = process.env.PERIMETER_ZERO_BORROWER_OPERATIONS;
     // F-8c: same record-vs-env divergence guard as the controller resolver.
     if (
         newImplRecord &&
@@ -1870,7 +1875,7 @@ const getArgsSip0094Part1 = async (hre) => {
     ) {
         throw new Error(
             `Perimeter Fee: BorrowerOperationsPerimeter record (${newImplRecord.address}) and ` +
-                `COLFEE_ZERO_BORROWER_OPERATIONS (${newImplEnv}) disagree. Remove one — a stale ` +
+                `PERIMETER_ZERO_BORROWER_OPERATIONS (${newImplEnv}) disagree. Remove one — a stale ` +
                 "record must not override the exported implementation address."
         );
     }
@@ -1879,7 +1884,7 @@ const getArgsSip0094Part1 = async (hre) => {
         throw new Error(
             "Perimeter Fee: hooked BorrowerOperations implementation unresolved. Save a " +
                 "'BorrowerOperationsPerimeter' deployment record or set " +
-                "COLFEE_ZERO_BORROWER_OPERATIONS=<address> (built from zero-contracts " +
+                "PERIMETER_ZERO_BORROWER_OPERATIONS=<address> (built from zero-contracts " +
                 "branch sovryn-perimeter-fee)."
         );
     }
@@ -1891,7 +1896,7 @@ const getArgsSip0094Part1 = async (hre) => {
     await assertPerimeterCodehash(
         hre,
         newImplAddress,
-        "COLFEE_ZERO_BORROWER_OPERATIONS",
+        "PERIMETER_ZERO_BORROWER_OPERATIONS",
         "BorrowerOperations implementation"
     );
     const borrowerOperationsProxy = await ethers.getContract("BorrowerOperations_Proxy");
@@ -1942,7 +1947,7 @@ const getArgsSip0094Part1 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0094 (Part 1): Perimeter Fee Activation and Adoption Fund Transfer — 1 of 3 executable parts (GovernorOwner). Executes the 10 Perimeter Fee installation actions: registers the exit-fee-hooked LM and WrbtcLM iToken beacon modules (2), replaces the LoanClosingsRollover, LoanClosingsWith and LoanMaintenance protocol modules (3), registers the ExitFeeModule admin module (1), sets BorrowerExitPerimeterOps (1), upgrades the Zero CollSurplusPool implementation (1), then upgrades the Zero BorrowerOperations implementation and wires its exit-fee controller in the same atomic transaction (2). Fee charging stays globally disabled throughout. Details: https://github.com/DistributedCollective/SIPS/blob/340148c/SIP-0094.md, sha256: 496b69a6761f4e41d5e551f9c9f3962570beaba9e4aeb66613265c97fe09c756",
+            "SIP-0094: Perimeter Fee Activation and Adoption Fund Transfer (Part 1 of 3 — GovernorOwner)\nhttps://forum.sovryn.com/t/sip-0094-parts-1-3-perimeter-fee-activation-and-adoption-fund-transfer/3590\nInstalls the Perimeter Fee code across lending and Zero in ten atomic actions; fee charging stays globally disabled.\n---\nExecutes the 10 Perimeter Fee installation actions: registers the exit-fee-hooked LM and WrbtcLM iToken beacon modules (2), replaces the LoanClosingsRollover, LoanClosingsWith and LoanMaintenance protocol modules (3), registers the ExitFeeModule admin module (1), sets BorrowerExitPerimeterOps (1), upgrades the Zero CollSurplusPool implementation (1), then upgrades the Zero BorrowerOperations implementation and wires its exit-fee controller in the same atomic transaction (2). Fee charging stays globally disabled throughout. Details: https://github.com/DistributedCollective/SIPS/blob/340148c/SIP-0094.md, sha256: 496b69a6761f4e41d5e551f9c9f3962570beaba9e4aeb66613265c97fe09c756",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorOwner" };
@@ -2201,7 +2206,7 @@ const getArgsSip0094Part2 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0094 (Part 2): Perimeter Fee Activation and Adoption Fund Transfer — 2 of 3 executable parts (GovernorOwner). Executes 3 actions: withdraws the Adoption Fund's fully-vested SOV to the timelock (1), forwards exactly that amount onward to the Exchequer Multisig (1), and pins the ExitFeeController on the Sovryn protocol as the final Perimeter Fee activation pointer (1). The Development Fund residue moves by a companion Exchequer multisig transaction, not by this proposal. Details: https://github.com/DistributedCollective/SIPS/blob/340148c/SIP-0094.md, sha256: 496b69a6761f4e41d5e551f9c9f3962570beaba9e4aeb66613265c97fe09c756",
+            "SIP-0094: Perimeter Fee Activation and Adoption Fund Transfer (Part 2 of 3 — GovernorOwner)\nhttps://forum.sovryn.com/t/sip-0094-parts-1-3-perimeter-fee-activation-and-adoption-fund-transfer/3590\nFinal controller wiring plus the Adoption Fund transfer to the Exchequer; the Development Fund moves by a companion multisig transaction.\n---\nExecutes 3 actions: withdraws the Adoption Fund's fully-vested SOV to the timelock (1), forwards exactly that amount onward to the Exchequer Multisig (1), and pins the ExitFeeController on the Sovryn protocol as the final Perimeter Fee activation pointer (1). The Development Fund residue moves by a companion Exchequer multisig transaction, not by this proposal. Details: https://github.com/DistributedCollective/SIPS/blob/340148c/SIP-0094.md, sha256: 496b69a6761f4e41d5e551f9c9f3962570beaba9e4aeb66613265c97fe09c756",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorOwner" };
@@ -2264,7 +2269,7 @@ const getArgsSip0094Part3 = async (hre) => {
         signatures: ["setAPR(uint256)"],
         data: [abiCoder.encode(["uint256"], [0])],
         description:
-            "SIP-0094 (Part 3): Perimeter Fee Activation and Adoption Fund Transfer — 3 of 3 executable parts (GovernorAdmin): retires the Zero Stability Pool SOV subsidy by setting the CommunityIssuance APR from 500 (5%) to 0. Existing accrued gains are unaffected; re-enabling is a later one-action proposal. Details: https://github.com/DistributedCollective/SIPS/blob/340148c/SIP-0094.md, sha256: 496b69a6761f4e41d5e551f9c9f3962570beaba9e4aeb66613265c97fe09c756",
+            "SIP-0094: Perimeter Fee Activation and Adoption Fund Transfer (Part 3 of 3 — GovernorAdmin)\nhttps://forum.sovryn.com/t/sip-0094-parts-1-3-perimeter-fee-activation-and-adoption-fund-transfer/3590\nRetires the Zero Stability Pool SOV subsidy by setting the CommunityIssuance APR to zero.\n---\nRetires the Zero Stability Pool SOV subsidy by setting the CommunityIssuance APR from 500 (5%) to 0. Existing accrued gains are unaffected; re-enabling is a later one-action proposal. Details: https://github.com/DistributedCollective/SIPS/blob/340148c/SIP-0094.md, sha256: 496b69a6761f4e41d5e551f9c9f3962570beaba9e4aeb66613265c97fe09c756",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorAdmin" };
@@ -2285,7 +2290,7 @@ const getArgsSip0094Part3 = async (hre) => {
  * a stale record must never shadow the address the operator exported.
  *
  * The env vars are deliberately `PERIMETER_*` while the frozen SIP-0094
- * builders read `COLFEE_*`. The two release shapes are alternatives that are
+ * builders read `PERIMETER_*`. The two release shapes are alternatives that are
  * never run together, and separate names mean a shell still holding one
  * shape's inputs fails loudly rather than half-resolving the other.
  */
