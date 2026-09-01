@@ -2289,10 +2289,20 @@ const getArgsSip0094Part3 = async (hre) => {
  * A record and an env var that disagree is an error, not a silent preference:
  * a stale record must never shadow the address the operator exported.
  *
- * The env vars are deliberately `PERIMETER_*` while the frozen SIP-0094
- * builders read `PERIMETER_*`. The two release shapes are alternatives that are
- * never run together, and separate names mean a shell still holding one
- * shape's inputs fails loudly rather than half-resolving the other.
+ * `PERIMETER_EXIT_FEE_CONTROLLER` is read by both this release shape and the
+ * frozen SIP-0094 builders, on purpose: it names the one ExitFeeController
+ * contract that is live in both phases, so there is nothing to disambiguate.
+ *
+ * The two Zero implementation inputs are different: SIP-0094 (frozen) and
+ * this release resolve to DIFFERENT deployed implementations — the Phase-1
+ * hooked contracts versus the Phase-2 ones — so this release reads
+ * `PERIMETER_DELAY_ZERO_BORROWER_OPERATIONS` /
+ * `PERIMETER_DELAY_ZERO_COLL_SURPLUS_POOL` while SIP-0094 keeps
+ * `PERIMETER_ZERO_BORROWER_OPERATIONS` / `PERIMETER_ZERO_COLL_SURPLUS_POOL`.
+ * The two release shapes are alternatives that are never run together, and
+ * giving their Zero inputs separate names means a shell still holding one
+ * shape's addresses fails loudly instead of resolving the other phase's
+ * implementation under the wrong release.
  */
 const resolvePerimeterInput = async (hre, recordName, envVar, label) => {
     const {
@@ -2591,13 +2601,13 @@ const getArgsSipPerimeterPart2 = async (hre) => {
     const poolImplAddress = await resolvePerimeterInput(
         hre,
         "CollSurplusPoolPerimeter",
-        "PERIMETER_ZERO_COLL_SURPLUS_POOL",
+        "PERIMETER_DELAY_ZERO_COLL_SURPLUS_POOL",
         "CollSurplusPool implementation"
     );
     const boImplAddress = await resolvePerimeterInput(
         hre,
         "BorrowerOperationsPerimeter",
-        "PERIMETER_ZERO_BORROWER_OPERATIONS",
+        "PERIMETER_DELAY_ZERO_BORROWER_OPERATIONS",
         "BorrowerOperations implementation"
     );
     const boOpsAddress = await resolvePerimeterInput(
